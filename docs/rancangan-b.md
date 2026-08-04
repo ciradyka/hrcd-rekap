@@ -343,7 +343,14 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
     lagi"; tidak ada yang hilang diam-diam.
 12. Teks UI = kalimat yang memang diucapkan operator, dengan serapan familiar
     (upload, preview, password — bukan unggah/pratinjau/kata sandi).
-13. **Ukuran dibedakan menurut konteks, bukan seragam.** Versi pertama memakai
+13. **Semua layar — termasuk layar panitia — wajib jalan di HP.** Panitia
+    memakai HP, bukan hanya laptop. Diperiksa terukur pada lebar 390 px untuk
+    keenam layar panitia: tidak ada elemen yang meluber, halaman tidak pernah
+    menggeser ke samping, dan tidak ada sasaran sentuh di bawah 36 px. Tabel
+    lebar menggeser di dalam kartunya sendiri, bukan menyeret seluruh halaman;
+    di HP kepala memecah judul ke barisnya sendiri agar tombol tetap terjangkau
+    jempol.
+14. **Ukuran dibedakan menurut konteks, bukan seragam.** Versi pertama memakai
     ukuran "meja" (tubuh 18px, input 23px, sasaran sentuh 56px) untuk semua
     layar; hasilnya form pendaftaran menjadi 4,1 layar HP penuh — panitia
     mengeluh kebanyakan menggulir. Sekarang:
@@ -426,10 +433,24 @@ terlalu lama."*
 Panitia kertas dan panitia laptop duduk bersebelahan, tetapi perannya
 berkebalikan di dua meja:
 
-| | Pencatat utama | Peran laptop | Jam masuk lewat |
+| | Pencatat utama | Peran kertas | Jam masuk lewat |
 | --- | --- | --- | --- |
-| **Keberangkatan (staging)** | Kertas — dicentang, sisipan ditulis tangan, jam kloter dicatat | **Verifikasi** kertas | **Diketik** (menyalin) |
-| **Kedatangan (finish)** | Laptop | Mencatat langsung | **Tombol** (jam saat ditekan) |
+| **Keberangkatan (staging)** | **Kertas** — dicentang, sisipan ditulis tangan, jam kloter dicatat | Sumber; laptop menyalin | **Diketik** |
+| **Kedatangan (finish)** | **Laptop** — tombol | Cek silang saja | **Tombol** (jam saat ditekan) |
+
+Di finish ada penulisan manual juga, **tetapi hanya untuk verifikasi** —
+tombol laptop tetap pencatat utamanya. Karena itu kolom jam dan jumlah anggota
+sengaja **tidak** disejajarkan dengan tombol: keduanya dipakai saat
+memperbaiki hasil cek silang, bukan pada tiap regu. Menaikkannya ke jalur
+utama akan merusak target dua-aksi.
+
+**Selisih semenit dua menit antara kertas dan tombol itu wajar** — menekan
+tombol bisa terlambat sedikit. Yang perlu diketahui panitia bukan "beda berapa
+menit", melainkan **apakah bedanya mengubah penalti**; karena penalti
+dibulatkan per 10 menit, biasanya tidak. Layar finish menjawab itu langsung:
+mengisi kolom jam memunculkan lencana **hijau** ("1 menit lebih awal — penalti
+tetap −10") atau **kuning** ("15 menit lebih awal — penalti berubah −10 → 0").
+Hanya yang kuning yang perlu diperdebatkan.
 
 Karena itu layar keberangkatan harus enak dipakai untuk **menyalin** dari
 kertas — jam wajib bisa diketik, dan urutan di layar mengikuti urutan di
