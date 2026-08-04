@@ -302,12 +302,17 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 
 ## 8. Rekomendasi
 
-> **Koreksi (Agustus 2026):** revisi sebelumnya salah mencatat "panitia
-> mencoret Kandidat A" — **panitia tidak pernah mencoretnya**. Yang benar:
-> panitia menyukai solusi Sheets (dipakai 7 tahun) dan meminta kandidat ini
-> diuji jujur terhadap tiga permintaan terbaru, karena bisa jadi Sheets mampu.
-> Hasil ujiannya di bagian 8.3 — ringkasnya: **ketiganya bisa**. Kandidat A
-> tetap pilihan yang hidup.
+> **KEPUTUSAN PANITIA (Agustus 2026): Kandidat B dieksekusi.** Setelah ujian
+> jujur Kandidat A di bagian 8.3 (ketiga permintaan terbaru terbukti bisa
+> dilakukan Sheets), panitia memilih B secara eksplisit, dengan satu syarat
+> yang dipegang sebagai kebutuhan keras: **UI/UX harus mudah — panitia bisa
+> diajari selama tampilannya mudah.** Google Sheets tidak dibuang: ia tetap
+> hidup sebagai jendela baca (bagian 8.1). Frontend di Cloudflare
+> (bagian 8.2). Rancangan detail menyusul di `rancangan-b.md`.
+
+> Catatan riwayat: revisi sebelumnya sempat salah mencatat "panitia mencoret
+> Kandidat A" — panitia tidak pernah mencoretnya; keputusan baru diambil
+> setelah ujian bagian 8.3 tersedia.
 
 1. **Rekomendasi utama: Kandidat B (Supabase + Cloudflare Pages).**
    Alasannya satu kalimat: **tiga kebutuhan yang paling berbahaya kalau salah
