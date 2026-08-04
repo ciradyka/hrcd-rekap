@@ -236,6 +236,19 @@ Postgres — layar tidak pernah menulis "setengah jadi":
     lagi"; tidak ada yang hilang diam-diam.
 12. Teks UI = kalimat yang memang diucapkan operator, dengan serapan familiar
     (upload, preview, password — bukan unggah/pratinjau/kata sandi).
+13. **Ukuran dibedakan menurut konteks, bukan seragam.** Versi pertama memakai
+    ukuran "meja" (tubuh 18px, input 23px, sasaran sentuh 56px) untuk semua
+    layar; hasilnya form pendaftaran menjadi 4,1 layar HP penuh — panitia
+    mengeluh kebanyakan menggulir. Sekarang:
+    - **Tubuh 16px, input 17px, sasaran sentuh 46px** — padat di HP, masih di
+      atas ambang sentuh 44px.
+    - **Angka yang dibacakan atau dicatat tetap besar**: nomor dada di hasil
+      daftar ulang justru dinaikkan (2,3rem), kode pembayaran 2,1rem.
+    - **Batas keras: font kotak isian minimal 16px.** Di bawah itu iOS Safari
+      memaksa zoom setiap kali isian disentuh — halaman melompat-lompat, persis
+      masalah yang ingin dihindari.
+    - Hasil terukur: form pendaftaran 5 regu turun dari 3.429px menjadi
+      2.242px pada lebar 390px (**−35%**, dari 4,1 layar jadi 2,7 layar).
 
 ### 10.2 Inventaris layar
 
