@@ -62,7 +62,10 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    stok fisik yang sudah disiapkan sebelumnya. Karena nomor dada diambil dari
    stok saat itu juga dan meja daftar ulang lebih dari satu, satu nomor dada
    tidak boleh terpakai dua kali.
-5. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
+5. **Pengambilan nomor dada dilakukan sekaligus per sekolah**, bukan satu regu
+   satu kali. Sekolah dengan 10 regu mengambil 10 nomor dada dalam satu
+   transaksi di meja. Ini menjadi dasar pembagian kloter — lihat bagian 5.
+6. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
    petugas lapangan (bagian 8.4).
 
 ## 5. Kloter dan kontrak waktu
@@ -73,9 +76,28 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    regu. Kloter 31–40 dibuka hanya jika terisi, dan kloter terakhir boleh tidak
    penuh.
 3. Kloter ditentukan **otomatis** begitu regu menerima nomor dada.
-4. Penempatan kloter **diacak dengan sengaja**. Satu sekolah bisa mengirim
-   puluhan regu, dan mereka tidak boleh berangkat bersamaan.
-5. Setiap regu memilih **kontrak waktu**: 3,5 / 4 / 4,5 jam. Kontrak dipilih per
+4. **Tujuan pembagian kloter: sesedikit mungkin regu dari sekolah yang sama
+   berada dalam satu kloter.** Alasannya bukan teknis melainkan sportivitas —
+   regu satu sekolah yang berangkat bersamaan cenderung bercengkerama di
+   sepanjang rute alih-alih berlomba.
+5. **Cara pembagiannya bertumpu pada pengambilan nomor dada per sekolah**
+   (bagian 4.5). Sekolah yang mengambil 10 nomor dada langsung disebar ke 10
+   kloter berbeda; sekolah yang mengambil 5 nomor dada disebar ke 5 kloter
+   berbeda. Dengan begitu satu sekolah tidak pernah menumpuk di satu kloter
+   selama jumlah regunya tidak melebihi jumlah kloter.
+6. **Jarak antar kloter boleh dilompati, tidak harus berurutan.** Sekolah dengan
+   10 regu dapat ditempatkan di kloter 1, 3, 5, 7, 9, 11, dan seterusnya.
+   Alasannya: kloter berdampingan hanya terpaut 3–5 menit, sehingga dua regu
+   satu sekolah di kloter 1 dan 2 masih mudah saling menyusul di rute. Lompatan
+   dua kloter memberi jarak 6–10 menit.
+7. Besar lompatan ini termasuk yang **dapat diatur panitia**, karena bergantung
+   pada jumlah peserta: makin banyak sekolah besar, makin sempit ruang untuk
+   melompat.
+8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
+   dan putri, dapat berangkat dalam kloter yang sama; pemisahan hanya berlaku
+   pada penilaian. Komposisi peserta biasanya sekitar **70% Penegak dan 30%
+   Penggalang**.
+9. Setiap regu memilih **kontrak waktu**: 3,5 / 4 / 4,5 jam. Kontrak dipilih per
    regu, sehingga satu kloter bisa berisi regu dengan kontrak berbeda-beda.
    Kontrak baru dikonfirmasi **di garis start**, bukan saat daftar ulang —
    lihat bagian 6.
@@ -109,25 +131,27 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 1. Terdapat **5 pos utama** di sepanjang rute, masing-masing dengan soal dan
    wahana yang berbeda.
-2. Di setiap pos regu mengerjakan:
+2. Selain itu ada **pos bayangan**. Pos bayangan umumnya tidak memiliki wahana
+   dan **tidak dinilai**, sehingga tidak dimodelkan oleh sistem sama sekali.
+3. Di setiap pos utama regu mengerjakan:
    - **Soal kertas** — dinilai petugas lapangan di lembar cetak.
    - **Wahana** — tantangan fisik seperti merangkak, berlari, atau memanjat,
      berbeda-beda tergantung pos.
-3. Setiap pos dijaga **minimal 5 orang tim lapangan** dan **2 operator IT**
+4. Setiap pos dijaga **minimal 5 orang tim lapangan** dan **2 operator IT**
    dengan laptop.
-4. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
+5. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
    daya**.
-5. **Penumpukan di pos adalah hal yang wajar dan sebagian memang disengaja.**
+6. **Penumpukan di pos adalah hal yang wajar dan sebagian memang disengaja.**
    Kemampuan regu beradaptasi ketika pos padat — mempercepat langkah untuk
    mengejar kontrak waktu — termasuk yang diuji dalam lomba. Sebuah pos tidak
    harus menghabiskan satu kloter sebelum kloter berikutnya tiba.
-6. Yang harus dijaga hanyalah agar penumpukan **tidak berlebihan**. Ada
+7. Yang harus dijaga hanyalah agar penumpukan **tidak berlebihan**. Ada
    toleransi, tetapi antrean tidak boleh menumpuk terlalu jauh.
-7. Karena itu wahana dirancang agar **tidak terlalu sulit**. Dua pengendali yang
+8. Karena itu wahana dirancang agar **tidak terlalu sulit**. Dua pengendali yang
    dipakai panitia:
    - **Batas waktu maksimal** pengerjaan wahana per pos.
    - **Beberapa wahana paralel** dalam satu pos.
-8. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
+9. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
    dilakukan. Lihat bagian 13.
 
 ## 8. Pencatatan dan input nilai
@@ -139,9 +163,21 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    - Wahana lari — ditulis `40` untuk 40 detik.
    - Wahana lempar — ditulis `3` untuk 3 kali kena.
    - Soal — jumlah jawaban benar, ditandai centang, atau waktu penyelesaian.
-3. Lembar nilai diserahkan ke operator IT di pos, lalu diinput ke sistem dengan
-   kunci **nomor dada**.
-4. Lembar nilai **dicetak sistem** setelah daftar ulang ditutup, sudah terisi
+3. **Lembar nilai tidak berpindah tangan secara fisik.** Petugas lapangan
+   **memfoto lembar secara berkala** dan mengirimkan fotonya ke operator IT di
+   pos. Dengan begitu nilai mengalir sepanjang lomba, bukan menumpuk sampai pos
+   tutup.
+4. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, melalui dua
+   jalur:
+   - **Input manual**, satu regu satu kali.
+   - **Unggah massal.** Tim IT boleh memakai AI untuk mengubah foto lembar
+     menjadi tabel Excel, lalu menyalin atau mengunggahnya ke sistem.
+5. Karena jalur kedua bergantung pada pembacaan otomatis yang bisa salah,
+   **unggah massal wajib melewati layar pratinjau** yang menampilkan apa saja
+   yang akan berubah dan menandai kejanggalan — nomor dada tidak dikenal, nilai
+   di luar rentang wajar, atau baris ganda. Data hasil transkripsi otomatis
+   tidak boleh masuk langsung ke perhitungan skor tanpa dikonfirmasi manusia.
+6. Lembar nilai **dicetak sistem** setelah daftar ulang ditutup, sudah terisi
    identitas regu, menyisakan kolom kosong untuk diisi petugas. Formatnya
    seperti:
 
@@ -151,12 +187,12 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    001 - Rajawali - SMPN 1 Purwadadi - Penggalang PA - V
    ```
 
-5. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
+7. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
-6. **Setiap pos memiliki tautan input sendiri**, yang hanya dapat dibuka dengan
+8. **Setiap pos memiliki tautan input sendiri**, yang hanya dapat dibuka dengan
    akun dan kata sandi khusus pos tersebut. Operator sebuah pos tidak dapat
    menyentuh nilai pos lain.
-7. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
+9. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
    dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
    bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
    ketika ada yang janggal.
@@ -225,15 +261,27 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 2. Kebutuhan barak ditanyakan sejak formulir pendaftaran (bagian 3.2).
 3. Diusahakan **satu ruangan untuk satu sekolah** agar koordinasi lebih mudah.
 4. Sekolah dengan jumlah peserta sedikit boleh digabung dengan sekolah lain.
+5. **Sistem yang menyusun penempatannya**, bukan sekadar mendaftar siapa yang
+   membutuhkan. Berarti sistem perlu mengetahui daftar ruangan beserta
+   kapasitasnya, lalu menempatkan sekolah ke ruangan dengan mengutamakan aturan
+   3 dan menerapkan aturan 4 hanya bila terpaksa.
 
 ## 12. Tata letak meja dan kelenturan peran
 
 1. Jumlah meja: pendaftaran 2–3, pembayaran 2–3, daftar ulang 2–3.
-2. Setiap meja dijaga 1–2 orang.
-3. **Meja dapat berubah fungsi.** Jika terjadi penumpukan di satu jenis meja,
+2. **Meja closing hanya 1, paling banyak 2.**
+3. Ketika meja closing menumpuk, panitia **mencatat jam datang di kertas** lebih
+   dahulu, lalu memasukkannya ke sistem menyusul dan menyuntingnya bila perlu.
+4. Konsekuensi penting bagi sistem: **jam datang adalah waktu yang diketik
+   panitia, bukan cap waktu server saat data disimpan.** Bila sistem menandai
+   waktu sendiri saat penyimpanan, regu yang dicatat 20 menit setelah tiba akan
+   dihukum atas keterlambatan yang tidak pernah terjadi. Kolom jam datang wajib
+   dapat diisi dan diubah secara manual.
+5. Setiap meja dijaga 1–2 orang.
+6. **Meja dapat berubah fungsi.** Jika terjadi penumpukan di satu jenis meja,
    meja lain dialihkan — misalnya seluruh meja menjadi meja daftar ulang.
    Sistem tidak boleh mengunci operator atau perangkat pada satu peran.
-4. Prinsip menyeluruh yang diminta panitia: sistem harus dirancang sedemikian
+7. Prinsip menyeluruh yang diminta panitia: sistem harus dirancang sedemikian
    rupa **supaya tidak terjadi penumpukan**. Semakin cepat panitia menginput,
    semakin cepat nilai keluar.
 
@@ -259,6 +307,9 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
    Data yang diperlukan untuk analisis ini, per pos: berapa regu dapat
    mengerjakan wahana secara serentak, dan berapa batas waktu pengerjaannya.
+
+   Besar lompatan kloter (bagian 5.6) juga ditentukan di analisis yang sama,
+   karena bergantung pada interval keberangkatan.
 2. **Bentuk rumus konversi data mentah menjadi poin.** Belum ditentukan, dan
    panitia menegaskan **semua kombinasi mungkin terjadi**. Bentuk yang sudah
    disebut:
