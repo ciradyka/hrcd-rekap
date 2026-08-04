@@ -96,6 +96,18 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    dengan laptop.
 4. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
    daya**.
+5. **Penumpukan di pos adalah hal yang wajar dan sebagian memang disengaja.**
+   Kemampuan regu beradaptasi ketika pos padat — mempercepat langkah untuk
+   mengejar kontrak waktu — termasuk yang diuji dalam lomba. Sebuah pos tidak
+   harus menghabiskan satu kloter sebelum kloter berikutnya tiba.
+6. Yang harus dijaga hanyalah agar penumpukan **tidak berlebihan**. Ada
+   toleransi, tetapi antrean tidak boleh menumpuk terlalu jauh.
+7. Karena itu wahana dirancang agar **tidak terlalu sulit**. Dua pengendali yang
+   dipakai panitia:
+   - **Batas waktu maksimal** pengerjaan wahana per pos.
+   - **Beberapa wahana paralel** dalam satu pos.
+8. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
+   dilakukan. Lihat bagian 13.
 
 ## 8. Pencatatan dan input nilai
 
@@ -183,12 +195,26 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 ## 13. Yang belum diputuskan
 
-1. **Interval keberangkatan antar kloter.** Biasanya 3–5 menit. Panitia meminta
-   angka ini dianalisis, bukan ditebak. Interval yang stabil dibatasi oleh pos
-   paling lambat: agar antrean tidak tumbuh, interval harus lebih besar atau
-   sama dengan waktu yang dibutuhkan sebuah pos untuk melayani 10 regu. Untuk
-   menghitungnya diperlukan dua angka per pos — berapa regu dapat dilayani
-   serentak, dan berapa lama satu regu berada di pos tersebut.
+1. **Skema wahana dan interval keberangkatan.** Ditunda sebagai analisis
+   tersendiri; akan dibahas terpisah bersama panitia. Interval biasanya 3–5
+   menit, tetapi angkanya belum ditetapkan.
+
+   Kerangka perhitungan yang akan dipakai nanti, dicatat di sini agar siap
+   dipakai. Kapasitas sebuah pos adalah `jumlah jalur / batas waktu wahana`
+   regu per menit, sedangkan arus masuk dari keberangkatan adalah
+   `10 / interval` regu per menit. Supaya antrean tidak tumbuh terus-menerus:
+
+   ```
+   jumlah jalur >= (10 * batas waktu wahana) / interval keberangkatan
+   ```
+
+   Karena penumpukan sedang memang ditoleransi (bagian 7.5), kapasitas boleh
+   sedikit di bawah angka itu — tetapi kekurangan kapasitas berdampak
+   berlipat pada kloter belakang, sehingga besarnya toleransi perlu dihitung,
+   bukan dikira-kira.
+
+   Data yang diperlukan untuk analisis ini, per pos: berapa regu dapat
+   mengerjakan wahana secara serentak, dan berapa batas waktu pengerjaannya.
 2. **Bentuk rumus konversi data mentah menjadi poin.** Baru dua bentuk yang
    diketahui: makin kecil makin baik (waktu) dan makin besar makin baik (jumlah
    kena). Bentuk lain yang mungkin perlu didukung — berhasil/gagal, nilai
