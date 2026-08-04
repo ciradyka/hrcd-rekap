@@ -247,3 +247,13 @@ export const tukarNomor = (reguId, nomorBaru, alasan) =>
 
 export const ubahPendamping = (kode, jumlah) =>
   rpc("ubah_pendamping", { p_kode: kode, p_jumlah: jumlah });
+
+/* ============================ CETAK KLOTER ============================== */
+
+export async function daftarKloter() {
+  if (K.mode === "dev") return baca("/kloter");
+  return baca(null, "v_daftar_kloter?select=*&order=kloter.asc,urutan.asc");
+}
+
+export const tandaiKloterDicetak = (nomorKloter) =>
+  rpc("tandai_kloter_dicetak", { p_kloter: nomorKloter || null });

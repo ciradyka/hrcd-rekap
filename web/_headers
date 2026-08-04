@@ -1,0 +1,28 @@
+# ============================================================================
+# hrcd-rekap : _headers — aturan cache untuk Cloudflare Pages.
+#
+# Kenapa ini penting: saat pengujian, browser menyajikan gaya.css dan app.js
+# versi LAMA dari cache sehingga perbaikan tidak terlihat sama sekali. Kalau
+# itu terjadi pada panitia di hari-H — misal ada perbaikan mendadak jam 07.00 —
+# mereka akan memakai versi lama tanpa tahu, dan tidak ada yang menyadarinya.
+#
+# Aset di sini kecil (<100 KB seluruhnya), jadi memaksa browser bertanya dulu
+# ke server tiap kali hampir tidak berbiaya. no-cache berarti "boleh disimpan,
+# tapi WAJIB divalidasi ulang" — jauh lebih murah daripada no-store.
+# ============================================================================
+
+/*
+  Cache-Control: no-cache
+
+/*.js
+  Cache-Control: no-cache
+  Content-Type: text/javascript; charset=utf-8
+
+/*.css
+  Cache-Control: no-cache
+  Content-Type: text/css; charset=utf-8
+
+# live.json diperbarui GitHub Actions tiap beberapa menit; halaman publik
+# memuat ulang sendiri, jadi cukup singkat saja.
+/live.json
+  Cache-Control: max-age=30
