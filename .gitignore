@@ -1,0 +1,23 @@
+# JetBrains IDEs (IntelliJ IDEA / PhpStorm)
+.idea/
+*.iml
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Dependencies & build output
+node_modules/
+vendor/
+dist/
+build/
