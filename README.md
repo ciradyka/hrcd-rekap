@@ -43,6 +43,14 @@ mencakup: nomor dada ganda tertolak, kapasitas kloter, RLS per pos, alur
 lengkap daftar → bayar → daftar ulang → berangkat → nilai → closing, dan
 kecocokan mesin skor dengan contoh angka di `docs/rancangan-b.md`.
 
+Uji konkurensi terpisah membuktikan beberapa meja daftar ulang yang menekan
+tombol serentak tidak pernah menghasilkan nomor dada ganda:
+
+```bash
+bash tests/dev_db.sh            # siapkan database hrcd_dev
+python tests/uji_konkurensi.py  # 30 koneksi serentak memperebutkan 300 nomor
+```
+
 ## Kontribusi
 
 Semua perubahan lewat branch + pull request — konvensi lengkap di `CLAUDE.md`.
