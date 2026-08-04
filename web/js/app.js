@@ -417,8 +417,10 @@ function layarDaftarUlang() {
           <table class="tabel" style="background:#fff;border-radius:8px;margin-top:.6rem">
             ${hasil.map(r => html`
               <tr>
-                <td class="angka" style="font-size:2rem">${String(r.nomor_dada).padStart(3, "0")}</td>
-                <td><strong style="font-size:1.2rem">${r.nama_regu}</strong><br>
+                <!-- Nomor dada DIBACAKAN sambil menyerahkan nomor fisik —
+                     ini satu-satunya angka yang sengaja tidak ikut diperkecil. -->
+                <td class="angka" style="font-size:2.3rem;line-height:1.1">${String(r.nomor_dada).padStart(3, "0")}</td>
+                <td><strong style="font-size:1.1rem">${r.nama_regu}</strong><br>
                     <span class="keterangan">${GOLONGAN_LABEL[r.golongan] || r.golongan}</span></td>
                 <td><span class="lencana lencana-abu">Kloter ${r.kloter}</span></td>
               </tr>`).join("")}
