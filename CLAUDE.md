@@ -1,0 +1,81 @@
+# CLAUDE.md
+
+Guidance for Claude Code when working in this repository.
+
+## 1. Branching
+
+1. Never commit directly to `main`. All work lands through a pull request.
+2. Branch off the latest `main`:
+   ```bash
+   git checkout main && git pull
+   git checkout -b <type>/<short-description>
+   ```
+3. Name branches `<type>/<short-description>` in kebab-case — for example
+   `feat/rekap-export`, `fix/duplicate-rows`, `docs/claude-md`.
+4. Use the same `<type>` vocabulary as commits: `feat`, `fix`, `chore`, `docs`,
+   `refactor`, `test`.
+
+## 2. Commits
+
+1. Write the subject as `<type>: <what changed>`, imperative mood, no trailing
+   period, ideally under 72 characters.
+2. Add a body when the change needs a *why*. Wrap it at 72 columns and separate
+   it from the subject with a blank line.
+3. End every commit message with the co-author trailer:
+   ```
+   Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+   ```
+4. Keep a commit to one logical change. Do not bundle unrelated edits.
+
+## 3. Creating the pull request
+
+1. Push the branch and set upstream:
+   ```bash
+   git push -u origin HEAD
+   ```
+2. Open the PR against `main` with `gh`:
+   ```bash
+   gh pr create --base main --head <branch> --title "<type>: <what changed>" --body "..."
+   ```
+3. The PR title is what ends up in `main`'s history — see section 4.2 — so make
+   it read well on its own.
+4. Structure the body with a **What** section and a **Why** section. Add
+   **Notes** only when there is a caveat worth flagging.
+5. End the PR body with:
+   ```
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   ```
+6. Only create or push a PR when the user has asked for it.
+
+## 4. Merging to `main`
+
+1. Always merge with a **merge commit** (`--merge`, i.e. `--no-ff`). Never
+   `--squash`, never `--rebase` — every PR must stay a distinct merge point with
+   two parents in `main`'s history.
+2. The merge commit subject must be the PR title followed by the PR number:
+   `<PR title> (#<number>)`.
+3. The one command that satisfies both rules:
+   ```bash
+   gh pr merge <number> --merge --subject "<PR title> (#<number>)" --delete-branch
+   ```
+4. Never omit `--subject`. Without it GitHub writes
+   `Merge pull request #N from <branch>`, which buries the title.
+5. `--delete-branch` removes the remote branch and switches back to `main`. Run
+   `git remote prune origin` afterwards to clear the stale local ref.
+6. Verify the result — the merge commit must report two parents:
+   ```bash
+   git log --graph --oneline -5
+   git rev-list --parents -n1 HEAD   # expect: <merge> <parent1> <parent2>
+   ```
+7. Merging is a user decision. Do not merge unless the user asked for it.
+
+## 5. Repository facts
+
+1. Remote: `https://github.com/ciradyka/hrcd-rekap` (private).
+2. Default branch: `main`. It has **no** branch protection, and squash and
+   rebase merges are still enabled on the repo — section 4 is a convention, not
+   something GitHub enforces. Follow it deliberately.
+3. Git identity is configured **repo-locally**, not globally:
+   `Furqon Aji Yudhistira <furqonajiy@gmail.com>`.
+4. PR #1 predates this convention and was squash-merged. It is the one commit on
+   `main` without a merge point; leave it as is.
