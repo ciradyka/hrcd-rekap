@@ -272,6 +272,15 @@ export async function cariRegu(nomorDada) {
   return d.length ? d[0] : null;
 }
 
+/** Angka penalti edisi aktif — dipakai layar finish untuk menunjukkan apakah
+ *  selisih jam kertas vs laptop benar-benar mengubah penalti. */
+export async function infoPenalti() {
+  const d = K.mode === "dev"
+    ? await baca("/penalti")
+    : await baca(null, "konfig_penalti?select=*");
+  return Array.isArray(d) ? d[0] : d;
+}
+
 export const catatFinish = (nomorDada, jamDatang, anggotaHadir, catatan) =>
   rpc("catat_closing", {
     p_nomor_dada: nomorDada,

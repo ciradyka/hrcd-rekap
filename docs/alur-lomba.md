@@ -324,6 +324,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
      dimasukkan.
    - **Jam datang diisi tombol**: panitia mengetik nomor dada, detail regu
      muncul untuk dipastikan, lalu menekan satu tombol "Sampai di Finish".
+     Di meja finish juga ada penulisan manual di kertas, **tetapi hanya untuk
+     verifikasi** — tombol laptop tetap pencatat utamanya. Selisih semenit dua
+     menit antara kertas dan tombol adalah hal wajar (menekan tombol bisa
+     terlambat sedikit) dan hampir tidak pernah mengubah penalti, karena
+     penalti dibulatkan per 10 menit.
      Targetnya ±3 detik per regu, sehingga 20 regu yang datang bersamaan pun
      tidak menumpuk. Jam yang tersimpan adalah **jam saat tombol ditekan di
      laptop panitia**, bukan cap waktu server saat data sampai — dan tetap

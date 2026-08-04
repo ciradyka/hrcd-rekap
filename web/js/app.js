@@ -13,7 +13,7 @@ import {
   lihatBatch, infoEdisi, ringkasanMeja,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
-  cariRegu, catatFinish,
+  cariRegu, catatFinish, infoPenalti,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -688,7 +688,31 @@ function layarFinish() {
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
         ✅ SAMPAI DI FINISH
       </button>
-      <div id="opsi-lanjut" style="margin-top:.6rem"></div>
+      <!-- TOMBOL adalah pencatat utama di meja ini; kertas panitia hanya untuk
+           cek silang. Jadi jam & anggota sengaja TIDAK sejajar dengan tombol —
+           keduanya dipakai saat memperbaiki hasil verifikasi, bukan tiap regu. -->
+      <details style="margin-top:.6rem">
+        <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
+          Perbaiki jam atau jumlah anggota
+        </summary>
+        <div class="dua-kolom" style="margin-top:.5rem">
+          <div class="medan" style="margin:0">
+            <label for="jam">Jam datang</label>
+            <input type="time" id="jam" step="60">
+            <div class="bantuan">Kosong = jam saat tombol ditekan.</div>
+          </div>
+          <div class="medan" style="margin:0">
+            <label for="hadir">Anggota hadir</label>
+            <input type="number" id="hadir" min="0" max="5" inputmode="numeric" value="5">
+            <div class="bantuan">Tiap orang kurang: −20 poin.</div>
+          </div>
+        </div>
+        <div id="dampak-jam" style="margin-top:.5rem"></div>
+        <p class="bantuan">Beda semenit dua menit antara catatan kertas dan tombol
+           itu wajar — penalti dibulatkan per 10 menit, jadi biasanya tidak
+           mengubah apa pun. Yang perlu diperhatikan hanya kalau kotak di atas
+           berwarna kuning.</p>
+      </details>
     </div>
     <div id="riwayat-finish"></div>
   `));
@@ -696,19 +720,67 @@ function layarFinish() {
   const inp = document.getElementById("dada");
   const kotak = document.getElementById("kartu-regu");
   const tombol = document.getElementById("sampai");
-  const opsi = document.getElementById("opsi-lanjut");
+  const inpJam = document.getElementById("jam");
+  const inpHadir = document.getElementById("hadir");
   let regu = null;
-  let anggotaHadir = 5;
-  let jamManual = null;      // diisi hanya untuk pencatatan susulan
   let jeda = null;
 
   inp.focus();
   gambarRiwayat();
 
+  [inpJam, inpHadir].forEach(el => el.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !tombol.disabled) { e.preventDefault(); tombol.click(); }
+  }));
+
+  // Angka penalti dipakai untuk menjawab pertanyaan yang sebenarnya saat
+  // membandingkan catatan kertas dengan jam tombol: bukan "beda berapa menit",
+  // melainkan "apakah bedanya MENGUBAH penalti". Karena penalti dibulatkan per
+  // 10 menit, selisih semenit dua menit hampir selalu tidak berpengaruh.
+  let PENALTI = null;
+  infoPenalti().then(p => { PENALTI = p; }).catch(() => {});
+
+  const hitungPenalti = (jam, target) => {
+    if (!PENALTI || !target) return null;
+    const selisih = Math.abs(new Date(jam) - new Date(target)) / 60000;
+    return Math.floor(selisih / PENALTI.blok_menit) * Number(PENALTI.penalti_per_blok);
+  };
+
+  const perbaruiDampak = () => {
+    const el = document.getElementById("dampak-jam");
+    if (!el) return;
+    if (!regu || !regu.target_datang || !PENALTI) { el.replaceChildren(); return; }
+    // Pembandingnya beda menurut keadaan: regu yang BELUM tercatat dibandingkan
+    // dengan jam tombol sekarang; yang SUDAH tercatat dibandingkan dengan jam
+    // yang tersimpan — itulah angka yang sedang diverifikasi terhadap kertas.
+    const dasar = regu.sudah_finish && regu.jam_datang
+      ? new Date(regu.jam_datang) : new Date();
+    const jamIsi = inpJam.value ? jamHariIni(inpJam.value) : dasar;
+    const pDasar = hitungPenalti(dasar, regu.target_datang);
+    const pIsi = hitungPenalti(jamIsi, regu.target_datang);
+    const tulis = (n) => n === 0 ? "0" : `−${n}`;
+
+    if (!inpJam.value) {
+      el.innerHTML = html`<span class="lencana lencana-abu">Penalti waktu: ${tulis(pDasar)}</span>`;
+      return;
+    }
+    const beda = Math.round((jamIsi - dasar) / 60000);
+    if (beda === 0) {
+      el.innerHTML = html`<span class="lencana lencana-hijau">Sama dengan catatan — penalti ${tulis(pIsi)}</span>`;
+      return;
+    }
+    const arah = beda > 0 ? `${beda} menit lebih lambat` : `${-beda} menit lebih awal`;
+    el.innerHTML = pIsi === pDasar
+      ? html`<span class="lencana lencana-hijau">${arah} — penalti tetap ${tulis(pIsi)}</span>`
+      : html`<span class="lencana lencana-kuning">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
+  };
+  inpJam.addEventListener("input", perbaruiDampak);
+
   const bersihkan = () => {
-    regu = null; anggotaHadir = 5; jamManual = null;
-    kotak.replaceChildren(); opsi.replaceChildren();
+    regu = null;
+    kotak.replaceChildren();
     tombol.disabled = true;
+    // Jam & anggota TIDAK dikosongkan di sini: saat menyalin sederet catatan
+    // kertas, operator sering mengetik jam lalu baru memperbaiki nomornya.
   };
 
   // Lookup otomatis sambil mengetik — jeda pendek supaya tidak memanggil
@@ -741,7 +813,7 @@ function layarFinish() {
     if (Number(inp.value.trim()) !== dada) return;   // operator sudah mengetik lagi
 
     if (!r) {
-      regu = null; tombol.disabled = true; opsi.replaceChildren();
+      regu = null; tombol.disabled = true;
       kotak.replaceChildren(h(kartuGalat(`Nomor ${esc(dada)} tidak dikenal.`)));
       return;
     }
@@ -766,28 +838,13 @@ function layarFinish() {
 
     // Dua hal yang jarang dipakai disembunyikan supaya jalur cepat tetap dua
     // aksi: jumlah anggota (default 5) dan jam susulan dari kertas.
-    opsi.replaceChildren(h(`
-      <details>
-        <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
-          Anggota kurang dari 5, atau mencatat dari kertas?
-        </summary>
-        <div class="medan" style="margin-top:.6rem">
-          <label for="hadir">Jumlah anggota yang hadir</label>
-          <input type="number" id="hadir" min="0" max="5" inputmode="numeric" value="5">
-          <div class="bantuan">Tiap anggota yang tidak lengkap dikurangi 20 poin.</div>
-        </div>
-        <div class="medan">
-          <label for="jam">Jam datang (jam:menit) — kosongkan bila mencatat sekarang</label>
-          <input type="time" id="jam">
-          <div class="bantuan">Isi hanya bila menyalin dari catatan kertas.</div>
-        </div>
-      </details>`));
-    document.getElementById("hadir").addEventListener("input", e => {
-      anggotaHadir = Math.max(0, Math.min(5, Number(e.target.value) || 0));
-    });
-    document.getElementById("jam").addEventListener("input", e => {
-      jamManual = e.target.value || null;
-    });
+    // Regu yang sudah tercatat: tampilkan jam lamanya di kolom perbaikan,
+    // supaya verifikasi terhadap kertas tinggal membandingkan lalu mengubah.
+    if (r.sudah_finish && r.jam_datang) {
+      inpJam.value = new Date(r.jam_datang).toTimeString().slice(0, 5);
+      inpHadir.value = r.anggota_hadir ?? 5;
+    }
+    perbaruiDampak();
   }
 
   tombol.addEventListener("click", async () => {
@@ -801,20 +858,23 @@ function layarFinish() {
     tombol.dataset.jalan = "1"; tombol.disabled = true;
 
     // Jam dikunci DI SINI — saat tombol ditekan, dari jam laptop panitia.
-    const jam = jamManual ? jamHariIni(jamManual) : new Date();
+    // Kolom jam hanya dipakai bila memang diisi (koreksi hasil verifikasi).
+    const jam = inpJam.value ? jamHariIni(inpJam.value) : new Date();
+    const hadir = Math.max(0, Math.min(5, Number(inpHadir.value) || 0));
     const dada = regu.nomor_dada;
     const nama = regu.nama_regu;
     try {
-      await catatFinish(dada, jam.toISOString(), anggotaHadir, null);
+      await catatFinish(dada, jam.toISOString(), hadir, null);
     } catch (err) {
       notif(err.message, true);
       tombol.dataset.jalan = ""; tombol.disabled = false;
       return;
     }
     catatTerakhir("finish", String(dada).padStart(3, "0"),
-      `${nama} — ${jamPendek(jam)}${anggotaHadir < 5 ? ` · ${anggotaHadir} anggota` : ""}`);
+      `${nama} — ${jamPendek(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
     tombol.dataset.jalan = "";
-    inp.value = ""; bersihkan(); inp.focus();
+    inp.value = ""; inpJam.value = ""; inpHadir.value = "5";
+    bersihkan(); inp.focus();
     gambarRiwayat();
     notif(`${String(dada).padStart(3, "0")} tercatat ${jamPendek(jam)}.`);
   });
