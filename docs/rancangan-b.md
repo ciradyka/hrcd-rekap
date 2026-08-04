@@ -171,6 +171,48 @@ Panitia: *"nanti kloter final akan diprint."* Itu mengubah sifat datanya.
    kloter ditandai tercetak, sekolah susulan masuk kloter yang belum pernah
    dicetak — bukan diselipkan.
 
+### 4.3 Pindah kloter hari-H, dan kenapa sisipan wajib berteriak
+
+Pembekuan di 4.2 mencegah perubahan **diam-diam**, bukan melarang keputusan
+sadar panitia. Hari-H butuh dua jalur (migrasi 0009, RPC `pindah_kloter`):
+
+1. **Telat biasa** — panggil tanpa menyebut kloter; regu mendarat di **kloter
+   terakhir** yang belum berangkat dan masih muat.
+2. **Urgent** — sebut kloter tujuannya; regu dipaksa masuk, **termasuk kloter
+   yang kertasnya sudah beredar**.
+
+Keduanya wajib beralasan dan terekam riwayat. Yang **tidak** boleh ditembus
+meski urgent: kloter yang sudah berangkat, dan kapasitas fisik 10 regu —
+kertas boleh dilanggar, kapasitas tidak.
+
+**Bagian yang tidak diminta tetapi paling penting: sisipan harus berteriak.**
+Petugas staging memegang kertas yang tidak memuat nomor itu. Kalau sistem diam,
+regu tersebut ada di database tapi **tidak akan pernah dipanggil**. Maka:
+
+- Regu yang mendarat di kloter tercetak ditandai `disisipkan_pada`.
+- RPC mengembalikan kalimat siap-baca: *"Nomor 042 TIDAK ADA di kertas kloter
+  3. Beri tahu petugas staging."*
+- Layar menampilkannya sebagai kartu merah **menetap** (bukan toast yang hilang
+  sendiri), dan menyediakan daftar seluruh sisipan aktif untuk dicetak atau
+  dibacakan.
+- Lembar staging menandai regu sisipan dengan ★ beserta keterangannya.
+
+### 4.4 Dua bentuk kertas, karena pembacanya dua
+
+Panitia membawa **kertas dan laptop bersamaan** — kertas untuk membacakan dan
+mencentang, laptop untuk memverifikasi. Daftar kloter karena itu dicetak dalam
+dua bentuk dari data yang sama:
+
+| Bentuk | Pembaca | Isi khasnya |
+| --- | --- | --- |
+| **Staging** | Petugas di 3 staging | Kolom centang kehadiran, tempat menulis jam berangkat sebenarnya, tanda ★ untuk sisipan |
+| **Umum** | Papan pengumuman utama & barak | Perkiraan jam berangkat dicetak besar; **kotak catatan pembina** untuk menulis jam berangkat sebenarnya |
+
+Kotak pembina itu bukan hiasan: pembina regu memang mencatat jam berangkat
+untuk klarifikasi, karena target kedatangan — dan karenanya penalti waktu —
+dihitung dari jam berangkat + kontrak waktu. Memberi mereka tempat menulis di
+lembar resmi membuat klarifikasi berpijak pada angka yang sama.
+
 ## 5. Mesin skor — hitung-saat-baca, tanpa tombol "hitung ulang"
 
 1. **Tidak ada angka turunan yang disimpan.** Semua skor dihitung saat dibaca

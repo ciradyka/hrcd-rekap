@@ -182,6 +182,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    ditetapkan — lihat bagian 13.
 7. Konsekuensi bagi sistem: layar keberangkatan harus menampilkan **beberapa
    kloter sekaligus dalam status berbeda**, bukan satu kloter per layar.
+8. **Ada 3 staging.** Verifikasi kehadiran regu dilakukan **di staging**, bukan
+   di garis start: setelah masuk staging, peserta cukup menunggu sampai
+   benar-benar diberangkatkan.
+9. **Panitia membawa kertas DAN laptop bersamaan.** Kertas dipakai untuk
+   membacakan dan mencentang; laptop untuk memverifikasi. Keduanya hidup
+   berdampingan — bukan salah satu menggantikan yang lain.
+10. **Daftar kloter dicetak untuk dua pembaca:**
+    - **Petugas staging** — ada kolom centang kehadiran dan tempat menulis jam
+      berangkat sebenarnya.
+    - **Papan pengumuman utama dan barak** — dibaca peserta, memuat perkiraan
+      jam berangkat. Lembar ini juga menyediakan kotak bagi **pembina regu
+      untuk mencatat jam berangkat sebenarnya**, karena pembina biasa
+      mencatatnya sebagai bahan klarifikasi bila penilaian ketepatan waktu
+      dipersoalkan (target datang = jam berangkat + kontrak waktu).
+11. **Peserta yang terlambat masuk kloternya** diberangkatkan di **kloter
+    terakhir**. Bila keadaannya mendesak, panitia dapat memaksa nomor dada
+    tertentu masuk kloter mana pun — termasuk kloter yang kertasnya sudah
+    beredar. Regu yang disisipkan setelah cetak **wajib ditandai sistem**,
+    karena nomornya tidak ada di kertas yang dipegang petugas staging.
 
 ## 7. Rute dan pos
 
@@ -291,6 +310,14 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    Kloter yang berangkat 07.00 dengan kontrak 4 jam ditargetkan tiba 11.00.
 2. Jam berangkat berlaku **per kloter**; jam datang dicatat **per regu** di meja
    closing.
+   - **Jam berangkat diketik panitia** — dicatat di kertas oleh pencatat, lalu
+     dimasukkan.
+   - **Jam datang diisi tombol**: panitia mengetik nomor dada, detail regu
+     muncul untuk dipastikan, lalu menekan satu tombol "Sampai di Finish".
+     Targetnya ±3 detik per regu, sehingga 20 regu yang datang bersamaan pun
+     tidak menumpuk. Jam yang tersimpan adalah **jam saat tombol ditekan di
+     laptop panitia**, bukan cap waktu server saat data sampai — dan tetap
+     dapat diubah manual untuk pencatatan susulan dari kertas (bagian 12.3).
 3. Penalti dihitung dari selisih mutlak antara jam datang dan target:
 
    ```

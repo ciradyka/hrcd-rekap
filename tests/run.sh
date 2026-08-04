@@ -31,10 +31,12 @@ run supabase/migrations/0005_views.sql
 run supabase/migrations/0006_idempotensi.sql
 run supabase/migrations/0007_kunci_daftar_ulang.sql
 run supabase/migrations/0008_cetak_kloter.sql
+run supabase/migrations/0009_sisip_kloter.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
 run tests/sql/03_alur.sql
 run tests/sql/04_cetak_kloter.sql
+run tests/sql/05_pindah_kloter.sql
 
 echo "SEMUA TES LULUS"
