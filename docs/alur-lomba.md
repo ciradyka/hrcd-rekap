@@ -48,6 +48,8 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 5. Pendaftaran daring dan luring memakai **tautan yang sama**. Regu yang belum
    mendaftar dapat mendaftar di lokasi lewat HP atau laptop di meja pendaftaran
    luring, lalu membayar tunai atau transfer ke rekening panitia.
+6. **Tidak ada pengembalian dana.** Regu yang batal setelah membayar tidak
+   digantikan, dan kloternya tetap berjalan dengan jumlah regu berkurang.
 
 ## 4. Daftar ulang
 
@@ -65,7 +67,8 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 ## 5. Kloter dan kontrak waktu
 
-1. Satu kloter berisi **10 regu**.
+1. Satu kloter berisi **paling banyak 10 regu**. Jumlahnya dapat kurang dari 10
+   bila ada regu yang batal setelah membayar (bagian 3.6).
 2. **30 kloter selalu ada**, karena jumlah peserta konsisten di kisaran 300
    regu. Kloter 31–40 dibuka hanya jika terisi, dan kloter terakhir boleh tidak
    penuh.
@@ -74,15 +77,33 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    puluhan regu, dan mereka tidak boleh berangkat bersamaan.
 5. Setiap regu memilih **kontrak waktu**: 3,5 / 4 / 4,5 jam. Kontrak dipilih per
    regu, sehingga satu kloter bisa berisi regu dengan kontrak berbeda-beda.
+   Kontrak baru dikonfirmasi **di garis start**, bukan saat daftar ulang —
+   lihat bagian 6.
 
 ## 6. Keberangkatan
 
-1. Satu panitia mencatat **jam berangkat per kloter**; panitia lain
+1. Garis start berjalan sebagai **antrean empat tahap**, supaya keberangkatan
+   tidak pernah tertahan urusan administrasi:
+
+   | Posisi | Yang sedang dilakukan |
+   | --- | --- |
+   | Kloter ke-1 | Berangkat melewati garis start |
+   | Kloter ke-2 dan ke-3 | Sudah di garis start, terverifikasi, menunggu |
+   | Kloter ke-4 | Mengonfirmasi kontrak waktu |
+
+2. Begitu satu kloter berangkat, seluruh antrean maju satu posisi: dua kloter di
+   garis start bergeser, kloter yang tadi mengonfirmasi kontrak naik ke garis
+   start, dan kloter berikutnya mulai mengonfirmasi kontrak waktu.
+3. **Kontrak waktu dikonfirmasi tiga kloter sebelum berangkat**, sekaligus
+   menjadi momen tim lapangan memverifikasi kesiapan regu.
+4. Satu panitia mencatat **jam berangkat per kloter**; panitia lain
    memasukkannya ke sistem.
-2. Saat keberangkatan, panitia menceklis **per nomor dada** bahwa regu tersebut
+5. Saat keberangkatan, panitia menceklis **per nomor dada** bahwa regu tersebut
    benar-benar berangkat.
-3. Jarak antar keberangkatan kloter biasanya **3–5 menit**. Angka pastinya belum
+6. Jarak antar keberangkatan kloter biasanya **3–5 menit**. Angka pastinya belum
    ditetapkan — lihat bagian 13.
+7. Konsekuensi bagi sistem: layar keberangkatan harus menampilkan **beberapa
+   kloter sekaligus dalam status berbeda**, bukan satu kloter per layar.
 
 ## 7. Rute dan pos
 
@@ -132,6 +153,13 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 5. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
+6. **Setiap pos memiliki tautan input sendiri**, yang hanya dapat dibuka dengan
+   akun dan kata sandi khusus pos tersebut. Operator sebuah pos tidak dapat
+   menyentuh nilai pos lain.
+7. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
+   dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
+   bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
+   ketika ada yang janggal.
 
 ## 9. Perhitungan skor
 
@@ -139,11 +167,17 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    mengubah kode. Yang berikut ini adalah konfigurasi edisi berjalan, bukan
    aturan tetap.
 2. Bobot setiap pos **sama rata**.
-3. Total skor = **jumlah skor seluruh pos − penalti waktu**.
-4. Yang wajib dapat dikonfigurasi ulang setiap tahun:
+3. Total skor = **jumlah skor seluruh pos − seluruh penalti** (bagian 10).
+4. **Penentu peringkat saat skor seri: ketepatan waktu.** Regu dengan selisih
+   waktu lebih kecil terhadap targetnya menempati peringkat lebih tinggi. Ini
+   bekerja karena penalti waktu dibulatkan per 10 menit, sedangkan selisih
+   sebenarnya tercatat sampai satuan menit — dua regu berpenalti −10 tetap
+   dapat dibedakan antara yang meleset 11 menit dan yang meleset 18 menit.
+5. Peringkat dihitung **terpisah untuk keempat golongan** (bagian 2.3).
+6. Yang wajib dapat dikonfigurasi ulang setiap tahun:
    - Daftar pos dan bobotnya
    - Rumus konversi data mentah menjadi poin, per wahana dan per soal
-   - Rumus penalti waktu
+   - Rumus penalti waktu dan besaran pengurangan lain
    - Pilihan kontrak waktu
    - Formula total skor
 
@@ -173,6 +207,16 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    | 30–39 menit | −30 |
 
 6. Tidak ada batas bawah. Total skor boleh menjadi negatif.
+
+### Pengurangan lain di luar penalti waktu
+
+7. **Tidak melakukan checkout** di meja closing: **−100**.
+8. **Melewatkan sebuah pos**: nilai pos tersebut menjadi **0**. Tidak ada
+   pengurangan tambahan di luar itu.
+9. **Anggota regu tidak lengkap.** Kelengkapan diperiksa di akhir lomba, dan
+   setiap satu orang yang hilang dikenai **−20**.
+10. **Tidak ada mekanisme sanggahan.** Nilai yang sudah direkap bersifat final;
+    peserta tidak mengajukan protes atas penilaian.
 
 ## 11. Barak
 
@@ -231,4 +275,12 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
    konversi harus dirancang cukup luwes untuk menampung semuanya. Perancangan
    detailnya ditunda.
 3. **Arti singkatan `IMPK`** pada contoh lembar nilai di bagian 8.4.
-4. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
+4. **Dua pembacaan pada bagian 10 yang belum dipastikan:**
+   - Pengurangan −100 karena tidak checkout — apakah menggantikan penalti waktu,
+     atau ditambahkan padanya? Tanpa checkout tidak ada jam datang, sehingga
+     penalti waktu tidak dapat dihitung. Dokumen ini menuliskannya sebagai
+     pengurangan tersendiri.
+   - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
+     yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
+     Dokumen ini mengasumsikan per orang.
+5. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
