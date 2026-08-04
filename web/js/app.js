@@ -13,6 +13,7 @@ import {
   lihatBatch, infoEdisi, ringkasanMeja,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
+  cariRegu, catatFinish,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -22,7 +23,7 @@ const GOLONGAN_LABEL = {
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
 };
 let EDISI = null;
-const terakhir = { pembayaran: [], "daftar-ulang": [] };
+const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
 
@@ -134,6 +135,10 @@ async function layarBeranda() {
       <a href="#/cetak-kloter">
         <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
         <div class="ket">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
+      </a>
+      <a href="#/finish">
+        <div class="nama-fungsi">🏁 Meja Finish</div>
+        <div class="ket">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
       <a href="#/pindah-kloter">
         <div class="nama-fungsi">🔀 Pindah Kloter</div>
@@ -658,6 +663,207 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
   document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
 }
 
+/* ============================ MEJA FINISH ================================ */
+
+/** Target panitia: DUA aksi, ±3 detik per regu — "ketik nomor, klik Sampai".
+ *  Karena itu TIDAK ADA tombol Cari: detail regu muncul sendiri sambil
+ *  mengetik, dan Enter sama dengan menekan tombol. Echo-confirm tetap ada
+ *  karena kartu identitas sudah terpampang saat operator menekan.
+ *
+ *  Jam yang tersimpan adalah jam saat TOMBOL DITEKAN di laptop panitia —
+ *  bukan cap waktu server saat data sampai (alur 10.2). Untuk pencatatan
+ *  susulan dari kertas, jamnya bisa diubah.
+ */
+function layarFinish() {
+  pasangKepala("Meja Finish");
+  LAYAR.replaceChildren(h(`
+    <div class="kartu" style="border-color:var(--utama)">
+      <div class="medan" style="margin-bottom:0">
+        <label for="dada">Ketik nomor dada</label>
+        <input type="text" id="dada" class="besar" inputmode="numeric"
+               autocomplete="off" placeholder="001">
+      </div>
+      <div id="kartu-regu" style="margin-top:.7rem"></div>
+      <button class="tombol tombol-utama" id="sampai" type="button" disabled
+              style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
+        ✅ SAMPAI DI FINISH
+      </button>
+      <div id="opsi-lanjut" style="margin-top:.6rem"></div>
+    </div>
+    <div id="riwayat-finish"></div>
+  `));
+
+  const inp = document.getElementById("dada");
+  const kotak = document.getElementById("kartu-regu");
+  const tombol = document.getElementById("sampai");
+  const opsi = document.getElementById("opsi-lanjut");
+  let regu = null;
+  let anggotaHadir = 5;
+  let jamManual = null;      // diisi hanya untuk pencatatan susulan
+  let jeda = null;
+
+  inp.focus();
+  gambarRiwayat();
+
+  const bersihkan = () => {
+    regu = null; anggotaHadir = 5; jamManual = null;
+    kotak.replaceChildren(); opsi.replaceChildren();
+    tombol.disabled = true;
+  };
+
+  // Lookup otomatis sambil mengetik — jeda pendek supaya tidak memanggil
+  // server di tiap ketukan, tapi tetap terasa seketika.
+  inp.addEventListener("input", () => {
+    clearTimeout(jeda);
+    const dada = Number(inp.value.trim());
+    // PENTING: begitu angkanya berubah, hasil lookup lama tidak boleh dipakai
+    // lagi. Tanpa ini, operator yang mengetik nomor baru lalu langsung menekan
+    // Enter akan menyimpan regu SEBELUMNYA — mencatat regu yang salah datang.
+    // (Ditemukan saat menguji alur ketik-Enter.)
+    if (!regu || regu.nomor_dada !== dada) {
+      regu = null;
+      tombol.disabled = true;
+    }
+    if (!dada) { bersihkan(); return; }
+    jeda = setTimeout(() => cariDanTampilkan(dada), 160);
+  });
+
+  inp.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (!tombol.disabled) tombol.click();
+  });
+
+  async function cariDanTampilkan(dada) {
+    let r;
+    try { r = await cariRegu(dada); }
+    catch (e) { kotak.replaceChildren(h(kartuGalat(e.message))); return; }
+    if (Number(inp.value.trim()) !== dada) return;   // operator sudah mengetik lagi
+
+    if (!r) {
+      regu = null; tombol.disabled = true; opsi.replaceChildren();
+      kotak.replaceChildren(h(kartuGalat(`Nomor ${esc(dada)} tidak dikenal.`)));
+      return;
+    }
+    regu = r;
+
+    // Keadaan yang menghalangi, ditampilkan jelas alih-alih jadi galat nanti.
+    let halangan = null;
+    if (!r.sudah_berangkat) halangan = `Kloter ${r.kloter} belum tercatat berangkat.`;
+    else if (!r.sudah_ceklis) halangan = "Regu ini belum diceklis berangkat di staging.";
+
+    kotak.replaceChildren(h(`
+      ${kartuReguFinish(r)}
+      ${r.sudah_finish ? `<div class="kartu" style="border-color:var(--kuning);background:var(--kuning-muda);margin-top:.5rem">
+          <strong>Sudah tercatat datang ${esc(jamPendek(r.jam_datang))}.</strong>
+          <div class="keterangan">Menekan tombol akan MENGGANTI jam itu.</div>
+        </div>` : ""}
+      ${halangan ? kartuGalat(halangan) : ""}
+    `));
+
+    tombol.disabled = !!halangan;
+    tombol.textContent = r.sudah_finish ? "✏️ PERBAIKI JAM DATANG" : "✅ SAMPAI DI FINISH";
+
+    // Dua hal yang jarang dipakai disembunyikan supaya jalur cepat tetap dua
+    // aksi: jumlah anggota (default 5) dan jam susulan dari kertas.
+    opsi.replaceChildren(h(`
+      <details>
+        <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
+          Anggota kurang dari 5, atau mencatat dari kertas?
+        </summary>
+        <div class="medan" style="margin-top:.6rem">
+          <label for="hadir">Jumlah anggota yang hadir</label>
+          <input type="number" id="hadir" min="0" max="5" inputmode="numeric" value="5">
+          <div class="bantuan">Tiap anggota yang tidak lengkap dikurangi 20 poin.</div>
+        </div>
+        <div class="medan">
+          <label for="jam">Jam datang (jam:menit) — kosongkan bila mencatat sekarang</label>
+          <input type="time" id="jam">
+          <div class="bantuan">Isi hanya bila menyalin dari catatan kertas.</div>
+        </div>
+      </details>`));
+    document.getElementById("hadir").addEventListener("input", e => {
+      anggotaHadir = Math.max(0, Math.min(5, Number(e.target.value) || 0));
+    });
+    document.getElementById("jam").addEventListener("input", e => {
+      jamManual = e.target.value || null;
+    });
+  }
+
+  tombol.addEventListener("click", async () => {
+    if (!regu || tombol.dataset.jalan === "1") return;
+    // Jaring kedua: yang disimpan HARUS regu yang nomornya sedang terlihat di
+    // kotak isian, bukan sisa lookup sebelumnya.
+    if (regu.nomor_dada !== Number(inp.value.trim())) {
+      notif("Nomor berubah — tunggu detailnya muncul dulu.", true);
+      return;
+    }
+    tombol.dataset.jalan = "1"; tombol.disabled = true;
+
+    // Jam dikunci DI SINI — saat tombol ditekan, dari jam laptop panitia.
+    const jam = jamManual ? jamHariIni(jamManual) : new Date();
+    const dada = regu.nomor_dada;
+    const nama = regu.nama_regu;
+    try {
+      await catatFinish(dada, jam.toISOString(), anggotaHadir, null);
+    } catch (err) {
+      notif(err.message, true);
+      tombol.dataset.jalan = ""; tombol.disabled = false;
+      return;
+    }
+    catatTerakhir("finish", String(dada).padStart(3, "0"),
+      `${nama} — ${jamPendek(jam)}${anggotaHadir < 5 ? ` · ${anggotaHadir} anggota` : ""}`);
+    tombol.dataset.jalan = "";
+    inp.value = ""; bersihkan(); inp.focus();
+    gambarRiwayat();
+    notif(`${String(dada).padStart(3, "0")} tercatat ${jamPendek(jam)}.`);
+  });
+
+  function gambarRiwayat() {
+    const daftar = terakhir.finish || [];
+    document.getElementById("riwayat-finish").replaceChildren(h(
+      daftar.length ? `
+        <div class="kartu">
+          <h2 style="font-size:1rem;color:var(--tinta-lembut)">
+            Baru saja tercatat (${daftar.length})</h2>
+          <table class="tabel">${daftar.slice(0, 12).map(b => html`
+            <tr><td class="angka">${b.apa}</td><td>${b.detail}</td></tr>`).join("")}
+          </table>
+        </div>` : `<p class="keterangan" style="text-align:center;margin-top:1rem">
+            Ketik nomor dada regu yang baru sampai.</p>`));
+  }
+}
+
+const jamPendek = (t) => t
+  ? new Date(t).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+  : "—";
+
+/** "14:35" -> Date hari ini pada jam itu (untuk pencatatan susulan). */
+function jamHariIni(hhmm) {
+  const [j, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(j, m, 0, 0);
+  return d;
+}
+
+function kartuReguFinish(r) {
+  const selisih = r.target_datang
+    ? Math.round((Date.now() - new Date(r.target_datang).getTime()) / 60000)
+    : null;
+  const tandaWaktu = selisih === null ? ""
+    : `<span class="lencana ${Math.abs(selisih) < 10 ? "lencana-hijau" : "lencana-kuning"}">
+         ${selisih > 0 ? `+${selisih}` : selisih} menit dari target</span>`;
+  return `
+    <div class="kartu kartu-identitas" style="margin:0">
+      ${html`<div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
+      <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
+      <div class="detail">Kloter ${r.kloter} · berangkat ${jamPendek(r.jam_berangkat)}${
+        r.target_datang ? ` · target ${jamPendek(r.target_datang)}` : ""}</div>`}
+      <div style="margin-top:.4rem">${tandaWaktu}
+        ${r.sisipan ? `<span class="lencana lencana-merah">sisipan</span>` : ""}</div>
+    </div>`;
+}
+
 /* ============================ PINDAH KLOTER (HARI-H) ===================== */
 
 async function layarPindahKloter() {
@@ -843,6 +1049,7 @@ const RUTE = {
   "#/pendaftaran-offline": layarPendaftaranOffline,
   "#/cetak-kloter": layarCetakKloter,
   "#/pindah-kloter": layarPindahKloter,
+  "#/finish": layarFinish,
 };
 
 async function arahkan() {

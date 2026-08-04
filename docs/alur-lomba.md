@@ -185,9 +185,19 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 8. **Ada 3 staging.** Verifikasi kehadiran regu dilakukan **di staging**, bukan
    di garis start: setelah masuk staging, peserta cukup menunggu sampai
    benar-benar diberangkatkan.
-9. **Panitia membawa kertas DAN laptop bersamaan.** Kertas dipakai untuk
-   membacakan dan mencentang; laptop untuk memverifikasi. Keduanya hidup
-   berdampingan — bukan salah satu menggantikan yang lain.
+9. **Panitia kertas dan panitia laptop duduk bersebelahan**, dan urutan
+   kerjanya searah:
+   1. Panitia **kertas** mencentang semua regu yang berangkat, menulis tangan
+      peserta yang tidak sesuai kloter awal, dan mencatat **jam keberangkatan
+      per kloter**.
+   2. Kertas itu diserahkan ke panitia **laptop** untuk **diverifikasi** dan
+      dimasukkan.
+
+   Artinya untuk keberangkatan, **kertas adalah pencatat utama dan laptop
+   memverifikasi** — kebalikan dari meja finish, di mana laptop yang mencatat
+   langsung (poin 10.2). Konsekuensinya: jam berangkat wajib bisa **diketik**
+   (menyalin dari kertas), bukan diambil dari tombol, dan layar keberangkatan
+   harus enak dipakai untuk **menyalin**, bukan hanya mencatat seketika.
 10. **Daftar kloter dicetak untuk dua pembaca:**
     - **Petugas staging** — ada kolom centang kehadiran dan tempat menulis jam
       berangkat sebenarnya.

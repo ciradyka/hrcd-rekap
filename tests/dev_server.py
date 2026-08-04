@@ -88,6 +88,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/edisi":
                 self._kirim(200, q(
                     "select * from v_edisi_publik", role="anon", fetch="one"))
+            elif u.path == "/regu":
+                self._kirim(200, q(
+                    "select * from v_regu_ringkas where nomor_dada = %s",
+                    (p.get("dada") or 0,), uid=p.get("uid")))
             elif u.path == "/sisipan":
                 self._kirim(200, q(
                     "select * from v_sisipan_kloter", uid=p.get("uid")))

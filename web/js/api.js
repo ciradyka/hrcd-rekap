@@ -263,6 +263,23 @@ export const tandaiKloterDicetak = (nomorKloter) =>
 export const pindahKloter = (nomorDada, alasan, kloter = null) =>
   rpc("pindah_kloter", { p_nomor_dada: nomorDada, p_alasan: alasan, p_kloter: kloter });
 
+/** Lookup cepat satu regu untuk layar finish — dipanggil sambil mengetik,
+ *  jadi harus ringan dan tidak pernah melempar untuk "tidak ketemu". */
+export async function cariRegu(nomorDada) {
+  const d = K.mode === "dev"
+    ? await baca(`/regu?dada=${encodeURIComponent(nomorDada)}`)
+    : await baca(null, `v_regu_ringkas?nomor_dada=eq.${encodeURIComponent(nomorDada)}&select=*`);
+  return d.length ? d[0] : null;
+}
+
+export const catatFinish = (nomorDada, jamDatang, anggotaHadir, catatan) =>
+  rpc("catat_closing", {
+    p_nomor_dada: nomorDada,
+    p_jam_datang: jamDatang,
+    p_anggota_hadir: anggotaHadir,
+    p_catatan: catatan || null,
+  });
+
 export async function daftarSisipan() {
   if (K.mode === "dev") return baca("/sisipan");
   return baca(null, "v_sisipan_kloter?select=*&order=kloter.asc,nomor_dada.asc");
