@@ -280,7 +280,35 @@ Semua kandidat berbagi satu batas yang sama pada R7: lima bentuk konversi yang
 sudah dienumerasi bisa diubah panitia sendiri, tetapi bentuk rumus yang **benar-
 benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 
+### 7.1 Dua kebutuhan yang ditambahkan setelah dokumen ini ditulis
+
+1. **Form pendaftaran dinamis** (alur-lomba.md bagian 3): autocomplete sekolah
+   dari database + konfirmasi alamat + blok per-regu yang jumlahnya mengikuti
+   jawaban. **Google Form polos tidak bisa mengekspresikan ini** — semua
+   kandidat butuh form custom. Akibat per kandidat: B dan C tidak terpengaruh
+   (form custom memang rencananya); A tetap bisa (form jadi halaman web app,
+   bukan Google Form); **D paling terpukul** — trik "jendela pendaftaran
+   dititipkan ke Google Form" gugur, sehingga D butuh tempat hosting form
+   custom yang selalu hidup, yang justru masalah yang dihindarinya.
+2. **Tampilan live publik untuk peserta** (alur-lomba.md bagian 1.5): penonton
+   bisa ratusan HP. Aturan desainnya sama untuk semua kandidat — **tampilan
+   publik disajikan statis dan diperbarui berkala, tidak pernah membaca
+   database langsung.** A: sheet "publish to web" (gratis, tanpa memakan kuota
+   eksekusi). B: file statis di Cloudflare Pages yang di-regenerate berkala
+   (bandwidth gratis tak terbatas — pola paling alami). C: inilah yang
+   membunuhnya — listener publik langsung menghantam kuota baca. D: halaman
+   statis di tunnel yang sama (menambah beban uplink laptop) atau dititipkan
+   ke Pages.
+
 ## 8. Rekomendasi
+
+> **Keputusan panitia (Agustus 2026): Kandidat A dicoret.** Dengan skema form
+> pendaftaran dinamis, akses per akun di satu link (`pos1hrcd37` vs
+> `admin.ciradyka`), dan tampilan live publik, Google Sheets dinilai bukan
+> pilihan yang tepat — pembatasan akses di Apps Script hanya bisa berupa
+> konvensi aplikasi, bukan penegakan server, dan seluruh beban form dinamis
+> jatuh ke bagian platform yang paling canggung. Pilihan mengerucut ke
+> **B melawan D**.
 
 1. **Rekomendasi utama: Kandidat B (Supabase + Cloudflare Pages).**
    Alasannya satu kalimat: **tiga kebutuhan yang paling berbahaya kalau salah

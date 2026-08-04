@@ -34,8 +34,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    Jawa Barat.
 3. Diadakan rutin setiap tahun, biasanya Februari atau Maret.
 4. Skala peserta konsisten di kisaran 300 regu, dengan batas atas sekitar 500.
-5. Pengguna sistem untuk saat ini **hanya panitia**. Belum ada akses peserta
-   maupun publik.
+5. Sistem terbagi menjadi **dua wajah yang terpisah**:
+   - **Aplikasi panitia** — satu link yang sama untuk semua panitia, dengan
+     akses yang dibedakan per akun (bagian 8.8).
+   - **Tampilan live untuk peserta** — halaman publik tanpa login. Apa saja
+     isinya dan kapan dibuka masih perlu diputuskan (bagian 13).
 
 ## 2. Satuan lomba dan identitas
 
@@ -49,24 +52,54 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Penggalang PA (SMP, putra)
    - Penggalang PI (SMP, putri)
 4. Sebuah regu memakai **dua identitas secara berurutan**:
-   - **Kode pembayaran** — terbit setelah pembayaran diverifikasi. Menjadi ID
-     yang disebutkan regu saat daftar ulang.
-   - **Nomor dada** — diberikan saat daftar ulang. Menjadi nomor peserta dan
-     dipakai sebagai kunci di seluruh tahap berikutnya.
+   - **Kode pembayaran** — terbit **saat pendaftaran** dan terikat pada seluruh
+     regu dalam satu batch (bagian 3). Menjadi referensi saat membayar, lalu —
+     setelah pembayaran diverifikasi — menjadi ID yang disebutkan saat daftar
+     ulang. Satu kode mencakup semua regu yang didaftarkan bersama.
+   - **Nomor dada** — diberikan saat daftar ulang, satu per regu. Menjadi nomor
+     peserta dan dipakai sebagai kunci di seluruh tahap berikutnya.
 
 ## 3. Pendaftaran
 
-1. Regu mendaftar secara online dan mengisi identitas.
-2. Formulir menanyakan **"apakah memerlukan tempat menginap?"**. Jawaban ya
-   memasukkan regu ke skema penempatan barak (bagian 11).
-3. Regu melakukan pembayaran.
-4. Panitia memverifikasi pembayaran, lalu regu menerima **kwitansi** dan
-   **kode pembayaran**.
-5. Pendaftaran online dan offline memakai **link yang sama**. Regu yang belum
-   mendaftar dapat mendaftar di lokasi lewat HP atau laptop di meja pendaftaran
-   offline, lalu membayar tunai atau transfer ke rekening panitia.
-6. **Tidak ada pengembalian dana.** Regu yang batal setelah membayar tidak
+1. **Satuan pendaftaran tetap regu** — tetapi form-nya dibuat satu per sekolah
+   sebagai kemudahan: sekolah yang mengirim 10 regu tidak perlu mengisi form 10
+   kali. Satu pengisian mendaftarkan beberapa regu sekaligus dalam satu batch,
+   dan sistem tetap memperlakukan tiap regu sebagai baris tersendiri (poin 3).
+2. Urutan pertanyaan di form:
+   1. **Asal sekolah.** Ketikan dicocokkan ke database sekolah — jika sekolahnya
+      dikenal, muncul sebagai pilihan dropdown otomatis; jika tidak ada, diisi
+      manual (dan sekolah baru itu masuk ke database).
+   2. **Konfirmasi alamat.** Jika sekolah dipilih dari database, alamatnya
+      ditampilkan agar pendaftar memastikan sekolah yang dimaksud benar —
+      penting karena banyak sekolah bernama sama di kota berbeda.
+   3. **Butuh penginapan?** Jawaban ya memasukkan seluruh batch ke skema
+      penempatan barak (bagian 11).
+   4. **Mendaftarkan berapa regu?**
+   5. **Rincian golongan** yang jumlahnya harus sama dengan total — misal 5
+      regu = 3 Penegak PA + 1 Penegak PI + 1 Penggalang PA. Form memvalidasi
+      penjumlahannya.
+   6. **Untuk setiap regu:** nama regu dan nama ketua.
+   7. **Satu kontak person WA** untuk keseluruhan batch.
+3. Setelah dikirim, sistem **memecah batch menjadi satu baris per regu** —
+   5 regu menjadi 5 baris — yang tetap terikat pada satu tagihan bersama.
+4. Begitu form dikirim, terbit **kode pembayaran yang terikat pada regu-regu
+   dalam batch itu**. Sekolah membayar **sekaligus untuk seluruh batch** dengan
+   kode itu sebagai referensi. Setelah panitia memverifikasi, **seluruh regu
+   dalam batch menjadi valid bersama** dan menerima kwitansi, siap lanjut ke
+   daftar ulang.
+5. **Pembayaran sebagian tidak dilayani** — batch bersifat semua-atau-tidak,
+   karena pembayaran parsial membuat sistem rumit. Sekolah yang hanya sanggup
+   membayar sebagian cukup **mendaftar ulang** dengan batch yang lebih kecil
+   sesuai kemampuannya.
+6. Pendaftaran online dan offline memakai **link yang sama**. Sekolah yang
+   belum mendaftar dapat mendaftar di lokasi lewat HP atau laptop di meja
+   pendaftaran offline, lalu membayar tunai atau transfer ke rekening panitia.
+7. **Tidak ada pengembalian dana.** Regu yang batal setelah membayar tidak
    digantikan, dan kloternya tetap berjalan dengan jumlah regu berkurang.
+8. Konsekuensi bagi sistem: perlu **master data sekolah** (nama + alamat) yang
+   tumbuh dari tahun ke tahun — sumber dropdown otomatis di form, dan sekaligus
+   kunci penyebaran kloter per sekolah (bagian 5) serta penempatan barak
+   (bagian 11).
 
 ## 4. Daftar ulang
 
@@ -206,9 +239,20 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 7. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
-8. **Setiap pos memiliki link input sendiri**, yang hanya dapat dibuka dengan
-   akun dan password khusus pos tersebut. Operator sebuah pos tidak dapat
-   menyentuh nilai pos lain.
+8. **Satu link untuk semua panitia, akses dibedakan per akun.** Setiap akun
+   hanya melihat dan menyentuh bagiannya sendiri:
+
+   | Contoh akun | Akses |
+   | --- | --- |
+   | `pos1hrcd37` | Hanya input nilai Pos 1 |
+   | `pos2hrcd37` | Hanya input nilai Pos 2 |
+   | `admin.ciradyka` | Semua bagian sistem |
+
+   Akun hanya diberikan kepada admin tiap pos dan tim IT. Operator sebuah pos
+   tidak dapat menyentuh nilai pos lain — ditegakkan oleh sistem, bukan sekadar
+   disembunyikan dari layar.
+9. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
+   password dapat diganti bersih setiap tahun tanpa membongkar sistem.
 9. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
    dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
    bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
@@ -351,4 +395,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.
-5. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
+5. **Nama anggota selain ketua.** Form pendaftaran hanya mencatat nama regu +
+   nama ketua. Empat anggota lain dicatat di mana — saat daftar ulang, atau
+   tidak dicatat sama sekali (pengecekan kelengkapan di akhir bersifat hitung
+   fisik, bagian 10.9)?
+   *(Dua pertanyaan lain dari skema batch sudah terjawab: pembayaran sebagian
+   tidak dilayani — semua-atau-tidak, daftar ulang saja dengan batch lebih
+   kecil; dan kode pembayaran terbit saat pendaftaran, satu kode per batch.)*
+6. **Isi tampilan live peserta (bagian 1.5).** Yang belum diputuskan:
+   - Apa yang dilihat peserta — klasemen penuh empat golongan, hanya status
+     regunya sendiri, atau keduanya?
+   - Kapan dibuka — live sepanjang lomba (regu bisa melihat posisinya di
+     tengah rute) atau baru setelah closing? Ini keputusan lomba, bukan
+     teknis: klasemen yang terlihat di tengah lomba bisa mengubah perilaku
+     peserta.
+   - Konsekuensi teknis yang sudah pasti: penonton bisa ratusan HP sekaligus,
+     sehingga tampilan publik **wajib disajikan dari jalur terpisah yang
+     murah** (halaman statis yang diperbarui berkala), tidak boleh membaca
+     database secara langsung — supaya penonton tidak pernah bisa membebani
+     jalur input panitia.
+7. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
+   Empat kandidat arsitektur gratis beserta rekomendasinya sudah ditawarkan di
+   `desain-sistem.md`.
