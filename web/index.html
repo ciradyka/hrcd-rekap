@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HRCD Rekap — Panitia</title>
+  <link rel="stylesheet" href="gaya.css">
+</head>
+<body>
+  <header class="kepala" id="kepala" hidden>
+    <span class="judul" id="judul-layar">HRCD Rekap</span>
+    <span class="spacer"></span>
+    <span class="siapa" id="siapa"></span>
+    <button class="tombol tombol-kecil tombol-kalem" id="ganti-fungsi" type="button">Ganti fungsi</button>
+    <button class="tombol tombol-kecil tombol-kalem" id="btn-keluar" type="button">Keluar</button>
+  </header>
+
+  <main class="isi" id="layar" aria-live="polite">
+    <p>Memuat…</p>
+  </main>
+
+  <script src="config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
