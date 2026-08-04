@@ -1,0 +1,256 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Alur Hiking Rally Ciradyka dari pendaftaran daring sampai klasemen akhir, dalam delapan tahap">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#9E9E9E"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <g font-family="Segoe UI, Calibri, Arial, sans-serif">
+
+    <!-- ================= JUDUL ================= -->
+    <text x="60" y="60" font-size="37" font-weight="700" fill="#1A1A1A">ALUR HIKING RALLY CIRADYKA</text>
+    <text x="60" y="90" font-size="17" fill="#6B6B6B">Dari pendaftaran daring sampai klasemen akhir</text>
+    <line x1="60" y1="104" x2="1540" y2="104" stroke="#E4E4E4" stroke-width="1.5"/>
+
+    <!-- ================= TAHAP 1 ================= -->
+    <rect x="60" y="118" width="6" height="18" fill="#00695C"/>
+    <text x="78" y="133" font-size="15" font-weight="700" fill="#00695C" letter-spacing="1.3">TAHAP 1  ·  SEBELUM HARI PERLOMBAAN</text>
+
+    <!-- Node 1 : Pendaftaran -->
+    <g>
+      <rect x="60" y="152" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#00695C" stroke-width="2"/>
+      <rect x="82" y="172" width="44" height="44" rx="12" fill="#E0F2F1"/>
+      <g transform="translate(82,172)" stroke="#00695C" fill="none" stroke-width="2.2" stroke-linecap="round">
+        <rect x="13" y="9" width="18" height="26" rx="3"/>
+        <line x1="18" y1="17" x2="26" y2="17"/>
+        <line x1="18" y1="22" x2="26" y2="22"/>
+        <line x1="18" y1="27" x2="23" y2="27"/>
+      </g>
+      <circle cx="348" cy="182" r="15" fill="#00695C"/>
+      <text x="348" y="187" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+      <text x="82" y="247" font-size="21" font-weight="700" fill="#1A1A1A">Pendaftaran</text>
+      <text x="82" y="272" font-size="14.5" fill="#6B6B6B">Regu isi identitas — 5 orang</text>
+      <text x="82" y="294" font-size="14.5" fill="#6B6B6B">Ditanya: perlu barak?</text>
+    </g>
+
+    <!-- Node 2 : Pembayaran -->
+    <g>
+      <rect x="447" y="152" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#00695C" stroke-width="2"/>
+      <rect x="469" y="172" width="44" height="44" rx="12" fill="#E0F2F1"/>
+      <g transform="translate(469,172)" stroke="#00695C" fill="none" stroke-width="2.2">
+        <rect x="8" y="14" width="28" height="17" rx="3"/>
+        <circle cx="22" cy="22.5" r="4.2"/>
+      </g>
+      <circle cx="735" cy="182" r="15" fill="#00695C"/>
+      <text x="735" y="187" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+      <text x="469" y="247" font-size="21" font-weight="700" fill="#1A1A1A">Pembayaran</text>
+      <text x="469" y="272" font-size="14.5" fill="#6B6B6B">Transfer atau tunai</text>
+      <text x="469" y="294" font-size="14.5" fill="#6B6B6B">Daring &amp; luring, tautan sama</text>
+    </g>
+
+    <!-- Node 3 : Verifikasi -->
+    <g>
+      <rect x="833" y="152" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#00695C" stroke-width="2"/>
+      <rect x="855" y="172" width="44" height="44" rx="12" fill="#E0F2F1"/>
+      <g transform="translate(855,172)" stroke="#00695C" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="22" cy="22" r="12.5"/>
+        <polyline points="16,22.5 20.5,27 28.5,17.5" stroke-width="2.6"/>
+      </g>
+      <circle cx="1121" cy="182" r="15" fill="#00695C"/>
+      <text x="1121" y="187" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+      <text x="855" y="247" font-size="21" font-weight="700" fill="#1A1A1A">Verifikasi</text>
+      <text x="855" y="272" font-size="14.5" fill="#6B6B6B">Panitia periksa pembayaran</text>
+      <text x="855" y="294" font-size="14.5" fill="#6B6B6B">Regu terima bukti sah</text>
+    </g>
+
+    <!-- Node 4 : Daftar Ulang -->
+    <g>
+      <rect x="1220" y="152" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#00695C" stroke-width="2"/>
+      <rect x="1242" y="172" width="44" height="44" rx="12" fill="#E0F2F1"/>
+      <g transform="translate(1242,172)" stroke="#00695C" fill="none" stroke-width="2.2" stroke-linecap="round">
+        <rect x="7" y="12" width="30" height="20" rx="3"/>
+        <circle cx="16" cy="19.5" r="3.2" stroke-width="2"/>
+        <path d="M11.5,27 a4.5,4.5 0 0 1 9,0" stroke-width="2"/>
+        <line x1="25" y1="19" x2="32" y2="19" stroke-width="2"/>
+        <line x1="25" y1="24.5" x2="32" y2="24.5" stroke-width="2"/>
+      </g>
+      <circle cx="1508" cy="182" r="15" fill="#00695C"/>
+      <text x="1508" y="187" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+      <text x="1242" y="247" font-size="21" font-weight="700" fill="#1A1A1A">Daftar Ulang</text>
+      <text x="1242" y="272" font-size="14.5" fill="#6B6B6B">H-1 / H-2 — sebut kode</text>
+      <text x="1242" y="294" font-size="14.5" fill="#6B6B6B">Ambil nomor dada</text>
+    </g>
+
+    <!-- Panah baris 1 -->
+    <g stroke="#9E9E9E" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="392" y1="234" x2="434" y2="234"/>
+      <line x1="779" y1="234" x2="821" y2="234"/>
+      <line x1="1165" y1="234" x2="1207" y2="234"/>
+    </g>
+
+    <!-- Keluaran tahap 1 -->
+    <g>
+      <line x1="993" y1="317" x2="993" y2="331" stroke="#2E7D32" stroke-width="2"/>
+      <rect x="833" y="331" width="320" height="34" rx="17" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
+      <text x="993" y="353" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Kwitansi + Kode Pembayaran</text>
+    </g>
+    <g>
+      <line x1="1380" y1="317" x2="1380" y2="331" stroke="#2E7D32" stroke-width="2"/>
+      <rect x="1220" y="331" width="320" height="34" rx="17" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
+      <text x="1380" y="353" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Nomor Dada + Kloter (10 regu, diacak)</text>
+    </g>
+
+    <!-- ================= TAHAP 2 ================= -->
+    <rect x="60" y="396" width="6" height="18" fill="#BF360C"/>
+    <text x="78" y="411" font-size="15" font-weight="700" fill="#BF360C" letter-spacing="1.3">TAHAP 2  ·  HARI PERLOMBAAN</text>
+
+    <!-- Node 5 : Garis Start -->
+    <g>
+      <rect x="60" y="430" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#BF360C" stroke-width="2"/>
+      <rect x="82" y="450" width="44" height="44" rx="12" fill="#FBE9E7"/>
+      <g transform="translate(82,450)" stroke="#BF360C" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="13" y1="8" x2="13" y2="36"/>
+        <path d="M13,10 L31,15 L13,20 Z" fill="#BF360C" stroke-width="2"/>
+      </g>
+      <circle cx="348" cy="460" r="15" fill="#BF360C"/>
+      <text x="348" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+      <text x="82" y="525" font-size="21" font-weight="700" fill="#1A1A1A">Garis Start</text>
+      <text x="82" y="550" font-size="14.5" fill="#6B6B6B">Konfirmasi kontrak waktu</text>
+      <text x="82" y="572" font-size="14.5" fill="#6B6B6B">3,5 / 4 / 4,5 jam · antre 4 tahap</text>
+    </g>
+
+    <!-- Node 6 : Lima Pos -->
+    <g>
+      <rect x="447" y="430" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#BF360C" stroke-width="2"/>
+      <rect x="469" y="450" width="44" height="44" rx="12" fill="#FBE9E7"/>
+      <g transform="translate(469,450)" stroke="#BF360C" fill="none" stroke-width="2.2" stroke-linejoin="round">
+        <path d="M6,33 L16,16 L22.5,26 L29,13 L39,33 Z"/>
+      </g>
+      <circle cx="735" cy="460" r="15" fill="#BF360C"/>
+      <text x="735" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+      <text x="469" y="525" font-size="21" font-weight="700" fill="#1A1A1A">Lima Pos</text>
+      <text x="469" y="550" font-size="14.5" fill="#6B6B6B">Soal kertas + wahana</text>
+      <text x="469" y="572" font-size="14.5" fill="#6B6B6B">Setiap pos berbeda</text>
+    </g>
+
+    <!-- Node 7 : Closing -->
+    <g>
+      <rect x="833" y="430" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#BF360C" stroke-width="2"/>
+      <rect x="855" y="450" width="44" height="44" rx="12" fill="#FBE9E7"/>
+      <g transform="translate(855,450)" stroke="#BF360C" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="22" cy="22" r="12.5"/>
+        <polyline points="22,14 22,22 28,25.5" stroke-width="2.4"/>
+      </g>
+      <circle cx="1121" cy="460" r="15" fill="#BF360C"/>
+      <text x="1121" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
+      <text x="855" y="525" font-size="21" font-weight="700" fill="#1A1A1A">Closing</text>
+      <text x="855" y="550" font-size="14.5" fill="#6B6B6B">Jam datang dicatat per regu</text>
+      <text x="855" y="572" font-size="14.5" fill="#6B6B6B">Tidak checkout: −100</text>
+    </g>
+
+    <!-- Node 8 : Klasemen -->
+    <g>
+      <rect x="1220" y="430" width="320" height="165" rx="14" fill="#FFFFFF" stroke="#BF360C" stroke-width="2"/>
+      <rect x="1242" y="450" width="44" height="44" rx="12" fill="#FBE9E7"/>
+      <g transform="translate(1242,450)" stroke="#BF360C" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15,10 h14 v7 a7,7 0 0 1 -14,0 z"/>
+        <path d="M15,12 h-4 a4.5,4.5 0 0 0 4.5,4.5" stroke-width="2"/>
+        <path d="M29,12 h4 a4.5,4.5 0 0 1 -4.5,4.5" stroke-width="2"/>
+        <line x1="22" y1="24" x2="22" y2="29"/>
+        <line x1="16" y1="32" x2="28" y2="32" stroke-width="2.4"/>
+      </g>
+      <circle cx="1508" cy="460" r="15" fill="#BF360C"/>
+      <text x="1508" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">8</text>
+      <text x="1242" y="525" font-size="21" font-weight="700" fill="#1A1A1A">Klasemen</text>
+      <text x="1242" y="550" font-size="14.5" fill="#6B6B6B">Total pos − penalti</text>
+      <text x="1242" y="572" font-size="14.5" fill="#6B6B6B">4 golongan dinilai terpisah</text>
+    </g>
+
+    <!-- Panah baris 2 -->
+    <g stroke="#9E9E9E" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="392" y1="512" x2="434" y2="512"/>
+      <line x1="779" y1="512" x2="821" y2="512"/>
+      <line x1="1165" y1="512" x2="1207" y2="512"/>
+    </g>
+
+    <!-- Catatan tahap 2 -->
+    <g>
+      <line x1="607" y1="595" x2="607" y2="609" stroke="#BF360C" stroke-width="2"/>
+      <rect x="447" y="609" width="320" height="34" rx="17" fill="#FBE9E7" stroke="#BF360C" stroke-width="1.5"/>
+      <text x="607" y="631" font-size="14.5" font-weight="600" fill="#BF360C" text-anchor="middle">Petugas hanya mencatat data mentah</text>
+    </g>
+    <g>
+      <line x1="993" y1="595" x2="993" y2="609" stroke="#C62828" stroke-width="2"/>
+      <rect x="833" y="609" width="320" height="34" rx="17" fill="#FFEBEE" stroke="#C62828" stroke-width="1.5"/>
+      <text x="993" y="631" font-size="14.5" font-weight="600" fill="#C62828" text-anchor="middle">Penalti −10 poin tiap 10 menit meleset</text>
+    </g>
+
+    <!-- ================= JALUR DATA ================= -->
+    <line x1="60" y1="676" x2="1540" y2="676" stroke="#E4E4E4" stroke-width="1.5"/>
+    <rect x="60" y="692" width="6" height="18" fill="#3E3E3E"/>
+    <text x="78" y="707" font-size="15" font-weight="700" fill="#3E3E3E" letter-spacing="1.3">JALUR DATA NILAI</text>
+
+    <g>
+      <rect x="60" y="726" width="320" height="76" rx="12" fill="#F7F7F6" stroke="#DCDCDC" stroke-width="1.5"/>
+      <g transform="translate(80,748)" stroke="#3E3E3E" fill="none" stroke-width="2" stroke-linecap="round">
+        <rect x="8" y="4" width="16" height="24" rx="2.5"/>
+        <line x1="12" y1="11" x2="20" y2="11"/>
+        <line x1="12" y1="16" x2="20" y2="16"/>
+        <line x1="12" y1="21" x2="17" y2="21"/>
+      </g>
+      <text x="124" y="763" font-size="16" font-weight="700" fill="#1A1A1A">Lembar nilai</text>
+      <text x="124" y="784" font-size="13.5" fill="#6B6B6B">Diisi petugas lapangan</text>
+    </g>
+
+    <g>
+      <rect x="447" y="726" width="320" height="76" rx="12" fill="#F7F7F6" stroke="#DCDCDC" stroke-width="1.5"/>
+      <g transform="translate(467,748)" stroke="#3E3E3E" fill="none" stroke-width="2" stroke-linecap="round">
+        <rect x="6" y="6" width="20" height="14" rx="2"/>
+        <line x1="3" y1="24" x2="29" y2="24" stroke-width="2.2"/>
+      </g>
+      <text x="511" y="763" font-size="16" font-weight="700" fill="#1A1A1A">Operator IT di pos</text>
+      <text x="511" y="784" font-size="13.5" fill="#6B6B6B">Input dengan nomor dada</text>
+    </g>
+
+    <g>
+      <rect x="833" y="726" width="320" height="76" rx="12" fill="#F7F7F6" stroke="#DCDCDC" stroke-width="1.5"/>
+      <g transform="translate(853,748)" stroke="#3E3E3E" fill="none" stroke-width="2">
+        <rect x="6" y="5" width="20" height="9" rx="2"/>
+        <rect x="6" y="18" width="20" height="9" rx="2"/>
+        <circle cx="10.5" cy="9.5" r="1.4" fill="#3E3E3E" stroke="none"/>
+        <circle cx="10.5" cy="22.5" r="1.4" fill="#3E3E3E" stroke="none"/>
+      </g>
+      <text x="897" y="763" font-size="16" font-weight="700" fill="#1A1A1A">Server</text>
+      <text x="897" y="784" font-size="13.5" fill="#6B6B6B">Hitung otomatis + pantau input</text>
+    </g>
+
+    <g>
+      <rect x="1220" y="726" width="320" height="76" rx="12" fill="#F7F7F6" stroke="#DCDCDC" stroke-width="1.5"/>
+      <g transform="translate(1240,748)">
+        <line x1="5" y1="27" x2="28" y2="27" stroke="#3E3E3E" stroke-width="2" stroke-linecap="round"/>
+        <rect x="8" y="18" width="5" height="9" fill="#3E3E3E"/>
+        <rect x="15.5" y="12" width="5" height="15" fill="#3E3E3E"/>
+        <rect x="23" y="7" width="5" height="20" fill="#3E3E3E"/>
+      </g>
+      <text x="1284" y="763" font-size="16" font-weight="700" fill="#1A1A1A">Nilai keluar</text>
+      <text x="1284" y="784" font-size="13.5" fill="#6B6B6B">Makin cepat input, makin cepat tampil</text>
+    </g>
+
+    <g stroke="#9E9E9E" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="392" y1="764" x2="434" y2="764"/>
+      <line x1="779" y1="764" x2="821" y2="764"/>
+      <line x1="1165" y1="764" x2="1207" y2="764"/>
+    </g>
+    <g font-size="12.5" fill="#8A8A8A" text-anchor="middle">
+      <text x="413" y="752">kertas</text>
+      <text x="800" y="752">daring</text>
+      <text x="1186" y="752">otomatis</text>
+    </g>
+
+    <!-- ================= CATATAN KAKI ================= -->
+    <text x="60" y="855" font-size="14" fill="#8A8A8A">Setiap pos punya tautan dan kata sandi sendiri  ·  Riwayat perubahan nilai tercatat  ·  Aturan penilaian dapat diubah setiap tahun</text>
+
+  </g>
+</svg>
