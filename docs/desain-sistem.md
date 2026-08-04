@@ -302,13 +302,12 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 
 ## 8. Rekomendasi
 
-> **Keputusan panitia (Agustus 2026): Kandidat A dicoret.** Dengan skema form
-> pendaftaran dinamis, akses per akun di satu link (`pos1hrcd37` vs
-> `admin.ciradyka`), dan tampilan live publik, Google Sheets dinilai bukan
-> pilihan yang tepat — pembatasan akses di Apps Script hanya bisa berupa
-> konvensi aplikasi, bukan penegakan server, dan seluruh beban form dinamis
-> jatuh ke bagian platform yang paling canggung. Pilihan mengerucut ke
-> **B melawan D**.
+> **Koreksi (Agustus 2026):** revisi sebelumnya salah mencatat "panitia
+> mencoret Kandidat A" — **panitia tidak pernah mencoretnya**. Yang benar:
+> panitia menyukai solusi Sheets (dipakai 7 tahun) dan meminta kandidat ini
+> diuji jujur terhadap tiga permintaan terbaru, karena bisa jadi Sheets mampu.
+> Hasil ujiannya di bagian 8.3 — ringkasnya: **ketiganya bisa**. Kandidat A
+> tetap pilihan yang hidup.
 
 1. **Rekomendasi utama: Kandidat B (Supabase + Cloudflare Pages).**
    Alasannya satu kalimat: **tiga kebutuhan yang paling berbahaya kalau salah
@@ -370,6 +369,37 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 3. Vercel tetap alternatif sah bila kenyamanan deploy dinilai lebih penting;
    untuk beban acara ini 100 GB/bulan kemungkinan besar cukup, hanya saja
    "kemungkinan besar cukup" kalah dengan "tidak ada batas".
+
+### 8.3 Ujian jujur: bisakah Kandidat A memenuhi tiga permintaan terbaru?
+
+Diminta panitia setelah revisi sebelumnya menilai Sheets terlalu cepat.
+Jawabannya diuji per permintaan, bukan per kesan:
+
+| Permintaan | Bisa? | Caranya di Sheets + Apps Script |
+| --- | --- | --- |
+| Form pendaftaran dinamis (autocomplete sekolah + konfirmasi alamat + blok per regu + validasi jumlah) | **✅ Bisa** | Bukan Google Form, melainkan halaman web custom di Apps Script — sama seperti kandidat lain juga butuh form custom. Trik latensi: daftar sekolah dimuat **sekali** saat halaman dibuka lalu difilter di browser, sehingga autocomplete terasa instan tanpa menyentuh server per ketikan. |
+| Satu link, akses per akun (`pos1hrcd37` → hanya Pos 1) | **✅ Bisa, dengan satu disiplin** | Login dicek ke sheet `Akun`, sesi diberi token, dan **setiap fungsi server memvalidasi token sebelum menulis**. Ini penegakan sisi server sungguhan — koreksi atas penilaian sebelumnya yang menyebutnya "hanya konvensi". Catatan tekniknya: semua fungsi global Apps Script ter-ekspos ke pemanggilan, jadi **satu saja** fungsi yang lupa cek token = celah. Polanya harus satu pintu (semua tulis lewat satu fungsi dispatcher yang mengecek token), dan itu disiplin kode, bukan halangan platform. |
+| Live publik untuk ratusan HP, dibuka bertahap | **✅ Bisa** | Sheet khusus di-"publish to web" — di-serve infrastruktur Google, **tidak memakan kuota eksekusi sedikit pun**, diperbarui otomatis ±5 menit. Bertahap: sheet terbitan hanya berisi kolom progres selama lomba; kolom nilai diisi setelah closing. Ingin tampilan cantik: halaman statis gratis (GitHub Pages/Cloudflare) yang membaca CSV terbitan itu. |
+
+Kesimpulan yang jujur: **yang membedakan A dan B bukan "bisa atau tidak bisa" —
+ketiganya bisa — melainkan margin dan kedalaman jaminan:**
+
+1. **Margin beban:** A berbagi 30 eksekusi bersamaan untuk semua operator
+   (penonton sudah aman lewat publish-to-web); B tidak punya tebing praktis di
+   skala ini.
+2. **Kedalaman penegakan:** di A aturan akses hidup di kode aplikasi — benar
+   selama semua fungsi disiplin; di B lapisan database (RLS) tetap menahan
+   bahkan ketika kode aplikasinya salah. Dua-duanya penegakan; bedanya berapa
+   lapis.
+3. **Ketahanan data:** database A bisa dirusak tangan (salah sort oleh editor
+   spreadsheet) dan restore-nya seluruh file — bisa dimitigasi dengan menutup
+   akses edit langsung + snapshot berkala via trigger; B memberi transaksi dan
+   riwayat otomatis tanpa mitigasi tambahan.
+4. **Rasa pakai:** A membayar 1–4 detik per aksi server; B ratusan milidetik.
+
+Keempatnya soal selera risiko dan prioritas panitia — **bukan diskualifikasi**.
+Rekomendasi dokumen ini tetap B, tetapi A adalah pilihan sah yang didukung 7
+tahun kebiasaan panitia, dan keputusan sepenuhnya milik panitia.
 
 ## 9. Keputusan yang menunggu panitia
 

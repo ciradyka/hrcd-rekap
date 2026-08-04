@@ -402,8 +402,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.
 5. **Teknologi yang dipakai.** Empat kandidat arsitektur gratis beserta
-   rekomendasinya sudah ditawarkan di `desain-sistem.md`; Kandidat A (Google
-   Sheets) telah dicoret panitia, pilihan mengerucut ke B melawan D.
+   rekomendasinya sudah ditawarkan di `desain-sistem.md`; belum ada yang
+   dikunci. Ujian jujur Kandidat A (Google Sheets) terhadap permintaan
+   terbaru ada di bagian 8.3 dokumen itu.
    *(Pertanyaan-pertanyaan lain di bagian ini yang sudah terjawab dan pindah ke
    badan dokumen: pembayaran sebagian tidak dilayani — bagian 3.5; kode
    pembayaran per batch terbit saat pendaftaran — bagian 3.4; nama anggota
