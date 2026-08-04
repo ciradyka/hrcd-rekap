@@ -88,6 +88,16 @@ Guidance for Claude Code when working in this repository.
    need to search.
 6. Mixing both inside one identifier is expected and correct:
    `KloterRepository`, `hitungPenalti()`, `nomor_dada`.
+7. **Prefer the word people actually say, even when it is an English loanword.**
+   Write `online`, `offline`, `link`, `upload`, `download`, `preview`,
+   `password`, `timestamp`, `edit`. Do not use the formal coinages `daring`,
+   `luring`, `tautan`, `unggah`, `unduh`, `pratinjau`, `kata sandi`,
+   `cap waktu`, `sunting` — they are correct Indonesian but the panitia stumble
+   over them, and a document that has to be decoded on first read does not get
+   read.
+8. Rule 7 does not loosen rule 3. Domain terms stay Indonesian however technical
+   they sound, because no familiar English equivalent exists: `regu` is not
+   "squad", and `nomor dada` is not "bib number" to anyone at this event.
 
 ## 6. Who maintains this
 
