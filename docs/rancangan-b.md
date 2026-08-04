@@ -98,13 +98,47 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | `submit_pendaftaran` | Buat sekolah (bila baru) + batch + N baris regu + kode pembayaran unik, sekali jalan; validasi ulang rincian golongan = total di server |
 | `verifikasi_pembayaran` | Cek nominal = jumlah regu × `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
 | `batalkan_verifikasi` | Jalan mundur yang sah untuk salah verifikasi (meja di hari yang sama, admin kapan pun) — dengan alasan, terekam riwayat |
-| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → ambil N nomor terkecil yang tersedia (`FOR UPDATE SKIP LOCKED`) → sebar ke N kloter berbeda dengan `lompatan_kloter`, hindari kloter yang sudah berisi sekolah itu, buka kloter 31–40 hanya bila 1–30 penuh → tulis semuanya sekaligus. Regu `batal` dilewati. 2–3 meja paralel aman |
+| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → **satu gerbang `pg_advisory_xact_lock`** → ambil N nomor terkecil yang tersedia → sebar ke N kloter berbeda dengan `lompatan_kloter`, hindari kloter yang sudah berisi sekolah itu, buka kloter 31–40 hanya bila 1–30 penuh → tulis semuanya sekaligus. Regu `batal` dilewati. Lihat 4.1 |
 | `tukar_nomor_dada` | Nomor dada rusak/salah pasang: tukar dengan stok tersedia, terekam riwayat |
 | `konfirmasi_kontrak` | Validasi pilihan terhadap `kontrak_opsi` (bukan hardcode); boleh dikoreksi selama kloter belum berangkat |
 | `berangkatkan_kloter` | Jam berangkat **wajib dari argumen** (diketik) — fungsi tidak mengenal `now()`; menolak bila ada regu ter-ceklis berangkat yang belum punya kontrak (daftarnya ditampilkan layar) |
 | `simpan_nilai_massal` | **Satu-satunya jalur tulis nilai** — upload massal dan input manual (batch isi 1) lewat pintu yang sama; `SECURITY INVOKER` sehingga RLS pos tetap menggigit; validasi ulang semua baris di server, hasil per baris dikembalikan (sukses/tolak + alasan) |
 | `catat_closing` | Upsert per regu — pemanggilan ulang = edit yang sah; `jam_datang` wajib dari argumen; `anggota_hadir` 0–5 |
 | `susun_barak` | Idempotent: hapus + hitung ulang + tulis. Urut sekolah terbesar; utamakan 1 sekolah 1 ruangan; sekolah besar boleh terpecah ke beberapa ruangan; sekolah kecil digabung hanya bila terpaksa; `jumlah_orang = regu aktif × 5 + pendamping` |
+
+### 4.1 Kenapa daftar ulang diserialisasi penuh
+
+Panitia bertanya: kalau dua laptop menekan tombol pada detik yang sama, apakah
+harus "simpan dulu ke database lalu query lagi supaya benar-benar cocok?"
+
+1. **Pola "cek dulu, baru tulis" justru tidak aman.** Antara membaca dan
+   menulis ada celah waktu: dua meja bisa sama-sama membaca "nomor 005 masih
+   kosong", lalu sama-sama menulisnya. Yang benar adalah membiarkan database
+   memutuskan **di dalam satu transaksi**, bukan browser bertanya lalu memberi
+   tahu.
+2. **Rancangan pertama masih bocor, dan uji membuktikannya.** Versi awal
+   memakai `FOR UPDATE SKIP LOCKED` pada `nomor_dada_stok`, padahal yang
+   menentukan sebuah nomor "sudah terpakai" adalah tabel lain
+   (`regu.nomor_dada`). Mengunci tabel A sambil memutuskan berdasarkan tabel B
+   adalah pola yang bocor. Pada uji 30 meja serentak: **1–3 meja gagal tiap
+   putaran**, 290 dari 300 regu yang berhasil.
+3. **Yang menahan datanya tetap constraint.** `UNIQUE (nomor_dada)` menolak
+   duplikatnya — tidak ada nomor ganda yang pernah lolos ke database. Yang
+   rusak hanyalah pengalaman operasional: satu sekolah gagal daftar ulang
+   dengan pesan error teknis. Ini contoh kenapa constraint database dipasang
+   sebagai jaring terakhir, bukan sebagai satu-satunya pengaman.
+4. **Perbaikannya menyederhanakan, bukan menambah kepintaran** (migrasi 0007):
+   seluruh bagian "pilih nomor + sebar kloter" dilewatkan **satu gerbang**
+   `pg_advisory_xact_lock`. Hanya satu meja berada di dalamnya pada satu saat;
+   yang lain menunggu beberapa milidetik lalu membaca keadaan yang sudah pasti
+   mutakhir. `SKIP LOCKED` tidak lagi diperlukan sama sekali.
+5. **Terukur, bukan diyakini** (`tests/uji_konkurensi.py`): 30 koneksi
+   Postgres terpisah dilepas serentak lewat satu barrier, memperebutkan 300
+   nomor dada. Hasil setelah perbaikan, lima putaran berturut-turut:
+   **300/300 regu bernomor, nol error, nol duplikat, tidak ada kloter
+   kelebihan, tidak ada sekolah menumpuk** — selesai seluruhnya dalam
+   **1,65 detik** (rata-rata 55 ms per meja). Serialisasi total tidak terasa
+   pada skala 2–3 meja yang sebenarnya.
 
 ## 5. Mesin skor — hitung-saat-baca, tanpa tombol "hitung ulang"
 
