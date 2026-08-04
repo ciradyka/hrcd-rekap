@@ -327,6 +327,50 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 4. **Kandidat C gugur** — satu-satunya yang bisa mati justru karena acaranya
    ramai.
 
+### 8.1 Tujuh tahun Google Sheets — jendela, bukan mesin
+
+1. Panitia memakai Google Sheets selama 7 tahun karena tampilan Excel-nya
+   mudah. Itu bukti nyata yang tidak boleh dibuang: **kepercayaan panitia ada
+   pada tampilan tabel** — memeriksa data, merekap, membuka arsip lama.
+2. Tapi pisahkan dua peran yang selama ini menempel: Sheets sebagai **tampilan
+   baca** (di situ ia unggul) dan Sheets sebagai **mesin sistem** (di situ ia
+   gagal untuk skema sekarang: akses per akun tidak bisa ditegakkan, form
+   dinamis canggung, kuota 30 eksekusi dibagi semua orang).
+3. Soal era AI: AI **menguatkan B, bukan menyelamatkan A**. Yang membuat A
+   gugur adalah fakta platform — batas eksekusi, semua request berjalan sebagai
+   pemilik, restore seluruh file — dan AI tidak bisa mengubah fakta platform.
+   Sebaliknya, kelemahan terbesar B ("pelajar tidak bisa debug SQL sendirian")
+   justru persis jenis masalah yang AI bantu: menjelaskan error, membaca
+   policy, menambal query.
+4. Maka rancangan yang tepat adalah **hybrid peran**: Supabase menjadi mesin
+   (penegakan akses, transaksi, riwayat), dan Sheets tetap hidup sebagai
+   jendela — setiap tabel dan klasemen bisa di-export CSV/Sheets sekali klik,
+   input massal memang sudah masuk lewat paste dari Excel (R6), dan arsip
+   tahunan disimpan sebagai spreadsheet yang bisa dibuka selamanya tanpa
+   sistem berjalan. Panitia tidak kehilangan tampilan Excel-nya; mereka hanya
+   berhenti menjadikannya tempat kebenaran data.
+
+### 8.2 Cloudflare vs Vercel untuk frontend statis
+
+| Aspek | Cloudflare (Pages/Workers) | Vercel (Hobby) |
+| --- | --- | --- |
+| Bandwidth gratis | **Tak terbatas** | 100 GB/bulan |
+| Syarat pemakaian | Tanpa klausul komersial | Khusus non-komersial (acara sekolah aman) |
+| Cron gratis (keep-alive Supabase) | ✅ Workers cron | Terbatas (2 cron, 1×/hari) |
+| Kartu kredit | Tidak perlu | Tidak perlu |
+| Kenyamanan deploy | Baik | **Paling nyaman** |
+| Catatan | Pages berstatus maintenance; jalur baru = Workers static assets (tetap gratis) | Batas soft bisa berubah |
+
+1. **Pilihan: Cloudflare.** Alasan penentunya tampilan live publik: ratusan HP
+   penonton me-refresh klasemen adalah lalu lintas yang tidak bisa diprediksi,
+   dan hanya Cloudflare yang menjawabnya dengan "tak terbatas" alih-alih
+   kuota bulanan.
+2. Alasan kedua: keep-alive Supabase butuh cron, dan Workers cron gratis
+   menyediakannya di akun yang sama — satu vendor lebih sedikit.
+3. Vercel tetap alternatif sah bila kenyamanan deploy dinilai lebih penting;
+   untuk beban acara ini 100 GB/bulan kemungkinan besar cukup, hanya saja
+   "kemungkinan besar cukup" kalah dengan "tidak ada batas".
+
 ## 9. Keputusan yang menunggu panitia
 
 1. Pilih kandidat (bagian 8).
