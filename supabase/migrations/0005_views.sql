@@ -289,6 +289,12 @@ grant select on v_poin_wahana, v_poin_pos, v_penalti_waktu, v_total_skor,
   v_klasemen, v_monitoring_input, v_keberangkatan, v_lembar_nilai,
   v_kwitansi, v_barak to authenticated, service_role;
 
+-- Info edisi untuk FORM PUBLIK (biaya & tanggal — tanpa PII, tanpa login).
+create view v_edisi_publik as
+select nomor, nama, biaya_per_regu, tanggal_lomba
+from edisi where aktif;
+grant select on v_edisi_publik to anon, authenticated, service_role;
+
 -- View publik tidak untuk klien anon/authenticated — hanya service role
 -- (GitHub Actions memakai service key).
 revoke all on v_progres_publik, v_klasemen_publik, v_publik_ringkas

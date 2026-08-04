@@ -60,6 +60,25 @@ begin
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;
+
+  -- IDEMPOTENSI (temuan review tahap 2): kiriman ulang dengan kunci yang
+  -- sama — sinyal putus lalu pendaftar menekan Kirim lagi — TIDAK boleh
+  -- melahirkan batch kedua.
+  declare
+    v1 jsonb; v2 jsonb; v_kunci uuid := gen_random_uuid();
+  begin
+    v1 := submit_pendaftaran('SMP Uji Idem', 'Jl. Idem 1', false, '081200009999',
+      '[{"nama_regu":"Idem","nama_ketua":"Idem","golongan":"penegak_pa"}]',
+      0::smallint, v_kunci);
+    v2 := submit_pendaftaran('SMP Uji Idem', 'Jl. Idem 1', false, '081200009999',
+      '[{"nama_regu":"Idem","nama_ketua":"Idem","golongan":"penegak_pa"}]',
+      0::smallint, v_kunci);
+    assert v1 ->> 'kode_pembayaran' = v2 ->> 'kode_pembayaran',
+           'kiriman ulang melahirkan kode kedua';
+    assert (v2 ->> 'terkirim_ulang') = 'true', 'kiriman ulang tidak ditandai';
+    assert (select count(*) from pendaftaran where kunci_kirim = v_kunci) = 1,
+           'ada dua batch untuk satu kunci kirim';
+  end;
 end;
 $$;
 

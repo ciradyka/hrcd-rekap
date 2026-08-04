@@ -1,19 +1,15 @@
 #!/usr/bin/env bash
 # ============================================================================
-# hrcd-rekap : tests/run.sh
-# Jalankan seluruh migrasi + seed + tes di database lokal sekali pakai.
-#
-# Pakai:
-#   PSQL=/path/ke/psql PGHOST=127.0.0.1 PGPORT=55432 PGUSER=postgres \
-#   PGPASSWORD=... bash tests/run.sh
-#
-# Database hrcd_test di-drop dan dibuat ulang setiap kali — aman diulang.
+# hrcd-rekap : tests/dev_db.sh — siapkan database hrcd_dev untuk dev server.
+# Sama seperti run.sh tapi TANPA data tes 02/03 — database bersih berisi
+# konfigurasi edisi + akun uji, siap dipakai layar.
+#   PSQL=/path/ke/psql PGPASSWORD=... bash tests/dev_db.sh
 # ============================================================================
 set -euo pipefail
 
 PSQL="${PSQL:-psql}"
 export PGHOST="${PGHOST:-127.0.0.1}" PGPORT="${PGPORT:-55432}" PGUSER="${PGUSER:-postgres}"
-DB=hrcd_test
+DB=hrcd_dev
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 "$PSQL" -d postgres -v ON_ERROR_STOP=1 -q \
@@ -31,7 +27,5 @@ run supabase/migrations/0005_views.sql
 run supabase/migrations/0006_idempotensi.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
-run tests/sql/02_constraints.sql
-run tests/sql/03_alur.sql
 
-echo "SEMUA TES LULUS"
+echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

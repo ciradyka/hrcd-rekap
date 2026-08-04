@@ -1,0 +1,360 @@
+/* ============================================================================
+   hrcd-rekap : gaya.css — sistem desain untuk orang awam
+   Aturan mainnya (rancangan-b.md 10.1 + syarat panitia):
+   - Huruf BESAR: tubuh 18px, input 22px, angka penting 40px+.
+   - Sasaran sentuh minimal 56px — dipakai sambil berdiri, di HP, terburu-buru.
+   - Satu aksi utama per layar: satu tombol besar berwarna, sisanya kalem.
+   - Status = warna + angka, terbaca dari seberang meja.
+   - Bahasa: kalimat yang memang diucapkan orang, tanpa istilah teknis.
+   ========================================================================== */
+
+:root {
+  --tinta:        #1a1a1a;
+  --tinta-lembut: #5c5c5c;
+  --kertas:       #f7f6f3;
+  --kartu:        #ffffff;
+  --garis:        #dcdcd7;
+  --utama:        #00695c;   /* hijau tua HRCD */
+  --utama-gelap:  #004d43;
+  --utama-muda:   #e0f2f1;
+  --bahaya:       #c62828;
+  --bahaya-muda:  #ffebee;
+  --kuning:       #b26a00;
+  --kuning-muda:  #fff3e0;
+  --hijau:        #2e7d32;
+  --hijau-muda:   #e8f5e9;
+  --radius:       14px;
+  --bayang:       0 1px 3px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* [hidden] harus menang atas display:flex/grid kelas mana pun */
+[hidden] { display: none !important; }
+
+html { font-size: 18px; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--kertas);
+  color: var(--tinta);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- kerangka layar (sama di semua layar: kepala/tengah/kaki) ------ */
+
+.kepala {
+  background: var(--utama);
+  color: #fff;
+  padding: .7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+.kepala .judul  { font-weight: 700; font-size: 1.05rem; }
+.kepala .spacer { flex: 1; }
+.kepala .siapa  { font-size: .85rem; opacity: .9; }
+
+.isi {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.2rem 1rem 4rem;
+}
+.isi.lebar { max-width: 1080px; }
+
+/* ---------- kartu ---------- */
+
+.kartu {
+  background: var(--kartu);
+  border: 1.5px solid var(--garis);
+  border-radius: var(--radius);
+  box-shadow: var(--bayang);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.kartu h2 { font-size: 1.25rem; margin-bottom: .6rem; }
+.kartu .keterangan { color: var(--tinta-lembut); font-size: .95rem; }
+
+/* Kartu identitas hasil lookup (echo-confirm) — HARUS terbaca dari jauh */
+.kartu-identitas {
+  border: 2.5px solid var(--utama);
+  background: var(--utama-muda);
+}
+.kartu-identitas .nama    { font-size: 1.7rem; font-weight: 800; }
+.kartu-identitas .detail  { font-size: 1.05rem; margin-top: .2rem; }
+
+/* ---------- tombol ---------- */
+
+button { font: inherit; cursor: pointer; }
+
+.tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 56px;
+  padding: .7rem 1.4rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  width: 100%;
+}
+.tombol-utama {
+  background: var(--utama);
+  color: #fff;
+}
+.tombol-utama:hover:not(:disabled)  { background: var(--utama-gelap); }
+.tombol-utama:disabled {
+  background: #b9c9c6;
+  cursor: not-allowed;
+}
+.tombol-kalem {
+  background: #fff;
+  color: var(--tinta);
+  border-color: var(--garis);
+  font-weight: 600;
+}
+.tombol-bahaya {
+  background: #fff;
+  color: var(--bahaya);
+  border-color: var(--bahaya);
+}
+.tombol-kecil { min-height: 44px; font-size: .95rem; width: auto; }
+
+.tombol:focus-visible, input:focus-visible, .pilihan:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* ---------- formulir ---------- */
+
+.medan { margin-bottom: 1.1rem; }
+.medan label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: .35rem;
+}
+.medan .bantuan {
+  font-weight: 400;
+  color: var(--tinta-lembut);
+  font-size: .9rem;
+  margin-top: .25rem;
+}
+
+input[type=text], input[type=number], input[type=password], input[type=time], input[type=tel] {
+  width: 100%;
+  font: inherit;
+  font-size: 1.3rem;
+  padding: .7rem .9rem;
+  min-height: 58px;
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+}
+input.besar { font-size: 1.8rem; letter-spacing: .06em; text-align: center; }
+input:focus { border-color: var(--utama); }
+input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
+
+.galat {
+  color: var(--bahaya);
+  font-weight: 600;
+  margin-top: .35rem;
+  font-size: .95rem;
+}
+
+/* Pilihan besar (pengganti dropdown): kartu yang bisa diketuk */
+.pilihan-baris { display: grid; gap: .7rem; grid-template-columns: 1fr 1fr; }
+.pilihan {
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+  min-height: 64px;
+}
+.pilihan[aria-pressed="true"] {
+  border-color: var(--utama);
+  background: var(--utama-muda);
+}
+
+/* Stepper +/- untuk angka kecil (rincian golongan) */
+.stepper { display: flex; align-items: center; gap: .6rem; }
+.stepper button {
+  width: 56px; height: 56px;
+  font-size: 1.6rem; font-weight: 800;
+  border-radius: 50%;
+  border: 2px solid var(--garis);
+  background: #fff;
+}
+.stepper .angka { font-size: 1.6rem; font-weight: 800; min-width: 2.2rem; text-align: center; }
+
+/* ---------- lencana status: warna + angka ---------- */
+
+.lencana {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .25rem .7rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .95rem;
+}
+.lencana-hijau  { background: var(--hijau-muda);  color: var(--hijau); }
+.lencana-kuning { background: var(--kuning-muda); color: var(--kuning); }
+.lencana-merah  { background: var(--bahaya-muda); color: var(--bahaya); }
+.lencana-abu    { background: #eee; color: var(--tinta-lembut); }
+
+/* ---------- angka besar (kode pembayaran, nomor dada) ---------- */
+
+.angka-raksasa {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+/* ---------- tabel sederhana ---------- */
+
+.tabel { width: 100%; border-collapse: collapse; font-size: 1.05rem; }
+.tabel th {
+  text-align: left;
+  color: var(--tinta-lembut);
+  font-size: .85rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: .4rem .6rem;
+  border-bottom: 2px solid var(--garis);
+}
+.tabel td { padding: .65rem .6rem; border-bottom: 1px solid var(--garis); }
+.tabel .angka { font-weight: 800; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- langkah wizard (form publik) ---------- */
+
+.langkah-bar {
+  display: flex; gap: .4rem; margin-bottom: 1.2rem;
+}
+.langkah-bar .titik {
+  flex: 1; height: 8px; border-radius: 4px; background: var(--garis);
+}
+.langkah-bar .titik.aktif { background: var(--utama); }
+
+/* ---------- daftar autocomplete ---------- */
+
+.saran {
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: .4rem;
+}
+.saran button {
+  display: block; width: 100%;
+  text-align: left;
+  padding: .8rem 1rem;
+  border: 0; background: none;
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--garis);
+  min-height: 56px;
+}
+.saran button:hover { background: var(--utama-muda); }
+.saran .alamat { display: block; color: var(--tinta-lembut); font-size: .9rem; }
+
+/* ---------- notifikasi ---------- */
+
+.notif {
+  position: fixed;
+  left: 50%; bottom: 1.2rem;
+  transform: translateX(-50%);
+  background: var(--tinta);
+  color: #fff;
+  padding: .8rem 1.4rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  box-shadow: var(--bayang);
+  z-index: 50;
+  max-width: 92vw;
+}
+.notif.galat { background: var(--bahaya); }
+
+/* ---------- menu beranda meja ---------- */
+
+.menu-fungsi { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.menu-fungsi a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--kartu);
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  box-shadow: var(--bayang);
+}
+.menu-fungsi a:hover { border-color: var(--utama); }
+.menu-fungsi .nama-fungsi { font-size: 1.3rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+.menu-fungsi .ket { color: var(--tinta-lembut); margin-top: .3rem; }
+
+/* ---------- dialog (pengganti prompt) ---------- */
+
+.tirai {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; z-index: 60;
+}
+.dialog {
+  background: var(--kartu);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.dialog h2 { margin-bottom: .8rem; }
+.notif { display: flex; align-items: center; gap: .8rem; }
+.notif-tutup {
+  background: rgba(255,255,255,.25); color: #fff;
+  border: 0; border-radius: 8px;
+  min-width: 36px; min-height: 36px; font-size: 1rem;
+}
+
+/* ---------- cetak: hanya kwitansi yang ikut tercetak ---------- */
+
+.cetakan { display: none; }
+
+@media print {
+  .kepala, .isi, .notif, .tirai { display: none !important; }
+  .cetakan {
+    display: block !important;
+    font-size: 12pt;
+    color: #000;
+  }
+  .cetakan h1 { font-size: 16pt; margin-bottom: 1rem; }
+  .cetakan p { margin: .45rem 0; }
+  body { background: #fff; }
+}
+
+/* ---------- responsif ---------- */
+
+@media (max-width: 560px) {
+  html { font-size: 17px; }
+  .pilihan-baris { grid-template-columns: 1fr; }
+  .angka-raksasa { font-size: 2rem; }
+}
+
+/* ---------- aksesibilitas ---------- */
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
