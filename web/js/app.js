@@ -12,7 +12,7 @@ import {
   sesi, masuk, keluar, GalatApi,
   lihatBatch, infoEdisi, ringkasanMeja,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
-  daftarKloter, tandaiKloterDicetak,
+  daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -133,7 +133,11 @@ async function layarBeranda() {
       </a>
       <a href="#/cetak-kloter">
         <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
-        <div class="ket">Kertas untuk garis start — setelah dicetak, isi kloter dibekukan</div>
+        <div class="ket">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
+      </a>
+      <a href="#/pindah-kloter">
+        <div class="nama-fungsi">🔀 Pindah Kloter</div>
+        <div class="ket">Peserta telat atau urgent — pindahkan nomor dada ke kloter lain</div>
       </a>
     </div>
     <p class="keterangan" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
@@ -508,7 +512,18 @@ async function layarCetakKloter() {
         <tr><td>Belum pernah dicetak</td><td class="angka">${belum.length}</td></tr>
         <tr><td>Total regu</td><td class="angka">${baris.length}</td></tr>
       </table>
-      <div class="pilihan-baris" style="margin-top:.9rem">
+      <div class="medan" style="margin-top:.9rem;margin-bottom:.5rem">
+        <label>Kertasnya untuk siapa?</label>
+        <div class="pilihan-baris">
+          <button class="pilihan" data-bentuk="staging" aria-pressed="true" type="button">
+            Petugas staging<br><span class="keterangan">ada kolom centang</span>
+          </button>
+          <button class="pilihan" data-bentuk="umum" aria-pressed="false" type="button">
+            Papan &amp; barak<br><span class="keterangan">untuk dibaca peserta</span>
+          </button>
+        </div>
+      </div>
+      <div class="pilihan-baris" style="margin-top:.6rem">
         <button class="tombol tombol-utama" id="cetak-belum" type="button"
                 ${belum.length ? "" : "disabled"}>
           🖨️ Cetak ${belum.length} kloter baru
@@ -520,6 +535,13 @@ async function layarCetakKloter() {
     </div>
     <div id="pratayang"></div>
   `));
+
+  let bentuk = "staging";
+  LAYAR.querySelectorAll("[data-bentuk]").forEach(b => b.addEventListener("click", () => {
+    bentuk = b.dataset.bentuk;
+    LAYAR.querySelectorAll("[data-bentuk]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x === b)));
+  }));
 
   const gambarPratayang = (nomorKloter) => {
     const dipakai = nomorKloter
@@ -543,7 +565,7 @@ async function layarCetakKloter() {
             <table class="tabel">${baris}</table>
           </div>`;
       }).join("")));
-    siapkanCetakKloter(dipakai);
+    siapkanCetakKloter(dipakai, bentuk);
   };
 
   document.getElementById("cetak-belum").addEventListener("click", () => cetak(belum));
@@ -567,27 +589,224 @@ async function layarCetakKloter() {
   }
 }
 
-/** Blok cetak khusus daftar kloter — satu kloter per halaman kertas. */
-function siapkanCetakKloter(dipakai) {
+/** Blok cetak daftar kloter — satu kloter per halaman kertas.
+ *  Dua pembaca, dua bentuk (panitia menyebutkan keduanya):
+ *   - 'staging' : dipegang petugas staging, ada kolom centang kehadiran dan
+ *                 tempat menulis jam berangkat sebenarnya.
+ *   - 'umum'    : ditempel di papan pengumuman & dibagikan ke barak, dibaca
+ *                 peserta — perkiraan berangkat dibesarkan, kolom centang
+ *                 dihilangkan karena tidak ada gunanya bagi peserta.
+ */
+function siapkanCetakKloter(dipakai, bentuk = "staging") {
   document.getElementById("cetakan")?.remove();
+  const jam = (t) => t ? new Date(t).toLocaleTimeString("id-ID",
+    { hour: "2-digit", minute: "2-digit" }) : "—";
+
   const halaman = dipakai.map(([nomor, v]) => {
-    const baris = v.isi.map(r => html`
-      <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
-          <td>${r.nama_regu}</td>
-          <td>${r.nama_sekolah}</td>
-          <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
-          <td class="kotak"></td></tr>`).join("");
-    return `
+    const contoh = v.isi[0] || {};
+    const perkiraan = jam(contoh.perkiraan_berangkat);
+    const nyata = contoh.sudah_berangkat;
+
+    const baris = v.isi.map(r => bentuk === "staging"
+      ? html`
+        <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+            <td>${r.nama_regu}${r.sisipan ? " ★" : ""}</td>
+            <td>${r.nama_sekolah}</td>
+            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
+            <td class="kotak"></td></tr>`
+      : html`
+        <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+            <td>${r.nama_regu}</td>
+            <td>${r.nama_sekolah}</td>
+            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
+
+    const adaSisipan = v.isi.some(r => r.sisipan);
+
+    return bentuk === "staging" ? `
       <section class="halaman-cetak">
-        <h1>KLOTER ${esc(nomor)} — Hiking Rally Ciradyka ${esc(EDISI ? EDISI.nama : "")}</h1>
-        <p>Jam berangkat: ________  ·  Petugas: ________________</p>
+        <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.nama : "")}</h1>
+        <p><strong>${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</strong>
+           ${nyata ? "" : " · Jam sebenarnya: ________"} · Petugas: ________________</p>
         <table class="tabel-cetak">
           <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th>Hadir</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
+        ${adaSisipan ? `<p class="catatan-sisip">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
+        <p class="catatan-cetak">Centang kolom Hadir saat regu masuk staging.
+           Kloter berangkat setelah semua tercentang atau diputuskan panitia.</p>
+      </section>` : `
+      <section class="halaman-cetak">
+        <h1>KLOTER ${esc(nomor)}</h1>
+        <p class="jam-besar">${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</p>
+        <table class="tabel-cetak">
+          <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th></tr></thead>
+          <tbody>${baris}</tbody>
+        </table>
+        <p class="catatan-cetak">Bersiap di staging paling lambat 15 menit sebelum
+           perkiraan berangkat. Jam sebenarnya bisa bergeser — ikuti panggilan petugas.</p>
+        <!-- Pembina regu mencatat jam berangkat sebenarnya sebagai bahan
+             klarifikasi: penalti waktu dihitung dari jam ini + kontrak waktu. -->
+        <div class="kotak-pembina">
+          <strong>Catatan pembina — isi saat kloter benar-benar berangkat:</strong>
+          <p class="isian-jam">Jam berangkat sebenarnya: <span class="garis-isi"></span></p>
+          <p class="catatan-cetak">Target kedatangan tiap regu = jam di atas + kontrak
+             waktu regu itu (3,5 / 4 / 4,5 jam). Simpan lembar ini bila perlu
+             mengklarifikasi penilaian ketepatan waktu.</p>
+        </div>
       </section>`;
   }).join("");
   document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
+}
+
+/* ============================ PINDAH KLOTER (HARI-H) ===================== */
+
+async function layarPindahKloter() {
+  pasangKepala("Pindah Kloter");
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+
+  let sisipan = [];
+  try { sisipan = await daftarSisipan(); } catch { /* daftar boleh telat */ }
+
+  LAYAR.replaceChildren(h(`
+    ${sisipan.length ? kartuSisipan(sisipan) : ""}
+    <div class="kartu">
+      <div class="medan" style="margin-bottom:0">
+        <label for="dada">Nomor dada yang mau dipindah</label>
+        <input type="text" id="dada" class="besar" inputmode="numeric"
+               autocomplete="off" placeholder="001">
+      </div>
+      <button class="tombol tombol-utama" id="cari" type="button" style="margin-top:.8rem">
+        Cari
+      </button>
+    </div>
+    <div id="hasil"></div>
+  `));
+  const inp = document.getElementById("dada");
+  inp.focus();
+
+  const cari = async () => {
+    const dada = Number(inp.value.trim());
+    const kotak = document.getElementById("hasil");
+    if (!dada) { inp.focus(); return; }
+    kotak.replaceChildren(h(`<p>Mencari nomor ${esc(dada)}…</p>`));
+    let semua;
+    try { semua = await daftarKloter(); }
+    catch (e) { kotak.replaceChildren(h(kartuGalat(e.message))); return; }
+
+    const r = semua.find(x => x.nomor_dada === dada);
+    if (!r) {
+      kotak.replaceChildren(h(kartuGalat(
+        `Nomor dada ${dada} belum punya kloter — mungkin belum daftar ulang.`)));
+      inp.select();
+      return;
+    }
+    if (r.sudah_berangkat) {
+      kotak.replaceChildren(h(kartuBatchRingkas(r) +
+        kartuGalat(`Kloter ${r.kloter} sudah berangkat — regu ini tidak bisa dipindah lagi.`)));
+      return;
+    }
+
+    // Kloter tujuan yang masih mungkin, dikelompokkan supaya operator paham
+    // konsekuensinya sebelum memilih.
+    const isiPerKloter = new Map();
+    for (const x of semua) isiPerKloter.set(x.kloter, (isiPerKloter.get(x.kloter) || 0) + 1);
+    const belumBerangkat = [...new Set(semua.filter(x => !x.sudah_berangkat).map(x => x.kloter))];
+    const terakhir = Math.max(...belumBerangkat);
+
+    kotak.replaceChildren(h(`
+      ${kartuBatchRingkas(r)}
+      <div class="kartu" style="border-color:var(--utama)">
+        <h2>Mau dipindah ke mana?</h2>
+        <button class="tombol tombol-utama" id="ke-terakhir" type="button" style="margin-top:.6rem">
+          Kloter terakhir (${terakhir}) — telat biasa
+        </button>
+        <p class="keterangan" style="margin-top:.5rem">Pilihan biasa untuk peserta
+           yang terlambat masuk kloternya.</p>
+        <hr style="margin:1rem 0;border:0;border-top:1px solid var(--garis)">
+        <div class="medan" style="margin-bottom:.5rem">
+          <label for="tujuan">Atau paksa ke kloter tertentu (urgent)</label>
+          <input type="number" id="tujuan" inputmode="numeric" min="1" max="40"
+                 placeholder="nomor kloter">
+          <div class="bantuan">Bisa ke kloter yang kertasnya sudah beredar —
+             sistem akan memberi peringatan untuk dibacakan ke petugas staging.</div>
+        </div>
+        <button class="tombol tombol-kalem" id="ke-tujuan" type="button">
+          Pindahkan ke kloter itu
+        </button>
+      </div>
+    `));
+
+    const jalankan = async (kloterTujuan) => {
+      const jawab = await dialog({
+        judul: kloterTujuan ? `Pindahkan ke kloter ${kloterTujuan}?` : "Pindahkan ke kloter terakhir?",
+        kartuHtml: kartuBatchRingkas(r),
+        medan: [{ label: "Alasan pemindahan",
+                  contoh: kloterTujuan ? "peserta urgent" : "terlambat masuk kloter",
+                  bantuan: "Wajib diisi — tercatat di riwayat." }],
+        labelAksi: "Pindahkan",
+      });
+      if (!jawab) return;
+      try {
+        const hasil = await pindahKloter(dada, jawab[0], kloterTujuan);
+        layarPindahKloter();
+        // Peringatan sisipan TIDAK boleh berupa toast yang hilang sendiri:
+        // petugas staging memegang kertas yang tidak memuat nomor ini.
+        setTimeout(() => {
+          if (hasil.peringatan) {
+            LAYAR.prepend(h(html`
+              <div class="kartu" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+                <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
+                <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
+              </div>`));
+          } else {
+            notif(`Nomor ${dada} pindah dari kloter ${hasil.kloter_lama} ke ${hasil.kloter_baru}.`);
+          }
+        }, 100);
+      } catch (err) { notif(err.message, true); }
+    };
+
+    document.getElementById("ke-terakhir").addEventListener("click", () => jalankan(null));
+    document.getElementById("ke-tujuan").addEventListener("click", () => {
+      const t = Number(document.getElementById("tujuan").value);
+      if (!t) { notif("Isi nomor kloter tujuannya dulu.", true); return; }
+      jalankan(t);
+    });
+  };
+  document.getElementById("cari").addEventListener("click", cari);
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") cari(); });
+}
+
+function kartuBatchRingkas(r) {
+  return html`
+    <div class="kartu kartu-identitas">
+      <div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
+      <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
+      <div class="detail">Sekarang di <strong>Kloter ${r.kloter}</strong>${
+        r.sisipan ? " (sisipan)" : ""}</div>
+    </div>`;
+}
+
+/** Daftar sisipan: nomor-nomor yang TIDAK ADA di kertas petugas staging.
+ *  Ditaruh paling atas dan diberi bingkai merah — ini satu-satunya cara
+ *  petugas tahu ada regu tambahan di kloternya. */
+function kartuSisipan(sisipan) {
+  const aktif = sisipan.filter(s => !s.sudah_berangkat);
+  if (!aktif.length) return "";
+  const baris = aktif.map(s => html`
+    <tr><td class="angka">${String(s.nomor_dada).padStart(3, "0")}</td>
+        <td><strong>${s.nama_regu}</strong><br>
+            <span class="keterangan">${s.nama_sekolah}</span></td>
+        <td><span class="lencana lencana-merah">Kloter ${s.kloter}</span></td>
+        <td class="keterangan">${s.alasan_sisip}</td></tr>`).join("");
+  return `
+    <div class="kartu" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+      <h2 style="color:var(--bahaya)">⚠️ ${aktif.length} regu TIDAK ADA di kertas</h2>
+      <p class="keterangan">Nomor-nomor ini disisipkan setelah daftar kloter dicetak.
+         Bacakan ke petugas staging kloter terkait, atau tulis tangan di kertasnya.</p>
+      <table class="tabel" style="background:#fff;border-radius:8px;margin-top:.6rem">${baris}</table>
+      <button class="tombol tombol-kalem" onclick="window.print()" type="button"
+              style="margin-top:.6rem">🖨️ Cetak daftar sisipan</button>
+    </div>`;
 }
 
 /* ============================ PENDAFTARAN OFFLINE ======================== */
@@ -623,6 +842,7 @@ const RUTE = {
   "#/daftar-ulang": layarDaftarUlang,
   "#/pendaftaran-offline": layarPendaftaranOffline,
   "#/cetak-kloter": layarCetakKloter,
+  "#/pindah-kloter": layarPindahKloter,
 };
 
 async function arahkan() {

@@ -257,3 +257,13 @@ export async function daftarKloter() {
 
 export const tandaiKloterDicetak = (nomorKloter) =>
   rpc("tandai_kloter_dicetak", { p_kloter: nomorKloter || null });
+
+/** Pindah kloter hari-H. kloter null = "telat biasa" -> kloter terakhir yang
+ *  belum berangkat. kloter diisi = "urgent" -> paksa ke kloter itu. */
+export const pindahKloter = (nomorDada, alasan, kloter = null) =>
+  rpc("pindah_kloter", { p_nomor_dada: nomorDada, p_alasan: alasan, p_kloter: kloter });
+
+export async function daftarSisipan() {
+  if (K.mode === "dev") return baca("/sisipan");
+  return baca(null, "v_sisipan_kloter?select=*&order=kloter.asc,nomor_dada.asc");
+}

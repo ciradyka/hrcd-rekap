@@ -38,6 +38,7 @@ RPC = {
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
     "susun_barak":           [],
     "tandai_kloter_dicetak": ["p_kloter"],
+    "pindah_kloter":         ["p_nomor_dada", "p_alasan", "p_kloter"],
     "batalkan_tanda_cetak":  ["p_kloter", "p_alasan"],
 }
 # RPC yang hasilnya tabel (bukan skalar/jsonb).
@@ -87,6 +88,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/edisi":
                 self._kirim(200, q(
                     "select * from v_edisi_publik", role="anon", fetch="one"))
+            elif u.path == "/sisipan":
+                self._kirim(200, q(
+                    "select * from v_sisipan_kloter", uid=p.get("uid")))
             elif u.path == "/kloter":
                 self._kirim(200, q(
                     "select * from v_daftar_kloter", uid=p.get("uid")))
