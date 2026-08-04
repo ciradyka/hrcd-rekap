@@ -10,6 +10,23 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 > ini adalah konfigurasi edisi berjalan, bukan spesifikasi permanen. Lihat
 > bagian 9.
 
+**Catatan istilah.** Dokumen ini memakai kata yang lazim dipakai sehari-hari,
+termasuk serapan Inggris, bukan padanan formalnya:
+
+| Dipakai di sini | Bukan |
+| --- | --- |
+| online, offline | daring, luring |
+| link | tautan |
+| upload, download | unggah, unduh |
+| preview | pratinjau |
+| password | kata sandi |
+| timestamp | cap waktu |
+| edit | sunting |
+
+Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
+**nomor dada**, **kloter**, **kontrak waktu**, **pos**, **wahana**,
+**daftar ulang**, **barak**, **golongan**.
+
 ## 1. Konteks
 
 1. HRCD adalah lomba gerak jalan alam terbuka untuk pelajar SMP dan SMA.
@@ -39,15 +56,15 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 ## 3. Pendaftaran
 
-1. Regu mendaftar secara daring dan mengisi identitas.
+1. Regu mendaftar secara online dan mengisi identitas.
 2. Formulir menanyakan **"apakah memerlukan tempat menginap?"**. Jawaban ya
    memasukkan regu ke skema penempatan barak (bagian 11).
 3. Regu melakukan pembayaran.
 4. Panitia memverifikasi pembayaran, lalu regu menerima **kwitansi** dan
    **kode pembayaran**.
-5. Pendaftaran daring dan luring memakai **tautan yang sama**. Regu yang belum
+5. Pendaftaran online dan offline memakai **link yang sama**. Regu yang belum
    mendaftar dapat mendaftar di lokasi lewat HP atau laptop di meja pendaftaran
-   luring, lalu membayar tunai atau transfer ke rekening panitia.
+   offline, lalu membayar tunai atau transfer ke rekening panitia.
 6. **Tidak ada pengembalian dana.** Regu yang batal setelah membayar tidak
    digantikan, dan kloternya tetap berjalan dengan jumlah regu berkurang.
 
@@ -55,7 +72,7 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 1. Berlangsung 1–2 hari sebelum lomba.
 2. Regu yang sudah membayar langsung menuju meja daftar ulang. Regu yang belum
-   mendaftar diarahkan ke meja pendaftaran luring lebih dulu (bagian 3.5).
+   mendaftar diarahkan ke meja pendaftaran offline lebih dulu (bagian 3.5).
 3. Di meja daftar ulang, regu menyebutkan **kode pembayaran** sebagai ID.
    Panitia mengonfirmasi **nama regu** dan **asal sekolah**.
 4. Panitia lalu menyandingkan regu dengan sebuah **nomor dada**, diambil dari
@@ -170,10 +187,10 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 4. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, melalui dua
    jalur:
    - **Input manual**, satu regu satu kali.
-   - **Unggah massal.** Tim IT boleh memakai AI untuk mengubah foto lembar
-     menjadi tabel Excel, lalu menyalin atau mengunggahnya ke sistem.
+   - **Upload massal.** Tim IT boleh memakai AI untuk mengubah foto lembar
+     menjadi tabel Excel, lalu meng-copy atau meng-upload-nya ke sistem.
 5. Karena jalur kedua bergantung pada pembacaan otomatis yang bisa salah,
-   **unggah massal wajib melewati layar pratinjau** yang menampilkan apa saja
+   **upload massal wajib melewati layar preview** yang menampilkan apa saja
    yang akan berubah dan menandai kejanggalan — nomor dada tidak dikenal, nilai
    di luar rentang wajar, atau baris ganda. Data hasil transkripsi otomatis
    tidak boleh masuk langsung ke perhitungan skor tanpa dikonfirmasi manusia.
@@ -189,8 +206,8 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
 7. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
-8. **Setiap pos memiliki tautan input sendiri**, yang hanya dapat dibuka dengan
-   akun dan kata sandi khusus pos tersebut. Operator sebuah pos tidak dapat
+8. **Setiap pos memiliki link input sendiri**, yang hanya dapat dibuka dengan
+   akun dan password khusus pos tersebut. Operator sebuah pos tidak dapat
    menyentuh nilai pos lain.
 9. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
    dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
@@ -271,9 +288,9 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 1. Jumlah meja: pendaftaran 2–3, pembayaran 2–3, daftar ulang 2–3.
 2. **Meja closing hanya 1, paling banyak 2.**
 3. Ketika meja closing menumpuk, panitia **mencatat jam datang di kertas** lebih
-   dahulu, lalu memasukkannya ke sistem menyusul dan menyuntingnya bila perlu.
+   dahulu, lalu memasukkannya ke sistem menyusul dan meng-edit-nya bila perlu.
 4. Konsekuensi penting bagi sistem: **jam datang adalah waktu yang diketik
-   panitia, bukan cap waktu server saat data disimpan.** Bila sistem menandai
+   panitia, bukan timestamp server saat data disimpan.** Bila sistem menandai
    waktu sendiri saat penyimpanan, regu yang dicatat 20 menit setelah tiba akan
    dihukum atas keterlambatan yang tidak pernah terjadi. Kolom jam datang wajib
    dapat diisi dan diubah secara manual.
