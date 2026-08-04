@@ -335,3 +335,52 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | 6. Gladi | Seed 300 regu sintetis, drill semua meja, ukur waktu per transaksi terhadap target 10.3 | Angka gladi terlampir di repo |
 
 Setiap tahap masuk lewat PR sendiri mengikuti konvensi CLAUDE.md.
+
+## 14. Penyesuaian dari review implementasi Tahap 1
+
+Migrasi SQL Tahap 1 diserang tiga reviewer adversarial (keamanan, kesesuaian,
+kebenaran SQL); 39 temuan menghasilkan penyesuaian berikut — dokumen di atas
+dibaca dengan koreksi ini:
+
+1. **`submit_pendaftaran` hanya bisa dipanggil gerbang Worker** (service
+   role) — akun login mana pun tidak bisa, supaya Turnstile tidak bisa
+   dilompati. Grant fungsi kini per-fungsi, bukan massal: RPC baru tidak
+   pernah terekspos otomatis.
+2. **Semua tulisan non-admin lewat RPC, titik.** Tulisan langsung ke
+   `nilai_mentah`, `closing_regu`, `keberangkatan_regu`, `penempatan_barak`
+   ditutup — mencegah pemalsuan kolom pencatat dan pelompatan validasi.
+   `simpan_nilai_massal` menjadi `SECURITY DEFINER` dengan cek pos eksplisit
+   (pilihan kedua di bagian 4); admin wajib menyebut pos.
+3. **Nomor dada bekas tukar PENSIUN permanen** (tabel `nomor_dada_pensiun`) —
+   foto lembar lama yang masih menuliskan nomor itu tidak akan pernah menilai
+   regu lain. Penukaran setelah kloter berangkat hanya oleh admin.
+4. **Pembatalan verifikasi ditolak setelah daftar ulang** — tidak ada lagi
+   regu yatim bernomor-dada-tapi-belum-bayar. "Hari yang sama" dihitung WIB.
+5. **Ceklis menyusul wajib berkontrak dulu** (koreksi kontrak setelah
+   berangkat = admin) — regu yang ceklisnya terlambat tidak lagi lolos
+   penalti waktu. Keberangkatan wajib berurut (tidak bisa melompati kloter
+   berisi regu), dan ada `batalkan_keberangkatan` untuk ketukan salah
+   (admin, hanya kloter terakhir).
+6. **Klasemen mensyaratkan kloter benar-benar berangkat** dan batch berstatus
+   lunas; semua view nilai/cetak/publik menyaring status batch; matriks
+   monitoring untuk operator pos hanya menampilkan kolom pos-nya (tampilan
+   sempit lebih baik daripada tampilan palsu).
+7. **Penalti di-floor pada menit mentah** — selisih 9 menit 30 detik adalah
+   penalti 0, bukan dibulatkan dulu ke 10. Knob `nilai_pos_terlewat` kini
+   benar-benar terpasang di rumus total. `benar_kurang_salah` di-clamp ke
+   [0, poin_maks].
+8. **Kunci konfigurasi menahan admin juga** — membuka kunci adalah langkah
+   sadar tersendiri di `status_acara` (perlindungan dua langkah, revisi atas
+   kalimat "kecuali admin" di bagian 2.1).
+9. **Barak muat-dulu**: cari ruangan kosong terkecil yang memuat seluruh
+   rombongan sebelum memecah; menggabung tetap jalan terakhir. Jumlah
+   pendamping bisa diisi dari form dan dikoreksi meja (`ubah_pendamping`).
+10. **Kloter cadangan 31–40 benar-benar terakhir**: sekolah yang sama boleh
+    berkumpul di 1–30 dulu sebelum kloter cadangan dibuka.
+11. **Audit menempel juga di** `akun_panitia` (peta otorisasi), `sekolah`,
+    `ruangan`, `nomor_dada_pensiun`; simpan-ulang tanpa perubahan tidak
+    menulis apa pun sehingga riwayat tidak banjir dan kepengarangan tidak
+    tergeser.
+
+Setiap butir di atas dikawal tes di `tests/sql/` — 02 untuk constraint,
+03 untuk alur, akses, dan matematika skor.
