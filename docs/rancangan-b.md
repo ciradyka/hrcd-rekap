@@ -243,7 +243,7 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | --- | --- | --- |
 | Login | semua | Username + password; akhiran email ditambah otomatis |
 | Beranda meja | meja | Pemilih fungsi + lencana angka dari data nyata (batch menunggu verifikasi, batch lunas belum bernomor, regu belum closing) |
-| Form pendaftaran | publik | Bagian 3 alur; autocomplete sekolah dari master (dimuat sekali, difilter di browser), blok per regu dinamis, validasi jumlah golongan; hasil akhir menampilkan kode pembayaran besar-besar |
+| Form pendaftaran | publik | Bagian 3 alur, **satu halaman** (bukan wizard — lihat 10.4): 5 bagian bernomor, autocomplete sekolah dari master (dimuat sekali, difilter di browser), blok per regu muncul mengikuti stepper, tombol Kirim menempel di bawah dengan total hidup; hasil akhir menampilkan kode pembayaran besar-besar |
 | Meja pembayaran | meja | Ketik kode → kartu batch → "Tandai Lunas" → panel sukses langsung menawarkan "Cetak Kwitansi" (satu alur, bukan dua); "Batalkan (salah)" memanggil `batalkan_verifikasi` |
 | Meja daftar ulang | meja | Ketik kode → kartu sekolah + daftar regu → satu tombol "Ambil N Nomor Dada" → hasil besar-besar per regu (nomor dada + kloter) untuk dibacakan; jalur "Tukar nomor" untuk stok rusak |
 | Garis start | meja | Papan 4 kolom **turunan otomatis** dari kloter terakhir yang berangkat: N berangkat / N+1–N+2 siap / N+3 konfirmasi kontrak. Operator hanya punya dua aksi: ceklis regu + tombol besar "BERANGKATKAN" (jam diketik). Papan bergeser sendiri — operator tidak pernah memutuskan apa yang maju |
@@ -272,6 +272,30 @@ Postgres — layar tidak pernah menulis "setengah jadi":
    penyalinan susulan tetap akurat.
 4. **Garis start** (satu kloter per 3–5 menit): papan bergeser otomatis;
    konfirmasi kontrak tiga kloter di depan; tombol besar satu per kloter.
+
+### 10.4 Form publik: satu halaman, bukan wizard
+
+Keputusan panitia setelah mencoba versi wizard: **"Kenapa harus berkali-kali
+klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
+
+1. Wizard tepat untuk form panjang dengan banyak percabangan. Form ini pendek:
+   lima pertanyaan dengan satu percabangan kecil (barak → jumlah pendamping).
+   Memecahnya jadi enam layar hanya menambah lima klik tanpa manfaat.
+2. Yang hilang gara-gara wizard justru hal yang paling menenangkan orang awam:
+   **melihat seluruh isi form sebelum mulai** — "oh, saya perlu menyiapkan
+   nama-nama regunya dulu". Wizard menyembunyikan itu.
+3. Efek samping yang menguntungkan: dua kerumitan hilang, bukan ditambal —
+   riwayat per langkah (tombol back HP) dan pemulihan draf per langkah tidak
+   lagi diperlukan. Kodenya ikut menyusut, sejalan dengan CLAUDE.md §6.
+4. Yang tetap dijaga meski satu halaman:
+   - Bagian **bernomor 1–5** sebagai penunjuk urutan tanpa memaksa pindah layar.
+   - Tombol Kirim **menempel di bawah layar** dengan ringkasan hidup
+     ("3 regu · Rp 750.000") — pada form panjang, aksi utama tidak boleh
+     tenggelam di ujung gulungan.
+   - Galat ditampilkan **sekaligus** di tempatnya masing-masing, ditambah satu
+     ringkasan yang tiap barisnya bisa diketuk untuk melompat ke isiannya.
+     Tidak ada lagi "perbaiki satu, ketemu satu lagi".
+   - Isian tetap tersimpan otomatis, dan kunci idempotensi tetap dipakai.
 
 ## 11. Keputusan yang menyelesaikan temuan verifikasi
 

@@ -1,16 +1,18 @@
 /* ============================================================================
    hrcd-rekap : daftar.js — form pendaftaran publik (alur 3).
-   Wizard: SATU pertanyaan besar per layar, karena pengisinya bisa siapa saja —
-   pembina, kakak kelas, atau orang tua — lewat HP di sinyal seadanya.
 
-   Perlindungan untuk kondisi buruk (temuan review):
-   - Isian disimpan di localStorage tiap langkah; refresh/HP mati tidak
+   SATU HALAMAN, bukan wizard. Alasannya: formnya pendek (6 pertanyaan, satu
+   percabangan kecil), dan pendaftar perlu MELIHAT apa saja yang diminta
+   sebelum mulai — "oh, saya harus siapkan nama-nama regunya dulu". Wizard
+   memaksa 5 klik Lanjut tanpa manfaat, dan menyembunyikan isi form.
+
+   Yang tetap dijaga meski satu halaman:
+   - Isian tersimpan otomatis (localStorage) — HP mati / refresh tidak
      menghapus ketikan.
-   - Tombol back HP = kembali satu langkah (history.pushState), bukan keluar.
    - Satu kunci kirim dipakai ulang saat mencoba lagi, sehingga sinyal putus
-     di tengah pengiriman tidak melahirkan dua pendaftaran.
-   - Kode pembayaran disimpan; kalau halaman dibuka lagi, kode itu ditampilkan
-     kembali.
+     tidak melahirkan dua pendaftaran.
+   - Semua kesalahan ditunjukkan SEKALIGUS dengan tautan lompat ke isiannya —
+     tidak ada "perbaiki satu, ketemu satu lagi".
    ========================================================================== */
 
 import { daftarSekolah, kirimPendaftaran, infoEdisi, GalatApi } from "./api.js";
@@ -23,14 +25,17 @@ const GOLONGAN = [
   { kode: "penegak_pa",    label: "Penegak Putra",    ket: "SMA / SMK / MA — putra" },
   { kode: "penegak_pi",    label: "Penegak Putri",    ket: "SMA / SMK / MA — putri" },
 ];
-const TOTAL_LANGKAH = 6;
 const KUNCI_DRAF = "hrcd_draf";
 const KUNCI_HASIL = "hrcd_hasil";
+const MAKS_REGU = 30;
 
 const kosong = () => ({
-  sekolah: null, butuh_barak: null, jumlah_pendamping: 0,
+  sekolah: null,                 // {id?, nama, alamat}
+  butuh_barak: null,
+  jumlah_pendamping: 0,
   rincian: { penggalang_pa: 0, penggalang_pi: 0, penegak_pa: 0, penegak_pi: 0 },
-  regu: [], kontak_wa: "",
+  regu: [],                      // [{golongan, nama_regu, nama_ketua}]
+  kontak_wa: "",
   kunci_kirim: (crypto.randomUUID ? crypto.randomUUID()
                 : String(Date.now()) + Math.random().toString(16).slice(2)),
 });
@@ -38,48 +43,15 @@ const kosong = () => ({
 let jawab = kosong();
 let SEKOLAH = [];
 let EDISI = null;
-let langkahKini = 1;
 let tokenTurnstile = null;
+let sudahDiperiksa = false;      // galat baru ditampilkan setelah Kirim ditekan
 
-/* ---------------- draf & riwayat ---------------- */
+/* ---------------- draf ---------------- */
 
 const simpanDraf = () => {
-  try { localStorage.setItem(KUNCI_DRAF, JSON.stringify({ jawab, langkah: langkahKini })); }
-  catch { /* mode privat: jalan tanpa draf */ }
+  try { localStorage.setItem(KUNCI_DRAF, JSON.stringify(jawab)); } catch {}
 };
 const hapusDraf = () => { try { localStorage.removeItem(KUNCI_DRAF); } catch {} };
-const ambilDraf = () => {
-  try { return JSON.parse(localStorage.getItem(KUNCI_DRAF) || "null"); } catch { return null; }
-};
-
-const LANGKAH_FN = {};   // diisi di bawah: 1..6 -> fungsi
-
-function tampilkan(langkah, isiHtml, { dorongRiwayat = true } = {}) {
-  langkahKini = langkah;
-  wizardJalan = true;
-  simpanDraf();
-  if (dorongRiwayat) history.pushState({ langkah }, "", `#langkah-${langkah}`);
-  LAYAR.replaceChildren(h(`
-    <div class="langkah-bar" aria-hidden="true">
-      ${Array.from({ length: TOTAL_LANGKAH }, (_, i) =>
-        `<div class="titik ${i < langkah ? "aktif" : ""}"></div>`).join("")}
-    </div>
-    <p class="keterangan" style="margin:-.6rem 0 .8rem">Langkah ${langkah} dari ${TOTAL_LANGKAH}</p>
-    ${isiHtml}
-  `));
-  const fokus = LAYAR.querySelector("input, button.pilihan");
-  if (fokus) fokus.focus();
-  window.scrollTo(0, 0);
-}
-
-let wizardJalan = false;   // popstate diabaikan sebelum wizard benar-benar dibuka
-
-window.addEventListener("popstate", (e) => {
-  if (!wizardJalan) return;
-  const l = (e.state && e.state.langkah) || 1;
-  const fn = LANGKAH_FN[l];
-  if (fn) fn({ dorongRiwayat: false });
-});
 
 window.addEventListener("beforeunload", (e) => {
   const adaIsi = jawab.sekolah || jawab.regu.length || jawab.kontak_wa;
@@ -90,417 +62,415 @@ window.addEventListener("beforeunload", (e) => {
 
 const totalRincian = () => Object.values(jawab.rincian).reduce((a, b) => a + b, 0);
 const normal = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
 
-/* ---------------- Langkah 1 : sekolah ---------------- */
+/* ============================ RANGKA HALAMAN ============================= */
 
-function langkah1(opsi) {
-  tampilkan(1, `
-    <div class="kartu">
-      <h2>Dari sekolah mana?</h2>
-      <p class="keterangan">Ketik nama sekolahmu, lalu tekan Lanjut.</p>
-      <div class="medan" style="margin-top:.8rem">
-        <label for="cari">Nama sekolah</label>
-        <input type="text" id="cari" autocomplete="off"
-               placeholder="contoh: SMPN 1 Ciamis" value="${esc(jawab.sekolah?.nama ?? "")}">
-        <div class="saran" id="saran" hidden></div>
-      </div>
-      <button class="tombol tombol-utama" id="lanjut1" type="button">Lanjut</button>
-      <div id="konfirmasi"></div>
+function halaman() {
+  LAYAR.replaceChildren(h(`
+    <div class="kartu" style="border-color:var(--utama)">
+      <h2>Pendaftaran Regu</h2>
+      <p class="keterangan">Isi semuanya di halaman ini, lalu tekan Kirim di bawah.
+         Isianmu tersimpan otomatis — kalau HP mati atau halaman tertutup,
+         buka lagi dan lanjutkan.</p>
     </div>
-  `, opsi);
+
+    <!-- 1. Sekolah -->
+    <section class="kartu" id="bagian-sekolah">
+      <h2><span class="nomor-bagian">1</span> Asal sekolah</h2>
+      <div id="isi-sekolah"></div>
+    </section>
+
+    <!-- 2. Menginap -->
+    <section class="kartu" id="bagian-barak">
+      <h2><span class="nomor-bagian">2</span> Perlu tempat menginap?</h2>
+      <p class="keterangan">Panitia menyediakan ruang kelas untuk menginap malam
+         sebelum lomba, gratis.</p>
+      <div class="pilihan-baris" style="margin-top:.8rem">
+        <button class="pilihan" id="p-ya" aria-pressed="false" type="button">Ya, perlu</button>
+        <button class="pilihan" id="p-tidak" aria-pressed="false" type="button">Tidak perlu</button>
+      </div>
+      <div id="isi-pendamping" style="margin-top:.9rem"></div>
+      <div class="galat" id="g-barak" hidden>Pilih salah satu.</div>
+    </section>
+
+    <!-- 3. Jumlah regu -->
+    <section class="kartu" id="bagian-jumlah">
+      <h2><span class="nomor-bagian">3</span> Mendaftarkan berapa regu?</h2>
+      <p class="keterangan">1 regu = 5 orang. Tekan + untuk menambah regu di
+         golongan yang sesuai; kotak isian namanya muncul di bawah.</p>
+      <div id="isi-stepper" style="margin-top:.9rem"></div>
+      <div class="kotak-total" id="kotak-total"></div>
+      <div class="galat" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
+    </section>
+
+    <!-- 4. Nama regu -->
+    <section class="kartu" id="bagian-regu">
+      <h2><span class="nomor-bagian">4</span> Nama tiap regu</h2>
+      <div id="isi-regu"></div>
+    </section>
+
+    <!-- 5. Kontak -->
+    <section class="kartu" id="bagian-kontak">
+      <h2><span class="nomor-bagian">5</span> Nomor WhatsApp yang bisa dihubungi</h2>
+      <p class="keterangan">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
+      <div class="medan" style="margin-top:.7rem">
+        <label for="wa" class="visually-hidden">Nomor WA</label>
+        <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 081234567890">
+        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar (minimal 9 angka).</div>
+      </div>
+    </section>
+
+    <div id="turnstile-kotak"></div>
+    <div id="ringkas-galat"></div>
+
+    <div class="kirim-bar">
+      <div class="kirim-isi">
+        <div class="kirim-info" id="kirim-info"></div>
+        <button class="tombol tombol-utama" id="kirim" type="button">Kirim Pendaftaran</button>
+      </div>
+    </div>
+  `));
+
+  gambarSekolah();
+  gambarBarak();
+  gambarStepper();
+  gambarRegu();
+  document.getElementById("wa").value = jawab.kontak_wa;
+  document.getElementById("wa").addEventListener("input", e => {
+    jawab.kontak_wa = e.target.value; simpanDraf();
+    if (sudahDiperiksa) periksa(false);
+  });
+
+  document.getElementById("kirim").addEventListener("click", kirim);
+  pasangTurnstile();
+  perbaruiTotal();
+}
+
+/* ---------------- 1. sekolah ---------------- */
+
+function gambarSekolah() {
+  const kotak = document.getElementById("isi-sekolah");
+  if (jawab.sekolah) {
+    kotak.replaceChildren(h(html`
+      <div class="kartu kartu-identitas" style="margin:0">
+        <div class="nama">${jawab.sekolah.nama}</div>
+        <div class="detail">📍 ${jawab.sekolah.alamat}</div>
+      </div>`));
+    kotak.appendChild(h(`
+      <button class="tombol tombol-kalem tombol-kecil" id="ganti-sekolah" type="button"
+              style="margin-top:.6rem">Ganti sekolah</button>`));
+    document.getElementById("ganti-sekolah").addEventListener("click", () => {
+      jawab.sekolah = null; simpanDraf(); gambarSekolah();
+    });
+    return;
+  }
+
+  kotak.replaceChildren(h(`
+    <div class="medan" style="margin-bottom:.4rem">
+      <label for="cari">Ketik nama sekolahmu</label>
+      <input type="text" id="cari" autocomplete="off" placeholder="contoh: SMPN 1 Ciamis">
+      <div class="bantuan">Kalau muncul di daftar, tinggal pilih. Kalau tidak ada,
+         isi alamatnya sendiri.</div>
+      <div class="saran" id="saran" hidden></div>
+    </div>
+    <div id="manual"></div>
+    <div class="galat" id="g-sekolah" hidden>Pilih atau isi sekolahmu dulu.</div>
+  `));
 
   const cari = document.getElementById("cari");
   const saran = document.getElementById("saran");
 
-  const tampilSaran = () => {
+  cari.addEventListener("input", () => {
     const q = normal(cari.value.trim());
-    document.getElementById("konfirmasi").replaceChildren();
     if (q.length < 2) { saran.hidden = true; return; }
-    const cocok = SEKOLAH.filter(s => normal(s.nama).includes(q)).slice(0, 8);
+    const cocok = SEKOLAH.filter(s => normal(s.nama).includes(q)).slice(0, 6);
     saran.hidden = cocok.length === 0;
     saran.replaceChildren(...cocok.map(s => {
       const b = document.createElement("button");
       b.type = "button";
       b.innerHTML = html`<strong>${s.nama}</strong><span class="alamat">${s.alamat}</span>`;
-      b.addEventListener("click", () => konfirmasiSekolah(s));
+      b.addEventListener("click", () => pilih(s));
       return b;
     }));
-  };
-  cari.addEventListener("input", tampilSaran);
-  cari.addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("lanjut1").click(); });
-
-  document.getElementById("lanjut1").addEventListener("click", () => {
-    const teks = cari.value.trim();
-    if (!teks) { cari.focus(); notif("Isi dulu nama sekolahmu.", true); return; }
-    const persis = SEKOLAH.find(s => normal(s.nama) === normal(teks));
-    if (persis) { konfirmasiSekolah(persis); return; }
-    const mirip = SEKOLAH.filter(s => normal(s.nama).includes(normal(teks))
-                                   || normal(teks).includes(normal(s.nama))).slice(0, 5);
-    if (mirip.length) { tawarkanMirip(teks, mirip); return; }
-    sekolahManual(teks);
+    gambarManual();
   });
+  cari.addEventListener("blur", () => setTimeout(() => { saran.hidden = true; }, 200));
 
-  function konfirmasiSekolah(s) {
-    saran.hidden = true;
-    cari.value = s.nama;
-    document.getElementById("konfirmasi").replaceChildren(h(html`
-      <div class="kartu kartu-identitas" style="margin-top:.8rem">
-        <div class="nama">${s.nama}</div>
-        <div class="detail">📍 ${s.alamat}</div>
-      </div>`));
-    document.getElementById("konfirmasi").appendChild(h(`
-      <p style="margin-top:.4rem">Benar ini sekolahmu?</p>
-      <div class="pilihan-baris" style="margin-top:.6rem">
-        <button class="tombol tombol-utama" id="ya" type="button">Ya, benar</button>
-        <button class="tombol tombol-kalem" id="bukan" type="button">Bukan</button>
-      </div>`));
-    document.getElementById("ya").addEventListener("click", () => {
-      jawab.sekolah = { id: s.id, nama: s.nama, alamat: s.alamat, baru: false };
-      langkah2();
-    });
-    document.getElementById("bukan").addEventListener("click", () => {
-      document.getElementById("konfirmasi").replaceChildren();
-      cari.focus(); cari.select();
-    });
+  function pilih(s) {
+    jawab.sekolah = { id: s.id, nama: s.nama, alamat: s.alamat };
+    simpanDraf(); gambarSekolah();
+    if (sudahDiperiksa) periksa(false);
   }
 
-  function tawarkanMirip(teks, mirip) {
-    saran.hidden = true;
-    const box = document.getElementById("konfirmasi");
-    box.replaceChildren(h(`
-      <div class="kartu" style="margin-top:.8rem;border-color:var(--utama)">
-        <h2 style="font-size:1.05rem">Mungkin maksudmu:</h2>
-        <div class="saran" id="mirip"></div>
-        <p class="keterangan" style="margin-top:.8rem">Kalau bukan salah satu di atas,
-           lanjut isi alamat sekolahmu sendiri.</p>
-        <button class="tombol tombol-kalem" id="tetap-manual" type="button">
-          Bukan, isi sendiri
-        </button>
-      </div>`));
-    document.getElementById("mirip").replaceChildren(...mirip.map(s => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.innerHTML = html`<strong>${s.nama}</strong><span class="alamat">${s.alamat}</span>`;
-      b.addEventListener("click", () => konfirmasiSekolah(s));
-      return b;
-    }));
-    document.getElementById("tetap-manual").addEventListener("click", () => sekolahManual(teks));
-  }
-
-  function sekolahManual(nilaiAwal) {
-    saran.hidden = true;
-    document.getElementById("konfirmasi").replaceChildren(h(html`
-      <div class="kartu" style="margin-top:.8rem; border-color: var(--utama)">
-        <h2>Isi data sekolah</h2>
-        <div class="medan">
-          <label for="m-nama">Nama sekolah (lengkap)</label>
-          <input type="text" id="m-nama" value="${nilaiAwal ?? ""}" placeholder="contoh: SMAN 2 Banjar">
-          <div class="galat" id="g-nama" hidden>Nama sekolah wajib diisi.</div>
-        </div>
-        <div class="medan">
+  /** Isian manual muncul menempel di bawah kotak cari — tidak perlu menekan
+   *  tombol "sekolahku tidak ada" dulu (dulu itu jalan buntu). */
+  function gambarManual() {
+    const teks = cari.value.trim();
+    if (teks.length < 3) { document.getElementById("manual").replaceChildren(); return; }
+    if (SEKOLAH.some(s => normal(s.nama) === normal(teks))) {
+      document.getElementById("manual").replaceChildren(); return;
+    }
+    if (document.getElementById("m-alamat")) return;    // sudah tergambar
+    document.getElementById("manual").replaceChildren(h(`
+      <div class="kartu" style="margin:.6rem 0 0;border-color:var(--utama)">
+        <p style="font-weight:700">Sekolahmu belum ada di daftar?</p>
+        <p class="keterangan">Isi alamatnya, lalu tekan Pakai sekolah ini.</p>
+        <div class="medan" style="margin-top:.6rem">
           <label for="m-alamat">Alamat sekolah (jalan + kota)</label>
-          <input type="text" id="m-alamat" placeholder="contoh: Jl. Raya Banjar No. 2, Kota Banjar">
-          <div class="galat" id="g-alamat" hidden>Alamat wajib diisi — untuk membedakan sekolah bernama sama.</div>
+          <input type="text" id="m-alamat"
+                 placeholder="contoh: Jl. Raya Banjar No. 2, Kota Banjar">
         </div>
-        <button class="tombol tombol-utama" id="lanjut-manual" type="button">Lanjut</button>
+        <button class="tombol tombol-utama" id="pakai" type="button">Pakai sekolah ini</button>
       </div>`));
-    document.getElementById("lanjut-manual").addEventListener("click", () => {
-      const nama = document.getElementById("m-nama").value.trim();
+    document.getElementById("pakai").addEventListener("click", () => {
+      const nama = cari.value.trim();
       const alamat = document.getElementById("m-alamat").value.trim();
-      document.getElementById("g-nama").hidden = !!nama;
-      document.getElementById("g-alamat").hidden = !!alamat;
-      if (!nama || !alamat) return;
-      jawab.sekolah = { nama, alamat, baru: true };
-      langkah2();
+      if (!nama) { cari.focus(); return; }
+      if (!alamat) {
+        notif("Isi alamat sekolahnya — untuk membedakan sekolah bernama sama.", true);
+        document.getElementById("m-alamat").focus();
+        return;
+      }
+      pilih({ nama, alamat });
     });
   }
 }
 
-/* ---------------- Langkah 2 : penginapan ---------------- */
+/* ---------------- 2. barak ---------------- */
 
-function langkah2(opsi) {
-  tampilkan(2, `
-    <div class="kartu">
-      <h2>Perlu tempat menginap?</h2>
-      <p class="keterangan">Panitia menyediakan ruang kelas untuk menginap malam sebelum lomba, gratis.</p>
-      <div class="pilihan-baris" style="margin-top:.9rem">
-        <button class="pilihan" id="p-ya"    aria-pressed="${jawab.butuh_barak === true}"  type="button">Ya, perlu</button>
-        <button class="pilihan" id="p-tidak" aria-pressed="${jawab.butuh_barak === false}" type="button">Tidak perlu</button>
-      </div>
-      <div id="pendamping" style="margin-top:1rem"></div>
-      <div class="pilihan-baris" style="margin-top:1.2rem">
-        <button class="tombol tombol-kalem" id="mundur" type="button">← Kembali</button>
-        <button class="tombol tombol-utama" id="maju" type="button" disabled>Lanjut</button>
-      </div>
-    </div>
-  `, opsi);
-
-  const maju = document.getElementById("maju");
-  const boks = document.getElementById("pendamping");
-  const setPilihan = (ya) => {
+function gambarBarak() {
+  const set = (ya) => {
     jawab.butuh_barak = ya;
     document.getElementById("p-ya").setAttribute("aria-pressed", String(ya));
     document.getElementById("p-tidak").setAttribute("aria-pressed", String(!ya));
-    maju.disabled = false;
-    boks.replaceChildren();
-    if (ya) boks.appendChild(h(`
-      <div class="medan">
-        <label for="n-pendamping">Berapa pendamping (pembina/guru) yang ikut menginap?</label>
-        <input type="number" id="n-pendamping" min="0" max="30" inputmode="numeric"
-               value="${esc(jawab.jumlah_pendamping)}">
-        <div class="bantuan">Boleh 0 kalau belum tahu — nanti bisa diubah saat daftar ulang.</div>
-      </div>`));
+    const kotak = document.getElementById("isi-pendamping");
+    if (ya) {
+      kotak.replaceChildren(h(html`
+        <div class="medan" style="margin:0">
+          <label for="n-pendamping">Berapa pendamping (pembina/guru) yang ikut menginap?</label>
+          <input type="number" id="n-pendamping" min="0" max="30" inputmode="numeric"
+                 value="${jawab.jumlah_pendamping}">
+          <div class="bantuan">Boleh 0 kalau belum tahu — bisa diubah saat daftar ulang.</div>
+        </div>`));
+      document.getElementById("n-pendamping").addEventListener("input", e => {
+        jawab.jumlah_pendamping = Math.max(0, Number(e.target.value) || 0); simpanDraf();
+      });
+    } else {
+      kotak.replaceChildren();
+      jawab.jumlah_pendamping = 0;
+    }
     simpanDraf();
+    if (sudahDiperiksa) periksa(false);
   };
-  document.getElementById("p-ya").addEventListener("click", () => setPilihan(true));
-  document.getElementById("p-tidak").addEventListener("click", () => setPilihan(false));
-  if (jawab.butuh_barak !== null) setPilihan(jawab.butuh_barak);
-
-  document.getElementById("mundur").addEventListener("click", () => langkah1());
-  maju.addEventListener("click", () => {
-    const n = document.getElementById("n-pendamping");
-    jawab.jumlah_pendamping = jawab.butuh_barak && n ? Math.max(0, Number(n.value) || 0) : 0;
-    langkah3();
-  });
+  document.getElementById("p-ya").addEventListener("click", () => set(true));
+  document.getElementById("p-tidak").addEventListener("click", () => set(false));
+  if (jawab.butuh_barak !== null) set(jawab.butuh_barak);
 }
 
-/* ---------------- Langkah 3 : berapa regu ---------------- */
+/* ---------------- 3. jumlah regu ---------------- */
 
-function langkah3(opsi) {
-  tampilkan(3, `
-    <div class="kartu">
-      <h2>Mendaftarkan berapa regu?</h2>
-      <p class="keterangan">1 regu = 5 orang. Rincikan per golongan dengan tombol + dan −.</p>
-      <div style="margin-top:1rem">
-        ${GOLONGAN.map(g => `
-          <div class="medan" style="display:flex;align-items:center;gap:1rem;justify-content:space-between">
-            <div>
-              <strong style="font-size:1.1rem">${g.label}</strong>
-              <div class="bantuan">${g.ket}</div>
-            </div>
-            <div class="stepper">
-              <button type="button" aria-label="kurangi ${g.label}" data-kurang="${g.kode}">−</button>
-              <span class="angka" id="n-${g.kode}" aria-live="polite">${jawab.rincian[g.kode]}</span>
-              <button type="button" aria-label="tambah ${g.label}" data-tambah="${g.kode}">+</button>
-            </div>
-          </div>`).join("")}
-      </div>
-      <div class="kartu" style="background:var(--utama-muda);border-color:var(--utama)">
-        <strong style="font-size:1.2rem">Total: <span id="total">0</span> regu</strong>
-        <div id="biaya" class="keterangan"></div>
-      </div>
-      <div class="pilihan-baris">
-        <button class="tombol tombol-kalem" id="mundur" type="button">← Kembali</button>
-        <button class="tombol tombol-utama" id="maju" type="button" disabled>Lanjut</button>
-      </div>
-    </div>
-  `, opsi);
+function gambarStepper() {
+  document.getElementById("isi-stepper").replaceChildren(h(
+    GOLONGAN.map(g => `
+      <div class="baris-stepper">
+        <div>
+          <strong style="font-size:1.05rem">${g.label}</strong>
+          <div class="bantuan">${g.ket}</div>
+        </div>
+        <div class="stepper">
+          <button type="button" aria-label="kurangi ${g.label}" data-kurang="${g.kode}">−</button>
+          <span class="angka" id="n-${g.kode}" aria-live="polite">${jawab.rincian[g.kode]}</span>
+          <button type="button" aria-label="tambah ${g.label}" data-tambah="${g.kode}">+</button>
+        </div>
+      </div>`).join("")));
 
-  const perbarui = () => {
-    const total = totalRincian();
-    document.getElementById("total").textContent = total;
-    document.getElementById("biaya").textContent = total
-      ? `Biaya pendaftaran: ${total} × ${rupiah(EDISI.biaya_per_regu)} = ${rupiah(total * EDISI.biaya_per_regu)}`
-      : "";
-    document.getElementById("maju").disabled = total < 1;
-    simpanDraf();
-  };
   LAYAR.querySelectorAll("[data-tambah]").forEach(b => b.addEventListener("click", () => {
-    const k = b.dataset.tambah;
-    if (totalRincian() >= 30) { notif("Maksimal 30 regu per pendaftaran. Hubungi panitia bila lebih.", true); return; }
-    jawab.rincian[k]++; document.getElementById(`n-${k}`).textContent = jawab.rincian[k]; perbarui();
+    if (totalRincian() >= MAKS_REGU) {
+      notif(`Maksimal ${MAKS_REGU} regu per pendaftaran. Hubungi panitia bila lebih.`, true);
+      return;
+    }
+    jawab.rincian[b.dataset.tambah]++;
+    sinkronRegu(); gambarStepper(); gambarRegu(); perbaruiTotal();
   }));
   LAYAR.querySelectorAll("[data-kurang]").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.kurang;
-    if (jawab.rincian[k] > 0) { jawab.rincian[k]--; document.getElementById(`n-${k}`).textContent = jawab.rincian[k]; perbarui(); }
+    if (jawab.rincian[k] <= 0) return;
+    jawab.rincian[k]--;
+    sinkronRegu(); gambarStepper(); gambarRegu(); perbaruiTotal();
   }));
-  perbarui();
-
-  document.getElementById("mundur").addEventListener("click", () => langkah2());
-  document.getElementById("maju").addEventListener("click", () => {
-    const lama = jawab.regu;
-    jawab.regu = [];
-    for (const g of GOLONGAN) {
-      const bekas = lama.filter(r => r.golongan === g.kode);
-      for (let i = 0; i < jawab.rincian[g.kode]; i++)
-        jawab.regu.push(bekas[i] ?? { golongan: g.kode, nama_regu: "", nama_ketua: "" });
-    }
-    langkah4();
-  });
 }
 
-/* ---------------- Langkah 4 : nama tiap regu ---------------- */
+/** Samakan daftar regu dengan rincian, pertahankan nama yang sudah diketik. */
+function sinkronRegu() {
+  const lama = jawab.regu;
+  jawab.regu = [];
+  for (const g of GOLONGAN) {
+    const bekas = lama.filter(r => r.golongan === g.kode);
+    for (let i = 0; i < jawab.rincian[g.kode]; i++)
+      jawab.regu.push(bekas[i] ?? { golongan: g.kode, nama_regu: "", nama_ketua: "" });
+  }
+  simpanDraf();
+}
 
-function langkah4(opsi) {
-  tampilkan(4, `
-    <div class="kartu">
-      <h2>Nama tiap regu</h2>
-      <p class="keterangan">Isi nama regu dan nama ketuanya. Nama anggota lain tidak perlu.</p>
-    </div>
-    ${jawab.regu.map((r, i) => html`
-      <div class="kartu">
-        <span class="lencana lencana-hijau">Regu ${i + 1} — ${GOLONGAN.find(g => g.kode === r.golongan).label}</span>
-        <div class="medan" style="margin-top:.7rem">
+function perbaruiTotal() {
+  const total = jawab.regu.length;
+  document.getElementById("kotak-total").innerHTML = total
+    ? html`<strong>Total: ${total} regu</strong>
+           <div class="keterangan">Biaya: ${total} × ${rupiah(EDISI.biaya_per_regu)}
+           = <strong>${rupiah(total * EDISI.biaya_per_regu)}</strong></div>`
+    : `<span class="keterangan">Belum ada regu yang ditambahkan.</span>`;
+  document.getElementById("kirim-info").innerHTML = total
+    ? html`${total} regu · ${rupiah(total * EDISI.biaya_per_regu)}`
+    : `<span class="keterangan">Belum ada regu</span>`;
+  if (sudahDiperiksa) periksa(false);
+}
+
+/* ---------------- 4. nama regu ---------------- */
+
+function gambarRegu() {
+  const kotak = document.getElementById("isi-regu");
+  if (!jawab.regu.length) {
+    kotak.replaceChildren(h(`<p class="keterangan">
+      Kotak isian nama muncul di sini setelah kamu menambah regu di bagian 3.</p>`));
+    return;
+  }
+  kotak.replaceChildren(h(jawab.regu.map((r, i) => html`
+    <div class="kartu-regu" id="regu-${i}">
+      <span class="lencana lencana-hijau">Regu ${i + 1} — ${labelGolongan(r.golongan)}</span>
+      <div class="dua-kolom">
+        <div class="medan" style="margin:0">
           <label for="r-nama-${i}">Nama regu</label>
           <input type="text" id="r-nama-${i}" value="${r.nama_regu}" placeholder="contoh: Rajawali">
         </div>
-        <div class="medan">
-          <label for="r-ketua-${i}">Nama ketua regu</label>
+        <div class="medan" style="margin:0">
+          <label for="r-ketua-${i}">Nama ketua</label>
           <input type="text" id="r-ketua-${i}" value="${r.nama_ketua}" placeholder="contoh: Andi Saputra">
         </div>
-      </div>`).join("")}
-    <div class="pilihan-baris">
-      <button class="tombol tombol-kalem" id="mundur" type="button">← Kembali</button>
-      <button class="tombol tombol-utama" id="maju" type="button">Lanjut</button>
-    </div>
-  `, opsi);
+      </div>
+    </div>`).join("")));
 
-  LAYAR.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { simpanIsian(); simpanDraf(); }));
-  document.getElementById("mundur").addEventListener("click", () => { simpanIsian(); langkah3(); });
-  document.getElementById("maju").addEventListener("click", () => {
-    simpanIsian();
-    const kosongIdx = jawab.regu.findIndex(r => !r.nama_regu || !r.nama_ketua);
-    if (kosongIdx >= 0) {
-      notif(`Regu ${kosongIdx + 1} belum lengkap — isi nama regu dan ketuanya.`, true);
-      const inp = document.getElementById(
-        jawab.regu[kosongIdx].nama_regu ? `r-ketua-${kosongIdx}` : `r-nama-${kosongIdx}`);
-      inp.setAttribute("aria-invalid", "true");
-      inp.scrollIntoView({ block: "center" }); inp.focus();
-      return;
-    }
-    langkah5();
-  });
-
-  function simpanIsian() {
-    jawab.regu.forEach((r, i) => {
-      r.nama_regu = document.getElementById(`r-nama-${i}`).value.trim();
-      r.nama_ketua = document.getElementById(`r-ketua-${i}`).value.trim();
+  jawab.regu.forEach((r, i) => {
+    document.getElementById(`r-nama-${i}`).addEventListener("input", e => {
+      r.nama_regu = e.target.value.trim(); simpanDraf();
+      if (sudahDiperiksa) periksa(false);
     });
-  }
+    document.getElementById(`r-ketua-${i}`).addEventListener("input", e => {
+      r.nama_ketua = e.target.value.trim(); simpanDraf();
+      if (sudahDiperiksa) periksa(false);
+    });
+  });
 }
 
-/* ---------------- Langkah 5 : kontak WA ---------------- */
+/* ---------------- pemeriksaan: SEMUA galat sekaligus ---------------- */
 
-function langkah5(opsi) {
-  tampilkan(5, html`
-    <div class="kartu">
-      <h2>Nomor WhatsApp yang bisa dihubungi</h2>
-      <p class="keterangan">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
-      <div class="medan" style="margin-top:.8rem">
-        <label for="wa">Nomor WA</label>
-        <input type="tel" id="wa" inputmode="numeric" value="${jawab.kontak_wa}"
-               placeholder="contoh: 081234567890">
-        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar (minimal 9 angka).</div>
-      </div>
-      <div class="pilihan-baris">
-        <button class="tombol tombol-kalem" id="mundur" type="button">← Kembali</button>
-        <button class="tombol tombol-utama" id="maju" type="button">Lanjut</button>
-      </div>
-    </div>
-  `, opsi);
-  document.getElementById("mundur").addEventListener("click", () => langkah4());
-  const lanjut = () => {
-    const wa = document.getElementById("wa").value.replace(/[^0-9+]/g, "");
-    const sah = wa.replace(/\D/g, "").length >= 9;
-    document.getElementById("g-wa").hidden = sah;
-    if (!sah) { document.getElementById("wa").setAttribute("aria-invalid", "true"); return; }
-    jawab.kontak_wa = wa;
-    langkah6();
-  };
-  document.getElementById("maju").addEventListener("click", lanjut);
-  document.getElementById("wa").addEventListener("keydown", e => { if (e.key === "Enter") lanjut(); });
+function periksa(gulir = true) {
+  sudahDiperiksa = true;
+  const galat = [];
+
+  const tandai = (id, ada) => { const e = document.getElementById(id); if (e) e.hidden = !ada; };
+
+  if (!jawab.sekolah) { galat.push({ ke: "bagian-sekolah", teks: "Sekolah belum dipilih" }); }
+  tandai("g-sekolah", !jawab.sekolah);
+
+  if (jawab.butuh_barak === null) { galat.push({ ke: "bagian-barak", teks: "Belum menjawab soal menginap" }); }
+  tandai("g-barak", jawab.butuh_barak === null);
+
+  if (!jawab.regu.length) { galat.push({ ke: "bagian-jumlah", teks: "Belum ada regu" }); }
+  tandai("g-jumlah", !jawab.regu.length);
+
+  jawab.regu.forEach((r, i) => {
+    const kurang = !r.nama_regu || !r.nama_ketua;
+    const el = document.getElementById(`regu-${i}`);
+    if (el) el.classList.toggle("kartu-regu-galat", kurang);
+    if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
+  });
+
+  const waSah = jawab.kontak_wa.replace(/\D/g, "").length >= 9;
+  if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum benar" });
+  tandai("g-wa", !waSah);
+
+  // Ringkasan galat: satu tempat, bisa diketuk untuk lompat ke isiannya.
+  const ringkas = document.getElementById("ringkas-galat");
+  if (!galat.length) { ringkas.replaceChildren(); return true; }
+  ringkas.replaceChildren(h(`
+    <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+      <strong>Masih ada ${galat.length} isian yang perlu dilengkapi:</strong>
+      <ul class="daftar-galat">
+        ${galat.map(g => html`<li><button type="button" data-ke="${g.ke}">${g.teks}</button></li>`).join("")}
+      </ul>
+    </div>`));
+  ringkas.querySelectorAll("[data-ke]").forEach(b => b.addEventListener("click", () => {
+    const t = document.getElementById(b.dataset.ke);
+    t.scrollIntoView({ block: "center", behavior: "smooth" });
+    const inp = t.querySelector("input, button.pilihan");
+    if (inp) setTimeout(() => inp.focus(), 350);
+  }));
+  if (gulir) ringkas.scrollIntoView({ block: "center", behavior: "smooth" });
+  return false;
 }
 
-/* ---------------- Langkah 6 : ringkasan + kirim ---------------- */
+/* ---------------- Turnstile (hanya mode produksi) ---------------- */
 
-function langkah6(opsi) {
-  const total = jawab.regu.length;
-  const tagihan = total * EDISI.biaya_per_regu;
-  const perluTurnstile = window.HRCD.mode === "supabase" && window.HRCD.turnstileSiteKey;
-  tampilkan(6, html`
-    <div class="kartu">
-      <h2>Periksa dulu, lalu kirim</h2>
-      <table class="tabel" style="margin-top:.6rem">
-        <tr><td>Sekolah</td><td><strong>${jawab.sekolah.nama}</strong><br><span class="keterangan">${jawab.sekolah.alamat}</span></td></tr>
-        <tr><td>Menginap</td><td><strong>${jawab.butuh_barak ? (jawab.jumlah_pendamping ? `Ya — ${jawab.jumlah_pendamping} pendamping` : "Ya") : "Tidak"}</strong></td></tr>
-        <tr><td>Jumlah regu</td><td><strong>${total}</strong></td></tr>
-        <tr><td>Kontak WA</td><td><strong>${jawab.kontak_wa}</strong></td></tr>
-        <tr><td>Total biaya</td><td><strong style="font-size:1.3rem">${rupiah(tagihan)}</strong></td></tr>
-      </table>
-    </div>
-    <div class="kartu">
-      <h2 style="font-size:1.05rem">Daftar regu</h2>
-      <table class="tabel">
-        ${jawab.regu.map((r, i) => html`
-          <tr><td>${i + 1}. <strong>${r.nama_regu}</strong></td>
-              <td>${GOLONGAN.find(g => g.kode === r.golongan).label}</td>
-              <td>Ketua: ${r.nama_ketua}</td></tr>`).join("")}
-      </table>
-    </div>
-    ${perluTurnstile ? `<div class="kartu"><div id="turnstile"></div>
-        <p class="keterangan">Centang kotak di atas dulu (bukti kamu bukan robot).</p></div>` : ""}
-    <div class="pilihan-baris">
-      <button class="tombol tombol-kalem" id="mundur" type="button">← Kembali</button>
-      <button class="tombol tombol-utama" id="kirim" type="button" ${perluTurnstile ? "disabled" : ""}>
-        Kirim Pendaftaran
-      </button>
-    </div>
-  `, opsi);
-
-  document.getElementById("mundur").addEventListener("click", () => langkah5());
-
-  if (perluTurnstile) {
-    const pasang = () => window.turnstile.render("#turnstile", {
-      sitekey: window.HRCD.turnstileSiteKey,
-      callback: (t) => { tokenTurnstile = t; document.getElementById("kirim").disabled = false; },
-      "expired-callback": () => { tokenTurnstile = null; document.getElementById("kirim").disabled = true; },
-      "error-callback": () => notif("Verifikasi keamanan gagal dimuat. Periksa internet, lalu muat ulang.", true),
-    });
-    if (window.turnstile) pasang();
-    else {
-      const s = document.createElement("script");
-      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      s.async = true; s.onload = pasang;
-      s.onerror = () => notif("Verifikasi keamanan gagal dimuat. Periksa internet, lalu muat ulang.", true);
-      document.head.appendChild(s);
-    }
-  }
-
-  document.getElementById("kirim").addEventListener("click", async (e) => {
-    const btn = e.currentTarget;
-    if (btn.dataset.jalan === "1") return;
-    btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Mengirim…";
-    try {
-      const hasil = await kirimPendaftaran({
-        nama_sekolah: jawab.sekolah.nama,
-        alamat_sekolah: jawab.sekolah.alamat,
-        butuh_barak: jawab.butuh_barak,
-        jumlah_pendamping: jawab.jumlah_pendamping,
-        kontak_wa: jawab.kontak_wa,
-        regu: jawab.regu,
-        kunci_kirim: jawab.kunci_kirim,   // sama saat mencoba lagi
-      }, tokenTurnstile);
-      sessionStorage.setItem("hrcd_selesai", "1");
-      try { localStorage.setItem(KUNCI_HASIL, JSON.stringify(hasil)); } catch {}
-      hapusDraf();
-      sukses(hasil);
-    } catch (err) {
-      btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Kirim Pendaftaran";
-      // Galat pada tombol paling penting: tampil MENETAP di layar, bukan
-      // toast yang hilang sendiri (temuan review).
-      document.getElementById("kirim").insertAdjacentElement("beforebegin",
-        h(html`<div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
-          <strong>Belum terkirim.</strong> ${err instanceof GalatApi ? err.message : "Coba lagi ya."}
-          <div class="keterangan" style="margin-top:.3rem">Isianmu tersimpan — tekan "Kirim Pendaftaran" lagi.</div>
-        </div>`).firstElementChild);
-    }
+function pasangTurnstile() {
+  if (!(window.HRCD.mode === "supabase" && window.HRCD.turnstileSiteKey)) return;
+  document.getElementById("turnstile-kotak").replaceChildren(h(`
+    <div class="kartu"><div id="turnstile"></div>
+      <p class="keterangan">Centang kotak di atas dulu (bukti kamu bukan robot).</p></div>`));
+  document.getElementById("kirim").disabled = true;
+  const pasang = () => window.turnstile.render("#turnstile", {
+    sitekey: window.HRCD.turnstileSiteKey,
+    callback: t => { tokenTurnstile = t; document.getElementById("kirim").disabled = false; },
+    "expired-callback": () => { tokenTurnstile = null; document.getElementById("kirim").disabled = true; },
+    "error-callback": () => notif("Verifikasi keamanan gagal dimuat. Periksa internet, lalu muat ulang.", true),
   });
+  if (window.turnstile) { pasang(); return; }
+  const s = document.createElement("script");
+  s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+  s.async = true; s.onload = pasang;
+  s.onerror = () => notif("Verifikasi keamanan gagal dimuat. Periksa internet, lalu muat ulang.", true);
+  document.head.appendChild(s);
+}
+
+/* ---------------- kirim ---------------- */
+
+async function kirim(e) {
+  const btn = e.currentTarget;
+  if (btn.dataset.jalan === "1") return;
+  if (!periksa()) return;
+
+  btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Mengirim…";
+  try {
+    const hasil = await kirimPendaftaran({
+      nama_sekolah: jawab.sekolah.nama,
+      alamat_sekolah: jawab.sekolah.alamat,
+      butuh_barak: jawab.butuh_barak,
+      jumlah_pendamping: jawab.jumlah_pendamping,
+      kontak_wa: jawab.kontak_wa,
+      regu: jawab.regu,
+      kunci_kirim: jawab.kunci_kirim,     // sama saat mencoba lagi
+    }, tokenTurnstile);
+    sessionStorage.setItem("hrcd_selesai", "1");
+    try { localStorage.setItem(KUNCI_HASIL, JSON.stringify(hasil)); } catch {}
+    hapusDraf();
+    sukses(hasil);
+  } catch (err) {
+    btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Kirim Pendaftaran";
+    document.getElementById("ringkas-galat").replaceChildren(h(html`
+      <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+        <strong>Belum terkirim.</strong>
+        ${err instanceof GalatApi ? err.message : "Coba lagi ya."}
+        <div class="keterangan" style="margin-top:.3rem">Isianmu tersimpan — tekan
+          "Kirim Pendaftaran" sekali lagi.</div>
+      </div>`));
+    document.getElementById("ringkas-galat").scrollIntoView({ block: "center", behavior: "smooth" });
+  }
 }
 
 /* ---------------- sukses ---------------- */
 
 function sukses(hasil) {
-  tampilkan(TOTAL_LANGKAH, html`
+  LAYAR.replaceChildren(h(html`
     <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
       <h2>✅ Pendaftaran diterima!</h2>
       <p>Ini <strong>kode pembayaran</strong>-mu. Simpan baik-baik — kode ini dipakai
@@ -522,7 +492,8 @@ function sukses(hasil) {
          `Kode pembayaran HRCD: ${hasil.kode_pembayaran} (${hasil.jumlah_regu} regu, total ${rupiah(hasil.total_tagihan)})`)}">
        Kirim kode ke WhatsApp
     </a>
-  `);
+  `));
+  window.scrollTo(0, 0);
   document.getElementById("salin").addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(hasil.kode_pembayaran);
@@ -545,10 +516,9 @@ async function mulai() {
   }
   document.getElementById("label-edisi").textContent = EDISI.nama;
 
-  // Kode dari pendaftaran sebelumnya (halaman dibuka lagi).
-  let hasilLama = null;
+  let hasilLama = null, draf = null;
   try { hasilLama = JSON.parse(localStorage.getItem(KUNCI_HASIL) || "null"); } catch {}
-  const draf = ambilDraf();
+  try { draf = JSON.parse(localStorage.getItem(KUNCI_DRAF) || "null"); } catch {}
 
   if (hasilLama && !draf) {
     LAYAR.replaceChildren(h(html`
@@ -562,34 +532,13 @@ async function mulai() {
     document.getElementById("baru").addEventListener("click", () => {
       try { localStorage.removeItem(KUNCI_HASIL); } catch {}
       sessionStorage.removeItem("hrcd_selesai");
-      jawab = kosong(); langkah1();
+      jawab = kosong(); halaman();
     });
     return;
   }
 
-  if (draf && draf.jawab && (draf.jawab.sekolah || draf.jawab.regu?.length)) {
-    LAYAR.replaceChildren(h(html`
-      <div class="kartu">
-        <h2>Lanjutkan isian yang belum selesai?</h2>
-        <p class="keterangan">Ada pendaftaran ${draf.jawab.sekolah?.nama ?? ""} yang
-           belum sempat dikirim.</p>
-        <div class="pilihan-baris" style="margin-top:.9rem">
-          <button class="tombol tombol-utama" id="lanjutkan" type="button">Lanjutkan</button>
-          <button class="tombol tombol-kalem" id="ulang" type="button">Mulai dari awal</button>
-        </div>
-      </div>`));
-    document.getElementById("lanjutkan").addEventListener("click", () => {
-      jawab = { ...kosong(), ...draf.jawab };
-      (LANGKAH_FN[draf.langkah] || langkah1)();
-    });
-    document.getElementById("ulang").addEventListener("click", () => {
-      hapusDraf(); jawab = kosong(); langkah1();
-    });
-    return;
-  }
-
-  langkah1();
+  if (draf && (draf.sekolah || draf.regu?.length)) jawab = { ...kosong(), ...draf };
+  halaman();
 }
 
-Object.assign(LANGKAH_FN, { 1: langkah1, 2: langkah2, 3: langkah3, 4: langkah4, 5: langkah5, 6: langkah6 });
 mulai();
