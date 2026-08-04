@@ -28,6 +28,7 @@ run supabase/migrations/0006_idempotensi.sql
 run supabase/migrations/0007_kunci_daftar_ulang.sql
 run supabase/migrations/0008_cetak_kloter.sql
 run supabase/migrations/0009_sisip_kloter.sql
+run supabase/migrations/0010_lookup_finish.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 

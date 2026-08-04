@@ -393,6 +393,49 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
 4. **Garis start** (satu kloter per 3–5 menit): papan bergeser otomatis;
    konfirmasi kontrak tiga kloter di depan; tombol besar satu per kloter.
 
+### 10.5 Meja finish: dua aksi, ±3 detik
+
+Panitia menetapkan targetnya sendiri: *"cukup ketik nomor peserta, dan klik
+Sampai — itu hanya perlu 3 detik, jadi kalau ada 20 regu bersamaan pun tidak
+terlalu lama."*
+
+1. **Dua aksi, bukan tiga.** Tidak ada tombol "Cari": detail regu muncul
+   sendiri sambil operator mengetik (jeda 160 ms), lalu satu ketukan. Enter
+   sama dengan menekan tombol, sehingga seluruh loop bisa keyboard saja.
+2. **Echo-confirm tetap ada** — kartu identitas (nomor dada, nama regu,
+   sekolah, kloter, jam berangkat, target datang, dan selisih dari target)
+   sudah terpampang pada saat operator menekan.
+3. **Jam dikunci saat tombol ditekan, dari jam laptop panitia** — bukan cap
+   waktu server saat data sampai. Jaringan lambat tidak menggeser jam datang.
+4. **Yang jarang dipakai disembunyikan** di balik satu baris "Anggota kurang
+   dari 5, atau mencatat dari kertas?" — jumlah anggota (default 5) dan jam
+   susulan. Jalur cepat tetap dua aksi; jalur kertas tetap tersedia
+   (alur 12.3).
+5. **Keadaan yang menghalangi ditampilkan, bukan disimpan jadi galat**: kloter
+   belum berangkat, regu belum diceklis di staging, atau sudah pernah dicatat
+   datang (tombol berubah jadi "Perbaiki jam datang").
+6. **Bug yang ditemukan saat menguji alur ini, dan wajib tidak terulang:**
+   mengetik nomor baru lalu langsung menekan Enter sempat menyimpan regu
+   dari pencarian SEBELUMNYA — mencatat regu yang salah datang. Sekarang
+   hasil lookup lama dibuang seketika begitu angkanya berubah, dan tombol
+   memeriksa ulang bahwa nomor yang tersimpan sama dengan yang terlihat di
+   kotak isian.
+
+### 10.6 Keberangkatan vs kedatangan: siapa pencatat, siapa verifikator
+
+Panitia kertas dan panitia laptop duduk bersebelahan, tetapi perannya
+berkebalikan di dua meja:
+
+| | Pencatat utama | Peran laptop | Jam masuk lewat |
+| --- | --- | --- | --- |
+| **Keberangkatan (staging)** | Kertas — dicentang, sisipan ditulis tangan, jam kloter dicatat | **Verifikasi** kertas | **Diketik** (menyalin) |
+| **Kedatangan (finish)** | Laptop | Mencatat langsung | **Tombol** (jam saat ditekan) |
+
+Karena itu layar keberangkatan harus enak dipakai untuk **menyalin** dari
+kertas — jam wajib bisa diketik, dan urutan di layar mengikuti urutan di
+kertas. Sedangkan layar finish dioptimalkan untuk **kecepatan mencatat
+langsung**. Menyeragamkan keduanya akan merusak salah satunya.
+
 ### 10.4 Form publik: satu halaman, bukan wizard
 
 Keputusan panitia setelah mencoba versi wizard: **"Kenapa harus berkali-kali
