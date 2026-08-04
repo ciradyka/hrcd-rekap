@@ -69,7 +69,38 @@ Guidance for Claude Code when working in this repository.
    ```
 7. Merging is a user decision. Do not merge unless the user asked for it.
 
-## 5. Repository facts
+## 5. Language
+
+1. Split language by **audience**, not by file.
+2. **Indonesian** — UI text, everything under `docs/`, and all domain vocabulary
+   wherever it appears, including code identifiers, database tables, and column
+   names.
+3. **Never translate domain terms.** `regu`, `nomor dada`, `kloter`,
+   `kontrak waktu`, `pos`, `wahana`, `daftar ulang`, `barak`, `golongan`. The
+   panitia say these words, so the code says them too. Writing `chestNumber`
+   for `nomor_dada` creates a lookup tax on every conversation and eventually
+   becomes a bug.
+4. **English** — technical vocabulary (`repository`, `service`, `migration`,
+   `controller`, `cache`), commit messages, PR titles and bodies, and this file.
+5. **Do not translate technical terms into Indonesian.** `pengendali` for
+   controller or `penyimpanan` for repository sounds friendlier but cuts
+   maintainers off from every tutorial, library doc, and error message they will
+   need to search.
+6. Mixing both inside one identifier is expected and correct:
+   `KloterRepository`, `hitungPenalti()`, `nomor_dada`.
+
+## 6. Who maintains this
+
+1. Maintainers are the next ambalan members — SMA students learning as they go —
+   with the current owner assisting.
+2. Therefore: prefer obvious code over clever code. A pattern that needs
+   explaining before it can be used is the wrong pattern here.
+3. Document generously. Assume the reader has no prior context and did not
+   attend any of the discussions.
+4. Keep the number of concepts small. Fewer layers a student must hold in their
+   head at once beats a more elegant structure they cannot navigate.
+
+## 7. Repository facts
 
 1. Remote: `https://github.com/ciradyka/hrcd-rekap` (private).
 2. Default branch: `main`. It has **no** branch protection, and squash and
