@@ -215,10 +215,20 @@ teknologi belum diambil dan sengaja tidak dibahas di sini.
 
    Data yang diperlukan untuk analisis ini, per pos: berapa regu dapat
    mengerjakan wahana secara serentak, dan berapa batas waktu pengerjaannya.
-2. **Bentuk rumus konversi data mentah menjadi poin.** Baru dua bentuk yang
-   diketahui: makin kecil makin baik (waktu) dan makin besar makin baik (jumlah
-   kena). Bentuk lain yang mungkin perlu didukung — berhasil/gagal, nilai
-   berbatas atas, poin tak boleh negatif, atau penilaian berbasis peringkat —
-   belum dikonfirmasi.
+2. **Bentuk rumus konversi data mentah menjadi poin.** Belum ditentukan, dan
+   panitia menegaskan **semua kombinasi mungkin terjadi**. Bentuk yang sudah
+   disebut:
+
+   | Bentuk | Contoh data mentah |
+   | --- | --- |
+   | Makin kecil makin baik | waktu tempuh, misal `40` detik |
+   | Makin besar makin baik | jumlah kena, misal `3` |
+   | Biner | kena / tidak, benar / salah |
+   | Benar dibagi total | `7` dari `10` soal |
+   | Benar dikurangi salah | jawaban salah mengurangi nilai |
+
+   Karena bentuknya bisa berubah tiap tahun dan tiap wahana, konfigurasi
+   konversi harus dirancang cukup luwes untuk menampung semuanya. Perancangan
+   detailnya ditunda.
 3. **Arti singkatan `IMPK`** pada contoh lembar nilai di bagian 8.4.
 4. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
