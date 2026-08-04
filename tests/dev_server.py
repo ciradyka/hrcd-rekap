@@ -37,6 +37,8 @@ RPC = {
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
     "susun_barak":           [],
+    "tandai_kloter_dicetak": ["p_kloter"],
+    "batalkan_tanda_cetak":  ["p_kloter", "p_alasan"],
 }
 # RPC yang hasilnya tabel (bukan skalar/jsonb).
 RPC_TABEL = {"daftar_ulang_batch"}
@@ -85,6 +87,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/edisi":
                 self._kirim(200, q(
                     "select * from v_edisi_publik", role="anon", fetch="one"))
+            elif u.path == "/kloter":
+                self._kirim(200, q(
+                    "select * from v_daftar_kloter", uid=p.get("uid")))
             elif u.path == "/ringkasan":
                 self._kirim(200, q("""
                     select
@@ -177,6 +182,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         "p_anggota_hadir": "::smallint", "p_jumlah": "::smallint",
                         "p_regu": "::uuid", "p_jam": "::timestamptz",
                         "p_jam_datang": "::timestamptz"}
+                if nama == "tandai_kloter_dicetak":
+                    CAST = {**CAST, "p_kloter": "::smallint[]"}
                 tanda = ", ".join("%s" + CAST.get(k, "") for k in urutan)
                 if nama in RPC_TABEL:
                     sql = f"select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) as h from {nama}({tanda}) t"

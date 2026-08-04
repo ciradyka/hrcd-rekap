@@ -38,6 +38,14 @@ Butuh PostgreSQL 16 (lokal atau portable, tanpa Supabase):
 PSQL=/path/ke/psql PGPORT=55432 PGPASSWORD=... bash tests/run.sh
 ```
 
+Untuk mencoba layarnya (butuh tiga terminal):
+
+```bash
+bash tests/dev_db.sh          # siapkan database hrcd_dev
+python tests/dev_server.py    # tiruan Supabase di :8787
+python tests/layar_server.py  # layar panitia di :8788 (tanpa cache)
+```
+
 Runner membuat ulang database `hrcd_test` setiap kali — aman diulang. Tes
 mencakup: nomor dada ganda tertolak, kapasitas kloter, RLS per pos, alur
 lengkap daftar → bayar → daftar ulang → berangkat → nilai → closing, dan

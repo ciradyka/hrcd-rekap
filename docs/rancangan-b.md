@@ -140,6 +140,37 @@ harus "simpan dulu ke database lalu query lagi supaya benar-benar cocok?"
    **1,65 detik** (rata-rata 55 ms per meja). Serialisasi total tidak terasa
    pada skala 2–3 meja yang sebenarnya.
 
+### 4.2 Kloter yang sudah dicetak dibekukan
+
+Panitia: *"nanti kloter final akan diprint."* Itu mengubah sifat datanya.
+
+1. **Begitu dicetak, kertas menjadi kebenaran di lapangan.** Petugas garis start
+   memanggil regu dari kertas, bukan dari layar. Maka setiap perubahan isi
+   kloter setelah cetak membuat kertas berbohong tanpa ada yang menyadari.
+2. **Kejadian nyatanya bukan hipotetis**: sekolah datang terlambat, daftar
+   ulang setelah cetakan dibagikan, dan regunya diselipkan ke kloter yang sudah
+   tercetak. Di garis start, kloter itu memanggil 10 nama padahal kertas hanya
+   memuat 9 — atau regu itu tidak pernah dipanggil sama sekali.
+3. **Perlindungannya berlapis** (migrasi 0008):
+   - Kolom `kloter.dicetak_pada` menandai kloter yang kertasnya sudah keluar.
+   - `daftar_ulang_batch` hanya memilih kloter dengan `dicetak_pada is null`,
+     sehingga pendaftar susulan otomatis jatuh ke kloter cadangan (31–40) dan
+     dicetakkan **lembar tambahan** — bukan ditolak.
+   - Trigger `jaga_kloter_tercetak` menolak perubahan `kloter_nomor` yang masuk
+     ke atau keluar dari kloter tercetak, dari jalur mana pun — termasuk
+     koreksi admin lewat SQL yang lupa aturan ini.
+   - `batalkan_tanda_cetak` (admin, wajib beralasan, terekam riwayat) untuk
+     kertas macet / cetak ulang.
+4. **Penandaan terjadi SETELAH dialog cetak ditutup**, dan operator ditanya
+   "kertasnya sudah keluar dengan benar?" — kalau cetakan batal, kloternya
+   belum dianggap final.
+5. **Bentuk kertasnya**: satu kloter per lembar (`break-after: page`), kolom
+   No Dada besar, plus kolom kosong "Hadir" untuk dicentang tangan, dan tempat
+   menulis jam berangkat + nama petugas.
+6. Diuji di `tests/sql/04_cetak_kloter.sql` dan lewat aplikasi: setelah 5
+   kloter ditandai tercetak, sekolah susulan masuk kloter yang belum pernah
+   dicetak — bukan diselipkan.
+
 ## 5. Mesin skor — hitung-saat-baca, tanpa tombol "hitung ulang"
 
 1. **Tidak ada angka turunan yang disimpan.** Semua skor dihitung saat dibaca

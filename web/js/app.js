@@ -12,6 +12,7 @@ import {
   sesi, masuk, keluar, GalatApi,
   lihatBatch, infoEdisi, ringkasanMeja,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
+  daftarKloter, tandaiKloterDicetak,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -129,6 +130,10 @@ async function layarBeranda() {
       <a href="#/pendaftaran-offline">
         <div class="nama-fungsi">📝 Pendaftaran Offline</div>
         <div class="ket">Bukakan form pendaftaran untuk sekolah yang datang langsung</div>
+      </a>
+      <a href="#/cetak-kloter">
+        <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
+        <div class="ket">Kertas untuk garis start — setelah dicetak, isi kloter dibekukan</div>
       </a>
     </div>
     <p class="keterangan" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
@@ -465,6 +470,126 @@ function layarDaftarUlang() {
   });
 }
 
+/* ============================ CETAK DAFTAR KLOTER ======================== */
+
+async function layarCetakKloter() {
+  pasangKepala("Cetak Daftar Kloter");
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+
+  let baris;
+  try { baris = await daftarKloter(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarCetakKloter)); return; }
+
+  if (!baris.length) {
+    LAYAR.replaceChildren(h(`<div class="kartu">
+      <h2>Belum ada regu berkloter</h2>
+      <p class="keterangan">Daftar kloter bisa dicetak setelah ada sekolah yang daftar ulang.</p>
+    </div>`));
+    return;
+  }
+
+  // Kelompokkan per kloter; pisahkan yang belum pernah dicetak.
+  const perKloter = new Map();
+  for (const b of baris) {
+    if (!perKloter.has(b.kloter)) perKloter.set(b.kloter, { dicetak: b.dicetak_pada, isi: [] });
+    perKloter.get(b.kloter).isi.push(b);
+  }
+  const belum = [...perKloter.entries()].filter(([, v]) => !v.dicetak).map(([k]) => k);
+
+  LAYAR.replaceChildren(h(`
+    <div class="kartu" style="border-color:var(--utama)">
+      <h2>Daftar kloter untuk garis start</h2>
+      <p class="keterangan">Setelah dicetak, isi kloter <strong>dibekukan</strong> —
+         kertas ini yang dipakai memanggil regu, jadi sistem tidak boleh
+         mengubahnya diam-diam. Sekolah yang daftar ulang setelah ini masuk
+         kloter cadangan dan dicetak sebagai lembar tambahan.</p>
+      <table class="tabel" style="margin-top:.6rem">
+        <tr><td>Kloter berisi regu</td><td class="angka">${perKloter.size}</td></tr>
+        <tr><td>Belum pernah dicetak</td><td class="angka">${belum.length}</td></tr>
+        <tr><td>Total regu</td><td class="angka">${baris.length}</td></tr>
+      </table>
+      <div class="pilihan-baris" style="margin-top:.9rem">
+        <button class="tombol tombol-utama" id="cetak-belum" type="button"
+                ${belum.length ? "" : "disabled"}>
+          🖨️ Cetak ${belum.length} kloter baru
+        </button>
+        <button class="tombol tombol-kalem" id="cetak-semua" type="button">
+          Cetak ulang semua
+        </button>
+      </div>
+    </div>
+    <div id="pratayang"></div>
+  `));
+
+  const gambarPratayang = (nomorKloter) => {
+    const dipakai = nomorKloter
+      ? [...perKloter.entries()].filter(([k]) => nomorKloter.includes(k))
+      : [...perKloter.entries()];
+    // CATATAN: baris tabel dirakit dengan html`` (nilai di-escape), lalu
+    // digabung memakai template BIASA. Menyisipkan HTML jadi ke dalam html``
+    // akan meng-escape-nya dua kali dan tabelnya tampil sebagai teks mentah.
+    document.getElementById("pratayang").replaceChildren(h(
+      dipakai.map(([nomor, v]) => {
+        const baris = v.isi.map(r => html`
+          <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
+              <td><strong>${r.nama_regu}</strong></td>
+              <td>${r.nama_sekolah}</td>
+              <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
+        return `
+          <div class="kartu">
+            <h2>Kloter ${esc(nomor)}
+              <span class="lencana ${v.dicetak ? "lencana-abu" : "lencana-kuning"}">
+                ${v.dicetak ? "sudah dicetak" : "baru"}</span></h2>
+            <table class="tabel">${baris}</table>
+          </div>`;
+      }).join("")));
+    siapkanCetakKloter(dipakai);
+  };
+
+  document.getElementById("cetak-belum").addEventListener("click", () => cetak(belum));
+  document.getElementById("cetak-semua").addEventListener("click", () => cetak(null));
+  gambarPratayang(null);
+
+  async function cetak(nomorKloter) {
+    gambarPratayang(nomorKloter);
+    window.print();
+    // Ditandai SETELAH dialog cetak ditutup — kalau operator membatalkan,
+    // kloternya belum dianggap tercetak.
+    const lanjut = confirm("Kertasnya sudah keluar dengan benar?\n\n" +
+      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)\n" +
+      "Batal = belum, biarkan bisa dicetak lagi");
+    if (!lanjut) return;
+    try {
+      const n = await tandaiKloterDicetak(nomorKloter);
+      notif(`${n} kloter ditandai sudah dicetak dan dibekukan.`);
+      layarCetakKloter();
+    } catch (err) { notif(err.message, true); }
+  }
+}
+
+/** Blok cetak khusus daftar kloter — satu kloter per halaman kertas. */
+function siapkanCetakKloter(dipakai) {
+  document.getElementById("cetakan")?.remove();
+  const halaman = dipakai.map(([nomor, v]) => {
+    const baris = v.isi.map(r => html`
+      <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+          <td>${r.nama_regu}</td>
+          <td>${r.nama_sekolah}</td>
+          <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
+          <td class="kotak"></td></tr>`).join("");
+    return `
+      <section class="halaman-cetak">
+        <h1>KLOTER ${esc(nomor)} — Hiking Rally Ciradyka ${esc(EDISI ? EDISI.nama : "")}</h1>
+        <p>Jam berangkat: ________  ·  Petugas: ________________</p>
+        <table class="tabel-cetak">
+          <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th>Hadir</th></tr></thead>
+          <tbody>${baris}</tbody>
+        </table>
+      </section>`;
+  }).join("");
+  document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
+}
+
 /* ============================ PENDAFTARAN OFFLINE ======================== */
 
 function layarPendaftaranOffline() {
@@ -497,6 +622,7 @@ const RUTE = {
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
   "#/pendaftaran-offline": layarPendaftaranOffline,
+  "#/cetak-kloter": layarCetakKloter,
 };
 
 async function arahkan() {
