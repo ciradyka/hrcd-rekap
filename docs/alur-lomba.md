@@ -37,8 +37,12 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 5. Sistem terbagi menjadi **dua wajah yang terpisah**:
    - **Aplikasi panitia** — satu link yang sama untuk semua panitia, dengan
      akses yang dibedakan per akun (bagian 8.8).
-   - **Tampilan live untuk peserta** — halaman publik tanpa login. Apa saja
-     isinya dan kapan dibuka masih perlu diputuskan (bagian 13).
+   - **Tampilan live untuk peserta** — halaman publik tanpa login, berisi
+     **klasemen penuh empat golongan**, dibuka **bertahap**: selama lomba
+     hanya progres tanpa angka (regu X sudah melewati pos Y), nilai dan
+     peringkat lengkap baru tampil setelah closing. Halaman ini **disajikan
+     statis dan diperbarui berkala**, tidak pernah membaca database langsung —
+     ratusan HP penonton tidak boleh bisa membebani jalur input panitia.
 
 ## 2. Satuan lomba dan identitas
 
@@ -78,7 +82,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    5. **Rincian golongan** yang jumlahnya harus sama dengan total — misal 5
       regu = 3 Penegak PA + 1 Penegak PI + 1 Penggalang PA. Form memvalidasi
       penjumlahannya.
-   6. **Untuk setiap regu:** nama regu dan nama ketua.
+   6. **Untuk setiap regu:** nama regu dan nama ketua. **Nama empat anggota
+      lain tidak diminta** — untuk sekarang sistem tidak mencatatnya;
+      kelengkapan 5 orang dicek fisik di akhir lomba (bagian 10.9).
    7. **Satu kontak person WA** untuk keseluruhan batch.
 3. Setelah dikirim, sistem **memecah batch menjadi satu baris per regu** —
    5 regu menjadi 5 baris — yang tetap terikat pada satu tagihan bersama.
@@ -395,25 +401,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.
-5. **Nama anggota selain ketua.** Form pendaftaran hanya mencatat nama regu +
-   nama ketua. Empat anggota lain dicatat di mana — saat daftar ulang, atau
-   tidak dicatat sama sekali (pengecekan kelengkapan di akhir bersifat hitung
-   fisik, bagian 10.9)?
-   *(Dua pertanyaan lain dari skema batch sudah terjawab: pembayaran sebagian
-   tidak dilayani — semua-atau-tidak, daftar ulang saja dengan batch lebih
-   kecil; dan kode pembayaran terbit saat pendaftaran, satu kode per batch.)*
-6. **Isi tampilan live peserta (bagian 1.5).** Yang belum diputuskan:
-   - Apa yang dilihat peserta — klasemen penuh empat golongan, hanya status
-     regunya sendiri, atau keduanya?
-   - Kapan dibuka — live sepanjang lomba (regu bisa melihat posisinya di
-     tengah rute) atau baru setelah closing? Ini keputusan lomba, bukan
-     teknis: klasemen yang terlihat di tengah lomba bisa mengubah perilaku
-     peserta.
-   - Konsekuensi teknis yang sudah pasti: penonton bisa ratusan HP sekaligus,
-     sehingga tampilan publik **wajib disajikan dari jalur terpisah yang
-     murah** (halaman statis yang diperbarui berkala), tidak boleh membaca
-     database secara langsung — supaya penonton tidak pernah bisa membebani
-     jalur input panitia.
-7. **Teknologi yang dipakai.** Sengaja ditunda sampai alur ini disepakati.
-   Empat kandidat arsitektur gratis beserta rekomendasinya sudah ditawarkan di
-   `desain-sistem.md`.
+5. **Teknologi yang dipakai.** Empat kandidat arsitektur gratis beserta
+   rekomendasinya sudah ditawarkan di `desain-sistem.md`; Kandidat A (Google
+   Sheets) telah dicoret panitia, pilihan mengerucut ke B melawan D.
+   *(Pertanyaan-pertanyaan lain di bagian ini yang sudah terjawab dan pindah ke
+   badan dokumen: pembayaran sebagian tidak dilayani — bagian 3.5; kode
+   pembayaran per batch terbit saat pendaftaran — bagian 3.4; nama anggota
+   selain ketua tidak dicatat untuk sekarang — bagian 3.2; isi dan waktu
+   tampilan live — bagian 1.5.)*
