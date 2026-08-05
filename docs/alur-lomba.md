@@ -218,26 +218,52 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    wahana yang berbeda.
 2. Selain itu ada **pos bayangan**. Pos bayangan umumnya tidak memiliki wahana
    dan **tidak dinilai**, sehingga tidak dimodelkan oleh sistem sama sekali.
-3. Di setiap pos utama regu mengerjakan:
-   - **Soal kertas** — dinilai petugas lapangan di lembar cetak.
+3. Di setiap pos utama ada dua hal yang dinilai, dan **keduanya berasal dari
+   tempat yang berbeda**:
    - **Wahana** — tantangan fisik seperti merangkak, berlari, atau memanjat,
-     berbeda-beda tergantung pos.
-4. Setiap pos dijaga **minimal 5 orang tim lapangan** dan **2 operator IT**
+     berbeda-beda tergantung pos. Dikerjakan **dan** dinilai di pos itu juga.
+   - **Soal kertas** — dibagikan di **pos sebelumnya**, dikerjakan regu sambil
+     berjalan, lalu dikumpulkan dan dinilai di pos ini.
+4. Soal karena itu berjalan **satu pos ke depan**, seperti estafet:
+
+   | Soal dibagikan di | Dikerjakan | Dikumpulkan & dinilai di | Masuk nilai |
+   | --- | --- | --- | --- |
+   | Pos 1 | perjalanan Pos 1 → Pos 2 | Pos 2 | **Pos 2** |
+   | Pos 2 | perjalanan Pos 2 → Pos 3 | Pos 3 | **Pos 3** |
+   | Pos 3 | perjalanan Pos 3 → Pos 4 | Pos 4 | **Pos 4** |
+   | Pos 4 | perjalanan Pos 4 → Pos 5 | Pos 5 | **Pos 5** |
+
+5. Rumusnya karena itu:
+
+   ```
+   Nilai Pos 1 = Wahana Pos 1                       (tidak ada soal masuk)
+   Nilai Pos N = Wahana Pos N + Soal dari Pos N−1   (N = 2..5)
+   ```
+
+6. **Skor soal masuk ke pos tempat soal itu dikumpulkan, bukan tempat soal itu
+   dibagikan.** Soal yang dibagikan di Pos 1 menambah nilai **Pos 2**. Panah
+   antar pos hanyalah perpindahan kertas soal — bukan perpindahan nilai.
+7. Konsekuensinya untuk operator: operator Pos 2 memasukkan **dua** hal — hasil
+   wahana Pos 2 dan hasil koreksi soal yang dibagikan di Pos 1. Keduanya
+   tercatat sebagai nilai Pos 2, sehingga pembatasan "satu operator hanya boleh
+   satu pos" tetap utuh. Di layar, kolomnya wajib diberi label **"Soal dari
+   Pos 1"** supaya operator tidak mengira sedang menyentuh milik pos lain.
+8. Setiap pos dijaga **minimal 5 orang tim lapangan** dan **2 operator IT**
    dengan laptop.
-5. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
+9. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
    daya**.
-6. **Penumpukan di pos adalah hal yang wajar dan sebagian memang disengaja.**
-   Kemampuan regu beradaptasi ketika pos padat — mempercepat langkah untuk
-   mengejar kontrak waktu — termasuk yang diuji dalam lomba. Sebuah pos tidak
-   harus menghabiskan satu kloter sebelum kloter berikutnya tiba.
-7. Yang harus dijaga hanyalah agar penumpukan **tidak berlebihan**. Ada
-   toleransi, tetapi antrean tidak boleh menumpuk terlalu jauh.
-8. Karena itu wahana dirancang agar **tidak terlalu sulit**. Dua pengendali yang
-   dipakai panitia:
-   - **Batas waktu maksimal** pengerjaan wahana per pos.
-   - **Beberapa wahana paralel** dalam satu pos.
-9. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
-   dilakukan. Lihat bagian 13.
+10. **Penumpukan di pos adalah hal yang wajar dan sebagian memang disengaja.**
+    Kemampuan regu beradaptasi ketika pos padat — mempercepat langkah untuk
+    mengejar kontrak waktu — termasuk yang diuji dalam lomba. Sebuah pos tidak
+    harus menghabiskan satu kloter sebelum kloter berikutnya tiba.
+11. Yang harus dijaga hanyalah agar penumpukan **tidak berlebihan**. Ada
+    toleransi, tetapi antrean tidak boleh menumpuk terlalu jauh.
+12. Karena itu wahana dirancang agar **tidak terlalu sulit**. Dua pengendali yang
+    dipakai panitia:
+    - **Batas waktu maksimal** pengerjaan wahana per pos.
+    - **Beberapa wahana paralel** dalam satu pos.
+13. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
+    dilakukan. Lihat bagian 13.
 
 ## 8. Pencatatan dan input nilai
 
