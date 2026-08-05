@@ -1,0 +1,290 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Arsitektur teknis sistem HRCD Rekap: pengguna, Cloudflare, Supabase, keluaran data, dan siklus kertas">
+  <defs>
+    <marker id="mh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#2E9E5B"/>
+    </marker>
+    <marker id="mu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#7B3FE4"/>
+    </marker>
+    <marker id="mm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#E5397A"/>
+    </marker>
+    <marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#B8792F"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <g font-family="Segoe UI, Calibri, Arial, sans-serif">
+
+  <!-- ================== JUDUL ================== -->
+  <rect x="40" y="30" width="152" height="54" rx="4" fill="#0B5F4E"/>
+  <text x="116" y="69" font-size="33" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">HRCD</text>
+  <text x="204" y="69" font-size="33" font-weight="700" fill="#1A1A1A">ARSITEKTUR SISTEM</text>
+  <text x="42" y="105" font-size="15" fill="#666666">Hiking Rally Ciradyka — alur teknis dari pendaftaran hingga juara ditentukan</text>
+
+  <!-- ================== LEGENDA ================== -->
+  <g font-size="12.5">
+    <line x1="1148" y1="36" x2="1196" y2="36" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6"/>
+    <text x="1206" y="41" fill="#333333">Pendaftaran publik — wajib lewat gerbang</text>
+    <line x1="1148" y1="62" x2="1196" y2="62" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6"/>
+    <text x="1206" y="67" fill="#333333">Panitia &amp; Tim IT — tulis dan baca langsung</text>
+    <line x1="1148" y1="88" x2="1196" y2="88" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6"/>
+    <text x="1206" y="93" fill="#333333">Data keluar — live, arsip</text>
+    <line x1="1148" y1="114" x2="1196" y2="114" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6"/>
+    <text x="1206" y="119" fill="#333333">Siklus kertas — keluar, lalu kembali</text>
+  </g>
+
+  <!-- ================== KOLOM: PENGGUNA ================== -->
+  <text x="40" y="176" font-size="12" font-weight="700" fill="#999999" letter-spacing="1.6">PENGGUNA</text>
+
+  <!-- Pendaftar : orang memegang HP -->
+  <g transform="translate(100,255)" fill="none" stroke="#2E9E5B" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-46" r="7.5"/>
+    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+    <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
+    <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
+    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+  </g>
+  <text x="100" y="276" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Pendaftar</text>
+  <text x="100" y="293" font-size="11.5" fill="#777777" text-anchor="middle">pembina sekolah · HP</text>
+
+  <!-- Panitia meja : orang memegang papan jalan -->
+  <g transform="translate(96,370)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-46" r="7.5"/>
+    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
+    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
+    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
+    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+  </g>
+  <text x="100" y="391" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Panitia Meja</text>
+  <text x="100" y="408" font-size="11.5" fill="#777777" text-anchor="middle">2–3 meja · laptop</text>
+
+  <!-- Panitia lapangan -->
+  <g transform="translate(96,485)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-46" r="7.5"/>
+    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
+    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
+    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
+    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+  </g>
+  <text x="100" y="506" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Panitia Lapangan</text>
+  <text x="100" y="523" font-size="11.5" fill="#777777" text-anchor="middle">staging &amp; finish · HP</text>
+
+  <!-- Tim IT : orang di depan laptop -->
+  <g transform="translate(100,600)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-48" r="7.5"/>
+    <path d="M-9,-39 Q0,-42 9,-39 L11,-20 L-11,-20 Z"/>
+    <path d="M-11,-35 L-14,-24"/><path d="M11,-35 L14,-24"/>
+    <rect x="-13" y="-22" width="26" height="16" rx="1.5"/>
+    <path d="M-17,-6 L17,-6 L20,-1 L-20,-1 Z"/>
+  </g>
+  <text x="100" y="621" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Tim IT</text>
+  <text x="100" y="638" font-size="11.5" fill="#777777" text-anchor="middle">operator pos · admin</text>
+
+  <!-- ================== CLOUDFLARE ================== -->
+  <rect x="250" y="185" width="270" height="455" rx="8" fill="#FFF9F3" stroke="#F6821F" stroke-width="2"/>
+  <path d="M310,228 H276 a11,11 0 0 1 -1.5,-21.5 a13.5,13.5 0 0 1 25.4,3.4 a9,9 0 0 1 4.9,18.1 Z" fill="#F6821F"/>
+  <text x="322" y="222" font-size="17" font-weight="700" fill="#D96A0B">Cloudflare</text>
+
+  <rect x="268" y="248" width="234" height="132" rx="5" fill="#FFFFFF" stroke="#E5D5C4" stroke-width="1.5"/>
+  <text x="284" y="273" font-size="14" font-weight="700" fill="#1A1A1A">Pages · CDN</text>
+  <text x="284" y="295" font-size="12" fill="#666666">daftar.html — form pendaftaran</text>
+  <text x="284" y="314" font-size="12" fill="#666666">index.html — aplikasi panitia</text>
+  <text x="284" y="333" font-size="12" fill="#666666">live.html — klasemen penonton</text>
+  <text x="284" y="360" font-size="11.5" font-style="italic" fill="#999999">file statis · tidak menyentuh data</text>
+
+  <rect x="268" y="400" width="234" height="220" rx="5" fill="#FFFFFF" stroke="#E5D5C4" stroke-width="1.5"/>
+  <path d="M296,418 L311,423 v12 c0,9.5 -6.3,15.5 -15,18.5 c-8.7,-3 -15,-9 -15,-18.5 v-12 Z" fill="#F6821F"/>
+  <path d="M289,435 l5,5 l9,-10" stroke="#FFFFFF" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="320" y="437" font-size="14" font-weight="700" fill="#1A1A1A">Worker Gerbang</text>
+  <text x="284" y="474" font-size="12" fill="#666666">1 · verifikasi anti-robot</text>
+  <text x="284" y="494" font-size="12" fill="#666666">2 · batas laju per IP</text>
+  <text x="284" y="514" font-size="12" fill="#666666">3 · batas ukuran kiriman</text>
+  <circle cx="292" cy="544" r="5.5" fill="none" stroke="#D96A0B" stroke-width="2.4"/>
+  <path d="M296,548 L309,561 M305,557 l4,-4 M309,561 l3,-3" stroke="#D96A0B" stroke-width="2.4" stroke-linecap="round"/>
+  <text x="322" y="552" font-size="13" font-weight="700" fill="#D96A0B">kunci rahasia</text>
+  <text x="284" y="578" font-size="11.5" font-style="italic" fill="#999999">hidup hanya di sini — tidak</text>
+  <text x="284" y="595" font-size="11.5" font-style="italic" fill="#999999">pernah dikirim ke HP siapa pun</text>
+
+  <!-- ================== SUPABASE ================== -->
+  <rect x="565" y="185" width="450" height="455" rx="8" fill="#F4FBF8" stroke="#3ECF8E" stroke-width="2"/>
+  <path d="M605,192 L610,229 L586,229 Z" fill="#3ECF8E" opacity="0.45"/>
+  <path d="M611,242 L606,205 L630,205 Z" fill="#3ECF8E"/>
+  <text x="650" y="226" font-size="18" font-weight="700" fill="#1B9E6B">Supabase</text>
+  <text x="778" y="226" font-size="12" fill="#8AA69C">satu-satunya sumber kebenaran</text>
+
+  <rect x="585" y="248" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <text x="600" y="271" font-size="13.5" font-weight="700" fill="#1A1A1A">Auth — siapa kamu</text>
+  <text x="600" y="293" font-size="11.5" fill="#666666">login → JWT di sessionStorage · hangus saat tab ditutup</text>
+
+  <rect x="585" y="316" width="410" height="48" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <text x="600" y="339" font-size="13.5" font-weight="700" fill="#1A1A1A">PostgREST</text>
+  <text x="704" y="339" font-size="11.5" fill="#666666">satu pintu API · HTTPS · kunci publik + JWT</text>
+
+  <rect x="585" y="372" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <path d="M609,383 L621,387 v9.5 c0,7.5 -5,12.3 -12,14.7 c-7,-2.4 -12,-7.2 -12,-14.7 V387 Z" fill="#1B9E6B"/>
+  <path d="M603,396 l4,4 l7,-8" stroke="#FFFFFF" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="631" y="396" font-size="13.5" font-weight="700" fill="#1A1A1A">RLS — boleh apa</text>
+  <text x="600" y="420" font-size="11.5" fill="#666666">39 aturan · meja / operator pos / admin · ditegakkan database</text>
+
+  <rect x="585" y="440" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <text x="600" y="463" font-size="13.5" font-weight="700" fill="#1A1A1A">24 RPC bertransaksi</text>
+  <text x="600" y="485" font-size="11.5" fill="#666666">berhasil seluruhnya atau batal seluruhnya · antrean nomor dada</text>
+
+  <rect x="585" y="508" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <text x="600" y="531" font-size="13.5" font-weight="700" fill="#1A1A1A">18 view berlapis</text>
+  <text x="600" y="553" font-size="11.5" fill="#666666">mentah → poin → total → peringkat · dihitung tiap dibaca</text>
+
+  <rect x="585" y="576" width="410" height="50" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
+  <ellipse cx="622" cy="590" rx="6" ry="8.5" fill="#27506F"/>
+  <circle cx="612" cy="593" r="11.5" fill="#336791"/>
+  <path d="M605,602 q-3,10 2,13 q5,2.5 7,-2.5" stroke="#336791" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="607" cy="590" r="2.1" fill="#FFFFFF"/>
+  <path d="M617,604 l3,7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <text x="637" y="595" font-size="13.5" font-weight="700" fill="#1A1A1A">PostgreSQL</text>
+  <text x="637" y="614" font-size="11.5" fill="#666666">20 tabel · 45 pagar data · 24 pemicu · riwayat perubahan</text>
+
+  <!-- ================== KELUARAN ================== -->
+  <text x="1060" y="176" font-size="12" font-weight="700" fill="#999999" letter-spacing="1.6">KELUARAN</text>
+
+  <rect x="1060" y="195" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <circle cx="1096" cy="239" r="18" fill="#2088FF"/>
+  <path d="M1096,227 a12,12 0 1 0 10,6" stroke="#FFFFFF" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <path d="M1093,233 L1103,239 L1093,245 Z" fill="#FFFFFF"/>
+  <text x="1124" y="230" font-size="13.5" font-weight="700" fill="#1A1A1A">GitHub Actions</text>
+  <text x="1124" y="250" font-size="11.5" fill="#666666">berjalan berkala</text>
+  <text x="1124" y="267" font-size="11.5" fill="#666666">memanggang klasemen</text>
+
+  <rect x="1060" y="315" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <path d="M1082,332 h20 l10,10 v29 a2,2 0 0 1 -2,2 h-28 a2,2 0 0 1 -2,-2 v-37 a2,2 0 0 1 2,-2 Z" fill="#E5397A"/>
+  <path d="M1102,332 l10,10 h-10 Z" fill="#B32A5D"/>
+  <text x="1128" y="350" font-size="13.5" font-weight="700" fill="#1A1A1A">live.json di CDN</text>
+  <text x="1128" y="370" font-size="11.5" fill="#666666">file mati, bukan database</text>
+  <text x="1128" y="387" font-size="11.5" fill="#666666">bandwidth tak terbatas</text>
+
+  <g fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(1385,392)">
+      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
+      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
+      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+    </g>
+    <g transform="translate(1435,392)">
+      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
+      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
+      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+    </g>
+    <g transform="translate(1485,392)">
+      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
+      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
+      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+    </g>
+  </g>
+  <text x="1435" y="414" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Penonton</text>
+  <text x="1435" y="431" font-size="11.5" fill="#777777" text-anchor="middle">ratusan HP · hanya membaca</text>
+
+  <rect x="1060" y="435" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <path d="M1082,452 h18 l11,11 v28 a2,2 0 0 1 -2,2 h-27 a2,2 0 0 1 -2,-2 v-37 a2,2 0 0 1 2,-2 Z" fill="#0F9D58"/>
+  <path d="M1100,452 l11,11 h-11 Z" fill="#0A7440"/>
+  <rect x="1086" y="470" width="20" height="16" fill="#FFFFFF"/>
+  <path d="M1086,476 h20 M1086,481 h20 M1093,470 v16 M1100,470 v16" stroke="#0F9D58" stroke-width="1"/>
+  <text x="1128" y="470" font-size="13.5" font-weight="700" fill="#1A1A1A">Google Sheets</text>
+  <text x="1128" y="490" font-size="11.5" fill="#666666">arsip tahunan lewat CSV</text>
+  <text x="1128" y="507" font-size="11.5" fill="#666666">terbuka tanpa sistem berjalan</text>
+
+  <text x="1060" y="560" font-size="12" font-style="italic" fill="#B33A6B">Penonton tidak pernah menyentuh database.</text>
+  <text x="1060" y="579" font-size="12" font-style="italic" fill="#B33A6B">Seribu HP membuka live.json = nol permintaan</text>
+  <text x="1060" y="598" font-size="12" font-style="italic" fill="#B33A6B">ke Supabase — meja panitia tidak melambat.</text>
+
+  <!-- ================== PANAH: HIJAU (pendaftaran) ================== -->
+  <path d="M128,232 C180,228 205,262 258,282" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
+  <path d="M385,384 V394" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
+  <path d="M506,486 C536,486 545,472 575,468" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
+  <text x="514" y="506" font-size="11" font-weight="700" fill="#2E9E5B">TULIS</text>
+
+  <!-- ================== PANAH: UNGU (panitia &amp; tim IT) ================== -->
+  <path d="M130,352 C180,346 210,330 258,320" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+  <path d="M130,462 C186,452 214,352 258,332" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+  <path d="M132,578 C190,566 216,368 258,344" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+
+  <path d="M506,286 C532,282 546,276 575,272" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+  <text x="510" y="268" font-size="11" font-weight="700" fill="#7B3FE4">TULIS</text>
+  <path d="M575,340 C546,344 532,350 506,354" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+  <text x="510" y="372" font-size="11" font-weight="700" fill="#7B3FE4">BACA</text>
+
+  <!-- ================== PANAH: MERAH (data keluar) ================== -->
+  <path d="M1019,239 H1052" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
+  <path d="M1184,287 V309" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
+  <path d="M1312,359 C1338,359 1348,368 1364,378" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
+  <path d="M1019,479 H1052" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
+
+  <!-- ================== SIKLUS KERTAS ================== -->
+  <line x1="40" y1="668" x2="1560" y2="668" stroke="#EEEEEE" stroke-width="1.5"/>
+  <text x="40" y="696" font-size="13" font-weight="700" fill="#B8792F" letter-spacing="1.2">SIKLUS KERTAS</text>
+  <text x="178" y="696" font-size="12.5" fill="#777777">— keluar jadi kertas, lalu kembali jadi data</text>
+
+  <!-- printer -->
+  <rect x="150" y="748" width="50" height="26" rx="3" fill="#5A5A5A"/>
+  <rect x="160" y="730" width="30" height="18" fill="#FFFFFF" stroke="#5A5A5A" stroke-width="2"/>
+  <rect x="160" y="774" width="30" height="20" fill="#FFFFFF" stroke="#5A5A5A" stroke-width="2"/>
+  <path d="M166,782 h18 M166,788 h12" stroke="#BBBBBB" stroke-width="1.6"/>
+  <circle cx="192" cy="756" r="2.6" fill="#3ECF8E"/>
+  <text x="175" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Cetak</text>
+  <text x="175" y="835" font-size="11.5" fill="#777777" text-anchor="middle">2 bentuk: staging &amp; barak</text>
+
+  <!-- kertas kloter -->
+  <rect x="352" y="726" width="46" height="60" rx="2" fill="#FFFFFF" stroke="#8A7A62" stroke-width="2"/>
+  <path d="M368,738 h22 M368,750 h22 M368,762 h22 M368,774 h14" stroke="#BBAE97" stroke-width="1.8"/>
+  <path d="M358,735 l3,3 l5,-6 M358,747 l3,3 l5,-6 M358,759 l3,3 l5,-6" stroke="#2E9E5B" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="375" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Kertas kloter</text>
+  <text x="375" y="835" font-size="11.5" fill="#777777" text-anchor="middle">isinya dibekukan setelah cetak</text>
+
+  <!-- staging -->
+  <g transform="translate(568,786)" fill="none" stroke="#B8792F" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-46" r="7.5"/>
+    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
+    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
+    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
+    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
+    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+  </g>
+  <text x="575" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">3 Staging</text>
+  <text x="575" y="835" font-size="11.5" fill="#777777" text-anchor="middle">centang · tulis jam berangkat</text>
+
+  <!-- finish -->
+  <g transform="translate(790,788)" fill="none" stroke="#B8792F" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="-48" r="7.5"/>
+    <path d="M-9,-39 Q0,-42 9,-39 L11,-20 L-11,-20 Z"/>
+    <path d="M-11,-35 L-14,-24"/><path d="M11,-35 L14,-24"/>
+    <rect x="-13" y="-22" width="26" height="16" rx="1.5"/>
+    <path d="M-17,-6 L17,-6 L20,-1 L-20,-1 Z"/>
+  </g>
+  <text x="790" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Meja Finish</text>
+  <text x="790" y="835" font-size="11.5" fill="#777777" text-anchor="middle">tombol · kertas jadi cek silang</text>
+
+  <!-- kembali jadi data -->
+  <rect x="960" y="726" width="256" height="72" rx="5" fill="#FDF6EC" stroke="#B8792F" stroke-width="1.8"/>
+  <text x="976" y="750" font-size="13.5" font-weight="700" fill="#8A5A18">Kembali jadi data</text>
+  <text x="976" y="770" font-size="11.5" fill="#7A6448">jam berangkat diketik menyalin kertas;</text>
+  <text x="976" y="787" font-size="11.5" fill="#7A6448">jam datang dari tombol, kertas cek silang</text>
+  <text x="1088" y="818" font-size="11.5" font-style="italic" fill="#999999" text-anchor="middle">jam tidak pernah diambil dari waktu server</text>
+
+  <!-- panah siklus kertas -->
+  <path d="M640,636 C580,700 420,720 208,734" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+  <path d="M206,760 H344" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+  <path d="M406,760 H538" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+  <path d="M614,760 H758" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+  <path d="M822,760 H952" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+  <path d="M1105,720 C1085,684 1000,656 906,646" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
+
+  <!-- ================== CATATAN KAKI ================== -->
+  <text x="40" y="872" font-size="11.5" fill="#AAAAAA">Seluruh lapisan berjalan di paket gratis — tanpa kartu kredit, termasuk selama sepuluh bulan sistem ini tidak dipakai.</text>
+
+  </g>
+</svg>
