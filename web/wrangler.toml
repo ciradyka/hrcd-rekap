@@ -11,9 +11,16 @@
 # Folder ini SENDIRI jadi akar proyek untuk koneksi Git tersebut — terpisah
 # total dari workers/gateway/wrangler.toml (Worker gateway punya deploy-nya
 # sendiri lewat GitHub Actions, tidak saling menyentuh dengan file ini).
+#
+# `name` SENGAJA memuat nomor edisi (beda dari gateway Worker atau project
+# Supabase, yang sengaja TIDAK memuat nomor edisi supaya bisa dipakai lintas
+# tahun). Keputusan sadar: situs ini bukan cuma "rekap", jadi nama generik
+# terasa kurang jelas — tiap edisi ganti nama + URL (hrcd37 -> hrcd38 -> ...).
+# Cloudflare tidak mendukung rename in-place: ganti nama di sini, deploy,
+# baru hapus project lama (`wrangler delete --name <nama-lama>`).
 # ============================================================================
 
-name = "hrcd-rekap"
+name = "hrcd37"
 compatibility_date = "2026-08-12"
 
 [assets]
