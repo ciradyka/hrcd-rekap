@@ -22,7 +22,7 @@ const BATAS_BYTE = 32_000;      // payload wajar: 30 regu ~ 6 KB
 // dari WiFi venue yang sama (satu IP) bisa memicu ini kalau terlalu ketat.
 // Angka ini cuma pagar terakhir untuk banjir skrip, bukan penghalang panitia.
 const BATAS_PER_MENIT = 30;     // pengiriman per IP per menit
-const ASAL_BOLEH = "*";         // ganti ke origin Pages saat produksi
+const ASAL_BOLEH = "https://hrcd-rekap.ciradyka.workers.dev";
 
 const CORS = {
   "Access-Control-Allow-Origin": ASAL_BOLEH,

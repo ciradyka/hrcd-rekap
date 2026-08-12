@@ -6,13 +6,11 @@
    ========================================================================== */
 
 window.HRCD = {
-  mode: "dev",
-  devUrl: "http://127.0.0.1:8787",
-
-  // --- produksi (mode: "supabase") ---
-  // supabaseUrl: "https://xxxx.supabase.co",
-  // anonKey:     "eyJ...",
-  // gatewayUrl:  "https://gateway.<subdomain>.workers.dev",
-  // domainAkun:  "panitia.hrcd.local",   // username + '@' + domain ini = email auth
-  // turnstileSiteKey: "0x4AAA...",
+  mode: "supabase",
+  supabaseUrl: "https://pwszijhnftvqjkdldqrf.supabase.co",
+  anonKey: "sb_publishable_fVRvaYucCPJxOiphJWC_ZQ_8hgFKDsi",
+  gatewayUrl: "https://gateway.ciradyka.workers.dev",
+  domainAkun: "ciradyka.com",   // username + '@' + domain ini = email auth
+  // turnstileSiteKey sengaja tidak diisi — Turnstile dinonaktifkan untuk
+  // edisi 37 (keputusan sadar, lihat workers/gateway/worker.js).
 };
