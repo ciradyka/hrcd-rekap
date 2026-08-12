@@ -1,20 +1,27 @@
 /* ============================================================================
    hrcd-rekap : workers/gerbang/worker.js — gerbang form pendaftaran publik.
    Satu-satunya kode "server" di seluruh sistem (rancangan-b.md bagian 8):
-   verifikasi Turnstile + rate limit per IP + batas ukuran -> panggil RPC
-   submit_pendaftaran memakai service role. Kunci rahasia hidup di sini
-   (wrangler secret), TIDAK PERNAH di SPA.
+   verifikasi Turnstile (opsional) + rate limit per IP + batas ukuran ->
+   panggil RPC submit_pendaftaran memakai service role. Kunci rahasia hidup
+   di sini (wrangler secret), TIDAK PERNAH di SPA.
+
+   Turnstile OPSIONAL: dilompati kalau TURNSTILE_SECRET tidak diisi (keputusan
+   sadar edisi 37 — riwayat pendaftaran lewat Google Form sebelumnya tidak
+   pernah disalahgunakan). Rate limit per IP tetap jalan tanpa Turnstile.
 
    Deploy:
      wrangler secret put SUPABASE_URL
      wrangler secret put SUPABASE_SERVICE_KEY
-     wrangler secret put TURNSTILE_SECRET
+     wrangler secret put TURNSTILE_SECRET   (opsional — lihat catatan di atas)
      wrangler kv namespace create RATE   (binding: RATE)
      wrangler deploy
    ========================================================================== */
 
 const BATAS_BYTE = 32_000;      // payload wajar: 30 regu ~ 6 KB
-const BATAS_PER_MENIT = 5;      // pengiriman per IP per menit
+// Longgar dengan sengaja: beberapa laptop meja mengisi pendaftaran offline
+// dari WiFi venue yang sama (satu IP) bisa memicu ini kalau terlalu ketat.
+// Angka ini cuma pagar terakhir untuk banjir skrip, bukan penghalang panitia.
+const BATAS_PER_MENIT = 30;     // pengiriman per IP per menit
 const ASAL_BOLEH = "*";         // ganti ke origin Pages saat produksi
 
 const CORS = {
@@ -55,18 +62,21 @@ export default {
     let b;
     try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }); }
 
-    // 3. Turnstile — bukti pengirimnya manusia.
-    const cek = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        secret: env.TURNSTILE_SECRET,
-        response: b.turnstile || "",
-        remoteip: ip,
-      }),
-    }).then(r => r.json());
-    if (!cek.success)
-      return jawab(403, { message: "Verifikasi keamanan kedaluwarsa. Centang lagi kotak verifikasi, lalu tekan Kirim." });
+    // 3. Turnstile — bukti pengirimnya manusia. Opsional: kalau secret belum
+    //    diisi, lompati pemeriksaan ini (lihat catatan di kepala berkas).
+    if (env.TURNSTILE_SECRET) {
+      const cek = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: env.TURNSTILE_SECRET,
+          response: b.turnstile || "",
+          remoteip: ip,
+        }),
+      }).then(r => r.json());
+      if (!cek.success)
+        return jawab(403, { message: "Verifikasi keamanan kedaluwarsa. Centang lagi kotak verifikasi, lalu tekan Kirim." });
+    }
 
     await env.RATE.put(kunci, String(hitung + 1), { expirationTtl: 60 });
 

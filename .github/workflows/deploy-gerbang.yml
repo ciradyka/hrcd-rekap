@@ -15,7 +15,10 @@
 #                          template "Edit Cloudflare Workers"
 #   SUPABASE_URL           (sudah ada, dipakai juga oleh provision-akun.yml)
 #   SUPABASE_SERVICE_KEY   (sudah ada, dipakai juga oleh provision-akun.yml)
-#   TURNSTILE_SECRET       dari Cloudflare > Turnstile > site yang dibuat
+#
+# TURNSTILE_SECRET sengaja TIDAK ditulis di sini — Turnstile dinonaktifkan
+# untuk edisi 37 (keputusan sadar, lihat worker.js). Kalau diaktifkan lagi
+# nanti, tambahkan baris `wrangler secret put TURNSTILE_SECRET` di bawah.
 # ============================================================================
 
 name: Deploy gerbang Worker
@@ -40,17 +43,15 @@ jobs:
 
       # Dipisah dari wrangler deploy: kalau salah satu secret gagal ditulis,
       # jangan lanjut deploy kode dengan secret yang tidak lengkap.
-      - name: Tulis tiga secret Worker
+      - name: Tulis secret Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
         run: |
           set -euo pipefail
           printf '%s' "$SUPABASE_URL" | wrangler secret put SUPABASE_URL
           printf '%s' "$SUPABASE_SERVICE_KEY" | wrangler secret put SUPABASE_SERVICE_KEY
-          printf '%s' "$TURNSTILE_SECRET" | wrangler secret put TURNSTILE_SECRET
 
       - name: Deploy
         env:
