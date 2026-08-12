@@ -12,15 +12,21 @@
 # total dari workers/gateway/wrangler.toml (Worker gateway punya deploy-nya
 # sendiri lewat GitHub Actions, tidak saling menyentuh dengan file ini).
 #
-# `name` SENGAJA memuat nomor edisi (beda dari gateway Worker atau project
-# Supabase, yang sengaja TIDAK memuat nomor edisi supaya bisa dipakai lintas
-# tahun). Keputusan sadar: situs ini bukan cuma "rekap", jadi nama generik
-# terasa kurang jelas — tiap edisi ganti nama + URL (hrcd37 -> hrcd38 -> ...).
-# Cloudflare tidak mendukung rename in-place: ganti nama di sini, deploy,
-# baru hapus project lama (`wrangler delete --name <nama-lama>`).
+# RENCANA (belum berhasil): pindah ke "hrcd37" sengaja memuat nomor edisi
+# (beda dari gateway Worker/project Supabase yang sengaja tidak) — situs ini
+# bukan cuma "rekap", jadi nama generik terasa kurang jelas; tiap edisi ganti
+# nama + URL (hrcd37 -> hrcd38 -> ...).
+#
+# TAPI: mengubah `name` di sini TIDAK mengubah nama project yang tersambung
+# Git — Cloudflare mengikat identitas project ke koneksinya, bukan ke file
+# ini (dicoba 2026-08-12, project tetap ter-deploy sebagai "hrcd-rekap").
+# Rename sungguhan harus lewat dashboard (Settings -> cari opsi rename) atau
+# hapus+sambung ulang project dengan nama baru. `name` di bawah dikembalikan
+# ke "hrcd-rekap" supaya cocok dengan yang SUNGGUHAN live — jangan diubah
+# sendirian tanpa juga menyamakan ALLOWED_ORIGIN di workers/gateway/worker.js.
 # ============================================================================
 
-name = "hrcd37"
+name = "hrcd-rekap"
 compatibility_date = "2026-08-12"
 
 [assets]
