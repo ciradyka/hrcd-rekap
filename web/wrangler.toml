@@ -1,0 +1,20 @@
+# ============================================================================
+# hrcd-rekap : web/wrangler.toml — Workers static assets untuk situs statis
+# (layar panitia + form pendaftaran publik).
+#
+# Cloudflare Pages berstatus "maintenance mode" (docs/desain-sistem.md 8.2) —
+# ini jalur yang aktif dikembangkan Cloudflare untuk kebutuhan yang sama:
+# terhubung Git, deploy otomatis tiap push ke main, tanpa build step.
+#
+# PENTING saat menyambungkan repo ini di dashboard Cloudflare:
+#   Root directory: web
+# Folder ini SENDIRI jadi akar proyek untuk koneksi Git tersebut — terpisah
+# total dari workers/gateway/wrangler.toml (Worker gateway punya deploy-nya
+# sendiri lewat GitHub Actions, tidak saling menyentuh dengan file ini).
+# ============================================================================
+
+name = "hrcd-rekap"
+compatibility_date = "2026-08-12"
+
+[assets]
+directory = "."
