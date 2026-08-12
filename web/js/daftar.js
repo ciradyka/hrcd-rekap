@@ -113,8 +113,8 @@ function halaman() {
       <p class="keterangan">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
       <div class="medan" style="margin-top:.7rem">
         <label for="wa" class="visually-hidden">Nomor WA</label>
-        <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 0822xxxxxxx atau +62822xxxxxxx">
-        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08 atau +62 8.</div>
+        <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 08123456789">
+        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08, bukan +62.</div>
       </div>
     </section>
 
@@ -383,12 +383,11 @@ function periksa(gulir = true) {
     if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
   });
 
-  // Format nomor Indonesia: diawali 0 atau 62, lalu 8, lalu kode operator
-  // (1-9, bukan 0), lalu 6-10 digit lagi — mencakup 08xx maupun +62 8xx.
-  // Sekadar "panjang >= 9" lolos untuk angka acak yang bukan nomor sama
-  // sekali (temuan review).
+  // Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan
+  // sengaja supaya panitia tidak perlu mikir dua format): 08, lalu kode
+  // operator (1-9, bukan 0), lalu 6-10 digit lagi.
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
-  const waSah = /^(62|0)8[1-9][0-9]{6,10}$/.test(digitWa);
+  const waSah = /^08[1-9][0-9]{6,10}$/.test(digitWa);
   if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
   tandai("g-wa", !waSah);
 
