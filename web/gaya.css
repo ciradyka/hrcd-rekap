@@ -487,3 +487,84 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- layar tabel (Pembayaran, Daftar Ulang, Keberangkatan) ---------- */
+
+.tabel-alat {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: .6rem;
+  margin-bottom: .8rem;
+}
+.tabel-alat .medan { margin-bottom: 0; }
+.saring-baris { display: flex; gap: .4rem; flex-wrap: wrap; }
+.pilihan-kecil {
+  min-height: 40px; padding: .3rem .75rem; font-size: .88rem; width: auto;
+}
+.tabel-jumlah { color: var(--tinta-lembut); font-size: .85rem; white-space: nowrap; }
+
+/* Tabel panjang: kepala menempel supaya nama kolom tidak hilang saat gulir. */
+.tabel-bungkus { overflow-x: auto; max-height: 68vh; overflow-y: auto; }
+.tabel-data thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--kertas); box-shadow: 0 1px 0 var(--garis);
+}
+.tabel-data td { vertical-align: middle; }
+.tabel-data tbody tr:hover { background: var(--utama-muda); }
+.tabel-data .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
+.tabel-data .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.rata-tengah { text-align: center; }
+.rata-kanan  { text-align: right; }
+.tabel-kosong { text-align: center; color: var(--tinta-lembut); padding: 1.4rem .5rem; }
+.kwitansi { display: block; font-size: .8rem; color: var(--tinta-lembut); }
+
+/* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
+.aksi-baris { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.pilih-kecil, .isian-kecil {
+  min-height: 40px; padding: .3rem .5rem; font-size: .9rem;
+  border: 1px solid var(--garis); border-radius: 8px; background: #fff;
+  font-family: inherit;
+}
+.isian-kecil { width: 4.5rem; text-align: center; }
+/* Kedip hijau sekejap = "tersimpan", supaya edit langsung di tabel tidak
+   terasa seperti tidak terjadi apa-apa. */
+.pilih-kecil.tersimpan, .isian-kecil.tersimpan {
+  border-color: var(--hijau); background: var(--hijau-muda);
+}
+.tombol-mini {
+  min-height: 34px; padding: .2rem .55rem; font-size: .8rem; width: auto;
+}
+.pil-baris { display: flex; gap: .3rem; flex-wrap: wrap; align-items: center; }
+.pil-nomor {
+  display: inline-flex; align-items: baseline; gap: .25rem;
+  background: var(--hijau-muda); color: var(--hijau);
+  border-radius: 999px; padding: .1rem .5rem;
+  font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.pil-nomor .pil-kloter { font-weight: 600; font-size: .75rem; opacity: .8; }
+.ceklis { width: 26px; height: 26px; accent-color: var(--utama); }
+
+/* ---------- keberangkatan ---------- */
+
+.pita-kloter { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .3rem; }
+.chip-kloter {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: .1rem;
+  border: 2px solid var(--garis); border-radius: var(--radius);
+  background: #fff; padding: .5rem .8rem; cursor: pointer;
+  font-family: inherit; text-align: left; min-height: 56px;
+}
+.chip-kloter .chip-nomor { font-weight: 800; }
+.chip-kloter .chip-ket { font-size: .78rem; color: var(--tinta-lembut); }
+.chip-kloter[aria-pressed="true"] { border-color: var(--utama); background: var(--utama-muda); }
+.chip-kloter.berangkat .chip-nomor { color: var(--hijau); }
+.chip-kloter.siap { border-color: var(--kuning); }
+.kepala-kloter { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.berangkat-bar {
+  display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap;
+  margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--garis);
+}
+.berangkat-bar .tombol { width: auto; min-width: 240px; }
+
+@media (max-width: 560px) {
+  .tabel-alat { flex-direction: column; align-items: stretch; }
+  .tabel-jumlah { text-align: right; }
+  .berangkat-bar .tombol { width: 100%; min-width: 0; }
+}

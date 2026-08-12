@@ -10,10 +10,12 @@
 
 import {
   sesi, masuk, keluar, ErrorApi,
-  lihatBatch, infoEdisi, ringkasanMeja,
+  infoEdisi, ringkasanMeja, daftarPendaftaran,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
   cariRegu, catatFinish, infoPenalti,
+  papanKeberangkatan, reguKloter, kontrakOpsi,
+  konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -27,13 +29,22 @@ const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
 
-function pasangKepala(judul) {
+/** lebar = layar tabel (butuh ruang horizontal); sisanya tetap sempit supaya
+ *  satu aksi utama gampang ditemukan di layar kecil. */
+function pasangKepala(judul, lebar = false) {
   const s = sesi();
   document.getElementById("kepala").hidden = !s;
   document.getElementById("judul-layar").textContent = judul;
+  LAYAR.classList.toggle("lebar", lebar);
   if (s) document.getElementById("siapa").textContent =
     `${s.username} · ${EDISI ? EDISI.nama : ""}`;
 }
+
+/** Jam sekarang dalam bentuk HH:MM untuk <input type="time">. */
+const jamSekarangHHMM = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
 
 const kartuGalat = (pesan) => html`
   <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
@@ -136,6 +147,10 @@ async function layarBeranda() {
         <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
         <div class="ket">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
       </a>
+      <a href="#/keberangkatan">
+        <div class="nama-fungsi">🚩 Keberangkatan</div>
+        <div class="ket">Ceklis regu yang hadir, pilih kontrak waktu, catat jam berangkat</div>
+      </a>
       <a href="#/finish">
         <div class="nama-fungsi">🏁 Meja Finish</div>
         <div class="ket">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
@@ -150,304 +165,330 @@ async function layarBeranda() {
   `));
 }
 
-/* ---------------- kartu batch (echo-confirm bersama) ---------------- */
+/* ============================ ALAT TABEL ================================= */
 
-function kartuBatch(b, { ringkas = false } = {}) {
-  const s = { menunggu_pembayaran: ["lencana-kuning", "BELUM BAYAR"],
-              lunas: ["lencana-hijau", "LUNAS"],
-              batal: ["lencana-merah", "BATAL"] }[b.status] || ["lencana-abu", "?"];
-  const aktif = b.regu.filter(r => !r.batal);
-  const sudahNomor = aktif.some(r => r.nomor_dada !== null);
-  // Pada sekolah besar, tabel regu ditutup dulu supaya tombol aksi tidak
-  // terdorong ke bawah lipatan layar laptop (temuan review).
-  const banyak = aktif.length > 6;
-  const barisRegu = b.regu.map(r => html`
-    <tr style="${r.batal ? "opacity:.5" : ""}">
-      <td>${r.nomor_dada !== null ? String(r.nomor_dada).padStart(3, "0") : "—"}</td>
-      <td><strong>${r.nama_regu}</strong>${r.batal ? " (batal)" : ""}</td>
-      <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
-      <td>${r.nomor_dada !== null ? `Kloter ${r.kloter_nomor}` : ""}</td>
-    </tr>`).join("");
-
+/** Kotak cari + tombol saring, dipakai layar Pembayaran & Daftar Ulang.
+ *  Menyaring di browser (data sudah dimuat semua) supaya hasilnya berubah
+ *  seketika sambil mengetik — di meja, menunggu server tiap huruf terasa
+ *  seperti aplikasi macet. */
+function alatTabel({ saringan, saringAktif, jumlah }) {
   return `
-    <div class="kartu kartu-identitas">
-      <span class="lencana ${s[0]}">${s[1]}</span>
-      ${sudahNomor ? `<span class="lencana lencana-hijau">SUDAH DAFTAR ULANG</span>` : ""}
-      ${html`<div class="nama" style="margin-top:.4rem">${b.sekolah.nama}</div>
-      <div class="detail">📍 ${b.sekolah.alamat}</div>
-      <div class="detail">${aktif.length} regu · WA ${b.kontak_wa}${
-        b.butuh_barak ? ` · menginap (${b.jumlah_pendamping} pendamping)` : ""}</div>`}
-      ${ringkas ? "" : (banyak
-        ? `<details style="margin-top:.6rem">
-             <summary style="cursor:pointer;font-weight:700;min-height:44px">
-               Lihat ${aktif.length} regu</summary>
-             <table class="tabel" style="background:#fff;border-radius:8px">${barisRegu}</table>
-           </details>`
-        : `<table class="tabel" style="margin-top:.6rem;background:#fff;border-radius:8px">
-             ${barisRegu}</table>`)}
+    <div class="tabel-alat">
+      <div class="medan" style="margin:0;flex:1;min-width:220px">
+        <label for="cari-tabel" class="visually-hidden">Cari</label>
+        <input type="text" id="cari-tabel" autocomplete="off"
+               placeholder="Cari kode atau nama sekolah…">
+      </div>
+      <div class="saring-baris">
+        ${saringan.map(s => `
+          <button type="button" class="pilihan pilihan-kecil" data-saring="${esc(s.kode)}"
+                  aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
+      </div>
+      <span class="tabel-jumlah" id="tabel-jumlah">${jumlah} baris</span>
     </div>`;
 }
 
-/** Layar meja berpola sama: kolom kunci besar -> kartu -> satu aksi utama.
- *  pasangAksi dipanggil LANGSUNG setiap kali kode dicari — bukan lewat
- *  CustomEvent {once:true} yang dulu membuat pencarian kedua mati total
- *  (temuan review, blocker). */
-function layarCariKode({ judul, petunjuk, fungsi, saatKetemu, pasangAksi }) {
-  pasangKepala(judul);
-  LAYAR.replaceChildren(h(`
-    <div class="kartu">
-      <div class="medan" style="margin-bottom:0">
-        <label for="kode">${esc(petunjuk)}</label>
-        <input type="text" id="kode" class="besar" autocomplete="off"
-               autocapitalize="characters" spellcheck="false"
-               placeholder="HRCD37-••••••">
-        <div class="bantuan">Kode ada di HP pendaftar / bukti transfer.</div>
-      </div>
-      <button class="tombol tombol-utama" id="cari" type="button" style="margin-top:.8rem">
-        Cari
-      </button>
-    </div>
-    <div id="hasil"></div>
-    ${barisTerakhirHtml(fungsi)}
-  `));
-  const inp = document.getElementById("kode");
-  inp.focus();
+/** Pasang perilaku cari + saring. gambar(cari, saring) menggambar ulang
+ *  isi tabel saja — kerangka layar tidak ikut dibangun ulang supaya fokus
+ *  kotak cari tidak lompat saat mengetik (temuan uji). */
+function pasangAlatTabel(gambar) {
+  const inp = document.getElementById("cari-tabel");
+  let saring = LAYAR.querySelector("[data-saring][aria-pressed='true']")?.dataset.saring || "";
+  let cari = "";
+  let jeda = null;
 
-  const cari = async () => {
-    const kode = inp.value.trim().toUpperCase();
-    if (!kode) { inp.focus(); return; }
-    const hasil = document.getElementById("hasil");
-    hasil.replaceChildren(h(html`<p>Mencari ${kode}…</p>`));
-    try {
-      const b = await lihatBatch(kode);
-      hasil.replaceChildren(h(saatKetemu(b, kode)));
-      pasangAksi(b, kode);                 // selalu dipasang ulang
-    } catch (err) {
-      hasil.replaceChildren(h(kartuGalat(err.message)));
-      inp.select();
-    }
-  };
-  document.getElementById("cari").addEventListener("click", cari);
-  inp.addEventListener("keydown", e => { if (e.key === "Enter") cari(); });
+  const jalan = () => gambar(cari, saring);
+
+  inp.addEventListener("input", () => {
+    clearTimeout(jeda);
+    // Jeda pendek: mengetik cepat tidak menggambar ulang tiap huruf.
+    jeda = setTimeout(() => { cari = inp.value.trim().toLowerCase(); jalan(); }, 120);
+  });
+  LAYAR.querySelectorAll("[data-saring]").forEach(b =>
+    b.addEventListener("click", () => {
+      saring = b.dataset.saring;
+      LAYAR.querySelectorAll("[data-saring]").forEach(x =>
+        x.setAttribute("aria-pressed", String(x === b)));
+      jalan();
+    }));
+  inp.focus();
+  jalan();
 }
+
+/** Filter bersama: kode pembayaran atau nama sekolah mengandung teks cari. */
+const cocokCari = (b, cari) => !cari
+  || b.kode_pembayaran.toLowerCase().includes(cari)
+  || (b.sekolah?.nama || "").toLowerCase().includes(cari);
+
+const reguAktif = (b) => (b.regu || []).filter(r => !r.batal);
 
 /* ============================ MEJA PEMBAYARAN ============================ */
 
-function layarPembayaran() {
+async function layarPembayaran() {
   if (!EDISI) { layarButuhEdisi("Meja Pembayaran"); return; }
+  pasangKepala("Meja Pembayaran", true);
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
-  layarCariKode({
-    judul: "Meja Pembayaran",
-    petunjuk: "Ketik kode pembayaran",
-    fungsi: "pembayaran",
+  let semua;
+  try { semua = await daftarPendaftaran(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarPembayaran)); return; }
 
-    saatKetemu: (b) => {
-      const aktif = b.regu.filter(r => !r.batal).length;
-      const tagihan = aktif * EDISI.biaya_per_regu;
-      if (b.status === "lunas") {
-        return kartuBatch(b) + html`
-          <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
-            <h2>Sudah lunas ✅</h2>
-            <p>Kwitansi <strong>${b.pembayaran.nomor_kwitansi}</strong> ·
-               ${rupiah(b.pembayaran.nominal)} (${b.pembayaran.metode})</p>
-          </div>
-          <div class="pilihan-baris">
-            <button class="tombol tombol-utama" id="aksi-kwitansi" type="button">🖨️ Cetak kwitansi</button>
-            <button class="tombol tombol-bahaya" id="aksi-batal" type="button">Batalkan (salah tandai)</button>
-          </div>`;
-      }
-      if (b.status === "batal")
-        return kartuBatch(b) + kartuGalat("Pendaftaran ini sudah dibatalkan. Panggil admin bila peserta merasa ini keliru.");
-      return `
-        <div class="kartu" style="border-color:var(--utama)">
-          <h2>Tagihan: <span style="font-size:1.6rem">${rupiah(tagihan)}</span></h2>
-          <p class="keterangan">${aktif} regu × ${rupiah(EDISI.biaya_per_regu)}.
-             Uangnya harus PAS — tidak melayani bayar sebagian.</p>
-          <div class="medan" style="margin-top:.8rem">
-            <label>Dibayar lewat apa?</label>
-            <div class="pilihan-baris">
-              <button class="pilihan" data-metode="transfer" aria-pressed="false" type="button">Transfer</button>
-              <button class="pilihan" data-metode="tunai" aria-pressed="false" type="button">Tunai</button>
-            </div>
-          </div>
-          <button class="tombol tombol-utama" id="aksi-lunas" type="button" disabled
-                  data-label="Tandai Lunas — ${rupiah(tagihan)}">
-            Tandai Lunas — ${rupiah(tagihan)}
-          </button>
-        </div>
-        ${kartuBatch(b)}`;   // identitas DI BAWAH aksi utama pada layar pendek
-    },
+  LAYAR.replaceChildren(h(`
+    <div class="kartu">
+      ${alatTabel({
+        saringan: [
+          { kode: "belum", label: "Belum bayar" },
+          { kode: "lunas", label: "Lunas" },
+          { kode: "semua", label: "Semua" },
+        ],
+        saringAktif: "belum",
+        jumlah: semua.length,
+      })}
+      <div class="tabel-bungkus">
+        <table class="tabel tabel-data">
+          <thead>
+            <tr>
+              <th>Kode</th><th>Sekolah</th><th class="rata-tengah">Regu</th>
+              <th class="rata-kanan">Tagihan</th><th>Status / Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel"></tbody>
+        </table>
+      </div>
+    </div>
+    ${barisTerakhirHtml("pembayaran")}
+  `));
 
-    pasangAksi: (b, kode) => {
-      const aktif = b.regu.filter(r => !r.batal).length;
-      let metode = null;
-      LAYAR.querySelectorAll("[data-metode]").forEach(p => p.addEventListener("click", () => {
-        metode = p.dataset.metode;
-        LAYAR.querySelectorAll("[data-metode]").forEach(x =>
-          x.setAttribute("aria-pressed", String(x === p)));
-        document.getElementById("aksi-lunas").disabled = false;
-      }));
+  const gambar = (cari, saring) => {
+    const baris = semua.filter(b =>
+      cocokCari(b, cari) &&
+      (saring === "semua" || (saring === "lunas" ? b.status === "lunas"
+                                                 : b.status === "menunggu_pembayaran")));
+    document.getElementById("tabel-jumlah").textContent = `${baris.length} baris`;
+    const tbody = document.getElementById("isi-tabel");
 
-      const lunas = document.getElementById("aksi-lunas");
-      if (lunas) lunas.addEventListener("click", async () => {
-        if (lunas.dataset.jalan === "1") return;          // cegah klik ganda
-        lunas.dataset.jalan = "1";
-        lunas.disabled = true; lunas.textContent = "Menyimpan…";
-        let r;
-        try {
-          r = await verifikasiPembayaran(kode, aktif * EDISI.biaya_per_regu, metode);
-        } catch (err) {
-          notif(err.message, true);
-          lunas.dataset.jalan = ""; lunas.disabled = false;
-          lunas.textContent = lunas.dataset.label;
-          return;
-        }
-        // Render sukses DI LUAR try — kalau DOM gagal, tulisan sudah terjadi
-        // dan operator tidak boleh diberitahu "gagal" (temuan review).
-        catatTerakhir("pembayaran", kode, `${b.sekolah.nama} — lunas, ${r.nomor_kwitansi}`);
-        document.getElementById("hasil").replaceChildren(h(html`
-          <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
-            <h2>✅ ${b.sekolah.nama} LUNAS</h2>
-            <p>Kwitansi <strong style="font-size:1.4rem">${r.nomor_kwitansi}</strong></p>
-            <p class="keterangan">Persilakan langsung ke meja daftar ulang.</p>
-          </div>
-          <div class="pilihan-baris">
-            <button class="tombol tombol-utama" id="cetak2" type="button">🖨️ Cetak kwitansi</button>
-            <button class="tombol tombol-kalem" id="lagi" type="button">Kode berikutnya</button>
-          </div>`));
-        siapkanCetakKwitansi(b, r.nomor_kwitansi, aktif * EDISI.biaya_per_regu, metode);
-        document.getElementById("cetak2").addEventListener("click", () => window.print());
-        document.getElementById("lagi").addEventListener("click", layarPembayaran);
-      });
+    if (!baris.length) {
+      tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
+        Tidak ada yang cocok.</td></tr>`));
+      return;
+    }
 
-      const batal = document.getElementById("aksi-batal");
-      if (batal) batal.addEventListener("click", async () => {
+    tbody.replaceChildren(h(baris.map(b => {
+      const aktif = reguAktif(b);
+      const tagihan = aktif.length * EDISI.biaya_per_regu;
+      const aksi = b.status === "lunas"
+        ? html`<span class="lencana lencana-hijau">LUNAS</span>
+               <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>
+               <button class="tombol tombol-kalem tombol-mini" type="button"
+                       data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>`
+        : b.status === "batal"
+          ? `<span class="lencana lencana-merah">BATAL</span>`
+          : `<div class="aksi-baris">
+               <select class="pilih-kecil" data-metode="${esc(b.kode_pembayaran)}">
+                 <option value="">Cara bayar…</option>
+                 <option value="transfer">Transfer</option>
+                 <option value="tunai">Tunai</option>
+               </select>
+               <button class="tombol tombol-utama tombol-kecil" type="button" disabled
+                       data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>
+             </div>`;
+      return html`
+        <tr data-baris="${b.kode_pembayaran}">
+          <td class="mono">${b.kode_pembayaran}</td>
+          <td>
+            <strong>${b.sekolah?.nama || "—"}</strong>
+            <div class="sub">${aktif.map(r => r.nama_regu).join(", ")}</div>
+          </td>
+          <td class="rata-tengah">${aktif.length}</td>
+          <td class="rata-kanan">${rupiah(tagihan)}</td>
+          <td>${aksi}</td>
+        </tr>`;
+    }).join("")));
+
+    // Jalan mundur yang sah untuk salah tandai (rancangan-b.md 11.9) —
+    // wajib beralasan, dan ditolak server bila batch sudah daftar ulang.
+    tbody.querySelectorAll("[data-batal-bayar]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const kode = btn.dataset.batalBayar;
+        const b = semua.find(x => x.kode_pembayaran === kode);
         const jawab = await dialog({
-          judul: "Batalkan tanda lunas?",
-          kartuHtml: kartuBatch(b, { ringkas: true }),
-          medan: [{ label: "Alasan pembatalan", contoh: "salah tandai kode",
-                    bantuan: "Tercatat di riwayat, wajib diisi." }],
-          labelAksi: "Ya, batalkan",
+          judul: "Batalkan verifikasi pembayaran",
+          kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
+            <div class="nama">${b.sekolah?.nama || kode}</div>
+            <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
+          </div>`,
+          medan: [{ label: "Alasan pembatalan", contoh: "salah klik" }],
+          labelAksi: "Batalkan",
         });
         if (!jawab) return;
         try {
           await batalkanVerifikasi(kode, jawab[0]);
-          catatTerakhir("pembayaran", kode, "verifikasi dibatalkan");
-          notif("Verifikasi dibatalkan — status kembali BELUM BAYAR.");
-          layarPembayaran();
+          b.status = "menunggu_pembayaran";
+          b.pembayaran = null;
+          catatTerakhir("pembayaran", kode, `dibatalkan — ${jawab[0]}`);
+          notif(`Verifikasi ${kode} dibatalkan.`);
+          gambar(cari, saring);
         } catch (err) { notif(err.message, true); }
-      });
+      }));
 
-      const kw = document.getElementById("aksi-kwitansi");
-      if (kw) kw.addEventListener("click", () => {
-        siapkanCetakKwitansi(b, b.pembayaran.nomor_kwitansi, b.pembayaran.nominal, b.pembayaran.metode);
-        window.print();
-      });
-    },
-  });
-}
+    // Cara bayar harus dipilih dulu — nominalnya uang, jadi satu ketukan
+    // tidak boleh cukup untuk menandai lunas (rancangan-b.md 10.1).
+    tbody.querySelectorAll("[data-metode]").forEach(sel =>
+      sel.addEventListener("change", () => {
+        const btn = tbody.querySelector(`[data-lunas="${CSS.escape(sel.dataset.metode)}"]`);
+        btn.disabled = !sel.value;
+      }));
 
-/** Kwitansi cetak: blok tersendiri yang hanya tampil saat mencetak, supaya
- *  kertasnya berisi kwitansi — bukan tangkapan layar aplikasi (temuan review). */
-function siapkanCetakKwitansi(b, nomor, nominal, metode) {
-  document.getElementById("cetakan")?.remove();
-  const el = h(html`
-    <div id="cetakan" class="cetakan">
-      <h1>KWITANSI — Hiking Rally Ciradyka ${EDISI ? EDISI.nama : ""}</h1>
-      <p>Nomor kwitansi: <strong>${nomor}</strong></p>
-      <p>Kode pembayaran: <strong>${b.kode_pembayaran}</strong></p>
-      <p>Telah diterima dari: <strong>${b.sekolah.nama}</strong> — ${b.sekolah.alamat}</p>
-      <p>Untuk pendaftaran: <strong>${b.regu.filter(r => !r.batal).length} regu</strong></p>
-      <p>Jumlah: <strong>${rupiah(nominal)}</strong> (${metode})</p>
-      <p style="margin-top:2rem">Panitia HRCD ______________________</p>
-    </div>`);
-  document.body.appendChild(el);
+    tbody.querySelectorAll("[data-lunas]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const kode = btn.dataset.lunas;
+        const b = semua.find(x => x.kode_pembayaran === kode);
+        const metode = tbody.querySelector(`[data-metode="${CSS.escape(kode)}"]`).value;
+        const aktif = reguAktif(b);
+        const tagihan = aktif.length * EDISI.biaya_per_regu;
+
+        if (btn.dataset.jalan === "1") return;
+        btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
+        let r;
+        try {
+          r = await verifikasiPembayaran(kode, tagihan, metode);
+        } catch (err) {
+          notif(err.message, true);
+          btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Tandai Lunas";
+          return;
+        }
+        // Sumber data lokal ikut diperbarui supaya saringan & baris lain
+        // tetap konsisten tanpa memuat ulang seluruh tabel.
+        b.status = "lunas";
+        b.pembayaran = { nominal: tagihan, metode, nomor_kwitansi: r.nomor_kwitansi };
+        catatTerakhir("pembayaran", kode, `${b.sekolah?.nama || ""} — lunas, ${r.nomor_kwitansi}`);
+        notif(`${b.sekolah?.nama || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
+        gambar(cari, saring);
+      }));
+  };
+
+  pasangAlatTabel(gambar);
 }
 
 /* ============================ MEJA DAFTAR ULANG ========================== */
 
-function layarDaftarUlang() {
-  layarCariKode({
-    judul: "Meja Daftar Ulang",
-    petunjuk: "Ketik kode pembayaran sekolah",
-    fungsi: "daftar-ulang",
+async function layarDaftarUlang() {
+  if (!EDISI) { layarButuhEdisi("Meja Daftar Ulang"); return; }
+  pasangKepala("Meja Daftar Ulang", true);
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
-    saatKetemu: (b) => {
-      const belum = b.regu.filter(r => !r.batal && r.nomor_dada === null);
-      const sudahNomor = b.regu.some(r => r.nomor_dada !== null);
-      if (b.status === "menunggu_pembayaran")
-        return kartuBatch(b) + kartuGalat("Sekolah ini belum membayar. Arahkan dulu ke meja pembayaran.");
-      if (b.status === "batal")
-        return kartuBatch(b) + kartuGalat("Pendaftaran ini sudah dibatalkan. Panggil admin.");
-      if (sudahNomor || belum.length === 0)
-        return kartuBatch(b) + `
-          <div class="kartu">
-            <p class="keterangan">Sekolah ini sudah daftar ulang. Nomor dadanya ada di kartu di atas.</p>
-            <button class="tombol tombol-kalem" id="aksi-tukar" type="button">Tukar nomor rusak…</button>
-          </div>`;
-      return `
-        <div class="kartu" style="border-color:var(--utama)">
-          ${html`<p><strong>Konfirmasi lisan dulu:</strong> "Benar dari ${b.sekolah.nama},
-             ${belum.length} regu?" — lalu tekan tombol.</p>`}
-          ${b.butuh_barak ? `
-            <div class="medan" style="margin-top:.8rem">
-              <label for="pendamping">Jumlah pendamping yang menginap</label>
-              <input type="number" id="pendamping" min="0" max="30" inputmode="numeric"
-                     value="${esc(b.jumlah_pendamping)}">
-            </div>` : ""}
-          <button class="tombol tombol-utama" id="aksi-ambil" type="button"
-                  data-label="🎽 Ambil ${belum.length} Nomor Dada">
-            🎽 Ambil ${belum.length} Nomor Dada
-          </button>
-        </div>
-        ${kartuBatch(b)}`;
-    },
+  let semua;
+  try { semua = await daftarPendaftaran(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarDaftarUlang)); return; }
 
-    pasangAksi: (b, kode) => {
-      const ambil = document.getElementById("aksi-ambil");
-      if (ambil) ambil.addEventListener("click", async () => {
-        if (ambil.dataset.jalan === "1") return;
-        ambil.dataset.jalan = "1";
-        ambil.disabled = true; ambil.textContent = "Mengambil nomor…";
-        let hasil;
+  LAYAR.replaceChildren(h(`
+    <div class="kartu">
+      ${alatTabel({
+        saringan: [
+          { kode: "belum", label: "Belum dapat nomor" },
+          { kode: "sudah", label: "Sudah" },
+          { kode: "semua", label: "Semua yang lunas" },
+        ],
+        saringAktif: "belum",
+        jumlah: semua.length,
+      })}
+      <div class="tabel-bungkus">
+        <table class="tabel tabel-data">
+          <thead>
+            <tr>
+              <th>Kode</th><th>Sekolah</th><th class="rata-tengah">Regu</th>
+              <th class="rata-tengah">Pendamping</th><th>Nomor dada / Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel"></tbody>
+        </table>
+      </div>
+    </div>
+    ${barisTerakhirHtml("daftar-ulang")}
+  `));
+
+  const gambar = (cari, saring) => {
+    // Hanya batch lunas yang relevan di meja ini — yang belum bayar
+    // diarahkan ke meja pembayaran dulu, bukan ditampilkan lalu ditolak.
+    const lunas = semua.filter(b => b.status === "lunas");
+    const belumSemua = (b) => reguAktif(b).some(r => r.nomor_dada === null);
+    const baris = lunas.filter(b =>
+      cocokCari(b, cari) &&
+      (saring === "semua" || (saring === "sudah" ? !belumSemua(b) : belumSemua(b))));
+
+    document.getElementById("tabel-jumlah").textContent = `${baris.length} baris`;
+    const tbody = document.getElementById("isi-tabel");
+
+    if (!baris.length) {
+      tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
+        Tidak ada yang cocok.</td></tr>`));
+      return;
+    }
+
+    tbody.replaceChildren(h(baris.map(b => {
+      const aktif = reguAktif(b);
+      const menunggu = aktif.filter(r => r.nomor_dada === null);
+      const nomorHtml = aktif.filter(r => r.nomor_dada !== null)
+        .sort((x, y) => x.nomor_dada - y.nomor_dada)
+        .map(r => html`<span class="pil-nomor">${String(r.nomor_dada).padStart(3, "0")}
+          <span class="pil-kloter">K${r.kloter_nomor}</span></span>`).join(" ");
+
+      const tombolTukar = nomorHtml
+        ? `<button class="tombol tombol-kalem tombol-mini" type="button"
+                   data-tukar="${esc(b.kode_pembayaran)}">Tukar nomor rusak…</button>`
+        : "";
+      const aksi = menunggu.length
+        ? `<button class="tombol tombol-utama tombol-kecil" type="button"
+                   data-ambil="${esc(b.kode_pembayaran)}">
+             Ambil ${menunggu.length} Nomor
+           </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
+        : `<div class="pil-baris">${nomorHtml} ${tombolTukar}</div>`;
+
+      return html`
+        <tr data-baris="${b.kode_pembayaran}">
+          <td class="mono">${b.kode_pembayaran}</td>
+          <td>
+            <strong>${b.sekolah?.nama || "—"}</strong>
+            <div class="sub">${aktif.map(r => r.nama_regu).join(", ")}</div>
+          </td>
+          <td class="rata-tengah">${aktif.length}</td>
+          <td class="rata-tengah">
+            <input type="number" class="isian-kecil" min="0" max="30" inputmode="numeric"
+                   value="${b.jumlah_pendamping}" data-pendamping="${b.kode_pembayaran}">
+          </td>
+          <td>${aksi}</td>
+        </tr>`;
+    }).join("")));
+
+    // Jumlah pendamping boleh dikoreksi langsung di tabel — angkanya hanya
+    // memengaruhi penyusunan barak, bukan uang, jadi aman disimpan begitu
+    // kolom ditinggalkan (tanpa tombol simpan terpisah).
+    tbody.querySelectorAll("[data-pendamping]").forEach(inp =>
+      inp.addEventListener("change", async () => {
+        const kode = inp.dataset.pendamping;
+        const b = semua.find(x => x.kode_pembayaran === kode);
+        const jumlah = Number(inp.value);
+        if (!Number.isInteger(jumlah) || jumlah < 0) {
+          inp.value = b.jumlah_pendamping; return;
+        }
         try {
-          const pend = document.getElementById("pendamping");
-          if (pend && Number(pend.value) !== b.jumlah_pendamping)
-            await ubahPendamping(kode, Number(pend.value) || 0);
-          hasil = await daftarUlang(kode);
+          await ubahPendamping(kode, jumlah);
+          b.jumlah_pendamping = jumlah;
+          inp.classList.add("tersimpan");
+          setTimeout(() => inp.classList.remove("tersimpan"), 1200);
         } catch (err) {
           notif(err.message, true);
-          ambil.dataset.jalan = ""; ambil.disabled = false;
-          ambil.textContent = ambil.dataset.label;
-          return;
+          inp.value = b.jumlah_pendamping;
         }
-        catatTerakhir("daftar-ulang", kode, `${b.sekolah.nama} — ${hasil.length} nomor`);
-        document.getElementById("hasil").replaceChildren(h(html`
-          <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
-            <h2>✅ ${b.sekolah.nama} — bacakan sambil serahkan nomor:</h2>
-          </div>`));
-        const kotak = document.getElementById("hasil").firstElementChild;
-        kotak.appendChild(h(`
-          <table class="tabel" style="background:#fff;border-radius:8px;margin-top:.6rem">
-            ${hasil.map(r => html`
-              <tr>
-                <!-- Nomor dada DIBACAKAN sambil menyerahkan nomor fisik —
-                     ini satu-satunya angka yang sengaja tidak ikut diperkecil. -->
-                <td class="angka" style="font-size:2.3rem;line-height:1.1">${String(r.nomor_dada).padStart(3, "0")}</td>
-                <td><strong style="font-size:1.1rem">${r.nama_regu}</strong><br>
-                    <span class="keterangan">${GOLONGAN_LABEL[r.golongan] || r.golongan}</span></td>
-                <td><span class="lencana lencana-abu">Kloter ${r.kloter}</span></td>
-              </tr>`).join("")}
-          </table>
-          <button class="tombol tombol-utama" id="lagi" style="margin-top:.8rem" type="button">
-            Sekolah berikutnya
-          </button>`));
-        document.getElementById("lagi").addEventListener("click", layarDaftarUlang);
-      });
+      }));
 
-      const tukar = document.getElementById("aksi-tukar");
-      if (tukar) tukar.addEventListener("click", async () => {
-        const bernomor = b.regu.filter(r => r.nomor_dada !== null && !r.batal);
+    // Nomor rusak/sobek di lapangan: nomor lama PENSIUN (tidak pernah terbit
+    // ulang), supaya lembar nilai lama tidak menilai regu yang salah.
+    tbody.querySelectorAll("[data-tukar]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const kode = btn.dataset.tukar;
+        const b = semua.find(x => x.kode_pembayaran === kode);
+        const bernomor = reguAktif(b).filter(r => r.nomor_dada !== null);
         if (!bernomor.length) { notif("Sekolah ini belum punya nomor dada.", true); return; }
         const jawab = await dialog({
           judul: "Tukar nomor dada yang rusak",
@@ -464,19 +505,229 @@ function layarDaftarUlang() {
         if (!jawab) return;
         const [lama, baru, alasan] = jawab;
         const regu = bernomor.find(r => r.nomor_dada === Number(lama));
-        if (!regu) { notif(`Nomor ${esc(lama)} bukan milik sekolah ini.`, true); return; }
+        if (!regu) { notif(`Nomor ${lama} bukan milik sekolah ini.`, true); return; }
         if (!Number.isInteger(Number(baru)) || Number(baru) <= 0) {
           notif("Nomor pengganti harus angka.", true); return;
         }
         try {
           await tukarNomor(regu.id, Number(baru), alasan);
+          regu.nomor_dada = Number(baru);
           catatTerakhir("daftar-ulang", kode, `tukar nomor ${lama} → ${baru}`);
           notif(`Nomor ${lama} diganti ${baru}. Nomor lama tidak dipakai lagi.`);
-          layarDaftarUlang();
+          gambar(cari, saring);
         } catch (err) { notif(err.message, true); }
-      });
-    },
-  });
+      }));
+
+    tbody.querySelectorAll("[data-ambil]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        if (btn.dataset.jalan === "1") return;
+        const kode = btn.dataset.ambil;
+        const b = semua.find(x => x.kode_pembayaran === kode);
+        btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Mengambil…";
+        let hasil;
+        try {
+          hasil = await daftarUlang(kode);
+        } catch (err) {
+          notif(err.message, true);
+          btn.dataset.jalan = ""; btn.disabled = false;
+          gambar(cari, saring);
+          return;
+        }
+        // Tempelkan nomor yang baru terbit ke data lokal.
+        hasil.forEach(x => {
+          const r = (b.regu || []).find(y => y.id === x.regu_id);
+          if (r) { r.nomor_dada = x.nomor_dada; r.kloter_nomor = x.kloter; }
+        });
+        catatTerakhir("daftar-ulang", kode,
+          hasil.map(x => String(x.nomor_dada).padStart(3, "0")).join(", "));
+        notif(`${b.sekolah?.nama || kode}: ${hasil.length} nomor dada terbit.`);
+        gambar(cari, saring);
+      }));
+  };
+
+  pasangAlatTabel(gambar);
+}
+
+/* ============================ KEBERANGKATAN ============================== */
+
+async function layarKeberangkatan() {
+  if (!EDISI) { layarButuhEdisi("Keberangkatan"); return; }
+  pasangKepala("Keberangkatan", true);
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+
+  let papan, opsi;
+  try { [papan, opsi] = await Promise.all([papanKeberangkatan(), kontrakOpsi()]); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKeberangkatan)); return; }
+
+  if (!papan.length) {
+    LAYAR.replaceChildren(h(`
+      <div class="kartu">
+        <h2>Belum ada kloter berisi regu</h2>
+        <p class="keterangan">Kloter muncul di sini setelah ada sekolah yang
+           daftar ulang dan menerima nomor dada.</p>
+      </div>`));
+    return;
+  }
+
+  // Kloter yang dibuka pertama: yang paling depan dan belum berangkat —
+  // itulah yang sedang ditangani petugas garis start.
+  let kloterAktif = (papan.find(k => !k.jam_berangkat) || papan[0]).nomor;
+
+  LAYAR.replaceChildren(h(`
+    <div class="kartu">
+      <h2 style="font-size:1rem;color:var(--tinta-lembut)">Pilih kloter</h2>
+      <div class="pita-kloter" id="pita-kloter"></div>
+    </div>
+    <div id="isi-kloter"></div>
+  `));
+
+  const gambarPita = () => {
+    document.getElementById("pita-kloter").replaceChildren(h(papan.map(k => {
+      const label = { berangkat: "berangkat", siap: "siap",
+                      konfirmasi_kontrak: "kontrak", menunggu: "menunggu" }[k.posisi] || "";
+      return html`
+        <button type="button" class="chip-kloter ${k.posisi}"
+                data-kloter="${k.nomor}" aria-pressed="${k.nomor === kloterAktif}">
+          <span class="chip-nomor">Kloter ${k.nomor}</span>
+          <span class="chip-ket">${k.sudah_ceklis}/${k.jumlah_regu} · ${label}</span>
+        </button>`;
+    }).join("")));
+
+    document.querySelectorAll("[data-kloter]").forEach(b =>
+      b.addEventListener("click", () => {
+        kloterAktif = Number(b.dataset.kloter);
+        gambarPita();
+        gambarKloter();
+      }));
+  };
+
+  async function gambarKloter() {
+    const kotak = document.getElementById("isi-kloter");
+    kotak.replaceChildren(h(`<p>Memuat kloter ${kloterAktif}…</p>`));
+
+    let regu;
+    try { regu = await reguKloter(kloterAktif); }
+    catch (e) { kotak.replaceChildren(kartuGagalMuat(e.message, gambarKloter)); return; }
+
+    const info = papan.find(k => k.nomor === kloterAktif) || {};
+    const sudahBerangkat = !!info.jam_berangkat;
+    const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
+
+    kotak.replaceChildren(h(`
+      <div class="kartu">
+        <div class="kepala-kloter">
+          <h2>Kloter ${kloterAktif}</h2>
+          ${sudahBerangkat
+            ? html`<span class="lencana lencana-hijau">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>`
+            : `<span class="lencana lencana-kuning">BELUM BERANGKAT</span>`}
+        </div>
+
+        <div class="tabel-bungkus" style="margin-top:.6rem">
+          <table class="tabel tabel-data">
+            <thead>
+              <tr>
+                <th class="rata-tengah">Hadir</th><th>Nomor</th><th>Regu</th>
+                <th>Kontrak waktu</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${regu.map(r => html`
+                <tr>
+                  <td class="rata-tengah">
+                    <input type="checkbox" class="ceklis" data-ceklis="${r.nomor_dada}"
+                           ${r.sudah_ceklis ? "checked" : ""}
+                           ${sudahBerangkat ? "disabled" : ""}
+                           aria-label="ceklis regu ${r.nomor_dada}">
+                  </td>
+                  <td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
+                  <td>
+                    <strong>${r.nama_regu}</strong>
+                    <div class="sub">${r.nama_sekolah}${r.sisipan ? " · SISIPAN" : ""}</div>
+                  </td>
+                  <td>
+                    <select class="pilih-kecil" data-kontrak="${r.regu_id}"
+                            ${sudahBerangkat ? "disabled" : ""}>
+                      <option value="">Belum dipilih</option>
+                      ${opsi.map(o => `<option value="${o.menit}"
+                        ${r.kontrak_menit === o.menit ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+                    </select>
+                  </td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        ${sudahBerangkat ? "" : `
+          <div class="berangkat-bar">
+            <div class="medan" style="margin:0">
+              <label for="jam-berangkat">Jam berangkat (diketik pencatat)</label>
+              <input type="time" id="jam-berangkat" step="60" value="${jamSekarangHHMM()}">
+            </div>
+            <button class="tombol tombol-utama" id="aksi-berangkat" type="button">
+              🚩 Berangkatkan Kloter ${kloterAktif}
+            </button>
+          </div>
+          ${belumKontrak.length ? kartuGalat(
+            `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
+            `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`) : ""}
+        `}
+      </div>
+    `));
+
+    kotak.querySelectorAll("[data-ceklis]").forEach(cb =>
+      cb.addEventListener("change", async () => {
+        const dada = Number(cb.dataset.ceklis);
+        cb.disabled = true;
+        try {
+          if (cb.checked) await ceklisBerangkat(dada);
+          else await batalCeklisBerangkat(dada);
+          // Papan ikut berubah (hitungan sudah_ceklis) — muat ulang ringkas.
+          papan = await papanKeberangkatan();
+          gambarPita();
+        } catch (err) {
+          notif(err.message, true);
+          cb.checked = !cb.checked;
+        }
+        cb.disabled = false;
+      }));
+
+    kotak.querySelectorAll("[data-kontrak]").forEach(sel =>
+      sel.addEventListener("change", async () => {
+        if (!sel.value) return;
+        sel.disabled = true;
+        try {
+          await konfirmasiKontrak(sel.dataset.kontrak, Number(sel.value));
+          sel.classList.add("tersimpan");
+          setTimeout(() => sel.classList.remove("tersimpan"), 1200);
+        } catch (err) {
+          notif(err.message, true);
+        }
+        sel.disabled = false;
+      }));
+
+    const tombol = document.getElementById("aksi-berangkat");
+    if (tombol) tombol.addEventListener("click", async () => {
+      if (tombol.dataset.jalan === "1") return;
+      const hhmm = document.getElementById("jam-berangkat").value;
+      if (!hhmm) { notif("Jam berangkat wajib diisi.", true); return; }
+      tombol.dataset.jalan = "1"; tombol.disabled = true; tombol.textContent = "Menyimpan…";
+      try {
+        await berangkatkanKloter(kloterAktif, jamHariIni(hhmm).toISOString());
+      } catch (err) {
+        notif(err.message, true);
+        tombol.dataset.jalan = ""; tombol.disabled = false;
+        tombol.textContent = `🚩 Berangkatkan Kloter ${kloterAktif}`;
+        return;
+      }
+      notif(`Kloter ${kloterAktif} berangkat ${hhmm}.`);
+      papan = await papanKeberangkatan();
+      gambarPita();
+      gambarKloter();
+    });
+  }
+
+  gambarPita();
+  gambarKloter();
 }
 
 /* ============================ CETAK DAFTAR KLOTER ======================== */
@@ -1108,6 +1359,7 @@ const RUTE = {
   "#/daftar-ulang": layarDaftarUlang,
   "#/pendaftaran-offline": layarPendaftaranOffline,
   "#/cetak-kloter": layarCetakKloter,
+  "#/keberangkatan": layarKeberangkatan,
   "#/pindah-kloter": layarPindahKloter,
   "#/finish": layarFinish,
 };

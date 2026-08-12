@@ -99,6 +99,40 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/sisipan":
                 self._kirim(200, q(
                     "select * from v_sisipan_kloter", uid=p.get("uid")))
+            elif u.path == "/keberangkatan":
+                self._kirim(200, q(
+                    "select * from v_keberangkatan order by nomor",
+                    uid=p.get("uid")))
+            elif u.path == "/regu-kloter":
+                self._kirim(200, q(
+                    "select * from v_regu_ringkas where kloter = %s order by nomor_dada",
+                    (p.get("kloter") or 0,), uid=p.get("uid")))
+            elif u.path == "/kontrak":
+                self._kirim(200, q(
+                    "select label, menit from kontrak_opsi "
+                    "where edisi = edisi_aktif() order by urutan",
+                    uid=p.get("uid")))
+            elif u.path == "/daftar-pendaftaran":
+                self._kirim(200, q("""
+                    select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
+                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa,
+                           d.dibuat_pada,
+                           jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
+                           (select jsonb_agg(jsonb_build_object(
+                              'id', r.id, 'nama_regu', r.nama_regu,
+                              'nama_ketua', r.nama_ketua, 'golongan', r.golongan,
+                              'nomor_dada', r.nomor_dada, 'kloter_nomor', r.kloter_nomor,
+                              'batal', r.batal)
+                              order by r.nama_regu)
+                            from regu r where r.pendaftaran_id = d.id) as regu,
+                           (select jsonb_build_object(
+                              'nominal', b.nominal, 'metode', b.metode,
+                              'nomor_kwitansi', b.nomor_kwitansi,
+                              'diverifikasi_pada', b.diverifikasi_pada)
+                            from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
+                    from pendaftaran d join sekolah s on s.id = d.sekolah_id
+                    order by d.dibuat_pada
+                    """, uid=p.get("uid")))
             elif u.path == "/kloter":
                 self._kirim(200, q(
                     "select * from v_daftar_kloter", uid=p.get("uid")))
