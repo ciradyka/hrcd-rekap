@@ -64,7 +64,7 @@ function layarLogin(pesan) {
       <div class="medan" style="margin-top:1rem">
         <label for="u">Username</label>
         <input type="text" id="u" autocomplete="username" autocapitalize="none"
-               spellcheck="false" placeholder="contoh: meja1hrcd37">
+               spellcheck="false">
       </div>
       <div class="medan">
         <label for="p">Password</label>
