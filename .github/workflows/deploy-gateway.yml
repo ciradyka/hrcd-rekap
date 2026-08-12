@@ -1,5 +1,5 @@
 # ============================================================================
-# hrcd-rekap : deploy-gerbang.yml — set secret Worker + deploy, dari HP.
+# hrcd-rekap : deploy-gateway.yml — set secret Worker + deploy, dari HP.
 #
 # Dipicu manual (workflow_dispatch) — dipakai untuk deploy pertama dan untuk
 # redeploy/rotasi secret kapan pun, bukan otomatis tiap push (deploy rutin
@@ -21,7 +21,7 @@
 # nanti, tambahkan baris `wrangler secret put TURNSTILE_SECRET` di bawah.
 # ============================================================================
 
-name: Deploy gerbang Worker
+name: Deploy gateway Worker
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: workers/gerbang
+        working-directory: workers/gateway
     steps:
       - uses: actions/checkout@v4
 

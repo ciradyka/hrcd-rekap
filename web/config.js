@@ -12,7 +12,7 @@ window.HRCD = {
   // --- produksi (mode: "supabase") ---
   // supabaseUrl: "https://xxxx.supabase.co",
   // anonKey:     "eyJ...",
-  // gerbangUrl:  "https://gerbang.hrcd.workers.dev",
+  // gatewayUrl:  "https://gateway.<subdomain>.workers.dev",
   // domainAkun:  "panitia.hrcd.local",   // username + '@' + domain ini = email auth
   // turnstileSiteKey: "0x4AAA...",
 };

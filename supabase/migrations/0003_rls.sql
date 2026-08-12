@@ -6,7 +6,7 @@
 --   admin        — semua tabel, semua operasi
 --   operator_pos — nilai_mentah hanya baris pos = pos_saya()
 --   meja         — semua layar meja; ganti fungsi = pindah layar (R14)
--- Anon nyaris nol: hanya SELECT sekolah. Form publik menulis lewat gerbang
+-- Anon nyaris nol: hanya SELECT sekolah. Form publik menulis lewat gateway
 -- Worker (service role); penonton membaca file statis — tidak ada jalur anon
 -- lain ke database.
 -- ============================================================================
@@ -42,7 +42,7 @@ alter table nomor_dada_pensiun enable row level security;
 
 grant usage on schema public to anon, authenticated, service_role;
 grant select, insert, update, delete on all tables in schema public to authenticated;
--- service_role (BYPASSRLS) dipakai gerbang Worker & GitHub Actions; di
+-- service_role (BYPASSRLS) dipakai gateway Worker & GitHub Actions; di
 -- Supabase asli grant ini datang dari default privileges — dieksplisitkan
 -- supaya lingkungan uji lokal berperilaku sama.
 grant select, insert, update, delete on all tables in schema public to service_role;

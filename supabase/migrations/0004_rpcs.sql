@@ -10,7 +10,7 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
--- 1. submit_pendaftaran — satu-satunya jalur tulis dari luar (via gerbang
+-- 1. submit_pendaftaran — satu-satunya jalur tulis dari luar (via gateway
 --    Worker). Buat sekolah bila baru + batch + N baris regu + kode pembayaran,
 --    sekali jalan.
 -- ---------------------------------------------------------------------------
@@ -884,11 +884,11 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- 12. Eksekusi: hanya authenticated (panitia). Anon TIDAK bisa memanggil apa
---     pun — submit_pendaftaran dipanggil gerbang Worker memakai service role.
+--     pun — submit_pendaftaran dipanggil gateway Worker memakai service role.
 -- ---------------------------------------------------------------------------
 
 -- Temuan review (blocker): grant massal "all functions to authenticated"
--- membuka submit_pendaftaran ke SEMUA akun login — melompati gerbang
+-- membuka submit_pendaftaran ke SEMUA akun login — melompati gateway
 -- Turnstile. Model baru: cabut semuanya, beri per fungsi secara eksplisit;
 -- fungsi baru TIDAK PERNAH terekspos otomatis.
 revoke execute on all functions in schema public from public, anon, authenticated;
@@ -915,7 +915,7 @@ grant execute on function catat_closing(integer, timestamptz, smallint, text) to
 grant execute on function susun_barak()                                     to authenticated;
 grant execute on function ubah_pendamping(text, smallint)                   to authenticated;
 
--- submit_pendaftaran HANYA untuk gerbang Worker (service role). Akun login
+-- submit_pendaftaran HANYA untuk gateway Worker (service role). Akun login
 -- yang mendaftarkan sekolah di meja offline tetap lewat form publik yang
 -- sama (link sama, alur 3.6) — bukan lewat RPC langsung.
 grant execute on function submit_pendaftaran(text, text, boolean, text, jsonb, smallint)

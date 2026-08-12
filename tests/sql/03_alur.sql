@@ -12,7 +12,7 @@ create table uji_kode (label text primary key, hasil jsonb);
 grant all on uji_kode to authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
--- 3.1 Pendaftaran (jalur gerbang Worker = service_role).
+-- 3.1 Pendaftaran (jalur gateway Worker = service_role).
 --     A: 12 regu penegak_pa, butuh barak. B: 5 regu penegak_pa, butuh barak.
 --     C: 2 regu penegak_pi (uji tie-break). D: 1 regu (uji pembatalan).
 -- ---------------------------------------------------------------------------
@@ -135,7 +135,7 @@ begin
           join pendaftaran d on d.id = b.pendaftaran_id
           where d.kode_pembayaran = uji('D')), 'pembayaran D masih ada';
 
-  -- Akun login TIDAK bisa memanggil submit_pendaftaran — hanya gerbang
+  -- Akun login TIDAK bisa memanggil submit_pendaftaran — hanya gateway
   -- Worker (temuan review, blocker).
   begin
     perform submit_pendaftaran('Selundup', 'X', false, '0812999',

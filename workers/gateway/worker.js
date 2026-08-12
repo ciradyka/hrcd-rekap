@@ -1,5 +1,5 @@
 /* ============================================================================
-   hrcd-rekap : workers/gerbang/worker.js — gerbang form pendaftaran publik.
+   hrcd-rekap : workers/gateway/worker.js — gateway form pendaftaran publik.
    Satu-satunya kode "server" di seluruh sistem (rancangan-b.md bagian 8):
    verifikasi Turnstile (opsional) + rate limit per IP + batas ukuran ->
    panggil RPC submit_pendaftaran memakai service role. Kunci rahasia hidup

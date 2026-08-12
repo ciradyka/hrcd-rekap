@@ -1,7 +1,7 @@
 # ============================================================================
-# hrcd-rekap : workers/gerbang/wrangler.toml — konfigurasi deploy Worker.
+# hrcd-rekap : workers/gateway/wrangler.toml — konfigurasi deploy Worker.
 #
-# Worker ini satu-satunya kode "server" di seluruh sistem: gerbang form
+# Worker ini satu-satunya kode "server" di seluruh sistem: gateway form
 # pendaftaran publik (Turnstile + rate limit) di POST /daftar.
 #
 # Sebelum `wrangler deploy` yang pertama:
@@ -14,7 +14,7 @@
 # SUPABASE_SERVICE_KEY hidup HANYA di sini, tidak pernah di web/config.js.
 # ============================================================================
 
-name = "gerbang"
+name = "gateway"
 main = "worker.js"
 compatibility_date = "2026-08-12"
 
