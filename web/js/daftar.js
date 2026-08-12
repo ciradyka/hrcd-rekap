@@ -70,9 +70,6 @@ function halaman() {
   LAYAR.replaceChildren(h(`
     <div class="kartu" style="border-color:var(--utama)">
       <h2>Pendaftaran Regu</h2>
-      <p class="keterangan">Isi semuanya di halaman ini, lalu tekan Kirim di bawah.
-         Isianmu tersimpan otomatis — kalau HP mati atau halaman tertutup,
-         buka lagi dan lanjutkan.</p>
     </div>
 
     <!-- 1. Sekolah -->
