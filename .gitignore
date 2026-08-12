@@ -22,3 +22,5 @@ vendor/
 dist/
 build/
 .wrangler/
+__pycache__/
+*.pyc
