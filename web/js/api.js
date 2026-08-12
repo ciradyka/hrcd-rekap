@@ -10,14 +10,19 @@
 const K = window.HRCD || { mode: "dev", devUrl: "http://127.0.0.1:8787" };
 const BATAS_MS = 20000;   // internet lambat tidak boleh menggantung selamanya
 
-/* ---------- sesi ---------- */
+/* ---------- sesi ----------
+   localStorage, BUKAN sessionStorage: di HP, menutup tab/app (bahkan cuma
+   berpindah app sebentar) sering dianggap browser sebagai "sesi berakhir"
+   dan sessionStorage langsung kosong — panitia harus login ulang tiap kali
+   membuka lagi. localStorage bertahan sampai betul-betul ditekan Keluar,
+   dan token di dalamnya tetap kedaluwarsa sendiri via pastikanSesiSegar(). */
 
 export function sesi() {
-  const s = sessionStorage.getItem("hrcd_sesi");
+  const s = localStorage.getItem("hrcd_sesi");
   return s ? JSON.parse(s) : null;
 }
-function simpanSesi(s) { sessionStorage.setItem("hrcd_sesi", JSON.stringify(s)); }
-export function keluar() { sessionStorage.removeItem("hrcd_sesi"); }
+function simpanSesi(s) { localStorage.setItem("hrcd_sesi", JSON.stringify(s)); }
+export function keluar() { localStorage.removeItem("hrcd_sesi"); }
 
 /* ---------- kesalahan yang ramah ---------- */
 
