@@ -229,9 +229,13 @@ async function layarPembayaran() {
   pasangKepala("Meja Pembayaran", true);
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
+  const layarIni = location.hash;
   let semua;
   try { semua = await daftarPendaftaran(); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarPembayaran)); return; }
+  // Panitia menekan Pembayaran lalu cepat pindah ke layar lain: jawaban yang
+  // datang belakangan TIDAK boleh menimpa layar yang sedang dibuka sekarang.
+  if (location.hash !== layarIni) return;
 
   LAYAR.replaceChildren(h(`
     <div class="kartu">
@@ -292,15 +296,17 @@ async function layarPembayaran() {
                <button class="tombol tombol-utama tombol-kecil" type="button" disabled
                        data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>
              </div>`;
-      return html`
-        <tr data-baris="${b.kode_pembayaran}">
-          <td class="mono">${b.kode_pembayaran}</td>
+      // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
+      // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
+      return `
+        <tr data-baris="${esc(b.kode_pembayaran)}">
+          <td class="mono">${esc(b.kode_pembayaran)}</td>
           <td>
-            <strong>${b.sekolah?.nama || "—"}</strong>
-            <div class="sub">${aktif.map(r => r.nama_regu).join(", ")}</div>
+            <strong>${esc(b.sekolah?.nama || "—")}</strong>
+            <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
           <td class="rata-tengah">${aktif.length}</td>
-          <td class="rata-kanan">${rupiah(tagihan)}</td>
+          <td class="rata-kanan">${esc(rupiah(tagihan))}</td>
           <td>${aksi}</td>
         </tr>`;
     }).join("")));
@@ -377,9 +383,11 @@ async function layarDaftarUlang() {
   pasangKepala("Meja Daftar Ulang", true);
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
+  const layarIni = location.hash;
   let semua;
   try { semua = await daftarPendaftaran(); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarDaftarUlang)); return; }
+  if (location.hash !== layarIni) return;   // lihat catatan di layarPembayaran
 
   LAYAR.replaceChildren(h(`
     <div class="kartu">
@@ -444,17 +452,18 @@ async function layarDaftarUlang() {
            </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
         : `<div class="pil-baris">${nomorHtml} ${tombolTukar}</div>`;
 
-      return html`
-        <tr data-baris="${b.kode_pembayaran}">
-          <td class="mono">${b.kode_pembayaran}</td>
+      // Template biasa (lihat catatan sama di layar Pembayaran).
+      return `
+        <tr data-baris="${esc(b.kode_pembayaran)}">
+          <td class="mono">${esc(b.kode_pembayaran)}</td>
           <td>
-            <strong>${b.sekolah?.nama || "—"}</strong>
-            <div class="sub">${aktif.map(r => r.nama_regu).join(", ")}</div>
+            <strong>${esc(b.sekolah?.nama || "—")}</strong>
+            <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
           <td class="rata-tengah">${aktif.length}</td>
           <td class="rata-tengah">
             <input type="number" class="isian-kecil" min="0" max="30" inputmode="numeric"
-                   value="${b.jumlah_pendamping}" data-pendamping="${b.kode_pembayaran}">
+                   value="${esc(b.jumlah_pendamping)}" data-pendamping="${esc(b.kode_pembayaran)}">
           </td>
           <td>${aksi}</td>
         </tr>`;
@@ -555,9 +564,11 @@ async function layarKeberangkatan() {
   pasangKepala("Keberangkatan", true);
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
+  const layarIni = location.hash;
   let papan, opsi;
   try { [papan, opsi] = await Promise.all([papanKeberangkatan(), kontrakOpsi()]); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKeberangkatan)); return; }
+  if (location.hash !== layarIni) return;   // lihat catatan di layarPembayaran
 
   if (!papan.length) {
     LAYAR.replaceChildren(h(`
@@ -631,24 +642,24 @@ async function layarKeberangkatan() {
               </tr>
             </thead>
             <tbody>
-              ${regu.map(r => html`
+              ${regu.map(r => `
                 <tr>
                   <td class="rata-tengah">
-                    <input type="checkbox" class="ceklis" data-ceklis="${r.nomor_dada}"
+                    <input type="checkbox" class="ceklis" data-ceklis="${esc(r.nomor_dada)}"
                            ${r.sudah_ceklis ? "checked" : ""}
                            ${sudahBerangkat ? "disabled" : ""}
-                           aria-label="ceklis regu ${r.nomor_dada}">
+                           aria-label="ceklis regu ${esc(r.nomor_dada)}">
                   </td>
                   <td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
                   <td>
-                    <strong>${r.nama_regu}</strong>
-                    <div class="sub">${r.nama_sekolah}${r.sisipan ? " · SISIPAN" : ""}</div>
+                    <strong>${esc(r.nama_regu)}</strong>
+                    <div class="sub">${esc(r.nama_sekolah)}${r.sisipan ? " · SISIPAN" : ""}</div>
                   </td>
                   <td>
-                    <select class="pilih-kecil" data-kontrak="${r.regu_id}"
+                    <select class="pilih-kecil" data-kontrak="${esc(r.regu_id)}"
                             ${sudahBerangkat ? "disabled" : ""}>
                       <option value="">Belum dipilih</option>
-                      ${opsi.map(o => `<option value="${o.menit}"
+                      ${opsi.map(o => `<option value="${esc(o.menit)}"
                         ${r.kontrak_menit === o.menit ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
                     </select>
                   </td>
