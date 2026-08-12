@@ -1,0 +1,58 @@
+# ============================================================================
+# hrcd-rekap : deploy-gerbang.yml — set secret Worker + deploy, dari HP.
+#
+# Dipicu manual (workflow_dispatch) — dipakai untuk deploy pertama dan untuk
+# redeploy/rotasi secret kapan pun, bukan otomatis tiap push (deploy rutin
+# tetap lewat Git integration Cloudflare — lihat catatan di README repo).
+#
+# Ketiga secret Worker DITULIS ULANG tiap kali workflow ini jalan (idempotent,
+# aman diulang) — nilainya diambil dari repository secret GitHub, tidak
+# pernah lewat percakapan atau file di repo ini.
+#
+# SEBELUM DIPAKAI, tambahkan repository secret ini sendiri (Settings ->
+# Secrets and variables -> Actions -> New repository secret):
+#   CLOUDFLARE_API_TOKEN   dari Cloudflare > My Profile > API Tokens,
+#                          template "Edit Cloudflare Workers"
+#   SUPABASE_URL           (sudah ada, dipakai juga oleh provision-akun.yml)
+#   SUPABASE_SERVICE_KEY   (sudah ada, dipakai juga oleh provision-akun.yml)
+#   TURNSTILE_SECRET       dari Cloudflare > Turnstile > site yang dibuat
+# ============================================================================
+
+name: Deploy gerbang Worker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/gerbang
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install -g wrangler
+
+      # Dipisah dari wrangler deploy: kalau salah satu secret gagal ditulis,
+      # jangan lanjut deploy kode dengan secret yang tidak lengkap.
+      - name: Tulis tiga secret Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$SUPABASE_URL" | wrangler secret put SUPABASE_URL
+          printf '%s' "$SUPABASE_SERVICE_KEY" | wrangler secret put SUPABASE_SERVICE_KEY
+          printf '%s' "$TURNSTILE_SECRET" | wrangler secret put TURNSTILE_SECRET
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: wrangler deploy
