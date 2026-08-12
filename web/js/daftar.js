@@ -15,7 +15,7 @@
      tidak ada "perbaiki satu, ketemu satu lagi".
    ========================================================================== */
 
-import { daftarSekolah, kirimPendaftaran, infoEdisi, GalatApi } from "./api.js";
+import { daftarSekolah, kirimPendaftaran, infoEdisi, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
@@ -459,7 +459,7 @@ async function kirim(e) {
     document.getElementById("ringkas-galat").replaceChildren(h(html`
       <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
         <strong>Belum terkirim.</strong>
-        ${err instanceof GalatApi ? err.message : "Coba lagi ya."}
+        ${err instanceof ErrorApi ? err.message : "Coba lagi ya."}
         <div class="keterangan" style="margin-top:.3rem">Isianmu tersimpan — tekan
           "Kirim Pendaftaran" sekali lagi.</div>
       </div>`));

@@ -9,7 +9,7 @@
    ========================================================================== */
 
 import {
-  sesi, masuk, keluar, GalatApi,
+  sesi, masuk, keluar, ErrorApi,
   lihatBatch, infoEdisi, ringkasanMeja,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
@@ -84,7 +84,7 @@ function layarLogin(pesan) {
       location.hash = "#/beranda";
       arahkan();
     } catch (e) {
-      layarLogin(e instanceof GalatApi ? e.message : "Username atau password salah.");
+      layarLogin(e instanceof ErrorApi ? e.message : "Username atau password salah.");
     }
   };
   document.getElementById("masuk").addEventListener("click", aksi);
