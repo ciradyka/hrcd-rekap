@@ -18,7 +18,10 @@
    ========================================================================== */
 
 const BATAS_BYTE = 32_000;      // payload wajar: 30 regu ~ 6 KB
-const BATAS_PER_MENIT = 5;      // pengiriman per IP per menit
+// Longgar dengan sengaja: beberapa laptop meja mengisi pendaftaran offline
+// dari WiFi venue yang sama (satu IP) bisa memicu ini kalau terlalu ketat.
+// Angka ini cuma pagar terakhir untuk banjir skrip, bukan penghalang panitia.
+const BATAS_PER_MENIT = 30;     // pengiriman per IP per menit
 const ASAL_BOLEH = "*";         // ganti ke origin Pages saat produksi
 
 const CORS = {
