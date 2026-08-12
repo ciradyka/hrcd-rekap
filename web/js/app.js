@@ -62,7 +62,7 @@ function layarLogin(pesan) {
       <p class="keterangan">Pakai akun yang dibagikan koordinatormu.</p>
       ${pesan ? `<div class="galat" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
       <div class="medan" style="margin-top:1rem">
-        <label for="u">Nama akun</label>
+        <label for="u">Username</label>
         <input type="text" id="u" autocomplete="username" autocapitalize="none"
                spellcheck="false" placeholder="contoh: meja1hrcd37">
       </div>
@@ -84,7 +84,7 @@ function layarLogin(pesan) {
       location.hash = "#/beranda";
       arahkan();
     } catch (e) {
-      layarLogin(e instanceof GalatApi ? e.message : "Nama akun atau password salah.");
+      layarLogin(e instanceof GalatApi ? e.message : "Username atau password salah.");
     }
   };
   document.getElementById("masuk").addEventListener("click", aksi);
@@ -120,6 +120,10 @@ async function layarBeranda() {
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
     <div class="menu-fungsi">
+      <a href="#/pendaftaran-offline">
+        <div class="nama-fungsi">📝 Pendaftaran</div>
+        <div class="ket">Buka form pendaftaran — link sama untuk online maupun diisikan langsung</div>
+      </a>
       <a href="#/pembayaran">
         <div class="nama-fungsi">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
         <div class="ket">Periksa transfer/tunai, tandai lunas, cetak kwitansi</div>
@@ -127,10 +131,6 @@ async function layarBeranda() {
       <a href="#/daftar-ulang">
         <div class="nama-fungsi">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
         <div class="ket">Berikan nomor dada untuk sekolah yang sudah lunas</div>
-      </a>
-      <a href="#/pendaftaran-offline">
-        <div class="nama-fungsi">📝 Pendaftaran Offline</div>
-        <div class="ket">Bukakan form pendaftaran untuk sekolah yang datang langsung</div>
       </a>
       <a href="#/cetak-kloter">
         <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
@@ -1078,10 +1078,10 @@ function kartuSisipan(sisipan) {
 /* ============================ PENDAFTARAN OFFLINE ======================== */
 
 function layarPendaftaranOffline() {
-  pasangKepala("Pendaftaran Offline");
+  pasangKepala("Pendaftaran");
   LAYAR.replaceChildren(h(`
     <div class="kartu">
-      <h2>Pendaftaran offline = form yang sama</h2>
+      <h2>Link yang sama untuk online maupun langsung</h2>
       <p class="keterangan" style="margin-top:.4rem">
         Bukakan form ini di HP pendaftar, atau isikan bersama di laptop meja.
         Setelah dapat kode pembayaran, arahkan ke meja pembayaran.</p>

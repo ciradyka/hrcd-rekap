@@ -37,7 +37,7 @@ export function pesanRamah(m) {
   if (!m) return "Terjadi kesalahan. Coba lagi.";
   const t = String(m);
   if (/invalid[_ ]grant|invalid login credentials|bad_credentials/i.test(t))
-    return "Nama akun atau password salah. Periksa lagi, lalu coba masuk.";
+    return "Username atau password salah. Periksa lagi, lalu coba masuk.";
   if (/failed to fetch|networkerror|load failed|aborted|timeout/i.test(t))
     return "Internet lambat atau putus. Coba lagi — isianmu tidak hilang.";
   if (/jwt|token .*expired|pgrst301/i.test(t))
