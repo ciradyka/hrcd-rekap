@@ -238,6 +238,21 @@ export async function ringkasanMeja() {
   };
 }
 
+/** Semua pendaftaran sekaligus — bahan layar tabel Pembayaran & Daftar Ulang.
+ *  Dimuat SEKALI lalu disaring di browser: jumlahnya ratusan (bukan ribuan),
+ *  dan filter yang terasa seketika jauh lebih berguna di meja daripada
+ *  bolak-balik ke server tiap ketukan huruf. */
+export async function daftarPendaftaran() {
+  if (K.mode === "dev") return baca("/daftar-pendaftaran");
+  return baca(null,
+    "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping," +
+    "butuh_barak,kontak_wa,dibuat_pada," +
+    "sekolah(nama,alamat)," +
+    "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,batal)," +
+    "pembayaran(nominal,metode,nomor_kwitansi,diverifikasi_pada)" +
+    "&regu.order=nama_regu.asc&order=dibuat_pada.asc");
+}
+
 export const verifikasiPembayaran = (kode, nominal, metode) =>
   rpc("verifikasi_pembayaran", { p_kode: kode, p_nominal: nominal, p_metode: metode });
 
@@ -298,3 +313,41 @@ export async function daftarSisipan() {
   if (K.mode === "dev") return baca("/sisipan");
   return baca(null, "v_sisipan_kloter?select=*&order=kloter.asc,nomor_dada.asc");
 }
+
+/* ============================ KEBERANGKATAN ============================= */
+
+/** Papan garis start: satu baris per kloter + posisinya (berangkat / siap /
+ *  konfirmasi_kontrak / menunggu). Posisi DITURUNKAN dari kloter terakhir
+ *  yang berangkat — tidak ada status yang digeser manual. */
+export async function papanKeberangkatan() {
+  if (K.mode === "dev") return baca("/keberangkatan");
+  return baca(null, "v_keberangkatan?select=*&order=nomor.asc");
+}
+
+/** Regu satu kloter, lengkap dengan sudah_ceklis & kontrak_menit — persis
+ *  yang perlu dilihat petugas staging sebelum memberangkatkan. */
+export async function reguKloter(kloter) {
+  if (K.mode === "dev") return baca(`/regu-kloter?kloter=${encodeURIComponent(kloter)}`);
+  return baca(null,
+    `v_regu_ringkas?kloter=eq.${encodeURIComponent(kloter)}&select=*&order=nomor_dada.asc`);
+}
+
+/** Pilihan kontrak waktu edisi aktif (bukan angka hardcode — tiap edisi bisa
+ *  berbeda, lihat alur-lomba.md bagian 9). */
+export async function kontrakOpsi() {
+  if (K.mode === "dev") return baca("/kontrak");
+  return baca(null, "kontrak_opsi?select=label,menit&order=urutan.asc");
+}
+
+export const konfirmasiKontrak = (reguId, menit) =>
+  rpc("konfirmasi_kontrak", { p_regu: reguId, p_menit: menit });
+
+export const ceklisBerangkat = (nomorDada) =>
+  rpc("ceklis_berangkat", { p_nomor_dada: nomorDada });
+
+export const batalCeklisBerangkat = (nomorDada) =>
+  rpc("batal_ceklis_berangkat", { p_nomor_dada: nomorDada });
+
+/** Jam WAJIB diketik panitia pencatat — tidak pernah now() (alur 12.4). */
+export const berangkatkanKloter = (kloter, jam) =>
+  rpc("berangkatkan_kloter", { p_kloter: kloter, p_jam: jam });
