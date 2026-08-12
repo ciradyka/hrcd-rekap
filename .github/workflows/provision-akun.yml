@@ -1,0 +1,70 @@
+# ============================================================================
+# hrcd-rekap : provision-akun.yml — bikin akun panitia massal dari HP.
+#
+# Dipicu manual (workflow_dispatch), bukan otomatis lewat push/merge — ini
+# alat admin sekali pakai per batch, bukan bagian dari deploy.
+#
+# CARA PAKAI DARI HP:
+#   1. Buka repo di app/browser GitHub -> tab Actions -> "Provision akun
+#      panitia" -> Run workflow.
+#   2. Tempel CSV di kotak "csv_akun": username,email,peran,pos (kosongkan
+#      pos untuk admin/meja). JANGAN sertakan password di sini — kotak ini
+#      terekam di log Actions, dan password digenerate otomatis di server.
+#   3. Run workflow. Tunggu selesai (~10-20 detik untuk puluhan baris).
+#   4. Buka run yang baru selesai -> bagian "Artifacts" di bawah -> unduh
+#      hasil-provisioning-<nomor>.zip. Isinya CSV berisi password yang
+#      di-generate untuk tiap akun -> bagikan ke pemiliknya masing-masing.
+#      Artifact terhapus otomatis setelah 3 hari.
+#
+# SEBELUM DIPAKAI PERTAMA KALI, tambahkan dua repository secret (Settings ->
+# Secrets and variables -> Actions -> New repository secret), diketik sendiri
+# di sana — tidak pernah lewat percakapan atau file di repo ini:
+#   SUPABASE_URL           https://xxxx.supabase.co
+#   SUPABASE_SERVICE_KEY   dari Supabase Settings > API Keys > Secret keys
+# ============================================================================
+
+name: Provision akun panitia
+
+on:
+  workflow_dispatch:
+    inputs:
+      csv_akun:
+        description: >-
+          CSV: username,email,peran,pos (header wajib). Contoh baris:
+          meja4hrcd37,meja4hrcd37@ciradyka.com,meja,
+        required: true
+        type: string
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests
+
+      - name: Tulis CSV masukan dari input workflow
+        # Lewat env var, BUKAN diselipkan langsung ke skrip shell: input
+        # workflow_dispatch adalah teks bebas (nama/email bisa berisi tanda
+        # kutip dsb.) — interpolasi langsung ke `run:` rawan shell injection.
+        env:
+          CSV_AKUN: ${{ inputs.csv_akun }}
+        run: printf '%s\n' "$CSV_AKUN" > akun_masuk.csv
+
+      - name: Jalankan provisioning
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scripts/provision_akun.py akun_masuk.csv hasil_provisioning.csv
+
+      - name: Unggah hasil (berisi password — unduh sekali, lalu bagikan manual)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hasil-provisioning-${{ github.run_id }}
+          path: hasil_provisioning.csv
+          retention-days: 3

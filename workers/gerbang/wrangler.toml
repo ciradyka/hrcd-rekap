@@ -1,0 +1,31 @@
+# ============================================================================
+# hrcd-rekap : workers/gerbang/wrangler.toml — konfigurasi deploy Worker.
+#
+# Worker ini satu-satunya kode "server" di seluruh sistem: gerbang form
+# pendaftaran publik (Turnstile + rate limit) di POST /daftar.
+#
+# Sebelum `wrangler deploy` yang pertama:
+#
+#   wrangler kv namespace create RATE     # salin id-nya ke bawah
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_SERVICE_KEY
+#   wrangler secret put TURNSTILE_SECRET
+#
+# SUPABASE_SERVICE_KEY hidup HANYA di sini, tidak pernah di web/config.js.
+# ============================================================================
+
+name = "gerbang"
+main = "worker.js"
+compatibility_date = "2026-08-13"
+
+# Isi id-nya dengan keluaran `wrangler kv namespace create RATE`.
+# Tanpa ini rate limit per IP tidak punya tempat menyimpan hitungan.
+[[kv_namespaces]]
+binding = "RATE"
+id = "c344415a45044d7e9716f41715ab3d9a"
+
+# Tiap 3 hari, 03.00 UTC (10.00 WIB) — menahan project Supabase tetap bangun.
+# Supabase menjeda setelah ±7 hari menganggur; 3 hari memberi dua kesempatan
+# meleset sebelum benar-benar tertidur.
+[triggers]
+crons = ["0 3 */3 * *"]
