@@ -26,8 +26,8 @@ export function keluar() { localStorage.removeItem("hrcd_sesi"); }
 
 /* ---------- kesalahan yang ramah ---------- */
 
-export class GalatApi extends Error {
-  constructor(pesan) { super(pesan); this.name = "GalatApi"; }
+export class ErrorApi extends Error {
+  constructor(pesan) { super(pesan); this.name = "ErrorApi"; }
 }
 
 /** Terjemahkan pesan mentah (server / jaringan / enum RPC) jadi kalimat yang
@@ -37,7 +37,7 @@ export function pesanRamah(m) {
   if (!m) return "Terjadi kesalahan. Coba lagi.";
   const t = String(m);
   if (/invalid[_ ]grant|invalid login credentials|bad_credentials/i.test(t))
-    return "Nama akun atau password salah. Periksa lagi, lalu coba masuk.";
+    return "Username atau password salah. Periksa lagi, lalu coba masuk.";
   if (/failed to fetch|networkerror|load failed|aborted|timeout/i.test(t))
     return "Internet lambat atau putus. Coba lagi — isianmu tidak hilang.";
   if (/jwt|token .*expired|pgrst301/i.test(t))
@@ -70,7 +70,7 @@ async function kirim(url, opsi = {}) {
   try {
     r = await fetch(url, { ...opsi, signal: ac.signal });
   } catch (e) {
-    throw new GalatApi(pesanRamah(e.name === "AbortError" ? "timeout" : e.message));
+    throw new ErrorApi(pesanRamah(e.name === "AbortError" ? "timeout" : e.message));
   } finally {
     clearTimeout(jam);
   }
@@ -81,7 +81,7 @@ async function kirim(url, opsi = {}) {
     const pesan = (data && (data.message || data.error_description || data.error
                   || data.msg || data.hint))
       || (typeof data === "string" ? data : null) || `HTTP ${r.status}`;
-    throw new GalatApi(pesanRamah(String(pesan)));
+    throw new ErrorApi(pesanRamah(String(pesan)));
   }
   return data;
 }
@@ -159,7 +159,7 @@ export async function masuk(username, password) {
       `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,aktif`,
       { headers: { apikey: K.anonKey, Authorization: `Bearer ${j.access_token}` } });
     if (!akun.length || !akun[0].aktif)
-      throw new GalatApi("Akun ini tidak aktif di edisi sekarang. Hubungi koordinator.");
+      throw new ErrorApi("Akun ini tidak aktif di edisi sekarang. Hubungi koordinator.");
     s = {
       uid: j.user.id, token: j.access_token, refresh: j.refresh_token,
       kedaluwarsa: Date.now() + (j.expires_in || 3600) * 1000,
@@ -185,7 +185,7 @@ export async function infoEdisi() {
   const d = await kirim(`${K.supabaseUrl}/rest/v1/v_edisi_publik?select=*`, {
     headers: { apikey: K.anonKey, Authorization: `Bearer ${K.anonKey}` },
   });
-  if (!d.length) throw new GalatApi("Belum ada edisi lomba yang dibuka.");
+  if (!d.length) throw new ErrorApi("Belum ada edisi lomba yang dibuka.");
   return d[0];
 }
 
@@ -218,7 +218,7 @@ export async function lihatBatch(kode) {
     `pembayaran(nominal,metode,nomor_kwitansi,diverifikasi_pada)` +
     `&regu.order=nama_regu.asc`);
   if (!d.length)
-    throw new GalatApi(`Kode ${kode} tidak ditemukan. Periksa lagi hurufnya.`);
+    throw new ErrorApi(`Kode ${kode} tidak ditemukan. Periksa lagi hurufnya.`);
   return d[0];
 }
 
