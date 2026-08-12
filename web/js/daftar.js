@@ -113,8 +113,8 @@ function halaman() {
       <p class="keterangan">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
       <div class="medan" style="margin-top:.7rem">
         <label for="wa" class="visually-hidden">Nomor WA</label>
-        <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 081234567890">
-        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar (minimal 9 angka).</div>
+        <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 0822xxxxxxx atau +62822xxxxxxx">
+        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08 atau +62 8.</div>
       </div>
     </section>
 
