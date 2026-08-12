@@ -192,7 +192,7 @@ export async function kirimPendaftaran(payload, tokenTurnstile) {
       body: JSON.stringify(payload),
     });
   }
-  return kirim(`${K.gerbangUrl}/daftar`, {
+  return kirim(`${K.gatewayUrl}/daftar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...payload, turnstile: tokenTurnstile }),

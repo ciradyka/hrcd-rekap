@@ -21,7 +21,7 @@ penyelesaiannya dicatat di bagian 11.
 3. **Halaman live publik** — file statis (`live.html` + `live.json`) di
    Cloudflare Pages, di-regenerate berkala oleh GitHub Actions. Penonton
    **tidak pernah** menyentuh Supabase.
-4. **Satu Cloudflare Worker kecil** — gerbang form pendaftaran publik:
+4. **Satu Cloudflare Worker kecil** — gateway form pendaftaran publik:
    memverifikasi Turnstile (anti-spam gratis) + rate limit, baru meneruskan ke
    database. Satu-satunya jalur tulis dari luar.
 5. **Google Sheets** — jendela baca: tombol Export CSV di semua layar daftar,
@@ -80,7 +80,7 @@ penyelesaiannya dicatat di bagian 11.
 2. Dua fungsi helper `peran()` dan `pos_saya()` (membaca `akun_panitia` dari
    `auth.uid()`) dipakai seluruh policy; hanya akun `aktif=true` yang lolos.
 3. **Anon nyaris nol**: hanya `SELECT sekolah` (autocomplete form, tanpa PII).
-   Form publik menulis lewat gerbang Worker (bagian 8), penonton membaca file
+   Form publik menulis lewat gateway Worker (bagian 8), penonton membaca file
    statis (bagian 7) — **tidak ada jalur anon lain ke database**.
 4. **Rotasi tahunan**: akun membawa akhiran edisi. Tiap edisi: akun lama
    `aktif=false` (jejak riwayat utuh), ±10 akun baru dibuat pemilik lewat
@@ -288,7 +288,7 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
    regu: sudah lewat pos mana, **tanpa angka**), `penuh` (klasemen 4 golongan
    setelah closing). Admin memindah fase dari layar konfigurasi.
 
-## 8. Gerbang form publik
+## 8. Gateway form publik
 
 1. Form pendaftaran mengirim ke **satu Worker Cloudflare kecil** (±50 baris,
    satu-satunya kode "server" di seluruh sistem): verifikasi token
@@ -536,7 +536,7 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 | Tahap | Isi | Bukti selesai |
 | --- | --- | --- |
 | 1. Fondasi | Struktur repo, migrasi SQL lengkap (tabel + RLS + fungsi + view), seed konfigurasi edisi 37, seed contoh | Tes SQL: nomor dada ganda tertolak, RLS pos menggigit, contoh konversi & penalti cocok dengan dokumen ini |
-| 2. Meja | Login, beranda meja, form pendaftaran + gerbang Worker, pembayaran, daftar ulang | Alur daftar → bayar → nomor dada jalan penuh di lingkungan uji |
+| 2. Meja | Login, beranda meja, form pendaftaran + gateway Worker, pembayaran, daftar ulang | Alur daftar → bayar → nomor dada jalan penuh di lingkungan uji |
 | 3. Hari-H | Garis start, input pos (manual + massal), closing, monitoring | Simulasi input 500 regu × 5 pos |
 | 4. Admin | Konfigurasi, klasemen, cetak, barak, riwayat | Panitia bisa mengubah aturan skor tanpa menyentuh kode |
 | 5. Publik | Live page + GitHub Actions + fase bertahap + keep-alive | Halaman live berjalan tanpa satu request pun ke Supabase |
@@ -550,7 +550,7 @@ Migrasi SQL Tahap 1 diserang tiga reviewer adversarial (keamanan, kesesuaian,
 kebenaran SQL); 39 temuan menghasilkan penyesuaian berikut — dokumen di atas
 dibaca dengan koreksi ini:
 
-1. **`submit_pendaftaran` hanya bisa dipanggil gerbang Worker** (service
+1. **`submit_pendaftaran` hanya bisa dipanggil gateway Worker** (service
    role) — akun login mana pun tidak bisa, supaya Turnstile tidak bisa
    dilompati. Grant fungsi kini per-fungsi, bukan massal: RPC baru tidak
    pernah terekspos otomatis.
