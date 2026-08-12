@@ -95,4 +95,23 @@ export default {
       return jawab(400, { message: isi.message || "Pendaftaran ditolak. Periksa isian." });
     return jawab(200, isi);
   },
+
+  // ------------------------------------------------------------------- cron
+  // Project Supabase gratis dijeda setelah ±7 hari menganggur. Sistem ini
+  // dipasang jauh sebelum lomba dan nyaris tidak disentuh sampai Januari,
+  // jadi tanpa ini project sudah tertidur saat panitia membukanya.
+  //
+  // Satu bacaan sepele sudah cukup dihitung sebagai aktivitas. Kalau gagal,
+  // biarkan gagal: jadwal berikutnya datang sendiri dan tidak ada yang
+  // menunggu jawabannya. Jadwalnya di wrangler.toml.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(
+      fetch(`${env.SUPABASE_URL}/rest/v1/edisi?select=nomor&limit=1`, {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        },
+      }).catch(() => {}),
+    );
+  },
 };

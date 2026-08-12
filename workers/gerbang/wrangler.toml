@@ -23,3 +23,9 @@ compatibility_date = "2026-08-13"
 [[kv_namespaces]]
 binding = "RATE"
 id = "GANTI_DENGAN_ID_DARI_wrangler_kv_namespace_create"
+
+# Tiap 3 hari, 03.00 UTC (10.00 WIB) — menahan project Supabase tetap bangun.
+# Supabase menjeda setelah ±7 hari menganggur; 3 hari memberi dua kesempatan
+# meleset sebelum benar-benar tertidur.
+[triggers]
+crons = ["0 3 */3 * *"]
