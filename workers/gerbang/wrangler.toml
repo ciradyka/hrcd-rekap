@@ -16,7 +16,7 @@
 
 name = "gerbang"
 main = "worker.js"
-compatibility_date = "2026-08-13"
+compatibility_date = "2026-08-12"
 
 # Isi id-nya dengan keluaran `wrangler kv namespace create RATE`.
 # Tanpa ini rate limit per IP tidak punya tempat menyimpan hitungan.
