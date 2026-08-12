@@ -383,8 +383,13 @@ function periksa(gulir = true) {
     if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
   });
 
-  const waSah = jawab.kontak_wa.replace(/\D/g, "").length >= 9;
-  if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum benar" });
+  // Format nomor Indonesia: diawali 0 atau 62, lalu 8, lalu kode operator
+  // (1-9, bukan 0), lalu 6-10 digit lagi — mencakup 08xx maupun +62 8xx.
+  // Sekadar "panjang >= 9" lolos untuk angka acak yang bukan nomor sama
+  // sekali (temuan review).
+  const digitWa = jawab.kontak_wa.replace(/\D/g, "");
+  const waSah = /^(62|0)8[1-9][0-9]{6,10}$/.test(digitWa);
+  if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
   tandai("g-wa", !waSah);
 
   // Ringkasan galat: satu tempat, bisa diketuk untuk lompat ke isiannya.
