@@ -41,9 +41,9 @@ PSQL=/path/ke/psql PGPORT=55432 PGPASSWORD=... bash tests/run.sh
 Untuk mencoba layarnya (butuh tiga terminal):
 
 ```bash
-bash tests/dev_db.sh          # siapkan database hrcd_dev
+bash tests/dev_database.sh          # siapkan database hrcd_dev
 python tests/dev_server.py    # tiruan Supabase di :8787
-python tests/layar_server.py  # layar panitia di :8788 (tanpa cache)
+python tests/static_server.py  # layar panitia di :8788 (tanpa cache)
 ```
 
 Runner membuat ulang database `hrcd_test` setiap kali — aman diulang. Tes
@@ -55,8 +55,8 @@ Uji konkurensi terpisah membuktikan beberapa meja daftar ulang yang menekan
 tombol serentak tidak pernah menghasilkan nomor dada ganda:
 
 ```bash
-bash tests/dev_db.sh            # siapkan database hrcd_dev
-python tests/uji_konkurensi.py  # 30 koneksi serentak memperebutkan 300 nomor
+bash tests/dev_database.sh            # siapkan database hrcd_dev
+python tests/concurrency_test.py  # 30 koneksi serentak memperebutkan 300 nomor
 ```
 
 ## Kontribusi

@@ -13,8 +13,8 @@
 # Secrets and variables -> Actions -> New repository secret):
 #   CLOUDFLARE_API_TOKEN   dari Cloudflare > My Profile > API Tokens,
 #                          template "Edit Cloudflare Workers"
-#   SUPABASE_URL           (sudah ada, dipakai juga oleh provision-akun.yml)
-#   SUPABASE_SERVICE_KEY   (sudah ada, dipakai juga oleh provision-akun.yml)
+#   SUPABASE_URL           (sudah ada, dipakai juga oleh provision-accounts.yml)
+#   SUPABASE_SERVICE_KEY   (sudah ada, dipakai juga oleh provision-accounts.yml)
 #
 # TURNSTILE_SECRET sengaja TIDAK ditulis di sini — Turnstile dinonaktifkan
 # untuk edisi 37 (keputusan sadar, lihat worker.js). Kalau diaktifkan lagi

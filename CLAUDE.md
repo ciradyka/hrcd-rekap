@@ -98,6 +98,27 @@ Guidance for Claude Code when working in this repository.
 8. Rule 7 does not loosen rule 3. Domain terms stay Indonesian however technical
    they sound, because no familiar English equivalent exists: `regu` is not
    "squad", and `nomor dada` is not "bib number" to anyone at this event.
+9. **File names, directory names, and branch names are English** whenever the
+   thing they name is technical rather than domain. This is rule 4 applied to
+   the filesystem, and it was violated repeatedly before being written down:
+   `terapkan-migrasi.yml` should have been `apply-migration.yml`, `tes-sql.yml`
+   should have been `sql-tests.yml`, `ganti_password.py` should have been
+   `change_password.py`. A workflow, a script, a test harness, and a migration
+   are all technical concepts — the panitia never speak their names.
+10. **Use the term the industry already uses, not a literal translation.**
+    Migrations are *applied*, not "implemented"; tests *run*; servers *start*.
+    Translating word-for-word from Indonesian produces names that are English
+    but still unsearchable, which defeats the entire point of rule 5.
+11. Rule 9 stops where the domain begins. `0011_nomor_dada_manual.sql` and
+    `05_pindah_kloter.sql` keep their Indonesian parts, because `nomor dada`
+    and `kloter` are rule 3 terms — only the surrounding technical words
+    (`print`, `move`, `seed`, `test`) turn English.
+12. **A workflow's `name:` field is UI text, so rule 1 decides it — by
+    audience, not by file.** A workflow a panitia runs from the Actions tab on
+    their phone keeps an Indonesian name ("Ganti password akun panitia",
+    "Provision akun panitia"). A workflow only a developer ever reads gets an
+    English one ("SQL Tests", "Apply migration to Supabase"). The file name is
+    English either way — that is rule 9 and has no exceptions.
 
 ## 6. Who maintains this
 
