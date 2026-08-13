@@ -4,12 +4,12 @@
 -- wajib: status_acara, kloter 1-40, stok nomor dada 1-500.
 -- ============================================================================
 
-insert into edisi (nomor, nama, tahun, tanggal_lomba, biaya_per_regu,
+insert into edisi (nomor, name, tahun, tanggal_lomba, biaya_per_regu,
                    maks_regu_per_kloter, kloter_dasar, kloter_maks,
-                   lompatan_kloter, interval_berangkat_menit, aktif)
+                   lompatan_kloter, interval_berangkat_menit, is_active)
 values (37, 'HRCD 37', 2027, date '2027-02-21', 250000, 10, 30, 40, 2, 4, true);
 
-insert into pos (edisi, nomor, nama, bobot) values
+insert into pos (edisi, nomor, name, bobot) values
   (37, 1, 'Pos 1', 1.00),
   (37, 2, 'Pos 2', 1.00),
   (37, 3, 'Pos 3', 1.00),
@@ -18,9 +18,9 @@ insert into pos (edisi, nomor, nama, bobot) values
 
 -- Satu contoh per bentuk konversi — angka persis dari rancangan-b.md supaya
 -- tes bisa mencocokkan hasil hitung dengan dokumen.
-insert into wahana (edisi, pos, kode, nama, jenis, bentuk, poin_maks,
+insert into wahana (edisi, pos, kode, name, type, form, poin_maks,
                     raw_terbaik, raw_terburuk, poin_benar, poin_salah,
-                    total_soal, rentang_mentah_min, rentang_mentah_maks, urutan)
+                    total_soal, rentang_mentah_min, rentang_mentah_maks, sort_order)
 values
   -- raw 40 detik => 100 * (90-40)/(90-20) = 71.43
   (37, 1, 'lari_zigzag',  'Lari Zig-zag',        'wahana', 'kecil_baik', 100,
@@ -38,7 +38,7 @@ values
   (37, 5, 'sandi_morse',   'Sandi Morse',        'soal',   'benar_kurang_salah', 100,
    null, null, 10, -5, null, 0, 20, 1);
 
-insert into kontrak_opsi (edisi, label, menit, urutan) values
+insert into kontrak_opsi (edisi, label, menit, sort_order) values
   (37, '3,5 jam', 210, 1),
   (37, '4 jam',   240, 2),
   (37, '4,5 jam', 270, 3);

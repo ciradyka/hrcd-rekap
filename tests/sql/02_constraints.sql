@@ -12,7 +12,7 @@ do $$
 declare
   v_batch uuid; v_r1 uuid; v_r2 uuid;
 begin
-  insert into sekolah (nama, alamat) values ('SMP Uji Constraint', 'Jl. Uji 1')
+  insert into sekolah (name, address) values ('SMP Uji Constraint', 'Jl. Uji 1')
   returning id into strict v_batch;  -- dipakai ulang sbg penampung sementara
   insert into pendaftaran (sekolah_id, kode_pembayaran, jumlah_regu, kontak_wa)
   values (v_batch, 'UJI-DUP', 2, '0812xxxx') returning id into strict v_batch;
@@ -70,7 +70,7 @@ $$;
 do $$
 begin
   begin
-    insert into wahana (edisi, pos, kode, nama, jenis, bentuk, poin_maks,
+    insert into wahana (edisi, pos, kode, name, type, form, poin_maks,
                         rentang_mentah_min, rentang_mentah_maks)
     values (37, 1, 'salah_param', 'Tanpa Raw', 'wahana', 'kecil_baik', 100, 0, 10);
     raise exception 'GAGAL: kecil_baik tanpa raw_terbaik/terburuk diterima';
@@ -78,7 +78,7 @@ begin
   end;
 
   begin
-    insert into wahana (edisi, pos, kode, nama, jenis, bentuk, poin_maks,
+    insert into wahana (edisi, pos, kode, name, type, form, poin_maks,
                         poin_benar, poin_salah, rentang_mentah_min, rentang_mentah_maks)
     values (37, 1, 'Kode Spasi!', 'Kode Jelek', 'wahana', 'biner', 10, 10, 0, 0, 1);
     raise exception 'GAGAL: kode berspasi diterima';
@@ -91,7 +91,7 @@ $$;
 do $$
 begin
   begin
-    insert into edisi (nomor, nama, tahun, tanggal_lomba, biaya_per_regu, aktif)
+    insert into edisi (nomor, name, tahun, tanggal_lomba, biaya_per_regu, is_active)
     values (38, 'HRCD 38', 2028, date '2028-02-20', 275000, true);
     raise exception 'GAGAL: dua edisi aktif diterima';
   exception when unique_violation then null;
@@ -131,6 +131,6 @@ $$;
 -- Bersihkan artefak tes constraint.
 delete from regu where nama_regu like 'Uji %';
 delete from pendaftaran where kode_pembayaran = 'UJI-DUP';
-delete from sekolah where nama = 'SMP Uji Constraint';
+delete from sekolah where name = 'SMP Uji Constraint';
 
 \echo '== 02: OK =='
