@@ -545,6 +545,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 .button-detail:hover { text-decoration: underline; }
 
+/* Satuan "regu" di dalam tombol pembuka rincian meja pembayaran. Di KARTU HP
+   ia perlu — tidak ada judul kolom di sana, jadi angka telanjang "▾ 2" tidak
+   memberi tahu 2 apa. Di TABEL judulnya sudah menyebut REGU tepat di atasnya,
+   dan mengulangi kata itu di tiap baris memakan lebar kolom yang justru
+   dibutuhkan kolom di kanannya. */
+@media (min-width: 561px) {
+  .satuan-regu { display: none; }
+}
+
 /* Rincian regu di dalam satu baris invoice. */
 .detail-row > td { background: var(--kertas); padding: .7rem 1.2rem; }
 /* Lebar mengikuti ISI saja — tanpa min-width. Diberi lantai 62%, kolom
@@ -595,21 +604,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    kartu. Itulah yang membuat "Regu: 2" tercetak jadi "Reg / u: 2" dan kode
    pembayaran terpenggal dua baris. Jadi seluruh patokan lebar di bawah ini
    dikurung di min-width: 561px dan tidak pernah menyentuh layar HP. */
-@media (min-width: 561px) {
+@media (min-width: 941px) {
   .table-daftar-ulang, .detail-table-dada { table-layout: fixed; }
   /* LANTAI LEBAR. Dengan table-layout: fixed, kolom yang menyempit tidak
      membuat isinya membungkus — isinya MELUAP menimpa kolom sebelahnya.
      Di bawah lebar ini tabelnya menggeser di dalam kartu (.table-wrapper
      sudah overflow-x: auto), dan tidak ada lagi yang saling tertutup. */
-  .table-daftar-ulang { min-width: 860px; }
+  /* 820px, SAMA dengan tabel meja pembayaran — dan itu bukan kebetulan:
+     keduanya harus muat di lebar kartu saat ambang 900px baru saja terlewat
+     (941 - padding - scrollbar ≈ 869). Kalau salah satunya lebih tinggi dari itu, ia
+     menggeser ke samping tepat di ambangnya dan kolom paling kanan — kolom
+     tombol — hilang dari layar. Sempat 860px, dan persis itu yang terjadi. */
+  .table-daftar-ulang { min-width: 820px; }
   /* Keempat kolom rincian dipatok PERSIS ke kolom induknya. Ini yang membuat
      Regu (induk) dan Ketua (rincian) jatuh di satu pita, lalu tombol "Isi N
      Nomor Dada", kotak nomor dadanya, dan tombol Simpan di pita berikutnya.
      Kalau salah satu angka diubah, pasangannya ikut. */
   .table-daftar-ulang th:nth-child(1), .table-daftar-ulang td:nth-child(1),
-  .detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 16%; }
+  .detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 17%; }
   .table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2),
-  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 40%; }
+  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 39%; }
   /* 16%, bukan 10%: pita ini dipakai bersama angka Regu yang cuma satu digit
      DAN nama ketua yang bisa tiga kata. Yang menentukan lebarnya nama. */
   .table-daftar-ulang th:nth-child(3), .table-daftar-ulang td:nth-child(3),
@@ -653,18 +667,20 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
    Sama seperti tabel daftar ulang: HANYA di layar lebar. Di HP angka-angka
    ini justru yang merusak tampilannya. */
-@media (min-width: 561px) {
+@media (min-width: 941px) {
   .table-bayar, .detail-table-bayar { table-layout: fixed; }
   /* Lantai lebar — lihat alasan lengkapnya di tabel daftar ulang. Di sinilah
      akibatnya paling terasa: kolom Metode menyempit sampai dropdown cara
      bayar tertimpa tombol "Tandai Lunas" di sebelahnya, jadi petugas tidak
      bisa lagi memilih Transfer.
 
-     780px = jumlah kebutuhan minimum tiap kolom saat tombolnya sudah memakai
-     label pendek ("Lunas", "Kwitansi" — lihat .teks-lebar di bawah): kode
-     pembayaran 140, sekolah 187, regu 47, tagihan 94, dropdown metode 117,
-     tombol 195. Kalau salah satu kolom dilebarkan, angka ini ikut naik. */
-  .table-bayar { min-width: 780px; }
+     820px = jumlah kebutuhan minimum tiap kolom: kode pembayaran 140,
+     sekolah 197, regu 49, tagihan 98, dropdown metode 123, dan kolom tombol
+     205 (muat "Cetak Kwitansi" + "Batalkan" berdampingan). Kalau salah satu
+     kolom dilebarkan, angka ini ikut naik — DAN ambang kartu 900px di bawah
+     harus ikut naik, kalau tidak tabelnya kembali menggeser ke samping dan
+     kolom tombol hilang lagi dari layar. */
+  .table-bayar { min-width: 820px; }
   .table-bayar th:nth-child(1), .table-bayar td:nth-child(1) { width: 18%; }
   .table-bayar th:nth-child(2), .table-bayar td:nth-child(2) { width: 24%; }
   .table-bayar th:nth-child(3), .table-bayar td:nth-child(3) { width:  6%; }
@@ -803,6 +819,71 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 @media (min-width: 561px) {
   .action-row-simpan .button-small { flex: 0 0 28%; }
 }
+
+/* ============================================================================
+   JENDELA SEMPIT TAPI MASIH TABEL (561px - 940px)
+
+   Di sini tabelnya TETAP tabel — bentuk tabel masih terbaca di lebar segini,
+   dan menumpuknya jadi kartu justru membuang ruang yang sebenarnya ada.
+   Yang harus hilang bukan tabelnya, melainkan LAHAN KOSONG di dalamnya.
+
+   Sebabnya patokan persen di blok min-width: 941px: dengan table-layout
+   fixed, kolom Sekolah selalu mendapat 24% lebar tabel entah isinya "SD 3
+   Ciamis" (butuh ~90px) atau nama sekolah tiga kata. Di layar lebar sisa
+   ruang itu tidak terasa; diperkecil, ia jadi dua pita kosong selebar jempol
+   — satu sesudah Sekolah, satu sesudah Metode — sementara kolom tombol di
+   ujung kanan justru terdorong keluar layar.
+
+   Jadi di rentang ini patokan persennya DILEPAS seluruhnya dan lebar kolom
+   diserahkan ke isinya (table-layout: auto). Lahan kosong itu hilang, dan
+   ruang yang dihemat cukup untuk Tagihan, Metode, dan tombolnya tetap muat
+   tanpa menggeser ke samping.
+
+   Yang dikorbankan: kolom rincian tidak lagi jatuh persis di bawah kolom
+   induknya — lebar keduanya kini ditentukan isi masing-masing, bukan angka
+   yang sama. Di rentang ini itu tukar yang benar; tombol yang hilang dari
+   layar jauh lebih merugikan daripada rincian yang meleset beberapa piksel.
+   Di 941px ke atas kesejajarannya kembali utuh.
+   ========================================================================= */
+@media (min-width: 561px) and (max-width: 940px) {
+  .table-bayar, .table-daftar-ulang,
+  .detail-table-bayar, .detail-table-dada {
+    table-layout: auto;
+    min-width: 0;
+    width: 100%;
+  }
+  /* Patokan persen dari blok layar lebar dimatikan satu per satu. `auto`
+     berarti "seukuran isinya", dan itulah yang menghapus lahan kosongnya. */
+  .table-bayar th, .table-bayar td,
+  .table-daftar-ulang th, .table-daftar-ulang td,
+  .detail-table-bayar th, .detail-table-bayar td,
+  .detail-table-dada th, .detail-table-dada td { width: auto; }
+
+  /* Kata pertama label tombol dibuang: "Tandai Lunas" jadi "Lunas", "Cetak
+     Kwitansi" jadi "Kwitansi". Kata keduanya sudah cukup membedakan aksinya,
+     dan ~50px yang dihemat tiap tombol itu yang menentukan muat atau tidak.
+     Di HP (<=560px) tabelnya sudah jadi kartu dan tombolnya melebar penuh
+     sendirian, jadi di sana label lengkap yang benar — "Lunas" sendirian di
+     tombol selebar layar terbaca seperti label status, bukan perintah. */
+  .teks-lebar { display: none; }
+
+  /* Sekolah boleh membungkus, kolom lain jangan — nama sekolah satu-satunya
+     isi yang panjangnya tak terduga, dan ia yang harus mengalah saat sempit. */
+  .table-bayar td:nth-child(2), .table-daftar-ulang td:nth-child(2) {
+    white-space: normal; overflow-wrap: break-word;
+  }
+
+  /* Jarak kiri-kanan sel dirapatkan .5rem -> .3rem. Terlihat sepele, tapi
+     enam kolom dikali dua sisi = ~38px, dan di jendela 620px selisih segitu
+     yang menentukan tabelnya menggeser ke samping atau tidak. */
+  .table-bayar th, .table-bayar td,
+  .table-daftar-ulang th, .table-daftar-ulang td {
+    padding-left: .3rem; padding-right: .3rem;
+  }
+  /* Dropdown ikut dirapatkan. 5rem masih memuat "Transfer" utuh — itu batas
+     bawahnya, jangan dikurangi lagi (lihat catatan di .select-small). */
+  .table-bayar select.select-small { min-width: 5rem; }
+}
 .select-small, .small-input {
   /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
      kali isian disentuh — batas keras di kepala berkas ini, dan sempat
@@ -831,19 +912,6 @@ input.small-input { text-align: center; }
   min-height: 34px; padding: .2rem .55rem; font-size: .8rem; width: auto;
 }
 
-/* Kata pertama label tombol, dibuang di jendela sempit: "Tandai Lunas" jadi
-   "Lunas", "Cetak Kwitansi" jadi "Kwitansi". Kata keduanya sudah cukup
-   membedakan aksinya, dan tombol yang menyusut memberi ruang untuk dropdown
-   cara bayar di sebelahnya — di jendela ~560-700px tombol panjang menimpa
-   dropdown itu sampai "Tunai"/"Transfer" tidak bisa lagi dipilih.
-
-   Rentangnya sengaja dibatasi dua sisi. Di bawah 561px tabelnya sudah bukan
-   tabel lagi melainkan kartu bertumpuk, tombolnya melebar penuh sendirian di
-   satu baris, dan di sana label lengkap justru yang benar — "Lunas" sendirian
-   di tombol selebar layar terbaca seperti label status, bukan perintah. */
-@media (min-width: 561px) and (max-width: 900px) {
-  .teks-lebar { display: none; }
-}
 .pill-row { display: flex; gap: .3rem; flex-wrap: wrap; align-items: center; }
 .pill-number {
   display: inline-flex; align-items: baseline; gap: .25rem;
@@ -917,10 +985,33 @@ input.small-input { text-align: center; }
 
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
   .isi { padding-bottom: 6rem; }
+}
 
-  /* ---- Di HP, tabel BERHENTI jadi tabel ----
-     Empat sampai lima kolom tidak akan pernah muat di 390px, dan menggeser
-     ke samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
+/* ============================================================================
+   AMBANG KEDUA: 900px — tabel BERHENTI jadi tabel.
+
+   Beda dengan 560px di atas, yang mengurus perabot HP (menu bawah, kepala
+   layar). Yang ini mengurus BENTUK TABEL, dan ambangnya jauh lebih tinggi
+   karena ditentukan oleh isi tabelnya, bukan oleh ukuran jempol.
+
+   Angkanya datang dari sini: tabel meja pembayaran butuh 780px supaya enam
+   kolomnya tidak saling menimpa (lihat .table-bayar min-width). Di bawah itu
+   ia harus menggeser ke samping — dan begitu menggeser, kolom paling kanan
+   yang hilang duluan, yaitu kolom TOMBOL. Petugas melihat tabel tanpa
+   "Tandai Lunas" dan tanpa "Isi N Nomor Dada", tidak tahu tombolnya ada.
+   Persis itu yang terjadi di jendela ~720px.
+
+   Jadi di bawah 901px tabelnya tidak dipaksakan sama sekali: tiap baris jadi
+   KARTU bertumpuk, tombolnya melebar penuh dan selalu terlihat. Di atas itu
+   tabel selalu muat tanpa geser samping (901 - padding ≈ 847 > 780).
+
+   Kalau suatu saat kolom ditambah, min-width tabelnya naik — dan ambang ini
+   harus ikut naik, kalau tidak tombol yang hilang itu kembali lagi.
+   ========================================================================= */
+@media (max-width: 560px) {
+  /* ---- tabel BERHENTI jadi tabel ----
+     Enam kolom tidak akan pernah muat di layar sempit, dan menggeser ke
+     samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
      tombol di sebelah kanan. Jadi tiap baris dijadikan KARTU bertumpuk:
      tidak ada geser samping sama sekali, semuanya terbaca sekali pandang.
      Nama kolom dibawa lewat data-label karena <thead> disembunyikan. */
@@ -959,107 +1050,90 @@ input.small-input { text-align: center; }
   .data-table tbody tr[data-baris] > td[data-label="Kode Bayar"] { font-size: 1.05rem; font-weight: 700; }
   .data-table tbody tr[data-baris] > td:last-child { margin-top: .5rem; }
   .data-table tbody tr[data-baris] .button-small { width: 100%; }
-
-  /* "Regu: 2" di meja pembayaran mengulang tombol "▸ 2 regu" dua baris di
-     atasnya. Di layar lebar keduanya kolom terpisah dan tidak bertabrakan;
-     ditumpuk di HP, angkanya terbaca dua kali. Meja daftar ulang TIDAK ikut
-     disembunyikan — tombolnya di sana menghitung regu yang BELUM dapat nomor,
-     bukan seluruh regu, jadi angkanya memang beda. */
-  .table-bayar tbody tr[data-baris] > td[data-label="Regu"] { display: none; }
+  /* Tombol "N regu" punya margin-top .15rem sendiri — warisan dari bentuk
+     tabel, tempat ia menggantung di bawah nama sekolah. Di kartu ini ia
+     duduk sebaris dengan angka tagihan dan dropdown, dan margin itu
+     menurunkan TEKS-nya ~1px dari garis tengah petaknya. Kotaknya sudah
+     rata tengah, yang meleset isinya. */
+  .data-table tbody tr[data-baris] .button-detail { margin-top: 0; }
 
   /* ---- Kartu invoice HP: dua keterangan per baris ----
      Enam keterangan bertumpuk satu-satu membuat satu invoice setinggi
      separuh layar, dan petugas harus menggulir untuk membandingkan dua
      sekolah. Yang memang dibaca berpasangan disandingkan:
 
-         Kode Bayar        Sekolah
-         ▸ 2 regu
-         Tagihan           Metode
-         [    Tandai Lunas     ]
+         HRCD37-0C200D   SD 3 Ciamis
+         ▾ 2 regu        Rp 500.000    [Tunai]
+         [       Tandai Lunas        ]
 
-     Kenapa `display: contents` di sel Sekolah: tombol "▸ N regu" ada DI
-     DALAM sel itu di markup (ia memang milik sekolah tersebut), padahal di
-     sini ia harus jadi barisnya sendiri selebar kartu. `display: contents`
-     membuang kotak selnya saja — nama sekolah dan tombolnya naik jadi
-     anggota grid kartu ini langsung, sehingga masing-masing bisa ditaruh di
-     petaknya sendiri. Sel itu sendiri tidak hilang, hanya kotaknya.
+     Kolomnya ditentukan BARIS KEDUA, bukan baris pertama: kolom 1 selebar
+     "▾ 2 regu", kolom 2 selebar angka rupiah, sisanya untuk dropdown. Kode
+     pembayaran yang lebih lebar dari keduanya MELINTASI kolom 1 dan 2 —
+     kalau ia dibiarkan menghuni kolom 1 saja, kolom itu melebar jadi ~131px
+     dan 73px-nya menganggur di baris kedua, sampai dropdown di kolom ketiga
+     terpotong keluar kartu.
 
-     Label "Sekolah:" ikut dimatikan di sini: label itu ::before milik sel,
-     dan begitu kotak selnya hilang ia jadi anggota grid tersendiri yang
-     harus ikut ditempatkan. Nama sekolah yang tebal sudah cukup jelas
-     tanpa label.
-
-     Label "Kode Bayar:" juga dimatikan, alasannya beda: ia memakan ~75px
-     dari satu-satunya baris yang harus memuat DUA keterangan, dan tanpa itu
-     kodenya tidak jadi kurang jelas — bentuknya sudah khas sendiri (huruf
-     mesin ketik, huruf besar, selalu diawali HRCD). Yang butuh label justru
-     Tagihan dan Metode, dan keduanya tetap berlabel. */
-  .data-table.table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"]::before,
-  .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"]::before {
-    content: none;
-  }
+     Label kolom dimatikan seluruhnya di kartu ini. Baris kedua harus memuat
+     TIGA keterangan, dan di layar 360px labelnya memakan ~150px — lebih
+     lebar daripada nilai yang mereka namai. Tanpa label pun kartunya tidak
+     kabur: kode pembayaran bentuknya khas (huruf mesin ketik, selalu diawali
+     HRCD), tombol regu menyebut satuannya sendiri, angka rupiah satu-satunya
+     di kartu, dan dropdown satu-satunya kotak yang bisa diketuk. */
+  .data-table.table-bayar tbody tr[data-baris] > td[data-label]::before { content: none; }
   .table-bayar tbody tr[data-baris] {
     display: grid;
-    /* `max-content`, bukan `1fr` atau `auto`: kolom kiri harus PERSIS selebar
-       keterangan terpanjangnya dan tidak boleh tergerus. Dibagi rata kode
-       pembayaran pecah dua baris; dengan `auto` ia masih tergerus begitu
-       nama sekolah di kolom kanan panjang. */
-    grid-template-columns: max-content 1fr;
-    gap: .2rem .8rem;
-    /* Ditengahkan tegak, bukan rata atas: pasangan kiri-kanan tiap baris
-       tingginya beda — nama sekolah bisa dua baris sementara kodenya satu,
-       dan "Tagihan: Rp 500.000" cuma setinggi teks sementara dropdown di
-       sebelahnya 46px. Rata atas membuat keduanya terbaca tidak sebaris. */
+    grid-template-columns: max-content max-content 1fr;
+    gap: .2rem .7rem;
+    /* Ditengahkan tegak, bukan rata atas: isi tiap baris tingginya beda —
+       nama sekolah bisa dua baris sementara kodenya satu, dan angka tagihan
+       cuma setinggi teks sementara dropdown di sebelahnya 46px. */
     align-items: center;
   }
-  .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
-  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] { display: contents; }
-  /* .data-table ikut disebut supaya spesifisitasnya menyamai aturan label
-     ::before di atas — tanpa itu labelnya tidak terbuang, dan karena kotak
-     selnya sudah hilang ia jadi anggota grid tersendiri yang nyasar ke
-     petak kosong terakhir. Persis itu yang sempat terjadi. */
-  .data-table.table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
-  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] > strong { grid-area: 1 / 2; }
-  /* Tombol "▸ N regu" — dan "semua regu batal" yang menggantikannya kalau
-     tidak ada regu aktif — memakai petak yang sama, selebar kartu. */
-  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] > div { grid-area: 2 / 1 / auto / -1; }
-  .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"] { grid-area: 3 / 1; }
-  .table-bayar tbody tr[data-baris] > td[data-label="Metode"]  { grid-area: 3 / 2; }
-  /* Dropdown dipersempit sedikit HANYA di kartu HP: label "Metode:" dan
-     kotaknya harus muat sebaris di dalam separuh kartu, dan di layar 360px
-     6,5rem membuat kotaknya terdorong turun ke bawah labelnya. 5,5rem masih
-     memuat "Transfer" utuh — itu batas bawahnya, jangan dikurangi lagi. */
-  .table-bayar tbody tr[data-baris] select.select-small { min-width: 5.5rem; }
-  .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 4 / 1 / auto / -1; }
+  /* Nomor garis ditulis EKSPLISIT (mis. 3 / 4), bukan `-1`. Bentuk `-1` di
+     sini membuat isinya balik ke kolom 1-2 dan bertumpuk dengan kode
+     pembayaran — tercetak saling menimpa. Sudah diuji. Jangan "dirapikan". */
+  .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1 / auto / 3; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]    { grid-area: 1 / 3 / auto / 4; }
+  /* Kolom Regu memuat tombol pembuka rincian — di kartu ini ia berbunyi
+     "▾ 2 regu" lengkap dengan satuannya, karena di sini tidak ada judul
+     kolom yang menyebutkannya. */
+  .table-bayar tbody tr[data-baris] > td[data-label="Regu"]    { grid-area: 2 / 1; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"] { grid-area: 2 / 2; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Metode"]  { grid-area: 2 / 3; }
+  /* Dropdown mengisi kolom ketiga, tapi dibatasi supaya di jendela lebar ia
+     tidak melar selebar kolom — dropdown dua pilihan selebar telapak tangan
+     terbaca seperti kotak isian, bukan pilihan. */
+  .table-bayar tbody tr[data-baris] select.select-small {
+    min-width: 5rem; width: 100%; max-width: 10rem;
+  }
+  .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
 
   /* ---- Kartu HP meja daftar ulang: pola yang sama ----
-         Kode Bayar        Sekolah
-         Regu: 5           ABC, Rajawali Tertawa, Syalala, XYZ, XYZA
+         HRCD37-7808B6   SMPN 1 HAHAHA
+         Regu: 5
          ▾ Isi 5 Nomor Dada
 
-     Daftar nama regu ada di dalam sel Sekolah (ia memang milik sekolah itu),
-     jadi sel itu dibuka dengan display: contents seperti di meja pembayaran,
-     lalu namanya disandingkan dengan angka "Regu: 5" — dua keterangan yang
-     memang dibaca bersama saat memanggil sekolah ke meja.
-
      Kolomnya `max-content 1fr`: kolom kiri persis selebar kode pembayaran
-     dan tidak tergerus, sisanya diberikan ke daftar nama regu yang panjang. */
+     dan tidak tergerus, sisanya untuk nama sekolah. */
   .table-daftar-ulang tbody tr[data-baris] {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: .2rem .8rem;
-    align-items: start;
+    /* Ditengahkan tegak, sama seperti kartu meja pembayaran: kode pembayaran
+       memakai huruf yang lebih besar daripada nama sekolah di sebelahnya. */
+    align-items: center;
   }
   .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { display: contents; }
   .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] > strong { grid-area: 1 / 2; }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] > .sub { grid-area: 2 / 2; }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Regu"] { grid-area: 2 / 1; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { grid-area: 1 / 2; }
+  /* Jumlah regu melintang penuh — nama-nama regu yang dulu menemaninya di
+     kolom kanan sudah tidak ditampilkan lagi (lihat app.js), jadi tanpa ini
+     ia menyisakan petak kosong selebar separuh kartu di sebelahnya. */
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Regu"] { grid-area: 2 / 1 / auto / 3; }
   /* Rapat ke daftar regunya, tanpa celah kosong: aksinya membuka daftar yang
      baru saja dibaca, bukan blok baru yang berdiri sendiri. */
   .table-daftar-ulang tbody tr[data-baris] > td:last-child {
-    grid-area: 3 / 1 / auto / -1; margin-top: 0;
+    grid-area: 3 / 1 / auto / 3; margin-top: 0;
   }
 
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
@@ -1082,6 +1156,11 @@ input.small-input { text-align: center; }
     border-bottom-left-radius: 0; border-bottom-right-radius: 0;
   }
 
-  /* Tombol header pindah ke bawah — sisakan judul dan identitas akun saja. */
+}
+
+@media (max-width: 560px) {
+  /* Tombol header pindah ke menu bawah — sisakan judul dan identitas akun
+     saja. Tetap di ambang 560px, bukan 900px: yang menggantikannya adalah
+     menu bawah, dan menu bawah hanya muncul di HP. */
   .header .icon-button, .header .button-small { display: none; }
 }

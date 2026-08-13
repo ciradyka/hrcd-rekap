@@ -440,13 +440,24 @@ async function layarPembayaran() {
           <td class="mono" data-label="Kode Bayar">${kode}</td>
           <td data-label="Sekolah">
             <strong>${sekolah}</strong>
-            ${aktif.length
-              ? `<div><button class="button-detail" type="button" data-detail="${kode}"
-                             data-jumlah="${aktif.length}" aria-expanded="${terbuka}">
-                   ${terbuka ? "▾" : "▸"} ${aktif.length} regu</button></div>`
-              : `<div class="sub">semua regu batal</div>`}
+            ${aktif.length ? "" : `<div class="sub">semua regu batal</div>`}
           </td>
-          <td class="text-center" data-label="Regu">${aktif.length}</td>
+          <!-- Pembuka rincian duduk DI KOLOM REGU, bukan di bawah nama
+               sekolah. Angkanya sama persis dengan yang dulu tercetak di
+               kolom ini, jadi menaruhnya di sini menghapus satu pengulangan
+               sekaligus mengembalikan lebar ke kolom Sekolah.
+               Kata "regu" dibungkus <span class="satuan-regu"> karena hanya
+               dipakai di kartu HP — di tabel, judul kolomnya sudah menyebut
+               REGU dan mengulanginya cuma memakan lebar. Pembaca layar tetap
+               mendapat kalimat utuh lewat aria-label, di kedua tampilan. -->
+          <td class="text-center" data-label="Regu">
+            ${aktif.length
+              ? `<button class="button-detail" type="button" data-detail="${kode}"
+                         data-jumlah="${aktif.length}" aria-expanded="${terbuka}"
+                         aria-label="Lihat ${aktif.length} regu ${esc(sekolah)}">${
+                   terbuka ? "▾" : "▸"} ${aktif.length}<span class="satuan-regu"> regu</span></button>`
+              : aktif.length}
+          </td>
           <td class="text-right" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
           <td class="text-center" data-label="Metode">${metode}</td>
           <td data-label="">${aksi}</td>
@@ -474,6 +485,18 @@ async function layarPembayaran() {
         </tr>`}`;
     }).join("")));
 
+    /** Isi tombol pembuka rincian: segitiga, jumlah regu, dan kata "regu"
+     *  yang hanya tampil di kartu HP (lihat .satuan-regu di gaya). Dibangun
+     *  sebagai node, BUKAN textContent — textContent akan membuang <span>
+     *  pembungkus kata itu, dan sesudah tombol pertama diklik kartu HP
+     *  kehilangan kata "regu" sementara kartu lain masih memilikinya. */
+    const isiTombolDetail = (terbuka, jumlah) => {
+      const satuan = document.createElement("span");
+      satuan.className = "satuan-regu";
+      satuan.textContent = " regu";
+      return [document.createTextNode(`${terbuka ? "▾" : "▸"} ${jumlah}`), satuan];
+    };
+
     // Buka/tutup rincian regu satu invoice.
     tbody.querySelectorAll("[data-detail]").forEach(btn =>
       btn.addEventListener("click", () => {
@@ -491,14 +514,14 @@ async function layarPembayaran() {
           tbody.querySelectorAll("[data-detail]").forEach(lainBtn => {
             if (lainBtn === btn) return;
             lainBtn.setAttribute("aria-expanded", "false");
-            lainBtn.textContent = `▸ ${lainBtn.dataset.jumlah} regu`;
+            lainBtn.replaceChildren(...isiTombolDetail(false, lainBtn.dataset.jumlah));
           });
           dibuka.clear();
         }
         if (buka) dibuka.add(kode); else dibuka.delete(kode);
         barisDetail.hidden = !buka;
         btn.setAttribute("aria-expanded", String(buka));
-        btn.textContent = `${buka ? "▾" : "▸"} ${btn.dataset.jumlah} regu`;
+        btn.replaceChildren(...isiTombolDetail(buka, btn.dataset.jumlah));
       }));
 
     tbody.querySelectorAll("[data-cetak]").forEach(btn =>
@@ -740,9 +763,15 @@ async function layarDaftarUlang() {
       return `
         <tr data-baris="${kode}">
           <td class="mono" data-label="Kode Bayar">${kode}</td>
+          <!-- Nama-nama regu TIDAK ditampilkan di sini. Barisnya panjang dan
+               memakan lebar yang dibutuhkan kolom di kanannya, padahal yang
+               dicari petugas di layar ini adalah SEKOLAHNYA — nama regunya
+               baru relevan saat mengisi nomor dada, dan di sana ia memang
+               tampil satu per satu di rincian. Pencarian tetap mengenali
+               nama regu (lihat cocokCari), jadi mengetik nama regu tetap
+               menemukan sekolahnya. -->
           <td data-label="Sekolah">
             <strong>${esc(b.sekolah?.name || "—")}</strong>
-            <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
           <td class="text-center" data-label="Regu">${aktif.length}</td>
           <td data-label="">${aksi}</td>
