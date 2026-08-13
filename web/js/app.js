@@ -384,9 +384,11 @@ async function layarPembayaran() {
       // tentang uang yang sama, dibaca bersama. Kolom aksi tinggal berisi
       // tombol saja, jadi tombolnya muat berderet ke samping.
       const metode = b.status === "lunas"
+        // Nomor kwitansi TIDAK ditampilkan di tabel: panjang, tidak pernah
+        // dicari lewat layar ini, dan sudah tercetak di kwitansinya sendiri
+        // — di situlah ia berguna saat menyusun berkas.
         ? html`<div>${b.pembayaran ? b.pembayaran.method : "—"}</div>
-               <span class="badge badge-green">LUNAS</span>
-               <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>`
+               <span class="badge badge-green">LUNAS</span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
           : `<select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
