@@ -610,25 +610,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      membuat isinya membungkus — isinya MELUAP menimpa kolom sebelahnya.
      Di bawah lebar ini tabelnya menggeser di dalam kartu (.table-wrapper
      sudah overflow-x: auto), dan tidak ada lagi yang saling tertutup. */
-  /* 820px, SAMA dengan tabel meja pembayaran — dan itu bukan kebetulan:
-     keduanya harus muat di lebar kartu saat ambang 900px baru saja terlewat
-     (941 - padding - scrollbar ≈ 869). Kalau salah satunya lebih tinggi dari itu, ia
-     menggeser ke samping tepat di ambangnya dan kolom paling kanan — kolom
-     tombol — hilang dari layar. Sempat 860px, dan persis itu yang terjadi. */
-  .table-daftar-ulang { min-width: 820px; }
-  /* Keempat kolom rincian dipatok PERSIS ke kolom induknya. Ini yang membuat
-     Regu (induk) dan Ketua (rincian) jatuh di satu pita, lalu tombol "Isi N
-     Nomor Dada", kotak nomor dadanya, dan tombol Simpan di pita berikutnya.
-     Kalau salah satu angka diubah, pasangannya ikut. */
+  /* Lantai lebar. Harus muat di lebar kartu saat ambang 940px baru saja
+     terlewat (941 - padding - scrollbar ≈ 869), kalau tidak ia menggeser ke
+     samping tepat di ambangnya dan kolom paling kanan — kolom tombol —
+     hilang dari layar. Sempat 860px, dan persis itu yang terjadi. */
+  .table-daftar-ulang { min-width: 790px; }
+  /* Tabel induk punya TIGA kolom, rinciannya EMPAT. Yang wajib sejajar cuma
+     kolom pertama (tepi kiri rapi) dan kolom TERAKHIR — kotak nomor dada
+     harus jatuh tepat di bawah tombol "Isi N Nomor Dada" yang membukanya,
+     kalau meleset petugas harus menelusuri baris dengan jari untuk memastikan
+     ia mengetik di sekolah yang benar.
+
+     Karena itu 17% + 55% induk = 17% + 27% + 28% rincian, dua-duanya berhenti
+     di 72%, lalu kolom terakhir sama-sama 28%. Kalau salah satu angka
+     diubah, jumlah pasangannya ikut. */
   .table-daftar-ulang th:nth-child(1), .table-daftar-ulang td:nth-child(1),
   .detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 17%; }
-  .table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2),
-  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 39%; }
-  /* 16%, bukan 10%: pita ini dipakai bersama angka Regu yang cuma satu digit
-     DAN nama ketua yang bisa tiga kata. Yang menentukan lebarnya nama. */
+  .table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2) { width: 55%; }
+  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 27%; }
+  .detail-table-dada  th:nth-child(3), .detail-table-dada  td:nth-child(3) { width: 28%; }
   .table-daftar-ulang th:nth-child(3), .table-daftar-ulang td:nth-child(3),
-  .detail-table-dada  th:nth-child(3), .detail-table-dada  td:nth-child(3) { width: 16%; }
-  .table-daftar-ulang th:nth-child(4), .table-daftar-ulang td:nth-child(4),
   .detail-table-dada  th:nth-child(4), .detail-table-dada  td:nth-child(4) { width: 28%; }
 
   /* Isi kolom terakhir DITENGAHKAN, bukan rata kiri atau rata kanan. Tombol
@@ -636,8 +637,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      rinciannya, dan tombol "Simpan N Nomor Dada" jadi berbagi satu garis
      tengah — mata turun lurus dari tombol pembuka ke kotak isian ke tombol
      simpan, tidak melompat ke kiri lalu ke kanan. */
-  .table-daftar-ulang td:nth-child(4) { text-align: center; }
-  .table-daftar-ulang td:nth-child(4) .pill-row { justify-content: center; }
+  /* nth-child(3), bukan (4): kolom Regu sudah dihapus, kolom aksi naik jadi
+     kolom ketiga. Salah nomor di sini tidak menimbulkan galat apa pun —
+     aturannya sekadar tidak mengenai apa-apa, dan tombol pembuka meleset
+     ~74px dari kotak nomor dada yang seharusnya jatuh tepat di bawahnya. */
+  .table-daftar-ulang td:nth-child(3) { text-align: center; }
+  .table-daftar-ulang td:nth-child(3) .pill-row { justify-content: center; }
   /* Kotak angka melebar sedikit — sasaran klik lebih besar, dan titik
      tengahnya jatuh persis segaris dengan tombol Simpan di bawahnya. */
   .detail-table-dada input.small-input { width: 100%; max-width: 8rem; }
@@ -1108,9 +1113,8 @@ input.small-input { text-align: center; }
   }
   .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
 
-  /* ---- Kartu HP meja daftar ulang: pola yang sama ----
+  /* ---- Kartu HP meja daftar ulang ----
          HRCD37-7808B6   SMPN 1 HAHAHA
-         Regu: 5
          ▾ Isi 5 Nomor Dada
 
      Kolomnya `max-content 1fr`: kolom kiri persis selebar kode pembayaran
@@ -1126,14 +1130,12 @@ input.small-input { text-align: center; }
   .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
   .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
   .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { grid-area: 1 / 2; }
-  /* Jumlah regu melintang penuh — nama-nama regu yang dulu menemaninya di
-     kolom kanan sudah tidak ditampilkan lagi (lihat app.js), jadi tanpa ini
-     ia menyisakan petak kosong selebar separuh kartu di sebelahnya. */
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Regu"] { grid-area: 2 / 1 / auto / 3; }
-  /* Rapat ke daftar regunya, tanpa celah kosong: aksinya membuka daftar yang
-     baru saja dibaca, bukan blok baru yang berdiri sendiri. */
+  /* Tombol pembuka melintang penuh di baris kedua, rapat ke sekolahnya —
+     aksinya membuka daftar milik sekolah yang baru saja dibaca, bukan blok
+     baru yang berdiri sendiri. Kolom Regu sudah tidak ada lagi (jumlahnya
+     tercetak di dalam tombol ini), jadi baris kedua langsung miliknya. */
   .table-daftar-ulang tbody tr[data-baris] > td:last-child {
-    grid-area: 3 / 1 / auto / 3; margin-top: 0;
+    grid-area: 2 / 1 / auto / 3; margin-top: 0;
   }
 
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
