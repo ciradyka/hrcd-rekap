@@ -335,7 +335,7 @@ async function layarPembayaran() {
           <thead>
             <tr>
               <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
-              <th class="text-right">Tagihan</th><th>Status / Aksi</th>
+              <th class="text-center">Tagihan</th><th class="text-center">Metode</th><th></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -364,7 +364,7 @@ async function layarPembayaran() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="5" class="table-empty">
+      tbody.replaceChildren(h(`<tr><td colspan="6" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
       return;
     }
@@ -376,6 +376,19 @@ async function layarPembayaran() {
       // meja, jadi jalur tersibuk cukup satu ketukan. Yang transfer memilih
       // "Transfer" dulu. Salah tandai dibereskan lewat "Batalkan", bukan
       // dicegah dengan ketukan tambahan untuk semua orang.
+      // Cara bayar berdiri di kolomnya SENDIRI. Untuk yang belum bayar ia
+      // dropdown; untuk yang sudah, ia catatan cara pembayarannya benar-
+      // benar diterima — pertanyaan yang sering ditanya saat menyusun
+      // laporan keuangan, dan dulu tidak terlihat di mana pun.
+      const metode = b.status === "lunas"
+        ? html`${b.pembayaran ? b.pembayaran.method : "—"}`
+        : b.status === "batal"
+          ? "—"
+          : `<select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
+               <option value="tunai" selected>Tunai</option>
+               <option value="transfer">Transfer</option>
+             </select>`;
+
       const aksi = b.status === "lunas"
         ? html`<span class="badge badge-green">LUNAS</span>
                <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>
@@ -385,14 +398,8 @@ async function layarPembayaran() {
                        data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
-          : `<div class="action-row">
-               <select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
-                 <option value="tunai" selected>Tunai</option>
-                 <option value="transfer">Transfer</option>
-               </select>
-               <button class="button button-primary button-small" type="button"
-                       data-lunas="${esc(b.kode_pembayaran)}">Lunas</button>
-             </div>`;
+          : `<button class="button button-primary button-small" type="button"
+                     data-lunas="${esc(b.kode_pembayaran)}">Lunas</button>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
       // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
       // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
@@ -415,12 +422,13 @@ async function layarPembayaran() {
               : `<div class="sub">semua regu batal</div>`}
           </td>
           <td class="text-center" data-label="Regu">${aktif.length}</td>
-          <td class="text-right" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
-          <td data-label="Status">${aksi}</td>
+          <td class="text-center" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
+          <td class="text-center" data-label="Metode">${metode}</td>
+          <td data-label="">${aksi}</td>
         </tr>
         ${!aktif.length ? "" : `
         <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="5">
+          <td colspan="6">
             <table class="detail-table">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Sekolah</th>
