@@ -1,3 +1,21 @@
+-- ============================================================================
+-- PERINGATAN: BERKAS INI MENGUBAH DATA.
+--
+-- Berbeda dari berkas lain di supabase/checks/ yang hanya membaca, skrip ini
+-- MENJALANKAN transaksi sungguhan: ia menandai sebuah pembayaran LUNAS,
+-- menerbitkan kwitansi, dan memakai nomor dada dari stok. Efeknya tidak bisa
+-- dibatalkan dengan menutup jendela.
+--
+-- Kode batch di bawah (v_kode) DITULIS MATI dan menunjuk batch uji yang
+-- sengaja dibuat untuk ini. Menjalankannya apa adanya terhadap database yang
+-- berisi pendaftaran sungguhan akan melunasi tagihan sekolah yang tidak
+-- membayar, dan menghabiskan nomor dada dari stok fisik yang belum dibagikan.
+--
+-- Jalankan HANYA di database lokal/uji, dan hanya setelah memastikan v_kode
+-- memang batch uji. Namanya "flow_test" — bacalah sebagai tes, bukan sebagai
+-- pemeriksaan.
+-- ============================================================================
+
 -- Uji alur nyata terhadap fungsi-fungsi yang ditulis ulang saat rename.
 -- Memakai batch UJI MEJA PEMBAYARAN yang sengaja dibuat untuk ini.
 --
