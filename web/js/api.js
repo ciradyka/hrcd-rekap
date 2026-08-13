@@ -380,3 +380,9 @@ export const batalCeklisBerangkat = (nomorDada) =>
 /** Jam WAJIB diketik panitia pencatat — tidak pernah now() (alur 12.4). */
 export const berangkatkanKloter = (kloter, jam) =>
   rpc("berangkatkan_kloter", { p_kloter: kloter, p_jam: jam });
+
+/** Membetulkan jam kloter yang SUDAH berangkat. Alasan wajib: jam berangkat
+ *  menentukan penalti seluruh regu di kloter itu, jadi setiap perubahannya
+ *  tercatat di history bersama jam lamanya. */
+export const koreksiJamBerangkat = (kloter, jam, alasan) =>
+  rpc("koreksi_jam_berangkat", { p_kloter: kloter, p_jam: jam, p_alasan: alasan });
