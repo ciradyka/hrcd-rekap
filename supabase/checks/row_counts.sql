@@ -10,6 +10,7 @@ union all select 'nilai_mentah', count(*) from nilai_mentah
 union all select 'closing_regu', count(*) from closing_regu
 union all select 'keberangkatan_regu', count(*) from keberangkatan_regu
 union all select 'nomor_dada_stok', count(*) from nomor_dada_stok
-union all select 'riwayat', count(*) from riwayat
+union all select 'history', count(*) from history
 union all select 'edisi', count(*) from edisi
+union all select 'pendaftaran BER-nama_kontak', count(nama_kontak) from pendaftaran
 order by 1;
