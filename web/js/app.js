@@ -380,26 +380,31 @@ async function layarPembayaran() {
       // dropdown; untuk yang sudah, ia catatan cara pembayarannya benar-
       // benar diterima — pertanyaan yang sering ditanya saat menyusun
       // laporan keuangan, dan dulu tidak terlihat di mana pun.
+      // Kolom Metode memuat cara bayar SEKALIGUS statusnya: dua fakta
+      // tentang uang yang sama, dibaca bersama. Kolom aksi tinggal berisi
+      // tombol saja, jadi tombolnya muat berderet ke samping.
       const metode = b.status === "lunas"
-        ? html`${b.pembayaran ? b.pembayaran.method : "—"}`
+        ? html`<div>${b.pembayaran ? b.pembayaran.method : "—"}</div>
+               <span class="badge badge-green">LUNAS</span>
+               <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>`
         : b.status === "batal"
-          ? "—"
+          ? `<span class="badge badge-red">BATAL</span>`
           : `<select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
                <option value="tunai" selected>Tunai</option>
                <option value="transfer">Transfer</option>
              </select>`;
 
       const aksi = b.status === "lunas"
-        ? html`<span class="badge badge-green">LUNAS</span>
-               <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>
-               <button class="button button-primary button-mini" type="button"
-                       data-cetak="${b.kode_pembayaran}">Cetak Kwitansi</button>
-               <button class="button button-secondary button-mini" type="button"
-                       data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>`
+        ? html`<div class="action-row action-row-rapat">
+                 <button class="button button-primary button-mini" type="button"
+                         data-cetak="${b.kode_pembayaran}">Cetak Kwitansi</button>
+                 <button class="button button-secondary button-mini" type="button"
+                         data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>
+               </div>`
         : b.status === "batal"
-          ? `<span class="badge badge-red">BATAL</span>`
+          ? ""
           : `<button class="button button-primary button-small" type="button"
-                     data-lunas="${esc(b.kode_pembayaran)}">Lunas</button>`;
+                     data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
       // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
       // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
@@ -508,7 +513,7 @@ async function layarPembayaran() {
           r = await verifikasiPembayaran(kode, tagihan, metode);
         } catch (err) {
           notif(err.message, true);
-          btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Lunas";
+          btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Tandai Lunas";
           return;
         }
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
