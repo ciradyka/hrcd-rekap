@@ -42,6 +42,7 @@ const kosong = () => ({
   rincian: { penggalang_pa: 0, penggalang_pi: 0, penegak_pa: 0, penegak_pi: 0 },
   regu: [],                      // [{golongan, nama_regu, nama_ketua}]
   kontak_wa: "",
+  nama_kontak: "",
   kunci_kirim: (crypto.randomUUID ? crypto.randomUUID()
                 : String(Date.now()) + Math.random().toString(16).slice(2)),
 });
@@ -115,10 +116,16 @@ function halaman() {
 
     <!-- 5. Kontak -->
     <section class="card" id="bagian-kontak">
-      <h2><span class="section-number">5</span> Nomor WhatsApp yang bisa dihubungi</h2>
-      <p class="description">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
+      <h2><span class="section-number">5</span> Contact person</h2>
+      <p class="description">Satu orang untuk semua regu — panitia menghubungi lewat sini.</p>
       <div class="field" style="margin-top:.7rem">
-        <label for="wa" class="visually-hidden">Nomor WA</label>
+        <label for="nama-kontak">Nama</label>
+        <input type="text" id="nama-kontak" autocomplete="name"
+               placeholder="contoh: Bu Rina">
+        <div class="error" id="g-nama-kontak" hidden>Nama contact person wajib diisi.</div>
+      </div>
+      <div class="field">
+        <label for="wa">Nomor WhatsApp</label>
         <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 08123456789">
         <div class="error" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08, bukan +62.</div>
       </div>
@@ -139,6 +146,12 @@ function halaman() {
   gambarBarak();
   gambarStepper();
   gambarRegu();
+  document.getElementById("nama-kontak").value = jawab.nama_kontak;
+  document.getElementById("nama-kontak").addEventListener("input", e => {
+    jawab.nama_kontak = e.target.value; simpanDraf();
+    document.getElementById("g-nama-kontak").hidden = !!e.target.value.trim();
+    if (sudahDiperiksa) periksa(false);
+  });
   document.getElementById("wa").value = jawab.kontak_wa;
   cekWaLive();
   document.getElementById("wa").addEventListener("input", e => {
@@ -425,6 +438,11 @@ function periksa(gulir = true) {
     if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
   });
 
+  const namaKontakKosong = !jawab.nama_kontak.trim();
+  if (namaKontakKosong)
+    galat.push({ ke: "bagian-kontak", teks: "Nama contact person belum diisi" });
+  tandai("g-nama-kontak", namaKontakKosong);
+
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
   const waSah = POLA_WA.test(digitWa);
   if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
@@ -487,6 +505,7 @@ async function kirim(e) {
       butuh_barak: jawab.butuh_barak,
       jumlah_pendamping: jawab.jumlah_pendamping,
       kontak_wa: jawab.kontak_wa,
+      nama_kontak: jawab.nama_kontak,
       regu: jawab.regu,
       kunci_kirim: jawab.kunci_kirim,     // sama saat mencoba lagi
     }, tokenTurnstile);

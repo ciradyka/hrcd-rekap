@@ -35,6 +35,7 @@ run supabase/migrations/0009_sisip_kloter.sql
 run supabase/migrations/0010_lookup_finish.sql
 run supabase/migrations/0011_nomor_dada_manual.sql
 run supabase/migrations/0012_rename_audit_columns.sql
+run supabase/migrations/0013_nama_kontak.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql

@@ -93,6 +93,7 @@ export default {
         p_alamat_sekolah: b.alamat_sekolah,
         p_butuh_barak: !!b.butuh_barak,
         p_kontak_wa: b.kontak_wa,
+        p_nama_kontak: b.nama_kontak || null,
         p_regu: b.regu,
         p_jumlah_pendamping: b.jumlah_pendamping || 0,
         // Kunci idempotensi: kiriman ulang setelah sinyal putus tidak

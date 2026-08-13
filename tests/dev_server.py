@@ -115,7 +115,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/daftar-pendaftaran":
                 self._kirim(200, q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
-                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa,
+                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
                            d.created_at,
                            jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
                            (select jsonb_agg(jsonb_build_object(
@@ -149,7 +149,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/batch":
                 b = q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
-                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa,
+                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
                            jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
                            (select jsonb_agg(jsonb_build_object(
                               'id', r.id, 'nama_regu', r.nama_regu,
@@ -198,12 +198,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 b = self._badan()
                 hasil = q(
                     "select submit_pendaftaran(%s, %s, %s, %s, %s::jsonb, "
-                    "%s::smallint, %s::uuid) as h",
+                    "%s::smallint, %s::uuid, %s) as h",
                     (b.get("nama_sekolah"), b.get("alamat_sekolah"),
                      bool(b.get("butuh_barak")), b.get("kontak_wa"),
                      json.dumps(b.get("regu") or []),
                      int(b.get("jumlah_pendamping") or 0),
-                     b.get("kunci_kirim")),
+                     b.get("kunci_kirim"), b.get("nama_kontak")),
                     role="service_role", fetch="one")
                 self._kirim(200, hasil["h"])
 
