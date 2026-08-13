@@ -303,19 +303,10 @@ begin
   -- 0018 berbicara tentang catatan berangkat REGU ini, jadi tesnya harus
   -- memastikan catatan itu memang tidak ada. Sekaligus membuktikan jalur
   -- pemulihan salah klik: meja boleh menghapus centang kapan pun.
-  perform batal_ceklis_berangkat(14);
-  raise notice 'DIAGNOSA dada 14: id=%, kloter=%, kontrak=%, ceklis=%',
-    (select id from regu where nomor_dada = 14),
-    (select kloter_nomor from regu where nomor_dada = 14),
-    (select kontrak_menit from regu where nomor_dada = 14),
-    (select count(*) from keberangkatan_regu kb
-     where kb.regu_id = (select id from regu where nomor_dada = 14));
-
-  -- SEJAK 0018: meja BOLEH mengisi kontrak regu yang belum tercatat berangkat,
-  -- walau kloternya sudah jalan. Aturan lama memakai patokan kloter dan
-  -- membuat regu tertinggal tidak bisa ditolong siapa pun di meja: kontrak
-  -- ditolak, lalu ceklis ditolak karena tidak berkontrak. Patokannya sekarang
-  -- keberangkatan regu itu sendiri.
+  -- SEJAK 0018: meja BOLEH mengisi kontrak regu yang KETINGGALAN — kloternya
+  -- sudah jalan, tapi regu ini tidak ikut. Aturan lama memakai patokan kloter
+  -- saja, sehingga regu itu tidak bisa ditolong siapa pun di meja: kontrak
+  -- ditolak, lalu ceklis ditolak karena tidak berkontrak.
   perform konfirmasi_kontrak((select id from regu where nomor_dada = 14), 240::smallint);
   assert (select kontrak_menit from regu where nomor_dada = 14) = 240,
     'meja tidak bisa mengisi kontrak regu yang tertinggal';
@@ -327,8 +318,10 @@ select ceklis_berangkat(14);
 
 do $$
 begin
-  -- Setelah REGU ITU tercatat berangkat, kontraknya menentukan penalti yang
-  -- sudah berjalan: koreksi hanya lewat admin (0018).
+  -- Sekarang dada 14 dicentang DAN kloternya sudah jalan — barulah ia terhitung
+  -- berangkat, dan kontraknya menentukan penalti yang sudah berjalan: koreksi
+  -- hanya lewat admin (0018). Centang saja tidak pernah cukup; kalau cukup,
+  -- alur meja yang biasa (centang dulu, pilih kontrak sesudahnya) ikut terkunci.
   begin
     perform konfirmasi_kontrak((select id from regu where nomor_dada = 14), 210::smallint);
     raise exception 'GAGAL: meja mengubah kontrak regu yang sudah tercatat berangkat';

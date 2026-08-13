@@ -20,16 +20,18 @@ do $$
 declare v_dada integer;
 begin
   select r.nomor_dada into v_dada
-  from regu r join keberangkatan_regu kr on kr.regu_id = r.id
-  where not r.is_cancelled
+  from regu r
+  join keberangkatan_regu kr on kr.regu_id = r.id
+  join kloter k on k.nomor = r.kloter_nomor
+  where not r.is_cancelled and k.jam_berangkat is not null
   limit 1;
   if v_dada is null then
-    raise notice '7.1 dilewati: tidak ada regu yang tercatat berangkat';
+    raise notice '7.1 dilewati: tidak ada regu yang benar-benar berangkat';
     return;
   end if;
   begin
     perform pindah_kloter(v_dada, 'coba pindah padahal sudah berangkat');
-    raise exception 'GAGAL: regu yang sudah tercatat berangkat bisa dipindah';
+    raise exception 'GAGAL: regu yang benar-benar berangkat bisa dipindah';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;

@@ -36,6 +36,31 @@
 -- Kapasitas, status batal, dan kunci kertas (sisipan) tidak disentuh.
 -- ============================================================================
 
+-- Satu-satunya definisi "regu ini sudah berangkat", dipakai pindah_kloter dan
+-- konfirmasi_kontrak supaya keduanya tidak bisa berbeda pendapat.
+--
+-- DUA syarat, dan keduanya wajib:
+--   - regu ini DICENTANG hadir (ada baris keberangkatan_regu), DAN
+--   - kloternya memang sudah jalan (jam_berangkat terisi).
+--
+-- Centang saja tidak cukup. Petugas mencentang regu saat ia tiba di staging,
+-- jauh sebelum kloternya berangkat — memakai centang sendirian akan mengunci
+-- kontrak waktu pada alur meja yang paling biasa: centang dulu, pilih kontrak
+-- sesudahnya. Keberangkatan kloter saja juga tidak cukup: itu justru cerita
+-- regu yang ketinggalan, yang tidak ke mana-mana.
+create or replace function regu_sudah_berangkat(p_regu uuid)
+returns boolean
+language sql stable security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from keberangkatan_regu kb
+    join regu r  on r.id = kb.regu_id
+    join kloter k on k.nomor = r.kloter_nomor
+    where kb.regu_id = p_regu and k.jam_berangkat is not null)
+$$;
+
 create or replace function pindah_kloter(
   p_nomor_dada integer,
   p_alasan     text,
@@ -76,17 +101,9 @@ begin
 
   -- Yang menghalangi BUKAN keberangkatan kloternya, melainkan keberangkatan
   -- REGU ini. Lihat catatan panjang di kepala berkas.
-  if exists (select 1 from keberangkatan_regu where regu_id = v_regu.id) then
-    -- Dua keadaan, dua jalan keluar yang berbeda. Menyebut jalan keluar yang
-    -- salah lebih buruk daripada tidak menyebut apa pun: panitia akan mencoba
-    -- pintu yang memang tidak bisa dibuka, lalu menyerah.
-    if exists (select 1 from kloter where nomor = v_lama and jam_berangkat is not null) then
-      raise exception 'regu % tercatat ikut berangkat bersama kloter % — kalau itu keliru, batalkan dulu keberangkatan kloter itu lewat admin',
-        p_nomor_dada, v_lama;
-    else
-      raise exception 'regu % sudah dicentang hadir — hapus dulu centangnya di layar Keberangkatan, lalu pindahkan',
-        p_nomor_dada;
-    end if;
+  if regu_sudah_berangkat(v_regu.id) then
+    raise exception 'regu % ikut berangkat bersama kloter % — kalau itu keliru, batalkan dulu keberangkatan kloter itu lewat admin',
+      p_nomor_dada, v_lama;
   end if;
 
   if p_kloter is null then
@@ -223,9 +240,8 @@ begin
   -- Setelah REGU INI tercatat berangkat, kontraknya menentukan penalti yang
   -- sudah berjalan — perbaikan susulan hanya lewat admin. Kloter yang pergi
   -- tanpa dia tidak menghalangi apa pun.
-  if peran() <> 'admin'
-     and exists (select 1 from keberangkatan_regu where regu_id = p_regu) then
-    raise exception 'regu ini sudah tercatat berangkat — koreksi kontrak hanya lewat admin';
+  if peran() <> 'admin' and regu_sudah_berangkat(p_regu) then
+    raise exception 'regu ini sudah berangkat — koreksi kontrak hanya lewat admin';
   end if;
 
   update regu set kontrak_menit = p_menit where id = p_regu;
