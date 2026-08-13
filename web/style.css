@@ -967,6 +967,101 @@ input.small-input { text-align: center; }
      bukan seluruh regu, jadi angkanya memang beda. */
   .table-bayar tbody tr[data-baris] > td[data-label="Regu"] { display: none; }
 
+  /* ---- Kartu invoice HP: dua keterangan per baris ----
+     Enam keterangan bertumpuk satu-satu membuat satu invoice setinggi
+     separuh layar, dan petugas harus menggulir untuk membandingkan dua
+     sekolah. Yang memang dibaca berpasangan disandingkan:
+
+         Kode Bayar        Sekolah
+         ▸ 2 regu
+         Tagihan           Metode
+         [    Tandai Lunas     ]
+
+     Kenapa `display: contents` di sel Sekolah: tombol "▸ N regu" ada DI
+     DALAM sel itu di markup (ia memang milik sekolah tersebut), padahal di
+     sini ia harus jadi barisnya sendiri selebar kartu. `display: contents`
+     membuang kotak selnya saja — nama sekolah dan tombolnya naik jadi
+     anggota grid kartu ini langsung, sehingga masing-masing bisa ditaruh di
+     petaknya sendiri. Sel itu sendiri tidak hilang, hanya kotaknya.
+
+     Label "Sekolah:" ikut dimatikan di sini: label itu ::before milik sel,
+     dan begitu kotak selnya hilang ia jadi anggota grid tersendiri yang
+     harus ikut ditempatkan. Nama sekolah yang tebal sudah cukup jelas
+     tanpa label.
+
+     Label "Kode Bayar:" juga dimatikan, alasannya beda: ia memakan ~75px
+     dari satu-satunya baris yang harus memuat DUA keterangan, dan tanpa itu
+     kodenya tidak jadi kurang jelas — bentuknya sudah khas sendiri (huruf
+     mesin ketik, huruf besar, selalu diawali HRCD). Yang butuh label justru
+     Tagihan dan Metode, dan keduanya tetap berlabel. */
+  .data-table.table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"]::before,
+  .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"]::before {
+    content: none;
+  }
+  .table-bayar tbody tr[data-baris] {
+    display: grid;
+    /* `max-content`, bukan `1fr` atau `auto`: kolom kiri harus PERSIS selebar
+       keterangan terpanjangnya dan tidak boleh tergerus. Dibagi rata kode
+       pembayaran pecah dua baris; dengan `auto` ia masih tergerus begitu
+       nama sekolah di kolom kanan panjang. */
+    grid-template-columns: max-content 1fr;
+    gap: .2rem .8rem;
+    /* Ditengahkan tegak, bukan rata atas: pasangan kiri-kanan tiap baris
+       tingginya beda — nama sekolah bisa dua baris sementara kodenya satu,
+       dan "Tagihan: Rp 500.000" cuma setinggi teks sementara dropdown di
+       sebelahnya 46px. Rata atas membuat keduanya terbaca tidak sebaris. */
+    align-items: center;
+  }
+  .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] { display: contents; }
+  /* .data-table ikut disebut supaya spesifisitasnya menyamai aturan label
+     ::before di atas — tanpa itu labelnya tidak terbuang, dan karena kotak
+     selnya sudah hilang ia jadi anggota grid tersendiri yang nyasar ke
+     petak kosong terakhir. Persis itu yang sempat terjadi. */
+  .data-table.table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] > strong { grid-area: 1 / 2; }
+  /* Tombol "▸ N regu" — dan "semua regu batal" yang menggantikannya kalau
+     tidak ada regu aktif — memakai petak yang sama, selebar kartu. */
+  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"] > div { grid-area: 2 / 1 / auto / -1; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"] { grid-area: 3 / 1; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Metode"]  { grid-area: 3 / 2; }
+  /* Dropdown dipersempit sedikit HANYA di kartu HP: label "Metode:" dan
+     kotaknya harus muat sebaris di dalam separuh kartu, dan di layar 360px
+     6,5rem membuat kotaknya terdorong turun ke bawah labelnya. 5,5rem masih
+     memuat "Transfer" utuh — itu batas bawahnya, jangan dikurangi lagi. */
+  .table-bayar tbody tr[data-baris] select.select-small { min-width: 5.5rem; }
+  .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 4 / 1 / auto / -1; }
+
+  /* ---- Kartu HP meja daftar ulang: pola yang sama ----
+         Kode Bayar        Sekolah
+         Regu: 5           ABC, Rajawali Tertawa, Syalala, XYZ, XYZA
+         ▾ Isi 5 Nomor Dada
+
+     Daftar nama regu ada di dalam sel Sekolah (ia memang milik sekolah itu),
+     jadi sel itu dibuka dengan display: contents seperti di meja pembayaran,
+     lalu namanya disandingkan dengan angka "Regu: 5" — dua keterangan yang
+     memang dibaca bersama saat memanggil sekolah ke meja.
+
+     Kolomnya `max-content 1fr`: kolom kiri persis selebar kode pembayaran
+     dan tidak tergerus, sisanya diberikan ke daftar nama regu yang panjang. */
+  .table-daftar-ulang tbody tr[data-baris] {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .2rem .8rem;
+    align-items: start;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { display: contents; }
+  .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] > strong { grid-area: 1 / 2; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] > .sub { grid-area: 2 / 2; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Regu"] { grid-area: 2 / 1; }
+  /* Rapat ke daftar regunya, tanpa celah kosong: aksinya membuka daftar yang
+     baru saja dibaca, bukan blok baru yang berdiri sendiri. */
+  .table-daftar-ulang tbody tr[data-baris] > td:last-child {
+    grid-area: 3 / 1 / auto / -1; margin-top: 0;
+  }
+
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
      ke kartu invoice di atasnya — bertumpuk, rincian yang mengambang bebas
      terbaca seperti kartu invoice lain, bukan seperti isi kartu barusan. */

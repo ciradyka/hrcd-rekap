@@ -409,18 +409,22 @@ async function layarPembayaran() {
         // tombolnya menyusut sendiri: "Cetak Kwitansi" -> "Kwitansi",
         // "Tandai Lunas" -> "Lunas". Tanpa ini, di jendela sempit tombolnya
         // melebar sampai menutupi dropdown cara bayar di sebelahnya.
+        // Label dibungkus SATU <span> luar supaya .button — yang inline-flex
+        // dengan gap .5rem — melihatnya sebagai satu item saja. Tanpa
+        // pembungkus itu, "Tandai" dan "Lunas" jadi dua item terpisah dan
+        // gap-nya menambah jarak sendiri: terbaca "Tandai  Lunas".
         ? `<div class="action-row action-row-rapat">
                  <button class="button button-primary button-mini" type="button"
-                         data-cetak="${esc(b.kode_pembayaran)}"><span
-                         class="teks-lebar">Cetak </span>Kwitansi</button>
+                         data-cetak="${esc(b.kode_pembayaran)}"><span><span
+                         class="teks-lebar">Cetak </span>Kwitansi</span></button>
                  <button class="button button-secondary button-mini" type="button"
                          data-batal-bayar="${esc(b.kode_pembayaran)}">Batalkan</button>
                </div>`
         : b.status === "batal"
           ? ""
           : `<button class="button button-primary button-small" type="button"
-                     data-lunas="${esc(b.kode_pembayaran)}"><span
-                     class="teks-lebar">Tandai </span>Lunas</button>`;
+                     data-lunas="${esc(b.kode_pembayaran)}"><span><span
+                     class="teks-lebar">Tandai </span>Lunas</span></button>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
       // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
       // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
