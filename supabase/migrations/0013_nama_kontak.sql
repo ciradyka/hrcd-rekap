@@ -19,6 +19,13 @@
 
 alter table pendaftaran add column nama_kontak text;
 
+-- Parameter ber-default membuat OVERLOAD, bukan mengganti: tanda tangan lama
+-- tetap hidup dan panggilan 5 argumen jadi ambigu ("is not unique"). Versi
+-- lama harus dibuang eksplisit. 0006 pun dulu menambah p_kunci_kirim lewat
+-- create or replace, jadi tanda tangan 0004 masih tertinggal juga.
+drop function if exists submit_pendaftaran(text, text, boolean, text, jsonb, smallint);
+drop function if exists submit_pendaftaran(text, text, boolean, text, jsonb, smallint, uuid);
+
 create or replace function submit_pendaftaran(
   p_nama_sekolah   text,
   p_alamat_sekolah text,
