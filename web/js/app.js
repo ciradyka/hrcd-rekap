@@ -167,12 +167,14 @@ async function layarBeranda() {
 
 /* ============================ GANTI PASSWORD ============================= */
 
-// "ABCD" adalah kode konfirmasi TETAP, bukan rahasia dan bukan pemeriksaan
-// identitas — identitas sudah dibuktikan lewat sesi login yang sedang aktif.
-// Tujuannya cuma satu: HP sering dipegang orang lain sebentar (dipinjam,
-// disodorkan ke teman), dan ganti password bukan aksi yang boleh ketriggered
-// oleh ketukan tidak sengaja. Mengetik "ABCD" adalah jeda sadar sebelum aksi
-// itu benar-benar terjadi.
+// Kode konfirmasi TETAP, sengaja tidak ditulis di label atau pesan galat —
+// panitia tahu kodenya dari koordinator, bukan dari layar ini. Tapi ini
+// TETAP BUKAN pemeriksaan identitas sungguhan: nilainya sama untuk semua
+// orang, dan ada apa adanya di berkas JS ini — siapa pun yang membuka
+// devtools browser bisa membacanya. Identitas yang sungguhan diperiksa
+// sudah dibuktikan lewat sesi login yang sedang aktif; kode ini cuma jeda
+// sadar sebelum ganti password benar-benar terjadi, karena HP panitia
+// sering berpindah tangan sebentar di lapangan.
 const KODE_KONFIRMASI_PASSWORD = "ABCD";
 
 function layarGantiPassword() {
@@ -187,8 +189,8 @@ function layarGantiPassword() {
         <input type="password" id="gp-baru" autocomplete="new-password">
       </div>
       <div class="medan">
-        <label for="gp-kode">Ketik <strong>${KODE_KONFIRMASI_PASSWORD}</strong> untuk konfirmasi</label>
-        <input type="text" id="gp-kode" autocomplete="off">
+        <label for="gp-kode">Kode Konfirmasi</label>
+        <input type="password" id="gp-kode" autocomplete="off">
       </div>
       <div class="galat" id="gp-galat" hidden></div>
       <button class="tombol tombol-utama" id="gp-simpan" type="button">Simpan Password Baru</button>
@@ -207,7 +209,7 @@ function layarGantiPassword() {
       galat.hidden = false; baru.focus(); return;
     }
     if (kode.value.trim() !== KODE_KONFIRMASI_PASSWORD) {
-      galat.textContent = `Ketik persis "${KODE_KONFIRMASI_PASSWORD}" di kotak konfirmasi untuk lanjut.`;
+      galat.textContent = "Kode konfirmasi salah. Tanyakan koordinator kalau lupa.";
       galat.hidden = false; kode.focus(); return;
     }
     if (btn.dataset.jalan === "1") return;
