@@ -553,15 +553,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 /* Rincian regu di dalam satu baris invoice. */
 .detail-row > td { background: var(--kertas); padding: .5rem .75rem; }
-/* Lebar mengikuti isi, TAPI dengan lantai minimum: menempel penuh ke kiri
-   membuat kolomnya berdempetan dan angka rupiah kehilangan tempat berpijak.
-   min-width memberi ruang bernapas tanpa melemparkan kolom sejauh 100%. */
-.detail-table { width: auto; min-width: 62%; border-collapse: collapse; font-size: .85rem; }
+/* Lebar mengikuti ISI saja — tanpa min-width. Diberi lantai 62%, kolom
+   Biaya terlempar jauh dari Sekolah dan rata kanannya terlihat menggantung.
+   Sekarang kelima kolom menempel di kiri; yang tetap rata kanan hanya isi
+   kolom uangnya, di dalam kolomnya sendiri. */
+.detail-table { width: auto; border-collapse: collapse; font-size: .85rem; }
 .detail-table th, .detail-table td { padding-right: 1.6rem; }
-/* Kolom uang rata kanan dengan lebar tetap: satuan rupiah jadi sejajar
-   antar baris, dan mata bisa membandingkan angkanya tanpa membaca. */
+/* Angka rupiah tetap sejajar antar baris supaya bisa dibandingkan sekilas,
+   tapi kolomnya sendiri sesempit isinya. */
 .detail-table th:last-child, .detail-table td:last-child {
-  padding-right: .4rem; text-align: right; min-width: 7rem;
+  padding-right: .4rem; text-align: right; min-width: 6rem;
 }
 .detail-table th {
   text-align: left; padding: .25rem .4rem; font-size: .72rem;
