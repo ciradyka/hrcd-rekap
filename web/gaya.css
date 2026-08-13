@@ -568,6 +568,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   font-family: inherit;
 }
 .isian-kecil { width: 4.5rem; text-align: center; }
+/* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
+   tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
+.galat-isian { border-color: var(--bahaya); background: var(--bahaya-muda); }
 /* Kedip hijau sekejap = "tersimpan", supaya edit langsung di tabel tidak
    terasa seperti tidak terjadi apa-apa. */
 .pilih-kecil.tersimpan, .isian-kecil.tersimpan {

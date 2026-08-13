@@ -659,6 +659,15 @@ async function layarDaftarUlang() {
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarDaftarUlang)); return; }
   if (location.hash !== layarIni) return;   // lihat catatan di layarPembayaran
 
+  // Batch yang daftar isian nomor dadanya sedang dibuka, dan nomor yang sudah
+  // sempat diketik (regu_id -> nomor). Keduanya hidup di luar gambar(): meja
+  // sering mengetik separuh lalu mengoreksi jumlah pendamping atau mencari
+  // sekolah lain, dan tabel digambar ulang setiap kali. Tanpa ini, angka yang
+  // sudah dibacakan dari kain fisik hilang diam-diam — persis kejadian yang
+  // paling mahal di meja daftar ulang.
+  const dibukaNomor = new Set();
+  const nilaiDada = new Map();
+
   LAYAR.replaceChildren(h(`
     <div class="kartu">
       ${alatTabel({
@@ -711,21 +720,27 @@ async function layarDaftarUlang() {
         .map(r => html`<span class="pil-nomor">${String(r.nomor_dada).padStart(3, "0")}
           <span class="pil-kloter">K${r.kloter_nomor}</span></span>`).join(" ");
 
+      const kode = esc(b.kode_pembayaran);
       const tombolTukar = nomorHtml
         ? `<button class="tombol tombol-kalem tombol-mini" type="button"
-                   data-tukar="${esc(b.kode_pembayaran)}">Tukar nomor rusak…</button>`
+                   data-tukar="${kode}">Tukar nomor rusak…</button>`
         : "";
+      // Nomor dada DIKETIK petugas, tidak diterbitkan sistem (migrasi 0011):
+      // kainnya benda fisik di meja, dan yang ada di tangan petugas belum
+      // tentu nomor terkecil yang tersedia. Jadi tombolnya membuka daftar
+      // regu untuk diisi satu per satu, bukan langsung menarik stok.
+      const terbuka = dibukaNomor.has(b.kode_pembayaran);
       const aksi = menunggu.length
         ? `<button class="tombol tombol-utama tombol-kecil" type="button"
-                   data-ambil="${esc(b.kode_pembayaran)}">
-             Ambil ${menunggu.length} Nomor
+                   data-isi="${kode}" aria-expanded="${terbuka}">
+             ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
            </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
         : `<div class="pil-baris">${nomorHtml} ${tombolTukar}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `
-        <tr data-baris="${esc(b.kode_pembayaran)}">
-          <td class="mono">${esc(b.kode_pembayaran)}</td>
+        <tr data-baris="${kode}">
+          <td class="mono">${kode}</td>
           <td>
             <strong>${esc(b.sekolah?.nama || "—")}</strong>
             <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
@@ -733,10 +748,37 @@ async function layarDaftarUlang() {
           <td class="rata-tengah">${aktif.length}</td>
           <td class="rata-tengah">
             <input type="number" class="isian-kecil" min="0" max="30" inputmode="numeric"
-                   value="${esc(b.jumlah_pendamping)}" data-pendamping="${esc(b.kode_pembayaran)}">
+                   value="${esc(b.jumlah_pendamping)}" data-pendamping="${kode}">
           </td>
           <td>${aksi}</td>
-        </tr>`;
+        </tr>
+        ${!menunggu.length ? "" : `
+        <tr class="baris-detail" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
+          <td colspan="5">
+            <table class="tabel-detail">
+              <thead>
+                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
+              </thead>
+              <tbody>
+                ${menunggu.map(r => `
+                  <tr>
+                    <td><strong>${esc(r.nama_regu)}</strong></td>
+                    <td>${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
+                    <td>${esc(r.nama_ketua)}</td>
+                    <td><input type="number" class="isian-kecil" inputmode="numeric" min="1"
+                               data-dada="${esc(r.id)}" data-untuk="${kode}"
+                               value="${esc(nilaiDada.get(r.id) ?? "")}"></td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+            <div class="aksi-baris" style="margin-top:.6rem">
+              <button class="tombol tombol-utama tombol-kecil" type="button"
+                      data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
+              <span class="sub">Ketik nomor dari kain yang ada di meja.
+                Enter = pindah ke regu berikutnya.</span>
+            </div>
+          </td>
+        </tr>`}`;
     }).join("")));
 
     // Jumlah pendamping boleh dikoreksi langsung di tabel — angkanya hanya
@@ -797,29 +839,94 @@ async function layarDaftarUlang() {
         } catch (err) { notif(err.message, true); }
       }));
 
-    tbody.querySelectorAll("[data-ambil]").forEach(btn =>
+    // Buka daftar regu untuk diisi nomornya, lalu taruh kursor di regu pertama.
+    tbody.querySelectorAll("[data-isi]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const kode = btn.dataset.isi;
+        const barisNomor = tbody.querySelector(`[data-nomor-untuk="${CSS.escape(kode)}"]`);
+        const buka = barisNomor.hidden;
+        if (buka) dibukaNomor.add(kode); else dibukaNomor.delete(kode);
+        barisNomor.hidden = !buka;
+        btn.setAttribute("aria-expanded", String(buka));
+        const jumlah = barisNomor.querySelectorAll("[data-dada]").length;
+        btn.textContent = `${buka ? "▾" : "▸"} Isi ${jumlah} Nomor Dada`;
+        if (buka) barisNomor.querySelector("[data-dada]")?.focus();
+      }));
+
+    // Loop ketik-Enter (rancangan-b.md 10.1.4): Enter pindah ke regu
+    // berikutnya, dan di regu terakhir langsung menyimpan — satu sekolah
+    // selesai tanpa memegang mouse.
+    tbody.querySelectorAll("[data-dada]").forEach(inp => {
+      inp.addEventListener("input", () => nilaiDada.set(inp.dataset.dada, inp.value));
+      inp.addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const untuk = CSS.escape(inp.dataset.untuk);
+        const sekelompok = [...tbody.querySelectorAll(`[data-dada][data-untuk="${untuk}"]`)];
+        const berikut = sekelompok[sekelompok.indexOf(inp) + 1];
+        if (berikut) berikut.focus();
+        else tbody.querySelector(`[data-simpan-dada="${untuk}"]`)?.click();
+      });
+    });
+
+    tbody.querySelectorAll("[data-simpan-dada]").forEach(btn =>
       btn.addEventListener("click", async () => {
         if (btn.dataset.jalan === "1") return;
-        const kode = btn.dataset.ambil;
+        const kode = btn.dataset.simpanDada;
         const b = semua.find(x => x.kode_pembayaran === kode);
-        btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Mengambil…";
+        const isian = [...tbody.querySelectorAll(
+          `[data-dada][data-untuk="${CSS.escape(kode)}"]`)];
+
+        // Gagal itu nyaring dan LOKAL (rancangan-b.md 10.1.11): isian yang
+        // salah memerah di tempatnya, bukan cuma pesan umum di bawah layar.
+        isian.forEach(i => i.classList.remove("galat-isian"));
+        const pasangan = [];
+        const dipakai = new Set();
+        let keluhan = null;
+        for (const inp of isian) {
+          const angka = Number(inp.value.trim());
+          if (!inp.value.trim() || !Number.isInteger(angka) || angka <= 0) {
+            inp.classList.add("galat-isian");
+            keluhan = keluhan || "Setiap regu harus diberi nomor dada berupa angka.";
+            continue;
+          }
+          if (dipakai.has(angka)) {
+            inp.classList.add("galat-isian");
+            keluhan = keluhan || `Nomor ${angka} diketik untuk dua regu.`;
+            continue;
+          }
+          dipakai.add(angka);
+          pasangan.push({ regu_id: inp.dataset.dada, nomor_dada: angka });
+        }
+        if (keluhan) {
+          notif(keluhan, true);
+          isian.find(i => i.classList.contains("galat-isian"))?.focus();
+          return;
+        }
+
+        btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
         let hasil;
         try {
-          hasil = await daftarUlang(kode);
+          hasil = await daftarUlang(kode, pasangan);
         } catch (err) {
           notif(err.message, true);
           btn.dataset.jalan = ""; btn.disabled = false;
-          gambar(cari, saring);
+          btn.textContent = `Simpan ${isian.length} Nomor Dada`;
           return;
         }
-        // Tempelkan nomor yang baru terbit ke data lokal.
+        // Tempelkan nomor + kloter ke data lokal. Kloternya yang baru: itu
+        // satu-satunya bagian yang masih ditentukan sistem, jadi itu yang
+        // disebut di notifikasi.
         hasil.forEach(x => {
           const r = (b.regu || []).find(y => y.id === x.regu_id);
           if (r) { r.nomor_dada = x.nomor_dada; r.kloter_nomor = x.kloter; }
         });
-        catatTerakhir("daftar-ulang", kode,
-          hasil.map(x => String(x.nomor_dada).padStart(3, "0")).join(", "));
-        notif(`${b.sekolah?.nama || kode}: ${hasil.length} nomor dada terbit.`);
+        dibukaNomor.delete(kode);
+        pasangan.forEach(p => nilaiDada.delete(p.regu_id));
+        catatTerakhir("daftar-ulang", kode, hasil.map(x =>
+          `${x.nama_regu} ${String(x.nomor_dada).padStart(3, "0")}`).join(", "));
+        const kloter = [...new Set(hasil.map(x => x.kloter))].sort((x, y) => x - y).join(", ");
+        notif(`${b.sekolah?.nama || kode}: ${hasil.length} regu tersimpan — kloter ${kloter}.`);
         gambar(cari, saring);
       }));
   };

@@ -100,7 +100,7 @@ do $$
 begin
   -- daftar ulang sebelum lunas: tolak
   begin
-    perform daftar_ulang_batch(uji('A'));
+    perform daftar_ulang_batch(uji('A'), uji_dada(uji('A')));
     raise exception 'GAGAL: daftar ulang sebelum lunas diterima';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
@@ -153,9 +153,9 @@ $$;
 do $$
 declare v_a uuid;
 begin
-  perform daftar_ulang_batch(uji('A'));
-  perform daftar_ulang_batch(uji('B'));
-  perform daftar_ulang_batch(uji('C'));
+  perform daftar_ulang_batch(uji('A'), uji_dada(uji('A')));
+  perform daftar_ulang_batch(uji('B'), uji_dada(uji('B')));
+  perform daftar_ulang_batch(uji('C'), uji_dada(uji('C')));
 
   select d.id into v_a from pendaftaran d where d.kode_pembayaran = uji('A');
 
@@ -175,7 +175,7 @@ begin
           where d.kode_pembayaran = uji('B')), 'sekolah B menumpuk';
   -- Daftar ulang dobel: tolak.
   begin
-    perform daftar_ulang_batch(uji('A'));
+    perform daftar_ulang_batch(uji('A'), uji_dada(uji('A')));
     raise exception 'GAGAL: daftar ulang dobel diterima';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
@@ -200,7 +200,7 @@ begin
 
   -- Sekolah D menyusul: nomor berikutnya harus MELOMPATI 17 yang pensiun.
   perform verifikasi_pembayaran(uji('D'), 250000, 'tunai');
-  perform daftar_ulang_batch(uji('D'));
+  perform daftar_ulang_batch(uji('D'), uji_dada(uji('D')));
   assert (select r.nomor_dada from regu r
           join pendaftaran d on d.id = r.pendaftaran_id
           where d.kode_pembayaran = uji('D')) = 20,
@@ -215,7 +215,7 @@ set role authenticated;
 do $$
 begin
   begin
-    perform daftar_ulang_batch(uji('D'));
+    perform daftar_ulang_batch(uji('D'), uji_dada(uji('D')));
     raise exception 'GAGAL: daftar ulang tembus saat ditutup';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;

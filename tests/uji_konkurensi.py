@@ -75,8 +75,46 @@ def siapkan():
     return kode
 
 
+def stok_tersedia(jumlah):
+    """Nomor dada yang masih boleh dipakai, urut kecil ke besar."""
+    baris = jalankan("""
+        select s.nomor from nomor_dada_stok s
+        where not exists (select 1 from regu r where r.nomor_dada = s.nomor)
+          and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor)
+        order by s.nomor limit %s
+    """, (jumlah,), role="service_role")
+    return [r["nomor"] for r in baris]
+
+
+def pasangan(kode, nomor):
+    """Yang diketik petugas: regu ini nomornya ini (migrasi 0011)."""
+    regu = jalankan("""
+        select r.id::text as id from regu r
+        join pendaftaran d on d.id = r.pendaftaran_id
+        where d.kode_pembayaran = %s and not r.batal and r.nomor_dada is null
+        order by r.nama_regu, r.id
+    """, (kode,), role="service_role")
+    return json.dumps([{"regu_id": r["id"], "nomor_dada": n}
+                       for r, n in zip(regu, nomor)])
+
+
 def serbu(kode):
-    """Semua meja menekan tombol bersamaan lewat satu barrier."""
+    """Semua meja menekan tombol bersamaan lewat satu barrier.
+
+    Sejak nomor dada diketik manual, tiap meja memegang TUMPUKAN KAIN
+    SENDIRI — itu memang cara panitia membaginya sebelum antrean dibuka,
+    jadi dua meja tidak pernah menawarkan nomor yang sama. Yang diadu di
+    sini tetap sama seperti dulu: penempatan kloter dan penulisan serentak.
+    """
+    butuh = len(kode) * REGU_PER_SEKOLAH
+    stok = stok_tersedia(butuh)
+    if len(stok) < butuh:
+        raise SystemExit(f"stok nomor dada kurang: butuh {butuh}, ada {len(stok)}")
+    # Disiapkan SEBELUM barrier supaya yang diadu murni transaksinya, bukan
+    # waktu menyusun JSON di Python.
+    bawaan = {k: pasangan(k, stok[i * REGU_PER_SEKOLAH:(i + 1) * REGU_PER_SEKOLAH])
+              for i, k in enumerate(kode)}
+
     hasil, galat = [], []
     kunci = threading.Lock()
     barrier = threading.Barrier(len(kode))
@@ -86,8 +124,8 @@ def serbu(kode):
         barrier.wait()                      # <- serentak di sini
         try:
             baris = jalankan(
-                "select nomor_dada, kloter from daftar_ulang_batch(%s)",
-                (k,), uid=uid)
+                "select nomor_dada, kloter from daftar_ulang_batch(%s, %s::jsonb)",
+                (k, bawaan[k]), uid=uid)
             with kunci:
                 hasil.extend(baris)
         except Exception as e:               # noqa: BLE001 — semua galat dicatat
@@ -159,6 +197,59 @@ def periksa(hasil, galat):
     return lolos
 
 
+def uji_nomor_kembar():
+    """Risiko BARU yang dibawa nomor manual: dua meja mengetik nomor yang
+    sama untuk dua regu berbeda, pada detik yang sama. Tepat satu boleh
+    menang; yang kalah harus DITOLAK dengan pesan, bukan menimpa regu lain
+    atau lolos jadi nomor ganda."""
+    biaya = jalankan("select biaya_per_regu from edisi where aktif",
+                     role="service_role", fetch="one")["biaya_per_regu"]
+    kode = []
+    for i in range(2):
+        h = jalankan(
+            "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
+            (f"UJI KONKUREN KEMBAR {i}", f"Jl. Kembar {i}", False, "081200000000",
+             json.dumps([{"nama_regu": f"Kembar {i}", "nama_ketua": "Ketua",
+                          "golongan": "penegak_pa"}]), 0, str(uuid.uuid4())),
+            role="service_role", fetch="one")["h"]
+        k = h["kode_pembayaran"]
+        jalankan("select verifikasi_pembayaran(%s,%s,%s)", (k, biaya, "tunai"),
+                 uid=MEJA[0], fetch="one")
+        kode.append(k)
+
+    rebutan = stok_tersedia(1)[0]        # satu nomor, dua meja
+    bawaan = {k: pasangan(k, [rebutan]) for k in kode}
+
+    sukses, ditolak = [], []
+    kunci = threading.Lock()
+    barrier = threading.Barrier(2)
+
+    def satu_meja(i, k):
+        barrier.wait()
+        try:
+            jalankan("select nomor_dada from daftar_ulang_batch(%s, %s::jsonb)",
+                     (k, bawaan[k]), uid=MEJA[i])
+            with kunci:
+                sukses.append(k)
+        except Exception as e:           # noqa: BLE001 — yang kalah memang error
+            with kunci:
+                ditolak.append(f"{type(e).__name__}: {e}")
+
+    utas = [threading.Thread(target=satu_meja, args=(i, k))
+            for i, k in enumerate(kode)]
+    for t in utas:
+        t.start()
+    for t in utas:
+        t.join()
+
+    ok = len(sukses) == 1 and len(ditolak) == 1
+    print(f"  {'OK  ' if ok else 'GAGAL'}  nomor {rebutan} diketik dua meja "
+          f"serentak: {len(sukses)} menang, {len(ditolak)} ditolak")
+    if not ok and ditolak:
+        print(f"         {ditolak[0][:140]}")
+    return ok
+
+
 if __name__ == "__main__":
     print(f"UJI KONKURENSI — {JUMLAH_SEKOLAH} meja menekan tombol serentak, "
           f"{JUMLAH_SEKOLAH * REGU_PER_SEKOLAH} nomor dada diperebutkan\n")
@@ -168,5 +259,7 @@ if __name__ == "__main__":
           f"{detik:.2f} detik untuk SEMUA meja selesai — "
           f"rata-rata {detik / len(kode) * 1000:.0f} ms per meja)\n")
     lolos = periksa(hasil, galat)
+    print("\nNOMOR KEMBAR — dua meja mengetik nomor yang sama:")
+    lolos = uji_nomor_kembar() and lolos
     print("\n" + ("SEMUA PEMERIKSAAN LULUS" if lolos else "ADA PEMERIKSAAN GAGAL"))
     sys.exit(0 if lolos else 1)

@@ -98,7 +98,7 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | `submit_pendaftaran` | Buat sekolah (bila baru) + batch + N baris regu + kode pembayaran unik, sekali jalan; validasi ulang rincian golongan = total di server |
 | `verifikasi_pembayaran` | Cek nominal = jumlah regu × `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
 | `batalkan_verifikasi` | Jalan mundur yang sah untuk salah verifikasi (meja di hari yang sama, admin kapan pun) — dengan alasan, terekam riwayat |
-| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → **satu gerbang `pg_advisory_xact_lock`** → ambil N nomor terkecil yang tersedia → sebar ke N kloter berbeda dengan `lompatan_kloter`, hindari kloter yang sudah berisi sekolah itu, buka kloter 31–40 hanya bila 1–30 penuh → tulis semuanya sekaligus. Regu `batal` dilewati. Lihat 4.1 |
+| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → sebar ke N kloter berbeda dengan `lompatan_kloter`, hindari kloter yang sudah berisi sekolah itu, buka kloter 31–40 hanya bila 1–30 penuh → tulis semuanya sekaligus. Regu `batal` dilewati. Lihat 4.1 dan alur-lomba.md 4.5 |
 | `tukar_nomor_dada` | Nomor dada rusak/salah pasang: tukar dengan stok tersedia, terekam riwayat |
 | `konfirmasi_kontrak` | Validasi pilihan terhadap `kontrak_opsi` (bukan hardcode); boleh dikoreksi selama kloter belum berangkat |
 | `berangkatkan_kloter` | Jam berangkat **wajib dari argumen** (diketik) — fungsi tidak mengenal `now()`; menolak bila ada regu ter-ceklis berangkat yang belum punya kontrak (daftarnya ditampilkan layar) |
@@ -315,7 +315,7 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
 ### 10.1 Prinsip lintas layar (kontrak UX dengan panitia)
 
 1. **Satu layar, satu aksi utama** — satu tombol besar per layar
-   ("Ambil 10 Nomor Dada", "Berangkatkan Kloter 12", "Simpan 27 Baris").
+   ("Simpan 10 Nomor Dada", "Berangkatkan Kloter 12", "Simpan 27 Baris").
 2. **Nomor dada adalah jangkar universal** setelah daftar ulang (kode
    pembayaran sebelumnya); setiap layar dibuka dengan field kunci itu
    ter-autofocus.
@@ -372,7 +372,7 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
 | Beranda meja | meja | Pemilih fungsi + lencana angka dari data nyata (batch menunggu verifikasi, batch lunas belum bernomor, regu belum closing) |
 | Form pendaftaran | publik | Bagian 3 alur, **satu halaman** (bukan wizard — lihat 10.4): 5 bagian bernomor, autocomplete sekolah dari master (dimuat sekali, difilter di browser), blok per regu muncul mengikuti stepper, tombol Kirim menempel di bawah dengan total hidup; hasil akhir menampilkan kode pembayaran besar-besar |
 | Meja pembayaran | meja | Ketik kode → kartu batch → "Tandai Lunas" → panel sukses langsung menawarkan "Cetak Kwitansi" (satu alur, bukan dua); "Batalkan (salah)" memanggil `batalkan_verifikasi` |
-| Meja daftar ulang | meja | Ketik kode → kartu sekolah + daftar regu → satu tombol "Ambil N Nomor Dada" → hasil besar-besar per regu (nomor dada + kloter) untuk dibacakan; jalur "Tukar nomor" untuk stok rusak |
+| Meja daftar ulang | meja | Cari kode/sekolah → buka "Isi N Nomor Dada" → **ketik nomor dari kain fisik per regu** (nama regu + kategori + ketua terlihat, Enter = regu berikutnya) → satu tombol "Simpan N Nomor Dada" → kloter terisi otomatis dan dibacakan; jalur "Tukar nomor" untuk stok rusak |
 | Garis start | meja | Papan 4 kolom **turunan otomatis** dari kloter terakhir yang berangkat: N berangkat / N+1–N+2 siap / N+3 konfirmasi kontrak. Operator hanya punya dua aksi: ceklis regu + tombol besar "BERANGKATKAN" (jam diketik). Papan bergeser sendiri — operator tidak pernah memutuskan apa yang maju |
 | Input pos — manual | operator_pos | Loop ketik-Enter 5 detik; hanya komponen pos sendiri yang tampil |
 | Input pos — upload massal | operator_pos | Pipeline bagian 6 |

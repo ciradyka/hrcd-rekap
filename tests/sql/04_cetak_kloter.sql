@@ -121,7 +121,7 @@ begin
   set role authenticated;
   perform verifikasi_pembayaran(v_kode, v_biaya, 'tunai');
 
-  select * into v_hasil from daftar_ulang_batch(v_kode) limit 1;
+  select * into v_hasil from daftar_ulang_batch(v_kode, uji_dada(v_kode)) limit 1;
   assert v_hasil.nomor_dada is not null, 'pendaftar susulan tidak dapat nomor';
   assert (select dicetak_pada from kloter where nomor = v_hasil.kloter) is null,
     format('pendaftar susulan masuk kloter %s yang SUDAH dicetak', v_hasil.kloter);
