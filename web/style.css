@@ -176,6 +176,13 @@ input[type=text], input[type=number], input[type=password], input[type=time], in
   border-radius: var(--radius);
   background: #fff;
 }
+/* Spinner naik-turun bawaan input[type=number] muncul saat hover dan
+   terlihat seperti scrollbar kecil di dalam kotak — jelek, dan tidak ada
+   gunanya: nomor dada DIKETIK dari kain fisik, bukan dinaik-turunkan. */
+input[type=number] { appearance: textfield; -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
 input.besar { font-size: 1.45rem; letter-spacing: .05em; text-align: center; min-height: 54px; }
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
@@ -564,7 +571,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .detail-table thead { display: none; }
   .detail-table tr {
     display: grid;
-    grid-template-columns: auto 1fr 4.5rem;
+    grid-template-columns: auto 1fr 5.5rem;
     grid-template-areas: "nama nama input" "kat ketua input";
     align-items: center; gap: .1rem .5rem;
     padding: .55rem 0; border-top: 1px solid var(--garis);
@@ -574,6 +581,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .detail-table td:nth-child(2) { grid-area: kat;   font-size: .78rem; color: var(--tinta-lembut); }
   .detail-table td:nth-child(3) { grid-area: ketua; font-size: .78rem; color: var(--tinta-lembut); }
   .detail-table td:nth-child(4) { grid-area: input; }
+  /* Sasaran sentuh jempol: lebih lebar dan lebih tinggi daripada di laptop,
+     angkanya besar supaya terbaca sambil berdiri. */
+  .detail-table input.small-input {
+    width: 100%; min-height: 52px; font-size: 1.25rem; font-weight: 700;
+  }
   .detail-table td:nth-child(3)::before { content: "· "; }
 }
 
@@ -587,7 +599,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
 .action-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .select-small, .small-input {
-  min-height: 40px; padding: .3rem .5rem; font-size: .9rem;
+  /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
+     kali isian disentuh — batas keras di kepala berkas ini, dan sempat
+     terlanggar di sini. */
+  min-height: 40px; padding: .3rem .5rem; font-size: 1rem;
   border: 1px solid var(--garis); border-radius: 8px; background: #fff;
   font-family: inherit;
 }
