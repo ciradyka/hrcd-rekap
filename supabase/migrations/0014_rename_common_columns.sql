@@ -45,6 +45,13 @@ alter table akun_panitia rename column aktif to is_active;
 -- 2. Tabel ruangan -> room ---------------------------------------------
 alter table ruangan rename to room;
 
+-- View menyimpan nama kolom OUTPUT-nya sendiri; rename di tabel sumber tidak
+-- ikut mengubahnya. v_edisi_publik satu-satunya view yang mengekspos nama
+-- generik apa adanya (yang lain sudah beralias domain: nama_regu, nama_sekolah).
+alter view v_edisi_publik rename column nama to name;
+alter view v_barak rename column ruangan to room;
+alter view v_barak rename column kapasitas to capacity;
+
 -- 3. Fungsi yang body-nya menyebut kolom di atas -----------------------
 
 -- terbaru dari 0002_functions.sql
