@@ -717,7 +717,7 @@ async function layarDaftarUlang() {
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
           <td colspan="4">
-            <table class="detail-table">
+            <table class="detail-table detail-table-dada">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
               </thead>

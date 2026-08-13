@@ -562,15 +562,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .card-title { text-align: center; }
 
 .detail-table {
-  width: auto; border-collapse: collapse; font-size: .85rem;
-  /* DITENGAHKAN, bukan menempel tepi kiri. Lebar mengikuti isi membuatnya
-     terlalu rapat ke pinggir dan terlihat seperti terlepas dari barisnya;
-     ditengahkan ia duduk di bawah baris induknya dengan ruang seimbang. */
-  margin: 0 auto;
+  /* MELEBAR PENUH, bukan selebar isinya. Tabel yang menciut menumpuk semua
+     kolom di kiri dan menyisakan lahan kosong di kanan — terbaca seperti
+     potongan yang terlepas dari baris induknya. Selebar kartu, kolomnya
+     jatuh sejajar dengan kolom di atasnya dan rincian terbaca menyatu. */
+  width: 100%; border-collapse: collapse; font-size: .85rem;
 }
 .detail-table th, .detail-table td { padding-right: 1.6rem; }
-/* Angka rupiah tetap sejajar antar baris supaya bisa dibandingkan sekilas,
-   tapi kolomnya sendiri sesempit isinya. */
+/* Angka rupiah rata kanan sampai ujung, sejajar antar baris supaya bisa
+   dibandingkan sekilas. */
 .detail-table th:last-child, .detail-table td:last-child {
   padding-right: .4rem; text-align: right; min-width: 6rem;
 }
@@ -583,6 +583,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    sekilas, dan sekilas itulah satu-satunya cara panitia membacanya. Kalau
    sempit, tabelnya yang menggeser di dalam kartu (aturan 10.1.13). */
 .detail-table td:nth-child(2) { white-space: nowrap; }
+
+/* Varian daftar ulang: melebar penuh, dan kolom terakhir dipatok 28% supaya
+   kotak nomor dada jatuh TEPAT DI BAWAH tombol "Isi N Nomor Dada" di baris
+   induknya — pasangan tombol dan isian terbaca sebagai satu kolom, bukan dua
+   hal yang kebetulan bertumpuk. Angka 28% menyamai lebar kolom aksi tabel
+   induk; kalau kolom induk berubah, angka ini ikut disetel. */
+.detail-table-dada { width: 100%; margin: 0; }
+.detail-table-dada th:last-child, .detail-table-dada td:last-child {
+  width: 28%; text-align: left; min-width: 0; padding-right: .4rem;
+}
 
 @media (max-width: 560px) {
   /* Satu regu = satu blok dua baris, kotak angka di kanan sejajar namanya.
