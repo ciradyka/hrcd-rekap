@@ -580,6 +580,10 @@ function sukses(hasil) {
     try { localStorage.removeItem(KUNCI_HASIL); } catch {}
     sessionStorage.removeItem("hrcd_selesai");
     jawab = kosong();
+    // Tanpa ini, form yang baru saja dikosongkan langsung memerah semua:
+    // sudahDiperiksa masih true dari pendaftaran sebelumnya, jadi periksa()
+    // menandai isian yang memang belum sempat disentuh siapa pun.
+    sudahDiperiksa = false;
     halaman();
     window.scrollTo(0, 0);
   });
