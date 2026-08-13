@@ -2,9 +2,9 @@
 -- hrcd-rekap : tests/sql/06_koreksi_jam_berangkat.sql
 -- Membetulkan jam berangkat yang salah ketik (migrasi 0017).
 --
--- Yang WAJIB dibuktikan: jam lamanya tercatat di history, dan koreksi yang
--- merusak urutan keberangkatan ditolak. Keduanya tidak kelihatan di layar —
--- jam berangkat yang salah tidak menimbulkan galat apa pun, ia hanya muncul
+-- Yang WAJIB dibuktikan: jam lamanya tercatat di history, dan koreksi TIDAK
+-- terkunci oleh jam kloter tetangga. Keduanya tidak kelihatan di layar — jam
+-- berangkat yang salah tidak menimbulkan galat apa pun, ia hanya muncul
 -- sebagai penalti yang keliru saat klasemen keluar.
 -- ============================================================================
 
@@ -76,14 +76,15 @@ begin
 end;
 $$;
 
--- 6.4 Urutan keberangkatan dijaga. Kloter berangkat berurutan, jadi jamnya
---     ikut menaik; koreksi yang melanggar itu hampir selalu salah ketik yang
---     KEDUA, dan kalau lolos ia menghasilkan penalti negatif yang tampak
---     wajar di layar.
+-- 6.4 Koreksi TIDAK boleh terkunci oleh jam kloter tetangga.
+--     berangkatkan_kloter hanya menjaga urutan NOMOR kloter, bukan urutan jam
+--     yang diketik, jadi data yang jamnya kacau memang bisa ada. Kalau fungsi
+--     ini menolak jam yang melanggar urutan, dua kloter yang sama-sama salah
+--     akan saling mengunci dan tidak satu pun bisa dibetulkan — tepat di
+--     keadaan yang membuat panitia membuka layar ini.
 do $$
 declare
-  v_awal   smallint; v_akhir smallint;
-  v_jam_akhir timestamptz;
+  v_awal smallint; v_akhir smallint; v_jam_akhir timestamptz;
 begin
   select min(nomor), max(nomor) into v_awal, v_akhir
   from kloter where jam_berangkat is not null;
@@ -93,23 +94,12 @@ begin
   end if;
   select jam_berangkat into v_jam_akhir from kloter where nomor = v_akhir;
 
-  -- Kloter pertama digeser ke SETELAH kloter terakhir: harus ditolak.
-  begin
-    perform koreksi_jam_berangkat(v_awal, v_jam_akhir + interval '5 minutes',
-                                  'sengaja melanggar urutan');
-    raise exception 'GAGAL: koreksi yang melanggar urutan diterima';
-  exception when raise_exception then
-    if sqlerrm like 'GAGAL:%' then raise; end if;
-  end;
-
-  -- Arah sebaliknya: kloter terakhir digeser ke SEBELUM kloter pertama.
-  begin
-    perform koreksi_jam_berangkat(v_akhir, timestamptz '2027-02-21 06:00+07',
-                                  'sengaja melanggar urutan');
-    raise exception 'GAGAL: koreksi mundur yang melanggar urutan diterima';
-  exception when raise_exception then
-    if sqlerrm like 'GAGAL:%' then raise; end if;
-  end;
+  -- Kloter pertama digeser ke SETELAH kloter terakhir: harus tetap diterima.
+  perform koreksi_jam_berangkat(v_awal, v_jam_akhir + interval '5 minutes',
+                                'jam kloter tetangga yang salah, ini dibetulkan belakangan');
+  assert (select jam_berangkat from kloter where nomor = v_awal)
+         = v_jam_akhir + interval '5 minutes',
+    'koreksi terkunci oleh jam kloter tetangga';
 end;
 $$;
 

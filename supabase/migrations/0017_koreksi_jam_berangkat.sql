@@ -28,6 +28,10 @@
 -- dan koreksi yang harus menunggu adalah koreksi yang tidak pernah terjadi.
 -- Sebagai gantinya alasan wajib diisi dan tercatat di history bersama jam
 -- lamanya, jadi perubahannya selalu bisa ditelusuri.
+--
+-- KENAPA URUTAN JAM TIDAK DIPERIKSA. Lihat catatan di dalam badan fungsi:
+-- memeriksanya membuat dua kloter yang jamnya sama-sama salah saling
+-- mengunci, sehingga tidak satu pun bisa dibetulkan.
 -- ============================================================================
 
 create or replace function koreksi_jam_berangkat(
@@ -39,8 +43,7 @@ language plpgsql security definer
 set search_path = public
 as $$
 declare
-  v_lama    timestamptz;
-  v_tetangga smallint;
+  v_lama timestamptz;
 begin
   if peran() not in ('admin', 'meja') then
     raise exception 'hanya meja/admin';
@@ -65,26 +68,14 @@ begin
     return;
   end if;
 
-  -- Kloter berangkat berurutan, jadi jamnya ikut menaik. Koreksi yang
-  -- melanggar urutan itu hampir selalu salah ketik yang KEDUA (mau membetulkan
-  -- 07.40, malah terketik 08.40). Ditolak di sini, karena kalau lolos ia
-  -- menghasilkan penalti negatif yang tampak wajar di layar.
-  select k.nomor into v_tetangga
-  from kloter k
-  where k.nomor < p_kloter and k.jam_berangkat is not null and k.jam_berangkat > p_jam
-  order by k.nomor desc limit 1;
-  if v_tetangga is not null then
-    raise exception 'jam koreksi lebih awal daripada kloter % yang berangkat sebelumnya', v_tetangga;
-  end if;
-
-  select k.nomor into v_tetangga
-  from kloter k
-  where k.nomor > p_kloter and k.jam_berangkat is not null and k.jam_berangkat < p_jam
-  order by k.nomor asc limit 1;
-  if v_tetangga is not null then
-    raise exception 'jam koreksi lebih lambat daripada kloter % yang berangkat sesudahnya', v_tetangga;
-  end if;
-
+  -- SENGAJA TIDAK ADA PEMERIKSAAN URUTAN JAM di sini, walau menggoda.
+  -- berangkatkan_kloter hanya menjaga urutan NOMOR kloter, bukan urutan jam
+  -- yang diketik, jadi data yang jamnya sudah kacau memang mungkin ada. Kalau
+  -- fungsi ini menolak jam yang melanggar urutan, kloter 1 tidak bisa
+  -- dibetulkan karena jam kloter 2 salah, dan kloter 2 tidak bisa dibetulkan
+  -- karena jam kloter 1 salah — panitia terkunci persis di keadaan yang
+  -- membuat mereka membuka layar ini. Urutan ditampilkan di dialog koreksi
+  -- supaya pencatat melihatnya sendiri; menampilkan menolong, menolak tidak.
   insert into history (table_name, row_id, action, old_value, new_value, changed_by)
   values ('kloter', p_kloter::text, 'UPDATE',
           jsonb_build_object('jam_berangkat', v_lama),
