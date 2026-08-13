@@ -479,13 +479,6 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .print-note { font-size: 9pt; color: #333; margin-top: .5rem; }
   .insert-note { font-size: 9pt; font-weight: 700; margin-top: .4rem; }
 
-  /* ---- Lembar nilai pos: kertas yang ditulis tangan di lapangan ----
-     Kotak isiannya harus cukup untuk angka dua digit yang ditulis buru-buru
-     sambil berdiri, dan tingginya juga — menulis di kotak setinggi baris
-     teks memaksa orang menulis kecil, lalu angka kecil itu difoto dan harus
-     dibaca operator di layar laptop. */
-  .print-table td.isian { width: 15mm; height: 11mm; }
-  .print-table th.isian { width: 15mm; font-size: 8pt; }
   /* Rentang yang boleh ditulis, di bawah nama kolomnya — sama seperti di
      layar, supaya petugas tidak perlu mengingat skalanya. */
   .print-table th .kolom-petunjuk {
@@ -512,17 +505,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      mata harus mencari-cari di mana satu kolom berakhir. Ditengahkan, tiap
      petak punya titik berat sendiri. */
   .lembar-pos .print-table th, .lembar-pos .print-table td { text-align: center; }
-  .lembar-pos h1 { font-size: 12pt; margin-bottom: 2pt; text-align: center; }
-  .lembar-pos .lembar-kepala, .lembar-pos .insert-note,
-  .lembar-pos .print-note { text-align: center; }
-  /* Nomor halaman turun jadi baris sendiri di bawah judul: float kanan di
-     judul yang ditengahkan menggeser judulnya sendiri ke kiri. */
-  .lembar-pos h1 .halaman {
-    display: block; font-size: 9pt; font-weight: 400; margin-top: 1pt;
+  /* Kepala halaman dipadatkan jadi TIGA baris. Tiap baris yang dihemat di
+     sini berarti satu baris regu lebih banyak, dan 30 regu per lembar tidak
+     menyisakan ruang untuk kepala yang lega. */
+  .lembar-pos h1 {
+    font-size: 11pt; margin: 0 0 1pt; text-align: center; line-height: 1.2;
   }
-  .lembar-pos .lembar-kepala { font-size: 8.5pt; margin: 0 0 3pt; }
-  .lembar-pos .insert-note { font-size: 8pt; margin: 0 0 3pt; }
-  .lembar-pos .print-note { font-size: 7.5pt; margin-top: 3pt; }
+  .lembar-pos .lembar-kepala, .lembar-pos .insert-note,
+  .lembar-pos .print-note { text-align: center; line-height: 1.2; }
+  .lembar-pos .lembar-kepala { font-size: 8pt; margin: 0 0 2pt; }
+  .lembar-pos .insert-note { font-size: 7.5pt; margin: 0 0 2pt; }
+  .lembar-pos .print-note { font-size: 7pt; margin-top: 2pt; }
   .lembar-pos .print-table { margin-top: 0; }
   /* 12pt untuk ISI — ukuran yang sama dengan cetakan Excel yang selama ini
      dipakai panitia, dan memang seharusnya: yang tertulis di sini dibaca
@@ -532,20 +525,25 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dan di 12pt "KEPRAMUKAAN KEAGAMAAN" akan memakan lebar yang dibutuhkan
      kotak isiannya. */
   .lembar-pos .print-table th, .lembar-pos .print-table td {
-    padding: 1pt 4pt; font-size: 12pt;
-    /* Jarak antarbaris huruf dirapatkan. Inilah yang sebenarnya menentukan
-       tinggi baris di sini — BUKAN tinggi kotak isiannya. Dengan line-height
-       bawaan (1,6) satu baris setinggi 32px meski kotaknya diminta 6mm, dan
-       selisih itu langsung berarti beberapa baris lebih sedikit per lembar. */
-    line-height: 1.15;
+    padding: 0.5pt 4pt; font-size: 12pt;
+    /* Jarak antarbaris huruf inilah yang sebenarnya menentukan tinggi baris
+       di sini — BUKAN tinggi kotak isiannya. Dengan line-height bawaan (1,6)
+       satu baris setinggi 32px meski kotaknya diminta 6mm.
+       1,0 supaya 30 baris muat: satu baris jadi ~5mm, dan itu kebetulan
+       persis tinggi baris bawaan Excel (15pt). Aman karena tiap sel di sini
+       hanya berisi SATU baris teks — tidak ada paragraf yang jadi rapat. */
+    line-height: 1;
   }
   .lembar-pos .print-table th { font-size: 8pt; }
-  .lembar-pos .print-table .dada { font-size: 14pt; width: 15mm; }
-  /* Tinggi kotak tulis: 6mm. Sedikit lebih rapat dari garis buku tulis
-     (7-8mm) tapi masih nyaman untuk angka dua digit — dan tiap milimeter di
-     sini berharga satu baris per halaman, yang berlipat jadi lembaran
-     fotokopi untuk 300 regu dikali lima pos. */
-  .lembar-pos .print-table td.isian { height: 6mm; }
+  /* Nomor dada TIDAK dibesarkan di lembar ini. Sempat 14pt, dan ternyata
+     dialah yang menentukan tinggi seluruh baris — satu sel 14pt membuat
+     barisnya 21px sementara sel 12pt lainnya cuma butuh 18px, dan selisih
+     3px dikali 30 baris persis yang membuat halaman tumpah. Tebalnya sudah
+     cukup membuatnya menonjol, dan di Excel pun semua kolom seukuran. */
+  .lembar-pos .print-table .dada { font-size: 12pt; width: 15mm; }
+  /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
+     ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
+     tinggi hanya akan mengurangi jumlah baris per lembar. */
   .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian { width: 14mm; }
   /* Identitas TIDAK boleh membungkus di sini: satu nama yang pecah dua baris
      menambah tinggi satu baris, dan tiga puluh baris yang dipatok mati tidak

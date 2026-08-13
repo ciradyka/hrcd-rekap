@@ -193,22 +193,24 @@ Dua keputusan yang membentuknya:
 Kalau `daftar_ulang_ditutup` masih `false`, kertasnya membawa peringatan
 tercetak bahwa regu yang mendaftar ulang setelahnya tidak ada di sana.
 
-**A4 landscape, 12pt, 20 regu per lembar.** Ketiganya terikat satu sama lain
-dan angkanya hasil ukur, bukan pilihan:
+**A4 landscape, 12pt, 30 regu per lembar, semua kolom ditengahkan** —
+mengikuti bentuk cetakan Excel yang selama ini dipakai panitia. Yang tertulis
+di kertas ini dibaca lagi dari **foto**, oleh orang lain, di layar laptop,
+jadi hurufnya tidak boleh dikecilkan demi memuat lebih banyak baris.
 
-- Panitia meminta huruf 12pt, sama dengan cetakan Excel yang selama ini
-  dipakai — yang tertulis di sana dibaca lagi dari **foto**, oleh orang lain,
-  di layar laptop.
-- Di 12pt tabel Pos 1 selebar 201mm, sedangkan A4 potret hanya menyediakan
-  180mm. Karena itu lembar ini memakai halaman bernama (`@page lembar-pos`)
-  supaya **hanya ia** yang berputar; kwitansi dan daftar kloter tetap potret.
-- Tinggi barisnya ternyata ditentukan `line-height`, bukan tinggi kotak
-  isiannya. Dirapatkan ke 1,15, satu halaman memuat 21–23 baris — 21 di pos
-  yang kepala halamannya paling tinggi. Dipatok **20**, satu baris di bawah
-  yang paling sesak, karena halaman yang tumpah tidak menimbulkan galat apa
-  pun: ia hanya menghasilkan setumpuk kertas yang salah.
+Ketiga angka itu terikat satu sama lain, dan semuanya ditemukan dengan
+**mengukur**, bukan menalar:
 
-Tiga puluh baris per lembar sempat dicoba dan hanya mungkin pada huruf 8,5pt.
+| Yang menentukan | Temuan |
+| --- | --- |
+| Lebar | Di 12pt tabel Pos 1 selebar 201mm; A4 potret hanya menyediakan 180mm. Karena itu lembar ini memakai halaman bernama (`@page lembar-pos`) supaya **hanya ia** yang berputar — kwitansi dan daftar kloter tetap potret. |
+| Tinggi baris | Ditentukan `line-height`, **bukan** tinggi kotak isiannya: pada nilai bawaan (1,6) satu baris setinggi 32px meski kotaknya diminta 6mm. |
+| Sel tertinggi | Nomor dada sempat 14pt dan dialah yang menaikkan seluruh baris ke 21px sementara sel 12pt lain cuma butuh 18px. Selisih 3px dikali 30 baris persis yang membuat halaman tumpah. |
+
+Hasil akhirnya baris setinggi 4,8mm — kebetulan persis tinggi baris bawaan
+Excel — dengan sisa 10–21mm per halaman tergantung pos. Halaman yang tumpah
+tidak menimbulkan galat apa pun; ia hanya menghasilkan setumpuk kertas yang
+salah, dan baru ketahuan di pos.
 
 #### Pita keadaan simpan
 
