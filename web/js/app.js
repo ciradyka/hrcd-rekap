@@ -177,7 +177,7 @@ function alatTabel({ saringan, saringAktif, jumlah }) {
       <div class="medan" style="margin:0;flex:1;min-width:220px">
         <label for="cari-tabel" class="visually-hidden">Cari</label>
         <input type="text" id="cari-tabel" autocomplete="off"
-               placeholder="Cari kode atau nama sekolah…">
+               placeholder="Cari kode, sekolah, atau nama regu…">
       </div>
       <div class="saring-baris">
         ${saringan.map(s => `
@@ -215,10 +215,14 @@ function pasangAlatTabel(gambar) {
   jalan();
 }
 
-/** Filter bersama: kode pembayaran atau nama sekolah mengandung teks cari. */
+/** Filter bersama: kode pembayaran, nama sekolah, atau nama salah satu regu
+ *  mengandung teks cari. Nama regu ikut dicari karena meja pembayaran
+ *  menampilkan barisnya per regu — yang disebut sekolah kadang nama regunya,
+ *  bukan kodenya. */
 const cocokCari = (b, cari) => !cari
   || b.kode_pembayaran.toLowerCase().includes(cari)
-  || (b.sekolah?.nama || "").toLowerCase().includes(cari);
+  || (b.sekolah?.nama || "").toLowerCase().includes(cari)
+  || (b.regu || []).some(r => (r.nama_regu || "").toLowerCase().includes(cari));
 
 const reguAktif = (b) => (b.regu || []).filter(r => !r.batal);
 
@@ -236,6 +240,15 @@ async function layarPembayaran() {
   // Panitia menekan Pembayaran lalu cepat pindah ke layar lain: jawaban yang
   // datang belakangan TIDAK boleh menimpa layar yang sedang dibuka sekarang.
   if (location.hash !== layarIni) return;
+
+  // Invoice yang dicentang untuk dilunasi sekaligus. Hidup di luar gambar()
+  // supaya centangnya TIDAK hilang saat operator mengetik di kotak cari atau
+  // berpindah saringan — mengulang centang 8 invoice karena salah ketik satu
+  // huruf adalah cara tercepat membuat meja berhenti memakai fitur ini.
+  const dipilih = new Set();
+  // Invoice yang barisan detail regunya sedang dibuka. Ikut disimpan supaya
+  // detail tidak menutup sendiri setiap kali tabel digambar ulang.
+  const dibuka = new Set();
 
   LAYAR.replaceChildren(h(`
     <div class="kartu">
@@ -259,57 +272,184 @@ async function layarPembayaran() {
           <tbody id="isi-tabel"></tbody>
         </table>
       </div>
+      <div class="bilah-massal" id="bilah-massal" hidden>
+        <span class="bilah-ringkas" id="bilah-ringkas"></span>
+        <select class="pilih-kecil" id="bilah-metode" aria-label="Cara bayar">
+          <option value="tunai" selected>Tunai</option>
+          <option value="transfer">Transfer</option>
+        </select>
+        <button class="tombol tombol-utama tombol-kecil" id="bilah-lunas" type="button">
+          Tandai Lunas</button>
+        <button class="tombol tombol-kalem tombol-kecil" id="bilah-bersih" type="button">
+          Bersihkan</button>
+      </div>
     </div>
     ${barisTerakhirHtml("pembayaran")}
   `));
 
+  /** Ringkasan invoice yang dicentang. Sekalian membuang yang sudah tidak
+   *  menunggu pembayaran lagi — mis. baru saja dilunasi satuan lewat tombol
+   *  di barisnya — supaya bilah tidak pernah menghitung yang sudah selesai. */
+  const ringkasPilihan = () => {
+    let invoice = 0, regu = 0, total = 0;
+    for (const kode of [...dipilih]) {
+      const b = semua.find(x => x.kode_pembayaran === kode);
+      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
+      const n = reguAktif(b).length;
+      invoice += 1;
+      regu += n;
+      total += n * EDISI.biaya_per_regu;
+    }
+    return { invoice, regu, total };
+  };
+
+  const perbaruiBilah = () => {
+    const { invoice, regu, total } = ringkasPilihan();
+    const bilah = document.getElementById("bilah-massal");
+    bilah.hidden = invoice === 0;
+    if (!invoice) return;
+    document.getElementById("bilah-ringkas").textContent =
+      `${invoice} invoice · ${regu} regu · ${rupiah(total)}`;
+    document.getElementById("bilah-lunas").textContent = `Tandai Lunas (${invoice})`;
+  };
+
+  // Kotak cari dan saringan dipegang pasangAlatTabel; bilah massal berada di
+  // luar tbody sehingga perlu jalan untuk menggambar ulang dengan saringan
+  // yang sedang aktif — tanpa memasang ulang listener-nya tiap kali.
+  let cariKini = "", saringKini = "belum";
+  const gambarUlang = () => gambar(cariKini, saringKini);
+
   const gambar = (cari, saring) => {
+    cariKini = cari; saringKini = saring;
     const baris = semua.filter(b =>
       cocokCari(b, cari) &&
       (saring === "semua" || (saring === "lunas" ? b.status === "lunas"
                                                  : b.status === "menunggu_pembayaran")));
-    document.getElementById("tabel-jumlah").textContent = `${baris.length} baris`;
+    // Dua angka sekaligus: yang dibayar adalah invoice, yang dihitung panitia
+    // saat mencocokkan uang adalah regu.
+    const jumlahRegu = baris.reduce((n, b) => n + reguAktif(b).length, 0);
+    document.getElementById("tabel-jumlah").textContent =
+      `${baris.length} invoice · ${jumlahRegu} regu`;
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
       tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
         Tidak ada yang cocok.</td></tr>`));
+      perbaruiBilah();
       return;
     }
 
     tbody.replaceChildren(h(baris.map(b => {
       const aktif = reguAktif(b);
       const tagihan = aktif.length * EDISI.biaya_per_regu;
+      // Cara bayar default TUNAI — mayoritas sekolah membayar langsung di
+      // meja, jadi jalur tersibuk cukup satu ketukan. Yang transfer memilih
+      // "Transfer" dulu. Salah tandai dibereskan lewat "Batalkan", bukan
+      // dicegah dengan ketukan tambahan untuk semua orang.
       const aksi = b.status === "lunas"
         ? html`<span class="lencana lencana-hijau">LUNAS</span>
                <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>
+               <button class="tombol tombol-utama tombol-mini" type="button"
+                       data-cetak="${b.kode_pembayaran}">Cetak Kwitansi</button>
                <button class="tombol tombol-kalem tombol-mini" type="button"
                        data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>`
         : b.status === "batal"
           ? `<span class="lencana lencana-merah">BATAL</span>`
           : `<div class="aksi-baris">
                <select class="pilih-kecil" data-metode="${esc(b.kode_pembayaran)}">
-                 <option value="">Cara bayar…</option>
+                 <option value="tunai" selected>Tunai</option>
                  <option value="transfer">Transfer</option>
-                 <option value="tunai">Tunai</option>
                </select>
-               <button class="tombol tombol-utama tombol-kecil" type="button" disabled
+               <button class="tombol tombol-utama tombol-kecil" type="button"
                        data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>
              </div>`;
+      // Satu baris = satu invoice, karena satu invoice memang dibayar
+      // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
+      // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
+      // saat sekolah menyerahkan uang, dan itu juga yang dicetak di kwitansi.
+      const kode = esc(b.kode_pembayaran);
+      const sekolah = esc(b.sekolah?.nama || "—");
+      // Nomor invoice dibungkus <label> bersama kotak centangnya: mengetuk
+      // NOMORNYA sama dengan mengetuk centang — perilaku bawaan browser,
+      // tanpa kode klik sendiri. Hanya yang belum bayar bisa dicentang; yang
+      // sudah lunas tidak punya apa pun lagi untuk diproses massal.
+      const bisaDipilih = b.status === "menunggu_pembayaran" && aktif.length > 0;
+      const kodeHtml = bisaDipilih
+        ? `<label class="pilih-invoice">
+             <input type="checkbox" class="ceklis" data-pilih="${kode}"
+                    ${dipilih.has(b.kode_pembayaran) ? "checked" : ""}>
+             <span>${kode}</span>
+           </label>`
+        : kode;
+      const terbuka = dibuka.has(b.kode_pembayaran);
+
       // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
       // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
       return `
-        <tr data-baris="${esc(b.kode_pembayaran)}">
-          <td class="mono">${esc(b.kode_pembayaran)}</td>
+        <tr class="baris-invoice${dipilih.has(b.kode_pembayaran) ? " terpilih" : ""}"
+            data-baris="${kode}">
+          <td class="mono">${kodeHtml}</td>
           <td>
-            <strong>${esc(b.sekolah?.nama || "—")}</strong>
-            <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
+            <strong>${sekolah}</strong>
+            ${aktif.length
+              ? `<div><button class="tombol-detail" type="button" data-detail="${kode}"
+                             data-jumlah="${aktif.length}" aria-expanded="${terbuka}">
+                   ${terbuka ? "▾" : "▸"} ${aktif.length} regu</button></div>`
+              : `<div class="sub">semua regu batal</div>`}
           </td>
           <td class="rata-tengah">${aktif.length}</td>
           <td class="rata-kanan">${esc(rupiah(tagihan))}</td>
           <td>${aksi}</td>
-        </tr>`;
+        </tr>
+        ${!aktif.length ? "" : `
+        <tr class="baris-detail" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
+          <td colspan="5">
+            <table class="tabel-detail">
+              <thead>
+                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Sekolah</th>
+                    <th class="rata-kanan">Biaya</th></tr>
+              </thead>
+              <tbody>
+                ${aktif.map(r => `
+                  <tr>
+                    <td><strong>${esc(r.nama_regu)}</strong></td>
+                    <td>${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
+                    <td>${esc(r.nama_ketua)}</td>
+                    <td>${sekolah}</td>
+                    <td class="rata-kanan">${esc(rupiah(EDISI.biaya_per_regu))}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </td>
+        </tr>`}`;
     }).join("")));
+
+    // Buka/tutup rincian regu satu invoice.
+    tbody.querySelectorAll("[data-detail]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const kode = btn.dataset.detail;
+        const barisDetail = tbody.querySelector(`[data-detail-untuk="${CSS.escape(kode)}"]`);
+        const buka = barisDetail.hidden;
+        if (buka) dibuka.add(kode); else dibuka.delete(kode);
+        barisDetail.hidden = !buka;
+        btn.setAttribute("aria-expanded", String(buka));
+        btn.textContent = `${buka ? "▾" : "▸"} ${btn.dataset.jumlah} regu`;
+      }));
+
+    // Centang invoice untuk pelunasan massal.
+    tbody.querySelectorAll("[data-pilih]").forEach(kotak =>
+      kotak.addEventListener("change", () => {
+        const kode = kotak.dataset.pilih;
+        if (kotak.checked) dipilih.add(kode); else dipilih.delete(kode);
+        kotak.closest("tr").classList.toggle("terpilih", kotak.checked);
+        perbaruiBilah();
+      }));
+
+    tbody.querySelectorAll("[data-cetak]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const b = semua.find(x => x.kode_pembayaran === btn.dataset.cetak);
+        if (b) cetakKwitansi([b]);
+      }));
 
     // Jalan mundur yang sah untuk salah tandai (rancangan-b.md 11.9) —
     // wajib beralasan, dan ditolak server bila batch sudah daftar ulang.
@@ -333,16 +473,8 @@ async function layarPembayaran() {
           b.pembayaran = null;
           catatTerakhir("pembayaran", kode, `dibatalkan — ${jawab[0]}`);
           notif(`Verifikasi ${kode} dibatalkan.`);
-          gambar(cari, saring);
+          gambarUlang();
         } catch (err) { notif(err.message, true); }
-      }));
-
-    // Cara bayar harus dipilih dulu — nominalnya uang, jadi satu ketukan
-    // tidak boleh cukup untuk menandai lunas (rancangan-b.md 10.1).
-    tbody.querySelectorAll("[data-metode]").forEach(sel =>
-      sel.addEventListener("change", () => {
-        const btn = tbody.querySelector(`[data-lunas="${CSS.escape(sel.dataset.metode)}"]`);
-        btn.disabled = !sel.value;
       }));
 
     tbody.querySelectorAll("[data-lunas]").forEach(btn =>
@@ -365,15 +497,153 @@ async function layarPembayaran() {
         }
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
         // tetap konsisten tanpa memuat ulang seluruh tabel.
-        b.status = "lunas";
-        b.pembayaran = { nominal: tagihan, metode, nomor_kwitansi: r.nomor_kwitansi };
-        catatTerakhir("pembayaran", kode, `${b.sekolah?.nama || ""} — lunas, ${r.nomor_kwitansi}`);
+        tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
+        dipilih.delete(kode);
         notif(`${b.sekolah?.nama || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
-        gambar(cari, saring);
+        gambarUlang();
+
+        // Panel sukses langsung menawarkan cetak (rancangan-b.md 10.2) —
+        // satu alur, bukan dua. Menolak di sini tidak menghilangkan apa pun:
+        // tombol "Cetak Kwitansi" tetap ada di barisnya.
+        const cetak = await dialog({
+          judul: "Lunas — cetak kwitansi?",
+          kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
+            <div class="nama">${r.nomor_kwitansi}</div>
+            <div class="detail">${b.sekolah?.nama || kode} · ${kode} ·
+              ${aktif.length} regu · ${rupiah(tagihan)}</div>
+          </div>`,
+          labelAksi: "Cetak Kwitansi",
+        });
+        if (cetak) cetakKwitansi([b]);
       }));
+
+    perbaruiBilah();
   };
 
+  /* --------- pelunasan massal: beberapa invoice sekaligus --------- */
+
+  document.getElementById("bilah-bersih").addEventListener("click", () => {
+    dipilih.clear();
+    gambarUlang();
+  });
+
+  document.getElementById("bilah-lunas").addEventListener("click", async () => {
+    const btn = document.getElementById("bilah-lunas");
+    const metode = document.getElementById("bilah-metode").value;
+    const { invoice, regu, total } = ringkasPilihan();
+    if (!invoice) return;
+
+    // Satu-satunya dialog konfirmasi di layar ini, dan memang untuk commit
+    // massal (rancangan-b.md 10.1.10). Kwitansinya menyusul otomatis setelah
+    // ini supaya tidak jadi dialog kedua.
+    const jawab = await dialog({
+      judul: `Tandai lunas ${invoice} invoice`,
+      kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
+        <div class="nama">${rupiah(total)}</div>
+        <div class="detail">${invoice} invoice · ${regu} regu · ${metode}</div>
+        <div class="detail">Kwitansinya langsung disiapkan untuk dicetak.</div>
+      </div>`,
+      labelAksi: "Tandai Lunas",
+    });
+    if (!jawab) return;
+
+    btn.disabled = true;
+    const berhasil = [];
+    const gagal = [];
+    // Berurutan, bukan serentak: RPC-nya per invoice, dan bila satu tertolak
+    // (mis. sudah dibayar meja lain) sisanya harus tetap jalan — kegagalan
+    // disebut satu per satu, tidak ditelan diam-diam (rancangan-b.md 10.1.11).
+    for (const kode of [...dipilih]) {
+      const b = semua.find(x => x.kode_pembayaran === kode);
+      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
+      const tagihan = reguAktif(b).length * EDISI.biaya_per_regu;
+      btn.textContent = `Menyimpan ${berhasil.length + gagal.length + 1}/${invoice}…`;
+      try {
+        const r = await verifikasiPembayaran(kode, tagihan, metode);
+        tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
+        dipilih.delete(kode);
+        berhasil.push(b);
+      } catch (err) {
+        gagal.push(`${kode}: ${err.message}`);
+      }
+    }
+    btn.disabled = false;
+    gambarUlang();
+
+    if (berhasil.length) notif(`${berhasil.length} invoice ditandai LUNAS.`);
+    if (gagal.length) notif(`${gagal.length} gagal — ${gagal.join(" · ")}`, true);
+    if (berhasil.length) cetakKwitansi(berhasil);
+  });
+
   pasangAlatTabel(gambar);
+}
+
+/** Menyalin hasil verifikasi ke data lokal + daftar "baris terakhir", supaya
+ *  jalur satuan dan jalur massal menulis fakta yang sama persis. */
+function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
+  b.status = "lunas";
+  b.pembayaran = {
+    nominal, metode, nomor_kwitansi: nomorKwitansi,
+    diverifikasi_pada: new Date().toISOString(),
+  };
+  catatTerakhir("pembayaran", b.kode_pembayaran,
+    `${b.sekolah?.nama || ""} — lunas, ${nomorKwitansi}`);
+}
+
+/** Kwitansi siap cetak — satu invoice satu lembar, dengan rincian regu yang
+ *  dibayar di dalamnya. Sekolah membayar sekaligus, tapi yang mereka simpan
+ *  sebagai bukti adalah daftar regunya: nama, kategori, dan biaya per regu.
+ *  Dibangun ke dalam #cetakan seperti daftar kloter — di layar tersembunyi,
+ *  muncul hanya di kertas (gaya.css @media print). */
+function cetakKwitansi(daftar) {
+  document.getElementById("cetakan")?.remove();
+  const s = sesi();
+  const tanggal = (t) => new Date(t || Date.now()).toLocaleDateString("id-ID",
+    { day: "numeric", month: "long", year: "numeric" });
+
+  const halaman = daftar.map(b => {
+    const aktif = reguAktif(b);
+    const bayar = b.pembayaran || {};
+    const total = bayar.nominal ?? aktif.length * EDISI.biaya_per_regu;
+    const baris = aktif.map((r, i) => html`
+      <tr><td>${String(i + 1)}</td>
+          <td>${r.nama_regu}</td>
+          <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
+          <td>${r.nama_ketua}</td>
+          <td class="rata-kanan">${rupiah(EDISI.biaya_per_regu)}</td></tr>`).join("");
+
+    return `
+      <section class="halaman-cetak">
+        <h1>KWITANSI — ${esc(EDISI ? EDISI.nama : "")}</h1>
+        <p class="kwit-nomor">${esc(bayar.nomor_kwitansi || "—")}</p>
+        <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.nama || "—")}</p>
+        <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
+           · <strong>Cara bayar:</strong> ${esc(bayar.metode || "—")}
+           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.diverifikasi_pada))}</p>
+        <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
+           @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
+        <table class="tabel-cetak">
+          <thead>
+            <tr><th>No</th><th>Nama Regu</th><th>Kategori</th><th>Ketua</th>
+                <th class="rata-kanan">Biaya</th></tr>
+          </thead>
+          <tbody>${baris}</tbody>
+          <tfoot>
+            <tr><th colspan="4" class="rata-kanan">TOTAL</th>
+                <th class="rata-kanan">${esc(rupiah(total))}</th></tr>
+          </tfoot>
+        </table>
+        <div class="kwit-tanda">
+          <p>Diterima oleh,</p>
+          <p class="kwit-garis">${esc(s ? s.username : "")}</p>
+        </div>
+        <p class="catatan-cetak">Kwitansi ini bukti pendaftaran regu di atas.
+           Simpan dan bawa saat daftar ulang.</p>
+      </section>`;
+  }).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
+  window.print();
 }
 
 /* ============================ MEJA DAFTAR ULANG ========================== */
