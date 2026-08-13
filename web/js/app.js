@@ -405,8 +405,8 @@ async function layarPembayaran() {
       // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
       return `
         <tr class="invoice-row" data-baris="${kode}">
-          <td class="mono">${kode}</td>
-          <td>
+          <td class="mono" data-label="Kode Bayar">${kode}</td>
+          <td data-label="Sekolah">
             <strong>${sekolah}</strong>
             ${aktif.length
               ? `<div><button class="button-detail" type="button" data-detail="${kode}"
@@ -414,9 +414,9 @@ async function layarPembayaran() {
                    ${terbuka ? "▾" : "▸"} ${aktif.length} regu</button></div>`
               : `<div class="sub">semua regu batal</div>`}
           </td>
-          <td class="text-center">${aktif.length}</td>
-          <td class="text-right">${esc(rupiah(tagihan))}</td>
-          <td>${aksi}</td>
+          <td class="text-center" data-label="Regu">${aktif.length}</td>
+          <td class="text-right" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
+          <td data-label="Status">${aksi}</td>
         </tr>
         ${!aktif.length ? "" : `
         <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
@@ -690,13 +690,13 @@ async function layarDaftarUlang() {
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `
         <tr data-baris="${kode}">
-          <td class="mono">${kode}</td>
-          <td>
+          <td class="mono" data-label="Kode Bayar">${kode}</td>
+          <td data-label="Sekolah">
             <strong>${esc(b.sekolah?.name || "—")}</strong>
             <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
-          <td class="text-center">${aktif.length}</td>
-          <td>${aksi}</td>
+          <td class="text-center" data-label="Regu">${aktif.length}</td>
+          <td data-label="">${aksi}</td>
         </tr>
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>

@@ -557,6 +557,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    sempit, tabelnya yang menggeser di dalam kartu (aturan 10.1.13). */
 .detail-table td:nth-child(2) { white-space: nowrap; }
 
+@media (max-width: 560px) {
+  /* Satu regu = satu blok dua baris, kotak angka di kanan sejajar namanya.
+     Judul kolom disembunyikan karena pasangannya sudah jelas dari bentuk. */
+  .detail-table, .detail-table tbody, .detail-table tr, .detail-table td { display: block; }
+  .detail-table thead { display: none; }
+  .detail-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr 4.5rem;
+    grid-template-areas: "nama nama input" "kat ketua input";
+    align-items: center; gap: .1rem .5rem;
+    padding: .55rem 0; border-top: 1px solid var(--garis);
+  }
+  .detail-table td { border: 0; padding: 0; }
+  .detail-table td:nth-child(1) { grid-area: nama; }
+  .detail-table td:nth-child(2) { grid-area: kat;   font-size: .78rem; color: var(--tinta-lembut); }
+  .detail-table td:nth-child(3) { grid-area: ketua; font-size: .78rem; color: var(--tinta-lembut); }
+  .detail-table td:nth-child(4) { grid-area: input; }
+  .detail-table td:nth-child(3)::before { content: "· "; }
+}
+
 .data-table .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
 .data-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .text-center { text-align: center; }
@@ -656,10 +676,40 @@ input.small-input { text-align: center; }
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
   .isi { padding-bottom: 6rem; }
 
-  /* Tombol aksi di dalam sel tabel jangan dipenggal jadi tiga baris — di
-     kolom sempit "Isi 5 Nomor Dada" pecah dan barisnya jadi tinggi sekali.
-     Biarkan tabelnya yang menggeser, tombolnya tetap utuh sebaris. */
-  .data-table .button-small, .data-table .button-mini { white-space: nowrap; }
+  /* ---- Di HP, tabel BERHENTI jadi tabel ----
+     Empat sampai lima kolom tidak akan pernah muat di 390px, dan menggeser
+     ke samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
+     tombol di sebelah kanan. Jadi tiap baris dijadikan KARTU bertumpuk:
+     tidak ada geser samping sama sekali, semuanya terbaca sekali pandang.
+     Nama kolom dibawa lewat data-label karena <thead> disembunyikan. */
+  /* HANYA baris invoice yang dijadikan blok. Tanpa pembatas ini, aturannya
+     ikut menyapu .detail-table yang bersarang di dalamnya dan mematahkan
+     grid-nya — kotak angka turun ke bawah, bukan sejajar nama regu. */
+  .data-table, .data-table > tbody, .data-table > tbody > tr { display: block; }
+  .data-table > tbody > tr > td { display: block; }
+  .data-table > thead { display: none; }
+  .table-wrapper { overflow-x: visible; max-height: none; }
+
+  .data-table tbody tr[data-baris] {
+    border: 1.5px solid var(--garis); border-radius: var(--radius);
+    padding: .65rem .75rem; margin-bottom: .7rem; background: var(--kartu);
+  }
+  .data-table tbody tr[data-baris] > td {
+    border: 0; padding: .12rem 0; text-align: left;
+  }
+  /* Label kolom menempel di depan nilainya. Sel tanpa label (kolom aksi)
+     tidak menampilkan apa pun. */
+  .data-table tbody tr[data-baris] > td[data-label]:not([data-label=""])::before {
+    content: attr(data-label) ": ";
+    color: var(--tinta-lembut); font-size: .78rem; font-weight: 600;
+  }
+  .data-table tbody tr[data-baris] > td[data-label="Kode Bayar"] { font-size: 1.05rem; font-weight: 700; }
+  .data-table tbody tr[data-baris] > td:last-child { margin-top: .5rem; }
+  .data-table tbody tr[data-baris] .button-small { width: 100%; }
+
+  /* Baris rincian regu ikut jadi blok, bukan sel tabel. */
+  .data-table tbody tr.detail-row { display: block; }
+  .data-table tbody tr.detail-row > td { display: block; padding: 0; border: 0; }
 
   /* Tombol header pindah ke bawah — sisakan judul dan identitas akun saja. */
   .header .icon-button, .header .button-small { display: none; }
