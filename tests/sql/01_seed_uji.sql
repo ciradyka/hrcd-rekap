@@ -11,7 +11,7 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000b2', 'meja2hrcd37@uji.local'),
   ('00000000-0000-0000-0000-0000000000ff', 'nonaktif@uji.local');
 
-insert into akun_panitia (user_id, username, peran, pos, aktif) values
+insert into akun_panitia (user_id, username, peran, pos, is_active) values
   ('00000000-0000-0000-0000-00000000000a', 'admin.ciradyka', 'admin',        null, true),
   ('00000000-0000-0000-0000-000000000001', 'pos1hrcd37',     'operator_pos', 1,    true),
   ('00000000-0000-0000-0000-000000000002', 'pos2hrcd37',     'operator_pos', 2,    true),
@@ -33,7 +33,7 @@ create function uji_dada(p_kode text) returns jsonb language sql as $$
     select r.id, row_number() over (order by r.nama_regu, r.id) as urut
     from regu r
     join pendaftaran d on d.id = r.pendaftaran_id
-    where d.kode_pembayaran = p_kode and not r.batal and r.nomor_dada is null
+    where d.kode_pembayaran = p_kode and not r.is_cancelled and r.nomor_dada is null
   ),
   tersedia as (
     select s.nomor, row_number() over (order by s.nomor) as urut

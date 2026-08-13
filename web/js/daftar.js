@@ -202,12 +202,12 @@ function gambarSekolah() {
   cari.addEventListener("input", () => {
     const q = normal(cari.value.trim());
     if (q.length < 2) { saran.hidden = true; return; }
-    const cocok = SEKOLAH.filter(s => normal(s.nama).includes(q)).slice(0, 6);
+    const cocok = SEKOLAH.filter(s => normal(s.name).includes(q)).slice(0, 6);
     saran.hidden = cocok.length === 0;
     saran.replaceChildren(...cocok.map(s => {
       const b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = html`<strong>${s.nama}</strong><span class="alamat">${s.alamat}</span>`;
+      b.innerHTML = html`<strong>${s.name}</strong><span class="alamat">${s.address}</span>`;
       b.addEventListener("click", () => pilih(s));
       return b;
     }));
@@ -216,7 +216,7 @@ function gambarSekolah() {
   cari.addEventListener("blur", () => setTimeout(() => { saran.hidden = true; }, 200));
 
   function pilih(s) {
-    jawab.sekolah = { id: s.id, nama: s.nama, alamat: s.alamat };
+    jawab.sekolah = { id: s.id, nama: s.name, alamat: s.address };
     simpanDraf(); gambarSekolah();
     if (sudahDiperiksa) periksa(false);
   }
@@ -226,7 +226,7 @@ function gambarSekolah() {
   function gambarManual() {
     const teks = cari.value.trim();
     if (teks.length < 3) { document.getElementById("manual").replaceChildren(); return; }
-    if (SEKOLAH.some(s => normal(s.nama) === normal(teks))) {
+    if (SEKOLAH.some(s => normal(s.name) === normal(teks))) {
       document.getElementById("manual").replaceChildren(); return;
     }
     if (document.getElementById("m-alamat")) return;    // sudah tergambar

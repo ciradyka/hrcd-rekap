@@ -16,7 +16,7 @@ do $$
 declare
   v_k1 timestamptz; v_k3 timestamptz; v_interval int;
 begin
-  select interval_berangkat_menit into v_interval from edisi where aktif;
+  select interval_berangkat_menit into v_interval from edisi where is_active;
   select min(perkiraan_berangkat) into v_k1 from v_daftar_kloter where kloter = 1;
   select min(perkiraan_berangkat) into v_k3 from v_daftar_kloter where kloter = 3;
   assert v_k1 is not null, 'perkiraan berangkat kloter 1 kosong';
@@ -52,14 +52,14 @@ begin
   -- Regu yang kloternya belum berangkat.
   select r.nomor_dada into v_dada
   from regu r join kloter k on k.nomor = r.kloter_nomor
-  where k.jam_berangkat is null and not r.batal
+  where k.jam_berangkat is null and not r.is_cancelled
   order by r.nomor_dada limit 1;
 
   select max(k.nomor) into v_terakhir
   from kloter k
   where k.jam_berangkat is null
     and (select count(*) from regu r where r.kloter_nomor = k.nomor)
-        < (select maks_regu_per_kloter from edisi where aktif);
+        < (select maks_regu_per_kloter from edisi where is_active);
 
   v_hasil := pindah_kloter(v_dada, 'terlambat masuk kloter');
   assert (v_hasil ->> 'kloter_baru')::smallint = v_terakhir,
@@ -80,13 +80,13 @@ begin
   from kloter k
   where k.dicetak_pada is not null and k.jam_berangkat is null
     and (select count(*) from regu r where r.kloter_nomor = k.nomor)
-        < (select maks_regu_per_kloter from edisi where aktif)
+        < (select maks_regu_per_kloter from edisi where is_active)
   limit 1;
   assert v_tercetak is not null, 'tidak ada kloter tercetak yang masih muat untuk diuji';
 
   select r.nomor_dada into v_dada
   from regu r join kloter k on k.nomor = r.kloter_nomor
-  where k.jam_berangkat is null and r.kloter_nomor <> v_tercetak and not r.batal
+  where k.jam_berangkat is null and r.kloter_nomor <> v_tercetak and not r.is_cancelled
   order by r.nomor_dada desc limit 1;
 
   v_hasil := pindah_kloter(v_dada, 'peserta urgent, harus berangkat sekarang', v_tercetak);
@@ -133,13 +133,13 @@ begin
   from kloter k
   where k.dicetak_pada is null and k.jam_berangkat is null
     and (select count(*) from regu r where r.kloter_nomor = k.nomor)
-        < (select maks_regu_per_kloter from edisi where aktif)
+        < (select maks_regu_per_kloter from edisi where is_active)
   limit 1;
 
   select r.nomor_dada into v_dada
   from regu r join kloter k on k.nomor = r.kloter_nomor
   where k.jam_berangkat is null and r.disisipkan_pada is null
-    and r.kloter_nomor <> v_belum and not r.batal
+    and r.kloter_nomor <> v_belum and not r.is_cancelled
   order by r.nomor_dada limit 1;
 
   if v_dada is not null and v_belum is not null then
@@ -160,7 +160,7 @@ begin
   -- Berangkatkan satu kloter untuk diuji.
   select k.nomor into v_kloter from kloter k
   where k.jam_berangkat is null
-    and exists (select 1 from regu r where r.kloter_nomor = k.nomor and not r.batal)
+    and exists (select 1 from regu r where r.kloter_nomor = k.nomor and not r.is_cancelled)
   order by k.nomor limit 1;
 
   -- Semua regu di kloter itu perlu kontrak sebelum boleh berangkat.
@@ -171,7 +171,7 @@ begin
   perform berangkatkan_kloter(v_kloter, now());
 
   select r.nomor_dada into v_dada from regu r join kloter k on k.nomor = r.kloter_nomor
-  where k.jam_berangkat is null and not r.batal limit 1;
+  where k.jam_berangkat is null and not r.is_cancelled limit 1;
 
   begin
     perform pindah_kloter(v_dada, 'coba tembus', v_kloter);

@@ -352,7 +352,7 @@ begin
 
   -- Tembak tabel langsung: kini tertutup untuk SEMUA non-admin.
   begin
-    insert into nilai_mentah (regu_id, wahana_id, nilai_1, sumber, created_by)
+    insert into nilai_mentah (regu_id, wahana_id, nilai_1, source, created_by)
     values ((select id from regu where nomor_dada = 1),
             (select id from wahana where kode = 'lari_zigzag'),
             3, 'manual', auth.uid());
@@ -498,12 +498,12 @@ $$;
 do $$
 begin
   perform ubah_pendamping(uji('B'), 2::smallint);
-  insert into ruangan (nama, kapasitas) values ('Kelas X-A', 50), ('Kelas X-B', 40);
+  insert into room (name, capacity) values ('Kelas X-A', 50), ('Kelas X-B', 40);
   perform susun_barak();
 
   assert (select sum(jumlah_orang) from penempatan_barak) = 87,
          'total penempatan barak bukan 87';
-  assert not exists (select 1 from v_barak where terisi > kapasitas),
+  assert not exists (select 1 from v_barak where terisi > capacity),
          'ada ruangan kelebihan muatan';
   -- A (60 orang): tidak ada ruangan tunggal yang muat -> pecah 50 + 10.
   assert (select count(*) from penempatan_barak p

@@ -160,9 +160,9 @@ export async function masuk(username, password) {
       body: JSON.stringify({ email, password }),
     });
     const akun = await kirim(
-      `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,aktif`,
+      `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,is_active`,
       { headers: { apikey: K.anonKey, Authorization: `Bearer ${j.access_token}` } });
-    if (!akun.length || !akun[0].aktif)
+    if (!akun.length || !akun[0].is_active)
       throw new ErrorApi("Akun ini tidak aktif di edisi sekarang. Hubungi koordinator.");
     s = {
       uid: j.user.id, token: j.access_token, refresh: j.refresh_token,
@@ -199,7 +199,7 @@ export async function gantiPasswordSendiri(passwordBaru) {
 export async function daftarSekolah() {
   // Dimuat SEKALI saat halaman dibuka, difilter di browser.
   if (K.mode === "dev") return baca("/sekolah");
-  return kirim(`${K.supabaseUrl}/rest/v1/sekolah?select=id,nama,alamat&order=nama`, {
+  return kirim(`${K.supabaseUrl}/rest/v1/sekolah?select=id,name,address&order=name`, {
     headers: { apikey: K.anonKey, Authorization: `Bearer ${K.anonKey}` },
   });
 }
@@ -237,9 +237,9 @@ export async function lihatBatch(kode) {
   const d = await baca(null,
     `pendaftaran?kode_pembayaran=eq.${encodeURIComponent(kode)}` +
     `&select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping,butuh_barak,kontak_wa,` +
-    `sekolah(nama,alamat),` +
-    `regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,batal),` +
-    `pembayaran(nominal,metode,nomor_kwitansi,verified_at)` +
+    `sekolah(name,address),` +
+    `regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,is_cancelled),` +
+    `pembayaran(amount,method,nomor_kwitansi,verified_at)` +
     `&regu.order=nama_regu.asc`);
   if (!d.length)
     throw new ErrorApi(`Kode ${kode} tidak ditemukan. Periksa lagi hurufnya.`);
@@ -271,9 +271,9 @@ export async function daftarPendaftaran() {
   return baca(null,
     "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping," +
     "butuh_barak,kontak_wa,created_at," +
-    "sekolah(nama,alamat)," +
-    "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,batal)," +
-    "pembayaran(nominal,metode,nomor_kwitansi,verified_at)" +
+    "sekolah(name,address)," +
+    "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,is_cancelled)," +
+    "pembayaran(amount,method,nomor_kwitansi,verified_at)" +
     "&regu.order=nama_regu.asc&order=created_at.asc");
 }
 

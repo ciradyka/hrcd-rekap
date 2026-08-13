@@ -83,7 +83,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             if u.path == "/sekolah":
                 self._kirim(200, q(
-                    "select id, nama, alamat from sekolah order by nama",
+                    "select id, name, address from sekolah order by name",
                     role="anon"))
             elif u.path == "/edisi":
                 self._kirim(200, q(
@@ -117,16 +117,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
                            d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
                            d.created_at,
-                           jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
+                           jsonb_build_object('name', s.name, 'address', s.address) as sekolah,
                            (select jsonb_agg(jsonb_build_object(
                               'id', r.id, 'nama_regu', r.nama_regu,
                               'nama_ketua', r.nama_ketua, 'golongan', r.golongan,
                               'nomor_dada', r.nomor_dada, 'kloter_nomor', r.kloter_nomor,
-                              'batal', r.batal)
+                              'is_cancelled', r.is_cancelled)
                               order by r.nama_regu)
                             from regu r where r.pendaftaran_id = d.id) as regu,
                            (select jsonb_build_object(
-                              'nominal', b.nominal, 'metode', b.metode,
+                              'amount', b.amount, 'method', b.method,
                               'nomor_kwitansi', b.nomor_kwitansi,
                               'verified_at', b.verified_at)
                             from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
@@ -144,22 +144,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
                       (select count(distinct d.id) from pendaftaran d
                        join regu r on r.pendaftaran_id = d.id
                        where d.status = 'lunas' and r.nomor_dada is null
-                         and not r.batal)::int as lunas_belum_nomor
+                         and not r.is_cancelled)::int as lunas_belum_nomor
                     """, uid=p.get("uid"), fetch="one"))
             elif u.path == "/batch":
                 b = q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
                            d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
-                           jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
+                           jsonb_build_object('name', s.name, 'address', s.address) as sekolah,
                            (select jsonb_agg(jsonb_build_object(
                               'id', r.id, 'nama_regu', r.nama_regu,
                               'nama_ketua', r.nama_ketua, 'golongan', r.golongan,
                               'nomor_dada', r.nomor_dada, 'kloter_nomor', r.kloter_nomor,
-                              'batal', r.batal)
+                              'is_cancelled', r.is_cancelled)
                               order by r.nama_regu)
                             from regu r where r.pendaftaran_id = d.id) as regu,
                            (select jsonb_build_object(
-                              'nominal', b.nominal, 'metode', b.metode,
+                              'amount', b.amount, 'method', b.method,
                               'nomor_kwitansi', b.nomor_kwitansi,
                               'verified_at', b.verified_at)
                             from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
@@ -184,7 +184,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 b = self._badan()
                 akun = q(
                     "select user_id::text as uid, username, peran, pos "
-                    "from akun_panitia where username = %s and aktif",
+                    "from akun_panitia where username = %s and is_active",
                     (b.get("username", ""),), role="service_role", fetch="one")
                 # Dev server: password apa pun diterima — auth sungguhan milik
                 # Supabase; yang diuji di sini adalah alur & RLS.

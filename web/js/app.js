@@ -37,7 +37,7 @@ function pasangKepala(judul, lebar = false) {
   document.getElementById("judul-layar").textContent = judul;
   LAYAR.classList.toggle("wide", lebar);
   if (s) document.getElementById("siapa").textContent =
-    `${s.username} · ${EDISI ? EDISI.nama : ""}`;
+    `${s.username} · ${EDISI ? EDISI.name : ""}`;
 }
 
 /** Jam sekarang dalam bentuk HH:MM untuk <input type="time">. */
@@ -283,10 +283,10 @@ function pasangAlatTabel(gambar) {
  *  bukan kodenya. */
 const cocokCari = (b, cari) => !cari
   || b.kode_pembayaran.toLowerCase().includes(cari)
-  || (b.sekolah?.nama || "").toLowerCase().includes(cari)
+  || (b.sekolah?.name || "").toLowerCase().includes(cari)
   || (b.regu || []).some(r => (r.nama_regu || "").toLowerCase().includes(cari));
 
-const reguAktif = (b) => (b.regu || []).filter(r => !r.batal);
+const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
 
 /* ============================ MEJA PEMBAYARAN ============================ */
 
@@ -386,7 +386,7 @@ async function layarPembayaran() {
       // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
       // saat sekolah menyerahkan uang, dan itu juga yang dicetak di kwitansi.
       const kode = esc(b.kode_pembayaran);
-      const sekolah = esc(b.sekolah?.nama || "—");
+      const sekolah = esc(b.sekolah?.name || "—");
       const terbuka = dibuka.has(b.kode_pembayaran);
 
       // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
@@ -456,7 +456,7 @@ async function layarPembayaran() {
         const jawab = await dialog({
           judul: "Batalkan verifikasi pembayaran",
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
-            <div class="nama">${b.sekolah?.nama || kode}</div>
+            <div class="nama">${b.sekolah?.name || kode}</div>
             <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
           </div>`,
           medan: [{ label: "Alasan pembatalan", contoh: "salah klik" }],
@@ -494,7 +494,7 @@ async function layarPembayaran() {
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
         // tetap konsisten tanpa memuat ulang seluruh tabel.
         tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
-        notif(`${b.sekolah?.nama || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
+        notif(`${b.sekolah?.name || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
         gambarUlang();
 
         // Panel sukses langsung menawarkan cetak (rancangan-b.md 10.2) —
@@ -504,7 +504,7 @@ async function layarPembayaran() {
           judul: "Lunas — cetak kwitansi?",
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">${r.nomor_kwitansi}</div>
-            <div class="detail">${b.sekolah?.nama || kode} · ${kode} ·
+            <div class="detail">${b.sekolah?.name || kode} · ${kode} ·
               ${aktif.length} regu · ${rupiah(tagihan)}</div>
           </div>`,
           labelAksi: "Cetak Kwitansi",
@@ -525,7 +525,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
     verified_at: new Date().toISOString(),
   };
   catatTerakhir("pembayaran", b.kode_pembayaran,
-    `${b.sekolah?.nama || ""} — lunas, ${nomorKwitansi}`);
+    `${b.sekolah?.name || ""} — lunas, ${nomorKwitansi}`);
 }
 
 /** Kwitansi siap cetak — satu invoice satu lembar, dengan rincian regu yang
@@ -542,7 +542,7 @@ function cetakKwitansi(daftar) {
   const halaman = daftar.map(b => {
     const aktif = reguAktif(b);
     const bayar = b.pembayaran || {};
-    const total = bayar.nominal ?? aktif.length * EDISI.biaya_per_regu;
+    const total = bayar.amount ?? aktif.length * EDISI.biaya_per_regu;
     const baris = aktif.map((r, i) => html`
       <tr><td>${String(i + 1)}</td>
           <td>${r.nama_regu}</td>
@@ -552,11 +552,11 @@ function cetakKwitansi(daftar) {
 
     return `
       <section class="print-page">
-        <h1>KWITANSI — ${esc(EDISI ? EDISI.nama : "")}</h1>
+        <h1>KWITANSI — ${esc(EDISI ? EDISI.name : "")}</h1>
         <p class="receipt-number">${esc(bayar.nomor_kwitansi || "—")}</p>
-        <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.nama || "—")}</p>
+        <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.name || "—")}</p>
         <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
-           · <strong>Cara bayar:</strong> ${esc(bayar.metode || "—")}
+           · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}
            · <strong>Tanggal:</strong> ${esc(tanggal(bayar.verified_at))}</p>
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
            @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
@@ -680,7 +680,7 @@ async function layarDaftarUlang() {
         <tr data-baris="${kode}">
           <td class="mono">${kode}</td>
           <td>
-            <strong>${esc(b.sekolah?.nama || "—")}</strong>
+            <strong>${esc(b.sekolah?.name || "—")}</strong>
             <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
           <td class="text-center">${aktif.length}</td>
@@ -838,7 +838,7 @@ async function layarDaftarUlang() {
         catatTerakhir("daftar-ulang", kode, hasil.map(x =>
           `${x.nama_regu} ${String(x.nomor_dada).padStart(3, "0")}`).join(", "));
         const kloter = [...new Set(hasil.map(x => x.kloter))].sort((x, y) => x - y).join(", ");
-        notif(`${b.sekolah?.nama || kode}: ${hasil.length} regu tersimpan — kloter ${kloter}.`);
+        notif(`${b.sekolah?.name || kode}: ${hasil.length} regu tersimpan — kloter ${kloter}.`);
         gambar(cari, saring);
       }));
   };
@@ -1180,7 +1180,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 
     return bentuk === "staging" ? `
       <section class="print-page">
-        <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.nama : "")}</h1>
+        <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.name : "")}</h1>
         <p><strong>${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</strong>
            ${nyata ? "" : " · Jam sebenarnya: ________"} · Petugas: ________________</p>
         <table class="print-table">

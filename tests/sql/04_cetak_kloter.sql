@@ -15,7 +15,7 @@ declare v_ditandai int; v_berisi int;
 begin
   select count(distinct r.kloter_nomor) into v_berisi
   from regu r join pendaftaran d on d.id = r.pendaftaran_id
-  where r.kloter_nomor is not null and not r.batal and d.status = 'lunas';
+  where r.kloter_nomor is not null and not r.is_cancelled and d.status = 'lunas';
 
   v_ditandai := tandai_kloter_dicetak();
   assert v_ditandai = v_berisi,
@@ -56,7 +56,7 @@ declare
   v_n        int;
 begin
   select nomor into v_tercetak from kloter where dicetak_pada is not null limit 1;
-  select id into v_regu from regu where kloter_nomor is null and not batal limit 1;
+  select id into v_regu from regu where kloter_nomor is null and not is_cancelled limit 1;
   assert v_tercetak is not null, 'tidak ada kloter tercetak untuk diuji';
   assert v_regu is not null, 'tidak ada regu tanpa kloter untuk diuji';
 
@@ -77,7 +77,7 @@ declare
   v_regu     uuid;
 begin
   select nomor into v_tercetak from kloter where dicetak_pada is not null limit 1;
-  select id into v_regu from regu where kloter_nomor is null and not batal limit 1;
+  select id into v_regu from regu where kloter_nomor is null and not is_cancelled limit 1;
 
   -- Menyisipkan regu baru ke kloter tercetak.
   begin
@@ -109,7 +109,7 @@ declare
   v_biaya integer;
 begin
   reset role;
-  select biaya_per_regu into v_biaya from edisi where aktif;
+  select biaya_per_regu into v_biaya from edisi where is_active;
   set role service_role;
   v_kode := (submit_pendaftaran('SMP Susulan Cetak', 'Jl. Susulan 1', false,
     '081277778888',
