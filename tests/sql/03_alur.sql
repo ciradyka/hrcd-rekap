@@ -475,10 +475,10 @@ begin
 
   -- Riwayat merekam koreksi nilai & closing.
   assert (select count(*) from history
-          where table_name = 'nilai_mentah' and aksi = 'UPDATE') >= 2,
+          where table_name = 'nilai_mentah' and action = 'UPDATE') >= 2,
          'riwayat timpa nilai tidak terekam';
   assert (select count(*) from history
-          where table_name = 'closing_regu' and aksi = 'UPDATE') >= 1,
+          where table_name = 'closing_regu' and action = 'UPDATE') >= 1,
          'riwayat koreksi closing tidak terekam';
 
   -- Monitoring.

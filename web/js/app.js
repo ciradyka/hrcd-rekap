@@ -106,7 +106,7 @@ function layarLogin(pesan) {
 /* ============================ BERANDA MEJA (home) ========================= */
 
 async function layarHome() {
-  pasangKepala("Beranda Meja");
+  pasangKepala("Home");
   const peran = sesi().peran;
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
