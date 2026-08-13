@@ -611,7 +611,6 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .data-table td[data-label="Metode"] { text-transform: capitalize; }
 .data-table td[data-label="Metode"] .badge { text-transform: none; }
 .table-empty { text-align: center; color: var(--tinta-lembut); padding: 1.4rem .5rem; }
-.kwitansi { display: block; font-size: .8rem; color: var(--tinta-lembut); }
 
 /* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
 .action-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
