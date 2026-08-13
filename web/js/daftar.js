@@ -75,7 +75,7 @@ const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
 
 function halaman() {
   LAYAR.replaceChildren(h(`
-    <div class="card" style="border-color:var(--utama)">
+    <div class="card card-title" style="border-color:var(--utama)">
       <h2>Pendaftaran Regu</h2>
     </div>
 

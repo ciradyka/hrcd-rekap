@@ -44,8 +44,14 @@ export function notif(pesan, galat = false) {
   // gunanya, mencegah XSS dari nama sekolah), jadi tombolnya ikut jadi
   // korban dan tampil apa adanya sebagai teks di layar panitia.
   // Pesannya tetap lewat esc() — itu satu-satunya bagian dari luar.
+  // Pesan galat dari database lahir huruf kecil — itu konvensi SQL
+  // (`raise exception 'regu ... belum konfirmasi kontrak waktu'`). Di layar
+  // panitia ia terbaca seperti potongan log, bukan kalimat. Huruf pertama
+  // dibesarkan DI SINI, satu tempat, supaya pesan dari mana pun ikut rapi
+  // tanpa perlu menyentuh belasan `raise exception` di migrasi.
+  const kalimat = String(pesan).charAt(0).toUpperCase() + String(pesan).slice(1);
   const n = h(`<div class="notification ${galat ? "error" : ""}" role="alert">
-      <span>${esc(pesan)}</span>
+      <span>${esc(kalimat)}</span>
       ${galat ? '<button class="notification-close" type="button" aria-label="tutup">✕</button>' : ""}
     </div>`);
   document.body.appendChild(n);
