@@ -1172,3 +1172,76 @@ input.small-input { text-align: center; }
      menu bawah, dan menu bawah hanya muncul di HP. */
   .header .icon-button, .header .button-small { display: none; }
 }
+
+/* ============================================================================
+   LEMBAR INPUT POS
+
+   Layar terlebar di seluruh sistem: empat kolom identitas + satu kolom per hal
+   yang dinilai + Nilai Pos + status simpan. Pos 1 sudah 11 kolom, dan
+   jumlahnya ditentukan konfigurasi — bisa bertambah tahun depan tanpa ada
+   yang menyentuh berkas ini.
+
+   Karena itu tabel ini SATU-SATUNYA yang memang boleh menggeser ke samping.
+   Aturan "kolom paling kanan tidak boleh hilang" di layar meja berlaku karena
+   di sana kolom terakhir berisi tombol; di sini kolom terakhir hanya penanda
+   tersimpan, dan yang dikerjakan petugas ada di tengah. Yang dijaga justru
+   nomor dada: ia dipatok di tepi kiri supaya tetap terlihat sejauh apa pun
+   tabelnya digeser — tanpa itu, petugas yang menggulir ke kolom kelima tidak
+   lagi tahu sedang menilai regu yang mana.
+   ========================================================================== */
+
+.table-pos { table-layout: auto; min-width: 100%; }
+.table-pos th, .table-pos td { padding: .4rem .45rem; white-space: nowrap; }
+/* Nama regu dan organisasi boleh membungkus — keduanya satu-satunya isi yang
+   panjangnya tak terduga, dan tanpa ini merekalah yang mendorong seluruh
+   kolom nilai keluar layar. */
+.table-pos td:nth-child(2), .table-pos td:nth-child(3) {
+  white-space: normal; min-width: 9rem;
+}
+
+/* Rentang yang boleh diketik, di bawah nama kolomnya — sama seperti "(0 - 20)"
+   yang tercetak di judul kolom lembar kertas. */
+.kolom-petunjuk {
+  display: block; font-weight: 500; font-size: .72rem;
+  color: var(--tinta-lembut); text-transform: none; letter-spacing: 0;
+}
+
+/* Nomor dada dipatok di tepi kiri. z-index 2 supaya ia lewat DI ATAS sel
+   biasa saat digeser, tapi tetap DI BAWAH kepala tabel yang juga menempel
+   (z-index 1 pada .data-table thead th, jadi kepalanya diberi 3 di bawah). */
+.table-pos td:first-child, .table-pos th:first-child {
+  position: sticky; left: 0; z-index: 2; background: var(--kartu);
+  box-shadow: 1px 0 0 var(--garis);
+}
+.table-pos thead th:first-child { z-index: 3; background: var(--kertas); }
+.table-pos tbody tr:hover td:first-child { background: var(--utama-muda); }
+
+/* Dua kotak yang sebenarnya satu nilai: Menit : Detik, atau Benar / Salah. */
+.pos-pasangan { display: inline-flex; align-items: center; gap: .25rem; }
+.pos-pasangan input.small-input { width: 3.4rem; }
+.pos-pemisah { color: var(--tinta-lembut); font-weight: 700; }
+
+/* Nilai Pos: angka yang dicari mata saat menyapu tabel dari atas ke bawah. */
+.pos-nilai {
+  font-weight: 800; font-variant-numeric: tabular-nums; font-size: 1.05rem;
+}
+.pos-status { width: 5rem; }
+
+/* Baris yang gagal tersimpan. Diberi warna SEBARIS PENUH, bukan hanya di
+   kolom statusnya: petugas sedang menatap kolom nilai di tengah tabel, dan
+   tanda sebesar satu sel di ujung kanan tidak akan pernah tertangkap. */
+.table-pos tbody tr.baris-gagal td { background: var(--bahaya-muda); }
+.table-pos tbody tr.baris-gagal td:first-child { background: var(--bahaya-muda); }
+
+@media (max-width: 560px) {
+  /* Lembar ini memakai .table-tetap (lihat blok "tabel BERHENTI jadi tabel"
+     di atas), jadi di HP ia TIDAK ditumpuk jadi kartu. Itu disengaja: satu
+     regu di Pos 1 akan jadi kartu setinggi 11 baris, dan menilai 300 regu
+     berarti menggulir 3.300 baris. Bentuk tabel itulah yang membuat "isi
+     kolom Semaphore, turun ke regu berikutnya" masuk akal. Yang dikecilkan
+     di sini hanya jaraknya. */
+  .table-pos th, .table-pos td { padding: .3rem .3rem; }
+  .table-pos input.small-input { width: 3.6rem; }
+  .table-pos .pos-pasangan input.small-input { width: 2.9rem; }
+  .table-pos td:nth-child(2), .table-pos td:nth-child(3) { min-width: 7.5rem; }
+}
