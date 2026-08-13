@@ -43,6 +43,10 @@ run supabase/migrations/0017_koreksi_jam_berangkat.sql
 run supabase/migrations/0018_pindah_setelah_berangkat.sql
 run supabase/migrations/0019_tukar_nomor_patokan_cetak.sql
 run supabase/migrations/0020_nomor_dada_tiga_digit.sql
+run supabase/migrations/0021_pos_bayangan.sql
+run supabase/migrations/0022_bentuk_bertingkat.sql
+run supabase/migrations/0023_lembar_pos.sql
+run supabase/migrations/0024_komponen_pos.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
@@ -51,5 +55,23 @@ run tests/sql/04_cetak_kloter.sql
 run tests/sql/05_pindah_kloter.sql
 run tests/sql/06_koreksi_jam_berangkat.sql
 run tests/sql/07_pindah_setelah_berangkat.sql
+
+# 0024 dijalankan DUA KALI, dan itu disengaja.
+#
+# Ia satu-satunya migrasi yang mengubah DATA edisi, bukan bentuk tabel. Pada
+# giliran pertama (di atas, sesuai nomornya) seed.sql belum jalan, jadi belum
+# ada edisi aktif dan isinya dilewati — persis seperti yang tertulis di
+# kepalanya. Kalau ia hanya dijalankan di sana, seluruh konfigurasi komponen
+# pos tidak pernah tersentuh tes sama sekali.
+#
+# Giliran kedua di sini, setelah 02-07 selesai memakai lima komponen contoh
+# dari seed.sql. Urutan itu penting: dijalankan lebih awal, komponen contoh
+# yang belum berisi nilai akan dibuang dan tes 03 kehilangan bahannya.
+#
+# Menjalankannya dua kali sekaligus membuktikan migrasinya memang aman
+# diulang — yang perlu dipastikan, karena workflow Apply migration bisa saja
+# ditekan dua kali dari HP.
+run supabase/migrations/0024_komponen_pos.sql
+run tests/sql/08_lembar_pos.sql
 
 echo "SEMUA TES LULUS"

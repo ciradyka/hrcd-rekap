@@ -230,8 +230,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 1. Terdapat **5 pos utama** di sepanjang rute, masing-masing dengan soal dan
    wahana yang berbeda.
-2. Selain itu ada **pos bayangan**. Pos bayangan umumnya tidak memiliki wahana
-   dan **tidak dinilai**, sehingga tidak dimodelkan oleh sistem sama sekali.
+2. Selain itu ada **pos bayangan** — pos yang tidak diberitahukan lebih dulu ke
+   peserta. Pos bayangan **tetap dinilai**, hanya saja yang dinilai bukan
+   wahana melainkan hal yang melekat pada regunya sepanjang perjalanan:
+   kostum, kekompakan, kesopanan.
+
+   > Sampai 14 Agustus 2026 dokumen ini menulis pos bayangan "tidak dinilai,
+   > sehingga tidak dimodelkan sistem sama sekali", dan skema database
+   > mengunci nomor pos ke 1–5 atas dasar kalimat itu. Lembar penilaian yang
+   > benar-benar dipakai panitia membuktikan sebaliknya — "Pos Bayangan 1
+   > Kostum" punya kolom Kreativitas, Kekompakan, dan Kesopanan, punya Nilai
+   > Pos, bahkan punya kolom RANK. Dokumennya yang salah; dibetulkan bersama
+   > migrasi `0021`.
+
+   Pos bayangan dinilai **dengan mesin yang sama persis** seperti pos utama.
+   Ia bukan cabang tersendiri di kode: sebuah baris di tabel `pos` bertanda
+   `bayangan`, dengan komponen penilaiannya sendiri, dan bobotnya diatur
+   seperti pos mana pun. Yang membedakan hanya kata di judul layar dan di
+   kertas. Nomor posnya melanjutkan pos utama — pos bayangan pertama bernomor
+   6.
 3. Di setiap pos utama ada dua hal yang dinilai, dan **keduanya berasal dari
    tempat yang berbeda**:
    - **Wahana** — tantangan fisik seperti merangkak, berlari, atau memanjat,
