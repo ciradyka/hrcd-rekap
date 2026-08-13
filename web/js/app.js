@@ -1290,12 +1290,12 @@ async function layarCetakKloter() {
 
     // Ditandai SETELAH dialog cetak ditutup — kalau operator membatalkan,
     // kloternya belum dianggap tercetak.
-    const lanjut = confirm("Kertasnya sudah keluar dengan benar?
-
-" +
-      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)
-" +
-      "Batal = belum, biarkan bisa dicetak lagi");
+    const lanjut = confirm([
+      "Kertasnya sudah keluar dengan benar?",
+      "",
+      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)",
+      "Batal = belum, biarkan bisa dicetak lagi",
+    ].join("\n"));
     if (!lanjut) return;
     try {
       const n = await tandaiKloterDicetak(null);
