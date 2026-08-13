@@ -22,7 +22,10 @@
   Cache-Control: no-cache
   Content-Type: text/css; charset=utf-8
 
-# live.json diperbarui GitHub Actions tiap beberapa menit; halaman publik
-# memuat ulang sendiri, jadi cukup singkat saja.
-/live.json
-  Cache-Control: max-age=30
+# Aturan untuk /live.json sengaja BELUM ada di sini. Halaman live publik
+# (live.html + live.json) baru rencana — lihat docs/rancangan-b.md bagian 7 —
+# dan berkasnya tidak pernah dibuat. Aturan cache-nya sempat ditulis lebih dulu
+# beserta komentar yang menyatakan "diperbarui GitHub Actions tiap beberapa
+# menit", padahal workflow itu tidak ada; aturan untuk berkas yang tidak ada
+# hanya menyesatkan pembaca berikutnya. Tambahkan kembali saat halamannya
+# benar-benar dibangun.

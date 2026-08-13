@@ -1,6 +1,8 @@
 # AGENTS.md
 
-Guidance for Codex when working in this repository.
+Guidance for coding agents working in this repository. **Isinya sengaja identik dengan CLAUDE.md** — kalau salah satu diubah, yang lain WAJIB ikut diubah di commit yang sama.
+
+Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md sempat tertinggal 21 baris — seluruh butir bahasa 9-12 hilang, termasuk aturan penamaan berkas — dan tiga string di dalamnya rusak oleh find-and-replace buta atas nama agen, salah satunya jadi URL yang mengarah ke situs pihak ketiga yang tak berhubungan.
 
 ## 1. Branching
 
@@ -11,7 +13,7 @@ Guidance for Codex when working in this repository.
    git checkout -b <type>/<short-description>
    ```
 3. Name branches `<type>/<short-description>` in kebab-case — for example
-   `feat/rekap-export`, `fix/duplicate-rows`, `docs/Codex-md`.
+   `feat/rekap-export`, `fix/duplicate-rows`, `docs/claude-md`.
 4. Use the same `<type>` vocabulary as commits: `feat`, `fix`, `chore`, `docs`,
    `refactor`, `test`.
 
@@ -23,7 +25,7 @@ Guidance for Codex when working in this repository.
    it from the subject with a blank line.
 3. End every commit message with the co-author trailer:
    ```
-   Co-Authored-By: Codex Opus 5 <noreply@anthropic.com>
+   Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
    ```
 4. Keep a commit to one logical change. Do not bundle unrelated edits.
 
@@ -43,7 +45,7 @@ Guidance for Codex when working in this repository.
    **Notes** only when there is a caveat worth flagging.
 5. End the PR body with:
    ```
-   🤖 Generated with [Codex](https://Codex.com/Codex)
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
    ```
 6. Only create or push a PR when the user has asked for it.
 
@@ -98,6 +100,27 @@ Guidance for Codex when working in this repository.
 8. Rule 7 does not loosen rule 3. Domain terms stay Indonesian however technical
    they sound, because no familiar English equivalent exists: `regu` is not
    "squad", and `nomor dada` is not "bib number" to anyone at this event.
+9. **File names, directory names, and branch names are English** whenever the
+   thing they name is technical rather than domain. This is rule 4 applied to
+   the filesystem, and it was violated repeatedly before being written down:
+   `terapkan-migrasi.yml` should have been `apply-migration.yml`, `tes-sql.yml`
+   should have been `sql-tests.yml`, `ganti_password.py` should have been
+   `change_password.py`. A workflow, a script, a test harness, and a migration
+   are all technical concepts — the panitia never speak their names.
+10. **Use the term the industry already uses, not a literal translation.**
+    Migrations are *applied*, not "implemented"; tests *run*; servers *start*.
+    Translating word-for-word from Indonesian produces names that are English
+    but still unsearchable, which defeats the entire point of rule 5.
+11. Rule 9 stops where the domain begins. `0011_nomor_dada_manual.sql` and
+    `05_pindah_kloter.sql` keep their Indonesian parts, because `nomor dada`
+    and `kloter` are rule 3 terms — only the surrounding technical words
+    (`print`, `move`, `seed`, `test`) turn English.
+12. **A workflow's `name:` field is UI text, so rule 1 decides it — by
+    audience, not by file.** A workflow a panitia runs from the Actions tab on
+    their phone keeps an Indonesian name ("Ganti password akun panitia",
+    "Provision akun panitia"). A workflow only a developer ever reads gets an
+    English one ("SQL Tests", "Apply migration to Supabase"). The file name is
+    English either way — that is rule 9 and has no exceptions.
 
 ## 6. Who maintains this
 

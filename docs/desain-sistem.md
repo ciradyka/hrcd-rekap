@@ -1,9 +1,20 @@
 # Desain Sistem hrcd-rekap — Kandidat Arsitektur Gratis
 
+> **CATATAN KEPUTUSAN — bukan keadaan sekarang.**
+> Dokumen ini ditulis SEBELUM sistemnya dibangun, untuk memilih arsitektur.
+> Kandidat B dipilih (bagian 8) dan sudah lama berjalan di produksi.
+>
+> Isinya sengaja **tidak** diperbarui: nilainya justru pada rekaman apa yang
+> diketahui dan dipertimbangkan saat keputusan diambil. Maka kalimat di bagian
+> 4 seperti "Cloudflare Pages", "tanpa server custom", `FOR UPDATE SKIP LOCKED`,
+> atau tabel `riwayat` menggambarkan RENCANA saat itu — beberapa di antaranya
+> memang berubah saat dibangun.
+>
+> **Untuk keadaan sistem sekarang, baca `final-architecture.md`.**
+
 Dokumen ini menawarkan **empat kandidat arsitektur** untuk mengimplementasikan
 seluruh alur di `alur-lomba.md` dengan **biaya Rp 0** — hosting, database,
-subdomain, SSL, semuanya. Belum ada kode yang ditulis atau dieksekusi; ini murni
-rancangan untuk dipilih.
+subdomain, SSL, semuanya.
 
 Setiap kandidat dirancang lengkap terhadap 14 kebutuhan (bagian 1), lalu **diuji
 secara adversarial**: klaim biayanya diverifikasi terhadap ketentuan free tier
@@ -408,11 +419,19 @@ tahun kebiasaan panitia, dan keputusan sepenuhnya milik panitia.
 
 ## 9. Keputusan yang menunggu panitia
 
-1. Pilih kandidat (bagian 8).
+> Ditulis saat keputusan belum diambil. Yang sudah selesai ditandai di bawah;
+> sisanya masih relevan.
+
+1. ~~Pilih kandidat (bagian 8).~~ **Selesai: B.** Sudah berjalan di produksi —
+   Supabase, situs statis Cloudflare Workers, Worker gateway, 20 migrasi.
 2. Siapa yang memegang akun-akun gratis (Google/Supabase/Cloudflare/GitHub) —
    disarankan akun organisasi ambalan, bukan akun pribadi pengurus, dengan
    minimal dua orang tahu password-nya.
 3. Untuk kandidat B: siapa yang menjalankan ritual cek Januari (buka dashboard,
    verifikasi project aktif, uji satu alur input).
-4. Bentuk pagar anti-spam form pendaftaran (pertanyaan sederhana / rate limit).
+4. ~~Bentuk pagar anti-spam form pendaftaran (pertanyaan sederhana / rate
+   limit).~~ **Selesai:** rate limit 30 pengiriman per IP per menit (KV
+   namespace `RATE`) + batas payload 32.000 byte di Worker gateway. Turnstile
+   ada di kode tapi sengaja dinonaktifkan untuk edisi 37 — pendaftaran lewat
+   Google Form di tahun-tahun sebelumnya tidak pernah disalahgunakan.
 5. Jadwal latihan hari-H (drill failover) — relevan untuk kandidat mana pun.

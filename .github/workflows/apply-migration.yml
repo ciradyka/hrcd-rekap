@@ -4,14 +4,26 @@
 # SENGAJA manual (workflow_dispatch), TIDAK otomatis saat push/merge. Alasannya
 # tegas: ini satu-satunya jalur otomatis yang menyentuh database produksi, dan
 # migrasi yang keliru di sini merusak data yang tidak bisa dikembalikan lewat
-# git revert. Merge yang salah tidak boleh diam-diam mengubah produksi —
-# harus selalu ada manusia yang menekan tombolnya.
+# git revert. Merge yang salah tidak boleh diam-diam mengubah produksi.
+#
+# Berkas ini dulu menambahkan "harus selalu ada manusia yang menekan
+# tombolnya". Itu TIDAK lagi berlaku sejak 14 Agustus 2026: pemilik repo
+# memilih agar migrasi dijalankan langsung oleh asisten setelah PR-nya merge,
+# karena perbaikan yang sudah merge tapi belum diterapkan berkali-kali terlihat
+# seperti "masih rusak" padahal kodenya sudah benar. Yang tetap dipertahankan
+# adalah sifat manual workflow-nya — ia tidak pernah ikut berjalan sendiri saat
+# push, jadi selalu ada satu perintah sadar yang memicunya, bukan efek samping
+# dari merge.
 #
 # CARA PAKAI (bisa dari HP):
-#   1. Repo -> tab Actions -> "Terapkan migrasi ke Supabase" -> Run workflow.
+#   1. Repo -> tab Actions -> "Apply migration to Supabase" -> Run workflow.
 #   2. Isi "berkas" dengan path lengkap, misalnya:
 #        supabase/migrations/0011_nomor_dada_manual.sql
 #   3. Run workflow, lalu buka log-nya untuk memastikan "MIGRASI BERHASIL".
+#
+# Dari baris perintah:
+#   gh workflow run "Apply migration to Supabase" --ref main \
+#     -f berkas=supabase/migrations/0020_nomor_dada_tiga_digit.sql
 #
 # URUTAN YANG BENAR saat migrasi mengubah bentuk RPC (mis. 0011 mengganti
 # daftar_ulang_batch jadi dua argumen): terapkan migrasi DULU, lalu segera
