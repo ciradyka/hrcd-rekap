@@ -27,7 +27,7 @@ PORT = 8787
 RPC = {
     "verifikasi_pembayaran": ["p_kode", "p_nominal", "p_metode"],
     "batalkan_verifikasi":   ["p_kode", "p_alasan"],
-    "daftar_ulang_batch":    ["p_kode"],
+    "daftar_ulang_batch":    ["p_kode", "p_nomor"],
     "tukar_nomor_dada":      ["p_regu", "p_nomor_baru", "p_alasan"],
     "ubah_pendamping":       ["p_kode", "p_jumlah"],
     "konfirmasi_kontrak":    ["p_regu", "p_menit"],
@@ -223,7 +223,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     nilai.append(v)
                 # Postgres tidak meng-coerce integer->smallint saat memilih
                 # overload fungsi — cast eksplisit per jenis argumen.
-                CAST = {"p_baris": "::jsonb", "p_pos": "::smallint",
+                CAST = {"p_baris": "::jsonb", "p_nomor": "::jsonb", "p_pos": "::smallint",
                         "p_menit": "::smallint", "p_kloter": "::smallint",
                         "p_anggota_hadir": "::smallint", "p_jumlah": "::smallint",
                         "p_regu": "::uuid", "p_jam": "::timestamptz",

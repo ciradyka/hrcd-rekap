@@ -283,8 +283,11 @@ export const verifikasiPembayaran = (kode, nominal, metode) =>
 export const batalkanVerifikasi = (kode, alasan) =>
   rpc("batalkan_verifikasi", { p_kode: kode, p_alasan: alasan });
 
-export const daftarUlang = (kode) =>
-  rpc("daftar_ulang_batch", { p_kode: kode });
+/** pasangan: [{ regu_id, nomor_dada }] — satu entri untuk SETIAP regu batch
+ *  yang belum bernomor. Nomornya diketik petugas dari kain fisik di meja,
+ *  bukan diterbitkan sistem (migrasi 0011). */
+export const daftarUlang = (kode, pasangan) =>
+  rpc("daftar_ulang_batch", { p_kode: kode, p_nomor: pasangan });
 
 export const tukarNomor = (reguId, nomorBaru, alasan) =>
   rpc("tukar_nomor_dada", { p_regu: reguId, p_nomor_baru: nomorBaru, p_alasan: alasan });

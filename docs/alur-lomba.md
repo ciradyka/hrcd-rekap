@@ -118,10 +118,20 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    stok fisik yang sudah disiapkan sebelumnya. Karena nomor dada diambil dari
    stok saat itu juga dan meja daftar ulang lebih dari satu, satu nomor dada
    tidak boleh terpakai dua kali.
-5. **Pengambilan nomor dada dilakukan sekaligus per sekolah**, bukan satu regu
-   satu kali. Sekolah dengan 10 regu mengambil 10 nomor dada dalam satu
+5. **Nomor dadanya DIKETIK petugas, bukan diterbitkan sistem.** Yang ada di
+   tangan petugas adalah setumpuk kain apa adanya — ada yang hilang, sobek,
+   atau tertinggal di kardus lain — jadi sistem tidak boleh menebak nomor
+   mana yang tersedia secara fisik. Urutannya: petugas menyebut regu ini
+   nomornya ini, lalu sistem memastikan nomor itu ada di stok, belum
+   dipensiunkan, dan belum dipakai regu lain. Nomor yang sudah dipakai
+   ditolak dengan pesan, bukan diterima diam-diam.
+6. **Pengisian nomor dada dilakukan sekaligus per sekolah**, bukan satu regu
+   satu kali. Sekolah dengan 10 regu mengisi 10 nomor dada dalam satu
    transaksi di meja. Ini menjadi dasar pembagian kloter — lihat bagian 5.
-6. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
+7. **Kloternya tetap ditentukan sistem** (bagian 5.3). Yang manual hanya
+   nomor dadanya; penyebaran kloter justru tidak boleh diserahkan ke petugas
+   karena bertumpu pada keadaan seluruh sekolah, bukan satu meja saja.
+8. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
    petugas lapangan (bagian 8.4).
 
 ## 5. Kloter dan kontrak waktu
@@ -137,7 +147,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    regu satu sekolah yang berangkat bersamaan cenderung bercengkerama di
    sepanjang rute alih-alih berlomba.
 5. **Cara pembagiannya bertumpu pada pengambilan nomor dada per sekolah**
-   (bagian 4.5). Sekolah yang mengambil 10 nomor dada langsung disebar ke 10
+   (bagian 4.6). Sekolah yang mengambil 10 nomor dada langsung disebar ke 10
    kloter berbeda; sekolah yang mengambil 5 nomor dada disebar ke 5 kloter
    berbeda. Dengan begitu satu sekolah tidak pernah menumpuk di satu kloter
    selama jumlah regunya tidak melebihi jumlah kloter.
