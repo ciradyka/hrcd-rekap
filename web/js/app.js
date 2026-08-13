@@ -645,7 +645,7 @@ async function layarDaftarUlang() {
         jumlah: semua.length,
       })}
       <div class="table-wrapper">
-        <table class="table data-table">
+        <table class="table data-table table-daftar-ulang">
           <thead>
             <tr>
               <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
@@ -716,7 +716,7 @@ async function layarDaftarUlang() {
         </tr>
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="4">
+          <td colspan="4" class="detail-cell-flush">
             <table class="detail-table detail-table-dada">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
