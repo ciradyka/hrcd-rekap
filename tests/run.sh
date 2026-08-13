@@ -42,6 +42,7 @@ run supabase/migrations/0016_nama_edisi_romawi.sql
 run supabase/migrations/0017_koreksi_jam_berangkat.sql
 run supabase/migrations/0018_pindah_setelah_berangkat.sql
 run supabase/migrations/0019_tukar_nomor_patokan_cetak.sql
+run supabase/migrations/0020_nomor_dada_tiga_digit.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
