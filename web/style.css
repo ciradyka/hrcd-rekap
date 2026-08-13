@@ -603,7 +603,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .kwitansi { display: block; font-size: .8rem; color: var(--tinta-lembut); }
 
 /* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
-.action-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.action-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .select-small, .small-input {
   /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
      kali isian disentuh — batas keras di kepala berkas ini, dan sempat
@@ -615,7 +615,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* input[type=number] (spesifisitas 0,1,1) mengalahkan .small-input (0,1,0),
    jadi width:100% dari aturan dasar yang menang dan kotaknya melebar penuh
    satu kolom. Disamakan spesifisitasnya supaya lebar ringkasnya berlaku. */
-input.small-input, select.select-small { width: 4.5rem; }
+/* Lebar ringkas HANYA untuk kotak ANGKA. Dropdown cara bayar harus selebar
+   isinya — dipaksa 4.5rem, "Transfer" terpotong jadi "Tuna". */
+input.small-input { width: 4.5rem; }
+select.select-small { width: auto; min-width: 6.5rem; }
 input.small-input { text-align: center; }
 /* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
    tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
