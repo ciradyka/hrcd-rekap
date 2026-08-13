@@ -252,7 +252,7 @@ export async function ringkasanMeja() {
   // masih punya regu tanpa nomor dada" (temuan review: query lama salah).
   const [menunggu, tanpaNomor] = await Promise.all([
     baca(null, "pendaftaran?status=eq.menunggu_pembayaran&select=id"),
-    baca(null, "regu?nomor_dada=is.null&batal=is.false" +
+    baca(null, "regu?nomor_dada=is.null&is_cancelled=is.false" +
                "&select=pendaftaran_id,pendaftaran!inner(status)" +
                "&pendaftaran.status=eq.lunas"),
   ]);
@@ -363,7 +363,7 @@ export async function reguKloter(kloter) {
  *  berbeda, lihat alur-lomba.md bagian 9). */
 export async function kontrakOpsi() {
   if (K.mode === "dev") return baca("/kontrak");
-  return baca(null, "kontrak_opsi?select=label,menit&order=urutan.asc");
+  return baca(null, "kontrak_opsi?select=label,menit&order=sort_order.asc");
 }
 
 export const konfirmasiKontrak = (reguId, menit) =>
