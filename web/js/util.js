@@ -35,8 +35,23 @@ export const rupiah = n => "Rp " + Number(n || 0).toLocaleString("id-ID");
 export const jamSekarang = () =>
   new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 
-/** Notifikasi bawah layar. Galat TIDAK hilang sendiri — orang awam sering
- *  sedang melihat papan ketik saat pesan muncul (temuan review). */
+/** Notifikasi bawah layar.
+ *
+ *  Keduanya hilang sendiri, tapi galat diberi waktu DUA KALI LIPAT: 8 detik
+ *  lawan 4. Sebelumnya galat tidak hilang sama sekali — orang awam sering
+ *  sedang menatap papan ketik saat pesan muncul (temuan review), dan pesan
+ *  yang keburu pergi sama saja dengan tidak pernah ada. Tapi pesan yang
+ *  menetap selamanya punya harganya sendiri: ia menumpuk di bawah layar
+ *  sepanjang hari dan menutupi tombol di sana, sampai panitia belajar
+ *  mengabaikannya. Delapan detik cukup untuk mengangkat kepala dan membaca,
+ *  dan tombol tutupnya tetap ada untuk yang ingin membuangnya lebih cepat.
+ *
+ *  Redupnya dilakukan lewat kelas .pudar, bukan animasi JavaScript, supaya
+ *  aturan prefers-reduced-motion di gaya ikut berlaku: pengguna yang memilih
+ *  "kurangi gerak" mendapat hilang seketika, bukan pudar. */
+const DETIK_NOTIF      = 4000;
+const DETIK_NOTIF_GALAT = 8000;
+
 export function notif(pesan, galat = false) {
   document.querySelectorAll(".notification").forEach(n => n.remove());
   // Template BIASA, bukan tag html`` — tombol tutupnya HTML yang memang
@@ -57,7 +72,15 @@ export function notif(pesan, galat = false) {
   document.body.appendChild(n);
   const el = document.body.lastElementChild;
   if (galat) el.querySelector(".notification-close").addEventListener("click", () => el.remove());
-  else setTimeout(() => el.remove(), 4000);
+
+  // Dipudarkan dulu, baru dibuang setelah transisinya selesai (.35s di gaya).
+  // Kalau sudah ditutup manual, el sudah lepas dari halaman dan kedua baris
+  // ini tidak melakukan apa-apa — remove() pada simpul yang sudah lepas aman.
+  const jeda = galat ? DETIK_NOTIF_GALAT : DETIK_NOTIF;
+  setTimeout(() => {
+    el.classList.add("pudar");
+    setTimeout(() => el.remove(), 400);
+  }, jeda);
 }
 
 /** Dialog sederhana pengganti prompt(): punya judul, kartu identitas,
