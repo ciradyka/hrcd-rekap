@@ -433,6 +433,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     font-size: 11pt;
   }
   .print-table th { background: #eee; font-size: 9pt; text-transform: uppercase; }
+  /* Baris TOTAL memakai <th> juga, dan uppercase mengubah "Rp" jadi "RP" —
+     jelek di kwitansi resmi. Angkanya dikembalikan ke huruf aslinya. */
+  .print-table tfoot th { text-transform: none; font-size: 11pt; }
   .print-table .dada { font-size: 15pt; font-weight: 800; text-align: center; width: 15mm; }
   /* Kolom centang kehadiran diisi tangan di lapangan. */
   .print-table .kotak { width: 18mm; }
@@ -549,6 +552,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-lembut);
 }
 .detail-table td { padding: .3rem .4rem; border-top: 1px solid var(--garis); }
+/* Golongan JANGAN dipenggal tengah kata — "Penggala/ng PA" tidak terbaca
+   sekilas, dan sekilas itulah satu-satunya cara panitia membacanya. Kalau
+   sempit, tabelnya yang menggeser di dalam kartu (aturan 10.1.13). */
+.detail-table td:nth-child(2) { white-space: nowrap; }
 
 .data-table .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
 .data-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -564,7 +571,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   border: 1px solid var(--garis); border-radius: 8px; background: #fff;
   font-family: inherit;
 }
-.small-input { width: 4.5rem; text-align: center; }
+/* input[type=number] (spesifisitas 0,1,1) mengalahkan .small-input (0,1,0),
+   jadi width:100% dari aturan dasar yang menang dan kotaknya melebar penuh
+   satu kolom. Disamakan spesifisitasnya supaya lebar ringkasnya berlaku. */
+input.small-input, select.select-small { width: 4.5rem; }
+input.small-input { text-align: center; }
 /* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
    tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
 .input-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
@@ -644,6 +655,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
   .isi { padding-bottom: 6rem; }
+
+  /* Tombol aksi di dalam sel tabel jangan dipenggal jadi tiga baris — di
+     kolom sempit "Isi 5 Nomor Dada" pecah dan barisnya jadi tinggi sekali.
+     Biarkan tabelnya yang menggeser, tombolnya tetap utuh sebaris. */
+  .data-table .button-small, .data-table .button-mini { white-space: nowrap; }
 
   /* Tombol header pindah ke bawah — sisakan judul dan identitas akun saja. */
   .header .icon-button, .header .button-small { display: none; }
