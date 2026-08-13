@@ -391,7 +391,7 @@ async function layarPembayaran() {
                  <option value="transfer">Transfer</option>
                </select>
                <button class="button button-primary button-small" type="button"
-                       data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>
+                       data-lunas="${esc(b.kode_pembayaran)}">Lunas</button>
              </div>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
       // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
@@ -500,7 +500,7 @@ async function layarPembayaran() {
           r = await verifikasiPembayaran(kode, tagihan, metode);
         } catch (err) {
           notif(err.message, true);
-          btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Tandai Lunas";
+          btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Lunas";
           return;
         }
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
