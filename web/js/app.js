@@ -164,7 +164,7 @@ async function layarHome() {
         <div class="description">Ceklis regu yang hadir, pilih kontrak waktu, catat jam berangkat</div>
       </a>
       <a href="#/finish">
-        <div class="function-name">🏁 Meja Finish</div>
+        <div class="function-name">🏁 Kedatangan</div>
         <div class="description">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
       <a href="#/pindah-kloter">
@@ -1258,7 +1258,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
  *  susulan dari kertas, jamnya bisa diubah.
  */
 function layarFinish() {
-  pasangKepala("Meja Finish");
+  pasangKepala("Kedatangan");
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">

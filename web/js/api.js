@@ -52,6 +52,8 @@ export function pesanRamah(m) {
     return "Semua regu sekolah ini sudah menerima nomor dada.";
   if (/nominal .* tidak sama dengan tagihan/i.test(t))
     return "Jumlah tagihan berubah (biaya per regu diperbarui admin). Muat ulang halaman, lalu ulangi.";
+  if (/sudah daftar ulang \(nomor dada terbit\)/i.test(t))
+    return "Sekolah ini sudah menerima nomor dada, jadi pembayarannya tidak bisa dibatalkan — regunya akan jadi yatim: bernomor dada tapi tercatat belum bayar. Kosongkan dulu nomor dadanya lewat admin.";
   if (/daftar ulang sudah ditutup/i.test(t))
     return "Daftar ulang sudah ditutup panitia. Hubungi admin.";
   if (/permission denied|insufficient/i.test(t))
