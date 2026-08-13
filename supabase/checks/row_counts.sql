@@ -17,4 +17,5 @@ union all select 'sekolah BER-name', count(name) from sekolah
 union all select 'regu AKTIF (is_cancelled=false)', count(*) from regu where not is_cancelled
 union all select 'room', count(*) from room
 union all select 'edisi is_active', count(*) from edisi where is_active
+union all select 'SMOKE: pendaftaran BER-nama_kontak', count(nama_kontak) from pendaftaran
 order by 1;
