@@ -526,16 +526,6 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 .tabel-data td { vertical-align: middle; }
 .tabel-data tbody tr:hover { background: var(--utama-muda); }
-/* Baris terpilih untuk proses massal. Ditaruh SETELAH aturan :hover supaya
-   sorotan pilihan tidak hilang saat kursor lewat. */
-.tabel-data tbody tr.terpilih > td { background: var(--utama-muda); }
-
-/* Nomor invoice + kotak centangnya satu label: mengetuk nomornya = mencentang
-   invoice itu. */
-.pilih-invoice {
-  display: inline-flex; align-items: center; gap: .45rem;
-  min-height: 40px; cursor: pointer;
-}
 
 /* Pembuka rincian regu — tampil seperti link, tapi tetap tombol sungguhan
    supaya bisa dijangkau papan ketik dan pembaca layar. */
@@ -555,15 +545,6 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 .tabel-detail td { padding: .3rem .4rem; border-top: 1px solid var(--garis); }
 
-/* Bilah proses massal: muncul hanya saat ada invoice tercentang. */
-.bilah-massal {
-  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-  margin-top: .7rem; padding: .6rem .7rem;
-  background: var(--utama-muda); border: 1px solid var(--utama);
-  border-radius: var(--radius);
-}
-.bilah-massal[hidden] { display: none; }
-.bilah-ringkas { flex: 1; min-width: 180px; font-weight: 700; color: var(--utama-gelap); }
 .tabel-data .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
 .tabel-data .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .rata-tengah { text-align: center; }

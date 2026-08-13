@@ -303,11 +303,6 @@ async function layarPembayaran() {
   // datang belakangan TIDAK boleh menimpa layar yang sedang dibuka sekarang.
   if (location.hash !== layarIni) return;
 
-  // Invoice yang dicentang untuk dilunasi sekaligus. Hidup di luar gambar()
-  // supaya centangnya TIDAK hilang saat operator mengetik di kotak cari atau
-  // berpindah saringan — mengulang centang 8 invoice karena salah ketik satu
-  // huruf adalah cara tercepat membuat meja berhenti memakai fitur ini.
-  const dipilih = new Set();
   // Invoice yang barisan detail regunya sedang dibuka. Ikut disimpan supaya
   // detail tidak menutup sendiri setiap kali tabel digambar ulang.
   const dibuka = new Set();
@@ -334,50 +329,12 @@ async function layarPembayaran() {
           <tbody id="isi-tabel"></tbody>
         </table>
       </div>
-      <div class="bilah-massal" id="bilah-massal" hidden>
-        <span class="bilah-ringkas" id="bilah-ringkas"></span>
-        <select class="pilih-kecil" id="bilah-metode" aria-label="Cara bayar">
-          <option value="tunai" selected>Tunai</option>
-          <option value="transfer">Transfer</option>
-        </select>
-        <button class="tombol tombol-utama tombol-kecil" id="bilah-lunas" type="button">
-          Tandai Lunas</button>
-        <button class="tombol tombol-kalem tombol-kecil" id="bilah-bersih" type="button">
-          Bersihkan</button>
-      </div>
     </div>
     ${barisTerakhirHtml("pembayaran")}
   `));
 
-  /** Ringkasan invoice yang dicentang. Sekalian membuang yang sudah tidak
-   *  menunggu pembayaran lagi — mis. baru saja dilunasi satuan lewat tombol
-   *  di barisnya — supaya bilah tidak pernah menghitung yang sudah selesai. */
-  const ringkasPilihan = () => {
-    let invoice = 0, regu = 0, total = 0;
-    for (const kode of [...dipilih]) {
-      const b = semua.find(x => x.kode_pembayaran === kode);
-      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
-      const n = reguAktif(b).length;
-      invoice += 1;
-      regu += n;
-      total += n * EDISI.biaya_per_regu;
-    }
-    return { invoice, regu, total };
-  };
-
-  const perbaruiBilah = () => {
-    const { invoice, regu, total } = ringkasPilihan();
-    const bilah = document.getElementById("bilah-massal");
-    bilah.hidden = invoice === 0;
-    if (!invoice) return;
-    document.getElementById("bilah-ringkas").textContent =
-      `${invoice} invoice · ${regu} regu · ${rupiah(total)}`;
-    document.getElementById("bilah-lunas").textContent = `Tandai Lunas (${invoice})`;
-  };
-
-  // Kotak cari dan saringan dipegang pasangAlatTabel; bilah massal berada di
-  // luar tbody sehingga perlu jalan untuk menggambar ulang dengan saringan
-  // yang sedang aktif — tanpa memasang ulang listener-nya tiap kali.
+  // Kotak cari dan saringan dipegang pasangAlatTabel — jalan ulang menyimpan
+  // saringan yang sedang aktif tanpa memasang ulang listener-nya tiap kali.
   let cariKini = "", saringKini = "belum";
   const gambarUlang = () => gambar(cariKini, saringKini);
 
@@ -397,7 +354,6 @@ async function layarPembayaran() {
     if (!baris.length) {
       tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
         Tidak ada yang cocok.</td></tr>`));
-      perbaruiBilah();
       return;
     }
 
@@ -431,26 +387,13 @@ async function layarPembayaran() {
       // saat sekolah menyerahkan uang, dan itu juga yang dicetak di kwitansi.
       const kode = esc(b.kode_pembayaran);
       const sekolah = esc(b.sekolah?.nama || "—");
-      // Nomor invoice dibungkus <label> bersama kotak centangnya: mengetuk
-      // NOMORNYA sama dengan mengetuk centang — perilaku bawaan browser,
-      // tanpa kode klik sendiri. Hanya yang belum bayar bisa dicentang; yang
-      // sudah lunas tidak punya apa pun lagi untuk diproses massal.
-      const bisaDipilih = b.status === "menunggu_pembayaran" && aktif.length > 0;
-      const kodeHtml = bisaDipilih
-        ? `<label class="pilih-invoice">
-             <input type="checkbox" class="ceklis" data-pilih="${kode}"
-                    ${dipilih.has(b.kode_pembayaran) ? "checked" : ""}>
-             <span>${kode}</span>
-           </label>`
-        : kode;
       const terbuka = dibuka.has(b.kode_pembayaran);
 
       // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
       // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
       return `
-        <tr class="baris-invoice${dipilih.has(b.kode_pembayaran) ? " terpilih" : ""}"
-            data-baris="${kode}">
-          <td class="mono">${kodeHtml}</td>
+        <tr class="baris-invoice" data-baris="${kode}">
+          <td class="mono">${kode}</td>
           <td>
             <strong>${sekolah}</strong>
             ${aktif.length
@@ -496,15 +439,6 @@ async function layarPembayaran() {
         barisDetail.hidden = !buka;
         btn.setAttribute("aria-expanded", String(buka));
         btn.textContent = `${buka ? "▾" : "▸"} ${btn.dataset.jumlah} regu`;
-      }));
-
-    // Centang invoice untuk pelunasan massal.
-    tbody.querySelectorAll("[data-pilih]").forEach(kotak =>
-      kotak.addEventListener("change", () => {
-        const kode = kotak.dataset.pilih;
-        if (kotak.checked) dipilih.add(kode); else dipilih.delete(kode);
-        kotak.closest("tr").classList.toggle("terpilih", kotak.checked);
-        perbaruiBilah();
       }));
 
     tbody.querySelectorAll("[data-cetak]").forEach(btn =>
@@ -560,7 +494,6 @@ async function layarPembayaran() {
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
         // tetap konsisten tanpa memuat ulang seluruh tabel.
         tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
-        dipilih.delete(kode);
         notif(`${b.sekolah?.nama || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
         gambarUlang();
 
@@ -578,64 +511,7 @@ async function layarPembayaran() {
         });
         if (cetak) cetakKwitansi([b]);
       }));
-
-    perbaruiBilah();
   };
-
-  /* --------- pelunasan massal: beberapa invoice sekaligus --------- */
-
-  document.getElementById("bilah-bersih").addEventListener("click", () => {
-    dipilih.clear();
-    gambarUlang();
-  });
-
-  document.getElementById("bilah-lunas").addEventListener("click", async () => {
-    const btn = document.getElementById("bilah-lunas");
-    const metode = document.getElementById("bilah-metode").value;
-    const { invoice, regu, total } = ringkasPilihan();
-    if (!invoice) return;
-
-    // Satu-satunya dialog konfirmasi di layar ini, dan memang untuk commit
-    // massal (rancangan-b.md 10.1.10). Kwitansinya menyusul otomatis setelah
-    // ini supaya tidak jadi dialog kedua.
-    const jawab = await dialog({
-      judul: `Tandai lunas ${invoice} invoice`,
-      kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
-        <div class="nama">${rupiah(total)}</div>
-        <div class="detail">${invoice} invoice · ${regu} regu · ${metode}</div>
-        <div class="detail">Kwitansinya langsung disiapkan untuk dicetak.</div>
-      </div>`,
-      labelAksi: "Tandai Lunas",
-    });
-    if (!jawab) return;
-
-    btn.disabled = true;
-    const berhasil = [];
-    const gagal = [];
-    // Berurutan, bukan serentak: RPC-nya per invoice, dan bila satu tertolak
-    // (mis. sudah dibayar meja lain) sisanya harus tetap jalan — kegagalan
-    // disebut satu per satu, tidak ditelan diam-diam (rancangan-b.md 10.1.11).
-    for (const kode of [...dipilih]) {
-      const b = semua.find(x => x.kode_pembayaran === kode);
-      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
-      const tagihan = reguAktif(b).length * EDISI.biaya_per_regu;
-      btn.textContent = `Menyimpan ${berhasil.length + gagal.length + 1}/${invoice}…`;
-      try {
-        const r = await verifikasiPembayaran(kode, tagihan, metode);
-        tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
-        dipilih.delete(kode);
-        berhasil.push(b);
-      } catch (err) {
-        gagal.push(`${kode}: ${err.message}`);
-      }
-    }
-    btn.disabled = false;
-    gambarUlang();
-
-    if (berhasil.length) notif(`${berhasil.length} invoice ditandai LUNAS.`);
-    if (gagal.length) notif(`${gagal.length} gagal — ${gagal.join(" · ")}`, true);
-    if (berhasil.length) cetakKwitansi(berhasil);
-  });
 
   pasangAlatTabel(gambar);
 }
