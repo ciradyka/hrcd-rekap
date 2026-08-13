@@ -331,7 +331,7 @@ async function layarPembayaran() {
         jumlah: semua.length,
       })}
       <div class="table-wrapper">
-        <table class="table data-table">
+        <table class="table data-table table-bayar">
           <thead>
             <tr>
               <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
@@ -435,8 +435,8 @@ async function layarPembayaran() {
         </tr>
         ${!aktif.length ? "" : `
         <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="6">
-            <table class="detail-table">
+          <td colspan="6" class="detail-cell-flush">
+            <table class="detail-table detail-table-bayar">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Sekolah</th>
                     <th class="text-right">Biaya</th></tr>
