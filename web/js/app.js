@@ -16,6 +16,7 @@ import {
   cariRegu, catatFinish, infoPenalti,
   papanKeberangkatan, reguKloter, kontrakOpsi,
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
+  koreksiJamBerangkat,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -970,7 +971,10 @@ async function layarKeberangkatan() {
         <div class="kloter-header">
           <h2>Kloter ${kloterAktif}</h2>
           ${sudahBerangkat
-            ? html`<span class="badge badge-green">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>`
+            ? html`<span class="badge badge-green">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>
+                   <button class="icon-button icon-button-inline" id="koreksi-jam" type="button"
+                           title="Betulkan jam berangkat"
+                           aria-label="Betulkan jam berangkat Kloter ${kloterAktif}">&#9998;</button>`
             : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}
         </div>
 
@@ -1056,6 +1060,49 @@ async function layarKeberangkatan() {
         }
         sel.disabled = false;
       }));
+
+    // Membetulkan jam yang sudah tercatat. Jam berangkat menentukan penalti
+    // SELURUH regu di kloter ini, dan salah ketik tidak menimbulkan galat apa
+    // pun — ia hanya muncul sebagai nilai yang salah saat klasemen keluar.
+    // Karena itu koreksinya minta alasan dan tercatat di history.
+    const tombolKoreksi = document.getElementById("koreksi-jam");
+    if (tombolKoreksi) tombolKoreksi.addEventListener("click", async () => {
+      // Jam kloter tetangga ditampilkan, BUKAN dipaksakan. Fungsi database
+      // sengaja tidak menolak jam yang melanggar urutan (kalau menolak, dua
+      // kloter yang jamnya sama-sama salah saling mengunci). Yang menangkap
+      // salah ketik di sini adalah mata pencatat, jadi angka pembandingnya
+      // ditaruh di depan mata.
+      const sebelum = papan.filter(k => k.nomor < kloterAktif && k.jam_berangkat).pop();
+      const sesudah = papan.find(k => k.nomor > kloterAktif && k.jam_berangkat);
+      const tetangga = [
+        sebelum && `Kloter ${sebelum.nomor} berangkat ${jamPendek(sebelum.jam_berangkat)}`,
+        sesudah && `Kloter ${sesudah.nomor} berangkat ${jamPendek(sesudah.jam_berangkat)}`,
+      ].filter(Boolean).join(" · ");
+
+      const jawab = await dialog({
+        judul: `Betulkan jam berangkat Kloter ${kloterAktif}`,
+        kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
+          <div class="nama">Sekarang tercatat ${jamPendek(info.jam_berangkat)}</div>
+          <div class="detail">Mengubah jam ini menghitung ulang penalti waktu
+            seluruh regu di Kloter ${kloterAktif}.${tetangga ? ` ${tetangga}.` : ""}</div>
+        </div>`,
+        medan: [
+          { label: "Jam berangkat yang benar", tipe: "time",
+            nilai: jamHHMM(info.jam_berangkat) },
+          { label: "Alasan koreksi", contoh: "salah ketik, seharusnya 07.40" },
+        ],
+        labelAksi: "Simpan Koreksi",
+      });
+      if (!jawab) return;
+      const [hhmm, alasan] = jawab;
+      try {
+        await koreksiJamBerangkat(kloterAktif, jamHariIni(hhmm).toISOString(), alasan);
+      } catch (err) { notif(err.message, true); return; }
+      notif(`Jam berangkat Kloter ${kloterAktif} dibetulkan jadi ${hhmm}.`);
+      papan = await papanKeberangkatan();
+      gambarPita();
+      gambarKloter();
+    });
 
     const tombol = document.getElementById("aksi-berangkat");
     if (tombol) tombol.addEventListener("click", async () => {
@@ -1500,6 +1547,15 @@ function layarFinish() {
 const jamPendek = (t) => t
   ? new Date(t).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
   : "—";
+
+/** Kebalikan jamPendek: timestamp -> "07:04" untuk mengisi <input type="time">.
+ *  Dipisah dari jamPendek karena jamPendek memakai locale id-ID yang memberi
+ *  "07.04" — titik, bukan titik dua — dan input time menolaknya diam-diam. */
+const jamHHMM = (t) => {
+  if (!t) return "";
+  const d = new Date(t);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
 
 /** "14:35" -> Date hari ini pada jam itu (untuk pencatatan susulan). */
 function jamHariIni(hhmm) {
