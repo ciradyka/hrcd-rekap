@@ -436,7 +436,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .print-page { break-after: page; page-break-after: always; }
   .print-page:last-child { break-after: auto; page-break-after: auto; }
 
-  .print-table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  /* Lebar disisakan 1pt dari 100%. Dengan border-collapse, garis kanan tabel
+     selebar-penuh jatuh PERSIS di batas cetak, dan pembulatan browser
+     melemparkannya keluar halaman — kolom terakhir (Hadir) tercetak tanpa
+     garis penutup dan terlihat seperti terpotong. */
+  .print-table { width: calc(100% - 1pt); border-collapse: collapse; margin-top: .5rem; }
   .print-table th, .print-table td {
     border: 1px solid #000;
     padding: 5pt 6pt;
