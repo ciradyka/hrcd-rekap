@@ -374,6 +374,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   max-width: 92vw;
 }
 .notification.error { background: var(--bahaya); }
+/* Memudar sebelum dibuang (lihat notif() di util.js). Transisinya dipatok di
+   sini, bukan di JavaScript, supaya aturan prefers-reduced-motion di bawah
+   berkas ini ikut mematikannya — di sana `transition: none` membuat pesannya
+   hilang seketika, tanpa gerakan. */
+.notification { transition: opacity .35s ease; }
+.notification.pudar { opacity: 0; }
 
 /* ---------- menu beranda meja ---------- */
 
