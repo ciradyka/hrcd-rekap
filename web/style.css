@@ -552,12 +552,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .button-detail:hover { text-decoration: underline; }
 
 /* Rincian regu di dalam satu baris invoice. */
-.detail-row > td { background: var(--kertas); padding: .5rem .75rem; }
+.detail-row > td { background: var(--kertas); padding: .7rem 1.2rem; }
 /* Lebar mengikuti ISI saja — tanpa min-width. Diberi lantai 62%, kolom
    Biaya terlempar jauh dari Sekolah dan rata kanannya terlihat menggantung.
    Sekarang kelima kolom menempel di kiri; yang tetap rata kanan hanya isi
    kolom uangnya, di dalam kolomnya sendiri. */
-.detail-table { width: auto; border-collapse: collapse; font-size: .85rem; }
+/* Kartu judul halaman: satu baris teks sendirian di dalam kartu terbaca
+   seperti label yang tertinggal kalau rata kiri. Ditengahkan ia jadi judul. */
+.card-title { text-align: center; }
+
+.detail-table {
+  width: auto; border-collapse: collapse; font-size: .85rem;
+  /* DITENGAHKAN, bukan menempel tepi kiri. Lebar mengikuti isi membuatnya
+     terlalu rapat ke pinggir dan terlihat seperti terlepas dari barisnya;
+     ditengahkan ia duduk di bawah baris induknya dengan ruang seimbang. */
+  margin: 0 auto;
+}
 .detail-table th, .detail-table td { padding-right: 1.6rem; }
 /* Angka rupiah tetap sejajar antar baris supaya bisa dibandingkan sekilas,
    tapi kolomnya sendiri sesempit isinya. */
