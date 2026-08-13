@@ -21,14 +21,22 @@ begin
   raise notice 'LULUS verifikasi_pembayaran -> kwitansi %', v_hasil ->> 'nomor_kwitansi';
 
   -- 2. daftar_ulang_batch dengan nomor dada MANUAL (0011, ditulis ulang 0014)
-  -- Subquery: window function tidak boleh bersarang di dalam agregat.
-  select jsonb_agg(jsonb_build_object('regu_id', x.id, 'nomor_dada', 900 + x.urut))
+  -- Nomor diambil dari STOK yang benar-benar tersedia. Percobaan sebelumnya
+  -- memakai 901/902 dan ditolak 0011 dengan "di luar stok" — penjagaannya
+  -- bekerja, jadi di sini kita beri nomor yang sah.
+  select jsonb_agg(jsonb_build_object('regu_id', x.id, 'nomor_dada', y.nomor))
     into v_pas
   from (
     select r.id, row_number() over (order by r.nama_regu) as urut
     from regu r join pendaftaran d on d.id = r.pendaftaran_id
     where d.kode_pembayaran = v_kode and r.nomor_dada is null and not r.is_cancelled
-  ) x;
+  ) x
+  join (
+    select s.nomor, row_number() over (order by s.nomor) as urut
+    from nomor_dada_stok s
+    where not exists (select 1 from regu r where r.nomor_dada = s.nomor)
+      and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor)
+  ) y on y.urut = x.urut;
 
   select count(*) into v_n from daftar_ulang_batch(v_kode, v_pas);
   raise notice 'LULUS daftar_ulang_batch -> % regu dapat nomor dada manual', v_n;
