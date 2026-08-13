@@ -1214,13 +1214,19 @@ async function layarCetakKloter() {
     return;
   }
 
-  // Kelompokkan per kloter; pisahkan yang belum pernah dicetak.
-  const perKloter = new Map();
-  for (const b of baris) {
-    if (!perKloter.has(b.kloter)) perKloter.set(b.kloter, { dicetak: b.dicetak_pada, isi: [] });
-    perKloter.get(b.kloter).isi.push(b);
-  }
-  const belum = [...perKloter.entries()].filter(([, v]) => !v.dicetak).map(([k]) => k);
+  // Kelompokkan per kloter. Dipakai ulang tiap kali tombol cetak ditekan,
+  // karena datanya diambil segar saat itu juga.
+  const kelompokkan = (rows) => {
+    const peta = new Map();
+    for (const b of rows) {
+      if (!peta.has(b.kloter)) peta.set(b.kloter, { dicetak: b.dicetak_pada, isi: [] });
+      peta.get(b.kloter).isi.push(b);
+    }
+    return peta;
+  };
+
+  let perKloter = kelompokkan(baris);
+  const belum = [...perKloter.entries()].filter(([, v]) => !v.dicetak).length;
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
@@ -1231,49 +1237,27 @@ async function layarCetakKloter() {
          kloter cadangan dan dicetak sebagai lembar tambahan.</p>
       <table class="table" style="margin-top:.6rem">
         <tr><td>Kloter berisi regu</td><td class="angka">${perKloter.size}</td></tr>
-        <tr><td>Belum pernah dicetak</td><td class="angka">${belum.length}</td></tr>
+        <tr><td>Belum pernah dicetak</td><td class="angka">${belum}</td></tr>
         <tr><td>Total regu</td><td class="angka">${baris.length}</td></tr>
       </table>
-      <div class="field" style="margin-top:.9rem;margin-bottom:.5rem">
-        <label>Kertasnya untuk siapa?</label>
-        <div class="option-row">
-          <button class="option" data-bentuk="staging" aria-pressed="true" type="button">
-            Petugas staging<br><span class="description">ada kolom centang</span>
-          </button>
-          <button class="option" data-bentuk="umum" aria-pressed="false" type="button">
-            Papan &amp; barak<br><span class="description">untuk dibaca peserta</span>
-          </button>
-        </div>
-      </div>
-      <div class="option-row" style="margin-top:.6rem">
-        <button class="button button-primary" id="cetak-belum" type="button"
-                ${belum.length ? "" : "disabled"}>
-          🖨️ Cetak ${belum.length} kloter baru
+      <div class="option-row" style="margin-top:.9rem">
+        <button class="button button-primary" id="cetak-petugas" type="button">
+          🖨️ Cetak Kloter untuk Petugas
         </button>
-        <button class="button button-secondary" id="cetak-semua" type="button">
-          Cetak ulang semua
+        <button class="button button-primary" id="cetak-peserta" type="button">
+          🖨️ Cetak Kloter untuk Peserta
         </button>
       </div>
     </div>
     <div id="pratayang"></div>
   `));
 
-  let bentuk = "staging";
-  LAYAR.querySelectorAll("[data-bentuk]").forEach(b => b.addEventListener("click", () => {
-    bentuk = b.dataset.bentuk;
-    LAYAR.querySelectorAll("[data-bentuk]").forEach(x =>
-      x.setAttribute("aria-pressed", String(x === b)));
-  }));
-
-  const gambarPratayang = (nomorKloter) => {
-    const dipakai = nomorKloter
-      ? [...perKloter.entries()].filter(([k]) => nomorKloter.includes(k))
-      : [...perKloter.entries()];
+  const gambarPratayang = (peta) => {
     // CATATAN: baris tabel dirakit dengan html`` (nilai di-escape), lalu
     // digabung memakai template BIASA. Menyisipkan HTML jadi ke dalam html``
     // akan meng-escape-nya dua kali dan tabelnya tampil sebagai teks mentah.
     document.getElementById("pratayang").replaceChildren(h(
-      dipakai.map(([nomor, v]) => {
+      [...peta.entries()].map(([nomor, v]) => {
         const baris = v.isi.map(r => html`
           <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
               <td><strong>${r.nama_regu}</strong></td>
@@ -1287,28 +1271,42 @@ async function layarCetakKloter() {
             <table class="table">${baris}</table>
           </div>`;
       }).join("")));
-    siapkanCetakKloter(dipakai, bentuk);
   };
 
-  document.getElementById("cetak-belum").addEventListener("click", () => cetak(belum));
-  document.getElementById("cetak-semua").addEventListener("click", () => cetak(null));
-  gambarPratayang(null);
+  /** Cetak SEMUA kloter dalam satu bentuk kertas.
+   *  Datanya diambil ulang tepat sebelum mencetak: layar ini sering dibiarkan
+   *  terbuka sementara meja daftar ulang terus jalan, dan kertas yang keluar
+   *  tanpa regu yang baru masuk adalah kertas yang salah — petugas garis start
+   *  memanggil dari kertas itu, bukan dari layar. */
+  async function cetak(bentuk) {
+    let segar;
+    try { segar = await daftarKloter(); }
+    catch (err) { notif(err.message, true); return; }
 
-  async function cetak(nomorKloter) {
-    gambarPratayang(nomorKloter);
+    perKloter = kelompokkan(segar);
+    gambarPratayang(perKloter);
+    siapkanCetakKloter([...perKloter.entries()], bentuk);
     window.print();
+
     // Ditandai SETELAH dialog cetak ditutup — kalau operator membatalkan,
     // kloternya belum dianggap tercetak.
-    const lanjut = confirm("Kertasnya sudah keluar dengan benar?\n\n" +
-      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)\n" +
+    const lanjut = confirm("Kertasnya sudah keluar dengan benar?
+
+" +
+      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)
+" +
       "Batal = belum, biarkan bisa dicetak lagi");
     if (!lanjut) return;
     try {
-      const n = await tandaiKloterDicetak(nomorKloter);
+      const n = await tandaiKloterDicetak(null);
       notif(`${n} kloter ditandai sudah dicetak dan dibekukan.`);
       layarCetakKloter();
     } catch (err) { notif(err.message, true); }
   }
+
+  document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
+  document.getElementById("cetak-peserta").addEventListener("click", () => cetak("umum"));
+  gambarPratayang(perKloter);
 }
 
 /** Blok cetak daftar kloter — satu kloter per halaman kertas.
