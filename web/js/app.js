@@ -11,7 +11,7 @@
 import {
   sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
   infoEdisi, ringkasanMeja, daftarPendaftaran,
-  verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
+  verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
   cariRegu, catatFinish, infoPenalti,
   papanKeberangkatan, reguKloter, kontrakOpsi,
@@ -106,7 +106,7 @@ function layarLogin(pesan) {
 /* ============================ BERANDA MEJA (home) ========================= */
 
 async function layarHome() {
-  pasangKepala("Beranda Meja");
+  pasangKepala("Home");
   const peran = sesi().peran;
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
@@ -522,7 +522,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
   b.status = "lunas";
   b.pembayaran = {
     nominal, metode, nomor_kwitansi: nomorKwitansi,
-    diverifikasi_pada: new Date().toISOString(),
+    verified_at: new Date().toISOString(),
   };
   catatTerakhir("pembayaran", b.kode_pembayaran,
     `${b.sekolah?.nama || ""} — lunas, ${nomorKwitansi}`);
@@ -557,7 +557,7 @@ function cetakKwitansi(daftar) {
         <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.nama || "—")}</p>
         <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
            · <strong>Cara bayar:</strong> ${esc(bayar.metode || "—")}
-           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.diverifikasi_pada))}</p>
+           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.verified_at))}</p>
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
            @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
         <table class="print-table">
@@ -622,7 +622,7 @@ async function layarDaftarUlang() {
           <thead>
             <tr>
               <th>Kode</th><th>Sekolah</th><th class="text-center">Regu</th>
-              <th class="text-center">Pendamping</th><th>Nomor dada / Aksi</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -645,7 +645,7 @@ async function layarDaftarUlang() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="5" class="table-empty">
+      tbody.replaceChildren(h(`<tr><td colspan="4" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
       return;
     }
@@ -684,15 +684,11 @@ async function layarDaftarUlang() {
             <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
           <td class="text-center">${aktif.length}</td>
-          <td class="text-center">
-            <input type="number" class="small-input" min="0" max="30" inputmode="numeric"
-                   value="${esc(b.jumlah_pendamping)}" data-pendamping="${kode}">
-          </td>
           <td>${aksi}</td>
         </tr>
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="5">
+          <td colspan="4">
             <table class="detail-table">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
@@ -718,28 +714,6 @@ async function layarDaftarUlang() {
           </td>
         </tr>`}`;
     }).join("")));
-
-    // Jumlah pendamping boleh dikoreksi langsung di tabel — angkanya hanya
-    // memengaruhi penyusunan barak, bukan uang, jadi aman disimpan begitu
-    // kolom ditinggalkan (tanpa tombol simpan terpisah).
-    tbody.querySelectorAll("[data-pendamping]").forEach(inp =>
-      inp.addEventListener("change", async () => {
-        const kode = inp.dataset.pendamping;
-        const b = semua.find(x => x.kode_pembayaran === kode);
-        const jumlah = Number(inp.value);
-        if (!Number.isInteger(jumlah) || jumlah < 0) {
-          inp.value = b.jumlah_pendamping; return;
-        }
-        try {
-          await ubahPendamping(kode, jumlah);
-          b.jumlah_pendamping = jumlah;
-          inp.classList.add("saved");
-          setTimeout(() => inp.classList.remove("saved"), 1200);
-        } catch (err) {
-          notif(err.message, true);
-          inp.value = b.jumlah_pendamping;
-        }
-      }));
 
     // Nomor rusak/sobek di lapangan: nomor lama PENSIUN (tidak pernah terbit
     // ulang), supaya lembar nilai lama tidak menilai regu yang salah.

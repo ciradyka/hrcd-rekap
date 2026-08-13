@@ -532,6 +532,8 @@ function sukses(hasil) {
          `Kode pembayaran HRCD: ${hasil.kode_pembayaran} (${hasil.jumlah_regu} regu, total ${rupiah(hasil.total_tagihan)})`)}">
        Kirim kode ke WhatsApp
     </a>
+    <button class="button button-secondary" id="daftar-lagi" type="button"
+            style="margin-top:.6rem">Daftarkan Regu Lain</button>
   `));
   window.scrollTo(0, 0);
   document.getElementById("salin").addEventListener("click", async () => {
@@ -541,6 +543,18 @@ function sukses(hasil) {
     } catch {
       notif("Salin otomatis tidak didukung di HP ini — catat manual atau kirim lewat WhatsApp.", true);
     }
+  });
+
+  // Meja pendaftaran offline melayani sekolah beruntun: tanpa tombol ini,
+  // petugas harus memuat ulang halaman untuk melayani sekolah berikutnya.
+  // Hasil lama sengaja DIHAPUS supaya mulai() tidak menampilkan lagi layar
+  // "Pendaftaran terakhirmu" alih-alih form kosong.
+  document.getElementById("daftar-lagi").addEventListener("click", () => {
+    try { localStorage.removeItem(KUNCI_HASIL); } catch {}
+    sessionStorage.removeItem("hrcd_selesai");
+    jawab = kosong();
+    halaman();
+    window.scrollTo(0, 0);
   });
 }
 

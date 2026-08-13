@@ -110,12 +110,12 @@ $$;
 select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
 do $$
 begin
-  assert exists (select 1 from riwayat
-                 where nilai_baru -> 'pindah_kloter' ->> 'alasan'
+  assert exists (select 1 from history
+                 where new_value -> 'pindah_kloter' ->> 'alasan'
                        = 'peserta urgent, harus berangkat sekarang'),
     'perpindahan tidak terekam riwayat';
-  assert exists (select 1 from riwayat
-                 where (nilai_baru -> 'pindah_kloter' ->> 'kloter_tujuan_sudah_dicetak')::boolean),
+  assert exists (select 1 from history
+                 where (new_value -> 'pindah_kloter' ->> 'kloter_tujuan_sudah_dicetak')::boolean),
     'riwayat tidak mencatat bahwa tujuannya kloter tercetak';
 end;
 $$;
