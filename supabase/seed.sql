@@ -7,7 +7,7 @@
 insert into edisi (nomor, name, tahun, tanggal_lomba, biaya_per_regu,
                    maks_regu_per_kloter, kloter_dasar, kloter_maks,
                    lompatan_kloter, interval_berangkat_menit, is_active)
-values (37, 'HRCD 37', 2027, date '2027-02-21', 250000, 10, 30, 40, 2, 4, true);
+values (37, 'HRCD XXXVII', 2027, date '2027-02-21', 250000, 10, 30, 40, 2, 4, true);
 
 insert into pos (edisi, nomor, name, bobot) values
   (37, 1, 'Pos 1', 1.00),
