@@ -40,6 +40,7 @@ run supabase/migrations/0014_rename_common_columns.sql
 run supabase/migrations/0015_v_kwitansi_column.sql
 run supabase/migrations/0016_nama_edisi_romawi.sql
 run supabase/migrations/0017_koreksi_jam_berangkat.sql
+run supabase/migrations/0018_pindah_setelah_berangkat.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
@@ -47,5 +48,6 @@ run tests/sql/03_alur.sql
 run tests/sql/04_cetak_kloter.sql
 run tests/sql/05_pindah_kloter.sql
 run tests/sql/06_koreksi_jam_berangkat.sql
+run tests/sql/07_pindah_setelah_berangkat.sql
 
 echo "SEMUA TES LULUS"

@@ -179,10 +179,6 @@ async function layarHome() {
         <div class="function-name">🏁 Kedatangan</div>
         <div class="description">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
-      <a href="#/pindah-kloter">
-        <div class="function-name">🔀 Pindah Kloter</div>
-        <div class="description">Peserta telat atau urgent — pindahkan nomor dada ke kloter lain</div>
-      </a>
     </div>
     <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
        Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
@@ -936,6 +932,12 @@ async function layarKeberangkatan() {
   let papan, opsi;
   try { [papan, opsi] = await Promise.all([papanKeberangkatan(), kontrakOpsi()]); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKeberangkatan)); return; }
+  // Daftar sisipan pindah ke sini bersama layar Pindah Kloter yang dihapus.
+  // Ia TIDAK ikut dihapus: ini satu-satunya cara petugas staging tahu ada
+  // nomor yang tidak tercetak di kertasnya. Boleh gagal — daftar kloternya
+  // sendiri jauh lebih penting daripada hiasan ini.
+  let sisipan = [];
+  try { sisipan = await daftarSisipan(); } catch { /* daftar boleh telat */ }
   if (location.hash !== layarIni) return;   // lihat catatan di layarPembayaran
 
   if (!papan.length) {
@@ -990,14 +992,15 @@ async function layarKeberangkatan() {
 
     const info = papan.find(k => k.nomor === kloterAktif) || {};
     const sudahBerangkat = !!info.jam_berangkat;
-    // Tujuan pindah = kloter yang BELUM berangkat dan bukan kloter ini
-    // sendiri. Kloter yang sudah jalan tidak ditawarkan karena regunya sudah
-    // di jalur — pindah_kloter menolaknya, dan menawarkan pilihan yang pasti
-    // ditolak hanya membuat petugas mencoba lalu kena galat.
-    const tujuanPindah = papan.filter(k => !k.jam_berangkat && k.nomor !== kloterAktif);
+    // Tujuan pindah = semua kloter lain, TERMASUK yang sudah berangkat.
+    // Regu telat yang berlari menyusul kloter berikutnya memang berangkat
+    // bersama kloter itu, pada jam kloter itu — menyembunyikannya memaksa
+    // petugas mencatat kloter yang tidak ia jalani (migrasi 0018).
+    const tujuanPindah = papan.filter(k => k.nomor !== kloterAktif);
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
     kotak.replaceChildren(h(`
+      ${kartuSisipan(sisipan.filter(s => s.kloter === kloterAktif))}
       <div class="card">
         <div class="kloter-header">
           <h2>Kloter ${kloterAktif}</h2>
@@ -1023,7 +1026,6 @@ async function layarKeberangkatan() {
                   <td class="text-center">
                     <input type="checkbox" class="checkbox" data-ceklis="${esc(r.nomor_dada)}"
                            ${r.sudah_ceklis ? "checked" : ""}
-                           ${sudahBerangkat ? "disabled" : ""}
                            aria-label="ceklis regu ${esc(r.nomor_dada)}">
                   </td>
                   <td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
@@ -1033,7 +1035,7 @@ async function layarKeberangkatan() {
                   </td>
                   <td>
                     <select class="select-small" data-kontrak="${esc(r.regu_id)}"
-                            ${sudahBerangkat ? "disabled" : ""}>
+                            ${r.sudah_ceklis ? "disabled" : ""}>
                       <option value="">Belum dipilih</option>
                       ${opsi.map(o => `<option value="${esc(o.menit)}"
                         ${r.kontrak_menit === o.menit ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
@@ -1041,16 +1043,21 @@ async function layarKeberangkatan() {
                   </td>
                   <td>
                     <select class="select-small" data-pindah="${esc(r.nomor_dada)}"
-                            ${sudahBerangkat || !tujuanPindah.length ? "disabled" : ""}
+                            ${r.sudah_ceklis || !tujuanPindah.length ? "disabled" : ""}
                             aria-label="pindahkan regu ${esc(r.nomor_dada)} ke kloter lain">
                       <option value="">—</option>
-                      ${tujuanPindah.map(k => `<option value="${esc(k.nomor)}">Kloter ${esc(k.nomor)}</option>`).join("")}
+                      ${tujuanPindah.map(k => `<option value="${esc(k.nomor)}">Kloter ${esc(k.nomor)}${
+                        k.jam_berangkat ? " (sudah berangkat)" : ""}</option>`).join("")}
                     </select>
                   </td>
                 </tr>`).join("")}
             </tbody>
           </table>
         </div>
+
+        ${!belumKontrak.length ? "" : kartuGalat(
+          `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
+          `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`)}
 
         ${sudahBerangkat ? "" : `
           <div class="departure-bar">
@@ -1062,9 +1069,6 @@ async function layarKeberangkatan() {
               🚩 Berangkatkan Kloter ${kloterAktif}
             </button>
           </div>
-          ${belumKontrak.length ? kartuGalat(
-            `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
-            `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`) : ""}
         `}
       </div>
     `));
@@ -1120,7 +1124,9 @@ async function layarKeberangkatan() {
           judul: `Pindahkan nomor ${String(dada).padStart(3, "0")} ke Kloter ${tujuan}?`,
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">Dari Kloter ${kloterAktif} ke Kloter ${tujuan}</div>
-            <div class="detail">Kapasitas kloter tujuan tetap dijaga sistem.</div>
+            <div class="detail">${papan.find(k => k.nomor === tujuan)?.jam_berangkat
+              ? `Kloter ${tujuan} sudah berangkat — regu ini akan dinilai dari jam berangkat kloter itu.`
+              : "Kapasitas kloter tujuan tetap dijaga sistem."}</div>
           </div>`,
           medan: [{ label: "Alasan pemindahan", contoh: "terlambat masuk kloter",
                     bantuan: "Wajib diisi — tercatat di riwayat." }],
@@ -1679,132 +1685,6 @@ function kartuReguFinish(r) {
 
 /* ============================ PINDAH KLOTER (HARI-H) ===================== */
 
-async function layarPindahKloter() {
-  pasangKepala("Pindah Kloter");
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
-
-  let sisipan = [];
-  try { sisipan = await daftarSisipan(); } catch { /* daftar boleh telat */ }
-
-  LAYAR.replaceChildren(h(`
-    ${sisipan.length ? kartuSisipan(sisipan) : ""}
-    <div class="card">
-      <div class="field" style="margin-bottom:0">
-        <label for="dada">Nomor dada yang mau dipindah</label>
-        <input type="text" id="dada" class="besar" inputmode="numeric"
-               autocomplete="off" placeholder="001">
-      </div>
-      <button class="button button-primary" id="cari" type="button" style="margin-top:.8rem">
-        Cari
-      </button>
-    </div>
-    <div id="hasil"></div>
-  `));
-  const inp = document.getElementById("dada");
-  inp.focus();
-
-  const cari = async () => {
-    const dada = Number(inp.value.trim());
-    const kotak = document.getElementById("hasil");
-    if (!dada) { inp.focus(); return; }
-    kotak.replaceChildren(h(`<p>Mencari nomor ${esc(dada)}…</p>`));
-    let semua;
-    try { semua = await daftarKloter(); }
-    catch (e) { kotak.replaceChildren(h(kartuGalat(e.message))); return; }
-
-    const r = semua.find(x => x.nomor_dada === dada);
-    if (!r) {
-      kotak.replaceChildren(h(kartuGalat(
-        `Nomor dada ${dada} belum punya kloter — mungkin belum daftar ulang.`)));
-      inp.select();
-      return;
-    }
-    if (r.sudah_berangkat) {
-      kotak.replaceChildren(h(kartuBatchRingkas(r) +
-        kartuGalat(`Kloter ${r.kloter} sudah berangkat — regu ini tidak bisa dipindah lagi.`)));
-      return;
-    }
-
-    // Kloter tujuan yang masih mungkin, dikelompokkan supaya operator paham
-    // konsekuensinya sebelum memilih.
-    const isiPerKloter = new Map();
-    for (const x of semua) isiPerKloter.set(x.kloter, (isiPerKloter.get(x.kloter) || 0) + 1);
-    const belumBerangkat = [...new Set(semua.filter(x => !x.sudah_berangkat).map(x => x.kloter))];
-    const terakhir = Math.max(...belumBerangkat);
-
-    kotak.replaceChildren(h(`
-      ${kartuBatchRingkas(r)}
-      <div class="card" style="border-color:var(--utama)">
-        <h2>Mau dipindah ke mana?</h2>
-        <button class="button button-primary" id="ke-terakhir" type="button" style="margin-top:.6rem">
-          Kloter terakhir (${terakhir}) — telat biasa
-        </button>
-        <p class="description" style="margin-top:.5rem">Pilihan biasa untuk peserta
-           yang terlambat masuk kloternya.</p>
-        <hr style="margin:1rem 0;border:0;border-top:1px solid var(--garis)">
-        <div class="field" style="margin-bottom:.5rem">
-          <label for="tujuan">Atau paksa ke kloter tertentu (urgent)</label>
-          <input type="number" id="tujuan" inputmode="numeric" min="1" max="40"
-                 placeholder="nomor kloter">
-          <div class="hint">Bisa ke kloter yang kertasnya sudah beredar —
-             sistem akan memberi peringatan untuk dibacakan ke petugas staging.</div>
-        </div>
-        <button class="button button-secondary" id="ke-tujuan" type="button">
-          Pindahkan ke kloter itu
-        </button>
-      </div>
-    `));
-
-    const jalankan = async (kloterTujuan) => {
-      const jawab = await dialog({
-        judul: kloterTujuan ? `Pindahkan ke kloter ${kloterTujuan}?` : "Pindahkan ke kloter terakhir?",
-        kartuHtml: kartuBatchRingkas(r),
-        medan: [{ label: "Alasan pemindahan",
-                  contoh: kloterTujuan ? "peserta urgent" : "terlambat masuk kloter",
-                  bantuan: "Wajib diisi — tercatat di riwayat." }],
-        labelAksi: "Pindahkan",
-      });
-      if (!jawab) return;
-      try {
-        const hasil = await pindahKloter(dada, jawab[0], kloterTujuan);
-        layarPindahKloter();
-        // Peringatan sisipan TIDAK boleh berupa toast yang hilang sendiri:
-        // petugas staging memegang kertas yang tidak memuat nomor ini.
-        setTimeout(() => {
-          if (hasil.peringatan) {
-            LAYAR.prepend(h(html`
-              <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
-                <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
-                <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
-              </div>`));
-          } else {
-            notif(`Nomor ${dada} pindah dari kloter ${hasil.kloter_lama} ke ${hasil.kloter_baru}.`);
-          }
-        }, 100);
-      } catch (err) { notif(err.message, true); }
-    };
-
-    document.getElementById("ke-terakhir").addEventListener("click", () => jalankan(null));
-    document.getElementById("ke-tujuan").addEventListener("click", () => {
-      const t = Number(document.getElementById("tujuan").value);
-      if (!t) { notif("Isi nomor kloter tujuannya dulu.", true); return; }
-      jalankan(t);
-    });
-  };
-  document.getElementById("cari").addEventListener("click", cari);
-  inp.addEventListener("keydown", e => { if (e.key === "Enter") cari(); });
-}
-
-function kartuBatchRingkas(r) {
-  return html`
-    <div class="card card-identity">
-      <div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
-      <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
-      <div class="detail">Sekarang di <strong>Kloter ${r.kloter}</strong>${
-        r.sisipan ? " (sisipan)" : ""}</div>
-    </div>`;
-}
-
 /** Daftar sisipan: nomor-nomor yang TIDAK ADA di kertas petugas staging.
  *  Ditaruh paling atas dan diberi bingkai merah — ini satu-satunya cara
  *  petugas tahu ada regu tambahan di kloternya. */
@@ -1845,7 +1725,6 @@ const RUTE = {
   "#/daftar-ulang": layarDaftarUlang,
   "#/cetak-kloter": layarCetakKloter,
   "#/keberangkatan": layarKeberangkatan,
-  "#/pindah-kloter": layarPindahKloter,
   "#/finish": layarFinish,
   "#/ganti-password": layarGantiPassword,
 };

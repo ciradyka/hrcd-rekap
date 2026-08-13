@@ -299,20 +299,42 @@ begin
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;
+  -- Prasyarat dibuat EKSPLISIT, tidak diwarisi dari langkah di atas: aturan
+  -- 0018 berbicara tentang catatan berangkat REGU ini, jadi tesnya harus
+  -- memastikan catatan itu memang tidak ada. Sekaligus membuktikan jalur
+  -- pemulihan salah klik: meja boleh menghapus centang kapan pun.
+  -- SEJAK 0018: meja BOLEH mengisi kontrak regu yang KETINGGALAN — kloternya
+  -- sudah jalan, tapi regu ini tidak ikut. Aturan lama memakai patokan kloter
+  -- saja, sehingga regu itu tidak bisa ditolong siapa pun di meja: kontrak
+  -- ditolak, lalu ceklis ditolak karena tidak berkontrak.
+  perform konfirmasi_kontrak((select id from regu where nomor_dada = 14), 240::smallint);
+  assert (select kontrak_menit from regu where nomor_dada = 14) = 240,
+    'meja tidak bisa mengisi kontrak regu yang tertinggal';
+end;
+$$;
+
+-- Kontrak sudah terisi, ceklis susulan jalan — dan meja tidak berhak lagi.
+select ceklis_berangkat(14);
+
+do $$
+begin
+  -- Sekarang dada 14 dicentang DAN kloternya sudah jalan — barulah ia terhitung
+  -- berangkat, dan kontraknya menentukan penalti yang sudah berjalan: koreksi
+  -- hanya lewat admin (0018). Centang saja tidak pernah cukup; kalau cukup,
+  -- alur meja yang biasa (centang dulu, pilih kontrak sesudahnya) ikut terkunci.
   begin
-    perform konfirmasi_kontrak((select id from regu where nomor_dada = 14), 240::smallint);
-    raise exception 'GAGAL: meja mengubah kontrak setelah kloter berangkat';
+    perform konfirmasi_kontrak((select id from regu where nomor_dada = 14), 210::smallint);
+    raise exception 'GAGAL: meja mengubah kontrak regu yang sudah tercatat berangkat';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;
 end;
 $$;
 
--- Koreksi susulan oleh admin: kontrak dulu, baru ceklis jalan.
+-- Admin tetap boleh membetulkannya.
 select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
 select konfirmasi_kontrak((select id from regu where nomor_dada = 14), 240::smallint);
 select set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
-select ceklis_berangkat(14);
 
 -- ---------------------------------------------------------------------------
 -- 3.5 Input nilai. RLS pos harus menggigit.
