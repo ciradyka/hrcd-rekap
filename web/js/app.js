@@ -2046,19 +2046,6 @@ async function layarInputPos() {
           menerima nomor dada. Lembar pos ini terisi sendiri begitu meja
           daftar ulang mulai jalan.</p>`}
       </div>
-      <!-- Keterangan duduk DI DALAM kartu. Di luar, ia melebar sendiri
-           mengikuti layar sementara kartunya menyusut mengikuti tabel, dan
-           dua tepi yang tidak sejajar terbaca seperti ada yang salah muat. -->
-      <p class="description" style="margin-top:.8rem">
-        Nilainya tersimpan sendiri begitu kamu pindah ke baris berikutnya —
-        tidak ada tombol Simpan yang bisa lupa ditekan. <strong>Baris hijau di
-        atas tabel adalah jawabannya:</strong> selama tulisannya "Data
-        Tersimpan" beserta jam sinkronisasinya, semua angka di layar ini sudah
-        ada di database. Kalau ia berubah merah, ada yang belum masuk —
-        angkanya tetap aman di layar dan dikirim sendiri begitu internet
-        kembali, jadi jangan tutup halaman ini sampai hijau lagi.
-        Enter = turun ke regu berikutnya di kolom yang sama.
-      </p>
     </div>
   `));
 

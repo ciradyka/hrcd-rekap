@@ -84,12 +84,6 @@ body {
    selebar 1720px, dan lahan kosong di kiri-kanannya terbaca seperti sesuatu
    yang gagal dimuat. max-width menjaga kartu tetap menyusut di layar sempit. */
 .isi.lembar .card { width: fit-content; max-width: 100%; margin-inline: auto; }
-/* Paragraf keterangan DIBATASI, kalau tidak ia yang menentukan lebar kartu.
-   `width: fit-content` mengukur dari isi TERLEBAR, dan satu paragraf panjang
-   yang boleh berbaris tunggal jauh lebih lebar daripada tabelnya — kartunya
-   pun kembali melar ke batas atas, persis yang ingin dihindari. 62ch juga
-   kebetulan panjang baris yang enak dibaca. */
-.isi.lembar .card > p.description { max-width: 62ch; }
 
 /* ---------- kartu ---------- */
 
