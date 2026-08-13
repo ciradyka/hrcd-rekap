@@ -505,8 +505,21 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      kaki. Karena itu SEMUANYA di lembar ini lebih rapat daripada cetakan lain
      di sistem — kwitansi dan daftar kloter tidak dibatasi jumlah barisnya,
      lembar ini iya. Angka-angka di bawah hasil pengukuran, bukan perkiraan. */
-  .lembar-pos h1 { font-size: 12pt; margin-bottom: 2pt; }
-  .lembar-pos h1 .halaman { float: right; font-size: 9pt; font-weight: 400; }
+  /* Semuanya DITENGAHKAN, mengikuti bentuk lembar Excel yang selama ini
+     dipakai panitia. Bukan sekadar selera: kolom identitas di sini lebarnya
+     dipatok dan isinya jauh lebih pendek dari patokannya ("Penegak PA" di
+     petak 26mm), jadi rata kiri meninggalkan pita kosong di tiap kolom dan
+     mata harus mencari-cari di mana satu kolom berakhir. Ditengahkan, tiap
+     petak punya titik berat sendiri. */
+  .lembar-pos .print-table th, .lembar-pos .print-table td { text-align: center; }
+  .lembar-pos h1 { font-size: 12pt; margin-bottom: 2pt; text-align: center; }
+  .lembar-pos .lembar-kepala, .lembar-pos .insert-note,
+  .lembar-pos .print-note { text-align: center; }
+  /* Nomor halaman turun jadi baris sendiri di bawah judul: float kanan di
+     judul yang ditengahkan menggeser judulnya sendiri ke kiri. */
+  .lembar-pos h1 .halaman {
+    display: block; font-size: 9pt; font-weight: 400; margin-top: 1pt;
+  }
   .lembar-pos .lembar-kepala { font-size: 8.5pt; margin: 0 0 3pt; }
   .lembar-pos .insert-note { font-size: 8pt; margin: 0 0 3pt; }
   .lembar-pos .print-note { font-size: 7.5pt; margin-top: 3pt; }
