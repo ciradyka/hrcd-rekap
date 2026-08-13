@@ -697,7 +697,8 @@ async function layarDaftarUlang() {
       const terbuka = dibukaNomor.has(b.kode_pembayaran);
       const aksi = menunggu.length
         ? `<button class="button-detail" type="button"
-                   data-isi="${kode}" aria-expanded="${terbuka}">
+                   data-isi="${kode}" data-jumlah="${menunggu.length}"
+                   aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
            </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
         : `<div class="pill-row">${nomorHtml} ${tombolTukar}</div>`;
@@ -784,6 +785,25 @@ async function layarDaftarUlang() {
         const kode = btn.dataset.isi;
         const barisNomor = tbody.querySelector(`[data-nomor-untuk="${CSS.escape(kode)}"]`);
         const buka = barisNomor.hidden;
+
+        // AKORDEON: hanya SATU sekolah terbuka pada satu waktu. Dua daftar
+        // isian terbuka bersamaan membuat petugas mudah mengetik nomor
+        // sekolah A ke baris sekolah B — kesalahan yang tidak menimbulkan
+        // galat apa pun dan baru ketahuan saat klasemen keluar. Angka yang
+        // sudah diketik TIDAK hilang: tersimpan di nilaiDada dan muncul lagi
+        // saat sekolahnya dibuka ulang.
+        if (buka) {
+          tbody.querySelectorAll("[data-nomor-untuk]").forEach(lain => {
+            if (lain !== barisNomor) lain.hidden = true;
+          });
+          tbody.querySelectorAll("[data-isi]").forEach(lainBtn => {
+            if (lainBtn === btn) return;
+            lainBtn.setAttribute("aria-expanded", "false");
+            lainBtn.textContent = `▸ Isi ${lainBtn.dataset.jumlah} Nomor Dada`;
+          });
+          dibukaNomor.clear();
+        }
+
         if (buka) dibukaNomor.add(kode); else dibukaNomor.delete(kode);
         barisNomor.hidden = !buka;
         btn.setAttribute("aria-expanded", String(buka));
