@@ -597,13 +597,27 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 .data-table .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
 .data-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+/* .table th sudah menetapkan text-align: left dengan spesifisitas (0,1,1),
+   jadi .text-center (0,1,0) kalah dan JUDUL kolom tetap rata kiri meski
+   sudah diberi kelasnya. Disamakan spesifisitasnya di sini. */
 .text-center { text-align: center; }
 .text-right  { text-align: right; }
+.table th.text-center, .table td.text-center { text-align: center; }
+.table th.text-right,  .table td.text-right  { text-align: right; }
+
+/* Cara bayar disimpan huruf kecil di database ('tunai'/'transfer') karena
+   itu nilai CHECK constraint-nya. Yang dibaca panitia tetap huruf kapital
+   di depan. */
+.data-table td[data-label="Metode"] { text-transform: capitalize; }
+.data-table td[data-label="Metode"] .badge { text-transform: none; }
 .table-empty { text-align: center; color: var(--tinta-lembut); padding: 1.4rem .5rem; }
 .kwitansi { display: block; font-size: .8rem; color: var(--tinta-lembut); }
 
 /* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
 .action-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+/* Cetak Kwitansi + Batalkan berderet ke samping, tidak menumpuk — dua aksi
+   sejajar yang sama-sama milik satu baris lunas. */
+.action-row-rapat { flex-wrap: nowrap; gap: .4rem; }
 .select-small, .small-input {
   /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
      kali isian disentuh — batas keras di kepala berkas ini, dan sempat
