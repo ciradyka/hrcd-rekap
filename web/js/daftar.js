@@ -29,6 +29,12 @@ const KUNCI_DRAF = "hrcd_draf";
 const KUNCI_HASIL = "hrcd_hasil";
 const MAKS_REGU = 30;
 
+// Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan sengaja
+// supaya panitia tidak perlu mikir dua format): 08, lalu kode operator
+// (1-9, bukan 0), lalu 6-10 digit lagi. Dipakai untuk validasi live (saat
+// mengetik) maupun pemeriksaan akhir sebelum kirim — satu pola, satu tempat.
+const POLA_WA = /^08[1-9][0-9]{6,10}$/;
+
 const kosong = () => ({
   sekolah: null,                 // {id?, nama, alamat}
   butuh_barak: null,
@@ -134,8 +140,10 @@ function halaman() {
   gambarStepper();
   gambarRegu();
   document.getElementById("wa").value = jawab.kontak_wa;
+  cekWaLive();
   document.getElementById("wa").addEventListener("input", e => {
     jawab.kontak_wa = e.target.value; simpanDraf();
+    cekWaLive();
     if (sudahDiperiksa) periksa(false);
   });
 
@@ -339,24 +347,58 @@ function gambarRegu() {
         <div class="medan" style="margin:0">
           <label for="r-nama-${i}">Nama regu</label>
           <input type="text" id="r-nama-${i}" value="${r.nama_regu}" placeholder="contoh: Rajawali">
+          <div class="galat" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
         <div class="medan" style="margin:0">
           <label for="r-ketua-${i}">Nama ketua</label>
           <input type="text" id="r-ketua-${i}" value="${r.nama_ketua}" placeholder="contoh: Andi Saputra">
+          <div class="galat" id="r-ketua-galat-${i}" hidden>Nama ketua wajib diisi.</div>
         </div>
       </div>
     </div>`).join("")));
 
+  // Warning SEKETIKA kalau nama regu/ketua kosong — tidak menunggu tombol
+  // Kirim ditekan dulu. Dua isian dicek bersama supaya kartu tidak salah
+  // dianggap lengkap hanya karena satu dari dua kotaknya sudah terisi.
+  const cekRegu = (i) => {
+    const inpNama = document.getElementById(`r-nama-${i}`);
+    const inpKetua = document.getElementById(`r-ketua-${i}`);
+    const namaKosong = !inpNama.value.trim();
+    const ketuaKosong = !inpKetua.value.trim();
+    inpNama.setAttribute("aria-invalid", String(namaKosong));
+    inpKetua.setAttribute("aria-invalid", String(ketuaKosong));
+    document.getElementById(`r-nama-galat-${i}`).hidden = !namaKosong;
+    document.getElementById(`r-ketua-galat-${i}`).hidden = !ketuaKosong;
+    document.getElementById(`regu-${i}`).classList.toggle("kartu-regu-galat", namaKosong || ketuaKosong);
+  };
+
   jawab.regu.forEach((r, i) => {
     document.getElementById(`r-nama-${i}`).addEventListener("input", e => {
       r.nama_regu = e.target.value.trim(); simpanDraf();
+      cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
     document.getElementById(`r-ketua-${i}`).addEventListener("input", e => {
       r.nama_ketua = e.target.value.trim(); simpanDraf();
+      cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
+    cekRegu(i);   // baris baru (kosong) langsung tertandai, tanpa perlu disentuh dulu
   });
+}
+
+/* ---------------- 5. kontak WA: validasi live ---------------- */
+
+/** Warning SEKETIKA sambil mengetik nomor WA — tidak menunggu tombol Kirim
+ *  ditekan dulu. Kotak yang masih kosong (belum mulai diketik) tidak
+ *  ditandai galat; begitu ada isi, formatnya dicek ulang di tiap ketukan. */
+function cekWaLive() {
+  const wa = document.getElementById("wa");
+  const digitWa = wa.value.replace(/\D/g, "");
+  const kosong = digitWa.length === 0;
+  const sah = POLA_WA.test(digitWa);
+  wa.setAttribute("aria-invalid", String(!kosong && !sah));
+  document.getElementById("g-wa").hidden = kosong || sah;
 }
 
 /* ---------------- pemeriksaan: SEMUA galat sekaligus ---------------- */
@@ -383,11 +425,8 @@ function periksa(gulir = true) {
     if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
   });
 
-  // Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan
-  // sengaja supaya panitia tidak perlu mikir dua format): 08, lalu kode
-  // operator (1-9, bukan 0), lalu 6-10 digit lagi.
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
-  const waSah = /^08[1-9][0-9]{6,10}$/.test(digitWa);
+  const waSah = POLA_WA.test(digitWa);
   if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
   tandai("g-wa", !waSah);
 
