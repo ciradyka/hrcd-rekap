@@ -704,8 +704,12 @@ async function layarDaftarUlang() {
         <table class="table data-table table-daftar-ulang">
           <thead>
             <tr>
-              <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
-              <th></th>
+              <!-- Tidak ada kolom Regu di sini. Jumlahnya sudah tercetak di
+                   dalam tombol "Isi N Nomor Dada" di kolom terakhir, dan
+                   kolom sendiri hanya untuk mengulanginya adalah lebar yang
+                   terbuang — di jendela sempit lebar itulah yang membuat
+                   tombolnya terdorong keluar layar. -->
+              <th>Kode Bayar</th><th>Sekolah</th><th></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -728,7 +732,7 @@ async function layarDaftarUlang() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="4" class="table-empty">
+      tbody.replaceChildren(h(`<tr><td colspan="3" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
       return;
     }
@@ -773,12 +777,11 @@ async function layarDaftarUlang() {
           <td data-label="Sekolah">
             <strong>${esc(b.sekolah?.name || "—")}</strong>
           </td>
-          <td class="text-center" data-label="Regu">${aktif.length}</td>
           <td data-label="">${aksi}</td>
         </tr>
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="4" class="detail-cell-flush">
+          <td colspan="3" class="detail-cell-flush">
             <table class="detail-table detail-table-dada">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
