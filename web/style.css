@@ -79,6 +79,11 @@ body {
    sampai 1720px: masih ada tepi di monitor lebar, dan di laptop 1366px
    max-width tidak memaksa apa pun, ia hanya berhenti membatasi. */
 .isi.lembar { max-width: 1720px; }
+/* Kartunya menyusut mengikuti isinya lalu ditengahkan. Tanpa ini, tabel
+   ramping (Pos 2 cuma dua kolom nilai) duduk sendirian di dalam kartu putih
+   selebar 1720px, dan lahan kosong di kiri-kanannya terbaca seperti sesuatu
+   yang gagal dimuat. max-width menjaga kartu tetap menyusut di layar sempit. */
+.isi.lembar .card { width: fit-content; max-width: 100%; margin-inline: auto; }
 
 /* ---------- kartu ---------- */
 
@@ -1196,13 +1201,39 @@ input.small-input { text-align: center; }
    lagi tahu sedang menilai regu yang mana.
    ========================================================================== */
 
-.table-pos { table-layout: auto; min-width: 100%; }
-.table-pos th, .table-pos td { padding: .4rem .45rem; white-space: nowrap; }
+/* Tabel selebar ISINYA, lalu ditengahkan — TIDAK diregangkan memenuhi kartu.
+   Sempat sebaliknya (min-width: 100%), dan akibatnya terasa persis di tangan:
+   lebar sisa dibagi rata ke semua kolom, jadi kotak isian saling menjauh dan
+   perjalanan dari kolom pertama ke kolom terakhir jadi jauh lebih panjang
+   daripada yang dibutuhkan. Yang dikerjakan petugas adalah deretan kotak itu;
+   mereka harus berdempetan, bukan tersebar selebar layar. */
+.table-pos { table-layout: auto; width: auto; min-width: 0; margin: 0 auto; }
+.table-pos th, .table-pos td { padding: .4rem .45rem; }
+/* Isi sel tidak membungkus; JUDUL kolom justru harus. */
+.table-pos td { white-space: nowrap; }
+.table-pos thead th { white-space: normal; }
 /* Nama regu dan organisasi boleh membungkus — keduanya satu-satunya isi yang
    panjangnya tak terduga, dan tanpa ini merekalah yang mendorong seluruh
    kolom nilai keluar layar. */
 .table-pos td:nth-child(2), .table-pos td:nth-child(3) {
-  white-space: normal; min-width: 9rem;
+  white-space: normal; min-width: 8rem;
+}
+
+/* Nama kolom penilaian dipatok 6rem lalu dibiarkan membungkus. Tanpa patokan
+   ini "BALAP KARUNG" dan "KEPRAMUKAAN KEAGAMAAN" berdiri satu baris dan
+   MEREKALAH yang menentukan lebar kolomnya — kotak isian selebar 4,5rem lalu
+   mengambang di tengah petak dua kali lebarnya. Block, bukan inline: hanya
+   block yang menghormati max-width di dalam sel tabel. */
+/* 7,25rem = 116px, cukup untuk kata terpanjang yang ada sekarang
+   ("KEPRAMUKAAN" butuh 113px). Patokan ini TIDAK melebarkan kolom lain:
+   tiap kolom tetap seukuran judulnya sendiri, dan "SEMAPHORE" berhenti di
+   91px. overflow-wrap adalah jaring pengamannya — nama komponen ditulis
+   panitia tiap tahun, dan kata yang lebih panjang lagi harus memotong diri
+   sendiri, bukan meluap menabrak kolom sebelahnya (yang persis terjadi saat
+   patokannya masih 6rem). */
+.kolom-nama {
+  display: block; max-width: 7.25rem; margin: 0 auto;
+  overflow-wrap: break-word;
 }
 
 /* Rentang yang boleh diketik, di bawah nama kolomnya — sama seperti "(0 - 20)"
