@@ -116,7 +116,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
                            d.jumlah_pendamping, d.butuh_barak, d.kontak_wa,
-                           d.dibuat_pada,
+                           d.created_at,
                            jsonb_build_object('nama', s.nama, 'alamat', s.alamat) as sekolah,
                            (select jsonb_agg(jsonb_build_object(
                               'id', r.id, 'nama_regu', r.nama_regu,
@@ -128,10 +128,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                            (select jsonb_build_object(
                               'nominal', b.nominal, 'metode', b.metode,
                               'nomor_kwitansi', b.nomor_kwitansi,
-                              'diverifikasi_pada', b.diverifikasi_pada)
+                              'verified_at', b.verified_at)
                             from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
                     from pendaftaran d join sekolah s on s.id = d.sekolah_id
-                    order by d.dibuat_pada
+                    order by d.created_at
                     """, uid=p.get("uid")))
             elif u.path == "/kloter":
                 self._kirim(200, q(
@@ -161,7 +161,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                            (select jsonb_build_object(
                               'nominal', b.nominal, 'metode', b.metode,
                               'nomor_kwitansi', b.nomor_kwitansi,
-                              'diverifikasi_pada', b.diverifikasi_pada)
+                              'verified_at', b.verified_at)
                             from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
                     from pendaftaran d join sekolah s on s.id = d.sekolah_id
                     where d.kode_pembayaran = %s

@@ -239,7 +239,7 @@ export async function lihatBatch(kode) {
     `&select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping,butuh_barak,kontak_wa,` +
     `sekolah(nama,alamat),` +
     `regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,batal),` +
-    `pembayaran(nominal,metode,nomor_kwitansi,diverifikasi_pada)` +
+    `pembayaran(nominal,metode,nomor_kwitansi,verified_at)` +
     `&regu.order=nama_regu.asc`);
   if (!d.length)
     throw new ErrorApi(`Kode ${kode} tidak ditemukan. Periksa lagi hurufnya.`);
@@ -270,11 +270,11 @@ export async function daftarPendaftaran() {
   if (K.mode === "dev") return baca("/daftar-pendaftaran");
   return baca(null,
     "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping," +
-    "butuh_barak,kontak_wa,dibuat_pada," +
+    "butuh_barak,kontak_wa,created_at," +
     "sekolah(nama,alamat)," +
     "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,batal)," +
-    "pembayaran(nominal,metode,nomor_kwitansi,diverifikasi_pada)" +
-    "&regu.order=nama_regu.asc&order=dibuat_pada.asc");
+    "pembayaran(nominal,metode,nomor_kwitansi,verified_at)" +
+    "&regu.order=nama_regu.asc&order=created_at.asc");
 }
 
 export const verifikasiPembayaran = (kode, nominal, metode) =>

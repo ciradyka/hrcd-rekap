@@ -522,7 +522,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
   b.status = "lunas";
   b.pembayaran = {
     nominal, metode, nomor_kwitansi: nomorKwitansi,
-    diverifikasi_pada: new Date().toISOString(),
+    verified_at: new Date().toISOString(),
   };
   catatTerakhir("pembayaran", b.kode_pembayaran,
     `${b.sekolah?.nama || ""} — lunas, ${nomorKwitansi}`);
@@ -557,7 +557,7 @@ function cetakKwitansi(daftar) {
         <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.nama || "—")}</p>
         <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
            · <strong>Cara bayar:</strong> ${esc(bayar.metode || "—")}
-           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.diverifikasi_pada))}</p>
+           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.verified_at))}</p>
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
            @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
         <table class="print-table">

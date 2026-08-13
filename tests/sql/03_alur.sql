@@ -321,7 +321,7 @@ select ceklis_berangkat(14);
 select set_config('app.uid', '00000000-0000-0000-0000-000000000001', false);
 
 do $$
-declare v jsonb; v_riwayat int;
+declare v jsonb; v_history int;
 begin
   -- pos1: satu paste berisi baris sah + semua jenis baris bermasalah.
   v := simpan_nilai_massal('[
@@ -352,7 +352,7 @@ begin
 
   -- Tembak tabel langsung: kini tertutup untuk SEMUA non-admin.
   begin
-    insert into nilai_mentah (regu_id, wahana_id, nilai_1, sumber, diinput_oleh)
+    insert into nilai_mentah (regu_id, wahana_id, nilai_1, sumber, created_by)
     values ((select id from regu where nomor_dada = 1),
             (select id from wahana where kode = 'lari_zigzag'),
             3, 'manual', auth.uid());
@@ -369,9 +369,9 @@ begin
   -- nilai yang sama TIDAK menulis apa pun (riwayat tidak banjir).
   perform simpan_nilai_massal('[{"nomor_dada":1,"kode":"lari_zigzag","nilai_1":45}]'::jsonb, 'manual');
   perform simpan_nilai_massal('[{"nomor_dada":1,"kode":"lari_zigzag","nilai_1":40}]'::jsonb, 'manual');
-  select count(*) into v_riwayat from riwayat where tabel = 'nilai_mentah';
+  select count(*) into v_history from history where table_name = 'nilai_mentah';
   perform simpan_nilai_massal('[{"nomor_dada":1,"kode":"lari_zigzag","nilai_1":40}]'::jsonb, 'manual');
-  assert (select count(*) from riwayat where tabel = 'nilai_mentah') = v_riwayat,
+  assert (select count(*) from history where table_name = 'nilai_mentah') = v_history,
          'simpan ulang tanpa perubahan membanjiri riwayat';
 end;
 $$;
@@ -421,7 +421,7 @@ begin
   -- Tulisan langsung ke closing (memalsukan pencatat / melompati guard):
   -- tertutup untuk meja — hanya lewat catat_closing.
   begin
-    insert into closing_regu (regu_id, jam_datang, dicatat_oleh)
+    insert into closing_regu (regu_id, jam_datang, recorded_by)
     values ((select id from regu where nomor_dada = 13),
             timestamptz '2027-02-21 11:00+07', auth.uid());
     raise exception 'GAGAL: tulisan langsung ke closing tembus';
@@ -474,11 +474,11 @@ begin
          'regu tak berangkat ikut klasemen';
 
   -- Riwayat merekam koreksi nilai & closing.
-  assert (select count(*) from riwayat
-          where tabel = 'nilai_mentah' and aksi = 'UPDATE') >= 2,
+  assert (select count(*) from history
+          where table_name = 'nilai_mentah' and aksi = 'UPDATE') >= 2,
          'riwayat timpa nilai tidak terekam';
-  assert (select count(*) from riwayat
-          where tabel = 'closing_regu' and aksi = 'UPDATE') >= 1,
+  assert (select count(*) from history
+          where table_name = 'closing_regu' and aksi = 'UPDATE') >= 1,
          'riwayat koreksi closing tidak terekam';
 
   -- Monitoring.

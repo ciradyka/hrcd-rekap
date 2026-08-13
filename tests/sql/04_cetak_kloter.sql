@@ -161,9 +161,9 @@ begin
   perform batalkan_tanda_cetak(v_tercetak, 'kertas macet, cetak ulang');
   assert (select dicetak_pada from kloter where nomor = v_tercetak) is null,
     'tanda cetak tidak terhapus';
-  assert exists (select 1 from riwayat
-                 where tabel = 'kloter'
-                   and nilai_baru ? 'alasan_batal_tanda_cetak'),
+  assert exists (select 1 from history
+                 where table_name = 'kloter'
+                   and new_value ? 'alasan_batal_tanda_cetak'),
     'pembatalan tanda cetak tidak terekam riwayat';
 end;
 $$;
