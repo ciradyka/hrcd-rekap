@@ -474,6 +474,21 @@ async function layarPembayaran() {
         const kode = btn.dataset.detail;
         const barisDetail = tbody.querySelector(`[data-detail-untuk="${CSS.escape(kode)}"]`);
         const buka = barisDetail.hidden;
+        // Satu panel saja yang terbuka. Dua rincian terbuka bersamaan membuat
+        // baris invoice dan rinciannya berselang-seling di layar, dan petugas
+        // yang membacakan rincian ke sekolah bisa membacakan milik sekolah
+        // lain — kesalahan yang tidak menimbulkan galat apa pun.
+        if (buka) {
+          tbody.querySelectorAll("[data-detail-untuk]").forEach(lain => {
+            if (lain !== barisDetail) lain.hidden = true;
+          });
+          tbody.querySelectorAll("[data-detail]").forEach(lainBtn => {
+            if (lainBtn === btn) return;
+            lainBtn.setAttribute("aria-expanded", "false");
+            lainBtn.textContent = `▸ ${lainBtn.dataset.jumlah} regu`;
+          });
+          dibuka.clear();
+        }
         if (buka) dibuka.add(kode); else dibuka.delete(kode);
         barisDetail.hidden = !buka;
         btn.setAttribute("aria-expanded", String(buka));
