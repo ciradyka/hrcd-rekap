@@ -2060,7 +2060,7 @@ async function layarInputPos() {
         <td class="text-center" data-label="${esc(k.name)}">
           ${selKomponen(k, (r.nilai || {})[k.kode])}</td>`).join("")}
       <td class="text-center pos-nilai" data-label="Nilai Pos">${esc(angkaRapi(r.nilai_pos))}</td>
-      <td class="text-center pos-status" data-label=""></td>
+      <td class="pos-status" data-label=""></td>
     </tr>`).join("")));
 
   /* ---------- keadaan simpan per baris ----------

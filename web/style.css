@@ -79,11 +79,6 @@ body {
    sampai 1720px: masih ada tepi di monitor lebar, dan di laptop 1366px
    max-width tidak memaksa apa pun, ia hanya berhenti membatasi. */
 .isi.lembar { max-width: 1720px; }
-/* Kartunya menyusut mengikuti isinya lalu ditengahkan. Tanpa ini, tabel
-   ramping (Pos 2 cuma dua kolom nilai) duduk sendirian di dalam kartu putih
-   selebar 1720px, dan lahan kosong di kiri-kanannya terbaca seperti sesuatu
-   yang gagal dimuat. max-width menjaga kartu tetap menyusut di layar sempit. */
-.isi.lembar .card { width: fit-content; max-width: 100%; margin-inline: auto; }
 
 /* ---------- kartu ---------- */
 
@@ -1201,23 +1196,34 @@ input.small-input { text-align: center; }
    lagi tahu sedang menilai regu yang mana.
    ========================================================================== */
 
-/* Tabel selebar ISINYA, lalu ditengahkan — TIDAK diregangkan memenuhi kartu.
-   Sempat sebaliknya (min-width: 100%), dan akibatnya terasa persis di tangan:
-   lebar sisa dibagi rata ke semua kolom, jadi kotak isian saling menjauh dan
-   perjalanan dari kolom pertama ke kolom terakhir jadi jauh lebih panjang
-   daripada yang dibutuhkan. Yang dikerjakan petugas adalah deretan kotak itu;
-   mereka harus berdempetan, bukan tersebar selebar layar. */
-.table-pos { table-layout: auto; width: auto; min-width: 0; margin: 0 auto; }
+/* Tabelnya MEMENUHI kartu, tapi kolomnya tetap rapat di kiri. Dua hal yang
+   kedengarannya bertentangan, dan keduanya memang dibutuhkan:
+
+   - Kalau tabel dibiarkan selebar isinya saja, kartu putihnya ikut menyusut
+     dan tepi kanannya berhenti di tengah layar.
+   - Kalau lebar sisanya dibagi rata ke semua kolom (perilaku bawaan tabel
+     selebar 100%), kotak isian saling menjauh — dan itu terasa di tangan,
+     bukan di mata: perjalanan dari kolom pertama ke kolom terakhir jadi jauh
+     lebih panjang daripada yang dibutuhkan, tiga ratus kali sehari.
+
+   Jalan keluarnya ada di kolom TERAKHIR (lihat aturan .pos-status di bawah):
+   satu kolom diberi width 100% sehingga ia menelan SELURUH sisa lebar, dan
+   kolom lain berhenti di ukuran isinya masing-masing. */
+.table-pos { table-layout: auto; width: 100%; min-width: 0; }
 .table-pos th, .table-pos td { padding: .4rem .45rem; }
 /* Isi sel tidak membungkus; JUDUL kolom justru harus. */
 .table-pos td { white-space: nowrap; }
 .table-pos thead th { white-space: normal; }
-/* Nama regu dan organisasi boleh membungkus — keduanya satu-satunya isi yang
-   panjangnya tak terduga, dan tanpa ini merekalah yang mendorong seluruh
-   kolom nilai keluar layar. */
-.table-pos td:nth-child(2), .table-pos td:nth-child(3) {
-  white-space: normal; min-width: 8rem;
-}
+/* Nama regu dan organisasi TIDAK membungkus. Sempat boleh, dan begitu kolom
+   terakhir jadi serakah merekalah yang membayar: keduanya menyusut sampai
+   batas bawahnya dan "KALAKI RACING" pecah jadi dua baris, sementara 695px
+   menganggur di ujung kanan. Kolom yang boleh membungkus selalu kalah dari
+   kolom yang menuntut lebar.
+
+   Aman karena sisa lebarnya besar: nama harus mencapai ~90 huruf sebelum
+   tabelnya benar-benar meluap, dan kalaupun itu terjadi, kolom Nomor Dada
+   sudah dipatok di tepi kiri sehingga barisnya tetap bisa dikenali. */
+.table-pos td:nth-child(2), .table-pos td:nth-child(3) { white-space: nowrap; }
 
 /* Nama kolom penilaian dipatok 6rem lalu dibiarkan membungkus. Tanpa patokan
    ini "BALAP KARUNG" dan "KEPRAMUKAAN KEAGAMAAN" berdiri satu baris dan
@@ -1262,7 +1268,13 @@ input.small-input { text-align: center; }
 .pos-nilai {
   font-weight: 800; font-variant-numeric: tabular-nums; font-size: 1.05rem;
 }
-.pos-status { width: 5rem; }
+/* Kolom penyerap. width 100% pada SATU kolom tabel auto-layout membuatnya
+   mengambil semua lebar yang tersisa, sehingga kolom lain tidak ikut melar.
+   Isinya (tanda ✓ / tombol Ulangi) tetap menempel kiri, jadi ia berdiri
+   persis di sebelah Nilai Pos dan lahan kosongnya jatuh di ujung kanan —
+   tempat yang memang tidak dikerjakan siapa pun. */
+.table-pos th:last-child, .table-pos td:last-child { width: 100%; }
+.pos-status { text-align: left; padding-left: .8rem; }
 
 /* Baris yang gagal tersimpan. Diberi warna SEBARIS PENUH, bukan hanya di
    kolom statusnya: petugas sedang menatap kolom nilai di tengah tabel, dan
