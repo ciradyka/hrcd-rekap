@@ -116,7 +116,7 @@ function halaman() {
 
     <!-- 5. Kontak -->
     <section class="card" id="bagian-kontak">
-      <h2><span class="section-number">5</span> Contact person</h2>
+      <h2><span class="section-number">5</span> Contact Person</h2>
       <p class="description">Satu orang untuk semua regu — panitia menghubungi lewat sini.</p>
       <div class="field" style="margin-top:.7rem">
         <label for="nama-kontak">Nama</label>
@@ -186,10 +186,13 @@ function gambarSekolah() {
 
   kotak.replaceChildren(h(`
     <div class="field" style="margin-bottom:.4rem">
-      <label for="cari">Ketik nama sekolahmu</label>
-      <input type="text" id="cari" autocomplete="off" placeholder="contoh: SMPN 1 Ciamis">
-      <div class="hint">Kalau muncul di daftar, tinggal pilih. Kalau tidak ada,
-         isi alamatnya sendiri.</div>
+      <!-- Tanpa <label> yang terlihat: placeholder-nya sudah memberi contoh
+           konkret, dan judul bagian di atasnya sudah menyebut "Sekolah".
+           aria-label tetap dipasang supaya pembaca layar tidak kehilangan
+           nama isian ini. -->
+      <input type="text" id="cari" autocomplete="off" aria-label="Nama sekolah"
+             placeholder="contoh: SMPN 1 Ciamis">
+      <div class="hint">Jika sekolah tidak muncul, silakan daftarkan + isi alamat</div>
       <div class="suggestions" id="saran" hidden></div>
     </div>
     <div id="manual"></div>
@@ -241,13 +244,12 @@ function gambarSekolah() {
     document.getElementById("manual").replaceChildren(h(`
       <div class="card" style="margin:.6rem 0 0;border-color:var(--utama)">
         <p style="font-weight:700">Sekolahmu belum ada di daftar?</p>
-        <p class="description">Isi alamatnya, lalu tekan Pakai sekolah ini.</p>
         <div class="field" style="margin-top:.6rem">
           <label for="m-alamat">Alamat sekolah (jalan + kota)</label>
           <input type="text" id="m-alamat"
                  placeholder="contoh: Jl. Raya Banjar No. 2, Kota Banjar">
         </div>
-        <button class="button button-primary" id="pakai" type="button">Pakai sekolah ini</button>
+        <button class="button button-primary" id="pakai" type="button">Simpan</button>
       </div>`));
     document.getElementById("pakai").addEventListener("click", () => {
       const nama = cari.value.trim();
@@ -603,6 +605,11 @@ async function mulai() {
   // tidak ada, dan membacanya diam-diam menghasilkan undefined.
   document.getElementById("label-edisi").textContent = EDISI.name;
   const romawi = String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim();
+  // Judul di layar DAN judul tab memakai angka romawi yang sama. Sekolah
+  // sering membuka form ini setahun sekali; tanpa nomor edisi, halaman lama
+  // yang masih terbuka di tab lain tidak bisa dibedakan dari yang baru.
+  const judul = `Pendaftaran Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
+  document.getElementById("judul-daftar").textContent = judul;
   document.title = `Pendaftaran — Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
 
   let hasilLama = null, draf = null;
