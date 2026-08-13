@@ -39,8 +39,13 @@ export const jamSekarang = () =>
  *  sedang melihat papan ketik saat pesan muncul (temuan review). */
 export function notif(pesan, galat = false) {
   document.querySelectorAll(".notification").forEach(n => n.remove());
-  const n = h(html`<div class="notification ${galat ? "error" : ""}" role="alert">
-      <span>${pesan}</span>
+  // Template BIASA, bukan tag html`` — tombol tutupnya HTML yang memang
+  // harus DIRENDER. Tag html`` meng-escape SEMUA yang disisipkan (itu
+  // gunanya, mencegah XSS dari nama sekolah), jadi tombolnya ikut jadi
+  // korban dan tampil apa adanya sebagai teks di layar panitia.
+  // Pesannya tetap lewat esc() — itu satu-satunya bagian dari luar.
+  const n = h(`<div class="notification ${galat ? "error" : ""}" role="alert">
+      <span>${esc(pesan)}</span>
       ${galat ? '<button class="notification-close" type="button" aria-label="tutup">✕</button>' : ""}
     </div>`);
   document.body.appendChild(n);
