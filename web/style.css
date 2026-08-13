@@ -73,6 +73,12 @@ body {
   padding: .9rem .8rem 3rem;
 }
 .isi.wide { max-width: 1080px; }
+/* Lembar Input Pos. Patokan 1080px yang pas untuk tabel meja justru memaksa
+   lembar ini menggeser ke samping padahal layarnya masih lapang — jumlah
+   kolomnya ditentukan konfigurasi, dan Pos 1 saja sudah 11. Dilonggarkan
+   sampai 1720px: masih ada tepi di monitor lebar, dan di laptop 1366px
+   max-width tidak memaksa apa pun, ia hanya berhenti membatasi. */
+.isi.lembar { max-width: 1720px; }
 
 /* ---------- kartu ---------- */
 
@@ -1245,3 +1251,36 @@ input.small-input { text-align: center; }
   .table-pos .pos-pasangan input.small-input { width: 2.9rem; }
   .table-pos td:nth-child(2), .table-pos td:nth-child(3) { min-width: 7.5rem; }
 }
+
+/* ---------------------------------------------------------------------------
+   PITA KEADAAN SIMPAN
+
+   Sebaris kalimat di atas tabel yang menjawab satu pertanyaan tanpa perlu
+   ditekan: "angka yang barusan saya ketik sudah masuk database atau belum?"
+   Bentuknya meniru Google Sheets, karena panitia sudah terbiasa dengannya —
+   cap waktu yang bergerak sendiri lebih dipercaya daripada tulisan
+   "tersimpan" yang tidak pernah berubah.
+
+   Ditaruh DI ATAS tabel, bukan di bawah: tabelnya bergulir sendiri, jadi apa
+   pun di bawahnya bisa berada di luar layar justru saat petugas sedang
+   mengetik di baris ke-80.
+   ------------------------------------------------------------------------- */
+.pos-simpan {
+  margin: 0 0 .6rem; padding: .45rem .7rem;
+  border-radius: 8px; font-size: .87rem; font-weight: 600;
+  border: 1px solid transparent;
+}
+.pos-simpan.aman     { background: var(--hijau-muda);  color: var(--hijau);  border-color: var(--hijau); }
+.pos-simpan.menunggu { background: var(--kuning-muda); color: var(--kuning); border-color: var(--kuning); }
+/* Merah TIDAK dipudarkan seperti dua keadaan di atas. Ini satu-satunya
+   keadaan yang berarti "ada nilai yang bisa hilang", dan ia harus tertangkap
+   mata orang yang sedang menatap kolom lain. */
+.pos-simpan.bahaya {
+  background: var(--bahaya); color: #fff; border-color: var(--bahaya);
+  font-weight: 700;
+}
+
+/* Baris yang sudah diketik tapi belum terkirim. Kuning tipis — cukup untuk
+   dilihat saat mata menyapu, tidak cukup untuk mengaburkan angkanya. */
+.table-pos tbody tr.baris-belum td { background: var(--kuning-muda); }
+.table-pos tbody tr.baris-belum td:first-child { background: var(--kuning-muda); }

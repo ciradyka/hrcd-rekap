@@ -169,6 +169,38 @@ Tiga hal yang menentukan layar ini benar atau tidak:
    database. Menghitungnya di browser akan melahirkan mesin skor kedua yang
    suatu hari berbeda pendapat dengan `v_poin_pos`.
 
+#### Pita keadaan simpan
+
+Di pos, internet putus adalah kejadian biasa — dan angka yang hanya ada di
+layar sama saja dengan angka yang tidak pernah dicatat. Sebaris pita di atas
+tabel menjawabnya tanpa perlu ditekan, bentuknya meniru Google Sheets karena
+panitia sudah terbiasa dengannya:
+
+| Keadaan | Yang tertulis |
+| --- | --- |
+| aman | `✓ Semua tersimpan · Tersimpan terakhir 14:32:07` |
+| sedang diketik | `2 baris belum tersimpan. Tersimpan terakhir 14:32:07` |
+| gagal | merah — `1 baris gagal terkirim dan 1 baris masih diketik — dicoba lagi sendiri tiap 15 detik… Tersimpan terakhir 14:12:40 (23 menit lalu).` |
+| internet putus | merah — angkanya aman di layar, dikirim sendiri saat internet kembali |
+
+Empat hal yang membuatnya bisa dipercaya:
+
+- **Capnya dipasang setelah baris dibaca ULANG dari database**, bukan saat
+  permintaan dikirim. Yang dijanjikan cap itu "sudah ada di sana".
+- **Pitanya tidak pernah disembunyikan.** Pita yang hanya muncul saat ada
+  masalah tidak bisa dipercaya — tidak ada cara membedakan "aman" dari
+  "pitanya sedang rusak".
+- **Baris ditandai sejak ketukan pertama**, bukan menunggu kotaknya
+  ditinggalkan. Di antara keduanya bisa lewat semenit.
+- **Yang gagal dikirim ulang sendiri** tiap 15 detik dan seketika saat event
+  `online` menyala. Menunggu petugas menekan "Ulangi" satu per satu hanya
+  memindahkan pekerjaan ke orang yang paling sibuk di ruangan itu.
+
+Karena nilai yang belum terkirim hanya hidup di layar, dua hal yang dulu
+membuangnya kini dijaga: `beforeunload` menahan tab yang ditutup, dan muat
+ulang otomatis saat layar dilihat kembali dilewati selama masih ada baris yang
+belum tersimpan.
+
 `v_lembar_pos` adalah **satu-satunya view yang bukan `security_invoker`**.
 Alasannya ada di kepala migrasi `0023`: jalan menuju nama sekolah melewati
 tabel `pendaftaran`, yang tertutup untuk operator pos karena memuat nomor

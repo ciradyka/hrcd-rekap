@@ -31,8 +31,15 @@ const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
 
-/** lebar = layar tabel (butuh ruang horizontal); sisanya tetap sempit supaya
- *  satu aksi utama gampang ditemukan di layar kecil. */
+/** Lebar layar, tiga tingkat:
+ *    false      layar satu-aksi — sempit, supaya tombol utamanya gampang
+ *               ditemukan di layar kecil.
+ *    true       tabel meja (pembayaran, daftar ulang) — butuh ruang, tapi
+ *               tetap dipatok supaya barisnya tidak terbaca seperti pita.
+ *    "lembar"   lembar Input Pos — layar TERLEBAR di sistem ini. Kolomnya
+ *               ditentukan konfigurasi dan bisa bertambah tahun depan, jadi
+ *               patokan 1080px yang pas untuk tabel meja justru memaksanya
+ *               menggeser ke samping padahal layarnya masih lapang. */
 /** Nama acara untuk judul tab: "Hiking Rally Ciradyka XXXVII".
  *  Angka romawinya DIAMBIL dari nama edisi di database ("HRCD XXXVII"),
  *  bukan ditulis di sini — tahun depan cukup mengubah satu baris di tabel
@@ -60,7 +67,8 @@ function pasangKepala(judul, lebar = false) {
   }
   document.getElementById("judul-layar").textContent = judul;
   document.title = `${judul} — ${namaAcara()}`;
-  LAYAR.classList.toggle("wide", lebar);
+  LAYAR.classList.toggle("wide", lebar === true);
+  LAYAR.classList.toggle("lembar", lebar === "lembar");
   if (s) document.getElementById("siapa").textContent =
     `${s.username} · ${EDISI ? EDISI.name : ""}`;
 }
@@ -1918,7 +1926,7 @@ async function layarInputPos() {
     return;
   }
 
-  pasangKepala("Input Nilai Pos", true);
+  pasangKepala("Input Nilai Pos", "lembar");
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
   const layarIni = location.hash;
@@ -1948,7 +1956,7 @@ async function layarInputPos() {
     return;
   }
   posDipilih.nomor = pos.nomor;
-  pasangKepala(`Input ${judulPos(pos)}`, true);
+  pasangKepala(`Input ${judulPos(pos)}`, "lembar");
 
   let komponen, lembar;
   try {
@@ -2000,6 +2008,15 @@ async function layarInputPos() {
         saringAktif: "semua",
         jumlah: lembar.length,
       })}
+      <!-- Pita keadaan simpan. Duduk DI ATAS tabel, bukan di bawahnya:
+           tabelnya bergulir sendiri (max-height), jadi apa pun yang ditaruh
+           di bawah bisa berada di luar layar justru saat petugas sedang
+           mengetik di baris ke-80. -->
+      <!-- SELALU terlihat, tidak pernah hidden. Pita yang hanya muncul saat
+           ada masalah tidak bisa dipercaya: petugas tidak punya cara
+           membedakan "semuanya aman" dari "pitanya sedang rusak". Google
+           Sheets menampilkan capnya terus-menerus untuk alasan yang sama. -->
+      <div id="pos-simpan" class="pos-simpan aman"></div>
       <!-- table-tetap: di HP lembar ini TETAP tabel dan digeser ke samping,
            tidak ditumpuk jadi kartu seperti layar meja. Alasannya di
            style.css, bagian LEMBAR INPUT POS. -->
@@ -2028,9 +2045,13 @@ async function layarInputPos() {
     </div>
     <p class="description" style="margin-top:.8rem">
       Nilainya tersimpan sendiri begitu kamu pindah ke baris berikutnya —
-      tidak ada tombol Simpan yang bisa lupa ditekan. Tanda ✓ hijau di ujung
-      kanan berarti sudah masuk; tanda merah berarti belum, dan bisa dicoba
-      lagi dari situ. Enter = turun ke regu berikutnya di kolom yang sama.
+      tidak ada tombol Simpan yang bisa lupa ditekan. <strong>Baris hijau di
+      atas tabel adalah jawabannya:</strong> selama tulisannya "Semua
+      tersimpan" beserta jamnya, semua angka di layar ini sudah ada di
+      database. Kalau ia berubah merah, ada yang belum masuk — angkanya tetap
+      aman di layar dan dikirim sendiri begitu internet kembali, jadi jangan
+      tutup halaman ini sampai hijau lagi. Enter = turun ke regu berikutnya di
+      kolom yang sama.
     </p>
   `));
 
@@ -2048,24 +2069,135 @@ async function layarInputPos() {
       <td class="text-center pos-status" data-label=""></td>
     </tr>`).join("")));
 
-  /* ---------- menyimpan satu baris ---------- */
+  /* ---------- keadaan simpan per baris ----------
+
+     Pertanyaan yang harus bisa dijawab layar ini sambil dilirik, tanpa
+     menekan apa pun: "angka yang barusan saya ketik, sudah masuk database
+     atau belum?" Di pos, internet putus adalah kejadian biasa — dan angka
+     yang hanya ada di layar sama saja dengan angka yang tidak pernah dicatat.
+
+     Empat keadaan, dan tidak ada baris yang boleh berada di luar keempatnya:
+
+       (kosong)    belum ada nilai sama sekali
+       belum       sudah diketik, BELUM sampai ke server
+       menyimpan   sedang di jalan
+       tersimpan   ✓ ada di database — ini yang dibaca ulang dari sana
+       gagal       tidak sampai; tetap tersimpan di layar dan dicoba lagi
+
+     Yang paling penting justru `belum`. Sebelumnya keadaan itu tidak ada:
+     antara petugas mengetik dan meninggalkan kotaknya, layar diam saja —
+     terlihat persis sama dengan baris yang sudah aman.                    */
 
   const statusBaris = (tr, keadaan, pesan) => {
     const sel = tr.querySelector(".pos-status");
+    tr.dataset.keadaan = keadaan || "";
     tr.classList.toggle("baris-gagal", keadaan === "gagal");
-    if (keadaan === "menyimpan") { sel.textContent = "…"; return; }
-    if (keadaan === "tersimpan") {
-      sel.replaceChildren(h(`<span class="badge badge-green">✓</span>`));
-      return;
-    }
-    if (keadaan === "gagal") {
-      sel.replaceChildren(h(html`<button class="button button-secondary button-mini"
-        type="button" data-ulang title="${pesan}">Coba lagi</button>`));
+    tr.classList.toggle("baris-belum", keadaan === "belum");
+
+    if (keadaan === "belum") {
+      sel.replaceChildren(h(`<span class="badge badge-yellow" title="Belum terkirim ke server">belum</span>`));
+    } else if (keadaan === "menyimpan") {
+      sel.replaceChildren(h(`<span class="badge badge-gray">…</span>`));
+    } else if (keadaan === "tersimpan") {
+      sel.replaceChildren(h(`<span class="badge badge-green" title="Sudah masuk database">✓</span>`));
+    } else if (keadaan === "gagal") {
+      sel.replaceChildren(h(html`<button class="button button-danger button-mini"
+        type="button" data-ulang title="${pesan}">Ulangi</button>`));
       sel.querySelector("[data-ulang]").addEventListener("click", () => simpanBaris(tr));
+    } else {
+      sel.replaceChildren();
+    }
+    perbaruiRingkasan();
+  };
+
+  /* ---------- pita keadaan + kirim ulang sendiri ----------
+
+     Dua hal yang tidak boleh diserahkan ke kewaspadaan petugas:
+
+     1. MENGHITUNG sendiri berapa baris yang belum aman. Baris merah di
+        tengah tabel 300 baris tidak akan terlihat oleh orang yang sedang
+        menatap kolom Semaphore di baris ke-80.
+     2. MENEKAN "Ulangi" satu per satu setelah internet kembali. Layar yang
+        tahu koneksinya sudah pulih tapi menunggu diperintah hanya
+        memindahkan pekerjaan ke orang yang paling sibuk di ruangan itu.  */
+
+  const pita = document.getElementById("pos-simpan");
+  let jamUlang = null;
+
+  // Jam terakhir kali sesuatu BENAR-BENAR masuk database. Diisi saat lembar
+  // dimuat, karena saat itu angka di layar memang baru dibaca dari sana.
+  let jamSinkron = new Date();
+
+  const jamDetik = (d) => d.toTimeString().slice(0, 8);
+  const berapaLalu = (d) => {
+    const menit = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (menit < 1) return "barusan";
+    if (menit < 60) return `${menit} menit lalu`;
+    return `${Math.floor(menit / 60)} jam lalu`;
+  };
+
+  function perbaruiRingkasan() {
+    const baris = [...tbody.children];
+    const belum = baris.filter(t => t.dataset.keadaan === "belum").length;
+    const gagal = baris.filter(t => t.dataset.keadaan === "gagal").length;
+    const sibuk = baris.some(t => t.dataset.keadaan === "menyimpan");
+    const putus = !navigator.onLine;
+    const cap = `Tersimpan terakhir ${jamDetik(jamSinkron)}`;
+
+    if (gagal || putus) {
+      // Keadaan paling berbahaya, jadi capnya diberi umur: "14:12:40
+      // (23 menit lalu)" langsung memberi tahu SEBERAPA BANYAK yang sedang
+      // dipertaruhkan, yang tidak bisa dijawab oleh jam telanjang.
+      pita.className = "pos-simpan bahaya";
+      pita.textContent = putus
+        ? `Internet putus — ${belum + gagal} baris belum tersimpan. Angkanya aman di layar dan dikirim sendiri begitu internet kembali; jangan tutup halaman ini. ${cap} (${berapaLalu(jamSinkron)}).`
+        // Kedua-duanya disebut. Pita yang hanya menghitung baris GAGAL sempat
+        // menulis "1 baris" padahal ada dua yang belum aman di layar —
+        // angka yang tidak lengkap justru menghapus gunanya sebagai jaminan.
+        : `${gagal} baris gagal terkirim${belum ? ` dan ${belum} baris masih diketik` : ""}`
+          + ` — dicoba lagi sendiri tiap 15 detik. Jangan tutup halaman ini. ${cap} (${berapaLalu(jamSinkron)}).`;
+      if (gagal) jadwalkanUlang();
       return;
     }
-    sel.replaceChildren();
-  };
+    if (sibuk)  { pita.className = "pos-simpan menunggu"; pita.textContent = `Menyimpan… ${cap}`; return; }
+    if (belum)  { pita.className = "pos-simpan menunggu"; pita.textContent = `${belum} baris belum tersimpan. ${cap}`; return; }
+    pita.className = "pos-simpan aman";
+    pita.textContent = `✓ Semua tersimpan · ${cap}`;
+  }
+
+  function ulangYangGagal() {
+    if (!document.body.contains(tbody)) return false;   // layar sudah ditinggalkan
+    if (!navigator.onLine) return true;
+    [...tbody.children]
+      .filter(t => t.dataset.keadaan === "gagal")
+      .forEach(t => simpanBaris(t));
+    return true;
+  }
+
+  function jadwalkanUlang() {
+    if (jamUlang) return;
+    jamUlang = setInterval(() => {
+      // Layar ini bisa ditinggalkan kapan saja; jam yang terus berdetak di
+      // atas tabel yang sudah lepas dari halaman adalah kebocoran.
+      if (!document.body.contains(tbody)
+          || ![...tbody.children].some(t => t.dataset.keadaan === "gagal")) {
+        clearInterval(jamUlang); jamUlang = null;
+        return;
+      }
+      ulangYangGagal();
+    }, 15000);
+  }
+
+  // Internet kembali: jangan menunggu putaran 15 detik berikutnya.
+  window.addEventListener("online", ulangYangGagal);
+  window.addEventListener("offline", perbaruiRingkasan);
+
+  // Baris yang sudah berisi nilai memang berasal dari database — ✓-nya
+  // benar sejak halaman dibuka, bukan hanya untuk yang diketik hari ini.
+  [...tbody.children].forEach(tr => {
+    if (Number(tr.dataset.terisi) > 0) statusBaris(tr, "tersimpan");
+  });
+  perbaruiRingkasan();
 
   async function simpanBaris(tr) {
     // Satu baris punya banyak kotak, dan tiap kotak yang ditinggalkan memicu
@@ -2103,7 +2235,14 @@ async function layarInputPos() {
                      nilai_1: baru.nilai_1, nilai_2: baru.nilai_2 });
       }
     }
-    if (!baris.length && !dihapus.length) return;
+    // Tidak ada yang berubah — misalnya angka diketik ulang sama persis.
+    // Barisnya dikembalikan ke keadaan istirahat, BUKAN ditinggalkan dalam
+    // keadaan "belum": tanda kuning yang tidak akan pernah hilang sendiri
+    // mengajari petugas mengabaikan tanda kuning.
+    if (!baris.length && !dihapus.length) {
+      statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
+      return;
+    }
 
     tr.dataset.jalan = "1";
     statusBaris(tr, "menyimpan");
@@ -2123,7 +2262,11 @@ async function layarInputPos() {
         tr.querySelector(".pos-nilai").textContent = angkaRapi(segar.nilai_pos);
         tr.dataset.terisi = String(segar.jumlah_terisi);
       }
-      statusBaris(tr, "tersimpan");
+      // Cap waktunya dipasang DI SINI, bukan saat permintaan dikirim: yang
+      // dijanjikan cap itu adalah "sudah ada di database", dan yang
+      // membuktikannya adalah baris yang barusan dibaca kembali dari sana.
+      jamSinkron = new Date();
+      statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
       hitungUlangJumlah();
     } catch (err) {
       statusBaris(tr, "gagal", err.message);
@@ -2138,6 +2281,14 @@ async function layarInputPos() {
   }
 
   /* ---------- perilaku isian ---------- */
+
+  // Ditandai sejak KETUKAN PERTAMA, bukan menunggu kotaknya ditinggalkan.
+  // Di antara keduanya bisa lewat semenit — petugas mengetik lalu menoleh ke
+  // lembar berikutnya — dan selama semenit itu angkanya hanya ada di layar.
+  tbody.addEventListener("input", (e) => {
+    const tr = e.target.closest("tr");
+    if (tr && tr.dataset.jalan !== "1") statusBaris(tr, "belum");
+  });
 
   tbody.addEventListener("change", (e) => {
     const tr = e.target.closest("tr");
@@ -2316,8 +2467,26 @@ document.addEventListener("visibilitychange", () => {
   const fokus = document.activeElement;
   if (fokus && ["INPUT", "SELECT", "TEXTAREA"].includes(fokus.tagName)) return;
   if (document.querySelector(".overlay")) return;   // dialog sedang terbuka
+  // Menggambar ulang membuang isi kotak yang belum sampai ke server. Di
+  // lembar pos itu berarti menghapus nilai yang sedang menunggu internet
+  // pulih — persis pada orang yang paling tidak berdaya menyadarinya, karena
+  // yang ia lihat hanyalah tabel yang tiba-tiba bersih.
+  if (adaYangBelumTersimpan()) return;
   terakhirSegar = Date.now();
   arahkan();
+});
+
+/** Baris lembar pos yang isinya belum sampai ke database. */
+const adaYangBelumTersimpan = () => !!document.querySelector(
+  '#isi-tabel tr[data-keadaan="belum"], #isi-tabel tr[data-keadaan="gagal"]');
+
+// Menutup tab dengan nilai yang belum terkirim = nilai itu hilang tanpa
+// jejak. Browser hanya mengizinkan peringatan bawaannya, dan itu sudah cukup:
+// yang dibutuhkan cuma satu jeda sebelum tab-nya benar-benar tertutup.
+window.addEventListener("beforeunload", (e) => {
+  if (!adaYangBelumTersimpan()) return;
+  e.preventDefault();
+  e.returnValue = "";
 });
 
 arahkan();
