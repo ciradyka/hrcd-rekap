@@ -9,7 +9,7 @@
    ========================================================================== */
 
 import {
-  sesi, masuk, keluar, ErrorApi,
+  sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
   infoEdisi, ringkasanMeja, daftarPendaftaran,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
@@ -163,6 +163,66 @@ async function layarBeranda() {
     <p class="keterangan" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
        Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
   `));
+}
+
+/* ============================ GANTI PASSWORD ============================= */
+
+// "ABCD" adalah kode konfirmasi TETAP, bukan rahasia dan bukan pemeriksaan
+// identitas — identitas sudah dibuktikan lewat sesi login yang sedang aktif.
+// Tujuannya cuma satu: HP sering dipegang orang lain sebentar (dipinjam,
+// disodorkan ke teman), dan ganti password bukan aksi yang boleh ketriggered
+// oleh ketukan tidak sengaja. Mengetik "ABCD" adalah jeda sadar sebelum aksi
+// itu benar-benar terjadi.
+const KODE_KONFIRMASI_PASSWORD = "ABCD";
+
+function layarGantiPassword() {
+  pasangKepala("Ganti Password");
+  LAYAR.replaceChildren(h(`
+    <div class="kartu" style="max-width:480px;margin:0 auto">
+      <h2>Ganti Password Akun Sendiri</h2>
+      <p class="keterangan">Berlaku untuk akun yang sedang login sekarang:
+         <strong>${esc(sesi().username)}</strong>.</p>
+      <div class="medan">
+        <label for="gp-baru">Password baru</label>
+        <input type="password" id="gp-baru" autocomplete="new-password">
+      </div>
+      <div class="medan">
+        <label for="gp-kode">Ketik <strong>${KODE_KONFIRMASI_PASSWORD}</strong> untuk konfirmasi</label>
+        <input type="text" id="gp-kode" autocomplete="off">
+      </div>
+      <div class="galat" id="gp-galat" hidden></div>
+      <button class="tombol tombol-utama" id="gp-simpan" type="button">Simpan Password Baru</button>
+    </div>
+  `));
+
+  const baru = document.getElementById("gp-baru");
+  const kode = document.getElementById("gp-kode");
+  const galat = document.getElementById("gp-galat");
+  const btn = document.getElementById("gp-simpan");
+
+  btn.addEventListener("click", async () => {
+    galat.hidden = true;
+    if (!baru.value || baru.value.length < 6) {
+      galat.textContent = "Password baru minimal 6 karakter.";
+      galat.hidden = false; baru.focus(); return;
+    }
+    if (kode.value.trim() !== KODE_KONFIRMASI_PASSWORD) {
+      galat.textContent = `Ketik persis "${KODE_KONFIRMASI_PASSWORD}" di kotak konfirmasi untuk lanjut.`;
+      galat.hidden = false; kode.focus(); return;
+    }
+    if (btn.dataset.jalan === "1") return;
+    btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      await gantiPasswordSendiri(baru.value);
+      notif("Password berhasil diganti. Dipakai mulai login berikutnya.");
+      baru.value = ""; kode.value = "";
+    } catch (err) {
+      galat.textContent = err.message; galat.hidden = false;
+    } finally {
+      btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Simpan Password Baru";
+    }
+  });
+  baru.focus();
 }
 
 /* ============================ ALAT TABEL ================================= */
@@ -1643,6 +1703,7 @@ const RUTE = {
   "#/keberangkatan": layarKeberangkatan,
   "#/pindah-kloter": layarPindahKloter,
   "#/finish": layarFinish,
+  "#/ganti-password": layarGantiPassword,
 };
 
 async function arahkan() {
@@ -1659,6 +1720,9 @@ document.getElementById("btn-keluar").addEventListener("click", () => {
 });
 document.getElementById("ganti-fungsi").addEventListener("click", () => {
   if (location.hash === "#/beranda") arahkan(); else location.hash = "#/beranda";
+});
+document.getElementById("ganti-password").addEventListener("click", () => {
+  if (location.hash === "#/ganti-password") arahkan(); else location.hash = "#/ganti-password";
 });
 window.addEventListener("hashchange", arahkan);
 arahkan();
