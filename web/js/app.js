@@ -1298,16 +1298,8 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
           <tbody>${baris}</tbody>
         </table>
         <p class="print-note">Bersiap di staging paling lambat 15 menit sebelum
-           perkiraan berangkat. Jam sebenarnya bisa bergeser — ikuti panggilan petugas.</p>
-        <!-- Pembina regu mencatat jam berangkat sebenarnya sebagai bahan
-             klarifikasi: penalti waktu dihitung dari jam ini + kontrak waktu. -->
-        <div class="supervisor-box">
-          <strong>Catatan pembina — isi saat kloter benar-benar berangkat:</strong>
-          <p class="isian-jam">Jam berangkat sebenarnya: <span class="garis-isi"></span></p>
-          <p class="print-note">Target kedatangan tiap regu = jam di atas + kontrak
-             waktu regu itu (3,5 / 4 / 4,5 jam). Simpan lembar ini bila perlu
-             mengklarifikasi penilaian ketepatan waktu.</p>
-        </div>
+           perkiraan berangkat.<br>
+           Jam sebenarnya bisa bergeser, ikuti panggilan petugas.</p>
       </section>`;
   }).join("");
   document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));

@@ -436,7 +436,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .print-page { break-after: page; page-break-after: always; }
   .print-page:last-child { break-after: auto; page-break-after: auto; }
 
-  .print-table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  /* Lebar disisakan 1pt dari 100%. Dengan border-collapse, garis kanan tabel
+     selebar-penuh jatuh PERSIS di batas cetak, dan pembulatan browser
+     melemparkannya keluar halaman — kolom terakhir (Hadir) tercetak tanpa
+     garis penutup dan terlihat seperti terpotong. */
+  .print-table { width: calc(100% - 1pt); border-collapse: collapse; margin-top: .5rem; }
   .print-table th, .print-table td {
     border: 1px solid #000;
     padding: 5pt 6pt;
@@ -462,20 +466,6 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
   .print-note { font-size: 9pt; color: #333; margin-top: .5rem; }
   .insert-note { font-size: 9pt; font-weight: 700; margin-top: .4rem; }
-
-  /* Kotak untuk pembina mencatat jam berangkat sebenarnya — bahan klarifikasi
-     bila penilaian ketepatan waktu dipersoalkan. */
-  .supervisor-box {
-    margin-top: 8mm;
-    border: 1.5pt solid #000;
-    padding: 4mm;
-  }
-  .supervisor-box .isian-jam { font-size: 12pt; margin: 3mm 0; }
-  .garis-isi {
-    display: inline-block;
-    width: 45mm;
-    border-bottom: 1pt solid #000;
-  }
 }
 
 @page { margin: 12mm; }
