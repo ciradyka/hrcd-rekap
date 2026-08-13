@@ -39,7 +39,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   └── wrangler.toml         # deploy Workers static assets
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0020
+│   ├── migrations/           # skema database, urut 0001..0024
 │   ├── checks/               # SQL pemeriksaan manual (row_counts, smoke, dst.)
 │   └── seed.sql              # konfigurasi edisi + baris wajib
 ├── scripts/                  # provision_accounts.py, change_password.py
@@ -75,6 +75,11 @@ lengkap daftar → bayar → daftar ulang → berangkat → nilai → closing, p
 kloter, koreksi jam berangkat, dan kecocokan mesin skor dengan contoh angka di
 `docs/rancangan-b.md`.
 
+`tests/sql/08_lembar_pos.sql` mengujinya dari arah lain: angka yang dipakai
+adalah baris **nyata** dari lembar penilaian HRCD XXXVI, lengkap dengan Nilai
+Pos yang tercetak di sana. Kalau mesin skor menghasilkan angka lain, yang salah
+kodenya — bukan lembarnya.
+
 Uji konkurensi terpisah membuktikan beberapa meja daftar ulang yang menekan
 tombol serentak tidak pernah menghasilkan nomor dada ganda:
 
@@ -89,7 +94,7 @@ Merge TIDAK menerapkan migrasi. Jalankan workflow-nya sendiri:
 
 ```bash
 gh workflow run "Apply migration to Supabase" --ref main \
-  -f berkas=supabase/migrations/0020_nomor_dada_tiga_digit.sql
+  -f berkas=supabase/migrations/0021_pos_bayangan.sql
 ```
 
 Atau dari HP: **Actions → Apply migration to Supabase → Run workflow**. Pastikan
