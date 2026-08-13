@@ -37,6 +37,7 @@ run supabase/migrations/0011_nomor_dada_manual.sql
 run supabase/migrations/0012_rename_audit_columns.sql
 run supabase/migrations/0013_nama_kontak.sql
 run supabase/migrations/0014_rename_common_columns.sql
+run supabase/migrations/0015_v_kwitansi_column.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
