@@ -92,7 +92,7 @@ function layarLogin(pesan) {
     try {
       await masuk(u.value.trim(), document.getElementById("p").value);
       EDISI = null;
-      location.hash = "#/beranda";
+      location.hash = "#/home";
       arahkan();
     } catch (e) {
       layarLogin(e instanceof ErrorApi ? e.message : "Username atau password salah.");
@@ -103,9 +103,9 @@ function layarLogin(pesan) {
     i.addEventListener("keydown", e => { if (e.key === "Enter") aksi(); }));
 }
 
-/* ============================ BERANDA MEJA =============================== */
+/* ============================ BERANDA MEJA (home) ========================= */
 
-async function layarBeranda() {
+async function layarHome() {
   pasangKepala("Beranda Meja");
   const peran = sesi().peran;
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
@@ -1697,7 +1697,7 @@ function layarButuhEdisi(judul) {
 /* ============================ RUTE ======================================= */
 
 const RUTE = {
-  "#/beranda": layarBeranda,
+  "#/home": layarHome,
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
   "#/pendaftaran-offline": layarPendaftaranOffline,
@@ -1714,14 +1714,14 @@ async function arahkan() {
     try { EDISI = await infoEdisi(); }
     catch (e) { layarButuhEdisi("HRCD Rekap"); return; }
   }
-  (RUTE[location.hash] || layarBeranda)();
+  (RUTE[location.hash] || layarHome)();
 }
 
 document.getElementById("btn-keluar").addEventListener("click", () => {
   keluar(); EDISI = null; location.hash = ""; arahkan();
 });
-document.getElementById("ganti-fungsi").addEventListener("click", () => {
-  if (location.hash === "#/beranda") arahkan(); else location.hash = "#/beranda";
+document.getElementById("btn-home").addEventListener("click", () => {
+  if (location.hash === "#/home") arahkan(); else location.hash = "#/home";
 });
 document.getElementById("ganti-password").addEventListener("click", () => {
   if (location.hash === "#/ganti-password") arahkan(); else location.hash = "#/ganti-password";

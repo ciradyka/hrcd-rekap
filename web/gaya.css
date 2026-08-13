@@ -134,7 +134,18 @@ button { font: inherit; cursor: pointer; }
 }
 .tombol-kecil { min-height: 40px; font-size: .9rem; padding: .35rem .8rem; width: auto; }
 
-.tombol:focus-visible, input:focus-visible, .pilihan:focus-visible {
+/* Logo/tombol Home di pojok kiri header — ikon polos, bukan kotak tombol
+   biasa, supaya tidak bersaing dengan judul layar di sebelahnya. */
+.tombol-ikon {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; min-height: 40px; font-size: 1.3rem; line-height: 1;
+  border: 0; background: transparent; border-radius: var(--radius);
+  cursor: pointer; padding: 0;
+}
+.tombol-ikon:hover { background: rgba(255,255,255,.15); }
+
+.tombol:focus-visible, input:focus-visible, .pilihan:focus-visible,
+.tombol-ikon:focus-visible {
   outline: 3px solid #1a73e8;
   outline-offset: 2px;
 }
