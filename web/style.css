@@ -615,6 +615,31 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    selebar tabel induk. Padding atas-bawah tetap, itu yang memisahkan blok. */
 .detail-cell-flush { padding-left: 0 !important; padding-right: 0 !important; }
 
+/* Meja Pembayaran, cara yang sama. Bedanya tabel induk punya ENAM kolom dan
+   rinciannya LIMA, jadi rincian sengaja berhenti di ujung kolom Metode —
+   kolom terakhir induk berisi tombol aksi, dan menaruh angka di bawahnya
+   membuat rincian tampak menerus ke wilayah tombol.
+
+   Lebar rincian = jumlah lima kolom pertama induk (71%), lalu tiap kolomnya
+   dihitung sebagai bagian dari 71% itu supaya jatuh persis sekolom:
+   Regu di bawah Kode Bayar, Kategori di bawah Sekolah, Ketua di bawah Regu,
+   Sekolah di bawah Tagihan, Biaya di bawah Metode. */
+.table-bayar, .detail-table-bayar { table-layout: fixed; }
+.table-bayar th:nth-child(1), .table-bayar td:nth-child(1) { width: 15%; }
+.table-bayar th:nth-child(2), .table-bayar td:nth-child(2) { width: 22%; }
+.table-bayar th:nth-child(3), .table-bayar td:nth-child(3) { width:  8%; }
+.table-bayar th:nth-child(4), .table-bayar td:nth-child(4) { width: 13%; }
+.table-bayar th:nth-child(5), .table-bayar td:nth-child(5) { width: 13%; }
+.table-bayar th:nth-child(6), .table-bayar td:nth-child(6) { width: 29%; }
+
+.detail-table-bayar { width: 71%; margin: 0; }
+.detail-table-bayar th, .detail-table-bayar td { padding-left: .5rem; padding-right: .5rem; }
+.detail-table-bayar th:nth-child(1), .detail-table-bayar td:nth-child(1) { width: 21.1%; }
+.detail-table-bayar th:nth-child(2), .detail-table-bayar td:nth-child(2) { width: 31.0%; }
+.detail-table-bayar th:nth-child(3), .detail-table-bayar td:nth-child(3) { width: 11.3%; }
+.detail-table-bayar th:nth-child(4), .detail-table-bayar td:nth-child(4) { width: 18.3%; }
+.detail-table-bayar th:nth-child(5), .detail-table-bayar td:nth-child(5) { width: 18.3%; }
+
 @media (max-width: 560px) {
   /* Satu regu = satu blok dua baris, kotak angka di kanan sejajar namanya.
      Judul kolom disembunyikan karena pasangannya sudah jelas dari bentuk. */
