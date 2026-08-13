@@ -15,12 +15,28 @@
 
 import json
 import http.server
+import os
 import urllib.parse
 
 import psycopg2
 import psycopg2.extras
 
-DSN = "host=127.0.0.1 port=55432 dbname=hrcd_dev user=postgres password=hrcd"
+# Sambungan database dibaca dari environment, dengan Postgres portable di
+# port 55432 sebagai bawaannya. Angka-angka itu dulu ditulis mati di sini,
+# dan siapa pun yang memakai PostgreSQL biasa — port 5432, password sendiri —
+# harus menyunting berkas ini lebih dulu, lalu hati-hati tidak ikut
+# meng-commit passwordnya. Nama variabelnya sama dengan yang sudah dipakai
+# tests/run.sh dan tests/dev_database.sh, jadi satu set export cukup untuk
+# ketiganya:
+#
+#   PGPORT=5432 PGUSER=postgres PGPASSWORD=... python tests/dev_server.py
+DSN = " ".join([
+    f"host={os.environ.get('PGHOST', '127.0.0.1')}",
+    f"port={os.environ.get('PGPORT', '55432')}",
+    f"dbname={os.environ.get('PGDATABASE', 'hrcd_dev')}",
+    f"user={os.environ.get('PGUSER', 'postgres')}",
+    f"password={os.environ.get('PGPASSWORD', 'hrcd')}",
+])
 PORT = 8787
 
 # RPC yang boleh dipanggil layar, beserta urutan argumennya.
