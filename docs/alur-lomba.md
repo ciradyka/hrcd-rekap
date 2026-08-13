@@ -228,8 +228,21 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 ## 7. Rute dan pos
 
-1. Terdapat **5 pos utama** di sepanjang rute, masing-masing dengan soal dan
-   wahana yang berbeda.
+1. Terdapat **4 pos utama** di sepanjang rute (Pos 1–4), masing-masing dengan
+   soal dan wahana yang berbeda.
+
+   **Pos 0 dan Pos 5 bukan pos penilaian.** Keduanya tempat yang sama —
+   garis start dan garis finish — dan peserta menyebutnya Pos 0 saat berangkat,
+   Pos 5 saat kembali. Yang dicatat di sana **waktu**, bukan nilai: jam
+   berangkat per kloter dan jam datang per regu (bagian 6 dan 10). Tidak ada
+   wahana dan tidak ada soal yang dikoreksi di keduanya.
+
+   > Dokumen ini sempat menulis "5 pos utama" dan memasukkan Pos 5 ke dalam
+   > rantai soal. Sistem sudah ikut dibetulkan di migrasi `0025`, termasuk satu
+   > akibat yang tidak kelihatan: pos tanpa komponen penilaian sempat terhitung
+   > sebagai **pos yang dilewatkan regu**. Selama denda pos terlewat masih 0
+   > itu tidak berdampak apa-apa — dan justru itu bahayanya, karena baru
+   > muncul pada hari seseorang mengubah angka yang memang boleh diubah.
 2. Selain itu ada **pos bayangan** — pos yang tidak diberitahukan lebih dulu ke
    peserta. Pos bayangan **tetap dinilai**, hanya saja yang dinilai bukan
    wahana melainkan hal yang melekat pada regunya sepanjang perjalanan:
@@ -262,13 +275,16 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    | Pos 1 | perjalanan Pos 1 → Pos 2 | Pos 2 | **Pos 2** |
    | Pos 2 | perjalanan Pos 2 → Pos 3 | Pos 3 | **Pos 3** |
    | Pos 3 | perjalanan Pos 3 → Pos 4 | Pos 4 | **Pos 4** |
-   | Pos 4 | perjalanan Pos 4 → Pos 5 | Pos 5 | **Pos 5** |
+
+   **Tidak ada soal terakhir.** Rantainya berhenti di Pos 4: Pos 4 tidak
+   membagikan soal, karena sesudahnya regu langsung menuju garis finish dan
+   di sana tidak ada yang mengoreksi.
 
 5. Rumusnya karena itu:
 
    ```
    Nilai Pos 1 = Wahana Pos 1                       (tidak ada soal masuk)
-   Nilai Pos N = Wahana Pos N + Soal dari Pos N−1   (N = 2..5)
+   Nilai Pos N = Wahana Pos N + Soal dari Pos N−1   (N = 2..4)
    ```
 
 6. **Skor soal masuk ke pos tempat soal itu dikumpulkan, bukan tempat soal itu

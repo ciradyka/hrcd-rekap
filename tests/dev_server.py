@@ -132,9 +132,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     uid=p.get("uid")))
             elif u.path == "/pos":
                 self._kirim(200, q(
-                    "select nomor, name, bobot, bayangan from pos "
-                    "where edisi = edisi_aktif() order by nomor",
-                    uid=p.get("uid")))
+                    "select * from v_pos order by nomor", uid=p.get("uid")))
             elif u.path == "/komponen-pos":
                 self._kirim(200, q(
                     "select kode, name, type, form, poin_maks, raw_terbaik, "

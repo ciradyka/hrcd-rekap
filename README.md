@@ -39,7 +39,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   └── wrangler.toml         # deploy Workers static assets
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0024
+│   ├── migrations/           # skema database, urut 0001..0025
 │   ├── checks/               # SQL pemeriksaan manual (row_counts, smoke, dst.)
 │   └── seed.sql              # konfigurasi edisi + baris wajib
 ├── scripts/                  # provision_accounts.py, change_password.py

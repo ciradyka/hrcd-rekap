@@ -397,12 +397,15 @@ export const koreksiJamBerangkat = (kloter, jam, alasan) =>
 
 /** Daftar pos edisi aktif — dipakai admin untuk memilih pos mana yang
  *  sedang diinput. Operator pos tidak memerlukannya (posnya sudah melekat
- *  di akunnya), tapi namanya tetap dibaca untuk judul layar. */
-export async function daftarPos(edisi) {
+ *  di akunnya), tapi namanya tetap dibaca untuk judul layar.
+ *
+ *  `jumlah_komponen` ikut terbawa karena tidak semua pos dinilai: Pos 0
+ *  (Keberangkatan) dan Pos 5 (Kedatangan) adalah garis start dan finish, dan
+ *  yang dicatat di sana waktu, bukan nilai. Tanpa angka itu layar tidak bisa
+ *  membedakan pos semacam itu dari pos yang komponennya belum diisi admin. */
+export async function daftarPos() {
   if (K.mode === "dev") return baca("/pos");
-  return baca(null,
-    `pos?edisi=eq.${encodeURIComponent(edisi)}` +
-    `&select=nomor,name,bobot,bayangan&order=nomor.asc`);
+  return baca(null, "v_pos?select=*&order=nomor.asc");
 }
 
 /** Kolom penilaian satu pos. INILAH yang menentukan bentuk tabelnya — nama
