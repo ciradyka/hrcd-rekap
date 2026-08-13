@@ -1026,7 +1026,6 @@ async function layarKeberangkatan() {
                   <td class="text-center">
                     <input type="checkbox" class="checkbox" data-ceklis="${esc(r.nomor_dada)}"
                            ${r.sudah_ceklis ? "checked" : ""}
-                           ${sudahBerangkat ? "disabled" : ""}
                            aria-label="ceklis regu ${esc(r.nomor_dada)}">
                   </td>
                   <td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
@@ -1036,7 +1035,7 @@ async function layarKeberangkatan() {
                   </td>
                   <td>
                     <select class="select-small" data-kontrak="${esc(r.regu_id)}"
-                            ${sudahBerangkat ? "disabled" : ""}>
+                            ${r.sudah_ceklis ? "disabled" : ""}>
                       <option value="">Belum dipilih</option>
                       ${opsi.map(o => `<option value="${esc(o.menit)}"
                         ${r.kontrak_menit === o.menit ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
@@ -1056,6 +1055,10 @@ async function layarKeberangkatan() {
           </table>
         </div>
 
+        ${!belumKontrak.length ? "" : kartuGalat(
+          `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
+          `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`)}
+
         ${sudahBerangkat ? "" : `
           <div class="departure-bar">
             <div class="field" style="margin:0">
@@ -1066,9 +1069,6 @@ async function layarKeberangkatan() {
               🚩 Berangkatkan Kloter ${kloterAktif}
             </button>
           </div>
-          ${belumKontrak.length ? kartuGalat(
-            `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
-            `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`) : ""}
         `}
       </div>
     `));

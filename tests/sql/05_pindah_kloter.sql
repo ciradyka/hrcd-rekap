@@ -173,18 +173,22 @@ begin
   select r.nomor_dada into v_dada from regu r join kloter k on k.nomor = r.kloter_nomor
   where k.jam_berangkat is null and not r.is_cancelled limit 1;
 
-  begin
-    perform pindah_kloter(v_dada, 'coba tembus', v_kloter);
-    raise exception 'GAGAL: regu bisa dipindah ke kloter yang sudah berangkat';
-  exception when raise_exception then
-    if sqlerrm like 'GAGAL:%' then raise; end if;
-  end;
+  -- SEJAK 0018: kloter tujuan yang sudah berangkat DITERIMA. Regu telat yang
+  -- berlari menyusul memang berangkat bersama kloter itu. Yang dulu diuji di
+  -- sini (penolakan) sudah tidak berlaku; penggantinya ada di 07.
+  perform pindah_kloter(v_dada, 'menyusul kloter yang sudah jalan', v_kloter);
+  assert (select kloter_nomor from regu where nomor_dada = v_dada) = v_kloter,
+    'pindah ke kloter yang sudah berangkat tidak jadi';
 
-  -- Regu yang SUDAH berangkat tidak bisa dipindah ke mana pun.
-  select r.nomor_dada into v_dada from regu r where r.kloter_nomor = v_kloter limit 1;
+  -- Regu yang SUDAH TERCATAT BERANGKAT tetap tidak bisa dipindah ke mana pun.
+  -- Patokannya keberangkatan_regu, bukan jam berangkat kloternya (0018).
+  select r.nomor_dada into v_dada
+  from regu r join keberangkatan_regu kb on kb.regu_id = r.id
+  where r.kloter_nomor = v_kloter limit 1;
+  assert v_dada is not null, 'tidak ada regu tercatat berangkat untuk diuji';
   begin
     perform pindah_kloter(v_dada, 'coba pindah yang sudah jalan');
-    raise exception 'GAGAL: regu yang sudah berangkat bisa dipindah';
+    raise exception 'GAGAL: regu yang sudah tercatat berangkat bisa dipindah';
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;

@@ -49,7 +49,7 @@ declare
   v_cfg     edisi%rowtype;
   v_tujuan  smallint;
   v_isi     int;
-  v_tercetak boolean;
+  v_perlu_diumumkan boolean;
   v_lama    smallint;
   v_tujuan_berangkat boolean;
 begin
@@ -77,9 +77,16 @@ begin
   -- Yang menghalangi BUKAN keberangkatan kloternya, melainkan keberangkatan
   -- REGU ini. Lihat catatan panjang di kepala berkas.
   if exists (select 1 from keberangkatan_regu where regu_id = v_regu.id) then
-    raise exception
-      'regu % sudah tercatat berangkat — batalkan dulu keberangkatan kloter %s lewat admin',
-      p_nomor_dada, v_lama;
+    -- Dua keadaan, dua jalan keluar yang berbeda. Menyebut jalan keluar yang
+    -- salah lebih buruk daripada tidak menyebut apa pun: panitia akan mencoba
+    -- pintu yang memang tidak bisa dibuka, lalu menyerah.
+    if exists (select 1 from kloter where nomor = v_lama and jam_berangkat is not null) then
+      raise exception 'regu % tercatat ikut berangkat bersama kloter % — kalau itu keliru, batalkan dulu keberangkatan kloter itu lewat admin',
+        p_nomor_dada, v_lama;
+    else
+      raise exception 'regu % sudah dicentang hadir — hapus dulu centangnya di layar Keberangkatan, lalu pindahkan',
+        p_nomor_dada;
+    end if;
   end if;
 
   if p_kloter is null then
@@ -110,14 +117,19 @@ begin
   end if;
 
   -- Kapasitas tetap dijaga: kertas boleh dilanggar, kapasitas fisik tidak.
-  select count(*) into v_isi from regu where kloter_nomor = v_tujuan;
+  select count(*) into v_isi from regu
+   where kloter_nomor = v_tujuan and not is_cancelled;
   if v_isi >= v_cfg.maks_regu_per_kloter then
     raise exception 'kloter % sudah penuh (% regu)', v_tujuan, v_isi;
   end if;
 
-  select dicetak_pada is not null,
+  -- Perlu diumumkan bukan hanya bila kertasnya sudah dicetak, tapi juga bila
+  -- kloternya sudah berangkat: keduanya berarti petugas staging memegang
+  -- daftar yang tidak memuat nomor ini. Keduanya berdiri sendiri —
+  -- batalkan_tanda_cetak tidak memeriksa keberangkatan sama sekali.
+  select dicetak_pada is not null or jam_berangkat is not null,
          jam_berangkat is not null
-    into v_tercetak, v_tujuan_berangkat
+    into v_perlu_diumumkan, v_tujuan_berangkat
   from kloter where nomor = v_tujuan;
 
   -- Buka pintu untuk trigger 0008, hanya di dalam transaksi ini.
@@ -130,17 +142,22 @@ begin
                                        where x.kloter_nomor = v_tujuan
                                          and x.urutan_kloter = s)),
     -- Ditandai sisipan HANYA bila kertas tujuan sudah beredar.
-    disisipkan_pada = case when v_tercetak then now() else disisipkan_pada end,
-    alasan_sisip    = case when v_tercetak then p_alasan else alasan_sisip end
+    disisipkan_pada = case when v_perlu_diumumkan then now() else disisipkan_pada end,
+    alasan_sisip    = case when v_perlu_diumumkan then p_alasan else alasan_sisip end
   where id = v_regu.id;
 
   perform set_config('hrcd.izin_pindah', '0', true);
 
-  insert into history (table_name, row_id, regu_id, action, new_value, changed_by)
+  -- old_value diisi, seperti koreksi_jam_berangkat (0017): kedua fungsi ini
+  -- mengubah dasar penalti yang sama, dan sengketa nilai diselesaikan dari
+  -- baris inilah — tanpa kloter lamanya, tidak ada yang bisa ditelusuri.
+  insert into history (table_name, row_id, regu_id, action, old_value, new_value, changed_by)
   values ('regu', v_regu.id::text, v_regu.id, 'UPDATE',
+          jsonb_build_object('kloter_nomor', v_lama,
+                             'urutan_kloter', v_regu.urutan_kloter),
           jsonb_build_object('pindah_kloter', jsonb_build_object(
             'nomor_dada', p_nomor_dada, 'dari', v_lama, 'ke', v_tujuan,
-            'alasan', p_alasan, 'kloter_tujuan_sudah_dicetak', v_tercetak,
+            'alasan', p_alasan, 'kloter_tujuan_perlu_diumumkan', v_perlu_diumumkan,
             'kloter_tujuan_sudah_berangkat', v_tujuan_berangkat)),
           auth.uid());
 
@@ -148,15 +165,69 @@ begin
     'nomor_dada', p_nomor_dada,
     'kloter_lama', v_lama,
     'kloter_baru', v_tujuan,
-    'sisipan', v_tercetak,
+    'sisipan', v_perlu_diumumkan,
     'tujuan_sudah_berangkat', v_tujuan_berangkat,
     -- Satu peringatan, digabung: dua kotak merah beruntun tidak terbaca.
     'peringatan', nullif(concat_ws(' ',
-      case when v_tercetak then
+      case when v_perlu_diumumkan then
         format('Nomor %s TIDAK ADA di kertas kloter %s. Beri tahu petugas staging.',
                p_nomor_dada, v_tujuan) end,
       case when v_tujuan_berangkat then
         format('Kloter %s sudah berangkat, jadi nomor %s dinilai dari jam berangkat kloter itu.',
                v_tujuan, p_nomor_dada) end), ''));
+end;
+$$;
+
+-- ============================================================================
+-- konfirmasi_kontrak ikut disetel ulang — kalau tidak, fiturnya buntu.
+--
+-- Aturannya memakai patokan yang sama kelirunya dengan pindah_kloter: ia
+-- menolak meja begitu KLOTER regu itu berangkat. Akibatnya regu yang telat
+-- dan belum punya kontrak tidak bisa ditolong siapa pun di meja:
+--
+--   sebelum dipindah : kloter asalnya sudah berangkat  -> ditolak
+--   sesudah dipindah : kloter tujuannya sudah berangkat -> ditolak
+--   tanpa kontrak    : ceklis_berangkat menolak juga
+--
+-- Meja terjebak mencari admin di tengah lomba, tepat pada satu keadaan yang
+-- membuat fitur ini dibuat. Patokannya digeser ke subjek yang benar: kontrak
+-- baru "sudah berjalan" setelah REGU ITU tercatat berangkat, bukan setelah
+-- kloternya pergi tanpa dia.
+-- ============================================================================
+
+create or replace function konfirmasi_kontrak(
+  p_regu  uuid,
+  p_menit smallint
+) returns void
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_kloter smallint;
+begin
+  if peran() not in ('admin', 'meja') then
+    raise exception 'hanya meja/admin';
+  end if;
+  if not exists (select 1 from kontrak_opsi
+                 where edisi = edisi_aktif() and menit = p_menit) then
+    raise exception 'kontrak % menit bukan pilihan edisi ini', p_menit;
+  end if;
+
+  select kloter_nomor into v_kloter from regu where id = p_regu;
+  if not found then
+    raise exception 'regu tidak ditemukan';
+  end if;
+  if v_kloter is null then
+    raise exception 'regu belum daftar ulang (belum punya kloter)';
+  end if;
+  -- Setelah REGU INI tercatat berangkat, kontraknya menentukan penalti yang
+  -- sudah berjalan — perbaikan susulan hanya lewat admin. Kloter yang pergi
+  -- tanpa dia tidak menghalangi apa pun.
+  if peran() <> 'admin'
+     and exists (select 1 from keberangkatan_regu where regu_id = p_regu) then
+    raise exception 'regu ini sudah tercatat berangkat — koreksi kontrak hanya lewat admin';
+  end if;
+
+  update regu set kontrak_menit = p_menit where id = p_regu;
 end;
 $$;
