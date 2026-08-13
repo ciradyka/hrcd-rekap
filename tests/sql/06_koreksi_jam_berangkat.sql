@@ -66,9 +66,14 @@ begin
   assert (select jam_berangkat from kloter where nomor = v_kloter) = v_baru,
     'jam berangkat tidak berubah setelah koreksi';
 
+  -- history hanya boleh dibaca admin (policy sel_riwayat di 0003_rls.sql),
+  -- jadi identitasnya ditukar dulu — sebagai meja, select-nya kosong dan
+  -- assert di bawah akan gagal dengan alasan yang menyesatkan.
+  perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
   select old_value into v_catat from history
   where table_name = 'kloter' and row_id = v_kloter::text
   order by changed_at desc limit 1;
+  perform set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
   assert v_catat is not null, 'koreksi tidak tercatat di history';
   assert (v_catat->>'jam_berangkat')::timestamptz = v_lama,
     format('history menyimpan jam lama %s, harusnya %s',
