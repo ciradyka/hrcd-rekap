@@ -1933,19 +1933,21 @@ const kolomCetakPos = (komponen) => komponen.flatMap(k => {
  *  memotong satu baris di tengah, dan angka pastinya juga yang menentukan
  *  berapa lembar harus difotokopi.
  *
- *  Angkanya HASIL UKUR, bukan pilihan. Huruf 12pt (permintaan panitia, sama
- *  dengan cetakan Excel yang selama ini dipakai) memaksa dua hal sekaligus:
- *  tabel Pos 1 jadi selebar 201mm sehingga kertas harus landscape, dan
- *  tinggi baris jadi 25px sehingga satu halaman hanya memuat 21-23 baris —
- *  21 di pos yang paling sesak (Pos 2 dan Pos 4, yang kepala halamannya
- *  paling tinggi).
+ *  30 pada huruf 12pt hanya mungkin setelah tinggi barisnya ditekan ke
+ *  4,8mm — yang kebetulan persis tinggi baris bawaan Excel. Tiga hal yang
+ *  menentukannya, dan ketiganya ditemukan dengan MENGUKUR, bukan menalar:
  *
- *  Dipatok 20, satu baris di bawah yang paling sesak. Cadangan itu ada
- *  supaya nama regu yang lebih panjang atau nama pos yang lebih panjang
- *  tahun depan tidak diam-diam menumpahkan baris terakhir ke halaman
- *  berikutnya — dan halaman tumpah tidak menimbulkan galat apa pun, ia cuma
- *  menghasilkan setumpuk kertas yang salah. */
-const REGU_PER_LEMBAR = 20;
+ *    1. line-height, bukan tinggi kotak isian. Pada nilai bawaan (1,6) satu
+ *       baris setinggi 32px meski kotaknya diminta 6mm.
+ *    2. Sel TERTINGGI yang menang. Nomor dada sempat 14pt dan dialah yang
+ *       menaikkan seluruh baris jadi 21px sementara sel 12pt lain cuma butuh
+ *       18px — selisih 3px dikali 30 baris persis yang membuat halaman
+ *       tumpah.
+ *    3. Lebar. Di 12pt tabel Pos 1 selebar 201mm, sedangkan A4 potret hanya
+ *       menyediakan 180mm; karena itu lembar ini landscape.
+ *
+ *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
+const REGU_PER_LEMBAR = 30;
 
 function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
   document.getElementById("cetakan")?.remove();
@@ -1978,16 +1980,12 @@ function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
   // sendiri bisa dinilaikan ke pos yang salah.
   const lembar = halaman.map((grup, i) => `
     <section class="print-page lembar-pos">
-      <h1>LEMBAR NILAI · ${esc(judul)}
-        <span class="halaman">Halaman ${i + 1} dari ${halaman.length}</span></h1>
-      <p class="lembar-kepala"><strong>${esc(EDISI ? EDISI.name : "")}</strong> ·
-         ${esc(tanggal)} · nomor dada
-         ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
-         (${esc(String(grup.length))} regu) &nbsp;·&nbsp;
-         Petugas: ________________ &nbsp; Diperiksa: ________________</p>
-      ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM
-        DITUTUP — regu yang mendaftar ulang setelah kertas ini dicetak TIDAK
-        ada di sini. Cetak ulang setelah daftar ulang ditutup.</p>`}
+      <h1>LEMBAR NILAI · ${esc(judul)} · Halaman ${i + 1}/${halaman.length}</h1>
+      <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} · ${esc(tanggal)} ·
+         dada ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
+         · Petugas: ______________ · Diperiksa: ______________</p>
+      ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM DITUTUP
+        — regu yang mendaftar ulang setelah kertas ini dicetak tidak ada di sini.</p>`}
       <table class="print-table">
         <thead>
           <tr>
@@ -1998,10 +1996,9 @@ function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
         </thead>
         <tbody>${grup.map(barisHtml).join("")}</tbody>
       </table>
-      ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya —
-         jumlah benar, jumlah kena, atau waktu. JANGAN menjumlahkan sendiri;
-         sistem yang mengubahnya jadi poin. Foto lembar ini secara berkala dan
-         kirimkan ke operator IT pos, jangan ditumpuk sampai pos tutup.</p>` : ""}
+      ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya.
+         JANGAN menjumlahkan sendiri — sistem yang mengubahnya jadi poin.
+         Foto lembar ini secara berkala, jangan ditumpuk sampai pos tutup.</p>` : ""}
     </section>`).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
