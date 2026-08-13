@@ -1923,15 +1923,23 @@ async function layarInputPos() {
 
   const layarIni = location.hash;
   let semuaPos;
-  try { semuaPos = await daftarPos(EDISI.nomor); }
+  try { semuaPos = await daftarPos(); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return; }
   if (location.hash !== layarIni) return;
+
+  // Tidak semua pos dinilai. Pos 0 (Keberangkatan) dan Pos 5 (Kedatangan)
+  // adalah garis start dan garis finish — yang dicatat di sana waktu, lewat
+  // layar Keberangkatan dan Kedatangan. Admin dibuka di pos yang benar-benar
+  // bisa diisi, bukan di pos pertama menurut nomor.
+  const posDinilai = semuaPos.filter(p => Number(p.jumlah_komponen) > 0);
 
   // Operator pos tidak memilih apa pun — posnya sudah melekat di akunnya, dan
   // RLS akan menolak pos lain seandainya layar ini mencoba.
   const nomorPos = s.peran === "operator_pos"
     ? Number(s.pos)
-    : (posDipilih.nomor ?? (semuaPos.length ? semuaPos[0].nomor : null));
+    : (posDipilih.nomor
+       ?? (posDinilai.length ? posDinilai[0].nomor
+                             : (semuaPos.length ? semuaPos[0].nomor : null)));
   const pos = semuaPos.find(p => Number(p.nomor) === Number(nomorPos));
 
   if (!pos) {
@@ -1954,10 +1962,21 @@ async function layarInputPos() {
   if (location.hash !== layarIni) return;
 
   if (!komponen.length) {
+    // Dua sebab yang berbeda, dan layar tidak bisa membedakannya dari data:
+    // pos yang MEMANG tidak dinilai, dan pos yang komponennya belum diisi.
+    // Jadi keduanya disebut, alih-alih menuduh salah satunya.
+    // Template BIASA, bukan tag html`` — pilihPosHtml sudah berupa HTML dan
+    // akan tampil apa adanya sebagai teks kalau ikut di-escape. Nama pos
+    // datang dari database, jadi ia lewat esc() sendiri.
     LAYAR.replaceChildren(h(`
       <div class="card">${pilihPosHtml(s, semuaPos)}</div>
-      ${kartuGalat(`${judulPos(pos)} belum punya kolom penilaian. Admin harus `
-        + `mengisi komponennya dulu sebelum pos ini bisa dinilai.`)}`));
+      <div class="card">
+        <h2>${esc(judulPos(pos))} tidak punya kolom penilaian</h2>
+        <p class="description">Garis start dan garis finish memang tidak
+           dinilai — yang dicatat di sana waktu, lewat layar Keberangkatan dan
+           Kedatangan. Kalau pos ini seharusnya dinilai, komponennya belum
+           diisi admin.</p>
+      </div>`));
     pasangPilihPos(s);
     return;
   }
@@ -2184,7 +2203,8 @@ function pilihPosHtml(s, semuaPos) {
       <select id="pilih-pos" class="select-small">
         ${semuaPos.map(p => `<option value="${esc(p.nomor)}"
           ${Number(p.nomor) === Number(posDipilih.nomor) ? "selected" : ""}
-          >${esc(judulPos(p))}</option>`).join("")}
+          >${esc(judulPos(p))}${
+            Number(p.jumlah_komponen) > 0 ? "" : " · tanpa penilaian"}</option>`).join("")}
       </select>
     </div>`;
 }

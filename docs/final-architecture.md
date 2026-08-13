@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0024`.
+Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0025`.
 
 ---
 
@@ -46,7 +46,7 @@ di `workers/gateway/worker.js` wajib ikut diubah.
 
 ## 2. Database
 
-24 migrasi, `0001` sampai `0024`, dijalankan berurutan tanpa lubang penomoran.
+25 migrasi, `0001` sampai `0025`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -90,6 +90,21 @@ mengubah penilaian tahun depan tidak menyentuh kode sama sekali.
 **Pos bayangan ikut dinilai** (migrasi `0021`). Ia pos biasa dengan penanda
 `pos.bayangan`, bernomor melanjutkan pos utama — bukan cabang tersendiri di
 mesin skor.
+
+**Tidak semua baris `pos` dinilai** (migrasi `0025`). Pos 0 (Keberangkatan) dan
+Pos 5 (Kedatangan) adalah garis start dan garis finish; yang dicatat di sana
+waktu, bukan nilai. Yang menentukan sebuah pos dinilai atau tidak adalah
+**punya tidaknya baris `wahana`** — bukan kolom penanda tersendiri, supaya
+tidak ada dua sumber kebenaran untuk satu fakta. `v_pos` mengekspos
+`jumlah_komponen` untuk layar yang perlu membedakan keduanya.
+
+Konsekuensi yang sempat luput: `v_total_skor` menghitung pos terlewat sebagai
+`(jumlah seluruh pos − pos yang punya nilai)`. Begitu Pos 0 dan Pos 5 masuk
+tabel, setiap regu selamanya terhitung melewatkan dua pos yang memang tidak
+bisa dinilai siapa pun. Dampaknya nol selama `nilai_pos_terlewat` masih 0 —
+dan justru itu yang berbahaya, karena cacatnya menunggu sampai angka itu
+diubah. `v_total_skor`, `v_monitoring_input`, dan `v_progres_publik` kini
+hanya menghitung pos yang punya komponen.
 
 ### Kunci daftar ulang
 

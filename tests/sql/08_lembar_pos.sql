@@ -233,7 +233,54 @@ select simpan_nilai_massal('[{"nomor_dada": 13, "kode": "semaphore", "nilai_1": 
 reset role;
 
 -- ---------------------------------------------------------------------------
--- 8.6 Batas nomor pos: longgar, tapi tetap batas.
+-- 8.6 Pos 0 dan Pos 5 = garis start dan garis finish, tidak dinilai.
+--
+--     Yang diuji di sini bukan namanya, melainkan JEBAKAN-nya: keduanya tidak
+--     punya komponen, jadi tidak ada regu yang bisa punya nilai di sana. Kalau
+--     "pos terlewat" dihitung dari SELURUH baris pos, setiap regu selamanya
+--     terhitung melewatkan dua pos — tak terlihat selama nilai_pos_terlewat
+--     masih 0, lalu menghukum seluruh peserta pada hari angka itu diubah.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_dengan_pos numeric;
+  v_tanpa_pos  numeric;
+begin
+  assert (select name from pos where edisi = edisi_aktif() and nomor = 0)
+         = 'Keberangkatan', 'Pos 0 bukan Keberangkatan';
+  assert (select name from pos where edisi = edisi_aktif() and nomor = 5)
+         = 'Kedatangan', 'Pos 5 bukan Kedatangan';
+  assert (select jumlah_komponen from v_pos where nomor = 0) = 0,
+         'garis start punya komponen penilaian';
+
+  -- Denda pos terlewat DINYALAKAN — tanpa itu cacatnya tidak kelihatan sama
+  -- sekali, dan justru itu bahayanya: ia menunggu sampai seseorang mengubah
+  -- satu angka konfigurasi yang memang boleh diubah.
+  update konfig_penalti set nilai_pos_terlewat = 100 where edisi = edisi_aktif();
+  select total_pos into v_tanpa_pos from v_total_skor where nomor_dada = 13;
+
+  -- Menambah pos yang TIDAK dinilai tidak boleh mengubah skor siapa pun.
+  -- Inilah aturan sebenarnya; Pos 0 dan Pos 5 hanya contoh pertamanya.
+  insert into pos (edisi, nomor, name) values (edisi_aktif(), 19, 'Pos Tanpa Nilai');
+  select total_pos into v_dengan_pos from v_total_skor where nomor_dada = 13;
+
+  assert v_dengan_pos = v_tanpa_pos,
+    'menambah satu pos tanpa komponen mengubah total pos dari ' || v_tanpa_pos
+    || ' jadi ' || v_dengan_pos || ' — pos yang tidak dinilai ikut dihitung terlewat';
+
+  -- Matriks pemantauan juga: kolom yang selamanya kosong terbaca sebagai
+  -- pekerjaan yang belum selesai.
+  assert not exists (select 1 from v_monitoring_input where pos in (0, 19)),
+         'v_monitoring_input memuat pos yang tidak dinilai';
+
+  delete from pos where edisi = edisi_aktif() and nomor = 19;
+  update konfig_penalti set nilai_pos_terlewat = 0 where edisi = edisi_aktif();
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 8.7 Batas nomor pos: longgar, tapi tetap batas.
 -- ---------------------------------------------------------------------------
 
 do $$
