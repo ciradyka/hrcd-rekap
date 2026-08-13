@@ -75,6 +75,7 @@ declare
   v_tujuan  smallint;
   v_isi     int;
   v_perlu_diumumkan boolean;
+  v_tercetak boolean;
   v_lama    smallint;
   v_tujuan_berangkat boolean;
 begin
@@ -145,8 +146,9 @@ begin
   -- daftar yang tidak memuat nomor ini. Keduanya berdiri sendiri —
   -- batalkan_tanda_cetak tidak memeriksa keberangkatan sama sekali.
   select dicetak_pada is not null or jam_berangkat is not null,
+         dicetak_pada is not null,
          jam_berangkat is not null
-    into v_perlu_diumumkan, v_tujuan_berangkat
+    into v_perlu_diumumkan, v_tercetak, v_tujuan_berangkat
   from kloter where nomor = v_tujuan;
 
   -- Buka pintu untuk trigger 0008, hanya di dalam transaksi ini.
@@ -174,7 +176,7 @@ begin
                              'urutan_kloter', v_regu.urutan_kloter),
           jsonb_build_object('pindah_kloter', jsonb_build_object(
             'nomor_dada', p_nomor_dada, 'dari', v_lama, 'ke', v_tujuan,
-            'alasan', p_alasan, 'kloter_tujuan_perlu_diumumkan', v_perlu_diumumkan,
+            'alasan', p_alasan, 'kloter_tujuan_sudah_dicetak', v_tercetak,
             'kloter_tujuan_sudah_berangkat', v_tujuan_berangkat)),
           auth.uid());
 
