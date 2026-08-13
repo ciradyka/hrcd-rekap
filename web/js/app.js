@@ -696,7 +696,7 @@ async function layarDaftarUlang() {
       // regu untuk diisi satu per satu, bukan langsung menarik stok.
       const terbuka = dibukaNomor.has(b.kode_pembayaran);
       const aksi = menunggu.length
-        ? `<button class="button button-primary button-small" type="button"
+        ? `<button class="button-detail" type="button"
                    data-isi="${kode}" aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
            </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
@@ -732,11 +732,11 @@ async function layarDaftarUlang() {
                   </tr>`).join("")}
               </tbody>
             </table>
-            <div class="action-row" style="margin-top:.6rem">
-              <button class="button button-primary button-small" type="button"
-                      data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
+            <div class="action-row action-row-simpan" style="margin-top:.6rem">
               <span class="sub">Nomor dada yang diinput harus SAMA dengan
                 yang diberikan ke regunya. Enter = pindah ke regu berikutnya.</span>
+              <button class="button button-primary button-small" type="button"
+                      data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
             </div>
           </td>
         </tr>`}`;
