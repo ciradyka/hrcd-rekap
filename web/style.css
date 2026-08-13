@@ -478,6 +478,81 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
   .print-note { font-size: 9pt; color: #333; margin-top: .5rem; }
   .insert-note { font-size: 9pt; font-weight: 700; margin-top: .4rem; }
+
+  /* ---- Lembar nilai pos: kertas yang ditulis tangan di lapangan ----
+     Kotak isiannya harus cukup untuk angka dua digit yang ditulis buru-buru
+     sambil berdiri, dan tingginya juga — menulis di kotak setinggi baris
+     teks memaksa orang menulis kecil, lalu angka kecil itu difoto dan harus
+     dibaca operator di layar laptop. */
+  .print-table td.isian { width: 15mm; height: 11mm; }
+  .print-table th.isian { width: 15mm; font-size: 8pt; }
+  /* Rentang yang boleh ditulis, di bawah nama kolomnya — sama seperti di
+     layar, supaya petugas tidak perlu mengingat skalanya. */
+  .print-table th .kolom-petunjuk {
+    display: block; max-width: none; font-size: 7pt; font-weight: 400;
+    text-transform: none; margin-top: 1pt;
+  }
+  /* ---- Lembar nilai pos: A4 LANDSCAPE ----
+     Halaman bernama, supaya HANYA lembar ini yang berputar — kwitansi dan
+     daftar kloter tetap potret. Landscape bukan selera: dengan huruf 12pt,
+     tabel Pos 1 selebar 201mm dan kertas potret cuma menyediakan 180mm.
+     Diukur, bukan dikira. */
+  @page lembar-pos { size: A4 landscape; margin: 10mm; }
+  .lembar-pos { page: lembar-pos; }
+
+  /* ---- kerapatan baris ----
+     Yang harus muat dalam satu A4 potret: kepala halaman + 30 baris + catatan
+     kaki. Karena itu SEMUANYA di lembar ini lebih rapat daripada cetakan lain
+     di sistem — kwitansi dan daftar kloter tidak dibatasi jumlah barisnya,
+     lembar ini iya. Angka-angka di bawah hasil pengukuran, bukan perkiraan. */
+  .lembar-pos h1 { font-size: 12pt; margin-bottom: 2pt; }
+  .lembar-pos h1 .halaman { float: right; font-size: 9pt; font-weight: 400; }
+  .lembar-pos .lembar-kepala { font-size: 8.5pt; margin: 0 0 3pt; }
+  .lembar-pos .insert-note { font-size: 8pt; margin: 0 0 3pt; }
+  .lembar-pos .print-note { font-size: 7.5pt; margin-top: 3pt; }
+  .lembar-pos .print-table { margin-top: 0; }
+  /* 12pt untuk ISI — ukuran yang sama dengan cetakan Excel yang selama ini
+     dipakai panitia, dan memang seharusnya: yang tertulis di sini dibaca
+     lagi dari FOTO, oleh orang lain, di layar laptop. Tinggi baris tidak
+     ikut bertambah karena yang menentukannya kotak 7mm, bukan hurufnya
+     (12pt hanya ~4,2mm). JUDUL kolom tetap kecil — ia label, bukan data,
+     dan di 12pt "KEPRAMUKAAN KEAGAMAAN" akan memakan lebar yang dibutuhkan
+     kotak isiannya. */
+  .lembar-pos .print-table th, .lembar-pos .print-table td {
+    padding: 1pt 4pt; font-size: 12pt;
+    /* Jarak antarbaris huruf dirapatkan. Inilah yang sebenarnya menentukan
+       tinggi baris di sini — BUKAN tinggi kotak isiannya. Dengan line-height
+       bawaan (1,6) satu baris setinggi 32px meski kotaknya diminta 6mm, dan
+       selisih itu langsung berarti beberapa baris lebih sedikit per lembar. */
+    line-height: 1.15;
+  }
+  .lembar-pos .print-table th { font-size: 8pt; }
+  .lembar-pos .print-table .dada { font-size: 14pt; width: 15mm; }
+  /* Tinggi kotak tulis: 6mm. Sedikit lebih rapat dari garis buku tulis
+     (7-8mm) tapi masih nyaman untuk angka dua digit — dan tiap milimeter di
+     sini berharga satu baris per halaman, yang berlipat jadi lembaran
+     fotokopi untuk 300 regu dikali lima pos. */
+  .lembar-pos .print-table td.isian { height: 6mm; }
+  .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian { width: 14mm; }
+  /* Identitas TIDAK boleh membungkus di sini: satu nama yang pecah dua baris
+     menambah tinggi satu baris, dan tiga puluh baris yang dipatok mati tidak
+     punya ruang untuk itu — lembarnya akan tumpah ke halaman berikutnya. */
+  .lembar-pos .print-table td:nth-child(2),
+  .lembar-pos .print-table td:nth-child(3),
+  .lembar-pos .print-table td:nth-child(4) {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Lebar identitas dipatok, karena di 12pt merekalah yang akan menelan
+     lebar kertas dan menyisakan kotak isian selebar jari. Nama sekolah yang
+     kepanjangan dipotong dengan elipsis — regu tetap dikenali dari nomor
+     dada dan nama regunya, dan nama sekolah di kertas ini gunanya sekadar
+     cek silang. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 38mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 40mm; }
+  .lembar-pos .print-table td:nth-child(4) { max-width: 26mm; }
+  /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
+     tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
+  .print-table td { overflow-wrap: break-word; }
 }
 
 @page { margin: 12mm; }

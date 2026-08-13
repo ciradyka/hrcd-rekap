@@ -327,6 +327,16 @@ export async function cariRegu(nomorDada) {
   return d.length ? d[0] : null;
 }
 
+/** Saklar hari-H: daftar_ulang_ditutup, fase_live, konfigurasi_terkunci.
+ *  Dipakai layar cetak untuk memperingatkan bahwa kertas yang dicetak
+ *  sebelum daftar ulang ditutup pasti kehilangan regu yang datang setelahnya. */
+export async function statusAcara() {
+  const d = K.mode === "dev"
+    ? await baca("/status")
+    : await baca(null, "status_acara?select=*");
+  return Array.isArray(d) ? d[0] : d;
+}
+
 /** Angka penalti edisi aktif — dipakai layar finish untuk menunjukkan apakah
  *  selisih jam kertas vs laptop benar-benar mengubah penalti. */
 export async function infoPenalti() {

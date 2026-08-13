@@ -130,6 +130,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select label, menit from kontrak_opsi "
                     "where edisi = edisi_aktif() order by sort_order",
                     uid=p.get("uid")))
+            elif u.path == "/status":
+                self._kirim(200, q(
+                    "select * from status_acara", uid=p.get("uid"), fetch="one"))
             elif u.path == "/pos":
                 self._kirim(200, q(
                     "select * from v_pos order by nomor", uid=p.get("uid")))
