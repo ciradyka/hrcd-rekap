@@ -215,8 +215,16 @@ function gambarSekolah() {
   });
   cari.addEventListener("blur", () => setTimeout(() => { saran.hidden = true; }, 200));
 
+  // s DATANG DARI DUA ARAH: hasil autocomplete (baris database — kolomnya
+  // sudah name/address sejak migrasi 0014) dan isian manual di bawah. Terima
+  // keduanya, karena memaksa satu bentuk saja pernah membuat sekolah manual
+  // terkirim tanpa nama sama sekali dan RPC-nya tidak ketemu.
   function pilih(s) {
-    jawab.sekolah = { id: s.id, nama: s.name, alamat: s.address };
+    jawab.sekolah = {
+      id: s.id,
+      nama: s.name ?? s.nama,
+      alamat: s.address ?? s.alamat,
+    };
     simpanDraf(); gambarSekolah();
     if (sudahDiperiksa) periksa(false);
   }
