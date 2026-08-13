@@ -20,6 +20,22 @@
     <p>Memuat…</p>
   </main>
 
+  <!-- Menu bawah khusus HP. Panitia memakai sistem ini sambil berdiri di
+       meja; aksi utama harus di jangkauan jempol, bukan di pojok atas yang
+       menuntut memindahkan genggaman. Di layar lebar tetap tersembunyi
+       karena header sudah cukup. -->
+  <nav class="bottom-nav" id="bottom-nav" hidden aria-label="Menu utama">
+    <button class="bottom-nav-item" id="nav-home" type="button">
+      <span class="bottom-nav-icon">🏠</span><span>Home</span>
+    </button>
+    <button class="bottom-nav-item" id="nav-setting" type="button">
+      <span class="bottom-nav-icon">⚙️</span><span>Setelan</span>
+    </button>
+    <button class="bottom-nav-item" id="nav-keluar" type="button">
+      <span class="bottom-nav-icon">🚪</span><span>Keluar</span>
+    </button>
+  </nav>
+
   <script src="config.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>

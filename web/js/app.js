@@ -34,6 +34,18 @@ const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 function pasangKepala(judul, lebar = false) {
   const s = sesi();
   document.getElementById("kepala").hidden = !s;
+  // Menu bawah HP ikut aturan yang sama dengan header: hanya untuk yang
+  // sudah login. Penanda halaman aktif dipasang di sini juga supaya ikon
+  // Home menyala saat memang sedang di Home.
+  const nav = document.getElementById("bottom-nav");
+  if (nav) {
+    nav.hidden = !s;
+    const diHome = location.hash === "#/home" || location.hash === "";
+    document.getElementById("nav-home")
+      .setAttribute("aria-current", diHome ? "page" : "false");
+    document.getElementById("nav-setting")
+      .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
+  }
   document.getElementById("judul-layar").textContent = judul;
   LAYAR.classList.toggle("wide", lebar);
   if (s) document.getElementById("siapa").textContent =
@@ -1657,14 +1669,23 @@ async function arahkan() {
   (RUTE[location.hash] || layarHome)();
 }
 
-document.getElementById("btn-keluar").addEventListener("click", () => {
-  keluar(); EDISI = null; location.hash = ""; arahkan();
-});
-document.getElementById("btn-home").addEventListener("click", () => {
+// Tiga aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
+// dan menu bawah (HP). Dideklarasikan lebih dulu supaya tidak ada listener
+// yang menunjuk const yang belum terisi.
+const keHome = () => {
   if (location.hash === "#/home") arahkan(); else location.hash = "#/home";
-});
-document.getElementById("ganti-password").addEventListener("click", () => {
-  if (location.hash === "#/ganti-password") arahkan(); else location.hash = "#/ganti-password";
-});
+};
+const keSetelan = () => {
+  if (location.hash === "#/ganti-password") arahkan();
+  else location.hash = "#/ganti-password";
+};
+const keluarSekarang = () => { keluar(); EDISI = null; location.hash = ""; arahkan(); };
+
+document.getElementById("btn-keluar").addEventListener("click", keluarSekarang);
+document.getElementById("btn-home").addEventListener("click", keHome);
+document.getElementById("nav-home").addEventListener("click", keHome);
+document.getElementById("nav-setting").addEventListener("click", keSetelan);
+document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
+document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);
 arahkan();
