@@ -1769,4 +1769,30 @@ document.getElementById("nav-setting").addEventListener("click", keSetelan);
 document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);
+
+/* ---------------- muat ulang sendiri saat layar dilihat lagi -------------
+   Panitia berpindah app di HP (WhatsApp, kamera) lalu kembali, atau
+   membiarkan layar terbuka sementara meja lain terus bekerja. Menyuruh
+   mereka menekan F5 tidak bisa diandalkan: yang lupa menekan tidak melihat
+   apa pun yang memberitahu bahwa layarnya basi — angkanya tetap terlihat
+   wajar, hanya salah.
+
+   DUA pengaman, karena memuat ulang sendiri bisa lebih merusak daripada
+   data basi:
+     - kalau ada isian/pilihan yang sedang dipakai, dilewati. Menggambar
+       ulang saat petugas sedang mengetik nomor dada akan menghapus
+       ketikannya, dan ia tidak akan sadar.
+     - dijeda 5 detik, supaya berpindah app sekejap tidak memicu tembakan
+       permintaan beruntun.                                                */
+let terakhirSegar = Date.now();
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || !sesi()) return;
+  if (Date.now() - terakhirSegar < 5000) return;
+  const fokus = document.activeElement;
+  if (fokus && ["INPUT", "SELECT", "TEXTAREA"].includes(fokus.tagName)) return;
+  if (document.querySelector(".overlay")) return;   // dialog sedang terbuka
+  terakhirSegar = Date.now();
+  arahkan();
+});
+
 arahkan();
