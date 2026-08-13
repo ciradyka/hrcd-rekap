@@ -78,14 +78,18 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
       penting karena banyak sekolah bernama sama di kota berbeda.
    3. **Butuh penginapan?** Jawaban ya memasukkan seluruh batch ke skema
       penempatan barak (bagian 11).
-   4. **Mendaftarkan berapa regu?**
-   5. **Rincian golongan** yang jumlahnya harus sama dengan total — misal 5
-      regu = 3 Penegak PA + 1 Penegak PI + 1 Penggalang PA. Form memvalidasi
-      penjumlahannya.
-   6. **Untuk setiap regu:** nama regu dan nama ketua. **Nama empat anggota
+   4. **Mendaftarkan berapa regu?** — tidak pernah diketik. Pendaftar menaikkan
+      dan menurunkan jumlah **per golongan** lewat tombol + / −, dan totalnya
+      diturunkan dari situ ("Total: N regu"). Karena totalnya hasil hitungan,
+      tidak ada penjumlahan yang bisa meleset dan tidak ada yang perlu
+      divalidasi. Yang diperiksa hanya batas bawah ("Tambahkan minimal satu
+      regu") dan batas atas per pengiriman.
+   5. **Untuk setiap regu:** nama regu dan nama ketua. **Nama empat anggota
       lain tidak diminta** — untuk sekarang sistem tidak mencatatnya;
       kelengkapan 5 orang dicek fisik di akhir lomba (bagian 10.9).
-   7. **Satu kontak person WA** untuk keseluruhan batch.
+   6. **Satu Contact Person** untuk keseluruhan batch: nama (wajib) dan nomor
+      WhatsApp. Namanya disimpan sebagai `pendaftaran.nama_kontak` dan itulah
+      yang dipanggil panitia saat menghubungi sekolah.
 3. Setelah dikirim, sistem **memecah batch menjadi satu baris per regu** —
    5 regu menjadi 5 baris — yang tetap terikat pada satu tagihan bersama.
 4. Begitu form dikirim, terbit **kode pembayaran yang terikat pada regu-regu
@@ -319,9 +323,12 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    | `pos2hrcd37` | Hanya input nilai Pos 2 |
    | `admin.ciradyka` | Semua bagian sistem |
 
-   Akun hanya diberikan kepada admin tiap pos dan tim IT. Operator sebuah pos
-   tidak dapat menyentuh nilai pos lain — ditegakkan oleh sistem, bukan sekadar
-   disembunyikan dari layar.
+   Ada tiga peran: `admin`, `meja` (petugas pembayaran / daftar ulang /
+   keberangkatan), dan `operator_pos`. Akun hanya diberikan kepada admin tiap
+   pos, petugas meja, dan tim IT. Operator sebuah pos tidak dapat menyentuh
+   nilai pos lain, dan akun pos ditolak masuk ke layar meja dengan pesan "Akun
+   pos, bukan akun meja" — ditegakkan oleh sistem, bukan sekadar disembunyikan
+   dari layar.
 9. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
    password dapat diganti bersih setiap tahun tanpa membongkar sistem.
 9. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
@@ -479,11 +486,13 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.
-5. **Teknologi yang dipakai: SUDAH DIPUTUSKAN.** Panitia memilih Kandidat B —
-   Supabase + frontend statis di Cloudflare, dengan Google Sheets tetap
-   sebagai jendela baca — dengan syarat keras UI/UX harus mudah diajarkan.
-   Perbandingan lengkap dan alasan di `desain-sistem.md` bagian 8; rancangan
-   detail di `rancangan-b.md`.
+5. **Teknologi yang dipakai: SUDAH DIPUTUSKAN dan sudah berjalan.** Panitia
+   memilih Kandidat B — Supabase + frontend statis di Cloudflare — dengan
+   syarat keras UI/UX harus mudah diajarkan. Google Sheets sempat direncanakan
+   sebagai jendela baca tetapi **tidak pernah dipakai**; tidak ada di kode.
+   Perbandingan dan alasannya di `desain-sistem.md` bagian 8, cetak birunya di
+   `rancangan-b.md` — keduanya catatan keputusan. Untuk keadaan sistem
+   sekarang, baca `final-architecture.md`.
    *(Pertanyaan-pertanyaan lain di bagian ini yang sudah terjawab dan pindah ke
    badan dokumen: pembayaran sebagian tidak dilayani — bagian 3.5; kode
    pembayaran per batch terbit saat pendaftaran — bagian 3.4; nama anggota

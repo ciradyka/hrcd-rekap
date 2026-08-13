@@ -1,5 +1,31 @@
 # Rancangan Detail hrcd-rekap — Arsitektur B
 
+> **CATATAN KEPUTUSAN — bukan keadaan sekarang.**
+> Ini cetak biru yang dipakai membangun sistem, ditulis sebelum kodenya ada.
+> Ia **sengaja dipertahankan apa adanya**: 42 komentar di kode — tersebar di
+> migrasi, tes, SPA, dan Worker — menunjuk ke nomor bagian dokumen ini
+> (`rancangan-b.md 11.9`, `bagian 4`, `2.2.1`, dan seterusnya). Menulis ulang
+> isinya akan memutus seluruh penunjuk itu, termasuk yang tertanam di migrasi
+> yang sudah diterapkan dan tidak boleh disunting.
+>
+> Beberapa hal berubah saat dibangun, jadi jangan baca dokumen ini sebagai
+> gambaran layar hari ini. Yang sudah diketahui berbeda:
+>
+> - **Google Sheets tidak pernah dipakai.** Tidak ada di kode mana pun.
+> - **`live.html` / `live.json` tidak pernah dibangun** (bagian 7).
+> - **Chip "Jam sekarang" tidak ada.** Jam berangkat justru diisi otomatis;
+>   jam datang dikosongkan dengan keterangan "Kosong = jam saat tombol ditekan."
+> - **Meja Pembayaran bukan alur ketik-kode → kartu**, melainkan tabel berisi
+>   semua invoice dengan kotak cari dan saringan.
+> - **Keberangkatan bukan papan 4 kolom**, melainkan satu pita chip berisi
+>   semua kloter + satu tabel 5 kolom untuk kloter terpilih.
+> - **Beranda hanya punya dua lencana angka**, bukan tiga.
+> - **Export CSV belum ada** (dijadwalkan Tahap 4 di bagian 13).
+> - Aturan tampilan di bagian 10.1 sudah banyak berubah — ambang responsif,
+>   perilaku kepala di HP, dan ukuran sasaran sentuh.
+>
+> **Untuk keadaan sistem sekarang, baca `final-architecture.md`.**
+
 Cetak biru implementasi untuk keputusan di `desain-sistem.md` bagian 8:
 **Supabase (Postgres + Auth + RLS + Realtime) + SPA statis di Cloudflare +
 Google Sheets sebagai jendela baca.** Syarat keras panitia berlaku di seluruh
