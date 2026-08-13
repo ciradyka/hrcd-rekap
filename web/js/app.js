@@ -334,7 +334,7 @@ async function layarPembayaran() {
         <table class="table data-table">
           <thead>
             <tr>
-              <th>Kode</th><th>Sekolah</th><th class="text-center">Regu</th>
+              <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
               <th class="text-right">Tagihan</th><th>Status / Aksi</th>
             </tr>
           </thead>
@@ -633,7 +633,7 @@ async function layarDaftarUlang() {
         <table class="table data-table">
           <thead>
             <tr>
-              <th>Kode</th><th>Sekolah</th><th class="text-center">Regu</th>
+              <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
               <th></th>
             </tr>
           </thead>
