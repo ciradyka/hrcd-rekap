@@ -1067,12 +1067,24 @@ async function layarKeberangkatan() {
     // Karena itu koreksinya minta alasan dan tercatat di history.
     const tombolKoreksi = document.getElementById("koreksi-jam");
     if (tombolKoreksi) tombolKoreksi.addEventListener("click", async () => {
+      // Jam kloter tetangga ditampilkan, BUKAN dipaksakan. Fungsi database
+      // sengaja tidak menolak jam yang melanggar urutan (kalau menolak, dua
+      // kloter yang jamnya sama-sama salah saling mengunci). Yang menangkap
+      // salah ketik di sini adalah mata pencatat, jadi angka pembandingnya
+      // ditaruh di depan mata.
+      const sebelum = papan.filter(k => k.nomor < kloterAktif && k.jam_berangkat).pop();
+      const sesudah = papan.find(k => k.nomor > kloterAktif && k.jam_berangkat);
+      const tetangga = [
+        sebelum && `Kloter ${sebelum.nomor} berangkat ${jamPendek(sebelum.jam_berangkat)}`,
+        sesudah && `Kloter ${sesudah.nomor} berangkat ${jamPendek(sesudah.jam_berangkat)}`,
+      ].filter(Boolean).join(" · ");
+
       const jawab = await dialog({
         judul: `Betulkan jam berangkat Kloter ${kloterAktif}`,
         kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
           <div class="nama">Sekarang tercatat ${jamPendek(info.jam_berangkat)}</div>
           <div class="detail">Mengubah jam ini menghitung ulang penalti waktu
-            seluruh regu di Kloter ${kloterAktif}.</div>
+            seluruh regu di Kloter ${kloterAktif}.${tetangga ? ` ${tetangga}.` : ""}</div>
         </div>`,
         medan: [
           { label: "Jam berangkat yang benar", tipe: "time",
