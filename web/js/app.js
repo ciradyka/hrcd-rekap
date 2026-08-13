@@ -532,7 +532,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
  *  dibayar di dalamnya. Sekolah membayar sekaligus, tapi yang mereka simpan
  *  sebagai bukti adalah daftar regunya: nama, kategori, dan biaya per regu.
  *  Dibangun ke dalam #cetakan seperti daftar kloter — di layar tersembunyi,
- *  muncul hanya di kertas (gaya.css @media print). */
+ *  muncul hanya di kertas (style.css @media print). */
 function cetakKwitansi(daftar) {
   document.getElementById("cetakan")?.remove();
   const s = sesi();
