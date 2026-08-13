@@ -1013,7 +1013,7 @@ async function layarKeberangkatan() {
           <table class="table data-table table-tetap">
             <thead>
               <tr>
-                <th class="text-center">Hadir</th><th>Nomor</th><th>Regu</th>
+                <th class="text-center">Hadir</th><th>Nomor Dada</th><th>Regu</th>
                 <th>Kontrak waktu</th><th>Pindah kloter</th>
               </tr>
             </thead>
@@ -1334,12 +1334,10 @@ async function layarCetakKloter() {
  */
 function siapkanCetakKloter(dipakai, bentuk = "staging") {
   document.getElementById("cetakan")?.remove();
-  const jam = (t) => t ? new Date(t).toLocaleTimeString("id-ID",
-    { hour: "2-digit", minute: "2-digit" }) : "—";
 
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
-    const perkiraan = jam(contoh.perkiraan_berangkat);
+    const perkiraan = jamPendek(contoh.perkiraan_berangkat);
     const nyata = contoh.sudah_berangkat;
 
     const baris = v.isi.map(r => bentuk === "staging"
@@ -1616,13 +1614,26 @@ function layarFinish() {
   }
 }
 
-const jamPendek = (t) => t
-  ? new Date(t).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-  : "—";
+/** "07:04 Pagi" — jam dua digit, titik dua, lalu bagian harinya.
+ *  toLocaleTimeString("id-ID") memberi "07.04" dengan TITIK, yang di layar
+ *  mudah terbaca sebagai angka desimal. Bagian hari ditambahkan karena
+ *  lomba berjalan dari pagi sampai sore dan panitia menyebut jam dengan
+ *  kata itu — "empat lewat" bisa berarti 04.00 atau 16.00. */
+const bagianHari = (j) =>
+  j < 11 ? "Pagi" : j < 15 ? "Siang" : j < 18 ? "Sore" : "Malam";
+
+const jamPendek = (t) => {
+  if (!t) return "—";
+  const d = new Date(t);
+  const jj = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${jj}:${mm} ${bagianHari(d.getHours())}`;
+};
 
 /** Kebalikan jamPendek: timestamp -> "07:04" untuk mengisi <input type="time">.
- *  Dipisah dari jamPendek karena jamPendek memakai locale id-ID yang memberi
- *  "07.04" — titik, bukan titik dua — dan input time menolaknya diam-diam. */
+ *  Dipisah dari jamPendek karena jamPendek menambahkan bagian hari ("Pagi"),
+ *  dan <input type="time"> menolak apa pun selain HH:MM — diam-diam, tanpa
+ *  galat, isiannya sekadar kosong. */
 const jamHHMM = (t) => {
   if (!t) return "";
   const d = new Date(t);
