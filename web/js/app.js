@@ -1354,7 +1354,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
-    const perkiraan = jamPendek(contoh.perkiraan_berangkat);
+    const perkiraan = jamCetak(contoh.perkiraan_berangkat);
     const nyata = contoh.sudah_berangkat;
 
     const baris = v.isi.map(r => bentuk === "staging"
@@ -1638,6 +1638,18 @@ function layarFinish() {
  *  kata itu — "empat lewat" bisa berarti 04.00 atau 16.00. */
 const bagianHari = (j) =>
   j < 11 ? "Pagi" : j < 15 ? "Siang" : j < 18 ? "Sore" : "Malam";
+
+/** Bentuk untuk KERTAS: "07:04 AM". Layar memakai jamPendek ("07:04 Pagi")
+ *  karena panitia membacanya sambil bicara; kertas dibaca diam-diam dan
+ *  sering oleh orang luar (pembina, sekolah), jadi AM/PM yang lebih ringkas
+ *  dan tidak perlu diterjemahkan. */
+const jamCetak = (t) => {
+  if (!t) return "—";
+  const d = new Date(t);
+  const j = d.getHours();
+  const j12 = j % 12 === 0 ? 12 : j % 12;
+  return `${String(j12).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} ${j < 12 ? "AM" : "PM"}`;
+};
 
 const jamPendek = (t) => {
   if (!t) return "—";
