@@ -599,7 +599,11 @@ async function mulai() {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, mulai));
     return;
   }
-  document.getElementById("label-edisi").textContent = EDISI.nama;
+  // v_edisi_publik memberi kolom `name` sejak migrasi 0014 — `nama` sudah
+  // tidak ada, dan membacanya diam-diam menghasilkan undefined.
+  document.getElementById("label-edisi").textContent = EDISI.name;
+  const romawi = String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim();
+  document.title = `Pendaftaran — Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
 
   let hasilLama = null, draf = null;
   try { hasilLama = JSON.parse(localStorage.getItem(KUNCI_HASIL) || "null"); } catch {}

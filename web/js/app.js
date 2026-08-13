@@ -32,6 +32,16 @@ const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /** lebar = layar tabel (butuh ruang horizontal); sisanya tetap sempit supaya
  *  satu aksi utama gampang ditemukan di layar kecil. */
+/** Nama acara untuk judul tab: "Hiking Rally Ciradyka XXXVII".
+ *  Angka romawinya DIAMBIL dari nama edisi di database ("HRCD XXXVII"),
+ *  bukan ditulis di sini — tahun depan cukup mengubah satu baris di tabel
+ *  edisi, tidak ada yang perlu mencarinya di dalam JavaScript. Sebelum edisi
+ *  termuat (layar masuk), angkanya dilewati saja. */
+const namaAcara = () => {
+  const romawi = EDISI ? String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim() : "";
+  return `Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
+};
+
 function pasangKepala(judul, lebar = false) {
   const s = sesi();
   document.getElementById("kepala").hidden = !s;
@@ -48,6 +58,7 @@ function pasangKepala(judul, lebar = false) {
       .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
   }
   document.getElementById("judul-layar").textContent = judul;
+  document.title = `${judul} — ${namaAcara()}`;
   LAYAR.classList.toggle("wide", lebar);
   if (s) document.getElementById("siapa").textContent =
     `${s.username} · ${EDISI ? EDISI.name : ""}`;
