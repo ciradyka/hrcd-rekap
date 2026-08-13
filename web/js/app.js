@@ -18,6 +18,7 @@ import {
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
+  statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -275,7 +276,7 @@ function layarGantiPassword() {
  *  Menyaring di browser (data sudah dimuat semua) supaya hasilnya berubah
  *  seketika sambil mengetik — di meja, menunggu server tiap huruf terasa
  *  seperti aplikasi macet. */
-function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "" }) {
+function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan = "" }) {
   return `
     <div class="table-toolbar">
       ${kiri}
@@ -290,6 +291,7 @@ function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "" }) {
                   aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
       </div>
       <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
+      ${kanan}
     </div>`;
 }
 
@@ -1900,6 +1902,111 @@ function bacaSel(tr, k) {
   return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
 }
 
+/** Kolom KERTAS untuk satu komponen. Sebagian komponen memakan dua kolom,
+ *  dan pembagiannya sama persis dengan kotak di layar — supaya petugas yang
+ *  menyalin dari kertas ke layar menemukan urutan yang sama, tidak perlu
+ *  mencocokkan apa pun di kepalanya. */
+const kolomCetakPos = (komponen) => komponen.flatMap(k => {
+  if (k.satuan === "detik") return [
+    { nama: k.name, petunjuk: "menit" }, { nama: "", petunjuk: "detik" }];
+  if (k.form === "benar_kurang_salah") return [
+    { nama: k.name, petunjuk: "benar" }, { nama: "", petunjuk: "salah" }];
+  return [{ nama: k.name, petunjuk: petunjukKolom(k) }];
+});
+
+/** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.6).
+ *
+ *  Identitas regu sudah tercetak, kolom nilainya kosong. Satu hal yang
+ *  sengaja TIDAK ada di kertas ini: kolom Nilai Pos. Petugas lapangan hanya
+ *  mencatat data mentah dan tidak pernah menghitung poin (alur-lomba.md 8.1)
+ *  — menyediakan kotak berjudul "Nilai Pos" justru mengundang mereka
+ *  menjumlahkan sendiri, dan angka hasil hitungan tangan yang berbeda dengan
+ *  angka sistem adalah sengketa yang tidak perlu ada.
+ *
+ *  Nama pos ikut di dalam <thead>, bukan hanya di judul halaman pertama.
+ *  Kertas ini beredar sebagai lembaran lepas yang berpindah tangan lewat
+ *  foto; halaman yang tidak menyebutkan posnya sendiri bisa dinilaikan ke
+ *  pos yang salah. Browser mengulang <thead> di tiap halaman, jadi itu
+ *  gratis. */
+/** Regu per lembar A4 landscape. Dipatok, bukan diserahkan ke pemenggalan
+ *  otomatis browser: dengan 300 regu, halaman yang dipenggal sendiri bisa
+ *  memotong satu baris di tengah, dan angka pastinya juga yang menentukan
+ *  berapa lembar harus difotokopi.
+ *
+ *  Angkanya HASIL UKUR, bukan pilihan. Huruf 12pt (permintaan panitia, sama
+ *  dengan cetakan Excel yang selama ini dipakai) memaksa dua hal sekaligus:
+ *  tabel Pos 1 jadi selebar 201mm sehingga kertas harus landscape, dan
+ *  tinggi baris jadi 25px sehingga satu halaman hanya memuat 21-23 baris —
+ *  21 di pos yang paling sesak (Pos 2 dan Pos 4, yang kepala halamannya
+ *  paling tinggi).
+ *
+ *  Dipatok 20, satu baris di bawah yang paling sesak. Cadangan itu ada
+ *  supaya nama regu yang lebih panjang atau nama pos yang lebih panjang
+ *  tahun depan tidak diam-diam menumpahkan baris terakhir ke halaman
+ *  berikutnya — dan halaman tumpah tidak menimbulkan galat apa pun, ia cuma
+ *  menghasilkan setumpuk kertas yang salah. */
+const REGU_PER_LEMBAR = 20;
+
+function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
+  document.getElementById("cetakan")?.remove();
+
+  const kolom = kolomCetakPos(komponen);
+  const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
+                             : `POS ${pos.nomor} — ${pos.name}`;
+  const tanggal = new Date().toLocaleDateString("id-ID",
+    { day: "numeric", month: "long", year: "numeric" });
+
+  const halaman = [];
+  for (let i = 0; i < baris.length; i += REGU_PER_LEMBAR) {
+    halaman.push(baris.slice(i, i + REGU_PER_LEMBAR));
+  }
+
+  // Sel identitas lewat tag html`` (isinya diketik orang luar); kotak kosong
+  // ditempel sebagai HTML biasa karena memang tidak ada isinya.
+  const barisHtml = (r) => `
+    <tr>
+      ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+      <td>${r.nama_regu}</td>
+      <td>${r.nama_sekolah}</td>
+      <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>`}
+      ${kolom.map(() => `<td class="isian"></td>`).join("")}
+    </tr>`;
+
+  // Tiap lembar berdiri sendiri: judul pos, nomor halaman, dan baris tanda
+  // tangannya sendiri. Kertas ini beredar sebagai lembaran lepas yang
+  // berpindah tangan lewat foto — halaman yang tidak menyebutkan posnya
+  // sendiri bisa dinilaikan ke pos yang salah.
+  const lembar = halaman.map((grup, i) => `
+    <section class="print-page lembar-pos">
+      <h1>LEMBAR NILAI · ${esc(judul)}
+        <span class="halaman">Halaman ${i + 1} dari ${halaman.length}</span></h1>
+      <p class="lembar-kepala"><strong>${esc(EDISI ? EDISI.name : "")}</strong> ·
+         ${esc(tanggal)} · nomor dada
+         ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
+         (${esc(String(grup.length))} regu) &nbsp;·&nbsp;
+         Petugas: ________________ &nbsp; Diperiksa: ________________</p>
+      ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM
+        DITUTUP — regu yang mendaftar ulang setelah kertas ini dicetak TIDAK
+        ada di sini. Cetak ulang setelah daftar ulang ditutup.</p>`}
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>No Dada</th><th>Nama Regu</th><th>Organisasi</th><th>Golongan</th>
+            ${kolom.map(c => `<th class="isian">${esc(c.nama)}
+              <span class="kolom-petunjuk">${esc(c.petunjuk)}</span></th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>${grup.map(barisHtml).join("")}</tbody>
+      </table>
+      ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya —
+         jumlah benar, jumlah kena, atau waktu. JANGAN menjumlahkan sendiri;
+         sistem yang mengubahnya jadi poin. Foto lembar ini secara berkala dan
+         kirimkan ke operator IT pos, jangan ditumpuk sampai pos tutup.</p>` : ""}
+    </section>`).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
+}
+
 /** Layar Input Pos — lembar kertas yang dipindah ke layar.
  *
  *  Bentuknya sengaja SAMA dengan lembar Google Sheets yang dipakai panitia
@@ -1999,6 +2106,8 @@ async function layarInputPos() {
     <div class="card">
       ${alatTabel({
         kiri: pilihPosHtml(s, semuaPos),
+        kanan: `<button class="button button-secondary button-small" type="button"
+                        id="cetak-lembar">🖨️ Cetak Lembar</button>`,
         // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
@@ -2324,6 +2433,29 @@ async function layarInputPos() {
     document.getElementById("tabel-jumlah").textContent =
       `${tampil} ditampilkan · ${sudah}/${baris.length} lengkap`;
   }
+
+  /* ---------- cetak lembar kosong ---------- */
+
+  // Yang dicetak adalah baris yang SEDANG TAMPIL, bukan selalu semuanya.
+  // Dua kebutuhan berbeda terlayani satu tombol: sebelum lomba cetak "Semua"
+  // untuk lembar kosong, dan di tengah lomba saring "Belum lengkap" dulu
+  // supaya kertas susulan hanya memuat regu yang memang belum dinilai.
+  document.getElementById("cetak-lembar").addEventListener("click", async () => {
+    const tampil = [...tbody.children].filter(tr => !tr.hidden)
+      .map(tr => lembar.find(r => Number(r.nomor_dada) === Number(tr.dataset.dada)))
+      .filter(Boolean);
+    if (!tampil.length) { notif("Tidak ada baris yang bisa dicetak.", true); return; }
+
+    // Dibaca saat menekan, bukan saat layar dimuat: layar pos sering
+    // dibiarkan terbuka berjam-jam, dan status daftar ulang berubah di
+    // tengahnya. Gagal membacanya tidak boleh menghalangi cetak — paling
+    // buruk peringatannya ikut tercetak padahal sudah tidak berlaku.
+    let ditutup = false;
+    try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
+
+    siapkanCetakLembarPos(pos, komponen, tampil, ditutup);
+    window.print();
+  });
 
   pasangAlatTabel((cari, saring) => {
     [...tbody.children].forEach(tr => {

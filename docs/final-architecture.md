@@ -169,6 +169,47 @@ Tiga hal yang menentukan layar ini benar atau tidak:
    database. Menghitungnya di browser akan melahirkan mesin skor kedua yang
    suatu hari berbeda pendapat dengan `v_poin_pos`.
 
+#### Lembar cetak untuk ditulis tangan
+
+Tombol **Cetak Lembar** mengeluarkan versi kertas dari pos yang sedang dibuka
+(`alur-lomba.md` 8.6): identitas regu sudah tercetak, kolom nilainya kosong,
+dan judul posnya ikut di dalam `<thead>` sehingga terulang di tiap halaman —
+kertas ini beredar sebagai lembaran lepas yang berpindah tangan lewat foto,
+dan halaman yang tidak menyebutkan posnya sendiri bisa dinilaikan ke pos yang
+salah.
+
+Dua keputusan yang membentuknya:
+
+- **Tidak ada kolom Nilai Pos di kertas.** Petugas lapangan hanya mencatat
+  data mentah dan tidak pernah menghitung poin (`alur-lomba.md` 8.1);
+  menyediakan kotak berjudul "Nilai Pos" mengundang mereka menjumlahkan
+  sendiri, dan angka tangan yang berbeda dengan angka sistem adalah sengketa
+  yang tidak perlu ada.
+- **Yang dicetak adalah baris yang sedang TAMPIL.** Satu tombol melayani dua
+  kebutuhan: sebelum lomba saring "Semua" untuk lembar kosong; di tengah
+  lomba saring "Belum lengkap" dulu supaya kertas susulan hanya memuat regu
+  yang memang belum dinilai.
+
+Kalau `daftar_ulang_ditutup` masih `false`, kertasnya membawa peringatan
+tercetak bahwa regu yang mendaftar ulang setelahnya tidak ada di sana.
+
+**A4 landscape, 12pt, 20 regu per lembar.** Ketiganya terikat satu sama lain
+dan angkanya hasil ukur, bukan pilihan:
+
+- Panitia meminta huruf 12pt, sama dengan cetakan Excel yang selama ini
+  dipakai — yang tertulis di sana dibaca lagi dari **foto**, oleh orang lain,
+  di layar laptop.
+- Di 12pt tabel Pos 1 selebar 201mm, sedangkan A4 potret hanya menyediakan
+  180mm. Karena itu lembar ini memakai halaman bernama (`@page lembar-pos`)
+  supaya **hanya ia** yang berputar; kwitansi dan daftar kloter tetap potret.
+- Tinggi barisnya ternyata ditentukan `line-height`, bukan tinggi kotak
+  isiannya. Dirapatkan ke 1,15, satu halaman memuat 21–23 baris — 21 di pos
+  yang kepala halamannya paling tinggi. Dipatok **20**, satu baris di bawah
+  yang paling sesak, karena halaman yang tumpah tidak menimbulkan galat apa
+  pun: ia hanya menghasilkan setumpuk kertas yang salah.
+
+Tiga puluh baris per lembar sempat dicoba dan hanya mungkin pada huruf 8,5pt.
+
 #### Pita keadaan simpan
 
 Di pos, internet putus adalah kejadian biasa — dan angka yang hanya ada di
