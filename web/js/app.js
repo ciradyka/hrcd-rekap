@@ -131,9 +131,9 @@ async function layarHome() {
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
     <div class="menu-fungsi">
-      <a href="#/pendaftaran-offline">
+      <a href="daftar.html" target="_blank" rel="noopener">
         <div class="nama-fungsi">📝 Pendaftaran</div>
-        <div class="ket">Buka form pendaftaran — link sama untuk online maupun diisikan langsung</div>
+        <div class="ket">Buka form pendaftaran — diisikan langsung, tab baru supaya meja ini tetap terbuka</div>
       </a>
       <a href="#/pembayaran">
         <div class="nama-fungsi">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
@@ -1669,22 +1669,6 @@ function kartuSisipan(sisipan) {
     </div>`;
 }
 
-/* ============================ PENDAFTARAN OFFLINE ======================== */
-
-function layarPendaftaranOffline() {
-  pasangKepala("Pendaftaran");
-  LAYAR.replaceChildren(h(`
-    <div class="kartu">
-      <h2>Link yang sama untuk online maupun langsung</h2>
-      <p class="keterangan" style="margin-top:.4rem">
-        Bukakan form ini di HP pendaftar, atau isikan bersama di laptop meja.
-        Setelah dapat kode pembayaran, arahkan ke meja pembayaran.</p>
-      <a class="tombol tombol-utama" href="daftar.html" target="_blank" rel="noopener"
-         style="text-decoration:none;margin-top:.8rem">Buka Form Pendaftaran</a>
-    </div>
-  `));
-}
-
 /* ---------------- layar "edisi belum termuat" ---------------- */
 
 function layarButuhEdisi(judul) {
@@ -1700,7 +1684,6 @@ const RUTE = {
   "#/home": layarHome,
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
-  "#/pendaftaran-offline": layarPendaftaranOffline,
   "#/cetak-kloter": layarCetakKloter,
   "#/keberangkatan": layarKeberangkatan,
   "#/pindah-kloter": layarPindahKloter,
