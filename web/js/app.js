@@ -1065,9 +1065,11 @@ async function layarKeberangkatan() {
           </table>
         </div>
 
-        ${!belumKontrak.length ? "" : kartuGalat(
+        <!-- Dibungkus supaya isinya bisa dihitung ulang tanpa menggambar
+             ulang seluruh tabel — lihat perbaruiPeringatanKontrak(). -->
+        <div id="peringatan-kontrak">${!belumKontrak.length ? "" : kartuGalat(
           `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
-          `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`)}
+          `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`)}</div>
 
         ${sudahBerangkat ? "" : `
           <div class="departure-bar">
@@ -1082,6 +1084,25 @@ async function layarKeberangkatan() {
         `}
       </div>
     `));
+
+    /** Hitung ulang peringatan "sudah diceklis tapi belum punya kontrak"
+     *  dari KEADAAN LAYAR, bukan dari data yang diambil saat tabel digambar.
+     *  Ceklis dan kontrak waktu diubah tanpa menggambar ulang tabel (sengaja
+     *  — menggambar ulang tiap centang membuat petugas kehilangan tempatnya
+     *  saat mencentang belasan regu berturut-turut), jadi peringatan yang
+     *  dihitung sekali di awal langsung basi: ia sempat tetap menuduh ada
+     *  regu tanpa kontrak padahal kontraknya baru saja dipilih. */
+    const perbaruiPeringatanKontrak = () => {
+      const wadah = document.getElementById("peringatan-kontrak");
+      if (!wadah) return;
+      const kurang = [...kotak.querySelectorAll("[data-ceklis]")].filter(cb =>
+        cb.checked && !cb.closest("tr")?.querySelector("[data-kontrak]")?.value);
+      wadah.replaceChildren(...(kurang.length
+        ? [h(kartuGalat(
+            `${kurang.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
+            `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`))]
+        : []));
+    };
 
     kotak.querySelectorAll("[data-ceklis]").forEach(cb => {
       // Klik beruntun diantrekan, TIDAK diblokir: petugas yang salah centang
@@ -1100,6 +1121,21 @@ async function layarKeberangkatan() {
             // menunggunya membuat centang terasa lambat sedetik padahal
             // datanya sudah tersimpan.
             cb.classList.remove("saving");
+            // Dua dropdown di baris yang sama dikunci selama regunya
+            // terceklis, dan status terkunci itu ditulis saat tabel
+            // digambar. Sesudah ini yang digambar ulang hanya pita kloter di
+            // atas, bukan barisnya — jadi tanpa baris ini kuncinya tertinggal
+            // di keadaan lama: petugas membatalkan ceklis, lalu mendapati
+            // kontrak waktu masih tidak bisa dipilih sampai layar dimuat
+            // ulang. Persis keluhan di lapangan.
+            const baris = cb.closest("tr");
+            const kontrak = baris?.querySelector("[data-kontrak]");
+            if (kontrak) kontrak.disabled = mau;
+            const pindah = baris?.querySelector("[data-pindah]");
+            // Pindah kloter punya syarat KEDUA: harus ada kloter tujuan.
+            // Kalau tidak ada, isinya cuma "—" dan ia tetap terkunci.
+            if (pindah) pindah.disabled = mau || pindah.options.length <= 1;
+            perbaruiPeringatanKontrak();
             papan = await papanKeberangkatan();
             gambarPita();
           } catch (err) {
@@ -1123,6 +1159,7 @@ async function layarKeberangkatan() {
           notif(err.message, true);
         }
         sel.disabled = false;
+        perbaruiPeringatanKontrak();
       }));
 
     kotak.querySelectorAll("[data-pindah]").forEach(sel =>
