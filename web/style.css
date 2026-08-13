@@ -553,12 +553,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 /* Rincian regu di dalam satu baris invoice. */
 .detail-row > td { background: var(--kertas); padding: .5rem .75rem; }
-/* Lebar mengikuti ISI, bukan meregang selebar kartu. Diregangkan, lima
-   kolom pendek terlempar berjauhan dan mata harus melompat jauh dari nama
-   regu ke biayanya — padahal keduanya dibaca bersama. */
-.detail-table { width: auto; border-collapse: collapse; font-size: .85rem; }
-.detail-table th, .detail-table td { padding-right: 2rem; }
-.detail-table th:last-child, .detail-table td:last-child { padding-right: .4rem; }
+/* Lebar mengikuti isi, TAPI dengan lantai minimum: menempel penuh ke kiri
+   membuat kolomnya berdempetan dan angka rupiah kehilangan tempat berpijak.
+   min-width memberi ruang bernapas tanpa melemparkan kolom sejauh 100%. */
+.detail-table { width: auto; min-width: 62%; border-collapse: collapse; font-size: .85rem; }
+.detail-table th, .detail-table td { padding-right: 1.6rem; }
+/* Kolom uang rata kanan dengan lebar tetap: satuan rupiah jadi sejajar
+   antar baris, dan mata bisa membandingkan angkanya tanpa membaca. */
+.detail-table th:last-child, .detail-table td:last-child {
+  padding-right: .4rem; text-align: right; min-width: 7rem;
+}
 .detail-table th {
   text-align: left; padding: .25rem .4rem; font-size: .72rem;
   text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-lembut);

@@ -335,7 +335,7 @@ async function layarPembayaran() {
           <thead>
             <tr>
               <th>Kode Bayar</th><th>Sekolah</th><th class="text-center">Regu</th>
-              <th class="text-center">Tagihan</th><th class="text-center">Metode</th><th></th>
+              <th class="text-right">Tagihan</th><th class="text-center">Metode</th><th></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -429,7 +429,7 @@ async function layarPembayaran() {
               : `<div class="sub">semua regu batal</div>`}
           </td>
           <td class="text-center" data-label="Regu">${aktif.length}</td>
-          <td class="text-center" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
+          <td class="text-right" data-label="Tagihan">${esc(rupiah(tagihan))}</td>
           <td class="text-center" data-label="Metode">${metode}</td>
           <td data-label="">${aksi}</td>
         </tr>
