@@ -170,3 +170,59 @@ $$;
 
 reset role;
 \echo '== 04: OK =='
+
+-- ---------------------------------------------------------------------------
+-- 4.5 tukar_nomor_dada memakai patokan DICETAK, bukan berangkat (0019).
+--     Jendela "sudah dicetak, belum berangkat" adalah saat petugas staging
+--     memegang kertas dan memanggil nama — persis saat nomor di kertas tidak
+--     boleh berubah diam-diam.
+-- ---------------------------------------------------------------------------
+select set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
+set role authenticated;
+
+do $$
+declare
+  v_kloter smallint;
+  v_regu   uuid;
+  v_baru   integer;
+begin
+  -- Kloter yang sudah dicetak tapi BELUM berangkat.
+  select k.nomor into v_kloter
+  from kloter k
+  where k.dicetak_pada is not null and k.jam_berangkat is null
+  order by k.nomor limit 1;
+  if v_kloter is null then
+    raise notice '4.5 dilewati: tidak ada kloter tercetak yang belum berangkat';
+    return;
+  end if;
+
+  select r.id into v_regu from regu r
+  where r.kloter_nomor = v_kloter and r.nomor_dada is not null and not r.is_cancelled
+  limit 1;
+  assert v_regu is not null, 'kloter tercetak tanpa regu bernomor';
+
+  select s.nomor into v_baru from nomor_dada_stok s
+  where not exists (select 1 from regu r2 where r2.nomor_dada = s.nomor)
+    and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor)
+  order by s.nomor limit 1;
+  assert v_baru is not null, 'stok nomor dada habis';
+
+  -- Meja DITOLAK: dulu diterima karena kloternya belum berangkat.
+  begin
+    perform tukar_nomor_dada(v_regu, v_baru, 'coba tukar padahal kertas sudah beredar');
+    raise exception 'GAGAL: meja menukar nomor di kloter yang kertasnya sudah dicetak';
+  exception when raise_exception then
+    if sqlerrm like 'GAGAL:%' then raise; end if;
+  end;
+
+  -- Admin tetap boleh — pembatasannya soal siapa, bukan soal mustahil.
+  perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
+  perform tukar_nomor_dada(v_regu, v_baru, 'nomor dada sobek, ganti kain');
+  assert (select nomor_dada from regu where id = v_regu) = v_baru,
+    'admin tidak bisa menukar nomor di kloter tercetak';
+  perform set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
+end;
+$$;
+
+reset role;
+\echo '== 4.5: OK =='
