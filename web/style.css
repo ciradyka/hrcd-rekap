@@ -727,7 +727,12 @@ input.small-input { text-align: center; }
   font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .pill-number .kloter-pill { font-weight: 600; font-size: .75rem; opacity: .8; }
-.checkbox { width: 26px; height: 26px; accent-color: var(--utama); }
+.checkbox { width: 26px; height: 26px; accent-color: var(--utama); cursor: pointer; }
+/* Sedang disimpan: DIREDUPKAN, bukan di-disable. Kotak yang di-disable
+   berubah abu-abu dan kehilangan kursor pointer, jadi selama sedetik itu
+   petugas mengira klik-nya tidak masuk dan mengklik lagi. Diredupkan, ia
+   tetap terlihat hidup dan centangnya tetap terbaca. */
+.checkbox.saving { opacity: .55; }
 
 /* ---------- keberangkatan ---------- */
 

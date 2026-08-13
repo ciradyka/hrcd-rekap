@@ -1069,22 +1069,33 @@ async function layarKeberangkatan() {
       </div>
     `));
 
-    kotak.querySelectorAll("[data-ceklis]").forEach(cb =>
-      cb.addEventListener("change", async () => {
+    kotak.querySelectorAll("[data-ceklis]").forEach(cb => {
+      // Klik beruntun diantrekan, TIDAK diblokir: petugas yang salah centang
+      // langsung membatalkannya, dan kotak yang menolak klik kedua membuat
+      // koreksi itu mustahil. Antrean menjaga urutannya tetap benar.
+      let antre = Promise.resolve();
+      cb.addEventListener("change", () => {
         const dada = Number(cb.dataset.ceklis);
-        cb.disabled = true;
-        try {
-          if (cb.checked) await ceklisBerangkat(dada);
-          else await batalCeklisBerangkat(dada);
-          // Papan ikut berubah (hitungan sudah_ceklis) — muat ulang ringkas.
-          papan = await papanKeberangkatan();
-          gambarPita();
-        } catch (err) {
-          notif(err.message, true);
-          cb.checked = !cb.checked;
-        }
-        cb.disabled = false;
-      }));
+        const mau = cb.checked;
+        cb.classList.add("saving");
+        antre = antre.then(async () => {
+          try {
+            if (mau) await ceklisBerangkat(dada);
+            else await batalCeklisBerangkat(dada);
+            // Redup dilepas begitu tulisannya masuk. Papan menyusul di bawah:
+            // menunggunya membuat centang terasa lambat sedetik padahal
+            // datanya sudah tersimpan.
+            cb.classList.remove("saving");
+            papan = await papanKeberangkatan();
+            gambarPita();
+          } catch (err) {
+            notif(err.message, true);
+            cb.checked = !mau;
+            cb.classList.remove("saving");
+          }
+        });
+      });
+    });
 
     kotak.querySelectorAll("[data-kontrak]").forEach(sel =>
       sel.addEventListener("change", async () => {
