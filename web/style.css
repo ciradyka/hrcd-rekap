@@ -584,15 +584,36 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    sempit, tabelnya yang menggeser di dalam kartu (aturan 10.1.13). */
 .detail-table td:nth-child(2) { white-space: nowrap; }
 
-/* Varian daftar ulang: melebar penuh, dan kolom terakhir dipatok 28% supaya
-   kotak nomor dada jatuh TEPAT DI BAWAH tombol "Isi N Nomor Dada" di baris
-   induknya — pasangan tombol dan isian terbaca sebagai satu kolom, bukan dua
-   hal yang kebetulan bertumpuk. Angka 28% menyamai lebar kolom aksi tabel
-   induk; kalau kolom induk berubah, angka ini ikut disetel. */
+/* SEJAJAR DENGAN TABEL INDUKNYA.
+   Kotak nomor dada harus jatuh tepat di bawah tombol "Isi N Nomor Dada" yang
+   membukanya — kalau meleset, tombol dan isiannya terbaca sebagai dua hal
+   yang kebetulan bertumpuk, dan petugas harus menelusuri baris dengan jari
+   untuk memastikan ia mengetik di sekolah yang benar.
+
+   Caranya: kedua tabel dipatok `table-layout: fixed` dengan lebar kolom yang
+   PERSIS SAMA, dan sel pembungkusnya dibuat rata tanpa padding kiri-kanan
+   supaya tabel rincian selebar tabel induk, bukan menjorok ke dalam. Empat
+   angka di bawah ini berpasangan; kalau satu diubah, pasangannya ikut. */
+.table-daftar-ulang, .detail-table-dada { table-layout: fixed; }
+.table-daftar-ulang th:nth-child(1), .table-daftar-ulang td:nth-child(1),
+.detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 18%; }
+.table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2),
+.detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 44%; }
+.table-daftar-ulang th:nth-child(3), .table-daftar-ulang td:nth-child(3),
+.detail-table-dada  th:nth-child(3), .detail-table-dada  td:nth-child(3) { width: 10%; }
+.table-daftar-ulang th:nth-child(4), .table-daftar-ulang td:nth-child(4),
+.detail-table-dada  th:nth-child(4), .detail-table-dada  td:nth-child(4) { width: 28%; }
+
 .detail-table-dada { width: 100%; margin: 0; }
+/* Padding sel disamakan dengan tabel induk (.table td), kalau tidak isinya
+   bergeser beberapa piksel dan kesejajarannya hilang lagi. */
+.detail-table-dada th, .detail-table-dada td { padding-left: .5rem; padding-right: .5rem; }
 .detail-table-dada th:last-child, .detail-table-dada td:last-child {
-  width: 28%; text-align: left; min-width: 0; padding-right: .4rem;
+  text-align: left; min-width: 0;
 }
+/* Sel pembungkus rincian dibuat rata kiri-kanan supaya tabel di dalamnya
+   selebar tabel induk. Padding atas-bawah tetap, itu yang memisahkan blok. */
+.detail-cell-flush { padding-left: 0 !important; padding-right: 0 !important; }
 
 @media (max-width: 560px) {
   /* Satu regu = satu blok dua baris, kotak angka di kanan sejajar namanya.
