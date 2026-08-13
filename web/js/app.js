@@ -720,8 +720,8 @@ async function layarDaftarUlang() {
             <div class="action-row" style="margin-top:.6rem">
               <button class="button button-primary button-small" type="button"
                       data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
-              <span class="sub">Ketik nomor dari kain yang ada di meja.
-                Enter = pindah ke regu berikutnya.</span>
+              <span class="sub">Nomor dada yang diinput harus SAMA dengan
+                yang diberikan ke regunya. Enter = pindah ke regu berikutnya.</span>
             </div>
           </td>
         </tr>`}`;
@@ -774,7 +774,12 @@ async function layarDaftarUlang() {
         btn.setAttribute("aria-expanded", String(buka));
         const jumlah = barisNomor.querySelectorAll("[data-dada]").length;
         btn.textContent = `${buka ? "▾" : "▸"} Isi ${jumlah} Nomor Dada`;
-        if (buka) barisNomor.querySelector("[data-dada]")?.focus();
+        // Auto-focus HANYA di layar lebar. Di HP, focus() memunculkan
+        // keyboard dan menggeser halaman, sehingga ketukan berikutnya
+        // meleset dari tombol ini — terasa seperti tombolnya tidak bisa
+        // diklik ulang (laporan pengguna).
+        if (buka && window.matchMedia("(min-width: 561px)").matches)
+          barisNomor.querySelector("[data-dada]")?.focus();
       }));
 
     // Loop ketik-Enter (rancangan-b.md 10.1.4): Enter pindah ke regu

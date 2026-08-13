@@ -586,6 +586,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .detail-table input.small-input {
     width: 100%; min-height: 52px; font-size: 1.25rem; font-weight: 700;
   }
+
+  /* Tombol simpan melebar penuh seperti tombol lain di HP — versi rata kiri
+     terlihat seperti tombol setengah jadi. Keterangannya turun ke bawahnya. */
+  .detail-row .action-row { flex-direction: column; align-items: stretch; }
+  .detail-row .action-row .button-small { width: 100%; }
+  .detail-row .action-row .sub { text-align: center; }
   .detail-table td:nth-child(3)::before { content: "· "; }
 }
 
@@ -721,6 +727,7 @@ input.small-input { text-align: center; }
   .data-table tbody tr[data-baris] > td[data-label="Kode Bayar"] { font-size: 1.05rem; font-weight: 700; }
   .data-table tbody tr[data-baris] > td:last-child { margin-top: .5rem; }
   .data-table tbody tr[data-baris] .button-small { width: 100%; }
+
 
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. */
   .data-table tbody tr.detail-row { display: block; }
