@@ -617,6 +617,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Cetak Kwitansi + Batalkan berderet ke samping, tidak menumpuk — dua aksi
    sejajar yang sama-sama milik satu baris lunas. */
 .action-row-rapat { flex-wrap: nowrap; gap: .4rem; }
+/* Keterangan di kiri, tombol Simpan didorong ke KANAN — sejajar kolom
+   nomor dada, tempat mata dan kursor berada setelah mengetik angka
+   terakhir. Tombol di kiri memaksa perjalanan balik melintasi tabel. */
+.action-row-simpan { justify-content: space-between; }
+.action-row-simpan .sub { flex: 1; min-width: 12rem; }
 .select-small, .small-input {
   /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
      kali isian disentuh — batas keras di kepala berkas ini, dan sempat
