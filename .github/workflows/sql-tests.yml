@@ -1,5 +1,5 @@
 # ============================================================================
-# hrcd-rekap : tes-sql.yml — jalankan seluruh tes SQL di PostgreSQL sungguhan.
+# hrcd-rekap : sql-tests.yml — jalankan seluruh tes SQL di PostgreSQL sungguhan.
 #
 # Kenapa ada: sampai sekarang tes hanya bisa dijalankan kalau maintainer
 # kebetulan punya PostgreSQL lokal. Akibatnya migrasi bisa ter-merge tanpa
@@ -13,10 +13,10 @@
 # assert di tests/sql/ lolos.
 #
 # Port 55432 (bukan 5432) sengaja disamakan dengan tests/run.sh dan
-# tests/dev_db.sh supaya perintahnya persis sama di CI maupun di laptop.
+# tests/dev_database.sh supaya perintahnya persis sama di CI maupun di laptop.
 # ============================================================================
 
-name: Tes SQL
+name: SQL Tests
 
 on:
   push:

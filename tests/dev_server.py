@@ -10,7 +10,7 @@
 #
 # Jalankan:
 #   python tests/dev_server.py            # port 8787, db hrcd_dev @ 55432
-# Siapkan db-nya sekali dengan: bash tests/dev_db.sh
+# Siapkan db-nya sekali dengan: bash tests/dev_database.sh
 # ============================================================================
 
 import json

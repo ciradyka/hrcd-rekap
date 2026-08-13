@@ -1,5 +1,5 @@
 # ============================================================================
-# hrcd-rekap : tests/uji_konkurensi.py
+# hrcd-rekap : tests/concurrency_test.py
 # Membuktikan bahwa dua-tiga meja daftar ulang yang menekan tombol PADA DETIK
 # YANG SAMA tidak pernah menghasilkan nomor dada ganda atau kloter kelebihan.
 #
@@ -8,8 +8,8 @@
 # mungkin dengan tiga jari menekan Enter serentak.
 #
 # Jalankan:
-#   python tests/uji_konkurensi.py
-# (butuh database hrcd_dev — siapkan dengan: bash tests/dev_db.sh)
+#   python tests/concurrency_test.py
+# (butuh database hrcd_dev — siapkan dengan: bash tests/dev_database.sh)
 # ============================================================================
 
 import json
