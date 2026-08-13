@@ -299,6 +299,15 @@ begin
   exception when raise_exception then
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;
+  -- Prasyarat dibuat EKSPLISIT, tidak diwarisi dari langkah di atas: aturan
+  -- 0018 berbicara tentang catatan berangkat REGU ini, jadi tesnya harus
+  -- memastikan catatan itu memang tidak ada. Sekaligus membuktikan jalur
+  -- pemulihan salah klik: meja boleh menghapus centang kapan pun.
+  perform batal_ceklis_berangkat(14);
+  assert not exists (select 1 from keberangkatan_regu kb
+                     join regu r on r.id = kb.regu_id where r.nomor_dada = 14),
+    'centang hadir tidak bisa dihapus meja';
+
   -- SEJAK 0018: meja BOLEH mengisi kontrak regu yang belum tercatat berangkat,
   -- walau kloternya sudah jalan. Aturan lama memakai patokan kloter dan
   -- membuat regu tertinggal tidak bisa ditolong siapa pun di meja: kontrak
