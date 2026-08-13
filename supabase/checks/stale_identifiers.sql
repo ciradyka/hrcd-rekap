@@ -6,6 +6,7 @@ select 'FUNGSI' as jenis, p.proname as nama_objek
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
+  and p.prokind = 'f'   -- pg_get_functiondef() menolak agregat/window
   and pg_get_functiondef(p.oid) ~ '\m(dibuat_pada|dicatat_pada|dicatat_oleh|diinput_pada|diinput_oleh|diverifikasi_pada|diverifikasi_oleh|baris_id|nilai_lama|nilai_baru|catat_riwayat|kapasitas|ruangan_id|riwayat)\M'
 union all
 select 'VIEW', c.relname
