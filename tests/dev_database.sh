@@ -19,18 +19,17 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 run() { echo "-- $1"; "$PSQL" -d "$DB" -v ON_ERROR_STOP=1 -q -f "$ROOT/$1"; }
 
 run tests/sql/00_harness.sql
-run supabase/migrations/0001_schema.sql
-run supabase/migrations/0002_functions.sql
-run supabase/migrations/0003_rls.sql
-run supabase/migrations/0004_rpcs.sql
-run supabase/migrations/0005_views.sql
-run supabase/migrations/0006_idempotensi.sql
-run supabase/migrations/0007_kunci_daftar_ulang.sql
-run supabase/migrations/0008_cetak_kloter.sql
-run supabase/migrations/0009_sisip_kloter.sql
-run supabase/migrations/0010_lookup_finish.sql
-run supabase/migrations/0011_nomor_dada_manual.sql
+# Seluruh migrasi, urut nomor, tanpa dilewat satu pun. Daftar ini pernah
+# berhenti di 0011 sementara migrasinya sudah sampai 0020 — akibatnya layar
+# yang dicoba di dev berbicara dengan skema yang tidak pernah ada di
+# produksi, dan galatnya baru muncul setelah deploy.
+for m in "$ROOT"/supabase/migrations/*.sql; do
+  run "supabase/migrations/$(basename "$m")"
+done
 run supabase/seed.sql
+# Konfigurasi komponen pos butuh edisinya sudah ada — lihat catatan panjang
+# yang sama di tests/run.sh.
+run supabase/migrations/0024_komponen_pos.sql
 run tests/sql/01_seed_uji.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

@@ -15,12 +15,28 @@
 
 import json
 import http.server
+import os
 import urllib.parse
 
 import psycopg2
 import psycopg2.extras
 
-DSN = "host=127.0.0.1 port=55432 dbname=hrcd_dev user=postgres password=hrcd"
+# Sambungan database dibaca dari environment, dengan Postgres portable di
+# port 55432 sebagai bawaannya. Angka-angka itu dulu ditulis mati di sini,
+# dan siapa pun yang memakai PostgreSQL biasa — port 5432, password sendiri —
+# harus menyunting berkas ini lebih dulu, lalu hati-hati tidak ikut
+# meng-commit passwordnya. Nama variabelnya sama dengan yang sudah dipakai
+# tests/run.sh dan tests/dev_database.sh, jadi satu set export cukup untuk
+# ketiganya:
+#
+#   PGPORT=5432 PGUSER=postgres PGPASSWORD=... python tests/dev_server.py
+DSN = " ".join([
+    f"host={os.environ.get('PGHOST', '127.0.0.1')}",
+    f"port={os.environ.get('PGPORT', '55432')}",
+    f"dbname={os.environ.get('PGDATABASE', 'hrcd_dev')}",
+    f"user={os.environ.get('PGUSER', 'postgres')}",
+    f"password={os.environ.get('PGPASSWORD', 'hrcd')}",
+])
 PORT = 8787
 
 # RPC yang boleh dipanggil layar, beserta urutan argumennya.
@@ -35,6 +51,7 @@ RPC = {
     "ceklis_berangkat":      ["p_nomor_dada"],
     "batal_ceklis_berangkat":["p_nomor_dada"],
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
+    "hapus_nilai_pos":       ["p_nomor_dada", "p_kode", "p_pos"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
     "susun_barak":           [],
     "tandai_kloter_dicetak": ["p_kloter"],
@@ -108,9 +125,34 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select * from v_regu_ringkas where kloter = %s order by nomor_dada",
                     (p.get("kloter") or 0,), uid=p.get("uid")))
             elif u.path == "/kontrak":
+                # sort_order, bukan urutan — kolomnya berganti nama di 0014.
                 self._kirim(200, q(
                     "select label, menit from kontrak_opsi "
-                    "where edisi = edisi_aktif() order by urutan",
+                    "where edisi = edisi_aktif() order by sort_order",
+                    uid=p.get("uid")))
+            elif u.path == "/pos":
+                self._kirim(200, q(
+                    "select nomor, name, bobot, bayangan from pos "
+                    "where edisi = edisi_aktif() order by nomor",
+                    uid=p.get("uid")))
+            elif u.path == "/komponen-pos":
+                self._kirim(200, q(
+                    "select kode, name, type, form, poin_maks, raw_terbaik, "
+                    "       raw_terburuk, poin_benar, poin_salah, total_soal, "
+                    "       tingkat, satuan, rentang_mentah_min, "
+                    "       rentang_mentah_maks, sort_order "
+                    "from wahana where edisi = edisi_aktif() and pos = %s "
+                    "order by sort_order",
+                    (p.get("pos") or 0,), uid=p.get("uid")))
+            elif u.path == "/lembar-pos":
+                # dada opsional: kosong = seluruh lembar, isi = satu baris
+                # yang dibaca ulang sesudah menyimpan.
+                self._kirim(200, q(
+                    "select * from v_lembar_pos where pos = %s "
+                    "  and (%s::text = '' "
+                    "       or nomor_dada = nullif(%s::text, '')::integer) "
+                    "order by nomor_dada",
+                    (p.get("pos") or 0, p.get("dada") or "", p.get("dada") or ""),
                     uid=p.get("uid")))
             elif u.path == "/daftar-pendaftaran":
                 self._kirim(200, q("""

@@ -392,3 +392,61 @@ export const berangkatkanKloter = (kloter, jam) =>
  *  tercatat di history bersama jam lamanya. */
 export const koreksiJamBerangkat = (kloter, jam, alasan) =>
   rpc("koreksi_jam_berangkat", { p_kloter: kloter, p_jam: jam, p_alasan: alasan });
+
+/* ============================ INPUT POS ================================= */
+
+/** Daftar pos edisi aktif — dipakai admin untuk memilih pos mana yang
+ *  sedang diinput. Operator pos tidak memerlukannya (posnya sudah melekat
+ *  di akunnya), tapi namanya tetap dibaca untuk judul layar. */
+export async function daftarPos(edisi) {
+  if (K.mode === "dev") return baca("/pos");
+  return baca(null,
+    `pos?edisi=eq.${encodeURIComponent(edisi)}` +
+    `&select=nomor,name,bobot,bayangan&order=nomor.asc`);
+}
+
+/** Kolom penilaian satu pos. INILAH yang menentukan bentuk tabelnya — nama
+ *  kolom, rentang yang boleh diketik, dan jenis kotaknya semua datang dari
+ *  sini, tidak satu pun ditulis di JavaScript. Tahun depan panitia mengubah
+ *  barisnya, dan lembar di layar ikut berubah tanpa menyentuh kode. */
+export async function komponenPos(edisi, pos) {
+  if (K.mode === "dev") return baca(`/komponen-pos?pos=${encodeURIComponent(pos)}`);
+  return baca(null,
+    `wahana?edisi=eq.${encodeURIComponent(edisi)}&pos=eq.${encodeURIComponent(pos)}` +
+    `&select=kode,name,type,form,poin_maks,raw_terbaik,raw_terburuk,poin_benar,` +
+    `poin_salah,total_soal,tingkat,satuan,rentang_mentah_min,rentang_mentah_maks,sort_order` +
+    `&order=sort_order.asc`);
+}
+
+/** Seluruh regu + nilai yang sudah tersimpan untuk satu pos. Satu permintaan
+ *  untuk seluruh lembar: ~300 baris, dimuat sekali lalu disaring di browser,
+ *  sama seperti layar meja. */
+export async function lembarPos(pos) {
+  if (K.mode === "dev") return baca(`/lembar-pos?pos=${encodeURIComponent(pos)}`);
+  return baca(null,
+    `v_lembar_pos?pos=eq.${encodeURIComponent(pos)}&select=*&order=nomor_dada.asc`);
+}
+
+/** Satu baris saja, dibaca ulang sesudah menyimpan. Nilai Pos yang tampil di
+ *  layar SELALU angka dari database — layar tidak pernah menghitung skor
+ *  sendiri, supaya tidak ada mesin skor kedua yang bisa berbeda pendapat
+ *  dengan v_poin_pos. */
+export async function lembarPosSatu(pos, nomorDada) {
+  const d = K.mode === "dev"
+    ? await baca(`/lembar-pos?pos=${encodeURIComponent(pos)}&dada=${encodeURIComponent(nomorDada)}`)
+    : await baca(null, `v_lembar_pos?pos=eq.${encodeURIComponent(pos)}` +
+                       `&nomor_dada=eq.${encodeURIComponent(nomorDada)}&select=*`);
+  return d.length ? d[0] : null;
+}
+
+/** baris: [{ nomor_dada, kode, nilai_1, nilai_2 }]. Pintu tulis nilai yang
+ *  sama dengan upload massal — layar ini sekadar mengisinya satu regu
+ *  sekaligus. Mengembalikan status per baris (tersimpan / ditolak + alasan). */
+export const simpanNilaiPos = (baris, pos) =>
+  rpc("simpan_nilai_massal", { p_baris: baris, p_sumber: "manual", p_pos: pos });
+
+/** Mengosongkan satu sel yang sudah terlanjur tersimpan — angka yang masuk ke
+ *  regu yang salah. simpan_nilai_massal tidak bisa dipakai untuk ini: di sana
+ *  sel kosong berarti "belum dinilai", bukan "hapus". */
+export const hapusNilaiPos = (nomorDada, kode, pos) =>
+  rpc("hapus_nilai_pos", { p_nomor_dada: nomorDada, p_kode: kode, p_pos: pos });

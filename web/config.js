@@ -7,6 +7,12 @@
 
 window.HRCD = {
   mode: "supabase",
+  // Dipakai HANYA saat mode "dev". Ditulis di sini supaya mengganti satu kata
+  // di baris atas benar-benar cukup untuk mencoba layar secara lokal — persis
+  // seperti yang dijanjikan README. Tanpa baris ini, api.js memakai devUrl
+  // yang kosong dan setiap permintaan mendarat di penyaji berkas statis, yang
+  // menjawabnya dengan "501 Unsupported method ('POST')".
+  devUrl: "http://127.0.0.1:8787",
   supabaseUrl: "https://pwszijhnftvqjkdldqrf.supabase.co",
   anonKey: "sb_publishable_fVRvaYucCPJxOiphJWC_ZQ_8hgFKDsi",
   gatewayUrl: "https://gateway.ciradyka.workers.dev",

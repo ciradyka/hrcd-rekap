@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0020`.
+Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0024`.
 
 ---
 
@@ -46,7 +46,7 @@ di `workers/gateway/worker.js` wajib ikut diubah.
 
 ## 2. Database
 
-20 migrasi, `0001` sampai `0020`, dijalankan berurutan tanpa lubang penomoran.
+24 migrasi, `0001` sampai `0024`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -80,6 +80,17 @@ bukan menghitung ulang data.
 Konsekuensinya: memperbaiki satu nilai yang salah ketik langsung memperbaiki
 klasemen, tanpa proses hitung ulang apa pun.
 
+Apa yang dinilai di tiap pos juga konfigurasi: satu baris `wahana` per kolom
+penilaian, dengan **enam bentuk konversi** — `kecil_baik`, `besar_baik`,
+`biner`, `benar_per_total`, `benar_kurang_salah`, dan `bertingkat` (tangga
+poin per pita, dipakai kolom waktu yang menilai "masuk pita 1 menit", bukan
+tiap detik). Layar Input Pos membangun kolomnya dari baris-baris itu, jadi
+mengubah penilaian tahun depan tidak menyentuh kode sama sekali.
+
+**Pos bayangan ikut dinilai** (migrasi `0021`). Ia pos biasa dengan penanda
+`pos.bayangan`, bernomor melanjutkan pos utama — bukan cabang tersendiri di
+mesin skor.
+
 ### Kunci daftar ulang
 
 Pemberian nomor dada dan penyebaran kloter diserialisasi dengan satu
@@ -106,11 +117,50 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/cetak-kloter` | Cetak Daftar Kloter | lembar per kloter untuk petugas start |
 | `#/keberangkatan` | Keberangkatan | ceklis hadir, kontrak waktu, pindah kloter, berangkatkan |
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
+| `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/ganti-password` | Ganti Password | — |
 
 Peran akun: `admin`, `meja`, `operator_pos`. Seluruh RPC meja menuntut
-`peran() in ('admin','meja')`; akun `operator_pos` ditolak di Home dengan pesan
-"Akun pos, bukan akun meja".
+`peran() in ('admin','meja')`; akun `operator_pos` ditolak di layar meja dengan
+pesan "Akun pos, bukan akun meja", dan sebaliknya akun `meja` ditolak di
+`#/pos`. Home menampilkan menu yang berbeda per peran — akun pos hanya melihat
+layar posnya sendiri.
+
+### Layar Input Pos
+
+Bentuknya sengaja meniru lembar Google Sheets yang dipakai panitia selama ini:
+Nomor Dada · Nama Regu · Organisasi · Golongan, lalu satu kolom per hal yang
+dinilai, lalu Nilai Pos. Petugas yang menyalin dari foto lembar tidak perlu
+belajar bentuk baru.
+
+| Yang menentukan | Dari mana |
+| --- | --- |
+| Nama & urutan kolom | `wahana.name`, `wahana.sort_order` |
+| Bentuk kotaknya | `wahana.form` — centang untuk `biner`, dua kotak untuk `benar_kurang_salah` |
+| Kotak Menit : Detik | `wahana.satuan = 'detik'` — tersimpan sebagai satu angka detik |
+| Rentang yang boleh diketik | `wahana.rentang_mentah_min/maks` |
+| Angka Nilai Pos | `v_lembar_pos`, dibaca ulang tiap kali satu baris tersimpan |
+
+Tiga hal yang menentukan layar ini benar atau tidak:
+
+1. **Tidak ada tombol Simpan.** Baris tersimpan sendiri saat petugas
+   meninggalkannya, dan diberi ✓ hijau. Tombol yang bisa lupa ditekan adalah
+   nilai yang hilang.
+2. **Simpanan yang menumpuk diantre, bukan ditolak.** Satu baris punya banyak
+   kotak dan tiap kotak memicu simpanannya sendiri; menolak yang datang saat
+   sibuk sempat membuat baris diberi ✓ padahal empat nilai terakhir tidak
+   pernah terkirim.
+3. **Layar tidak pernah menghitung skor.** Nilai Pos selalu angka dari
+   database. Menghitungnya di browser akan melahirkan mesin skor kedua yang
+   suatu hari berbeda pendapat dengan `v_poin_pos`.
+
+`v_lembar_pos` adalah **satu-satunya view yang bukan `security_invoker`**.
+Alasannya ada di kepala migrasi `0023`: jalan menuju nama sekolah melewati
+tabel `pendaftaran`, yang tertutup untuk operator pos karena memuat nomor
+WhatsApp. Kalau view-nya tunduk RLS, operator mendapat lembar kosong — dan
+lembar kosong terbaca sebagai "belum ada peserta", bukan sebagai galat hak
+akses. Pagarnya dipasang di dalam view: `peran() is not null`, dan operator
+hanya posnya sendiri.
 
 ### Bentuk tabel meja menurut lebar layar
 
@@ -168,7 +218,7 @@ itu.
 
 ```bash
 gh workflow run "Apply migration to Supabase" --ref main \
-  -f berkas=supabase/migrations/0020_nomor_dada_tiga_digit.sql
+  -f berkas=supabase/migrations/0021_pos_bayangan.sql
 ```
 
 Berkasnya dijalankan `--single-transaction` dengan `ON_ERROR_STOP=1`: kalau satu
@@ -260,3 +310,18 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
 - **Halaman live publik belum ada.** `live.html` + `live.json` di
   `rancangan-b.md` bagian 7 tidak pernah dibangun, dan tidak ada workflow yang
   menghasilkannya.
+- **Upload massal nilai belum ada.** `rancangan-b.md` bagian 6 menjelaskan
+  jalur tempel-dari-Excel lengkap dengan layar preview. Yang sudah dibangun
+  baru input tabelnya (`#/pos`) — yang sebenarnya sudah menutup sebagian besar
+  kebutuhannya, karena satu layar memuat seluruh lembar sekaligus. RPC-nya
+  (`simpan_nilai_massal`) memang sudah menerima banyak baris sekaligus, jadi
+  yang kurang hanya pengurai tempelan dan preview-nya.
+- **Nama Pos 5 masih "Pos 5".** Lembar penilaiannya tidak ada di antara yang
+  diserahkan panitia, jadi migrasi `0024` sengaja tidak menebak nama maupun
+  komponennya. Pos 5 akan tampil di layar Input Pos sebagai pos tanpa kolom
+  penilaian sampai diisi.
+- **Dua sel di lembar XXXVI tidak cocok dengan rumusnya sendiri** (Pos 3 regu
+  016 tertulis 380, rumus memberi 355; Pos 4 regu 009 tertulis 100, rumus
+  memberi 80). 75 dari 77 baris yang bisa dibaca cocok tanpa sisa, jadi
+  keduanya kemungkinan ketikan tangan di atas formula. Konfigurasi mengikuti
+  rumusnya.

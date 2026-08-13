@@ -17,6 +17,7 @@ import {
   papanKeberangkatan, reguKloter, kontrakOpsi,
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
+  daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
 } from "./api.js";
 import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
 
@@ -136,13 +137,21 @@ async function layarHome() {
 
   // Operator pos tidak berhak atas layar meja — RLS akan mengosongkan
   // datanya dan itu tampak seperti "tidak ada antrean" (temuan review).
+  // Tapi ia punya satu layar sendiri, dan Home-nya harus menunjukkan layar
+  // itu: sebelumnya halaman ini buntu, dan akun pos tidak punya jalan ke
+  // mana pun kecuali mengetik alamatnya sendiri.
   if (peran === "operator_pos") {
     LAYAR.replaceChildren(h(html`
-      <div class="card">
-        <h2>Akun pos, bukan akun meja</h2>
-        <p class="description">Akun ${sesi().username} dipakai untuk input nilai di
-           Pos ${sesi().pos}. Layar meja belum bisa dibuka dengan akun ini.</p>
-      </div>`));
+      <div class="function-menu">
+        <a href="#/pos">
+          <div class="function-name">📋 Input Nilai Pos ${sesi().pos}</div>
+          <div class="description">Isi nilai tiap regu di pos ini —
+             tabelnya sama seperti lembar kertasnya</div>
+        </a>
+      </div>
+      <p class="description" style="margin-top:1.2rem">Akun ${sesi().username}
+         hanya menyentuh nilai Pos ${sesi().pos}. Layar meja (pembayaran,
+         daftar ulang, keberangkatan) memakai akun yang lain.</p>`));
     return;
   }
 
@@ -179,6 +188,11 @@ async function layarHome() {
         <div class="function-name">🏁 Kedatangan</div>
         <div class="description">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
+      ${peran === "admin" ? `
+      <a href="#/pos">
+        <div class="function-name">📋 Input Nilai Pos</div>
+        <div class="description">Lembar penilaian tiap pos — admin boleh membuka pos mana pun</div>
+      </a>` : ""}
     </div>
     <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
        Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
@@ -253,13 +267,14 @@ function layarGantiPassword() {
  *  Menyaring di browser (data sudah dimuat semua) supaya hasilnya berubah
  *  seketika sambil mengetik — di meja, menunggu server tiap huruf terasa
  *  seperti aplikasi macet. */
-function alatTabel({ saringan, saringAktif, jumlah }) {
+function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "" }) {
   return `
     <div class="table-toolbar">
+      ${kiri}
       <div class="field" style="margin:0;flex:1;min-width:220px">
         <label for="cari-tabel" class="visually-hidden">Cari</label>
         <input type="text" id="cari-tabel" autocomplete="off"
-               placeholder="Cari kode, sekolah, atau nama regu…">
+               placeholder="${esc(cariContoh || "Cari kode, sekolah, atau nama regu…")}">
       </div>
       <div class="filter-row">
         ${saringan.map(s => `
@@ -1774,6 +1789,416 @@ function kartuReguFinish(r) {
     </div>`;
 }
 
+/* ============================ INPUT POS ================================== */
+
+/** Pos yang sedang dibuka admin. Operator pos tidak memakainya — posnya
+ *  melekat di akun dan tidak bisa dipindah dari layar. */
+const posDipilih = { nomor: null };
+
+const judulPos = (p) => p
+  ? (p.bayangan ? `Pos Bayangan — ${p.name}` : `Pos ${p.nomor} — ${p.name}`)
+  : "Pos";
+
+/** Angka dari database datang sebagai teks ("6.00"). Yang muncul di kotak
+ *  isian harus persis seperti yang diketik petugas: 6, bukan 6.00. */
+const angkaRapi = (v) =>
+  v === null || v === undefined || v === "" ? "" : String(Number(v));
+
+/** Kotak isian satu komponen. BENTUKNYA DITENTUKAN KONFIGURASI, bukan ditulis
+ *  per pos di sini — itu sebabnya tabel ini bisa mengikuti lembar mana pun
+ *  tanpa menyentuh JavaScript:
+ *
+ *    form=biner        -> satu centang        (kolom "Kompas (v)")
+ *    satuan=detik      -> Menit : Detik       (kolom "Menit | Detik" di Pos 4)
+ *    benar_kurang_salah-> Benar / Salah
+ *    sisanya           -> satu kotak angka, batasnya dari rentang wajar
+ */
+function selKomponen(k, nilai) {
+  const n1 = nilai ? nilai.nilai_1 : null;
+  const n2 = nilai ? nilai.nilai_2 : null;
+  const kode = esc(k.kode);
+
+  if (k.form === "biner") {
+    return `<input type="checkbox" class="checkbox" data-kode="${kode}"
+                   ${Number(n1) > 0 ? "checked" : ""}
+                   aria-label="${esc(k.name)}">`;
+  }
+  if (k.satuan === "detik") {
+    const total = n1 === null || n1 === undefined ? null : Number(n1);
+    return `<span class="pos-pasangan">
+      <input type="number" class="small-input" inputmode="numeric" min="0"
+             data-kode="${kode}" data-slot="menit"
+             value="${total === null ? "" : Math.floor(total / 60)}"
+             aria-label="${esc(k.name)} — menit">
+      <span class="pos-pemisah" aria-hidden="true">:</span>
+      <input type="number" class="small-input" inputmode="numeric" min="0" max="59"
+             data-kode="${kode}" data-slot="detik"
+             value="${total === null ? "" : total % 60}"
+             aria-label="${esc(k.name)} — detik">
+    </span>`;
+  }
+  if (k.form === "benar_kurang_salah") {
+    return `<span class="pos-pasangan">
+      <input type="number" class="small-input" inputmode="numeric" min="0"
+             data-kode="${kode}" data-slot="benar" value="${esc(angkaRapi(n1))}"
+             aria-label="${esc(k.name)} — jumlah benar">
+      <span class="pos-pemisah" aria-hidden="true">/</span>
+      <input type="number" class="small-input" inputmode="numeric" min="0"
+             data-kode="${kode}" data-slot="salah" value="${esc(angkaRapi(n2))}"
+             aria-label="${esc(k.name)} — jumlah salah">
+    </span>`;
+  }
+  return `<input type="number" class="small-input" inputmode="decimal" step="any"
+                 min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
+                 data-kode="${kode}" value="${esc(angkaRapi(n1))}"
+                 aria-label="${esc(k.name)}">`;
+}
+
+/** Keterangan kecil di bawah judul kolom — rentang yang boleh diketik,
+ *  diambil dari konfigurasi supaya tidak pernah berbeda dengan yang divalidasi
+ *  server. Persis angka yang tercetak di judul kolom lembar kertas. */
+function petunjukKolom(k) {
+  if (k.form === "biner") return "centang bila benar";
+  if (k.satuan === "detik") return "menit : detik";
+  if (k.form === "benar_kurang_salah") return "benar / salah";
+  if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
+  return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
+}
+
+/** Membaca satu komponen dari barisnya. null = kotaknya kosong, artinya
+ *  komponen ini BELUM dinilai — bukan "dinilai nol".
+ *
+ *  Centang adalah pengecualian, dan sengaja: sebuah kotak centang tidak punya
+ *  keadaan kosong, hanya dicentang atau tidak. Jadi aturannya "menyimpan satu
+ *  baris berarti mengesahkan seluruh isinya" — centang yang dibiarkan kosong
+ *  di baris yang disimpan berarti benar-benar tidak kena, dan tersimpan
+ *  sebagai 0. Baris yang tidak disentuh tidak pernah dikirim sama sekali,
+ *  jadi tidak ada regu yang mendadak "dinilai nol" karena tetangganya diisi. */
+function bacaSel(tr, k) {
+  const kotak = tr.querySelectorAll(`[data-kode="${CSS.escape(k.kode)}"]`);
+  if (k.form === "biner") return { nilai_1: kotak[0].checked ? 1 : 0, nilai_2: null };
+
+  if (k.satuan === "detik") {
+    const m = kotak[0].value.trim(), d = kotak[1].value.trim();
+    if (m === "" && d === "") return null;
+    return { nilai_1: (Number(m) || 0) * 60 + (Number(d) || 0), nilai_2: null };
+  }
+  if (k.form === "benar_kurang_salah") {
+    const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
+    if (b === "") return null;
+    return { nilai_1: Number(b), nilai_2: sa === "" ? null : Number(sa) };
+  }
+  const v = kotak[0].value.trim();
+  return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
+}
+
+/** Layar Input Pos — lembar kertas yang dipindah ke layar.
+ *
+ *  Bentuknya sengaja SAMA dengan lembar Google Sheets yang dipakai panitia
+ *  selama ini: identitas regu di kiri, satu kolom per hal yang dinilai, Nilai
+ *  Pos di kanan. Petugas yang menyalin dari foto lembar tidak perlu belajar
+ *  bentuk baru — matanya sudah tahu di mana harus mendarat.
+ *
+ *  Nilai Pos TIDAK dihitung di browser. Angkanya dibaca ulang dari database
+ *  tiap kali satu baris tersimpan, supaya tidak pernah ada mesin skor kedua
+ *  yang bisa berbeda pendapat dengan v_poin_pos — dan supaya angka yang
+ *  dilihat petugas adalah angka yang benar-benar tersimpan, bukan tebakan
+ *  layar tentang apa yang akan tersimpan.
+ */
+async function layarInputPos() {
+  const s = sesi();
+  if (s.peran === "meja") {
+    pasangKepala("Input Nilai Pos");
+    LAYAR.replaceChildren(h(html`
+      <div class="card">
+        <h2>Akun meja, bukan akun pos</h2>
+        <p class="description">Akun ${s.username} dipakai di meja. Input nilai
+           pos memakai akun posnya sendiri — hubungi koordinator.</p>
+      </div>`));
+    return;
+  }
+
+  pasangKepala("Input Nilai Pos", true);
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+
+  const layarIni = location.hash;
+  let semuaPos;
+  try { semuaPos = await daftarPos(EDISI.nomor); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return; }
+  if (location.hash !== layarIni) return;
+
+  // Operator pos tidak memilih apa pun — posnya sudah melekat di akunnya, dan
+  // RLS akan menolak pos lain seandainya layar ini mencoba.
+  const nomorPos = s.peran === "operator_pos"
+    ? Number(s.pos)
+    : (posDipilih.nomor ?? (semuaPos.length ? semuaPos[0].nomor : null));
+  const pos = semuaPos.find(p => Number(p.nomor) === Number(nomorPos));
+
+  if (!pos) {
+    LAYAR.replaceChildren(h(kartuGalat(
+      "Edisi ini belum punya pos sama sekali. Admin harus mengisinya dulu.")));
+    return;
+  }
+  posDipilih.nomor = pos.nomor;
+  pasangKepala(`Input ${judulPos(pos)}`, true);
+
+  let komponen, lembar;
+  try {
+    [komponen, lembar] = await Promise.all([
+      komponenPos(EDISI.nomor, pos.nomor),
+      lembarPos(pos.nomor),
+    ]);
+  } catch (e) {
+    LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return;
+  }
+  if (location.hash !== layarIni) return;
+
+  if (!komponen.length) {
+    LAYAR.replaceChildren(h(`
+      <div class="card">${pilihPosHtml(s, semuaPos)}</div>
+      ${kartuGalat(`${judulPos(pos)} belum punya kolom penilaian. Admin harus `
+        + `mengisi komponennya dulu sebelum pos ini bisa dinilai.`)}`));
+    pasangPilihPos(s);
+    return;
+  }
+
+  // Cermin nilai yang ADA DI DATABASE, bukan yang ada di kotak isian. Yang
+  // dikirim ke server hanya selisih antara keduanya — kotak yang tidak diubah
+  // tidak pernah ditulis ulang, jadi kepengarangan nilai tidak bergeser dan
+  // riwayat tidak dibanjiri baris yang tidak mengubah apa-apa.
+  const asli = new Map(lembar.map(r => [Number(r.nomor_dada), r.nilai || {}]));
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      ${alatTabel({
+        kiri: pilihPosHtml(s, semuaPos),
+        cariContoh: "Cari nomor dada, nama regu, atau organisasi…",
+        saringan: [
+          { kode: "belum", label: "Belum lengkap" },
+          { kode: "sudah", label: "Sudah lengkap" },
+          { kode: "semua", label: "Semua" },
+        ],
+        saringAktif: "semua",
+        jumlah: lembar.length,
+      })}
+      <!-- table-tetap: di HP lembar ini TETAP tabel dan digeser ke samping,
+           tidak ditumpuk jadi kartu seperti layar meja. Alasannya di
+           style.css, bagian LEMBAR INPUT POS. -->
+      <div class="table-wrapper table-wrapper-tetap">
+        <table class="table data-table table-tetap table-pos"
+               ${lembar.length ? "" : "hidden"}>
+          <thead>
+            <tr>
+              <th class="text-center">Nomor<br>Dada</th>
+              <th>Nama Regu</th>
+              <th>Organisasi</th>
+              <th>Golongan</th>
+              ${komponen.map(k => `
+                <th class="text-center">${esc(k.name)}
+                  <span class="kolom-petunjuk">${esc(petunjukKolom(k))}</span></th>`).join("")}
+              <th class="text-center">Nilai<br>${esc(pos.bayangan ? pos.name : `Pos ${pos.nomor}`)}</th>
+              <th class="text-center"><span class="visually-hidden">Status simpan</span></th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel"></tbody>
+        </table>
+        ${lembar.length ? "" : `<p class="table-empty">Belum ada regu yang
+          menerima nomor dada. Lembar pos ini terisi sendiri begitu meja
+          daftar ulang mulai jalan.</p>`}
+      </div>
+    </div>
+    <p class="description" style="margin-top:.8rem">
+      Nilainya tersimpan sendiri begitu kamu pindah ke baris berikutnya —
+      tidak ada tombol Simpan yang bisa lupa ditekan. Tanda ✓ hijau di ujung
+      kanan berarti sudah masuk; tanda merah berarti belum, dan bisa dicoba
+      lagi dari situ. Enter = turun ke regu berikutnya di kolom yang sama.
+    </p>
+  `));
+
+  const tbody = document.getElementById("isi-tabel");
+  tbody.replaceChildren(h(lembar.map(r => `
+    <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}">
+      <td class="angka text-center" data-label="Nomor Dada">${esc(String(r.nomor_dada).padStart(3, "0"))}</td>
+      <td data-label="Nama Regu"><strong>${esc(r.nama_regu)}</strong></td>
+      <td data-label="Organisasi">${esc(r.nama_sekolah)}</td>
+      <td data-label="Golongan">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
+      ${komponen.map(k => `
+        <td class="text-center" data-label="${esc(k.name)}">
+          ${selKomponen(k, (r.nilai || {})[k.kode])}</td>`).join("")}
+      <td class="text-center pos-nilai" data-label="Nilai Pos">${esc(angkaRapi(r.nilai_pos))}</td>
+      <td class="text-center pos-status" data-label=""></td>
+    </tr>`).join("")));
+
+  /* ---------- menyimpan satu baris ---------- */
+
+  const statusBaris = (tr, keadaan, pesan) => {
+    const sel = tr.querySelector(".pos-status");
+    tr.classList.toggle("baris-gagal", keadaan === "gagal");
+    if (keadaan === "menyimpan") { sel.textContent = "…"; return; }
+    if (keadaan === "tersimpan") {
+      sel.replaceChildren(h(`<span class="badge badge-green">✓</span>`));
+      return;
+    }
+    if (keadaan === "gagal") {
+      sel.replaceChildren(h(html`<button class="button button-secondary button-mini"
+        type="button" data-ulang title="${pesan}">Coba lagi</button>`));
+      sel.querySelector("[data-ulang]").addEventListener("click", () => simpanBaris(tr));
+      return;
+    }
+    sel.replaceChildren();
+  };
+
+  async function simpanBaris(tr) {
+    // Satu baris punya banyak kotak, dan tiap kotak yang ditinggalkan memicu
+    // simpanan sendiri. Petugas yang mengetik cepat menghasilkan lima
+    // panggilan beruntun, dan yang kedua sampai kelima datang selagi yang
+    // pertama masih di jalan.
+    //
+    // MENOLAKNYA adalah kesalahan yang sempat ada di sini: barisnya tetap
+    // diberi ✓ hijau — karena simpanan pertama memang berhasil — sementara
+    // empat angka berikutnya tidak pernah terkirim. Petugas melihat tanda
+    // berhasil untuk nilai yang hilang. Jadi yang datang saat sibuk DIANTRE,
+    // lalu dijalankan sekali lagi sesudahnya; putaran kedua membaca ulang
+    // seluruh baris, sehingga berapa pun ketukan yang menumpuk cukup
+    // diselesaikan satu kali.
+    if (tr.dataset.jalan === "1") { tr.dataset.antre = "1"; return; }
+    const dada = Number(tr.dataset.dada);
+    const lama = asli.get(dada) || {};
+    const baris = [], dihapus = [];
+
+    for (const k of komponen) {
+      const baru = bacaSel(tr, k);
+      const ada = lama[k.kode] || null;
+      if (baru === null) {
+        // Kotak dikosongkan padahal sebelumnya ada isinya = angka itu masuk ke
+        // regu yang salah. Dihapus, bukan ditimpa nol.
+        if (ada) dihapus.push(k.kode);
+        continue;
+      }
+      const samaSaja = ada
+        && Number(ada.nilai_1) === baru.nilai_1
+        && (ada.nilai_2 === null || ada.nilai_2 === undefined
+              ? null : Number(ada.nilai_2)) === baru.nilai_2;
+      if (!samaSaja) {
+        baris.push({ nomor_dada: dada, kode: k.kode,
+                     nilai_1: baru.nilai_1, nilai_2: baru.nilai_2 });
+      }
+    }
+    if (!baris.length && !dihapus.length) return;
+
+    tr.dataset.jalan = "1";
+    statusBaris(tr, "menyimpan");
+    try {
+      if (baris.length) {
+        const hasil = await simpanNilaiPos(baris, pos.nomor);
+        // Server memeriksa ulang tiap baris dan menolaknya satu per satu;
+        // yang pertama ditolak sudah cukup menjelaskan apa yang salah.
+        const ditolak = (hasil || []).find(x => x.status === "ditolak");
+        if (ditolak) throw new ErrorApi(ditolak.alasan || "nilai ditolak server");
+      }
+      for (const kode of dihapus) await hapusNilaiPos(dada, kode, pos.nomor);
+
+      const segar = await lembarPosSatu(pos.nomor, dada);
+      if (segar) {
+        asli.set(dada, segar.nilai || {});
+        tr.querySelector(".pos-nilai").textContent = angkaRapi(segar.nilai_pos);
+        tr.dataset.terisi = String(segar.jumlah_terisi);
+      }
+      statusBaris(tr, "tersimpan");
+      hitungUlangJumlah();
+    } catch (err) {
+      statusBaris(tr, "gagal", err.message);
+      notif(`${String(dada).padStart(3, "0")}: ${err.message}`, true);
+    } finally {
+      tr.dataset.jalan = "";
+      // Ketukan yang menumpuk selagi baris ini sibuk. Dijalankan juga setelah
+      // GAGAL: yang tersimpan sebagian lalu ditinggalkan adalah keadaan
+      // terburuk dari semuanya.
+      if (tr.dataset.antre === "1") { tr.dataset.antre = ""; simpanBaris(tr); }
+    }
+  }
+
+  /* ---------- perilaku isian ---------- */
+
+  tbody.addEventListener("change", (e) => {
+    const tr = e.target.closest("tr");
+    if (tr) simpanBaris(tr);
+  });
+
+  // Enter = turun satu regu di kolom yang sama, seperti menyalin dari kertas
+  // ke bawah. Berpindah fokus memicu change-nya sendiri, jadi barisnya
+  // tersimpan tanpa perlu dipanggil dua kali.
+  tbody.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+    e.preventDefault();
+    const tr = e.target.closest("tr");
+    const kotak = [...tr.querySelectorAll("input")];
+    const kolom = kotak.indexOf(e.target);
+    let lanjut = tr.nextElementSibling;
+    while (lanjut && lanjut.hidden) lanjut = lanjut.nextElementSibling;
+    const tujuan = lanjut && lanjut.querySelectorAll("input")[kolom];
+    if (tujuan) { tujuan.focus(); if (tujuan.select) tujuan.select(); }
+    else e.target.blur();
+  });
+
+  /* ---------- cari & saring ---------- */
+
+  // Baris DISEMBUNYIKAN, bukan dibangun ulang. Menggambar ulang tabel akan
+  // membuang isi kotak yang belum sempat tersimpan — dan petugas tidak akan
+  // sadar angkanya hilang, karena yang ia lihat hanyalah daftar yang menyusut.
+  const cocok = (tr, cari) => !cari
+    || tr.dataset.dada.padStart(3, "0").includes(cari)
+    || tr.children[1].textContent.toLowerCase().includes(cari)
+    || tr.children[2].textContent.toLowerCase().includes(cari);
+
+  const lengkap = (tr) => Number(tr.dataset.terisi) >= komponen.length;
+
+  function hitungUlangJumlah() {
+    const baris = [...tbody.children];
+    const tampil = baris.filter(tr => !tr.hidden).length;
+    const sudah = baris.filter(lengkap).length;
+    document.getElementById("tabel-jumlah").textContent =
+      `${tampil} ditampilkan · ${sudah}/${baris.length} lengkap`;
+  }
+
+  pasangAlatTabel((cari, saring) => {
+    [...tbody.children].forEach(tr => {
+      const lolosSaring = saring === "semua"
+        || (saring === "sudah" ? lengkap(tr) : !lengkap(tr));
+      tr.hidden = !(cocok(tr, cari) && lolosSaring);
+    });
+    hitungUlangJumlah();
+  });
+
+  pasangPilihPos(s);
+}
+
+/** Pemilih pos — hanya untuk admin. Operator pos melihat namanya saja, karena
+ *  memberinya daftar pos lain hanya menawarkan sesuatu yang pasti ditolak
+ *  server (RLS nilai_mentah) — pintu yang terkunci lebih baik tidak digambar. */
+function pilihPosHtml(s, semuaPos) {
+  if (s.peran !== "admin") return "";
+  return `
+    <div class="field" style="margin:0;min-width:210px">
+      <label for="pilih-pos" class="visually-hidden">Pos yang diinput</label>
+      <select id="pilih-pos" class="select-small">
+        ${semuaPos.map(p => `<option value="${esc(p.nomor)}"
+          ${Number(p.nomor) === Number(posDipilih.nomor) ? "selected" : ""}
+          >${esc(judulPos(p))}</option>`).join("")}
+      </select>
+    </div>`;
+}
+
+function pasangPilihPos(s) {
+  if (s.peran !== "admin") return;
+  const sel = document.getElementById("pilih-pos");
+  if (!sel) return;
+  sel.addEventListener("change", () => {
+    posDipilih.nomor = Number(sel.value);
+    layarInputPos();
+  });
+}
+
 /* ============================ PINDAH KLOTER (HARI-H) ===================== */
 
 /** Daftar sisipan: nomor-nomor yang TIDAK ADA di kertas petugas staging.
@@ -1817,6 +2242,7 @@ const RUTE = {
   "#/cetak-kloter": layarCetakKloter,
   "#/keberangkatan": layarKeberangkatan,
   "#/finish": layarFinish,
+  "#/pos": layarInputPos,
   "#/ganti-password": layarGantiPassword,
 };
 
