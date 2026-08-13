@@ -1,5 +1,5 @@
 # ============================================================================
-# hrcd-rekap : provision-akun.yml — bikin akun panitia massal dari HP.
+# hrcd-rekap : provision-accounts.yml — bikin akun panitia massal dari HP.
 #
 # Dipicu manual (workflow_dispatch), bukan otomatis lewat push/merge — ini
 # alat admin sekali pakai per batch, bukan bagian dari deploy.
@@ -59,7 +59,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: python scripts/provision_akun.py akun_masuk.csv hasil_provisioning.csv
+        run: python scripts/provision_accounts.py akun_masuk.csv hasil_provisioning.csv
 
       - name: Unggah hasil (berisi password — unduh sekali, lalu bagikan manual)
         if: always()

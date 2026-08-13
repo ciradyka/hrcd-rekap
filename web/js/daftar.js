@@ -29,6 +29,12 @@ const KUNCI_DRAF = "hrcd_draf";
 const KUNCI_HASIL = "hrcd_hasil";
 const MAKS_REGU = 30;
 
+// Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan sengaja
+// supaya panitia tidak perlu mikir dua format): 08, lalu kode operator
+// (1-9, bukan 0), lalu 6-10 digit lagi. Dipakai untuk validasi live (saat
+// mengetik) maupun pemeriksaan akhir sebelum kirim — satu pola, satu tempat.
+const POLA_WA = /^08[1-9][0-9]{6,10}$/;
+
 const kosong = () => ({
   sekolah: null,                 // {id?, nama, alamat}
   butuh_barak: null,
@@ -68,63 +74,63 @@ const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
 
 function halaman() {
   LAYAR.replaceChildren(h(`
-    <div class="kartu" style="border-color:var(--utama)">
+    <div class="card" style="border-color:var(--utama)">
       <h2>Pendaftaran Regu</h2>
     </div>
 
     <!-- 1. Sekolah -->
-    <section class="kartu" id="bagian-sekolah">
-      <h2><span class="nomor-bagian">1</span> Asal sekolah</h2>
+    <section class="card" id="bagian-sekolah">
+      <h2><span class="section-number">1</span> Asal sekolah</h2>
       <div id="isi-sekolah"></div>
     </section>
 
     <!-- 2. Menginap -->
-    <section class="kartu" id="bagian-barak">
-      <h2><span class="nomor-bagian">2</span> Perlu tempat menginap?</h2>
-      <p class="keterangan">Panitia menyediakan ruang kelas untuk menginap malam
+    <section class="card" id="bagian-barak">
+      <h2><span class="section-number">2</span> Perlu tempat menginap?</h2>
+      <p class="description">Panitia menyediakan ruang kelas untuk menginap malam
          sebelum lomba, gratis.</p>
-      <div class="pilihan-baris" style="margin-top:.8rem">
-        <button class="pilihan" id="p-ya" aria-pressed="false" type="button">Ya, perlu</button>
-        <button class="pilihan" id="p-tidak" aria-pressed="false" type="button">Tidak perlu</button>
+      <div class="option-row" style="margin-top:.8rem">
+        <button class="option" id="p-ya" aria-pressed="false" type="button">Ya, perlu</button>
+        <button class="option" id="p-tidak" aria-pressed="false" type="button">Tidak perlu</button>
       </div>
       <div id="isi-pendamping" style="margin-top:.9rem"></div>
-      <div class="galat" id="g-barak" hidden>Pilih salah satu.</div>
+      <div class="error" id="g-barak" hidden>Pilih salah satu.</div>
     </section>
 
     <!-- 3. Jumlah regu -->
-    <section class="kartu" id="bagian-jumlah">
-      <h2><span class="nomor-bagian">3</span> Mendaftarkan berapa regu?</h2>
-      <p class="keterangan">1 regu = 5 orang. Tekan + untuk menambah regu di
+    <section class="card" id="bagian-jumlah">
+      <h2><span class="section-number">3</span> Mendaftarkan berapa regu?</h2>
+      <p class="description">1 regu = 5 orang. Tekan + untuk menambah regu di
          golongan yang sesuai; kotak isian namanya muncul di bawah.</p>
       <div id="isi-stepper" style="margin-top:.9rem"></div>
-      <div class="kotak-total" id="kotak-total"></div>
-      <div class="galat" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
+      <div class="total-box" id="kotak-total"></div>
+      <div class="error" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
     </section>
 
     <!-- 4. Nama regu -->
-    <section class="kartu" id="bagian-regu">
-      <h2><span class="nomor-bagian">4</span> Nama tiap regu</h2>
+    <section class="card" id="bagian-regu">
+      <h2><span class="section-number">4</span> Nama tiap regu</h2>
       <div id="isi-regu"></div>
     </section>
 
     <!-- 5. Kontak -->
-    <section class="kartu" id="bagian-kontak">
-      <h2><span class="nomor-bagian">5</span> Nomor WhatsApp yang bisa dihubungi</h2>
-      <p class="keterangan">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
-      <div class="medan" style="margin-top:.7rem">
+    <section class="card" id="bagian-kontak">
+      <h2><span class="section-number">5</span> Nomor WhatsApp yang bisa dihubungi</h2>
+      <p class="description">Satu nomor untuk semua regu — panitia menghubungi lewat sini.</p>
+      <div class="field" style="margin-top:.7rem">
         <label for="wa" class="visually-hidden">Nomor WA</label>
         <input type="tel" id="wa" inputmode="numeric" placeholder="contoh: 08123456789">
-        <div class="galat" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08, bukan +62.</div>
+        <div class="error" id="g-wa" hidden>Isi nomor WA yang benar — diawali 08, bukan +62.</div>
       </div>
     </section>
 
     <div id="turnstile-kotak"></div>
     <div id="ringkas-galat"></div>
 
-    <div class="kirim-bar">
-      <div class="kirim-isi">
-        <div class="kirim-info" id="kirim-info"></div>
-        <button class="tombol tombol-utama" id="kirim" type="button">Kirim Pendaftaran</button>
+    <div class="send-bar">
+      <div class="send-content">
+        <div class="send-info" id="kirim-info"></div>
+        <button class="button button-primary" id="kirim" type="button">Kirim Pendaftaran</button>
       </div>
     </div>
   `));
@@ -134,8 +140,10 @@ function halaman() {
   gambarStepper();
   gambarRegu();
   document.getElementById("wa").value = jawab.kontak_wa;
+  cekWaLive();
   document.getElementById("wa").addEventListener("input", e => {
     jawab.kontak_wa = e.target.value; simpanDraf();
+    cekWaLive();
     if (sudahDiperiksa) periksa(false);
   });
 
@@ -150,12 +158,12 @@ function gambarSekolah() {
   const kotak = document.getElementById("isi-sekolah");
   if (jawab.sekolah) {
     kotak.replaceChildren(h(html`
-      <div class="kartu kartu-identitas" style="margin:0">
+      <div class="card card-identity" style="margin:0">
         <div class="nama">${jawab.sekolah.nama}</div>
         <div class="detail">📍 ${jawab.sekolah.alamat}</div>
       </div>`));
     kotak.appendChild(h(`
-      <button class="tombol tombol-kalem tombol-kecil" id="ganti-sekolah" type="button"
+      <button class="button button-secondary button-small" id="ganti-sekolah" type="button"
               style="margin-top:.6rem">Ganti sekolah</button>`));
     document.getElementById("ganti-sekolah").addEventListener("click", () => {
       jawab.sekolah = null; simpanDraf(); gambarSekolah();
@@ -164,15 +172,15 @@ function gambarSekolah() {
   }
 
   kotak.replaceChildren(h(`
-    <div class="medan" style="margin-bottom:.4rem">
+    <div class="field" style="margin-bottom:.4rem">
       <label for="cari">Ketik nama sekolahmu</label>
       <input type="text" id="cari" autocomplete="off" placeholder="contoh: SMPN 1 Ciamis">
-      <div class="bantuan">Kalau muncul di daftar, tinggal pilih. Kalau tidak ada,
+      <div class="hint">Kalau muncul di daftar, tinggal pilih. Kalau tidak ada,
          isi alamatnya sendiri.</div>
-      <div class="saran" id="saran" hidden></div>
+      <div class="suggestions" id="saran" hidden></div>
     </div>
     <div id="manual"></div>
-    <div class="galat" id="g-sekolah" hidden>Pilih atau isi sekolahmu dulu.</div>
+    <div class="error" id="g-sekolah" hidden>Pilih atau isi sekolahmu dulu.</div>
   `));
 
   const cari = document.getElementById("cari");
@@ -210,15 +218,15 @@ function gambarSekolah() {
     }
     if (document.getElementById("m-alamat")) return;    // sudah tergambar
     document.getElementById("manual").replaceChildren(h(`
-      <div class="kartu" style="margin:.6rem 0 0;border-color:var(--utama)">
+      <div class="card" style="margin:.6rem 0 0;border-color:var(--utama)">
         <p style="font-weight:700">Sekolahmu belum ada di daftar?</p>
-        <p class="keterangan">Isi alamatnya, lalu tekan Pakai sekolah ini.</p>
-        <div class="medan" style="margin-top:.6rem">
+        <p class="description">Isi alamatnya, lalu tekan Pakai sekolah ini.</p>
+        <div class="field" style="margin-top:.6rem">
           <label for="m-alamat">Alamat sekolah (jalan + kota)</label>
           <input type="text" id="m-alamat"
                  placeholder="contoh: Jl. Raya Banjar No. 2, Kota Banjar">
         </div>
-        <button class="tombol tombol-utama" id="pakai" type="button">Pakai sekolah ini</button>
+        <button class="button button-primary" id="pakai" type="button">Pakai sekolah ini</button>
       </div>`));
     document.getElementById("pakai").addEventListener("click", () => {
       const nama = cari.value.trim();
@@ -244,11 +252,11 @@ function gambarBarak() {
     const kotak = document.getElementById("isi-pendamping");
     if (ya) {
       kotak.replaceChildren(h(html`
-        <div class="medan" style="margin:0">
+        <div class="field" style="margin:0">
           <label for="n-pendamping">Berapa pendamping (pembina/guru) yang ikut menginap?</label>
           <input type="number" id="n-pendamping" min="0" max="30" inputmode="numeric"
                  value="${jawab.jumlah_pendamping}">
-          <div class="bantuan">Boleh 0 kalau belum tahu — bisa diubah saat daftar ulang.</div>
+          <div class="hint">Boleh 0 kalau belum tahu — bisa diubah saat daftar ulang.</div>
         </div>`));
       document.getElementById("n-pendamping").addEventListener("input", e => {
         jawab.jumlah_pendamping = Math.max(0, Number(e.target.value) || 0); simpanDraf();
@@ -270,10 +278,10 @@ function gambarBarak() {
 function gambarStepper() {
   document.getElementById("isi-stepper").replaceChildren(h(
     GOLONGAN.map(g => `
-      <div class="baris-stepper">
+      <div class="stepper-row">
         <div>
           <strong style="font-size:1.05rem">${g.label}</strong>
-          <div class="bantuan">${g.ket}</div>
+          <div class="hint">${g.ket}</div>
         </div>
         <div class="stepper">
           <button type="button" aria-label="kurangi ${g.label}" data-kurang="${g.kode}">−</button>
@@ -314,12 +322,12 @@ function perbaruiTotal() {
   const total = jawab.regu.length;
   document.getElementById("kotak-total").innerHTML = total
     ? html`<strong>Total: ${total} regu</strong>
-           <div class="keterangan">Biaya: ${total} × ${rupiah(EDISI.biaya_per_regu)}
+           <div class="description">Biaya: ${total} × ${rupiah(EDISI.biaya_per_regu)}
            = <strong>${rupiah(total * EDISI.biaya_per_regu)}</strong></div>`
-    : `<span class="keterangan">Belum ada regu yang ditambahkan.</span>`;
+    : `<span class="description">Belum ada regu yang ditambahkan.</span>`;
   document.getElementById("kirim-info").innerHTML = total
     ? html`${total} regu · ${rupiah(total * EDISI.biaya_per_regu)}`
-    : `<span class="keterangan">Belum ada regu</span>`;
+    : `<span class="description">Belum ada regu</span>`;
   if (sudahDiperiksa) periksa(false);
 }
 
@@ -328,35 +336,69 @@ function perbaruiTotal() {
 function gambarRegu() {
   const kotak = document.getElementById("isi-regu");
   if (!jawab.regu.length) {
-    kotak.replaceChildren(h(`<p class="keterangan">
+    kotak.replaceChildren(h(`<p class="description">
       Kotak isian nama muncul di sini setelah kamu menambah regu di bagian 3.</p>`));
     return;
   }
   kotak.replaceChildren(h(jawab.regu.map((r, i) => html`
-    <div class="kartu-regu" id="regu-${i}">
-      <span class="lencana lencana-hijau">Regu ${i + 1} — ${labelGolongan(r.golongan)}</span>
-      <div class="dua-kolom">
-        <div class="medan" style="margin:0">
+    <div class="regu-card" id="regu-${i}">
+      <span class="badge badge-green">Regu ${i + 1} — ${labelGolongan(r.golongan)}</span>
+      <div class="two-column">
+        <div class="field" style="margin:0">
           <label for="r-nama-${i}">Nama regu</label>
           <input type="text" id="r-nama-${i}" value="${r.nama_regu}" placeholder="contoh: Rajawali">
+          <div class="error" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
-        <div class="medan" style="margin:0">
+        <div class="field" style="margin:0">
           <label for="r-ketua-${i}">Nama ketua</label>
           <input type="text" id="r-ketua-${i}" value="${r.nama_ketua}" placeholder="contoh: Andi Saputra">
+          <div class="error" id="r-ketua-galat-${i}" hidden>Nama ketua wajib diisi.</div>
         </div>
       </div>
     </div>`).join("")));
 
+  // Warning SEKETIKA kalau nama regu/ketua kosong — tidak menunggu tombol
+  // Kirim ditekan dulu. Dua isian dicek bersama supaya kartu tidak salah
+  // dianggap lengkap hanya karena satu dari dua kotaknya sudah terisi.
+  const cekRegu = (i) => {
+    const inpNama = document.getElementById(`r-nama-${i}`);
+    const inpKetua = document.getElementById(`r-ketua-${i}`);
+    const namaKosong = !inpNama.value.trim();
+    const ketuaKosong = !inpKetua.value.trim();
+    inpNama.setAttribute("aria-invalid", String(namaKosong));
+    inpKetua.setAttribute("aria-invalid", String(ketuaKosong));
+    document.getElementById(`r-nama-galat-${i}`).hidden = !namaKosong;
+    document.getElementById(`r-ketua-galat-${i}`).hidden = !ketuaKosong;
+    document.getElementById(`regu-${i}`).classList.toggle("regu-card-error", namaKosong || ketuaKosong);
+  };
+
   jawab.regu.forEach((r, i) => {
     document.getElementById(`r-nama-${i}`).addEventListener("input", e => {
       r.nama_regu = e.target.value.trim(); simpanDraf();
+      cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
     document.getElementById(`r-ketua-${i}`).addEventListener("input", e => {
       r.nama_ketua = e.target.value.trim(); simpanDraf();
+      cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
+    cekRegu(i);   // baris baru (kosong) langsung tertandai, tanpa perlu disentuh dulu
   });
+}
+
+/* ---------------- 5. kontak WA: validasi live ---------------- */
+
+/** Warning SEKETIKA sambil mengetik nomor WA — tidak menunggu tombol Kirim
+ *  ditekan dulu. Kotak yang masih kosong (belum mulai diketik) tidak
+ *  ditandai galat; begitu ada isi, formatnya dicek ulang di tiap ketukan. */
+function cekWaLive() {
+  const wa = document.getElementById("wa");
+  const digitWa = wa.value.replace(/\D/g, "");
+  const kosong = digitWa.length === 0;
+  const sah = POLA_WA.test(digitWa);
+  wa.setAttribute("aria-invalid", String(!kosong && !sah));
+  document.getElementById("g-wa").hidden = kosong || sah;
 }
 
 /* ---------------- pemeriksaan: SEMUA galat sekaligus ---------------- */
@@ -379,15 +421,12 @@ function periksa(gulir = true) {
   jawab.regu.forEach((r, i) => {
     const kurang = !r.nama_regu || !r.nama_ketua;
     const el = document.getElementById(`regu-${i}`);
-    if (el) el.classList.toggle("kartu-regu-galat", kurang);
+    if (el) el.classList.toggle("regu-card-error", kurang);
     if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
   });
 
-  // Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan
-  // sengaja supaya panitia tidak perlu mikir dua format): 08, lalu kode
-  // operator (1-9, bukan 0), lalu 6-10 digit lagi.
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
-  const waSah = /^08[1-9][0-9]{6,10}$/.test(digitWa);
+  const waSah = POLA_WA.test(digitWa);
   if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
   tandai("g-wa", !waSah);
 
@@ -395,16 +434,16 @@ function periksa(gulir = true) {
   const ringkas = document.getElementById("ringkas-galat");
   if (!galat.length) { ringkas.replaceChildren(); return true; }
   ringkas.replaceChildren(h(`
-    <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+    <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
       <strong>Masih ada ${galat.length} isian yang perlu dilengkapi:</strong>
-      <ul class="daftar-galat">
+      <ul class="error-list">
         ${galat.map(g => html`<li><button type="button" data-ke="${g.ke}">${g.teks}</button></li>`).join("")}
       </ul>
     </div>`));
   ringkas.querySelectorAll("[data-ke]").forEach(b => b.addEventListener("click", () => {
     const t = document.getElementById(b.dataset.ke);
     t.scrollIntoView({ block: "center", behavior: "smooth" });
-    const inp = t.querySelector("input, button.pilihan");
+    const inp = t.querySelector("input, button.option");
     if (inp) setTimeout(() => inp.focus(), 350);
   }));
   if (gulir) ringkas.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -416,8 +455,8 @@ function periksa(gulir = true) {
 function pasangTurnstile() {
   if (!(window.HRCD.mode === "supabase" && window.HRCD.turnstileSiteKey)) return;
   document.getElementById("turnstile-kotak").replaceChildren(h(`
-    <div class="kartu"><div id="turnstile"></div>
-      <p class="keterangan">Centang kotak di atas dulu (bukti kamu bukan robot).</p></div>`));
+    <div class="card"><div id="turnstile"></div>
+      <p class="description">Centang kotak di atas dulu (bukti kamu bukan robot).</p></div>`));
   document.getElementById("kirim").disabled = true;
   const pasang = () => window.turnstile.render("#turnstile", {
     sitekey: window.HRCD.turnstileSiteKey,
@@ -458,10 +497,10 @@ async function kirim(e) {
   } catch (err) {
     btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Kirim Pendaftaran";
     document.getElementById("ringkas-galat").replaceChildren(h(html`
-      <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+      <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
         <strong>Belum terkirim.</strong>
         ${err instanceof ErrorApi ? err.message : "Coba lagi ya."}
-        <div class="keterangan" style="margin-top:.3rem">Isianmu tersimpan — tekan
+        <div class="description" style="margin-top:.3rem">Isianmu tersimpan — tekan
           "Kirim Pendaftaran" sekali lagi.</div>
       </div>`));
     document.getElementById("ringkas-galat").scrollIntoView({ block: "center", behavior: "smooth" });
@@ -472,23 +511,23 @@ async function kirim(e) {
 
 function sukses(hasil) {
   LAYAR.replaceChildren(h(html`
-    <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
+    <div class="card" style="border-color:var(--hijau);background:var(--hijau-muda)">
       <h2>✅ Pendaftaran diterima!</h2>
       <p>Ini <strong>kode pembayaran</strong>-mu. Simpan baik-baik — kode ini dipakai
          saat membayar dan saat daftar ulang.</p>
-      <div class="angka-raksasa" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
-      <button class="tombol tombol-kalem" id="salin" type="button">📋 Salin kode</button>
+      <div class="giant-number" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
+      <button class="button button-secondary" id="salin" type="button">📋 Salin kode</button>
     </div>
-    <div class="kartu">
+    <div class="card">
       <h2 style="font-size:1.1rem">Cara membayar</h2>
       <p style="margin-top:.4rem">Transfer <strong>${rupiah(hasil.total_tagihan)}</strong>
          ke rekening panitia (tertera di poster/brosur), tulis kode
          <strong>${hasil.kode_pembayaran}</strong> di berita transfer —
          atau bayar tunai di meja pendaftaran.</p>
-      <p class="keterangan" style="margin-top:.6rem">Setelah panitia memeriksa
+      <p class="description" style="margin-top:.6rem">Setelah panitia memeriksa
          pembayaran, semua regumu (${hasil.jumlah_regu} regu) resmi terdaftar.</p>
     </div>
-    <a class="tombol tombol-utama" style="text-decoration:none"
+    <a class="button button-primary" style="text-decoration:none"
        href="https://wa.me/?text=${encodeURIComponent(
          `Kode pembayaran HRCD: ${hasil.kode_pembayaran} (${hasil.jumlah_regu} regu, total ${rupiah(hasil.total_tagihan)})`)}">
        Kirim kode ke WhatsApp
@@ -523,13 +562,13 @@ async function mulai() {
 
   if (hasilLama && !draf) {
     LAYAR.replaceChildren(h(html`
-      <div class="kartu" style="border-color:var(--hijau);background:var(--hijau-muda)">
+      <div class="card" style="border-color:var(--hijau);background:var(--hijau-muda)">
         <h2>Pendaftaran terakhirmu</h2>
         <p>Kode pembayaran:</p>
-        <div class="angka-raksasa" style="margin:.6rem 0">${hasilLama.kode_pembayaran}</div>
-        <p class="keterangan">${hasilLama.jumlah_regu} regu · ${rupiah(hasilLama.total_tagihan)}</p>
+        <div class="giant-number" style="margin:.6rem 0">${hasilLama.kode_pembayaran}</div>
+        <p class="description">${hasilLama.jumlah_regu} regu · ${rupiah(hasilLama.total_tagihan)}</p>
       </div>
-      <button class="tombol tombol-kalem" id="baru" type="button">Daftarkan sekolah lain</button>`));
+      <button class="button button-secondary" id="baru" type="button">Daftarkan sekolah lain</button>`));
     document.getElementById("baru").addEventListener("click", () => {
       try { localStorage.removeItem(KUNCI_HASIL); } catch {}
       sessionStorage.removeItem("hrcd_selesai");

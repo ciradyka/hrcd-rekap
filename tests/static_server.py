@@ -1,8 +1,8 @@
 # ============================================================================
-# hrcd-rekap : tests/layar_server.py — server statis untuk web/ saat mengembang.
+# hrcd-rekap : tests/static_server.py — server statis untuk web/ saat mengembang.
 #
 # Bukan sekadar `python -m http.server`: server itu mengizinkan browser
-# menyimpan cache, dan selama pengujian kami sempat melihat gaya.css serta
+# menyimpan cache, dan selama pengujian kami sempat melihat style.css serta
 # app.js versi LAMA disajikan sehingga perbaikan tidak terlihat sama sekali.
 # Di sini semua respons dikirim dengan no-store, jadi apa yang tampil di layar
 # selalu isi file yang barusan disimpan.
@@ -10,7 +10,7 @@
 # (Untuk produksi, aturan setaranya ada di web/_headers — Cloudflare Pages.)
 #
 # Jalankan:
-#   python tests/layar_server.py          # http://127.0.0.1:8788
+#   python tests/static_server.py          # http://127.0.0.1:8788
 # ============================================================================
 
 import functools

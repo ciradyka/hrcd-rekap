@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================================
-# hrcd-rekap : tests/dev_db.sh — siapkan database hrcd_dev untuk dev server.
+# hrcd-rekap : tests/dev_database.sh — siapkan database hrcd_dev untuk dev server.
 # Sama seperti run.sh tapi TANPA data tes 02/03 — database bersih berisi
 # konfigurasi edisi + akun uji, siap dipakai layar.
-#   PSQL=/path/ke/psql PGPASSWORD=... bash tests/dev_db.sh
+#   PSQL=/path/ke/psql PGPASSWORD=... bash tests/dev_database.sh
 # ============================================================================
 set -euo pipefail
 

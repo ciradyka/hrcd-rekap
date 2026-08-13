@@ -56,6 +56,10 @@ export function pesanRamah(m) {
     return "Daftar ulang sudah ditutup panitia. Hubungi admin.";
   if (/permission denied|insufficient/i.test(t))
     return "Akun ini tidak berhak melakukan itu. Pakai akun yang sesuai.";
+  if (/password.*(should be different|new password should be different)/i.test(t))
+    return "Password baru harus beda dari password lama.";
+  if (/password.*(at least|too short|should contain|characters)/i.test(t))
+    return "Password baru terlalu pendek atau terlalu sederhana. Coba yang lain.";
   if (/cannot read propert|undefined is not|null is not/i.test(t))
     return "Layar gagal memuat data acara. Muat ulang halaman, lalu coba lagi.";
   return t.replace(/^.*?(ERROR|error):\s*/, "");
@@ -168,6 +172,26 @@ export async function masuk(username, password) {
   }
   simpanSesi(s);
   return s;
+}
+
+/** Panitia mengganti PASSWORD AKUN SENDIRI — bukan admin mengganti punya
+ *  orang lain (itu jalurnya scripts/ganti_password.py + service_role, dari
+ *  luar aplikasi). Ini murni self-service: pakai token sesi yang sedang
+ *  login, lewat endpoint bawaan GoTrue yang memang mengizinkan pengguna
+ *  mengubah datanya sendiri — tidak perlu service_role sama sekali. */
+export async function gantiPasswordSendiri(passwordBaru) {
+  if (K.mode === "dev") {
+    // Dev server tidak menyimpan password sungguhan (README: "password
+    // bebas di dev") — tidak ada yang perlu ditimpa, cukup berhasil supaya
+    // alur layarnya bisa dicoba.
+    return { ok: true };
+  }
+  await pastikanSesiSegar();
+  return kirim(`${K.supabaseUrl}/auth/v1/user`, {
+    method: "PUT",
+    headers: kepalaSupabase(),
+    body: JSON.stringify({ password: passwordBaru }),
+  });
 }
 
 /* ============================ FORM PUBLIK ================================ */

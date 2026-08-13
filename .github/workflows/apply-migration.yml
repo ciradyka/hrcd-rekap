@@ -1,0 +1,76 @@
+# ============================================================================
+# hrcd-rekap : apply-migration.yml — jalankan SATU berkas migrasi ke Supabase.
+#
+# SENGAJA manual (workflow_dispatch), TIDAK otomatis saat push/merge. Alasannya
+# tegas: ini satu-satunya jalur otomatis yang menyentuh database produksi, dan
+# migrasi yang keliru di sini merusak data yang tidak bisa dikembalikan lewat
+# git revert. Merge yang salah tidak boleh diam-diam mengubah produksi —
+# harus selalu ada manusia yang menekan tombolnya.
+#
+# CARA PAKAI (bisa dari HP):
+#   1. Repo -> tab Actions -> "Terapkan migrasi ke Supabase" -> Run workflow.
+#   2. Isi "berkas" dengan path lengkap, misalnya:
+#        supabase/migrations/0011_nomor_dada_manual.sql
+#   3. Run workflow, lalu buka log-nya untuk memastikan "MIGRASI BERHASIL".
+#
+# URUTAN YANG BENAR saat migrasi mengubah bentuk RPC (mis. 0011 mengganti
+# daftar_ulang_batch jadi dua argumen): terapkan migrasi DULU, lalu segera
+# merge PR kodenya. Di antara keduanya ada jeda singkat di mana layar yang
+# memanggil RPC lama akan gagal — lakukan berurutan cepat, jangan ditinggal.
+#
+# Butuh secret SUPABASE_DB_URL: connection string Postgres (Session pooler,
+# port 5432 — BUKAN Direct connection yang IPv6-only dan tak terjangkau
+# runner GitHub, bukan pula transaction pooler 6543 yang menolak sebagian DDL).
+# ============================================================================
+
+name: Apply migration to Supabase
+
+on:
+  workflow_dispatch:
+    inputs:
+      berkas:
+        description: >-
+          Path berkas migrasi, mis. supabase/migrations/0011_nomor_dada_manual.sql
+        required: true
+        type: string
+
+jobs:
+  terapkan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Periksa berkasnya ada
+        # Lewat env var, BUKAN interpolasi ${{ }} langsung ke shell — input
+        # workflow_dispatch adalah teks bebas (lihat catatan sama di
+        # provision-accounts.yml).
+        env:
+          BERKAS: ${{ inputs.berkas }}
+        run: |
+          if [ ! -f "$BERKAS" ]; then
+            echo "Berkas tidak ditemukan: $BERKAS"
+            echo "Migrasi yang tersedia:"
+            ls -1 supabase/migrations/
+            exit 1
+          fi
+          echo "Akan menerapkan: $BERKAS"
+          echo "--- isi berkas ---"
+          cat "$BERKAS"
+
+      - name: Terapkan ke Supabase
+        env:
+          BERKAS: ${{ inputs.berkas }}
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "Secret SUPABASE_DB_URL belum diisi."
+            exit 1
+          fi
+          # --single-transaction: kalau ada satu statement yang gagal, SELURUH
+          # berkas di-rollback. Tidak ada bentuk "migrasi setengah jadi".
+          # ON_ERROR_STOP: psql berhenti di galat pertama, bukan lanjut diam-diam.
+          psql "$DB_URL" \
+            --single-transaction \
+            -v ON_ERROR_STOP=1 \
+            -f "$BERKAS"
+          echo "MIGRASI BERHASIL: $BERKAS"

@@ -9,7 +9,7 @@
    ========================================================================== */
 
 import {
-  sesi, masuk, keluar, ErrorApi,
+  sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
   infoEdisi, ringkasanMeja, daftarPendaftaran,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor, ubahPendamping,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
@@ -35,7 +35,7 @@ function pasangKepala(judul, lebar = false) {
   const s = sesi();
   document.getElementById("kepala").hidden = !s;
   document.getElementById("judul-layar").textContent = judul;
-  LAYAR.classList.toggle("lebar", lebar);
+  LAYAR.classList.toggle("wide", lebar);
   if (s) document.getElementById("siapa").textContent =
     `${s.username} · ${EDISI ? EDISI.nama : ""}`;
 }
@@ -47,15 +47,15 @@ const jamSekarangHHMM = () => {
 };
 
 const kartuGalat = (pesan) => html`
-  <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+  <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
     <strong>${pesan}</strong></div>`;
 
 function barisTerakhirHtml(fungsi) {
   const daftar = terakhir[fungsi] || [];
   if (!daftar.length) return "";
-  return `<div class="kartu">
+  return `<div class="card">
     <h2 style="font-size:1rem;color:var(--tinta-lembut)">Baru saja di meja ini</h2>
-    <table class="tabel">${daftar.slice(0, 8).map(b => html`
+    <table class="table">${daftar.slice(0, 8).map(b => html`
       <tr><td>${b.jam}</td><td><strong>${b.apa}</strong></td><td>${b.detail}</td></tr>`).join("")}
     </table></div>`;
 }
@@ -68,20 +68,20 @@ function catatTerakhir(fungsi, apa, detail) {
 function layarLogin(pesan) {
   pasangKepala("HRCD Rekap");
   LAYAR.replaceChildren(h(`
-    <div class="kartu" style="max-width:480px;margin:2rem auto">
+    <div class="card" style="max-width:480px;margin:2rem auto">
       <h2>Masuk Panitia</h2>
-      <p class="keterangan">Pakai akun yang dibagikan koordinatormu.</p>
-      ${pesan ? `<div class="galat" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
-      <div class="medan" style="margin-top:1rem">
+      <p class="description">Pakai akun yang dibagikan koordinatormu.</p>
+      ${pesan ? `<div class="error" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
+      <div class="field" style="margin-top:1rem">
         <label for="u">Username</label>
         <input type="text" id="u" autocomplete="username" autocapitalize="none"
                spellcheck="false">
       </div>
-      <div class="medan">
+      <div class="field">
         <label for="p">Password</label>
         <input type="password" id="p" autocomplete="current-password">
       </div>
-      <button class="tombol tombol-utama" id="masuk" type="button">Masuk</button>
+      <button class="button button-primary" id="masuk" type="button">Masuk</button>
     </div>
   `));
   const u = document.getElementById("u");
@@ -92,7 +92,7 @@ function layarLogin(pesan) {
     try {
       await masuk(u.value.trim(), document.getElementById("p").value);
       EDISI = null;
-      location.hash = "#/beranda";
+      location.hash = "#/home";
       arahkan();
     } catch (e) {
       layarLogin(e instanceof ErrorApi ? e.message : "Username atau password salah.");
@@ -103,9 +103,9 @@ function layarLogin(pesan) {
     i.addEventListener("keydown", e => { if (e.key === "Enter") aksi(); }));
 }
 
-/* ============================ BERANDA MEJA =============================== */
+/* ============================ BERANDA MEJA (home) ========================= */
 
-async function layarBeranda() {
+async function layarHome() {
   pasangKepala("Beranda Meja");
   const peran = sesi().peran;
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
@@ -114,9 +114,9 @@ async function layarBeranda() {
   // datanya dan itu tampak seperti "tidak ada antrean" (temuan review).
   if (peran === "operator_pos") {
     LAYAR.replaceChildren(h(html`
-      <div class="kartu">
+      <div class="card">
         <h2>Akun pos, bukan akun meja</h2>
-        <p class="keterangan">Akun ${sesi().username} dipakai untuk input nilai di
+        <p class="description">Akun ${sesi().username} dipakai untuk input nilai di
            Pos ${sesi().pos}. Layar meja belum bisa dibuka dengan akun ini.</p>
       </div>`));
     return;
@@ -125,44 +125,106 @@ async function layarBeranda() {
   let r = null, galat = null;
   try { r = await ringkasanMeja(); } catch (e) { galat = e.message; }
   const lencana = (n) => n === null
-    ? `<span class="lencana lencana-abu" title="jumlah antrean tidak terbaca">?</span>`
-    : `<span class="lencana ${n > 0 ? "lencana-kuning" : "lencana-hijau"}">${n}</span>`;
+    ? `<span class="badge badge-gray" title="jumlah antrean tidak terbaca">?</span>`
+    : `<span class="badge ${n > 0 ? "badge-yellow" : "badge-green"}">${n}</span>`;
 
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
-    <div class="menu-fungsi">
-      <a href="#/pendaftaran-offline">
-        <div class="nama-fungsi">📝 Pendaftaran</div>
-        <div class="ket">Buka form pendaftaran — link sama untuk online maupun diisikan langsung</div>
+    <div class="function-menu">
+      <a href="daftar.html" target="_blank" rel="noopener">
+        <div class="function-name">📝 Pendaftaran</div>
+        <div class="description">Buka form pendaftaran — diisikan langsung, tab baru supaya meja ini tetap terbuka</div>
       </a>
       <a href="#/pembayaran">
-        <div class="nama-fungsi">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
-        <div class="ket">Periksa transfer/tunai, tandai lunas, cetak kwitansi</div>
+        <div class="function-name">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
+        <div class="description">Periksa transfer/tunai, tandai lunas, cetak kwitansi</div>
       </a>
       <a href="#/daftar-ulang">
-        <div class="nama-fungsi">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
-        <div class="ket">Berikan nomor dada untuk sekolah yang sudah lunas</div>
+        <div class="function-name">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
+        <div class="description">Berikan nomor dada untuk sekolah yang sudah lunas</div>
       </a>
       <a href="#/cetak-kloter">
-        <div class="nama-fungsi">🖨️ Cetak Daftar Kloter</div>
-        <div class="ket">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
+        <div class="function-name">🖨️ Cetak Daftar Kloter</div>
+        <div class="description">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
       </a>
       <a href="#/keberangkatan">
-        <div class="nama-fungsi">🚩 Keberangkatan</div>
-        <div class="ket">Ceklis regu yang hadir, pilih kontrak waktu, catat jam berangkat</div>
+        <div class="function-name">🚩 Keberangkatan</div>
+        <div class="description">Ceklis regu yang hadir, pilih kontrak waktu, catat jam berangkat</div>
       </a>
       <a href="#/finish">
-        <div class="nama-fungsi">🏁 Meja Finish</div>
-        <div class="ket">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
+        <div class="function-name">🏁 Meja Finish</div>
+        <div class="description">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
       <a href="#/pindah-kloter">
-        <div class="nama-fungsi">🔀 Pindah Kloter</div>
-        <div class="ket">Peserta telat atau urgent — pindahkan nomor dada ke kloter lain</div>
+        <div class="function-name">🔀 Pindah Kloter</div>
+        <div class="description">Peserta telat atau urgent — pindahkan nomor dada ke kloter lain</div>
       </a>
     </div>
-    <p class="keterangan" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
+    <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
        Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
   `));
+}
+
+/* ============================ GANTI PASSWORD ============================= */
+
+// Kode konfirmasi TETAP, sengaja tidak ditulis di label atau pesan galat —
+// panitia tahu kodenya dari koordinator, bukan dari layar ini. Tapi ini
+// TETAP BUKAN pemeriksaan identitas sungguhan: nilainya sama untuk semua
+// orang, dan ada apa adanya di berkas JS ini — siapa pun yang membuka
+// devtools browser bisa membacanya. Identitas yang sungguhan diperiksa
+// sudah dibuktikan lewat sesi login yang sedang aktif; kode ini cuma jeda
+// sadar sebelum ganti password benar-benar terjadi, karena HP panitia
+// sering berpindah tangan sebentar di lapangan.
+const KODE_KONFIRMASI_PASSWORD = "ABCD";
+
+function layarGantiPassword() {
+  pasangKepala("Ganti Password");
+  LAYAR.replaceChildren(h(`
+    <div class="card" style="max-width:480px;margin:0 auto">
+      <h2>Ganti Password Akun Sendiri</h2>
+      <p class="description">Berlaku untuk akun yang sedang login sekarang:
+         <strong>${esc(sesi().username)}</strong>.</p>
+      <div class="field">
+        <label for="gp-baru">Password baru</label>
+        <input type="password" id="gp-baru" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="gp-kode">Kode Konfirmasi</label>
+        <input type="password" id="gp-kode" autocomplete="off">
+      </div>
+      <div class="error" id="gp-galat" hidden></div>
+      <button class="button button-primary" id="gp-simpan" type="button">Simpan Password Baru</button>
+    </div>
+  `));
+
+  const baru = document.getElementById("gp-baru");
+  const kode = document.getElementById("gp-kode");
+  const galat = document.getElementById("gp-galat");
+  const btn = document.getElementById("gp-simpan");
+
+  btn.addEventListener("click", async () => {
+    galat.hidden = true;
+    if (!baru.value || baru.value.length < 6) {
+      galat.textContent = "Password baru minimal 6 karakter.";
+      galat.hidden = false; baru.focus(); return;
+    }
+    if (kode.value.trim() !== KODE_KONFIRMASI_PASSWORD) {
+      galat.textContent = "Kode konfirmasi salah. Tanyakan koordinator kalau lupa.";
+      galat.hidden = false; kode.focus(); return;
+    }
+    if (btn.dataset.jalan === "1") return;
+    btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      await gantiPasswordSendiri(baru.value);
+      notif("Password berhasil diganti. Dipakai mulai login berikutnya.");
+      baru.value = ""; kode.value = "";
+    } catch (err) {
+      galat.textContent = err.message; galat.hidden = false;
+    } finally {
+      btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Simpan Password Baru";
+    }
+  });
+  baru.focus();
 }
 
 /* ============================ ALAT TABEL ================================= */
@@ -173,18 +235,18 @@ async function layarBeranda() {
  *  seperti aplikasi macet. */
 function alatTabel({ saringan, saringAktif, jumlah }) {
   return `
-    <div class="tabel-alat">
-      <div class="medan" style="margin:0;flex:1;min-width:220px">
+    <div class="table-toolbar">
+      <div class="field" style="margin:0;flex:1;min-width:220px">
         <label for="cari-tabel" class="visually-hidden">Cari</label>
         <input type="text" id="cari-tabel" autocomplete="off"
                placeholder="Cari kode, sekolah, atau nama regu…">
       </div>
-      <div class="saring-baris">
+      <div class="filter-row">
         ${saringan.map(s => `
-          <button type="button" class="pilihan pilihan-kecil" data-saring="${esc(s.kode)}"
+          <button type="button" class="option option-small" data-saring="${esc(s.kode)}"
                   aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
       </div>
-      <span class="tabel-jumlah" id="tabel-jumlah">${jumlah} baris</span>
+      <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
     </div>`;
 }
 
@@ -241,17 +303,12 @@ async function layarPembayaran() {
   // datang belakangan TIDAK boleh menimpa layar yang sedang dibuka sekarang.
   if (location.hash !== layarIni) return;
 
-  // Invoice yang dicentang untuk dilunasi sekaligus. Hidup di luar gambar()
-  // supaya centangnya TIDAK hilang saat operator mengetik di kotak cari atau
-  // berpindah saringan — mengulang centang 8 invoice karena salah ketik satu
-  // huruf adalah cara tercepat membuat meja berhenti memakai fitur ini.
-  const dipilih = new Set();
   // Invoice yang barisan detail regunya sedang dibuka. Ikut disimpan supaya
   // detail tidak menutup sendiri setiap kali tabel digambar ulang.
   const dibuka = new Set();
 
   LAYAR.replaceChildren(h(`
-    <div class="kartu">
+    <div class="card">
       ${alatTabel({
         saringan: [
           { kode: "belum", label: "Belum bayar" },
@@ -261,61 +318,23 @@ async function layarPembayaran() {
         saringAktif: "belum",
         jumlah: semua.length,
       })}
-      <div class="tabel-bungkus">
-        <table class="tabel tabel-data">
+      <div class="table-wrapper">
+        <table class="table data-table">
           <thead>
             <tr>
-              <th>Kode</th><th>Sekolah</th><th class="rata-tengah">Regu</th>
-              <th class="rata-kanan">Tagihan</th><th>Status / Aksi</th>
+              <th>Kode</th><th>Sekolah</th><th class="text-center">Regu</th>
+              <th class="text-right">Tagihan</th><th>Status / Aksi</th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
         </table>
       </div>
-      <div class="bilah-massal" id="bilah-massal" hidden>
-        <span class="bilah-ringkas" id="bilah-ringkas"></span>
-        <select class="pilih-kecil" id="bilah-metode" aria-label="Cara bayar">
-          <option value="tunai" selected>Tunai</option>
-          <option value="transfer">Transfer</option>
-        </select>
-        <button class="tombol tombol-utama tombol-kecil" id="bilah-lunas" type="button">
-          Tandai Lunas</button>
-        <button class="tombol tombol-kalem tombol-kecil" id="bilah-bersih" type="button">
-          Bersihkan</button>
-      </div>
     </div>
     ${barisTerakhirHtml("pembayaran")}
   `));
 
-  /** Ringkasan invoice yang dicentang. Sekalian membuang yang sudah tidak
-   *  menunggu pembayaran lagi — mis. baru saja dilunasi satuan lewat tombol
-   *  di barisnya — supaya bilah tidak pernah menghitung yang sudah selesai. */
-  const ringkasPilihan = () => {
-    let invoice = 0, regu = 0, total = 0;
-    for (const kode of [...dipilih]) {
-      const b = semua.find(x => x.kode_pembayaran === kode);
-      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
-      const n = reguAktif(b).length;
-      invoice += 1;
-      regu += n;
-      total += n * EDISI.biaya_per_regu;
-    }
-    return { invoice, regu, total };
-  };
-
-  const perbaruiBilah = () => {
-    const { invoice, regu, total } = ringkasPilihan();
-    const bilah = document.getElementById("bilah-massal");
-    bilah.hidden = invoice === 0;
-    if (!invoice) return;
-    document.getElementById("bilah-ringkas").textContent =
-      `${invoice} invoice · ${regu} regu · ${rupiah(total)}`;
-    document.getElementById("bilah-lunas").textContent = `Tandai Lunas (${invoice})`;
-  };
-
-  // Kotak cari dan saringan dipegang pasangAlatTabel; bilah massal berada di
-  // luar tbody sehingga perlu jalan untuk menggambar ulang dengan saringan
-  // yang sedang aktif — tanpa memasang ulang listener-nya tiap kali.
+  // Kotak cari dan saringan dipegang pasangAlatTabel — jalan ulang menyimpan
+  // saringan yang sedang aktif tanpa memasang ulang listener-nya tiap kali.
   let cariKini = "", saringKini = "belum";
   const gambarUlang = () => gambar(cariKini, saringKini);
 
@@ -333,9 +352,8 @@ async function layarPembayaran() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
+      tbody.replaceChildren(h(`<tr><td colspan="5" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
-      perbaruiBilah();
       return;
     }
 
@@ -347,20 +365,20 @@ async function layarPembayaran() {
       // "Transfer" dulu. Salah tandai dibereskan lewat "Batalkan", bukan
       // dicegah dengan ketukan tambahan untuk semua orang.
       const aksi = b.status === "lunas"
-        ? html`<span class="lencana lencana-hijau">LUNAS</span>
+        ? html`<span class="badge badge-green">LUNAS</span>
                <span class="kwitansi">${b.pembayaran ? b.pembayaran.nomor_kwitansi : ""}</span>
-               <button class="tombol tombol-utama tombol-mini" type="button"
+               <button class="button button-primary button-mini" type="button"
                        data-cetak="${b.kode_pembayaran}">Cetak Kwitansi</button>
-               <button class="tombol tombol-kalem tombol-mini" type="button"
+               <button class="button button-secondary button-mini" type="button"
                        data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>`
         : b.status === "batal"
-          ? `<span class="lencana lencana-merah">BATAL</span>`
-          : `<div class="aksi-baris">
-               <select class="pilih-kecil" data-metode="${esc(b.kode_pembayaran)}">
+          ? `<span class="badge badge-red">BATAL</span>`
+          : `<div class="action-row">
+               <select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
                  <option value="tunai" selected>Tunai</option>
                  <option value="transfer">Transfer</option>
                </select>
-               <button class="tombol tombol-utama tombol-kecil" type="button"
+               <button class="button button-primary button-small" type="button"
                        data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>
              </div>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
@@ -369,45 +387,32 @@ async function layarPembayaran() {
       // saat sekolah menyerahkan uang, dan itu juga yang dicetak di kwitansi.
       const kode = esc(b.kode_pembayaran);
       const sekolah = esc(b.sekolah?.nama || "—");
-      // Nomor invoice dibungkus <label> bersama kotak centangnya: mengetuk
-      // NOMORNYA sama dengan mengetuk centang — perilaku bawaan browser,
-      // tanpa kode klik sendiri. Hanya yang belum bayar bisa dicentang; yang
-      // sudah lunas tidak punya apa pun lagi untuk diproses massal.
-      const bisaDipilih = b.status === "menunggu_pembayaran" && aktif.length > 0;
-      const kodeHtml = bisaDipilih
-        ? `<label class="pilih-invoice">
-             <input type="checkbox" class="ceklis" data-pilih="${kode}"
-                    ${dipilih.has(b.kode_pembayaran) ? "checked" : ""}>
-             <span>${kode}</span>
-           </label>`
-        : kode;
       const terbuka = dibuka.has(b.kode_pembayaran);
 
       // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
       // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
       return `
-        <tr class="baris-invoice${dipilih.has(b.kode_pembayaran) ? " terpilih" : ""}"
-            data-baris="${kode}">
-          <td class="mono">${kodeHtml}</td>
+        <tr class="invoice-row" data-baris="${kode}">
+          <td class="mono">${kode}</td>
           <td>
             <strong>${sekolah}</strong>
             ${aktif.length
-              ? `<div><button class="tombol-detail" type="button" data-detail="${kode}"
+              ? `<div><button class="button-detail" type="button" data-detail="${kode}"
                              data-jumlah="${aktif.length}" aria-expanded="${terbuka}">
                    ${terbuka ? "▾" : "▸"} ${aktif.length} regu</button></div>`
               : `<div class="sub">semua regu batal</div>`}
           </td>
-          <td class="rata-tengah">${aktif.length}</td>
-          <td class="rata-kanan">${esc(rupiah(tagihan))}</td>
+          <td class="text-center">${aktif.length}</td>
+          <td class="text-right">${esc(rupiah(tagihan))}</td>
           <td>${aksi}</td>
         </tr>
         ${!aktif.length ? "" : `
-        <tr class="baris-detail" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
+        <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
           <td colspan="5">
-            <table class="tabel-detail">
+            <table class="detail-table">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Sekolah</th>
-                    <th class="rata-kanan">Biaya</th></tr>
+                    <th class="text-right">Biaya</th></tr>
               </thead>
               <tbody>
                 ${aktif.map(r => `
@@ -416,7 +421,7 @@ async function layarPembayaran() {
                     <td>${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
                     <td>${esc(r.nama_ketua)}</td>
                     <td>${sekolah}</td>
-                    <td class="rata-kanan">${esc(rupiah(EDISI.biaya_per_regu))}</td>
+                    <td class="text-right">${esc(rupiah(EDISI.biaya_per_regu))}</td>
                   </tr>`).join("")}
               </tbody>
             </table>
@@ -436,15 +441,6 @@ async function layarPembayaran() {
         btn.textContent = `${buka ? "▾" : "▸"} ${btn.dataset.jumlah} regu`;
       }));
 
-    // Centang invoice untuk pelunasan massal.
-    tbody.querySelectorAll("[data-pilih]").forEach(kotak =>
-      kotak.addEventListener("change", () => {
-        const kode = kotak.dataset.pilih;
-        if (kotak.checked) dipilih.add(kode); else dipilih.delete(kode);
-        kotak.closest("tr").classList.toggle("terpilih", kotak.checked);
-        perbaruiBilah();
-      }));
-
     tbody.querySelectorAll("[data-cetak]").forEach(btn =>
       btn.addEventListener("click", () => {
         const b = semua.find(x => x.kode_pembayaran === btn.dataset.cetak);
@@ -459,7 +455,7 @@ async function layarPembayaran() {
         const b = semua.find(x => x.kode_pembayaran === kode);
         const jawab = await dialog({
           judul: "Batalkan verifikasi pembayaran",
-          kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
+          kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">${b.sekolah?.nama || kode}</div>
             <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
           </div>`,
@@ -498,7 +494,6 @@ async function layarPembayaran() {
         // Sumber data lokal ikut diperbarui supaya saringan & baris lain
         // tetap konsisten tanpa memuat ulang seluruh tabel.
         tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
-        dipilih.delete(kode);
         notif(`${b.sekolah?.nama || kode} LUNAS — kwitansi ${r.nomor_kwitansi}`);
         gambarUlang();
 
@@ -507,7 +502,7 @@ async function layarPembayaran() {
         // tombol "Cetak Kwitansi" tetap ada di barisnya.
         const cetak = await dialog({
           judul: "Lunas — cetak kwitansi?",
-          kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
+          kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">${r.nomor_kwitansi}</div>
             <div class="detail">${b.sekolah?.nama || kode} · ${kode} ·
               ${aktif.length} regu · ${rupiah(tagihan)}</div>
@@ -516,64 +511,7 @@ async function layarPembayaran() {
         });
         if (cetak) cetakKwitansi([b]);
       }));
-
-    perbaruiBilah();
   };
-
-  /* --------- pelunasan massal: beberapa invoice sekaligus --------- */
-
-  document.getElementById("bilah-bersih").addEventListener("click", () => {
-    dipilih.clear();
-    gambarUlang();
-  });
-
-  document.getElementById("bilah-lunas").addEventListener("click", async () => {
-    const btn = document.getElementById("bilah-lunas");
-    const metode = document.getElementById("bilah-metode").value;
-    const { invoice, regu, total } = ringkasPilihan();
-    if (!invoice) return;
-
-    // Satu-satunya dialog konfirmasi di layar ini, dan memang untuk commit
-    // massal (rancangan-b.md 10.1.10). Kwitansinya menyusul otomatis setelah
-    // ini supaya tidak jadi dialog kedua.
-    const jawab = await dialog({
-      judul: `Tandai lunas ${invoice} invoice`,
-      kartuHtml: html`<div class="kartu kartu-identitas" style="margin-bottom:.8rem">
-        <div class="nama">${rupiah(total)}</div>
-        <div class="detail">${invoice} invoice · ${regu} regu · ${metode}</div>
-        <div class="detail">Kwitansinya langsung disiapkan untuk dicetak.</div>
-      </div>`,
-      labelAksi: "Tandai Lunas",
-    });
-    if (!jawab) return;
-
-    btn.disabled = true;
-    const berhasil = [];
-    const gagal = [];
-    // Berurutan, bukan serentak: RPC-nya per invoice, dan bila satu tertolak
-    // (mis. sudah dibayar meja lain) sisanya harus tetap jalan — kegagalan
-    // disebut satu per satu, tidak ditelan diam-diam (rancangan-b.md 10.1.11).
-    for (const kode of [...dipilih]) {
-      const b = semua.find(x => x.kode_pembayaran === kode);
-      if (!b || b.status !== "menunggu_pembayaran") { dipilih.delete(kode); continue; }
-      const tagihan = reguAktif(b).length * EDISI.biaya_per_regu;
-      btn.textContent = `Menyimpan ${berhasil.length + gagal.length + 1}/${invoice}…`;
-      try {
-        const r = await verifikasiPembayaran(kode, tagihan, metode);
-        tandaiLunasLokal(b, tagihan, metode, r.nomor_kwitansi);
-        dipilih.delete(kode);
-        berhasil.push(b);
-      } catch (err) {
-        gagal.push(`${kode}: ${err.message}`);
-      }
-    }
-    btn.disabled = false;
-    gambarUlang();
-
-    if (berhasil.length) notif(`${berhasil.length} invoice ditandai LUNAS.`);
-    if (gagal.length) notif(`${gagal.length} gagal — ${gagal.join(" · ")}`, true);
-    if (berhasil.length) cetakKwitansi(berhasil);
-  });
 
   pasangAlatTabel(gambar);
 }
@@ -594,7 +532,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
  *  dibayar di dalamnya. Sekolah membayar sekaligus, tapi yang mereka simpan
  *  sebagai bukti adalah daftar regunya: nama, kategori, dan biaya per regu.
  *  Dibangun ke dalam #cetakan seperti daftar kloter — di layar tersembunyi,
- *  muncul hanya di kertas (gaya.css @media print). */
+ *  muncul hanya di kertas (style.css @media print). */
 function cetakKwitansi(daftar) {
   document.getElementById("cetakan")?.remove();
   const s = sesi();
@@ -610,39 +548,39 @@ function cetakKwitansi(daftar) {
           <td>${r.nama_regu}</td>
           <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
           <td>${r.nama_ketua}</td>
-          <td class="rata-kanan">${rupiah(EDISI.biaya_per_regu)}</td></tr>`).join("");
+          <td class="text-right">${rupiah(EDISI.biaya_per_regu)}</td></tr>`).join("");
 
     return `
-      <section class="halaman-cetak">
+      <section class="print-page">
         <h1>KWITANSI — ${esc(EDISI ? EDISI.nama : "")}</h1>
-        <p class="kwit-nomor">${esc(bayar.nomor_kwitansi || "—")}</p>
+        <p class="receipt-number">${esc(bayar.nomor_kwitansi || "—")}</p>
         <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.nama || "—")}</p>
         <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
            · <strong>Cara bayar:</strong> ${esc(bayar.metode || "—")}
            · <strong>Tanggal:</strong> ${esc(tanggal(bayar.diverifikasi_pada))}</p>
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
            @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
-        <table class="tabel-cetak">
+        <table class="print-table">
           <thead>
             <tr><th>No</th><th>Nama Regu</th><th>Kategori</th><th>Ketua</th>
-                <th class="rata-kanan">Biaya</th></tr>
+                <th class="text-right">Biaya</th></tr>
           </thead>
           <tbody>${baris}</tbody>
           <tfoot>
-            <tr><th colspan="4" class="rata-kanan">TOTAL</th>
-                <th class="rata-kanan">${esc(rupiah(total))}</th></tr>
+            <tr><th colspan="4" class="text-right">TOTAL</th>
+                <th class="text-right">${esc(rupiah(total))}</th></tr>
           </tfoot>
         </table>
-        <div class="kwit-tanda">
+        <div class="receipt-signature">
           <p>Diterima oleh,</p>
-          <p class="kwit-garis">${esc(s ? s.username : "")}</p>
+          <p class="receipt-line">${esc(s ? s.username : "")}</p>
         </div>
-        <p class="catatan-cetak">Kwitansi ini bukti pendaftaran regu di atas.
+        <p class="print-note">Kwitansi ini bukti pendaftaran regu di atas.
            Simpan dan bawa saat daftar ulang.</p>
       </section>`;
   }).join("");
 
-  document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));
   window.print();
 }
 
@@ -669,7 +607,7 @@ async function layarDaftarUlang() {
   const nilaiDada = new Map();
 
   LAYAR.replaceChildren(h(`
-    <div class="kartu">
+    <div class="card">
       ${alatTabel({
         saringan: [
           { kode: "belum", label: "Belum dapat nomor" },
@@ -679,12 +617,12 @@ async function layarDaftarUlang() {
         saringAktif: "belum",
         jumlah: semua.length,
       })}
-      <div class="tabel-bungkus">
-        <table class="tabel tabel-data">
+      <div class="table-wrapper">
+        <table class="table data-table">
           <thead>
             <tr>
-              <th>Kode</th><th>Sekolah</th><th class="rata-tengah">Regu</th>
-              <th class="rata-tengah">Pendamping</th><th>Nomor dada / Aksi</th>
+              <th>Kode</th><th>Sekolah</th><th class="text-center">Regu</th>
+              <th class="text-center">Pendamping</th><th>Nomor dada / Aksi</th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -707,7 +645,7 @@ async function layarDaftarUlang() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="5" class="tabel-kosong">
+      tbody.replaceChildren(h(`<tr><td colspan="5" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
       return;
     }
@@ -717,12 +655,12 @@ async function layarDaftarUlang() {
       const menunggu = aktif.filter(r => r.nomor_dada === null);
       const nomorHtml = aktif.filter(r => r.nomor_dada !== null)
         .sort((x, y) => x.nomor_dada - y.nomor_dada)
-        .map(r => html`<span class="pil-nomor">${String(r.nomor_dada).padStart(3, "0")}
-          <span class="pil-kloter">K${r.kloter_nomor}</span></span>`).join(" ");
+        .map(r => html`<span class="pill-number">${String(r.nomor_dada).padStart(3, "0")}
+          <span class="kloter-pill">K${r.kloter_nomor}</span></span>`).join(" ");
 
       const kode = esc(b.kode_pembayaran);
       const tombolTukar = nomorHtml
-        ? `<button class="tombol tombol-kalem tombol-mini" type="button"
+        ? `<button class="button button-secondary button-mini" type="button"
                    data-tukar="${kode}">Tukar nomor rusak…</button>`
         : "";
       // Nomor dada DIKETIK petugas, tidak diterbitkan sistem (migrasi 0011):
@@ -731,11 +669,11 @@ async function layarDaftarUlang() {
       // regu untuk diisi satu per satu, bukan langsung menarik stok.
       const terbuka = dibukaNomor.has(b.kode_pembayaran);
       const aksi = menunggu.length
-        ? `<button class="tombol tombol-utama tombol-kecil" type="button"
+        ? `<button class="button button-primary button-small" type="button"
                    data-isi="${kode}" aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
            </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
-        : `<div class="pil-baris">${nomorHtml} ${tombolTukar}</div>`;
+        : `<div class="pill-row">${nomorHtml} ${tombolTukar}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `
@@ -745,17 +683,17 @@ async function layarDaftarUlang() {
             <strong>${esc(b.sekolah?.nama || "—")}</strong>
             <div class="sub">${esc(aktif.map(r => r.nama_regu).join(", "))}</div>
           </td>
-          <td class="rata-tengah">${aktif.length}</td>
-          <td class="rata-tengah">
-            <input type="number" class="isian-kecil" min="0" max="30" inputmode="numeric"
+          <td class="text-center">${aktif.length}</td>
+          <td class="text-center">
+            <input type="number" class="small-input" min="0" max="30" inputmode="numeric"
                    value="${esc(b.jumlah_pendamping)}" data-pendamping="${kode}">
           </td>
           <td>${aksi}</td>
         </tr>
         ${!menunggu.length ? "" : `
-        <tr class="baris-detail" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
+        <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
           <td colspan="5">
-            <table class="tabel-detail">
+            <table class="detail-table">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
               </thead>
@@ -765,14 +703,14 @@ async function layarDaftarUlang() {
                     <td><strong>${esc(r.nama_regu)}</strong></td>
                     <td>${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
                     <td>${esc(r.nama_ketua)}</td>
-                    <td><input type="number" class="isian-kecil" inputmode="numeric" min="1"
+                    <td><input type="number" class="small-input" inputmode="numeric" min="1"
                                data-dada="${esc(r.id)}" data-untuk="${kode}"
                                value="${esc(nilaiDada.get(r.id) ?? "")}"></td>
                   </tr>`).join("")}
               </tbody>
             </table>
-            <div class="aksi-baris" style="margin-top:.6rem">
-              <button class="tombol tombol-utama tombol-kecil" type="button"
+            <div class="action-row" style="margin-top:.6rem">
+              <button class="button button-primary button-small" type="button"
                       data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
               <span class="sub">Ketik nomor dari kain yang ada di meja.
                 Enter = pindah ke regu berikutnya.</span>
@@ -795,8 +733,8 @@ async function layarDaftarUlang() {
         try {
           await ubahPendamping(kode, jumlah);
           b.jumlah_pendamping = jumlah;
-          inp.classList.add("tersimpan");
-          setTimeout(() => inp.classList.remove("tersimpan"), 1200);
+          inp.classList.add("saved");
+          setTimeout(() => inp.classList.remove("saved"), 1200);
         } catch (err) {
           notif(err.message, true);
           inp.value = b.jumlah_pendamping;
@@ -813,7 +751,7 @@ async function layarDaftarUlang() {
         if (!bernomor.length) { notif("Sekolah ini belum punya nomor dada.", true); return; }
         const jawab = await dialog({
           judul: "Tukar nomor dada yang rusak",
-          kartuHtml: `<table class="tabel" style="margin-bottom:.8rem">${bernomor.map(r => html`
+          kartuHtml: `<table class="table" style="margin-bottom:.8rem">${bernomor.map(r => html`
               <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
                   <td>${r.nama_regu}</td></tr>`).join("")}</table>`,
           medan: [
@@ -879,19 +817,19 @@ async function layarDaftarUlang() {
 
         // Gagal itu nyaring dan LOKAL (rancangan-b.md 10.1.11): isian yang
         // salah memerah di tempatnya, bukan cuma pesan umum di bawah layar.
-        isian.forEach(i => i.classList.remove("galat-isian"));
+        isian.forEach(i => i.classList.remove("input-error"));
         const pasangan = [];
         const dipakai = new Set();
         let keluhan = null;
         for (const inp of isian) {
           const angka = Number(inp.value.trim());
           if (!inp.value.trim() || !Number.isInteger(angka) || angka <= 0) {
-            inp.classList.add("galat-isian");
+            inp.classList.add("input-error");
             keluhan = keluhan || "Setiap regu harus diberi nomor dada berupa angka.";
             continue;
           }
           if (dipakai.has(angka)) {
-            inp.classList.add("galat-isian");
+            inp.classList.add("input-error");
             keluhan = keluhan || `Nomor ${angka} diketik untuk dua regu.`;
             continue;
           }
@@ -949,9 +887,9 @@ async function layarKeberangkatan() {
 
   if (!papan.length) {
     LAYAR.replaceChildren(h(`
-      <div class="kartu">
+      <div class="card">
         <h2>Belum ada kloter berisi regu</h2>
-        <p class="keterangan">Kloter muncul di sini setelah ada sekolah yang
+        <p class="description">Kloter muncul di sini setelah ada sekolah yang
            daftar ulang dan menerima nomor dada.</p>
       </div>`));
     return;
@@ -962,9 +900,9 @@ async function layarKeberangkatan() {
   let kloterAktif = (papan.find(k => !k.jam_berangkat) || papan[0]).nomor;
 
   LAYAR.replaceChildren(h(`
-    <div class="kartu">
+    <div class="card">
       <h2 style="font-size:1rem;color:var(--tinta-lembut)">Pilih kloter</h2>
-      <div class="pita-kloter" id="pita-kloter"></div>
+      <div class="kloter-strip" id="pita-kloter"></div>
     </div>
     <div id="isi-kloter"></div>
   `));
@@ -974,7 +912,7 @@ async function layarKeberangkatan() {
       const label = { berangkat: "berangkat", siap: "siap",
                       konfirmasi_kontrak: "kontrak", menunggu: "menunggu" }[k.posisi] || "";
       return html`
-        <button type="button" class="chip-kloter ${k.posisi}"
+        <button type="button" class="kloter-chip ${k.posisi}"
                 data-kloter="${k.nomor}" aria-pressed="${k.nomor === kloterAktif}">
           <span class="chip-nomor">Kloter ${k.nomor}</span>
           <span class="chip-ket">${k.sudah_ceklis}/${k.jumlah_regu} · ${label}</span>
@@ -1002,27 +940,27 @@ async function layarKeberangkatan() {
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
     kotak.replaceChildren(h(`
-      <div class="kartu">
-        <div class="kepala-kloter">
+      <div class="card">
+        <div class="kloter-header">
           <h2>Kloter ${kloterAktif}</h2>
           ${sudahBerangkat
-            ? html`<span class="lencana lencana-hijau">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>`
-            : `<span class="lencana lencana-kuning">BELUM BERANGKAT</span>`}
+            ? html`<span class="badge badge-green">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>`
+            : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}
         </div>
 
-        <div class="tabel-bungkus" style="margin-top:.6rem">
-          <table class="tabel tabel-data">
+        <div class="table-wrapper" style="margin-top:.6rem">
+          <table class="table data-table">
             <thead>
               <tr>
-                <th class="rata-tengah">Hadir</th><th>Nomor</th><th>Regu</th>
+                <th class="text-center">Hadir</th><th>Nomor</th><th>Regu</th>
                 <th>Kontrak waktu</th>
               </tr>
             </thead>
             <tbody>
               ${regu.map(r => `
                 <tr>
-                  <td class="rata-tengah">
-                    <input type="checkbox" class="ceklis" data-ceklis="${esc(r.nomor_dada)}"
+                  <td class="text-center">
+                    <input type="checkbox" class="checkbox" data-ceklis="${esc(r.nomor_dada)}"
                            ${r.sudah_ceklis ? "checked" : ""}
                            ${sudahBerangkat ? "disabled" : ""}
                            aria-label="ceklis regu ${esc(r.nomor_dada)}">
@@ -1033,7 +971,7 @@ async function layarKeberangkatan() {
                     <div class="sub">${esc(r.nama_sekolah)}${r.sisipan ? " · SISIPAN" : ""}</div>
                   </td>
                   <td>
-                    <select class="pilih-kecil" data-kontrak="${esc(r.regu_id)}"
+                    <select class="select-small" data-kontrak="${esc(r.regu_id)}"
                             ${sudahBerangkat ? "disabled" : ""}>
                       <option value="">Belum dipilih</option>
                       ${opsi.map(o => `<option value="${esc(o.menit)}"
@@ -1046,12 +984,12 @@ async function layarKeberangkatan() {
         </div>
 
         ${sudahBerangkat ? "" : `
-          <div class="berangkat-bar">
-            <div class="medan" style="margin:0">
+          <div class="departure-bar">
+            <div class="field" style="margin:0">
               <label for="jam-berangkat">Jam berangkat (diketik pencatat)</label>
               <input type="time" id="jam-berangkat" step="60" value="${jamSekarangHHMM()}">
             </div>
-            <button class="tombol tombol-utama" id="aksi-berangkat" type="button">
+            <button class="button button-primary" id="aksi-berangkat" type="button">
               🚩 Berangkatkan Kloter ${kloterAktif}
             </button>
           </div>
@@ -1085,8 +1023,8 @@ async function layarKeberangkatan() {
         sel.disabled = true;
         try {
           await konfirmasiKontrak(sel.dataset.kontrak, Number(sel.value));
-          sel.classList.add("tersimpan");
-          setTimeout(() => sel.classList.remove("tersimpan"), 1200);
+          sel.classList.add("saved");
+          setTimeout(() => sel.classList.remove("saved"), 1200);
         } catch (err) {
           notif(err.message, true);
         }
@@ -1129,9 +1067,9 @@ async function layarCetakKloter() {
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarCetakKloter)); return; }
 
   if (!baris.length) {
-    LAYAR.replaceChildren(h(`<div class="kartu">
+    LAYAR.replaceChildren(h(`<div class="card">
       <h2>Belum ada regu berkloter</h2>
-      <p class="keterangan">Daftar kloter bisa dicetak setelah ada sekolah yang daftar ulang.</p>
+      <p class="description">Daftar kloter bisa dicetak setelah ada sekolah yang daftar ulang.</p>
     </div>`));
     return;
   }
@@ -1145,34 +1083,34 @@ async function layarCetakKloter() {
   const belum = [...perKloter.entries()].filter(([, v]) => !v.dicetak).map(([k]) => k);
 
   LAYAR.replaceChildren(h(`
-    <div class="kartu" style="border-color:var(--utama)">
+    <div class="card" style="border-color:var(--utama)">
       <h2>Daftar kloter untuk garis start</h2>
-      <p class="keterangan">Setelah dicetak, isi kloter <strong>dibekukan</strong> —
+      <p class="description">Setelah dicetak, isi kloter <strong>dibekukan</strong> —
          kertas ini yang dipakai memanggil regu, jadi sistem tidak boleh
          mengubahnya diam-diam. Sekolah yang daftar ulang setelah ini masuk
          kloter cadangan dan dicetak sebagai lembar tambahan.</p>
-      <table class="tabel" style="margin-top:.6rem">
+      <table class="table" style="margin-top:.6rem">
         <tr><td>Kloter berisi regu</td><td class="angka">${perKloter.size}</td></tr>
         <tr><td>Belum pernah dicetak</td><td class="angka">${belum.length}</td></tr>
         <tr><td>Total regu</td><td class="angka">${baris.length}</td></tr>
       </table>
-      <div class="medan" style="margin-top:.9rem;margin-bottom:.5rem">
+      <div class="field" style="margin-top:.9rem;margin-bottom:.5rem">
         <label>Kertasnya untuk siapa?</label>
-        <div class="pilihan-baris">
-          <button class="pilihan" data-bentuk="staging" aria-pressed="true" type="button">
-            Petugas staging<br><span class="keterangan">ada kolom centang</span>
+        <div class="option-row">
+          <button class="option" data-bentuk="staging" aria-pressed="true" type="button">
+            Petugas staging<br><span class="description">ada kolom centang</span>
           </button>
-          <button class="pilihan" data-bentuk="umum" aria-pressed="false" type="button">
-            Papan &amp; barak<br><span class="keterangan">untuk dibaca peserta</span>
+          <button class="option" data-bentuk="umum" aria-pressed="false" type="button">
+            Papan &amp; barak<br><span class="description">untuk dibaca peserta</span>
           </button>
         </div>
       </div>
-      <div class="pilihan-baris" style="margin-top:.6rem">
-        <button class="tombol tombol-utama" id="cetak-belum" type="button"
+      <div class="option-row" style="margin-top:.6rem">
+        <button class="button button-primary" id="cetak-belum" type="button"
                 ${belum.length ? "" : "disabled"}>
           🖨️ Cetak ${belum.length} kloter baru
         </button>
-        <button class="tombol tombol-kalem" id="cetak-semua" type="button">
+        <button class="button button-secondary" id="cetak-semua" type="button">
           Cetak ulang semua
         </button>
       </div>
@@ -1202,11 +1140,11 @@ async function layarCetakKloter() {
               <td>${r.nama_sekolah}</td>
               <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
         return `
-          <div class="kartu">
+          <div class="card">
             <h2>Kloter ${esc(nomor)}
-              <span class="lencana ${v.dicetak ? "lencana-abu" : "lencana-kuning"}">
+              <span class="badge ${v.dicetak ? "badge-gray" : "badge-yellow"}">
                 ${v.dicetak ? "sudah dicetak" : "baru"}</span></h2>
-            <table class="tabel">${baris}</table>
+            <table class="table">${baris}</table>
           </div>`;
       }).join("")));
     siapkanCetakKloter(dipakai, bentuk);
@@ -1267,39 +1205,39 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
     const adaSisipan = v.isi.some(r => r.sisipan);
 
     return bentuk === "staging" ? `
-      <section class="halaman-cetak">
+      <section class="print-page">
         <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.nama : "")}</h1>
         <p><strong>${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</strong>
            ${nyata ? "" : " · Jam sebenarnya: ________"} · Petugas: ________________</p>
-        <table class="tabel-cetak">
+        <table class="print-table">
           <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th>Hadir</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
-        ${adaSisipan ? `<p class="catatan-sisip">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
-        <p class="catatan-cetak">Centang kolom Hadir saat regu masuk staging.
+        ${adaSisipan ? `<p class="insert-note">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
+        <p class="print-note">Centang kolom Hadir saat regu masuk staging.
            Kloter berangkat setelah semua tercentang atau diputuskan panitia.</p>
       </section>` : `
-      <section class="halaman-cetak">
+      <section class="print-page">
         <h1>KLOTER ${esc(nomor)}</h1>
         <p class="jam-besar">${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</p>
-        <table class="tabel-cetak">
+        <table class="print-table">
           <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
-        <p class="catatan-cetak">Bersiap di staging paling lambat 15 menit sebelum
+        <p class="print-note">Bersiap di staging paling lambat 15 menit sebelum
            perkiraan berangkat. Jam sebenarnya bisa bergeser — ikuti panggilan petugas.</p>
         <!-- Pembina regu mencatat jam berangkat sebenarnya sebagai bahan
              klarifikasi: penalti waktu dihitung dari jam ini + kontrak waktu. -->
-        <div class="kotak-pembina">
+        <div class="supervisor-box">
           <strong>Catatan pembina — isi saat kloter benar-benar berangkat:</strong>
           <p class="isian-jam">Jam berangkat sebenarnya: <span class="garis-isi"></span></p>
-          <p class="catatan-cetak">Target kedatangan tiap regu = jam di atas + kontrak
+          <p class="print-note">Target kedatangan tiap regu = jam di atas + kontrak
              waktu regu itu (3,5 / 4 / 4,5 jam). Simpan lembar ini bila perlu
              mengklarifikasi penilaian ketepatan waktu.</p>
         </div>
       </section>`;
   }).join("");
-  document.body.appendChild(h(`<div id="cetakan" class="cetakan">${halaman}</div>`));
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));
 }
 
 /* ============================ MEJA FINISH ================================ */
@@ -1316,14 +1254,14 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 function layarFinish() {
   pasangKepala("Meja Finish");
   LAYAR.replaceChildren(h(`
-    <div class="kartu" style="border-color:var(--utama)">
-      <div class="medan" style="margin-bottom:0">
+    <div class="card" style="border-color:var(--utama)">
+      <div class="field" style="margin-bottom:0">
         <label for="dada">Ketik nomor dada</label>
         <input type="text" id="dada" class="besar" inputmode="numeric"
                autocomplete="off" placeholder="001">
       </div>
       <div id="kartu-regu" style="margin-top:.7rem"></div>
-      <button class="tombol tombol-utama" id="sampai" type="button" disabled
+      <button class="button button-primary" id="sampai" type="button" disabled
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
         ✅ SAMPAI DI FINISH
       </button>
@@ -1334,20 +1272,20 @@ function layarFinish() {
         <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
           Perbaiki jam atau jumlah anggota
         </summary>
-        <div class="dua-kolom" style="margin-top:.5rem">
-          <div class="medan" style="margin:0">
+        <div class="two-column" style="margin-top:.5rem">
+          <div class="field" style="margin:0">
             <label for="jam">Jam datang</label>
             <input type="time" id="jam" step="60">
-            <div class="bantuan">Kosong = jam saat tombol ditekan.</div>
+            <div class="hint">Kosong = jam saat tombol ditekan.</div>
           </div>
-          <div class="medan" style="margin:0">
+          <div class="field" style="margin:0">
             <label for="hadir">Anggota hadir</label>
             <input type="number" id="hadir" min="0" max="5" inputmode="numeric" value="5">
-            <div class="bantuan">Tiap orang kurang: −20 poin.</div>
+            <div class="hint">Tiap orang kurang: −20 poin.</div>
           </div>
         </div>
         <div id="dampak-jam" style="margin-top:.5rem"></div>
-        <p class="bantuan">Beda semenit dua menit antara catatan kertas dan tombol
+        <p class="hint">Beda semenit dua menit antara catatan kertas dan tombol
            itu wajar — penalti dibulatkan per 10 menit, jadi biasanya tidak
            mengubah apa pun. Yang perlu diperhatikan hanya kalau kotak di atas
            berwarna kuning.</p>
@@ -1399,18 +1337,18 @@ function layarFinish() {
     const tulis = (n) => n === 0 ? "0" : `−${n}`;
 
     if (!inpJam.value) {
-      el.innerHTML = html`<span class="lencana lencana-abu">Penalti waktu: ${tulis(pDasar)}</span>`;
+      el.innerHTML = html`<span class="badge badge-gray">Penalti waktu: ${tulis(pDasar)}</span>`;
       return;
     }
     const beda = Math.round((jamIsi - dasar) / 60000);
     if (beda === 0) {
-      el.innerHTML = html`<span class="lencana lencana-hijau">Sama dengan catatan — penalti ${tulis(pIsi)}</span>`;
+      el.innerHTML = html`<span class="badge badge-green">Sama dengan catatan — penalti ${tulis(pIsi)}</span>`;
       return;
     }
     const arah = beda > 0 ? `${beda} menit lebih lambat` : `${-beda} menit lebih awal`;
     el.innerHTML = pIsi === pDasar
-      ? html`<span class="lencana lencana-hijau">${arah} — penalti tetap ${tulis(pIsi)}</span>`
-      : html`<span class="lencana lencana-kuning">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
+      ? html`<span class="badge badge-green">${arah} — penalti tetap ${tulis(pIsi)}</span>`
+      : html`<span class="badge badge-yellow">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
   };
   inpJam.addEventListener("input", perbaruiDampak);
 
@@ -1465,9 +1403,9 @@ function layarFinish() {
 
     kotak.replaceChildren(h(`
       ${kartuReguFinish(r)}
-      ${r.sudah_finish ? `<div class="kartu" style="border-color:var(--kuning);background:var(--kuning-muda);margin-top:.5rem">
+      ${r.sudah_finish ? `<div class="card" style="border-color:var(--kuning);background:var(--kuning-muda);margin-top:.5rem">
           <strong>Sudah tercatat datang ${esc(jamPendek(r.jam_datang))}.</strong>
-          <div class="keterangan">Menekan tombol akan MENGGANTI jam itu.</div>
+          <div class="description">Menekan tombol akan MENGGANTI jam itu.</div>
         </div>` : ""}
       ${halangan ? kartuGalat(halangan) : ""}
     `));
@@ -1522,13 +1460,13 @@ function layarFinish() {
     const daftar = terakhir.finish || [];
     document.getElementById("riwayat-finish").replaceChildren(h(
       daftar.length ? `
-        <div class="kartu">
+        <div class="card">
           <h2 style="font-size:1rem;color:var(--tinta-lembut)">
             Baru saja tercatat (${daftar.length})</h2>
-          <table class="tabel">${daftar.slice(0, 12).map(b => html`
+          <table class="table">${daftar.slice(0, 12).map(b => html`
             <tr><td class="angka">${b.apa}</td><td>${b.detail}</td></tr>`).join("")}
           </table>
-        </div>` : `<p class="keterangan" style="text-align:center;margin-top:1rem">
+        </div>` : `<p class="description" style="text-align:center;margin-top:1rem">
             Ketik nomor dada regu yang baru sampai.</p>`));
   }
 }
@@ -1550,16 +1488,16 @@ function kartuReguFinish(r) {
     ? Math.round((Date.now() - new Date(r.target_datang).getTime()) / 60000)
     : null;
   const tandaWaktu = selisih === null ? ""
-    : `<span class="lencana ${Math.abs(selisih) < 10 ? "lencana-hijau" : "lencana-kuning"}">
+    : `<span class="badge ${Math.abs(selisih) < 10 ? "badge-green" : "badge-yellow"}">
          ${selisih > 0 ? `+${selisih}` : selisih} menit dari target</span>`;
   return `
-    <div class="kartu kartu-identitas" style="margin:0">
+    <div class="card card-identity" style="margin:0">
       ${html`<div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
       <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
       <div class="detail">Kloter ${r.kloter} · berangkat ${jamPendek(r.jam_berangkat)}${
         r.target_datang ? ` · target ${jamPendek(r.target_datang)}` : ""}</div>`}
       <div style="margin-top:.4rem">${tandaWaktu}
-        ${r.sisipan ? `<span class="lencana lencana-merah">sisipan</span>` : ""}</div>
+        ${r.sisipan ? `<span class="badge badge-red">sisipan</span>` : ""}</div>
     </div>`;
 }
 
@@ -1574,13 +1512,13 @@ async function layarPindahKloter() {
 
   LAYAR.replaceChildren(h(`
     ${sisipan.length ? kartuSisipan(sisipan) : ""}
-    <div class="kartu">
-      <div class="medan" style="margin-bottom:0">
+    <div class="card">
+      <div class="field" style="margin-bottom:0">
         <label for="dada">Nomor dada yang mau dipindah</label>
         <input type="text" id="dada" class="besar" inputmode="numeric"
                autocomplete="off" placeholder="001">
       </div>
-      <button class="tombol tombol-utama" id="cari" type="button" style="margin-top:.8rem">
+      <button class="button button-primary" id="cari" type="button" style="margin-top:.8rem">
         Cari
       </button>
     </div>
@@ -1620,22 +1558,22 @@ async function layarPindahKloter() {
 
     kotak.replaceChildren(h(`
       ${kartuBatchRingkas(r)}
-      <div class="kartu" style="border-color:var(--utama)">
+      <div class="card" style="border-color:var(--utama)">
         <h2>Mau dipindah ke mana?</h2>
-        <button class="tombol tombol-utama" id="ke-terakhir" type="button" style="margin-top:.6rem">
+        <button class="button button-primary" id="ke-terakhir" type="button" style="margin-top:.6rem">
           Kloter terakhir (${terakhir}) — telat biasa
         </button>
-        <p class="keterangan" style="margin-top:.5rem">Pilihan biasa untuk peserta
+        <p class="description" style="margin-top:.5rem">Pilihan biasa untuk peserta
            yang terlambat masuk kloternya.</p>
         <hr style="margin:1rem 0;border:0;border-top:1px solid var(--garis)">
-        <div class="medan" style="margin-bottom:.5rem">
+        <div class="field" style="margin-bottom:.5rem">
           <label for="tujuan">Atau paksa ke kloter tertentu (urgent)</label>
           <input type="number" id="tujuan" inputmode="numeric" min="1" max="40"
                  placeholder="nomor kloter">
-          <div class="bantuan">Bisa ke kloter yang kertasnya sudah beredar —
+          <div class="hint">Bisa ke kloter yang kertasnya sudah beredar —
              sistem akan memberi peringatan untuk dibacakan ke petugas staging.</div>
         </div>
-        <button class="tombol tombol-kalem" id="ke-tujuan" type="button">
+        <button class="button button-secondary" id="ke-tujuan" type="button">
           Pindahkan ke kloter itu
         </button>
       </div>
@@ -1659,7 +1597,7 @@ async function layarPindahKloter() {
         setTimeout(() => {
           if (hasil.peringatan) {
             LAYAR.prepend(h(html`
-              <div class="kartu" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+              <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
                 <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
                 <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
               </div>`));
@@ -1683,7 +1621,7 @@ async function layarPindahKloter() {
 
 function kartuBatchRingkas(r) {
   return html`
-    <div class="kartu kartu-identitas">
+    <div class="card card-identity">
       <div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
       <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
       <div class="detail">Sekarang di <strong>Kloter ${r.kloter}</strong>${
@@ -1700,34 +1638,18 @@ function kartuSisipan(sisipan) {
   const baris = aktif.map(s => html`
     <tr><td class="angka">${String(s.nomor_dada).padStart(3, "0")}</td>
         <td><strong>${s.nama_regu}</strong><br>
-            <span class="keterangan">${s.nama_sekolah}</span></td>
-        <td><span class="lencana lencana-merah">Kloter ${s.kloter}</span></td>
-        <td class="keterangan">${s.alasan_sisip}</td></tr>`).join("");
+            <span class="description">${s.nama_sekolah}</span></td>
+        <td><span class="badge badge-red">Kloter ${s.kloter}</span></td>
+        <td class="description">${s.alasan_sisip}</td></tr>`).join("");
   return `
-    <div class="kartu" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+    <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
       <h2 style="color:var(--bahaya)">⚠️ ${aktif.length} regu TIDAK ADA di kertas</h2>
-      <p class="keterangan">Nomor-nomor ini disisipkan setelah daftar kloter dicetak.
+      <p class="description">Nomor-nomor ini disisipkan setelah daftar kloter dicetak.
          Bacakan ke petugas staging kloter terkait, atau tulis tangan di kertasnya.</p>
-      <table class="tabel" style="background:#fff;border-radius:8px;margin-top:.6rem">${baris}</table>
-      <button class="tombol tombol-kalem" onclick="window.print()" type="button"
+      <table class="table" style="background:#fff;border-radius:8px;margin-top:.6rem">${baris}</table>
+      <button class="button button-secondary" onclick="window.print()" type="button"
               style="margin-top:.6rem">🖨️ Cetak daftar sisipan</button>
     </div>`;
-}
-
-/* ============================ PENDAFTARAN OFFLINE ======================== */
-
-function layarPendaftaranOffline() {
-  pasangKepala("Pendaftaran");
-  LAYAR.replaceChildren(h(`
-    <div class="kartu">
-      <h2>Link yang sama untuk online maupun langsung</h2>
-      <p class="keterangan" style="margin-top:.4rem">
-        Bukakan form ini di HP pendaftar, atau isikan bersama di laptop meja.
-        Setelah dapat kode pembayaran, arahkan ke meja pembayaran.</p>
-      <a class="tombol tombol-utama" href="daftar.html" target="_blank" rel="noopener"
-         style="text-decoration:none;margin-top:.8rem">Buka Form Pendaftaran</a>
-    </div>
-  `));
 }
 
 /* ---------------- layar "edisi belum termuat" ---------------- */
@@ -1742,14 +1664,14 @@ function layarButuhEdisi(judul) {
 /* ============================ RUTE ======================================= */
 
 const RUTE = {
-  "#/beranda": layarBeranda,
+  "#/home": layarHome,
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
-  "#/pendaftaran-offline": layarPendaftaranOffline,
   "#/cetak-kloter": layarCetakKloter,
   "#/keberangkatan": layarKeberangkatan,
   "#/pindah-kloter": layarPindahKloter,
   "#/finish": layarFinish,
+  "#/ganti-password": layarGantiPassword,
 };
 
 async function arahkan() {
@@ -1758,14 +1680,17 @@ async function arahkan() {
     try { EDISI = await infoEdisi(); }
     catch (e) { layarButuhEdisi("HRCD Rekap"); return; }
   }
-  (RUTE[location.hash] || layarBeranda)();
+  (RUTE[location.hash] || layarHome)();
 }
 
 document.getElementById("btn-keluar").addEventListener("click", () => {
   keluar(); EDISI = null; location.hash = ""; arahkan();
 });
-document.getElementById("ganti-fungsi").addEventListener("click", () => {
-  if (location.hash === "#/beranda") arahkan(); else location.hash = "#/beranda";
+document.getElementById("btn-home").addEventListener("click", () => {
+  if (location.hash === "#/home") arahkan(); else location.hash = "#/home";
+});
+document.getElementById("ganti-password").addEventListener("click", () => {
+  if (location.hash === "#/ganti-password") arahkan(); else location.hash = "#/ganti-password";
 });
 window.addEventListener("hashchange", arahkan);
 arahkan();

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ============================================================================
-# hrcd-rekap : scripts/provision_akun.py — bikin akun panitia massal.
+# hrcd-rekap : scripts/provision_accounts.py — bikin akun panitia massal.
 #
 # Dua langkah per baris CSV masukan:
 #   1. Buat user di Supabase Auth (auto-confirm, lewat Admin API).
@@ -16,10 +16,10 @@
 # bukan error fatal) — sisa baris tetap lanjut.
 #
 # PAKAI (di terminal SENDIRI — kunci ini tidak boleh masuk ke mana pun lain,
-# lihat README di .github/workflows/provision-akun.yml untuk versi HP):
+# lihat README di .github/workflows/provision-accounts.yml untuk versi HP):
 #   $env:SUPABASE_URL = "https://xxxx.supabase.co"
 #   $env:SUPABASE_SERVICE_KEY = "sb_secret_..."
-#   python scripts/provision_akun.py akun_masuk.csv hasil_provisioning.csv
+#   python scripts/provision_accounts.py akun_masuk.csv hasil_provisioning.csv
 #
 # Format CSV masukan (header wajib persis ini; kolom password boleh kosong):
 #   username,email,peran,pos,password
@@ -37,11 +37,11 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
 # Tanpa karakter yang gampang tertukar saat diketik ulang di lapangan.
-ABJAD_AMAN = "abcdefghjkmnpqrstuvwxyzACDEFGHJKLMNPQRSTUVWXYZ23456789"
+SAFE_ALPHABET = "abcdefghjkmnpqrstuvwxyzACDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
-def buat_password():
-    return "".join(secrets.choice(ABJAD_AMAN) for _ in range(10))
+def generate_password():
+    return "".join(secrets.choice(SAFE_ALPHABET) for _ in range(10))
 
 
 def headers():
@@ -52,7 +52,7 @@ def headers():
     }
 
 
-def buat_user_auth(email, password):
+def create_auth_user(email, password):
     r = requests.post(
         f"{SUPABASE_URL}/auth/v1/admin/users",
         headers=headers(),
@@ -67,7 +67,7 @@ def buat_user_auth(email, password):
     return None, f"HTTP {r.status_code}: {r.text[:200]}"
 
 
-def tautkan_akun_panitia(user_id, username, peran, pos):
+def link_akun_panitia(user_id, username, peran, pos):
     body = {
         "user_id": user_id,
         "username": username,
@@ -92,7 +92,7 @@ def main():
               "kamu sebelum menjalankan skrip ini.")
         sys.exit(1)
     if len(sys.argv) < 2:
-        print("Pakai: python provision_akun.py <masukan.csv> [hasil.csv]")
+        print("Pakai: python provision_accounts.py <masukan.csv> [hasil.csv]")
         sys.exit(1)
 
     berkas_hasil = sys.argv[2] if len(sys.argv) > 2 else None
@@ -105,9 +105,9 @@ def main():
             email = baris["email"].strip()
             peran = baris["peran"].strip()
             pos = baris["pos"].strip()
-            password = (baris.get("password") or "").strip() or buat_password()
+            password = (baris.get("password") or "").strip() or generate_password()
 
-            user_id, err = buat_user_auth(email, password)
+            user_id, err = create_auth_user(email, password)
             if err == "sudah_ada":
                 print(f"~ {username:20s} sudah ada di Auth, dilewati (tautkan manual bila belum di akun_panitia)")
                 baris_hasil.append([username, email, peran, pos, "", "sudah_ada"])
@@ -119,7 +119,7 @@ def main():
                 gagal += 1
                 continue
 
-            err = tautkan_akun_panitia(user_id, username, peran, pos)
+            err = link_akun_panitia(user_id, username, peran, pos)
             if err:
                 print(f"x {username:20s} user Auth dibuat TAPI gagal tautkan akun_panitia: {err}")
                 baris_hasil.append([username, email, peran, pos, password, f"auth ok, tautkan gagal: {err}"])

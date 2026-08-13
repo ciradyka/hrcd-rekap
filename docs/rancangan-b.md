@@ -132,7 +132,7 @@ harus "simpan dulu ke database lalu query lagi supaya benar-benar cocok?"
    `pg_advisory_xact_lock`. Hanya satu meja berada di dalamnya pada satu saat;
    yang lain menunggu beberapa milidetik lalu membaca keadaan yang sudah pasti
    mutakhir. `SKIP LOCKED` tidak lagi diperlukan sama sekali.
-5. **Terukur, bukan diyakini** (`tests/uji_konkurensi.py`): 30 koneksi
+5. **Terukur, bukan diyakini** (`tests/concurrency_test.py`): 30 koneksi
    Postgres terpisah dilepas serentak lewat satu barrier, memperebutkan 300
    nomor dada. Hasil setelah perbaikan, lima putaran berturut-turut:
    **300/300 regu bernomor, nol error, nol duplikat, tidak ada kloter

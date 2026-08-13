@@ -38,14 +38,14 @@ export const jamSekarang = () =>
 /** Notifikasi bawah layar. Galat TIDAK hilang sendiri — orang awam sering
  *  sedang melihat papan ketik saat pesan muncul (temuan review). */
 export function notif(pesan, galat = false) {
-  document.querySelectorAll(".notif").forEach(n => n.remove());
-  const n = h(html`<div class="notif ${galat ? "galat" : ""}" role="alert">
+  document.querySelectorAll(".notification").forEach(n => n.remove());
+  const n = h(html`<div class="notification ${galat ? "error" : ""}" role="alert">
       <span>${pesan}</span>
-      ${galat ? '<button class="notif-tutup" type="button" aria-label="tutup">✕</button>' : ""}
+      ${galat ? '<button class="notification-close" type="button" aria-label="tutup">✕</button>' : ""}
     </div>`);
   document.body.appendChild(n);
   const el = document.body.lastElementChild;
-  if (galat) el.querySelector(".notif-tutup").addEventListener("click", () => el.remove());
+  if (galat) el.querySelector(".notification-close").addEventListener("click", () => el.remove());
   else setTimeout(() => el.remove(), 4000);
 }
 
@@ -54,7 +54,7 @@ export function notif(pesan, galat = false) {
  *  beruntun membingungkan dan batalnya senyap). */
 export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan" }) {
   return new Promise(resolve => {
-    const wadah = h(html`<div class="tirai" role="dialog" aria-modal="true"></div>`);
+    const wadah = h(html`<div class="overlay" role="dialog" aria-modal="true"></div>`);
     document.body.appendChild(wadah);
     const el = document.body.lastElementChild;
     el.innerHTML = `
@@ -62,17 +62,17 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
         <h2>${esc(judul)}</h2>
         ${kartuHtml}
         ${medan.map((m, i) => `
-          <div class="medan">
+          <div class="field">
             <label for="dlg-${i}">${esc(m.label)}</label>
             <input id="dlg-${i}" type="${m.tipe || "text"}"
                    inputmode="${m.tipe === "number" ? "numeric" : "text"}"
                    value="${esc(m.nilai ?? "")}" placeholder="${esc(m.contoh ?? "")}">
-            ${m.bantuan ? `<div class="bantuan">${esc(m.bantuan)}</div>` : ""}
+            ${m.bantuan ? `<div class="hint">${esc(m.bantuan)}</div>` : ""}
           </div>`).join("")}
-        <div class="dialog-galat galat" hidden></div>
-        <div class="pilihan-baris">
-          <button class="tombol tombol-kalem" data-batal type="button">Batal</button>
-          <button class="tombol tombol-utama" data-ok type="button">${esc(labelAksi)}</button>
+        <div class="dialog-error error" hidden></div>
+        <div class="option-row">
+          <button class="button button-secondary" data-batal type="button">Batal</button>
+          <button class="button button-primary" data-ok type="button">${esc(labelAksi)}</button>
         </div>
       </div>`;
 
@@ -83,7 +83,7 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
       const nilai = medan.map((_, i) => el.querySelector(`#dlg-${i}`).value.trim());
       const kosong = medan.findIndex((m, i) => m.wajib !== false && !nilai[i]);
       if (kosong >= 0) {
-        const g = el.querySelector(".dialog-galat");
+        const g = el.querySelector(".dialog-error");
         g.textContent = `${medan[kosong].label} wajib diisi.`;
         g.hidden = false;
         el.querySelector(`#dlg-${kosong}`).focus();
@@ -104,10 +104,10 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
  *  yang menggantung selamanya (temuan review). */
 export function kartuGagalMuat(pesan, saatCobaLagi) {
   const frag = h(html`
-    <div class="kartu" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
+    <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
       <h2>Gagal memuat</h2>
-      <p class="keterangan">${pesan}</p>
-      <button class="tombol tombol-utama" data-ulang type="button" style="margin-top:.8rem">
+      <p class="description">${pesan}</p>
+      <button class="button button-primary" data-ulang type="button" style="margin-top:.8rem">
         Coba lagi
       </button>
     </div>`);
