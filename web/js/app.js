@@ -1999,7 +1999,10 @@ async function layarInputPos() {
     <div class="card">
       ${alatTabel({
         kiri: pilihPosHtml(s, semuaPos),
-        cariContoh: "Cari nomor dada, nama regu, atau organisasi…",
+        // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
+        // panjang terpotong di tengah kata — yang justru lebih buruk daripada
+        // petunjuk singkat, karena terlihat seperti layar yang rusak.
+        cariContoh: "Cari nomor dada / regu / organisasi…",
         saringan: [
           { kode: "belum", label: "Belum lengkap" },
           { kode: "sudah", label: "Sudah lengkap" },
@@ -2030,7 +2033,8 @@ async function layarInputPos() {
               <th>Organisasi</th>
               <th>Golongan</th>
               ${komponen.map(k => `
-                <th class="text-center">${esc(k.name)}
+                <th class="text-center">
+                  <span class="kolom-nama">${esc(k.name)}</span>
                   <span class="kolom-petunjuk">${esc(petunjukKolom(k))}</span></th>`).join("")}
               <th class="text-center">Nilai<br>${esc(pos.bayangan ? pos.name : `Pos ${pos.nomor}`)}</th>
               <th class="text-center"><span class="visually-hidden">Status simpan</span></th>
@@ -2042,17 +2046,20 @@ async function layarInputPos() {
           menerima nomor dada. Lembar pos ini terisi sendiri begitu meja
           daftar ulang mulai jalan.</p>`}
       </div>
+      <!-- Keterangan duduk DI DALAM kartu. Di luar, ia melebar sendiri
+           mengikuti layar sementara kartunya menyusut mengikuti tabel, dan
+           dua tepi yang tidak sejajar terbaca seperti ada yang salah muat. -->
+      <p class="description" style="margin-top:.8rem">
+        Nilainya tersimpan sendiri begitu kamu pindah ke baris berikutnya —
+        tidak ada tombol Simpan yang bisa lupa ditekan. <strong>Baris hijau di
+        atas tabel adalah jawabannya:</strong> selama tulisannya "Data
+        Tersimpan" beserta jam sinkronisasinya, semua angka di layar ini sudah
+        ada di database. Kalau ia berubah merah, ada yang belum masuk —
+        angkanya tetap aman di layar dan dikirim sendiri begitu internet
+        kembali, jadi jangan tutup halaman ini sampai hijau lagi.
+        Enter = turun ke regu berikutnya di kolom yang sama.
+      </p>
     </div>
-    <p class="description" style="margin-top:.8rem">
-      Nilainya tersimpan sendiri begitu kamu pindah ke baris berikutnya —
-      tidak ada tombol Simpan yang bisa lupa ditekan. <strong>Baris hijau di
-      atas tabel adalah jawabannya:</strong> selama tulisannya "Semua
-      tersimpan" beserta jamnya, semua angka di layar ini sudah ada di
-      database. Kalau ia berubah merah, ada yang belum masuk — angkanya tetap
-      aman di layar dan dikirim sendiri begitu internet kembali, jadi jangan
-      tutup halaman ini sampai hijau lagi. Enter = turun ke regu berikutnya di
-      kolom yang sama.
-    </p>
   `));
 
   const tbody = document.getElementById("isi-tabel");
@@ -2142,7 +2149,7 @@ async function layarInputPos() {
     const gagal = baris.filter(t => t.dataset.keadaan === "gagal").length;
     const sibuk = baris.some(t => t.dataset.keadaan === "menyimpan");
     const putus = !navigator.onLine;
-    const cap = `Tersimpan terakhir ${jamDetik(jamSinkron)}`;
+    const cap = `Sinkronisasi Terakhir: ${jamDetik(jamSinkron)}`;
 
     if (gagal || putus) {
       // Keadaan paling berbahaya, jadi capnya diberi umur: "14:12:40
@@ -2162,7 +2169,7 @@ async function layarInputPos() {
     if (sibuk)  { pita.className = "pos-simpan menunggu"; pita.textContent = `Menyimpan… ${cap}`; return; }
     if (belum)  { pita.className = "pos-simpan menunggu"; pita.textContent = `${belum} baris belum tersimpan. ${cap}`; return; }
     pita.className = "pos-simpan aman";
-    pita.textContent = `✓ Semua tersimpan · ${cap}`;
+    pita.textContent = `✓ Data Tersimpan · ${cap}`;
   }
 
   function ulangYangGagal() {
@@ -2345,17 +2352,24 @@ async function layarInputPos() {
 
 /** Pemilih pos — hanya untuk admin. Operator pos melihat namanya saja, karena
  *  memberinya daftar pos lain hanya menawarkan sesuatu yang pasti ditolak
- *  server (RLS nilai_mentah) — pintu yang terkunci lebih baik tidak digambar. */
+ *  server (RLS nilai_mentah) — pintu yang terkunci lebih baik tidak digambar.
+ *
+ *  Yang muncul HANYA pos yang benar-benar dinilai. Pos 0 (Keberangkatan) dan
+ *  Pos 5 (Kedatangan) adalah garis start dan garis finish; yang dicatat di
+ *  sana waktu, lewat layar Keberangkatan dan Kedatangan. Menawarkannya di
+ *  sini berarti menawarkan lembar yang tidak akan pernah punya kolom — dan
+ *  daftar yang memuat pilihan tanpa isi mengajari orang bahwa daftar itu
+ *  tidak bisa dipercaya. */
 function pilihPosHtml(s, semuaPos) {
   if (s.peran !== "admin") return "";
+  const dinilai = semuaPos.filter(p => Number(p.jumlah_komponen) > 0);
   return `
     <div class="field" style="margin:0;min-width:210px">
       <label for="pilih-pos" class="visually-hidden">Pos yang diinput</label>
       <select id="pilih-pos" class="select-small">
-        ${semuaPos.map(p => `<option value="${esc(p.nomor)}"
+        ${dinilai.map(p => `<option value="${esc(p.nomor)}"
           ${Number(p.nomor) === Number(posDipilih.nomor) ? "selected" : ""}
-          >${esc(judulPos(p))}${
-            Number(p.jumlah_komponen) > 0 ? "" : " · tanpa penilaian"}</option>`).join("")}
+          >${esc(judulPos(p))}</option>`).join("")}
       </select>
     </div>`;
 }
