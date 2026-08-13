@@ -405,16 +405,22 @@ async function layarPembayaran() {
              </select>`;
 
       const aksi = b.status === "lunas"
-        ? html`<div class="action-row action-row-rapat">
+        // <span class="teks-lebar"> = kata yang DIBUANG di layar sempit, jadi
+        // tombolnya menyusut sendiri: "Cetak Kwitansi" -> "Kwitansi",
+        // "Tandai Lunas" -> "Lunas". Tanpa ini, di jendela sempit tombolnya
+        // melebar sampai menutupi dropdown cara bayar di sebelahnya.
+        ? `<div class="action-row action-row-rapat">
                  <button class="button button-primary button-mini" type="button"
-                         data-cetak="${b.kode_pembayaran}">Cetak Kwitansi</button>
+                         data-cetak="${esc(b.kode_pembayaran)}"><span
+                         class="teks-lebar">Cetak </span>Kwitansi</button>
                  <button class="button button-secondary button-mini" type="button"
-                         data-batal-bayar="${b.kode_pembayaran}">Batalkan</button>
+                         data-batal-bayar="${esc(b.kode_pembayaran)}">Batalkan</button>
                </div>`
         : b.status === "batal"
           ? ""
           : `<button class="button button-primary button-small" type="button"
-                     data-lunas="${esc(b.kode_pembayaran)}">Tandai Lunas</button>`;
+                     data-lunas="${esc(b.kode_pembayaran)}"><span
+                     class="teks-lebar">Tandai </span>Lunas</button>`;
       // Satu baris = satu invoice, karena satu invoice memang dibayar
       // sekaligus. Rincian regunya (nama, kategori, asal sekolah) ada di
       // baris detail yang dibuka lewat tombol "N regu" — itu yang dibacakan
