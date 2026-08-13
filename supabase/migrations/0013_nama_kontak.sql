@@ -113,6 +113,12 @@ begin
 end;
 $$;
 
+-- Fungsi baru lahir dengan EXECUTE ke PUBLIC (default PostgreSQL). Tanpa
+-- revoke ini, akun panitia mana pun bisa memanggil submit_pendaftaran
+-- langsung dan melewati gerbang Worker + Turnstile.
+revoke execute on function
+  submit_pendaftaran(text, text, boolean, text, jsonb, smallint, uuid, text)
+  from public, anon, authenticated;
 grant execute on function
   submit_pendaftaran(text, text, boolean, text, jsonb, smallint, uuid, text)
   to service_role;
