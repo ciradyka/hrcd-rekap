@@ -964,6 +964,11 @@ async function layarKeberangkatan() {
 
     const info = papan.find(k => k.nomor === kloterAktif) || {};
     const sudahBerangkat = !!info.jam_berangkat;
+    // Tujuan pindah = kloter yang BELUM berangkat dan bukan kloter ini
+    // sendiri. Kloter yang sudah jalan tidak ditawarkan karena regunya sudah
+    // di jalur — pindah_kloter menolaknya, dan menawarkan pilihan yang pasti
+    // ditolak hanya membuat petugas mencoba lalu kena galat.
+    const tujuanPindah = papan.filter(k => !k.jam_berangkat && k.nomor !== kloterAktif);
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
     kotak.replaceChildren(h(`
@@ -983,7 +988,7 @@ async function layarKeberangkatan() {
             <thead>
               <tr>
                 <th class="text-center">Hadir</th><th>Nomor</th><th>Regu</th>
-                <th>Kontrak waktu</th>
+                <th>Kontrak waktu</th><th>Pindah kloter</th>
               </tr>
             </thead>
             <tbody>
@@ -1006,6 +1011,14 @@ async function layarKeberangkatan() {
                       <option value="">Belum dipilih</option>
                       ${opsi.map(o => `<option value="${esc(o.menit)}"
                         ${r.kontrak_menit === o.menit ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+                    </select>
+                  </td>
+                  <td>
+                    <select class="select-small" data-pindah="${esc(r.nomor_dada)}"
+                            ${sudahBerangkat || !tujuanPindah.length ? "disabled" : ""}
+                            aria-label="pindahkan regu ${esc(r.nomor_dada)} ke kloter lain">
+                      <option value="">—</option>
+                      ${tujuanPindah.map(k => `<option value="${esc(k.nomor)}">Kloter ${esc(k.nomor)}</option>`).join("")}
                     </select>
                   </td>
                 </tr>`).join("")}
@@ -1059,6 +1072,49 @@ async function layarKeberangkatan() {
           notif(err.message, true);
         }
         sel.disabled = false;
+      }));
+
+    kotak.querySelectorAll("[data-pindah]").forEach(sel =>
+      sel.addEventListener("change", async () => {
+        const tujuan = Number(sel.value);
+        if (!tujuan) return;
+        const dada = Number(sel.dataset.pindah);
+        const jawab = await dialog({
+          judul: `Pindahkan nomor ${String(dada).padStart(3, "0")} ke Kloter ${tujuan}?`,
+          kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
+            <div class="nama">Dari Kloter ${kloterAktif} ke Kloter ${tujuan}</div>
+            <div class="detail">Kapasitas kloter tujuan tetap dijaga sistem.</div>
+          </div>`,
+          medan: [{ label: "Alasan pemindahan", contoh: "terlambat masuk kloter",
+                    bantuan: "Wajib diisi — tercatat di riwayat." }],
+          labelAksi: "Pindahkan",
+        });
+        // Batal (atau gagal) mengembalikan select ke "—", kalau tidak ia
+        // menampilkan kloter tujuan seolah pemindahan sudah terjadi.
+        if (!jawab) { sel.value = ""; return; }
+        sel.disabled = true;
+        let hasil;
+        try {
+          hasil = await pindahKloter(dada, jawab[0], tujuan);
+        } catch (err) {
+          notif(err.message, true);
+          sel.value = ""; sel.disabled = false;
+          return;
+        }
+        papan = await papanKeberangkatan();
+        gambarPita();
+        gambarKloter();
+        // Peringatan sisipan TIDAK boleh berupa toast yang hilang sendiri:
+        // petugas staging memegang kertas yang tidak memuat nomor ini.
+        if (hasil.peringatan) {
+          kotak.prepend(h(html`
+            <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+              <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
+              <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
+            </div>`));
+        } else {
+          notif(`Nomor ${dada} pindah dari Kloter ${hasil.kloter_lama} ke Kloter ${hasil.kloter_baru}.`);
+        }
       }));
 
     // Membetulkan jam yang sudah tercatat. Jam berangkat menentukan penalti
