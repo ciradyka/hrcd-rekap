@@ -939,8 +939,8 @@ async function layarKeberangkatan() {
             : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}
         </div>
 
-        <div class="table-wrapper" style="margin-top:.6rem">
-          <table class="table data-table">
+        <div class="table-wrapper table-wrapper-tetap" style="margin-top:.6rem">
+          <table class="table data-table table-tetap">
             <thead>
               <tr>
                 <th class="text-center">Hadir</th><th>Nomor</th><th>Regu</th>

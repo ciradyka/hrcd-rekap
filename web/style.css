@@ -706,10 +706,21 @@ input.small-input { text-align: center; }
   /* HANYA baris invoice yang dijadikan blok. Tanpa pembatas ini, aturannya
      ikut menyapu .detail-table yang bersarang di dalamnya dan mematahkan
      grid-nya — kotak angka turun ke bawah, bukan sejajar nama regu. */
-  .data-table, .data-table > tbody, .data-table > tbody > tr { display: block; }
-  .data-table > tbody > tr > td { display: block; }
-  .data-table > thead { display: none; }
+  .data-table:not(.table-tetap),
+  .data-table:not(.table-tetap) > tbody,
+  .data-table:not(.table-tetap) > tbody > tr { display: block; }
+  .data-table:not(.table-tetap) > tbody > tr > td { display: block; }
+  .data-table:not(.table-tetap) > thead { display: none; }
   .table-wrapper { overflow-x: visible; max-height: none; }
+
+  /* .table-tetap = tabel yang TETAP tabel di HP. Keberangkatan adalah
+     CEKLIS: nomor dada, nama regu, kontrak, centang — dibaca menyamping dan
+     disapu mata cepat sambil memberangkatkan kloter. Menumpuknya membuat
+     satu regu memakan lima baris dan justru menghilangkan kemampuan itu.
+     Di sini geser samping bukan cacat, melainkan bentuk yang benar. */
+  .table-wrapper-tetap { overflow-x: auto; }
+  .table-tetap { white-space: nowrap; }
+  .table-tetap th, .table-tetap td { padding: .45rem .5rem; }
 
   .data-table tbody tr[data-baris] {
     border: 1.5px solid var(--garis); border-radius: var(--radius);
