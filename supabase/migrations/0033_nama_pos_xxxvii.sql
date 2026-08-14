@@ -157,7 +157,13 @@ begin
     -- 10 objek, gambar 15 detik lalu 30 detik menulis, berulang.
     (v_edisi, 3, 'kim_lihat', 'Kim Lihat', 'wahana', 'besar_baik',
      100, 10, 0, null, null, null, null, null, null, 0, 10, 6),
-    -- 3 menit bebas mencium seluruh objek. Jumlah objek ASUMSI = 10.
+    -- 3 menit bebas mencium seluruh objek. Jumlah objek 10 — semula asumsi
+    -- (menyamai Kim Lihat), dikonfirmasi panitia 14 Agustus 2026 dengan kata
+    -- "sementara", jadi angka ini boleh berubah sebelum hari lomba. Kalau
+    -- berubah: `raw_terbaik` DAN `rentang_mentah_maks` ikut, keduanya, dalam
+    -- satu UPDATE. Mengubah salah satu saja tidak menimbulkan galat — yang
+    -- terjadi hanya nilai penuh yang tidak pernah tercapai, atau petugas
+    -- ditolak saat menulis angka yang sah.
     (v_edisi, 3, 'kim_cium', 'Kim Cium', 'wahana', 'besar_baik',
      100, 10, 0, null, null, null, null, null, null, 0, 10, 7),
 
