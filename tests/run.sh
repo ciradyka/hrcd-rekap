@@ -120,5 +120,8 @@ run tests/sql/15_kriteria_bidai.sql
 # terpasang sebelum 16 berjalan.
 run supabase/migrations/0037_petunjuk_kolom.sql
 run tests/sql/16_kosong_bukan_nol.sql
+# 0038 hanya mengganti bunyi satu petunjuk kolom. Dijalankan supaya berkasnya
+# tetap teruji; di database uji `menaksir` tidak ada, jadi ia melapor dilewati.
+run supabase/migrations/0038_petunjuk_menaksir.sql
 
 echo "SEMUA TES LULUS"
