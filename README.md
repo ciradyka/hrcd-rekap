@@ -31,7 +31,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 ├── docs/                     # spesifikasi, catatan keputusan, arsitektur
 ├── web/                      # SPA statis — layar panitia (panitia-hrcd37)
 │   ├── index.html            # layar panitia (butuh login)
-│   ├── js/                   # api.js, app.js, daftar.js, util.js
+│   ├── js/                   # api.js, app.js, util.js
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
@@ -39,22 +39,28 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 ├── live/                     # situs PESERTA (hrcd37) — Worker TERPISAH:
 │   ├── daftar.html           # form pendaftaran publik
 │   ├── index.html            # rekap live (centang per pos, isinya live.json)
-│   └── js/, style.css, …     # SALINAN dari web/ — jangan disunting di sini,
+│   ├── live.js, live.css     # halaman rekap — tidak ada di web/
+│   ├── js/daftar.js          # logika form pendaftaran — tidak ada di web/
+│   └── config.js, style.css, js/api.js, js/util.js
+│                             # SALINAN dari web/ — jangan diedit di sini,
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
 │   ├── migrations/           # skema database, urut 0001..0026
-│   ├── checks/               # SQL pemeriksaan manual (row_counts, smoke, dst.)
+│   ├── checks/               # SQL manual — flow_test & cleanup_smoke MENGUBAH
+│   │                         # data; live_json.sql dipakai Publish rekap live
 │   └── seed.sql              # konfigurasi edisi + baris wajib
 ├── scripts/                  # provision_accounts.py, change_password.py
 ├── tests/
 │   ├── sql/                  # harness + tes constraint, alur, skor, kloter, rekap
 │   ├── run.sh                # jalankan semuanya di database lokal
+│   ├── dev_database.sh       # siapkan database hrcd_dev untuk dicoba manual
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
-│   └── static_server.py      # penyaji web/ tanpa cache
+│   ├── static_server.py      # penyaji web/ tanpa cache
+│   └── concurrency_test.py   # uji daftar ulang serentak dari banyak meja
 ├── .github/workflows/        # 7 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
-└── AGENTS.md                 # salinan identik CLAUDE.md
+└── AGENTS.md                 # aturan sama dengan CLAUDE.md (judul + pembuka beda)
 ```
 
 ## Menjalankan tes
@@ -72,6 +78,15 @@ bash tests/dev_database.sh     # siapkan database hrcd_dev
 python tests/dev_server.py     # tiruan Supabase di :8787
 python tests/static_server.py  # layar panitia di :8788 (tanpa cache)
 ```
+
+Sebelum membuka `:8788`, ganti `mode: "supabase"` jadi `mode: "dev"` di
+`web/config.js` — tanpa itu layar lokal tetap berbicara dengan Supabase
+**produksi**, bukan `dev_server.py` di `:8787`. Kembalikan ke `"supabase"`
+sebelum commit: nilai itu ikut ter-deploy, dan `shared-files.yml` juga
+membandingkan `web/config.js` dengan salinannya di `live/`.
+
+`dev_server.py` dan `concurrency_test.py` butuh `psycopg2`. Tidak ada
+requirements.txt di repo — pasang sekali saja: `pip install psycopg2-binary`.
 
 Runner membuat ulang database `hrcd_test` setiap kali — aman diulang. Tes
 mencakup: nomor dada ganda tertolak, kapasitas kloter, RLS per pos, alur
@@ -92,6 +107,11 @@ bash tests/dev_database.sh        # siapkan database hrcd_dev
 python tests/concurrency_test.py  # 30 meja serentak, 300 nomor diperebutkan
 ```
 
+**Catatan:** `tests/concurrency_test.py` belum diperbarui sejak migrasi `0014`
+mengganti nama kolom (`sekolah.nama` → `name`, `edisi.aktif` → `is_active`,
+`regu.batal` → `is_cancelled`), jadi saat ini ia berhenti di langkah
+`siapkan()`. Perbaiki nama kolomnya dulu sebelum menjalankan.
+
 ## Menerapkan migrasi ke produksi
 
 Merge TIDAK menerapkan migrasi. Jalankan workflow-nya sendiri:
@@ -104,6 +124,11 @@ gh workflow run "Apply migration to Supabase" --ref main \
 Atau dari HP: **Actions → Apply migration to Supabase → Run workflow**. Pastikan
 log-nya mencetak `MIGRASI BERHASIL`.
 
+Merge juga TIDAK men-deploy folder `live/`. Situs peserta — form pendaftaran
+dan rekap live — hanya terbit lewat **Actions → Publish rekap live**, termasuk
+kalau yang berubah cuma `daftar.html`. Yang otomatis terbit tiap push ke `main`
+hanya `web/`, lewat koneksi Git Cloudflare.
+
 ## Kontribusi
 
 Semua perubahan lewat branch + pull request — konvensi lengkap di `CLAUDE.md`.
@@ -112,7 +137,10 @@ Semua perubahan lewat branch + pull request — konvensi lengkap di `CLAUDE.md`.
 git checkout -b <type>/<deskripsi-singkat>
 # ...ubah...
 git push -u origin HEAD
-gh pr create --fill
+gh pr create --base main --title "<type>: <apa yang berubah>" --body "..."
 ```
+
+Isi body-nya dengan bagian **What** dan **Why** — `--fill` mengambilnya dari
+pesan commit dan menghasilkan PR tanpa keduanya.
 
 PR di-merge dengan merge commit (`--no-ff`) bersubjek `Judul (#nomor)`.

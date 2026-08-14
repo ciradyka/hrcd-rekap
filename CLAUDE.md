@@ -109,10 +109,13 @@ Guidance for Claude Code when working in this repository.
     Migrations are *applied*, not "implemented"; tests *run*; servers *start*.
     Translating word-for-word from Indonesian produces names that are English
     but still unsearchable, which defeats the entire point of rule 5.
-11. Rule 9 stops where the domain begins. `0011_nomor_dada_manual.sql` and
-    `05_pindah_kloter.sql` keep their Indonesian parts, because `nomor dada`
-    and `kloter` are rule 3 terms — only the surrounding technical words
-    (`print`, `move`, `seed`, `test`) turn English.
+11. Rule 9 stops where the domain begins. `0011_nomor_dada_manual.sql`,
+    `0008_cetak_kloter.sql` and `05_pindah_kloter.sql` keep their Indonesian
+    parts, because `nomor dada`, `kloter`, `cetak kloter` and `pindah kloter`
+    are all things the panitia say — only the surrounding words that already
+    have an industry name turn English (`seed`, `test`, `rename`,
+    `migration`), as in `supabase/seed.sql` and
+    `0012_rename_audit_columns.sql`.
 12. **A workflow's `name:` field is UI text, so rule 1 decides it — by
     audience, not by file.** A workflow a panitia runs from the Actions tab on
     their phone keeps an Indonesian name ("Ganti password akun panitia",
@@ -139,5 +142,11 @@ Guidance for Claude Code when working in this repository.
    something GitHub enforces. Follow it deliberately.
 3. Git identity is configured **repo-locally**, not globally:
    `Furqon Aji Yudhistira <furqonajiy@gmail.com>`.
-4. PR #1 predates this convention and was squash-merged. It is the one commit on
-   `main` without a merge point; leave it as is.
+4. PR #1 predates this convention and was squash-merged. Apart from the root
+   `Initial commit`, it is the only commit on `main` without a merge point;
+   leave both as they are.
+5. `CLAUDE.md` and `AGENTS.md` are the same document twice — byte-identical
+   apart from the first heading and the intro paragraph. Every edit to one
+   lands in the other in the same commit. No workflow checks this
+   (`shared-files.yml` only compares `web/` against `live/`), and the pair has
+   already drifted 21 lines once, losing all of section 5's rules 9-12.

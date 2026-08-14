@@ -4,11 +4,13 @@
 > Dokumen ini ditulis SEBELUM sistemnya dibangun, untuk memilih arsitektur.
 > Kandidat B dipilih (bagian 8) dan sudah lama berjalan di produksi.
 >
-> Isinya sengaja **tidak** diperbarui: nilainya justru pada rekaman apa yang
-> diketahui dan dipertimbangkan saat keputusan diambil. Maka kalimat di bagian
-> 4 seperti "Cloudflare Pages", "tanpa server custom", `FOR UPDATE SKIP LOCKED`,
-> atau tabel `riwayat` menggambarkan RENCANA saat itu — beberapa di antaranya
-> memang berubah saat dibangun.
+> Analisisnya sengaja **tidak** diperbarui mengikuti sistem yang akhirnya
+> dibangun: nilainya justru pada rekaman apa yang diketahui dan dipertimbangkan
+> saat keputusan diambil. Yang ditambahkan belakangan hanya penanda hasil —
+> blok keputusan di bagian 8, catatan di bagian 7.1, dan tanda **Selesai** di
+> bagian 9. Maka kalimat di bagian 4 seperti "Cloudflare Pages", "tanpa server
+> custom", `FOR UPDATE SKIP LOCKED`, atau tabel `riwayat` menggambarkan RENCANA
+> saat itu — beberapa di antaranya memang berubah saat dibangun.
 >
 > **Untuk keadaan sistem sekarang, baca `final-architecture.md`.**
 
@@ -104,8 +106,9 @@ Ringkasan dari `alur-lomba.md` — setiap kandidat dipetakan ke daftar ini:
    polling hanya untuk operator.
 2. **Latensi 1–4 detik per aksi server** — setiap layar terasa berat, tidak
    bisa diperbaiki.
-3. Keamanan setara "sistem kepercayaan": password di sheet, tidak ada isolasi
-   server sejati — cukup untuk model kepercayaan panitia, tapi tidak lebih.
+3. Keamanan setara "sistem kepercayaan": password di sheet, isolasinya hidup di
+   kode aplikasi dan bukan di platform — cukup untuk model kepercayaan panitia,
+   tapi tidak lebih. Lihat koreksi di bagian 8.3.
 4. Database bisa rusak oleh tangan: satu kali sort tidak sengaja oleh
    kolaborator di tengah lomba = insiden data. Restore versi Sheets bersifat
    **seluruh file** — mengembalikan satu kesalahan ikut menghapus semua input
@@ -281,7 +284,7 @@ kloter, validasi upload — semuanya berjalan di browser.
 | Untuk pemelihara pelajar | Sedang | Sedang | Sulit | Sedang |
 | Risiko 10 bulan idle | **Nol** | Kecil (perlu keep-alive) | Kecil | **Nol** |
 | Nomor dada anti-ganda (R3) | Lock aplikasi | **Transaksi DB** | Transaksi klien | **UNIQUE index** |
-| Isolasi per pos (R6) | Kepercayaan | **Ditegakkan server** | Ditegakkan server | Ditegakkan server |
+| Isolasi per pos (R6) | Kode aplikasi (koreksi di bagian 8.3) | **Ditegakkan server** | Ditegakkan server | Ditegakkan server |
 | Riwayat perubahan (R13) | Konvensi kode | **Trigger otomatis** | Konvensi kode | Hook server |
 | Konfigurasi skor oleh panitia (R7) | **Edit cell langsung** | Layar admin | Layar admin | Layar admin |
 | Kecepatan layar | Lambat (1–4 dtk) | Cepat | Cepat | **Paling cepat** |
@@ -423,7 +426,9 @@ tahun kebiasaan panitia, dan keputusan sepenuhnya milik panitia.
 > sisanya masih relevan.
 
 1. ~~Pilih kandidat (bagian 8).~~ **Selesai: B.** Sudah berjalan di produksi —
-   Supabase, situs statis Cloudflare Workers, Worker gateway, 20 migrasi.
+   Supabase, dua situs statis Cloudflare Workers, Worker gateway, dan skema
+   database yang terus bertambah (hitungan migrasi terkini di
+   `final-architecture.md`).
 2. Siapa yang memegang akun-akun gratis (Google/Supabase/Cloudflare/GitHub) —
    disarankan akun organisasi ambalan, bukan akun pribadi pengurus, dengan
    minimal dua orang tahu password-nya.

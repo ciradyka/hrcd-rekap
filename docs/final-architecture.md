@@ -11,7 +11,7 @@ Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0026`.
 
 ## 1. Bentuk sistem
 
-Tiga bagian, dan hanya satu di antaranya kode yang kita tulis dan jalankan
+Empat bagian, dan hanya satu di antaranya kode yang kita tulis dan jalankan
 sendiri di server:
 
 | Bagian | Isi | Di mana |
@@ -53,8 +53,10 @@ karena form pendaftaran disajikan dari sana.
 
 Nama project situs memuat nomor edisi (`hrcd37`) dan berganti tiap tahun.
 Gateway dan project Supabase sengaja TIDAK memuat nomor edisi supaya bisa
-dipakai lintas tahun. Kalau `name` di `web/wrangler.toml` diubah, `ALLOWED_ORIGIN`
-di `workers/gateway/worker.js` wajib ikut diubah.
+dipakai lintas tahun. Kalau `name` di `live/wrangler.toml` diubah,
+`ALLOWED_ORIGIN` di `workers/gateway/worker.js` wajib ikut diubah — form
+pendaftaran disajikan dari situs peserta, jadi itulah origin yang dipagari.
+Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ---
 
@@ -64,7 +66,7 @@ di `workers/gateway/worker.js` wajib ikut diubah.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
-**Migrasi tidak pernah disunting setelah diterapkan.** Perubahan atas fungsi
+**Migrasi tidak pernah diedit setelah diterapkan.** Perubahan atas fungsi
 yang sudah ada ditulis sebagai migrasi baru berisi `create or replace function`
 lengkap. Itu sebabnya definisi terbaru sebuah RPC sering berada di berkas
 bernomor besar, bukan di `0004_rpcs.sql`.
@@ -76,13 +78,14 @@ Operasional: `pendaftaran`, `regu`, `sekolah`, `pembayaran`, `kloter`,
 `nomor_dada_stok`, `nomor_dada_pensiun`.
 
 Konfigurasi per edisi: `edisi`, `pos`, `wahana`, `kontrak_opsi`,
-`konfig_penalti`, `ruangan`, `status_acara`.
+`konfig_penalti`, `room`, `status_acara`.
 
 Akun & jejak: `akun_panitia`, `history`.
 
 > Tabel jejak audit bernama **`history`** dengan kolom `table_name`, `row_id`,
 > `action`, `old_value`, `new_value`, `changed_by`, `changed_at`. Dokumen lama
-> menyebutnya `riwayat` — itu nama sebelum migrasi `0012`.
+> menyebutnya `riwayat` — itu nama sebelum migrasi `0012`. Migrasi `0014`
+> melakukan hal yang sama pada `ruangan`, yang sejak itu bernama `room`.
 
 ### Cara skor dihitung
 
@@ -140,7 +143,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 
 | Rute | Layar | Kerjanya |
 | --- | --- | --- |
-| `#/home` | Beranda | menu + dua lencana angka: menunggu pembayaran, lunas belum bernomor |
+| `#/home` | Home | menu + dua lencana angka: menunggu pembayaran, lunas belum bernomor |
 | `#/pembayaran` | Meja Pembayaran | tabel semua invoice, tandai lunas, cetak kwitansi |
 | `#/daftar-ulang` | Meja Daftar Ulang | isi nomor dada per regu, tukar nomor rusak |
 | `#/cetak-kloter` | Cetak Daftar Kloter | lembar per kloter untuk petugas start |
@@ -150,10 +153,11 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/ganti-password` | Ganti Password | — |
 
 Peran akun: `admin`, `meja`, `operator_pos`. Seluruh RPC meja menuntut
-`peran() in ('admin','meja')`; akun `operator_pos` ditolak di layar meja dengan
-pesan "Akun pos, bukan akun meja", dan sebaliknya akun `meja` ditolak di
-`#/pos`. Home menampilkan menu yang berbeda per peran — akun pos hanya melihat
-layar posnya sendiri.
+`peran() in ('admin','meja')`; akun `meja` yang membuka `#/pos` ditolak dengan
+kartu "Akun meja, bukan akun pos". Sebaliknya akun `operator_pos` tidak diberi
+kartu penolakan di layar meja — Home-nya memang hanya memuat satu jalan, layar
+posnya sendiri, dan RLS yang mengosongkan data meja seandainya alamatnya
+diketik langsung.
 
 ### Layar Input Pos
 
@@ -187,9 +191,10 @@ Tiga hal yang menentukan layar ini benar atau tidak:
 
 Tombol **Cetak Lembar** mengeluarkan versi kertas dari pos yang sedang dibuka
 (`alur-lomba.md` 8.6): identitas regu sudah tercetak, kolom nilainya kosong,
-dan judul posnya ikut di dalam `<thead>` sehingga terulang di tiap halaman —
-kertas ini beredar sebagai lembaran lepas yang berpindah tangan lewat foto,
-dan halaman yang tidak menyebutkan posnya sendiri bisa dinilaikan ke pos yang
+dan judul posnya dicetak sebagai `<h1>` di tiap lembar. Halamannya dipotong di
+JS — 30 regu per lembar — jadi tiap potongan membawa judulnya sendiri. Kertas
+ini beredar sebagai lembaran lepas yang berpindah tangan lewat foto, dan
+halaman yang tidak menyebutkan posnya sendiri bisa dinilaikan ke pos yang
 salah.
 
 Dua keputusan yang membentuknya:
@@ -235,10 +240,13 @@ panitia sudah terbiasa dengannya:
 
 | Keadaan | Yang tertulis |
 | --- | --- |
-| aman | `✓ Semua tersimpan · Tersimpan terakhir 14:32:07` |
-| sedang diketik | `2 baris belum tersimpan. Tersimpan terakhir 14:32:07` |
-| gagal | merah — `1 baris gagal terkirim dan 1 baris masih diketik — dicoba lagi sendiri tiap 15 detik… Tersimpan terakhir 14:12:40 (23 menit lalu).` |
+| aman | `✓ Data Tersimpan · Sinkronisasi Terakhir: 14:32 (barusan)` |
+| sedang diketik | `2 baris belum tersimpan. Sinkronisasi Terakhir: 14:32 (barusan)` |
+| gagal | merah — `1 baris gagal terkirim dan 1 baris masih diketik — dicoba lagi sendiri tiap 15 detik. Jangan tutup halaman ini. Sinkronisasi Terakhir: 14:12 (23 menit lalu).` |
 | internet putus | merah — angkanya aman di layar, dikirim sendiri saat internet kembali |
+
+Capnya `jamMenit` — jam dan menit saja, tanpa detik — ditambah umurnya dalam
+kurung, mengikuti standar waktu di bagian 3b.
 
 Empat hal yang membuatnya bisa dipercaya:
 
@@ -258,7 +266,10 @@ membuangnya kini dijaga: `beforeunload` menahan tab yang ditutup, dan muat
 ulang otomatis saat layar dilihat kembali dilewati selama masih ada baris yang
 belum tersimpan.
 
-`v_lembar_pos` adalah **satu-satunya view yang bukan `security_invoker`**.
+`v_lembar_pos` adalah **satu-satunya view PANITIA yang bukan
+`security_invoker`** — empat view publik (`v_progres_publik`,
+`v_klasemen_publik`, `v_publik_ringkas`, `v_edisi_publik`) juga bukan, tapi
+mereka hanya dibaca service role saat menerbitkan `live.json`.
 Alasannya ada di kepala migrasi `0023`: jalan menuju nama sekolah melewati
 tabel `pendaftaran`, yang tertutup untuk operator pos karena memuat nomor
 WhatsApp. Kalau view-nya tunduk RLS, operator mendapat lembar kosong — dan
@@ -298,8 +309,11 @@ tahun depan belum tentu ingat janji ini.
 Memisahkan URL **tidak** mencegah orang mencoba masuk — alamat panitia tetap
 ada. Yang benar-benar didapat tiga hal:
 
-1. Halaman rekap tidak memuat **kunci apa pun**. `web/config.js` membawa anon
-   key dan alamat Supabase; `live/` cuma HTML, CSS, dan satu berkas JSON.
+1. Halaman rekap tidak memuat **kunci apa pun**: `live/index.html` hanya
+   memanggil `live.css` dan `live.js`, dan `live.js` cuma membaca
+   `live.json`. Anon key memang ikut tersalin ke `live/config.js` — form
+   pendaftaran di folder yang sama memakainya — tapi halaman rekapnya sendiri
+   tidak pernah menyentuhnya.
 2. Link yang disebar ke ratusan peserta tidak sekaligus menyebarkan alamat
    login panitia.
 3. Ratusan HP yang me-refresh tidak menyentuh Worker yang sedang dipakai
@@ -374,7 +388,8 @@ Jumlah regu tidak punya kolom sendiri — angkanya sudah tercetak di dalam tombo
 
 ## 4. Form pendaftaran publik
 
-`web/daftar.html` + `web/js/daftar.js`, tanpa login. Kiriman tidak langsung ke
+`live/daftar.html` + `live/js/daftar.js`, tanpa login — keduanya tinggal di
+situs peserta, bukan di `web/`. Kiriman tidak langsung ke
 Supabase melainkan ke gateway, yang memanggil `submit_pendaftaran` memakai
 service role.
 
@@ -396,7 +411,7 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
 | Layar panitia (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
-| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | manual + cron 5 menit (dimatikan di luar minggu lomba) |
+| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | manual saja — cron 5 menit masih dikomentari, nyalakan pada minggu lomba (bagian 8) |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
 
@@ -419,11 +434,12 @@ Jadi salinannya dititipkan di git, dan workflow `shared-files.yml` yang
 membuatnya tidak bisa membusuk: tiap PR membandingkan `live/` dengan acuannya
 di `web/` dan gagal kalau menyimpang. Duplikasi yang diam adalah bug yang
 menunggu; duplikasi yang berteriak tiap kali menyimpang cuma sedikit berisik.
-**`web/` yang jadi acuan** — jangan pernah menyunting salinannya.
+**`web/` yang jadi acuan** — jangan pernah mengedit salinannya.
 
-**Merge ke `main` = deploy situs.** Tidak ada build step; berkas di `web/`
-disajikan apa adanya, dengan `web/wrangler.toml` menyetel root proyek ke folder
-itu.
+**Merge ke `main` = deploy layar panitia.** Tidak ada build step; berkas di
+`web/` disajikan apa adanya — asalkan kotak "Root directory" di dashboard
+Cloudflare masih berisi `web` (bagian 7 nomor 8; setelan itu tidak ada di git).
+Situs peserta tidak ikut: `live/` hanya terbit lewat workflow-nya sendiri.
 
 **Merge TIDAK menerapkan migrasi.** Migrasi dijalankan terpisah:
 
@@ -443,9 +459,9 @@ saat layar memanggil RPC lama dan gagal.
 ### Cache
 
 `web/_headers` menyetel `Cache-Control: no-cache` untuk semua aset: browser
-boleh menyimpan, tapi wajib bertanya dulu. Asetnya kecil (<100 KB seluruhnya),
-jadi biayanya hampir nol — dan tanpa itu, perbaikan mendadak pagi hari-H tidak
-akan sampai ke panitia.
+boleh menyimpan, tapi wajib bertanya dulu. Asetnya kecil (±220 KB seluruhnya,
+`js/app.js` sendiri 119 KB), jadi biayanya hampir nol — dan tanpa itu,
+perbaikan mendadak pagi hari-H tidak akan sampai ke panitia.
 
 ### Workflow lain
 
@@ -528,7 +544,7 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
 
 - **`docs/arsitektur-hrcd.svg` dan `.png`** masih menggambarkan Google Sheets
   sebagai bagian arsitektur, dan angkanya sudah bergeser: tertulis "18 view
-  berlapis" (sekarang 17) dan "24 RPC bertransaksi" (sekarang 26 fungsi, 14 di
+  berlapis" (sekarang 19) dan "24 RPC bertransaksi" (sekarang 27 fungsi, 15 di
   antaranya dipanggil layar). Diagramnya tidak dirujuk dari dokumen mana pun,
   jadi dibiarkan sampai ada yang menggambar ulang.
 - **Beberapa RPC masih mencetak nomor dada mentah** di pesan galatnya
@@ -546,10 +562,11 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   kebutuhannya, karena satu layar memuat seluruh lembar sekaligus. RPC-nya
   (`simpan_nilai_massal`) memang sudah menerima banyak baris sekaligus, jadi
   yang kurang hanya pengurai tempelan dan preview-nya.
-- **Nama Pos 5 masih "Pos 5".** Lembar penilaiannya tidak ada di antara yang
-  diserahkan panitia, jadi migrasi `0024` sengaja tidak menebak nama maupun
-  komponennya. Pos 5 akan tampil di layar Input Pos sebagai pos tanpa kolom
-  penilaian sampai diisi.
+- **Pos 5 (Kedatangan) belum punya komponen penilaian.** Lembar penilaiannya
+  tidak ada di antara yang diserahkan panitia, jadi migrasi `0024` sengaja
+  tidak menebak komponennya; namanya baru diisi migrasi `0025`. Selama belum
+  punya baris `wahana`, Pos 5 tidak muncul sama sekali di pemilih pos layar
+  Input Pos.
 - **Dua sel di lembar XXXVI tidak cocok dengan rumusnya sendiri** (Pos 3 regu
   016 tertulis 380, rumus memberi 355; Pos 4 regu 009 tertulis 100, rumus
   memberi 80). 75 dari 77 baris yang bisa dibaca cocok tanpa sisa, jadi
