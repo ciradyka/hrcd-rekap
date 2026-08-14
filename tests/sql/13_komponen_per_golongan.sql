@@ -22,9 +22,15 @@
 do $$
 declare v_pos5 text; v_kostum int;
 begin
+  -- Pos 5 di sini masih GARIS FINISH. Diperiksa dengan menyebut nama yang
+  -- SEHARUSNYA ada, bukan sekadar "bukan Yel-yel": 0034 mengganti nama pos
+  -- berdasarkan nomornya, jadi kalau penjaganya jebol yang tertulis di sini
+  -- akan berubah jadi nama pos penilaian — dan garis finish yang menyamar
+  -- jadi pos adalah kerusakan yang tidak menimbulkan galat apa pun.
   select name into v_pos5 from pos where edisi = edisi_aktif() and nomor = 5;
-  assert v_pos5 is distinct from 'Yel-yel',
-    '0032 mengganti konfigurasi padahal sudah ada nilai tersimpan';
+  assert v_pos5 = 'Kedatangan',
+    format('Pos 5 seharusnya masih Kedatangan, ternyata %L — konfigurasi '
+           'diganti padahal sudah ada nilai tersimpan', v_pos5);
 
   select count(*) into v_kostum from pos
   where edisi = edisi_aktif() and bayangan;
