@@ -23,7 +23,7 @@ import {
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
-         berapaLalu, pemuat, ikonRefresh } from "./util.js";
+         berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -1872,18 +1872,13 @@ function selKomponen(k, nilai) {
                    aria-label="${esc(k.name)}">`;
   }
   if (k.satuan === "detik") {
-    const total = n1 === null || n1 === undefined ? null : Number(n1);
-    return `<span class="pos-pasangan">
-      <input type="number" class="small-input" inputmode="numeric" min="0"
-             data-kode="${kode}" data-slot="menit"
-             value="${total === null ? "" : Math.floor(total / 60)}"
-             aria-label="${esc(k.name)} — menit">
-      <span class="pos-pemisah" aria-hidden="true">:</span>
-      <input type="number" class="small-input" inputmode="numeric" min="0" max="59"
-             data-kode="${kode}" data-slot="detik"
-             value="${total === null ? "" : total % 60}"
-             aria-label="${esc(k.name)} — detik">
-    </span>`;
+    // SATU kotak, dan bertipe text — bukan number — karena isinya boleh
+    // memuat titik dua. inputmode="numeric" tetap memanggil papan angka di HP,
+    // jadi yang hilang cuma tombol panah naik-turun yang memang tidak pernah
+    // dipakai untuk mencatat waktu.
+    return `<input type="text" class="small-input input-waktu" inputmode="numeric"
+                   data-kode="${kode}" value="${esc(detikTeks(n1))}"
+                   aria-label="${esc(k.name)} — detik, atau menit:detik">`;
   }
   if (k.form === "benar_kurang_salah") {
     return `<span class="pos-pasangan">
@@ -1906,8 +1901,13 @@ function selKomponen(k, nilai) {
  *  diambil dari konfigurasi supaya tidak pernah berbeda dengan yang divalidasi
  *  server. Persis angka yang tercetak di judul kolom lembar kertas. */
 function petunjukKolom(k) {
+  // Keterangan dari konfigurasi selalu menang. Untuk sebagian besar komponen
+  // rentangnya sudah menjelaskan segalanya — "0 – 5 kata benar" tidak butuh
+  // kalimat. Tapi Menaksir menulis SELISIH, bukan nilai, dan rentangnya justru
+  // menyesatkan; kolom `petunjuk` (0037) ada untuk kasus seperti itu.
+  if (k.petunjuk) return k.petunjuk;
   if (k.form === "biner") return "centang bila benar";
-  if (k.satuan === "detik") return "menit : detik";
+  if (k.satuan === "detik") return "detik, atau m:dd";
   if (k.form === "benar_kurang_salah") return "benar / salah";
   if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
@@ -1927,9 +1927,12 @@ function bacaSel(tr, k) {
   if (k.form === "biner") return { nilai_1: kotak[0].checked ? 1 : 0, nilai_2: null };
 
   if (k.satuan === "detik") {
-    const m = kotak[0].value.trim(), d = kotak[1].value.trim();
-    if (m === "" && d === "") return null;
-    return { nilai_1: (Number(m) || 0) * 60 + (Number(d) || 0), nilai_2: null };
+    const detik = detikSah(kotak[0].value);
+    // null menutupi dua hal yang berbeda: kotak kosong, dan isi yang bukan
+    // waktu. Keduanya sengaja diperlakukan sama — TIDAK DIKIRIM. Menebak
+    // maksud "1:75" berarti mencatat waktu yang tidak pernah terjadi, dan
+    // kotaknya sendiri sudah memerah lewat .input-waktu:invalid.
+    return detik === null ? null : { nilai_1: detik, nilai_2: null };
   }
   if (k.form === "benar_kurang_salah") {
     const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
@@ -1994,8 +1997,10 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
   // Bentuk isian sama untuk semua varian satu lomba — yang berbeda antar
   // golongan hanya skalanya, bukan cara menulisnya.
   const k = kol.varian[0];
-  if (k.satuan === "detik") return [
-    { nama: kol.nama, petunjuk: "menit" }, { nama: "", petunjuk: "detik" }];
+  // Waktu memakan SATU petak di kertas juga. Dua petak Menit|Detik memaksa
+  // petugas memecah angka stopwatch sebelum menuliskannya; satu petak
+  // menerima "32" maupun "1:10" apa adanya, persis seperti kotak di layar.
+  if (k.satuan === "detik") return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
   if (k.form === "benar_kurang_salah") return [
     { nama: kol.nama, petunjuk: "benar" }, { nama: "", petunjuk: "salah" }];
   return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
@@ -2497,6 +2502,48 @@ async function layarInputPos() {
     if (tr) simpanBaris(tr);
   });
 
+  /* Kotak waktu: dirapikan dan diperiksa saat DITINGGALKAN.
+
+     Satu kotak yang menerima "32" maupun "1:10" punya satu kelemahan yang
+     tidak dimiliki dua kotak angka: isinya bisa BUKAN waktu. "1:75" terbaca
+     wajar oleh mata, tapi bukan waktu mana pun, dan bacaSel() menolaknya
+     dengan mengembalikan null — yang di jalur simpan berarti "kotak kosong",
+     alias tidak dikirim.
+
+     Tanpa penanda, itu jenis kegagalan yang paling buruk: petugas mengetik
+     angka, tidak ada yang merah, tidak ada yang gagal, dan nilainya tidak
+     pernah ada. Jadi kotaknya diberi aria-invalid, yang sudah punya gaya merah
+     sendiri di style.css dan sekaligus terbaca pembaca layar.
+
+     Dirapikan saat blur, bukan tiap ketukan: menata angka sementara orang
+     masih mengetiknya memindahkan kursor di bawah jarinya. Pola dan alasannya
+     sama dengan pasangKotakJam() di util.js. */
+  tbody.addEventListener("focusout", (e) => {
+    const el = e.target;
+    if (!el.classList || !el.classList.contains("input-waktu")) return;
+    const kosong = !el.value.trim();
+    const detik = detikSah(el.value);
+    if (kosong) el.removeAttribute("aria-invalid");
+    else if (detik === null) el.setAttribute("aria-invalid", "true");
+    else {
+      // "0:32" jadi "32", "95" jadi "1:35" — bentuk yang sama dengan yang
+      // digambar ulang dari database, supaya menyimpan baris yang tidak
+      // disentuh tidak pernah terlihat sebagai perubahan.
+      el.value = detikTeks(detik);
+      el.removeAttribute("aria-invalid");
+    }
+  });
+
+  // Merah hilang begitu isinya jadi waktu yang sah — menunggu blur untuk
+  // memadamkan peringatan membuat petugas mengira ketikan barunya juga salah.
+  tbody.addEventListener("input", (e) => {
+    const el = e.target;
+    if (!el.classList || !el.classList.contains("input-waktu")) return;
+    if (detikSah(el.value) !== null || !el.value.trim()) {
+      el.removeAttribute("aria-invalid");
+    }
+  });
+
   // Enter = turun satu regu di kolom yang sama, seperti menyalin dari kertas
   // ke bawah. Berpindah fokus memicu change-nya sendiri, jadi barisnya
   // tersimpan tanpa perlu dipanggil dua kali.
@@ -2696,11 +2743,10 @@ function selRekap(w, isi) {
       ? esc(angkaRapi(a))
       : `${esc(angkaRapi(a))}<span class="pos-pemisah"> / </span>${esc(angkaRapi(b))}`;
   }
-  if (w.satuan === "detik") {
-    const d = Number(a);
-    return `${Math.floor(d / 60)}<span class="pos-pemisah">:</span>${
-      String(d % 60).padStart(2, "0")}`;
-  }
+  // Bentuk yang sama dengan yang diketik di Input Pos — 32 detik tampil "32",
+  // bukan "0:32". Dua layar yang menampilkan angka sama dengan bentuk berbeda
+  // membuat orang mengira datanya yang berbeda.
+  if (w.satuan === "detik") return esc(detikTeks(a));
   return esc(angkaRapi(a));
 }
 
@@ -2739,9 +2785,14 @@ async function layarRekap() {
   // (migrasi 0025), dan kolom yang selamanya kosong terbaca sebagai pos yang
   // panitianya lalai — bukan sebagai garis start dan garis finish.
   const posDinilai = pos.filter(p => (p.jumlah_komponen || 0) > 0);
-  const kolomPos = posDinilai.map(p => ({
-    ...p, komponen: wahana.filter(w => Number(w.pos) === Number(p.nomor)),
-  }));
+  // Dikelompokkan dengan kolomPos() yang sama dengan layar Input Pos: satu
+  // kolom per LOMBA. Tanpa ini Pos 1 memakan empat kolom "Tebak Simpul" yang
+  // tiga di antaranya selalu kosong di setiap baris, dan tabel yang sudah 38
+  // kolom bertambah panjang tanpa menambah satu keterangan pun.
+  const posKolom = posDinilai.map(p => {
+    const komponen = wahana.filter(w => Number(w.pos) === Number(p.nomor));
+    return { ...p, kolom: kolomPos(komponen) };
+  });
 
   /* SELALU satu golongan, tidak pernah gabungan — dan karena itu tidak ada
      pilihan "Semua". Rekap dibaca untuk menjawab "siapa juara Penegak PA",
@@ -2759,14 +2810,21 @@ async function layarRekap() {
   /** Berapa komponen pos ini yang sudah terisi untuk satu regu. Dihitung dari
    *  `nilai` yang SUDAH ada di tangan — tidak perlu permintaan tambahan, dan
    *  angkanya pasti sama dengan yang dipakai menggambar barisnya. */
-  const terisiDiPos = (b, p) => p.komponen.reduce(
+  const komponenBaris = (p, b) =>
+    p.kolom.map(kol => varianUntuk(kol, b.golongan)).filter(Boolean);
+
+  const terisiDiPos = (b, p) => komponenBaris(p, b).reduce(
     (n, w) => n + ((b.nilai || {})[`${p.nomor}.${w.kode}`] ? 1 : 0), 0);
 
   const cocok = (b) => {
     if (golongan && b.golongan !== golongan) return false;
     if (posBelum !== null) {
-      const p = kolomPos.find(x => Number(x.nomor) === Number(posBelum));
-      if (p && terisiDiPos(b, p) >= p.komponen.length) return false;
+      const p = posKolom.find(x => Number(x.nomor) === Number(posBelum));
+      // Pembandingnya komponen yang berlaku untuk regu INI, bukan jumlah kolom
+      // tabel. Regu Penggalang di Pos 1 punya tiga komponen sementara tabelnya
+      // berkolom empat — dibandingkan dengan empat, saringan "belum lengkap"
+      // tidak pernah menyembunyikan siapa pun dan jadi tidak berguna.
+      if (p && terisiDiPos(b, p) >= komponenBaris(p, b).length) return false;
     }
     return !cari
       || (b.nama_sekolah || "").toLowerCase().includes(cari)
@@ -2795,11 +2853,11 @@ async function layarRekap() {
      percaya yang salah. Bedanya cuma satu — di sini kelompok kolomnya
      berulang untuk tiap pos, dan tiap kelompok ditutup Nilai Pos-nya. */
   const kepala = () => {
-    const perPos = kolomPos.map(p => `
-      ${p.komponen.map(w => `
+    const perPos = posKolom.map(p => `
+      ${p.kolom.map(kol => `
         <th class="text-center">
-          <span class="kolom-nama">${esc(w.name)}</span>
-          <span class="kolom-petunjuk">${esc(petunjukKolom(w))}</span></th>`).join("")}
+          <span class="kolom-nama">${esc(kol.nama)}</span>
+          <span class="kolom-petunjuk">${esc(kol.petunjuk)}</span></th>`).join("")}
       <th class="text-center rekap-batas">Nilai<br>${
         esc(p.bayangan ? p.name : `Pos ${p.nomor}`)}</th>`).join("");
     return `
@@ -2825,9 +2883,13 @@ async function layarRekap() {
   const barisHtml = (b) => {
     const nilai = b.nilai || {};
     const poin = b.poin_pos || {};
-    const perPos = kolomPos.map(p => `
-      ${p.komponen.map(w => `<td class="text-center">${
-        selRekap(w, nilai[`${p.nomor}.${w.kode}`])}</td>`).join("")}
+    const perPos = posKolom.map(p => `
+      ${p.kolom.map(kol => {
+        const w = varianUntuk(kol, b.golongan);
+        return `<td class="text-center">${
+          w ? selRekap(w, nilai[`${p.nomor}.${w.kode}`])
+            : `<span class="sel-mati">–</span>`}</td>`;
+      }).join("")}
       <td class="text-center pos-nilai rekap-batas">${poin[String(p.nomor)] === undefined
         ? "" : esc(angka(poin[String(p.nomor)]))}</td>`).join("");
     const penalti = Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
@@ -2910,7 +2972,7 @@ async function layarRekap() {
   // 5 kolom identitas + 9 kolom waktu/total, ditambah tiap komponen dan satu
   // Nilai Pos per kelompok. Dipakai colspan baris "tidak ada yang cocok" —
   // kalau meleset, barisnya tidak selebar tabelnya.
-  const lebarKolom = 14 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
+  const lebarKolom = 14 + posKolom.reduce((n, p) => n + p.kolom.length + 1, 0);
 
   /* ==========================================================================
      KERANGKA DIBANGUN SEKALI, ISINYA DIPERBARUI DI TEMPAT.
