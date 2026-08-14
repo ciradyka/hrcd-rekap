@@ -26,10 +26,29 @@ const esc = (v) => v === null || v === undefined ? "" : String(v)
 
 const dada = (n) => String(n).padStart(3, "0");
 
+/* Bentuk waktu baku. Sengaja DISALIN dari web/js/util.js dan bukan diimpor:
+   halaman ini di-deploy sebagai Worker terpisah dan tidak boleh bergantung
+   pada berkas di proyek lain. Kalau bentuknya diubah di sana, ubah juga di
+   sini — hanya ada tiga fungsi, dan salinan yang jujur lebih baik daripada
+   ketergantungan yang diam-diam putus saat deploy. */
+const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+               "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const dua = (n) => String(n).padStart(2, "0");
+
+/** "15:30" — titik dua, bukan titik: "07.04" mudah terbaca sebagai desimal. */
 const jam = (t) => {
   if (!t) return "—";
   const d = new Date(t);
-  return `${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${dua(d.getHours())}:${dua(d.getMinutes())}`;
+};
+
+/** "17 Agustus 2026 15:30" — dipakai cap sinkronisasi, yang bisa menunjuk
+ *  hari lain: peserta membuka halaman ini kapan saja, termasuk besok paginya,
+ *  dan "17:30" telanjang akan terbaca sebagai setengah jam lalu. */
+const tanggalJam = (t) => {
+  if (!t) return "—";
+  const d = new Date(t);
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam(t)}`;
 };
 
 const kontrak = (menit) => {
@@ -57,10 +76,10 @@ function gambarSinkron() {
   const el = document.getElementById("sinkron");
   if (!DATA) { el.textContent = "Memuat…"; return; }
   const t = new Date(DATA.dibuat_pada);
-  const jj = `${String(t.getHours()).padStart(2, "0")}.${String(t.getMinutes()).padStart(2, "0")}.${String(t.getSeconds()).padStart(2, "0")}`;
   const tua = Date.now() - t.getTime() > 15 * 60000;
   el.className = `sinkron${tua ? " basi" : ""}`;
-  el.textContent = `Sinkronisasi terakhir: ${jj} (${berapaLalu(DATA.dibuat_pada)})`
+  el.textContent = `Sinkronisasi terakhir: ${tanggalJam(DATA.dibuat_pada)}`
+    + ` (${berapaLalu(DATA.dibuat_pada)})`
     + (tua ? " — data mungkin tertinggal" : "");
 }
 

@@ -32,8 +32,52 @@ export function html(potongan, ...nilai) {
 
 export const rupiah = n => "Rp " + Number(n || 0).toLocaleString("id-ID");
 
-export const jamSekarang = () =>
-  new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+/* ---------------------------------------------------------------------------
+   WAKTU — tiga bentuk, dan hanya tiga. Semua layar memakai yang ini.
+
+     jamMenit(t)       15:30
+     tanggalPanjang(t) 17 Agustus 2026
+     tanggalJam(t)     17 Agustus 2026 15:30
+
+   ATURAN MEMILIH: pakai jamMenit kalau HARINYA sudah jelas dari kedudukannya
+   (jam berangkat kloter hari ini, jam datang regu barusan). Pakai tanggalJam
+   kalau tidak — cap yang bisa menunjuk hari lain wajib menyebutkan harinya,
+   kalau tidak "17:30" terbaca sebagai setengah jam lalu padahal kemarin sore.
+
+   Kenapa nama bulannya ditulis sendiri dan bukan lewat toLocaleDateString:
+   berkas data locale tidak selalu lengkap di WebView Android bawaan, dan
+   kalau 'id-ID' tidak ada, browser diam-diam mundur ke Inggris — kertas
+   kwitansi tercetak "14 August 2026" tanpa ada yang gagal. Larik ini
+   menghilangkan seluruh kemungkinan itu.
+
+   Titik dua, BUKAN titik. toLocaleTimeString('id-ID') memberi "07.04", yang
+   di layar mudah terbaca sebagai angka desimal.
+   ------------------------------------------------------------------------- */
+
+const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+               "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+const dua = (n) => String(n).padStart(2, "0");
+
+/** "15:30" — 24 jam. Kosong jadi "—", bukan "NaN:NaN". */
+export function jamMenit(t) {
+  if (!t) return "—";
+  const d = new Date(t);
+  return `${dua(d.getHours())}:${dua(d.getMinutes())}`;
+}
+
+/** "17 Agustus 2026" */
+export function tanggalPanjang(t) {
+  if (!t) return "—";
+  const d = new Date(t);
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** "17 Agustus 2026 15:30" */
+export function tanggalJam(t) {
+  if (!t) return "—";
+  return `${tanggalPanjang(t)} ${jamMenit(t)}`;
+}
 
 /** Notifikasi bawah layar.
  *
