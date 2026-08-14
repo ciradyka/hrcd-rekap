@@ -79,6 +79,32 @@ export function tanggalJam(t) {
   return `${tanggalPanjang(t)} ${jamMenit(t)}`;
 }
 
+/** Rangka abu-abu yang berdenyut, menggantikan tulisan "Memuat…".
+ *
+ *  YANG PALING MENENTUKAN DI SINI BUKAN BENTUKNYA, MELAINKAN JEDANYA.
+ *
+ *  Sebagian besar layar meja terisi di bawah 200 ms. Penanda muat yang tampil
+ *  seketika karena itu lebih sering terlihat sebagai KEDIPAN — muncul dan
+ *  hilang sebelum sempat dibaca — dan kedipan terasa seperti layar yang
+ *  tersendat, bukan layar yang cepat. Maka rangka ini punya
+ *  `animation-delay` 180 ms: kalau datanya keburu datang, ia tidak pernah
+ *  terlihat sama sekali. Yang melihatnya hanya orang yang memang menunggu.
+ *
+ *  Lebar tiap batang sengaja berbeda-beda. Batang yang sama panjang terbaca
+ *  sebagai bar progres yang macet; yang tidak rata terbaca sebagai teks yang
+ *  belum datang, dan itu memang yang sedang terjadi.
+ *
+ *  `aria-busy` + satu baris tersembunyi menjaga pembaca layar tetap
+ *  mendapat kabar — bagi mereka animasi tidak berarti apa-apa. */
+export function kartuMemuat(baris = 5) {
+  const lebar = [92, 74, 86, 63, 90, 70, 82];
+  return `<div class="card memuat-rangka" aria-busy="true" aria-live="polite">
+    <span class="visually-hidden">Memuat…</span>
+    ${Array.from({ length: baris }, (_, i) =>
+      `<div class="memuat-baris" style="width:${lebar[i % lebar.length]}%"></div>`).join("")}
+  </div>`;
+}
+
 /** "barusan" · "23 menit lalu" · "2 jam lalu".
  *
  *  Umur sebuah cap, bukan jamnya. Dipakai berdampingan dengan `jamMenit`,

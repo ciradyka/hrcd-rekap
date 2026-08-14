@@ -16,7 +16,8 @@
    ========================================================================== */
 
 import { daftarSekolah, kirimPendaftaran, infoEdisi, ErrorApi } from "./api.js";
-import { esc, h, html, rupiah, notif, kartuGagalMuat } from "./util.js";
+import { esc, h, html, rupiah, notif, kartuGagalMuat,
+         kartuMemuat } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN = [
@@ -594,7 +595,9 @@ function sukses(hasil) {
 /* ---------------- mulai ---------------- */
 
 async function mulai() {
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  // Rangka yang sama dengan layar panitia — daftar.html memang memuat
+  // style.css yang sama, jadi tidak ada gaya kedua yang perlu dijaga.
+  LAYAR.replaceChildren(h(kartuMemuat(4)));
   try {
     [SEKOLAH, EDISI] = await Promise.all([daftarSekolah(), infoEdisi()]);
   } catch (e) {
