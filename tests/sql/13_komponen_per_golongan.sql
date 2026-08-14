@@ -52,8 +52,16 @@ $$;
 --
 --      Diuji dengan menandai satu komponen yang sudah ada, lalu dikembalikan
 --      lagi — supaya tes ini tidak bergantung pada konfigurasi edisi mana pun.
+--
+--      Dijalankan sebagai ADMIN, bukan tanpa peran: `v_lembar_pos` dipagari
+--      `peran() is not null` (0023), jadi sesi tanpa identitas mendapat nol
+--      baris — dan nol baris terbaca sebagai "kolomnya menyusut" padahal
+--      viewnya cuma menolak melayani. Menulis ke `wahana` juga menuntut
+--      admin (policy adm_wahana).
 -- ---------------------------------------------------------------------------
-reset role;
+select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
+set role authenticated;
+
 do $$
 declare
   v_kode     text;
@@ -111,10 +119,8 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 13.4 Tanpa komponen bergolongan, perilakunya HARUS sama persis dengan
 --      sebelum 0030 — panel kelengkapan tetap menjumlah ke populasinya.
+--      Masih sebagai admin dari 13.3.
 -- ---------------------------------------------------------------------------
-select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
-set role authenticated;
-
 do $$
 declare k record;
 begin
