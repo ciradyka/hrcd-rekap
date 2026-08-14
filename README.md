@@ -48,7 +48,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0029
+│   ├── migrations/           # skema database, urut 0001..0032
 │   ├── checks/               # SQL manual — flow_test & cleanup_smoke MENGUBAH
 │   │                         # data; live_json.sql dipakai Publish rekap live
 │   └── seed.sql              # konfigurasi edisi + baris wajib

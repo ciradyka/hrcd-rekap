@@ -52,6 +52,8 @@ run supabase/migrations/0026_rekap_publik.sql
 run supabase/migrations/0027_rekap_penuh.sql
 run supabase/migrations/0028_kelengkapan_pos.sql
 run supabase/migrations/0029_pesan_rentang.sql
+run supabase/migrations/0030_komponen_per_golongan.sql
+run supabase/migrations/0031_tolak_komponen_golongan_lain.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
@@ -92,5 +94,11 @@ run tests/sql/11_kelengkapan_pos.sql
 # 12 butuh komponen Pos 1 yang sebenarnya (kepramukaan_keagamaan,
 # rentang 0-20), yang baru ada setelah 0024 dijalankan giliran kedua.
 run tests/sql/12_pesan_rentang.sql
+# 0032 mengganti SELURUH konfigurasi penilaian satu edisi, dan sengaja
+# menolak bekerja bila sudah ada nilai tersimpan. Dijalankan di sini,
+# setelah database uji penuh nilai, supaya penolakan itu ikut terbukti —
+# dan supaya tes 02-12 tetap memakai konfigurasi yang mereka andalkan.
+run supabase/migrations/0032_konfigurasi_xxxvii.sql
+run tests/sql/13_komponen_per_golongan.sql
 
 echo "SEMUA TES LULUS"
