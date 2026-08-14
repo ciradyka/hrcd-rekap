@@ -2604,13 +2604,6 @@ function selRekap(w, isi) {
   return String(a);
 }
 
-/** "0 - 20" di bawah nama kolom — persis petunjuk rentang yang tercetak di
- *  lembar kertas, supaya mata panitia mendarat di tempat yang sama. */
-const petunjukRentang = (w) => w.form === "biner"
-  ? "(v)"
-  : (w.satuan === "detik" ? "(menit:detik)"
-     : `(${Number(w.rentang_mentah_min)} - ${Number(w.rentang_mentah_maks)})`);
-
 const angka = (n) => n === null || n === undefined ? "—"
   : String(Math.round(Number(n) * 100) / 100);
 
@@ -2674,19 +2667,37 @@ async function layarRekap() {
     return Number(b.total ?? 0) - Number(a.total ?? 0);
   };
 
+  /* Kepala tabel meniru lembar Input Pos huruf demi huruf — `kolom-nama` yang
+     boleh membungkus di atas `kolom-petunjuk` yang menyebut rentangnya.
+     Petunjuknya memakai `petunjukKolom()` yang SAMA, bukan salinannya: kalau
+     suatu hari rentang di satu layar berbeda dengan layar lain, panitia akan
+     percaya yang salah. Bedanya cuma satu — di sini kelompok kolomnya
+     berulang untuk tiap pos, dan tiap kelompok ditutup Nilai Pos-nya. */
   const kepala = () => {
     const perPos = kolomPos.map(p => `
-      ${p.komponen.map(w => `<th class="rekap-komponen">${esc(w.name)}
-        <span class="kolom-petunjuk">${esc(petunjukRentang(w))}</span></th>`).join("")}
-      <th class="rekap-nilai-pos">Nilai Pos<br>${esc(p.bayangan ? p.name : String(p.nomor))}</th>`).join("");
+      ${p.komponen.map(w => `
+        <th class="text-center">
+          <span class="kolom-nama">${esc(w.name)}</span>
+          <span class="kolom-petunjuk">${esc(petunjukKolom(w))}</span></th>`).join("")}
+      <th class="text-center rekap-batas">Nilai<br>${
+        esc(p.bayangan ? p.name : `Pos ${p.nomor}`)}</th>`).join("");
     return `
       <tr>
-        <th>Rank</th><th>No<br>Dada</th><th>Nama Regu</th><th>Organisasi</th>
+        <th class="text-center">Rank</th>
+        <th class="text-center">Nomor<br>Dada</th>
+        <th>Nama Regu</th>
+        <th>Organisasi</th>
         <th>Golongan</th>
         ${perPos}
-        <th>Kloter</th><th>Berangkat</th><th>Datang</th><th>Tempuh</th>
-        <th>Kontrak</th><th>Selisih</th>
-        <th>Σ Pos</th><th>Penalti</th><th class="rekap-total">Nilai Total</th>
+        <th class="text-center">Kloter</th>
+        <th class="text-center">Berangkat</th>
+        <th class="text-center">Datang</th>
+        <th class="text-center">Tempuh<br><span class="kolom-petunjuk">menit</span></th>
+        <th class="text-center">Kontrak<br><span class="kolom-petunjuk">menit</span></th>
+        <th class="text-center">Selisih<br><span class="kolom-petunjuk">menit</span></th>
+        <th class="text-center">Σ Pos</th>
+        <th class="text-center">Penalti</th>
+        <th class="text-center rekap-batas">Nilai<br>Total</th>
       </tr>`;
   };
 
@@ -2694,9 +2705,9 @@ async function layarRekap() {
     const nilai = b.nilai || {};
     const poin = b.poin_pos || {};
     const perPos = kolomPos.map(p => `
-      ${p.komponen.map(w => `<td class="rekap-komponen">${
+      ${p.komponen.map(w => `<td class="text-center">${
         esc(selRekap(w, nilai[`${p.nomor}.${w.kode}`]))}</td>`).join("")}
-      <td class="rekap-nilai-pos">${poin[String(p.nomor)] === undefined
+      <td class="text-center pos-nilai rekap-batas">${poin[String(p.nomor)] === undefined
         ? "" : esc(angka(poin[String(p.nomor)]))}</td>`).join("");
     const penalti = Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
       + Number(b.penalti_anggota || 0);
@@ -2704,21 +2715,23 @@ async function layarRekap() {
       ? "—" : `${b.selisih_menit > 0 ? "+" : ""}${b.selisih_menit}`;
     return `
       <tr>
-        <td class="dada">${b.peringkat ?? "—"}</td>
-        <td class="dada">${esc(String(b.nomor_dada ?? "—").padStart(3, "0"))}</td>
+        <td class="text-center rekap-rank">${b.peringkat ?? "—"}</td>
+        <td class="text-center nomor-dada">${
+          b.nomor_dada === null || b.nomor_dada === undefined
+            ? "—" : esc(String(b.nomor_dada).padStart(3, "0"))}</td>
         <td>${esc(b.nama_regu)}</td>
-        <td class="rekap-sekolah">${esc(b.nama_sekolah)}</td>
+        <td>${esc(b.nama_sekolah)}</td>
         <td>${esc(NAMA_GOLONGAN[b.golongan] || b.golongan)}</td>
         ${perPos}
-        <td>${b.kloter ?? "—"}</td>
-        <td>${esc(b.jam_berangkat ? jamMenit(b.jam_berangkat) : "—")}</td>
-        <td>${esc(b.jam_datang ? jamMenit(b.jam_datang) : "—")}</td>
-        <td>${b.tempuh_menit ?? "—"}</td>
-        <td>${b.kontrak_menit ?? "—"}</td>
-        <td>${esc(selisih)}</td>
-        <td>${esc(angka(b.total_pos))}</td>
-        <td>${penalti ? `−${penalti}` : "0"}</td>
-        <td class="rekap-total">${esc(angka(b.total))}</td>
+        <td class="text-center">${b.kloter ?? "—"}</td>
+        <td class="text-center">${esc(b.jam_berangkat ? jamMenit(b.jam_berangkat) : "—")}</td>
+        <td class="text-center">${esc(b.jam_datang ? jamMenit(b.jam_datang) : "—")}</td>
+        <td class="text-center">${b.tempuh_menit ?? "—"}</td>
+        <td class="text-center">${b.kontrak_menit ?? "—"}</td>
+        <td class="text-center">${esc(selisih)}</td>
+        <td class="text-center">${esc(angka(b.total_pos))}</td>
+        <td class="text-center">${penalti ? `−${penalti}` : "0"}</td>
+        <td class="text-center pos-nilai rekap-batas">${esc(angka(b.total))}</td>
       </tr>`;
   };
 
@@ -2749,11 +2762,14 @@ async function layarRekap() {
            <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
            begitu tersimpan. Rank kosong berarti kloter regu itu belum
            tercatat berangkat, jadi ia belum masuk klasemen resmi.</p>
-        <div class="gulir-rekap">
-          <table class="table rekap-tabel">
+        <!-- Kelas tabelnya SAMA PERSIS dengan lembar Input Pos, ditambah
+             satu pengubah: di HP ia tetap tabel yang digeser ke samping,
+             tidak ditumpuk jadi kartu seperti layar meja. -->
+        <div class="table-wrapper table-wrapper-tetap">
+          <table class="table data-table table-tetap table-pos table-rekap">
             <thead>${kepala()}</thead>
             <tbody>${tampil.length ? tampil.map(barisHtml).join("")
-              : `<tr><td colspan="${lebarKolom}" style="text-align:center;padding:1.5rem">
+              : `<tr><td colspan="${lebarKolom}" class="table-empty">
                    Tidak ada regu yang cocok.</td></tr>`}</tbody>
           </table>
         </div>

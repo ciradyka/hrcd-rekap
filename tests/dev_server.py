@@ -150,7 +150,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 # Rekapitulasi (#/rekap).
                 self._kirim(200, q(
                     "select pos, kode, name, type, form, poin_maks, satuan, "
-                    "       rentang_mentah_min, rentang_mentah_maks, sort_order "
+                    "       total_soal, rentang_mentah_min, "
+                    "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() "
                     "order by pos, sort_order", uid=p.get("uid")))
             elif u.path == "/rekap-penuh":
