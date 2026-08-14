@@ -1877,7 +1877,7 @@ function selKomponen(k, nilai) {
     // jadi yang hilang cuma tombol panah naik-turun yang memang tidak pernah
     // dipakai untuk mencatat waktu.
     return `<input type="text" class="small-input input-waktu" inputmode="numeric"
-                   data-kode="${kode}" value="${esc(detikTeks(n1))}"
+                   data-kode="${kode}" value="${esc(detikTeks(n1))}" placeholder="–"
                    aria-label="${esc(k.name)} — detik, atau menit:detik">`;
   }
   if (k.form === "benar_kurang_salah") {
@@ -1891,9 +1891,19 @@ function selKomponen(k, nilai) {
              aria-label="${esc(k.name)} — jumlah salah">
     </span>`;
   }
+  // placeholder "–" : kotak kosong yang MENYEBUT dirinya kosong.
+  //
+  // Untuk sebagian besar lomba beda antara kosong dan 0 tidak penting — nol
+  // kata benar dan belum dinilai sama-sama 0 poin. Untuk Menaksir keduanya
+  // berlawanan sejauh mungkin: selisih 0 m berarti tepat, 100 poin, sementara
+  // kotak kosong berarti tidak dinilai, 0 poin.
+  //
+  // Sengaja placeholder, bukan nilai. Menyimpan keadaan ketiga bernama "–"
+  // akan memaksa setiap tempat yang membaca angka ini menebak maksudnya,
+  // padahal database hanya punya dua: ada barisnya, atau tidak.
   return `<input type="number" class="small-input" inputmode="decimal" step="any"
                  min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
-                 data-kode="${kode}" value="${esc(angkaRapi(n1))}"
+                 data-kode="${kode}" value="${esc(angkaRapi(n1))}" placeholder="–"
                  aria-label="${esc(k.name)}">`;
 }
 
@@ -2618,6 +2628,113 @@ async function layarInputPos() {
   });
 
   pasangPilihPos(s);
+
+  /* ==========================================================================
+     LEMBAR INI MENYEGARKAN DIRINYA SENDIRI.
+
+     Satu akun operator per pos, dipakai di HP mana pun yang ada di pos itu —
+     jadi dua orang membuka lembar yang sama adalah kejadian biasa, bukan
+     kasus ganjil. Sampai sekarang lembar ini hanya membaca ulang BARIS YANG
+     IA SIMPAN SENDIRI; segala yang masuk dari HP sebelah tidak pernah muncul.
+
+     Yang paling berbahaya bukan angkanya tidak terlihat, melainkan
+     akibatnya saat menghapus. `asli` adalah cermin keadaan database, dan
+     penghapusan dijalankan HANYA untuk komponen yang ada di cermin itu
+     (`if (ada) dihapus.push(...)`). Nilai yang masuk dari HP lain setelah
+     halaman ini dibuka tidak ada di cermin — jadi mengosongkan kotaknya tidak
+     menghapus apa pun. Petugas melihat kotak kosong, menekan simpan, mendapat
+     centang hijau, dan angka yang ia kira sudah dibuang masih di database.
+
+     Menyegarkan lembar penuh angka yang sedang diketik jelas berisiko, jadi
+     baris DILEWATI kalau ia sedang disentuh:
+
+       - ada kursor di dalamnya          -> orangnya sedang mengetik
+       - keadaan "belum"/"menyimpan"     -> ada ketikan yang belum sampai
+       - keadaan "gagal"                 -> pesan galatnya belum dibaca
+       - sedang jalan / mengantre        -> simpanBaris yang mengurusnya
+
+     Baris yang dilewati akan tersegarkan sendiri begitu tersimpan, karena
+     jalur simpan memang membaca ulang barisnya. Jadi tidak ada baris yang
+     tertinggal basi selamanya — yang ada hanya baris yang menunggu gilirannya.
+     ========================================================================== */
+  const segarkanLembar = async () => {
+    let baru;
+    try { baru = await lembarPos(pos.nomor); }
+    catch { return; }   // pos sering kehilangan sinyal; percobaan berikutnya 20 detik lagi
+    if (location.hash !== layarIni) return;
+
+    const peta = new Map(baru.map(r => [Number(r.nomor_dada), r]));
+    let berubah = false;
+
+    for (const tr of tbody.children) {
+      const sibuk = tr.dataset.jalan === "1" || tr.dataset.antre === "1"
+        || ["belum", "menyimpan", "gagal"].includes(tr.dataset.keadaan || "")
+        || tr.contains(document.activeElement);
+      if (sibuk) continue;
+
+      const r = peta.get(Number(tr.dataset.dada));
+      if (!r) continue;
+
+      asli.set(Number(r.nomor_dada), r.nilai || {});
+      if (tr.dataset.terisi !== String(r.jumlah_terisi)) berubah = true;
+      tr.dataset.terisi = String(r.jumlah_terisi);
+      tr.querySelector(".pos-nilai").textContent = angkaRapi(r.nilai_pos);
+
+      // Kotaknya ditulis ulang hanya kalau isinya memang berbeda. Menyetel
+      // .value ke teks yang sama pun sudah cukup untuk memindahkan kursor di
+      // sebagian browser, dan baris ini bisa saja baru saja ditinggalkan.
+      for (const kol of kolom) {
+        const k = varianUntuk(kol, tr.dataset.golongan);
+        if (!k) continue;
+        const nilai = (r.nilai || {})[k.kode];
+        const kotak = tr.querySelectorAll(`[data-kode="${CSS.escape(k.kode)}"]`);
+        if (!kotak.length) continue;
+
+        if (k.form === "biner") {
+          const centang = !!(nilai && Number(nilai.nilai_1) > 0);
+          if (kotak[0].checked !== centang) kotak[0].checked = centang;
+        } else if (k.satuan === "detik") {
+          const teks = detikTeks(nilai ? nilai.nilai_1 : null);
+          if (kotak[0].value !== teks) kotak[0].value = teks;
+        } else if (k.form === "benar_kurang_salah") {
+          const b = angkaRapi(nilai ? nilai.nilai_1 : null);
+          const sa = angkaRapi(nilai ? nilai.nilai_2 : null);
+          if (kotak[0].value !== b) kotak[0].value = b;
+          if (kotak[1] && kotak[1].value !== sa) kotak[1].value = sa;
+        } else {
+          const v = angkaRapi(nilai ? nilai.nilai_1 : null);
+          if (kotak[0].value !== v) kotak[0].value = v;
+        }
+      }
+
+      statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
+    }
+
+    jamSinkron = new Date();
+    // Angka "sudah lengkap" ikut, tapi SARINGANNYA tidak dijalankan ulang.
+    // Baris yang jadi lengkap sementara petugas menyaring "Belum lengkap"
+    // tetap terlihat sampai ia menyentuh saringan lagi — dan itu disengaja:
+    // baris yang lenyap sendiri dari bawah jari orang yang sedang mengetik
+    // lebih membingungkan daripada satu baris yang tertinggal sebentar.
+    if (berubah) hitungUlangJumlah();
+    perbaruiRingkasan();
+  };
+
+  // Denyut yang membersihkan dirinya sendiri, pola yang sama dengan layar
+  // Rekapitulasi: berhenti saat pindah layar atau tab disembunyikan, dan
+  // dinyalakan lagi oleh kepulangan itu sendiri lewat segarkanDiTempat.
+  let denyut = null;
+  const mulaiDenyut = () => {
+    if (denyut !== null) return;
+    denyut = setInterval(() => {
+      if (location.hash !== layarIni || document.hidden) {
+        clearInterval(denyut); denyut = null; return;
+      }
+      segarkanLembar();
+    }, 20000);
+  };
+  segarkanDiTempat = () => { segarkanLembar(); mulaiDenyut(); };
+  mulaiDenyut();
 }
 
 /** Pemilih pos — hanya untuk admin. Operator pos melihat namanya saja, karena
