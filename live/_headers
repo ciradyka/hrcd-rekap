@@ -1,13 +1,26 @@
 # ============================================================================
 # hrcd-rekap : live/_headers — aturan cache halaman rekap peserta.
 #
-# live.json ditulis ulang GitHub Actions tiap 5 menit, dan yang membacanya
-# ratusan HP di jaringan seluler yang gemar menyimpan berkas sendiri. no-store
-# untuk berkas itu: bukan cuma "wajib divalidasi", melainkan "jangan simpan
-# sama sekali". Halaman rekap yang menyajikan data setengah jam lalu lebih
-# buruk daripada halaman yang lambat — orang akan mengira nilainya hilang.
+# Yang membaca berkas-berkas ini 1.500-3.000 HP di jaringan seluler, sebagian
+# besar dalam jendela waktu yang sama. Dua berkas, dua aturan yang berlawanan,
+# dan justru perbedaannya yang menahan bebannya:
 #
-# Berkasnya kecil (ratusan regu ~60 KB), jadi harganya murah.
+#   live.json   ±1 KB, isinya fase + `versi` + ringkasan. INI yang di-poll
+#               tiap 60 detik, jadi ia harus selalu segar: no-store, bukan
+#               sekadar "wajib divalidasi". Rekap yang menyajikan keadaan
+#               setengah jam lalu lebih buruk daripada rekap yang lambat —
+#               orang akan mengira nilainya hilang.
+#
+#   rekap.json  puluhan KB, seluruh baris regu + klasemen. Diminta dengan
+#               `?v=<versi>`, jadi alamatnya berubah HANYA ketika isinya
+#               berubah. Karena itu ia boleh disimpan lama: selama versinya
+#               sama, jawabannya datang dari cache browser atau cache tepi
+#               Cloudflare dan tidak ada satu pun byte yang menyeberang.
+#               Begitu panitia menerbitkan ulang, versinya berganti dan tiap
+#               HP mengunduhnya sekali lagi — sekali, bukan tiap menit.
+#
+# Tanpa pemisahan ini, 3.000 HP × 60 KB tiap menit adalah 180 MB per menit
+# untuk data yang sebagian besar waktu tidak berubah sama sekali.
 # ============================================================================
 
 /*
@@ -15,6 +28,13 @@
 
 /live.json
   Cache-Control: no-store
+  Content-Type: application/json; charset=utf-8
+
+# immutable: alamatnya sudah memuat versinya, jadi isi yang sama tidak pernah
+# perlu ditanyakan ulang. Satu jam cukup panjang untuk memikul hari lomba dan
+# cukup pendek untuk tidak menghantui siapa pun sesudahnya.
+/rekap.json
+  Cache-Control: public, max-age=3600, immutable
   Content-Type: application/json; charset=utf-8
 
 /*.js

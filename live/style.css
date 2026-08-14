@@ -194,6 +194,26 @@ input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 input.besar { font-size: 1.45rem; letter-spacing: .05em; text-align: center; min-height: 54px; }
+
+/* Kotak jam yang diketik. Menggantikan input[type=time], yang dirender
+   browser menurut locale-nya sendiri dan bisa muncul sebagai AM/PM di laptop
+   berbahasa Inggris — lihat jamSah() di js/util.js.
+
+   Lebarnya dipatok: "HH:MM" tidak akan pernah lebih dari lima huruf, dan
+   kotak selebar layar mengundang orang mengetik kalimat ke dalamnya. Angka
+   tabular supaya "11:11" dan "07:45" sama lebarnya dan kolomnya tidak
+   bergoyang saat diketik. */
+input.jam-ketik {
+  width: 7.5em;
+  max-width: 100%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .08em;
+  text-align: center;
+}
+input.jam-ketik.jam-salah {
+  border-color: var(--bahaya);
+  background: var(--bahaya-muda);
+}
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
 
@@ -1413,3 +1433,91 @@ input.small-input { text-align: center; }
    dilihat saat mata menyapu, tidak cukup untuk mengaburkan angkanya. */
 .table-pos tbody tr.baris-belum td { background: var(--kuning-muda); }
 .table-pos tbody tr.baris-belum td:first-child { background: var(--kuning-muda); }
+
+/* ---------------------------------------------------------------------------
+   Rekapitulasi (#/rekap) — tabel terlebar di seluruh sistem.
+
+   Lembar aslinya punya ±35 kolom, dan itu tidak akan pernah muat di layar
+   mana pun. Jadi tabel ini SATU-SATUNYA yang sengaja digeser ke samping —
+   di semua layar meja, geser samping justru dilarang karena menyembunyikan
+   kolom tombol. Di sini tidak ada tombol sama sekali, jadi yang hilang dari
+   pandangan cuma angka yang bisa digeser kembali.
+
+   Empat kolom pertama dibekukan di kiri supaya identitas regu tetap terlihat
+   saat isinya digeser jauh ke kanan. Tanpa itu, mata kehilangan barisnya di
+   kolom Pos 3 dan orang membaca nilai regu yang salah.
+   ------------------------------------------------------------------------- */
+.gulir-rekap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rekap-tabel {
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.rekap-tabel th, .rekap-tabel td {
+  padding: .3rem .45rem;
+  text-align: center;
+  border-bottom: 1px solid var(--garis);
+}
+.rekap-tabel th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--kertas);
+  font-size: .74rem; line-height: 1.15;
+  vertical-align: bottom;
+}
+.rekap-tabel th .kolom-petunjuk {
+  display: block; font-weight: 400; font-size: .66rem;
+  color: var(--tinta-lembut);
+}
+
+/* Empat kolom identitas ikut menempel saat digeser. Angka `left` ditumpuk
+   tangan karena lebarnya dipatok tepat di bawah — kolom beku menuntut lebar
+   yang pasti, kalau tidak posisinya meleset saat isinya berubah panjang. */
+.rekap-tabel th:nth-child(-n+4), .rekap-tabel td:nth-child(-n+4) {
+  position: sticky; z-index: 1; background: #fff;
+}
+.rekap-tabel th:nth-child(-n+4) { z-index: 3; background: var(--kertas); }
+.rekap-tabel th:nth-child(1), .rekap-tabel td:nth-child(1) { left: 0;      width: 46px; }
+.rekap-tabel th:nth-child(2), .rekap-tabel td:nth-child(2) { left: 46px;   width: 56px; }
+.rekap-tabel th:nth-child(3), .rekap-tabel td:nth-child(3) { left: 102px;  width: 150px; text-align: left; }
+.rekap-tabel th:nth-child(4), .rekap-tabel td:nth-child(4) { left: 252px;  width: 160px; text-align: left; }
+.rekap-tabel td:nth-child(4) {
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis;
+}
+/* Garis pemisah antara blok beku dan blok yang bergeser — tanpa ini
+   keduanya terbaca sebagai satu tabel dan geserannya membingungkan. */
+.rekap-tabel th:nth-child(4), .rekap-tabel td:nth-child(4) {
+  border-right: 2px solid var(--garis);
+}
+
+.rekap-tabel .rekap-komponen { min-width: 58px; }
+/* Nilai Pos dan Nilai Total adalah angka yang dicari orang; sisanya bahan
+   mentah. Latar tipis memisahkan keduanya tanpa menambah garis. */
+.rekap-tabel .rekap-nilai-pos {
+  font-weight: 600;
+  background: var(--kertas);
+  min-width: 62px;
+}
+.rekap-tabel .rekap-total {
+  font-weight: 700;
+  background: var(--hijau-muda);
+  min-width: 76px;
+}
+.rekap-tabel tbody tr:hover td { background: var(--kuning-muda); }
+
+@media (max-width: 700px) {
+  .rekap-tabel th:nth-child(3), .rekap-tabel td:nth-child(3),
+  .rekap-tabel th:nth-child(4), .rekap-tabel td:nth-child(4) {
+    position: static; width: auto;
+  }
+  .rekap-tabel th:nth-child(1), .rekap-tabel td:nth-child(1),
+  .rekap-tabel th:nth-child(2), .rekap-tabel td:nth-child(2) {
+    position: static;
+  }
+}

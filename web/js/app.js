@@ -18,10 +18,11 @@ import {
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
+  komponenSemua, rekapPenuh,
   statusAcara,
 } from "./api.js";
-import { esc, h, html, rupiah, jamMenit, tanggalPanjang, notif, dialog,
-         kartuGagalMuat } from "./util.js";
+import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
+         dialog, kartuGagalMuat, jamSah, pasangKotakJam } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -42,15 +43,16 @@ const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
  *               ditentukan konfigurasi dan bisa bertambah tahun depan, jadi
  *               patokan 1080px yang pas untuk tabel meja justru memaksanya
  *               menggeser ke samping padahal layarnya masih lapang. */
-/** Nama acara untuk judul tab: "Hiking Rally Ciradyka XXXVII".
- *  Angka romawinya DIAMBIL dari nama edisi di database ("HRCD XXXVII"),
- *  bukan ditulis di sini — tahun depan cukup mengubah satu baris di tabel
- *  edisi, tidak ada yang perlu mencarinya di dalam JavaScript. Sebelum edisi
- *  termuat (layar masuk), angkanya dilewati saja. */
-const namaAcara = () => {
-  const romawi = EDISI ? String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim() : "";
-  return `Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
-};
+/** Nama acara untuk judul tab: "HRCD XXXVII" — diambil apa adanya dari nama
+ *  edisi di database, bukan ditulis di sini. Tahun depan cukup mengubah satu
+ *  baris di tabel edisi.
+ *
+ *  Bentuk pendek, bukan "Hiking Rally Ciradyka XXXVII": judul tab dipotong
+ *  browser di sekitar 25 huruf, dan panitia membuka layar ini bersama belasan
+ *  tab lain di HP. Yang harus terbaca di potongan itu adalah "Sistem
+ *  Panitia", bukan nama acara yang sudah mereka tahu. Sebelum edisi termuat
+ *  (layar masuk), sisakan "HRCD" saja. */
+const namaAcara = () => (EDISI && EDISI.name) ? String(EDISI.name) : "HRCD";
 
 function pasangKepala(judul, lebar = false) {
   const s = sesi();
@@ -95,7 +97,7 @@ function catatTerakhir(fungsi, apa, detail) {
 /* ============================ LOGIN ===================================== */
 
 function layarLogin(pesan) {
-  pasangKepala("HRCD Rekap");
+  pasangKepala("Sistem Panitia");
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:2rem auto">
       <h2>Masuk Panitia</h2>
@@ -202,6 +204,10 @@ async function layarHome() {
         <div class="function-name">📋 Input Nilai Pos</div>
         <div class="description">Lembar penilaian tiap pos — admin boleh membuka pos mana pun</div>
       </a>` : ""}
+      <a href="#/rekap">
+        <div class="function-name">📊 Rekapitulasi</div>
+        <div class="description">Nilai seluruh pos dan klasemen sementara, hidup mengikuti input — hanya dibaca</div>
+      </a>
     </div>
     <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
        Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
@@ -1131,7 +1137,16 @@ async function layarKeberangkatan() {
           <div class="departure-bar">
             <div class="field" style="margin:0">
               <label for="jam-berangkat">Jam berangkat (diketik pencatat)</label>
-              <input type="time" id="jam-berangkat" step="60" value="${jamMenit(new Date())}">
+              <!-- Kotak ketik, bukan <input type="time">: pemilih bawaan
+                   browser merender AM/PM kalau locale browsernya Inggris, dan
+                   tidak ada atribut yang bisa memaksanya 24 jam. Lihat
+                   jamSah() di util.js. -->
+              <input type="text" id="jam-berangkat" class="jam-ketik"
+                     inputmode="numeric" maxlength="5" autocomplete="off"
+                     spellcheck="false" placeholder="HH:MM"
+                     aria-describedby="hint-jam-berangkat"
+                     value="${jamMenit(new Date())}">
+              <div class="hint" id="hint-jam-berangkat">24 jam · 00:00–23:59</div>
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
               🚩 Berangkatkan Kloter ${kloterAktif}
@@ -1306,11 +1321,24 @@ async function layarKeberangkatan() {
       gambarKloter();
     });
 
+    const kotakJamBerangkat = document.getElementById("jam-berangkat");
+    pasangKotakJam(kotakJamBerangkat);
+
     const tombol = document.getElementById("aksi-berangkat");
     if (tombol) tombol.addEventListener("click", async () => {
       if (tombol.dataset.jalan === "1") return;
-      const hhmm = document.getElementById("jam-berangkat").value;
-      if (!hhmm) { notif("Jam berangkat wajib diisi.", true); return; }
+      const mentah = kotakJamBerangkat.value.trim();
+      if (!mentah) { notif("Jam berangkat wajib diisi.", true); return; }
+      // Ditolak, bukan ditebak. Jam berangkat menentukan penalti seluruh
+      // kloter — menebak maksud "1975" akan menghukum sepuluh regu sekaligus.
+      const hhmm = jamSah(mentah);
+      if (!hhmm) {
+        kotakJamBerangkat.classList.add("jam-salah");
+        kotakJamBerangkat.focus();
+        notif(`"${mentah}" bukan jam yang sah. Pakai 00:00–23:59, misalnya 07:15.`, true);
+        return;
+      }
+      kotakJamBerangkat.value = hhmm;
       tombol.dataset.jalan = "1"; tombol.disabled = true; tombol.textContent = "Menyimpan…";
       try {
         await berangkatkanKloter(kloterAktif, jamHariIni(hhmm).toISOString());
@@ -1538,8 +1566,12 @@ function layarFinish() {
         <div class="two-column" style="margin-top:.5rem">
           <div class="field" style="margin:0">
             <label for="jam">Jam datang</label>
-            <input type="time" id="jam" step="60">
-            <div class="hint">Kosong = jam saat tombol ditekan.</div>
+            <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
+                 browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. -->
+            <input type="text" id="jam" class="jam-ketik" inputmode="numeric"
+                   maxlength="5" autocomplete="off" spellcheck="false"
+                   placeholder="HH:MM">
+            <div class="hint">24 jam · kosong = jam saat tombol ditekan.</div>
           </div>
           <div class="field" style="margin:0">
             <label for="hadir">Anggota hadir</label>
@@ -1594,12 +1626,16 @@ function layarFinish() {
     // yang tersimpan — itulah angka yang sedang diverifikasi terhadap kertas.
     const dasar = regu.sudah_finish && regu.jam_datang
       ? new Date(regu.jam_datang) : new Date();
-    const jamIsi = inpJam.value ? jamHariIni(inpJam.value) : dasar;
+    // Setengah jam yang sedang diketik ("07" menuju "07:15") bukan jam, dan
+    // menghitung dampak dari angka setengah jadi membuat lencananya
+    // berkedip-kedip menampilkan penalti yang tidak pernah berlaku.
+    const isi = jamSah(inpJam.value);
+    const jamIsi = isi ? jamHariIni(isi) : dasar;
     const pDasar = hitungPenalti(dasar, regu.target_datang);
     const pIsi = hitungPenalti(jamIsi, regu.target_datang);
     const tulis = (n) => n === 0 ? "0" : `−${n}`;
 
-    if (!inpJam.value) {
+    if (!isi) {
       el.innerHTML = html`<span class="badge badge-gray">Penalti waktu: ${tulis(pDasar)}</span>`;
       return;
     }
@@ -1614,6 +1650,11 @@ function layarFinish() {
       : html`<span class="badge badge-yellow">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
   };
   inpJam.addEventListener("input", perbaruiDampak);
+  pasangKotakJam(inpJam);
+  // Bentuknya dirapikan saat kotak ditinggalkan, jadi lencana dampaknya ikut
+  // dihitung ulang sesudah itu — tanpa ini "745" yang jadi "07:45" saat blur
+  // meninggalkan lencana menampilkan hitungan dari teks yang sudah tidak ada.
+  inpJam.addEventListener("blur", perbaruiDampak);
 
   const bersihkan = () => {
     regu = null;
@@ -1695,11 +1736,24 @@ function layarFinish() {
       notif("Nomor berubah — tunggu detailnya muncul dulu.", true);
       return;
     }
+    // Kolom jam susulan kosong = jalur cepat, itu keadaan normal. Tapi kolom
+    // yang DIISI dan tidak terbaca sebagai jam harus menghentikan langkah,
+    // bukan diam-diam dilewati: petugas mengetiknya justru karena jam tombol
+    // salah, dan menyimpan jam tombol setelah ia mengetik yang lain adalah
+    // membuang koreksi yang sedang dia kerjakan.
+    const jamKetikan = inpJam.value.trim();
+    const jamIsi = jamKetikan ? jamSah(jamKetikan) : null;
+    if (jamKetikan && !jamIsi) {
+      inpJam.classList.add("jam-salah");
+      inpJam.focus();
+      notif(`"${jamKetikan}" bukan jam yang sah. Pakai 00:00–23:59, atau kosongkan.`, true);
+      return;
+    }
     tombol.dataset.jalan = "1"; tombol.disabled = true;
 
     // Jam dikunci DI SINI — saat tombol ditekan, dari jam laptop panitia.
     // Kolom jam hanya dipakai bila memang diisi (koreksi hasil verifikasi).
-    const jam = inpJam.value ? jamHariIni(inpJam.value) : new Date();
+    const jam = jamIsi ? jamHariIni(jamIsi) : new Date();
     const hadir = Math.max(0, Math.min(5, Number(inpHadir.value) || 0));
     const dada = regu.nomor_dada;
     const nama = regu.nama_regu;
@@ -2495,6 +2549,238 @@ function layarButuhEdisi(judul) {
     async () => { try { EDISI = await infoEdisi(); } catch {} arahkan(); }));
 }
 
+/* ============================ REKAPITULASI (baca saja) ===================
+   Lembar Rekapitulasi lengkap — bentuk yang sama dengan spreadsheet yang
+   dipakai panitia selama tujuh tahun: satu baris per regu, SATU KOLOM PER
+   KOMPONEN, Nilai Pos di ujung tiap kelompok, lalu kolom waktu, lalu Nilai
+   Total. Kolomnya dibangun dari tabel `wahana`, bukan ditulis di sini, jadi
+   penilaian tahun depan mengubah tabel ini tanpa menyentuh kode.
+
+   LAYAR INI TIDAK BISA MENGUBAH APA PUN, dan itu disengaja. Satu-satunya
+   pintu tulis nilai tetap layar Input Pos, yang memaksa operator menyebut
+   posnya dan dijaga RLS. Kalau angka bisa diketik dari dua tempat, yang
+   kedua cepat atau lambat akan melewatkan salah satu pagarnya.
+
+   Angka-angkanya juga tidak dihitung di browser. Nilai Pos, penalti, total,
+   dan peringkat semuanya datang jadi dari `v_rekap_penuh` — alasan yang sama
+   dengan layar Input Pos: mesin skor kedua adalah mesin skor yang suatu hari
+   berbeda pendapat dengan yang pertama.
+   ------------------------------------------------------------------------ */
+
+const NAMA_GOLONGAN = {
+  penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
+  penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
+};
+const URUTAN_GOLONGAN = ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
+
+/** Sel nilai mentah, dibaca sebagaimana panitia menuliskannya di kertas.
+ *  Bentuknya mengikuti `wahana.form`, bukan tipe datanya: kolom biner di
+ *  lembar Excel berisi "v", bukan "1", dan menampilkan angka di situ membuat
+ *  panitia mengira ada nilai yang salah ketik. */
+function selRekap(w, isi) {
+  if (!isi) return "";
+  const a = isi.nilai_1, b = isi.nilai_2;
+  if (a === null || a === undefined) return "";
+  if (w.form === "biner") return Number(a) ? "v" : "–";
+  if (w.form === "benar_kurang_salah") {
+    return `${a}${b === null || b === undefined ? "" : ` / ${b}`}`;
+  }
+  if (w.satuan === "detik") {
+    const d = Number(a);
+    return `${Math.floor(d / 60)}:${String(d % 60).padStart(2, "0")}`;
+  }
+  return String(a);
+}
+
+/** "0 - 20" di bawah nama kolom — persis petunjuk rentang yang tercetak di
+ *  lembar kertas, supaya mata panitia mendarat di tempat yang sama. */
+const petunjukRentang = (w) => w.form === "biner"
+  ? "(v)"
+  : (w.satuan === "detik" ? "(menit:detik)"
+     : `(${Number(w.rentang_mentah_min)} - ${Number(w.rentang_mentah_maks)})`);
+
+const angka = (n) => n === null || n === undefined ? "—"
+  : String(Math.round(Number(n) * 100) / 100);
+
+async function layarRekap() {
+  const s = sesi();
+  if (s.peran === "operator_pos") {
+    pasangKepala("Rekapitulasi");
+    LAYAR.replaceChildren(h(html`
+      <div class="card">
+        <h2>Akun pos, bukan akun rekap</h2>
+        <p class="description">Rekapitulasi memuat nilai SELURUH pos, dan akun
+           ${s.username} hanya berhak atas Pos ${s.pos}. Kalau ditampilkan
+           untuk akun ini, kolom pos lain akan kosong dan Nilai Total ikut
+           salah — lebih baik tidak ditampilkan sama sekali.</p>
+        <p><a class="button button-secondary" href="#/pos">Ke Input Nilai Pos</a></p>
+      </div>`));
+    return;
+  }
+
+  pasangKepala("Rekapitulasi", "lembar");
+  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+
+  const layarIni = location.hash;
+  let pos, wahana, baris;
+  try {
+    [pos, wahana, baris] = await Promise.all([
+      daftarPos(), komponenSemua(EDISI.nomor), rekapPenuh(),
+    ]);
+  } catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarRekap)); return; }
+  if (location.hash !== layarIni) return;
+
+  // Hanya pos yang benar-benar dinilai. Pos 0 dan Pos 5 tidak punya komponen
+  // (migrasi 0025), dan kolom yang selamanya kosong terbaca sebagai pos yang
+  // panitianya lalai — bukan sebagai garis start dan garis finish.
+  const posDinilai = pos.filter(p => (p.jumlah_komponen || 0) > 0);
+  const kolomPos = posDinilai.map(p => ({
+    ...p, komponen: wahana.filter(w => Number(w.pos) === Number(p.nomor)),
+  }));
+
+  let golongan = "";      // "" = semua
+  let cari = "";
+  let jeda = null;
+
+  const cocok = (b) => (!golongan || b.golongan === golongan)
+    && (!cari
+        || (b.nama_sekolah || "").toLowerCase().includes(cari)
+        || (b.nama_regu || "").toLowerCase().includes(cari)
+        || String(b.nomor_dada ?? "").padStart(3, "0").includes(cari));
+
+  /* Urutan: golongan dulu, lalu peringkat resmi, lalu total.
+     Peringkat datang dari v_klasemen dan hanya ada untuk regu yang kloternya
+     benar-benar berangkat — sepanjang lomba sebagian besar baris belum
+     berperingkat. Yang belum berperingkat TIDAK dibuang; ia turun ke bawah
+     kelompoknya, tetap terurut menurut total, supaya papan ini tetap terbaca
+     sebagai klasemen sementara sejak nilai pertama masuk. */
+  const urut = (a, b) => {
+    const ga = URUTAN_GOLONGAN.indexOf(a.golongan), gb = URUTAN_GOLONGAN.indexOf(b.golongan);
+    if (ga !== gb) return ga - gb;
+    const pa = a.peringkat ?? Infinity, pb = b.peringkat ?? Infinity;
+    if (pa !== pb) return pa - pb;
+    return Number(b.total ?? 0) - Number(a.total ?? 0);
+  };
+
+  const kepala = () => {
+    const perPos = kolomPos.map(p => `
+      ${p.komponen.map(w => `<th class="rekap-komponen">${esc(w.name)}
+        <span class="kolom-petunjuk">${esc(petunjukRentang(w))}</span></th>`).join("")}
+      <th class="rekap-nilai-pos">Nilai Pos<br>${esc(p.bayangan ? p.name : String(p.nomor))}</th>`).join("");
+    return `
+      <tr>
+        <th>Rank</th><th>No<br>Dada</th><th>Nama Regu</th><th>Organisasi</th>
+        <th>Golongan</th>
+        ${perPos}
+        <th>Kloter</th><th>Berangkat</th><th>Datang</th><th>Tempuh</th>
+        <th>Kontrak</th><th>Selisih</th>
+        <th>Σ Pos</th><th>Penalti</th><th class="rekap-total">Nilai Total</th>
+      </tr>`;
+  };
+
+  const barisHtml = (b) => {
+    const nilai = b.nilai || {};
+    const poin = b.poin_pos || {};
+    const perPos = kolomPos.map(p => `
+      ${p.komponen.map(w => `<td class="rekap-komponen">${
+        esc(selRekap(w, nilai[`${p.nomor}.${w.kode}`]))}</td>`).join("")}
+      <td class="rekap-nilai-pos">${poin[String(p.nomor)] === undefined
+        ? "" : esc(angka(poin[String(p.nomor)]))}</td>`).join("");
+    const penalti = Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
+      + Number(b.penalti_anggota || 0);
+    const selisih = b.selisih_menit === null || b.selisih_menit === undefined
+      ? "—" : `${b.selisih_menit > 0 ? "+" : ""}${b.selisih_menit}`;
+    return `
+      <tr>
+        <td class="dada">${b.peringkat ?? "—"}</td>
+        <td class="dada">${esc(String(b.nomor_dada ?? "—").padStart(3, "0"))}</td>
+        <td>${esc(b.nama_regu)}</td>
+        <td class="rekap-sekolah">${esc(b.nama_sekolah)}</td>
+        <td>${esc(NAMA_GOLONGAN[b.golongan] || b.golongan)}</td>
+        ${perPos}
+        <td>${b.kloter ?? "—"}</td>
+        <td>${esc(b.jam_berangkat ? jamMenit(b.jam_berangkat) : "—")}</td>
+        <td>${esc(b.jam_datang ? jamMenit(b.jam_datang) : "—")}</td>
+        <td>${b.tempuh_menit ?? "—"}</td>
+        <td>${b.kontrak_menit ?? "—"}</td>
+        <td>${esc(selisih)}</td>
+        <td>${esc(angka(b.total_pos))}</td>
+        <td>${penalti ? `−${penalti}` : "0"}</td>
+        <td class="rekap-total">${esc(angka(b.total))}</td>
+      </tr>`;
+  };
+
+  function gambar() {
+    const tampil = baris.filter(cocok).sort(urut);
+    const lebarKolom = 15 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
+    LAYAR.replaceChildren(h(`
+      <div class="card">
+        <div class="table-toolbar">
+          <div class="field" style="margin:0;flex:1;min-width:220px">
+            <label for="rekap-cari" class="visually-hidden">Cari</label>
+            <input type="text" id="rekap-cari" autocomplete="off"
+                   placeholder="Cari sekolah, regu, atau nomor dada…"
+                   value="${esc(cari)}">
+          </div>
+          <div class="filter-row">
+            <button type="button" class="option option-small" data-gol=""
+                    aria-pressed="${golongan === ""}">Semua</button>
+            ${URUTAN_GOLONGAN.map(g => `
+              <button type="button" class="option option-small" data-gol="${g}"
+                      aria-pressed="${golongan === g}">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
+          </div>
+          <span class="table-count">${esc(String(tampil.length))} regu</span>
+          <button class="button button-small button-secondary" id="rekap-segarkan"
+                  type="button">Segarkan</button>
+        </div>
+        <p class="description">Layar ini hanya menampilkan. Nilai diubah di
+           <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
+           begitu tersimpan. Rank kosong berarti kloter regu itu belum
+           tercatat berangkat, jadi ia belum masuk klasemen resmi.</p>
+        <div class="gulir-rekap">
+          <table class="table rekap-tabel">
+            <thead>${kepala()}</thead>
+            <tbody>${tampil.length ? tampil.map(barisHtml).join("")
+              : `<tr><td colspan="${lebarKolom}" style="text-align:center;padding:1.5rem">
+                   Tidak ada regu yang cocok.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </div>`));
+
+    LAYAR.querySelectorAll("[data-gol]").forEach(b =>
+      b.addEventListener("click", () => { golongan = b.dataset.gol; gambar(); }));
+
+    const kotak = document.getElementById("rekap-cari");
+    kotak.addEventListener("input", () => {
+      cari = kotak.value.trim().toLowerCase();
+      const posisi = kotak.selectionStart;
+      gambar();
+      const baru = document.getElementById("rekap-cari");
+      if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
+    });
+    document.getElementById("rekap-segarkan").addEventListener("click", segarkan);
+  }
+
+  /* Menyegarkan sendiri tiap 20 detik. Inilah yang membuat papan ini terasa
+     "live": operator pos menyimpan satu baris, dan koordinator yang menatap
+     layar ini melihat angkanya masuk tanpa menekan apa pun.
+     Jumlah pembacanya belasan, bukan ribuan seperti halaman peserta, jadi
+     membaca langsung dari database di sini memang murah. */
+  async function segarkan() {
+    if (location.hash !== layarIni) return;
+    try {
+      baris = await rekapPenuh();
+      if (location.hash === layarIni) gambar();
+    } catch { /* diamkan: percobaan berikutnya datang sendiri */ }
+  }
+
+  gambar();
+  jeda = setInterval(() => {
+    if (location.hash !== layarIni) { clearInterval(jeda); return; }
+    if (!document.hidden) segarkan();
+  }, 20000);
+}
+
 /* ============================ RUTE ======================================= */
 
 const RUTE = {
@@ -2505,6 +2791,7 @@ const RUTE = {
   "#/keberangkatan": layarKeberangkatan,
   "#/finish": layarFinish,
   "#/pos": layarInputPos,
+  "#/rekap": layarRekap,
   "#/ganti-password": layarGantiPassword,
 };
 
@@ -2512,7 +2799,7 @@ async function arahkan() {
   if (!sesi()) { layarLogin(); return; }
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
-    catch (e) { layarButuhEdisi("HRCD Rekap"); return; }
+    catch (e) { layarButuhEdisi("Sistem Panitia"); return; }
   }
   (RUTE[location.hash] || layarHome)();
 }

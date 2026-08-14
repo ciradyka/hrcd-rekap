@@ -1,16 +1,16 @@
 # ============================================================================
-# hrcd-rekap : publish-live.yml — tulis live.json lalu deploy halaman rekap.
+# hrcd-rekap : publish-live.yml — tulis live.json + rekap.json lalu deploy.
 #
 # Halaman rekap peserta TIDAK membaca database. Workflow inilah yang membaca,
-# menulis hasilnya jadi satu berkas statis, lalu men-deploy folder live/ —
+# menulis hasilnya jadi DUA berkas statis, lalu men-deploy folder live/ —
 # yang sejak 14 Agustus 2026 juga memuat FORM PENDAFTARAN. Artinya workflow
 # ini satu-satunya jalur deploy situs peserta, termasuk saat yang berubah
 # hanya daftar.html.
 #
 # PROJECT `hrcd37` DI CLOUDFLARE TIDAK BOLEH TERSAMBUNG GIT. Kalau tersambung,
-# tiap push ke main akan menimpa live.json dengan berkas contoh fase 'pra'
+# tiap push ke main akan menimpa kedua berkas itu dengan contoh fase 'pra'
 # yang ada di repo, dan rekap peserta mendadak kosong tanpa ada yang gagal.
-# Ratusan HP peserta hanya menyentuh hosting statis Cloudflare — nol
+# 1.500-3.000 HP peserta hanya menyentuh hosting statis Cloudflare — nol
 # permintaan ke Supabase, dan halaman itu tidak perlu membawa kunci apa pun
 # (docs/rancangan-b.md bagian 7).
 #
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Tulis live.json dari database
+      - name: Tulis live.json + rekap.json dari database
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
@@ -62,20 +62,68 @@ jobs:
           # -A -t: keluaran mentah tanpa bingkai tabel dan tanpa judul kolom,
           # sehingga yang tertulis ke berkas benar-benar JSON saja.
           psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
-            -f supabase/checks/live_json.sql > live/live.json
+            -f supabase/checks/live_json.sql > /tmp/rekap-utuh.json
 
-          # Pagar terakhir sebelum berkasnya di-deploy: JSON yang rusak akan
-          # membuat halaman rekap kosong tanpa pesan apa pun, dan tidak ada
-          # yang akan menyadarinya sampai ada peserta yang bertanya.
-          python3 -c "
-          import json, sys
-          d = json.load(open('live/live.json'))
-          for k in ('dibuat_pada','fase','pos','progres','klasemen'):
-              if k not in d: sys.exit(f'kunci {k} hilang dari live.json')
-          print(f\"fase={d['fase']} regu={len(d['progres'])} klasemen={len(d['klasemen'])} pos={len(d['pos'])}\")
+          # Satu query, DUA berkas. Pemisahan inilah yang menahan 3.000 HP:
+          # yang di-poll tiap menit cuma live.json yang ±1 KB, sedangkan
+          # rekap.json yang puluhan KB dialamati `?v=<versi>` dan karena itu
+          # boleh mengendap di cache browser dan cache tepi Cloudflare sampai
+          # isinya benar-benar berubah.
+          #
+          # `versi` = sidik jari isi rekap, BUKAN jam penerbitan. Menjalankan
+          # workflow ini sepuluh kali tanpa ada nilai baru menghasilkan versi
+          # yang sama sepuluh kali — dan tidak satu HP pun mengunduh ulang.
+          python3 - <<'PY'
+          import json, hashlib, sys
+
+          d = json.load(open('/tmp/rekap-utuh.json'))
+          for k in ('dibuat_pada', 'fase', 'edisi', 'ringkas', 'pos',
+                    'progres', 'klasemen'):
+              if k not in d:
+                  sys.exit(f'kunci {k} hilang dari keluaran live_json.sql')
+
+          # Pagar kebocoran, dijaga di sini SEKALIGUS di view (0005/0026).
           if d['fase'] != 'penuh' and d['klasemen']:
               sys.exit('BOCOR: klasemen ikut tertulis padahal fase belum penuh')
-          "
+          # Sebelum lomba dimulai peserta tidak boleh melihat rekap apa pun,
+          # dan v_progres_publik memang mengembalikan nol baris di fase 'pra'.
+          # Kalau suatu hari ia tidak lagi begitu, berhenti di sini.
+          if d['fase'] == 'pra' and d['progres']:
+              sys.exit('BOCOR: baris regu ikut tertulis padahal fase masih pra')
+
+          rekap = {'progres': d['progres'], 'klasemen': d['klasemen']}
+          sidik = hashlib.sha256(json.dumps(
+              rekap, sort_keys=True, separators=(',', ':'),
+              default=str).encode('utf-8')).hexdigest()[:12]
+          rekap['versi'] = sidik
+
+          meta = {
+              'dibuat_pada': d['dibuat_pada'],
+              'versi':       sidik,
+              'fase':        d['fase'],
+              'edisi':       d['edisi'],
+              'ringkas':     d['ringkas'],
+              'pos':         d['pos'],
+              'jumlah_regu': len(d['progres']),
+          }
+
+          # live.json diberi indentasi supaya bisa dibaca mata saat memeriksa;
+          # rekap.json dipadatkan karena ia yang benar-benar menyeberangi
+          # jaringan seluler ribuan kali.
+          with open('live/live.json', 'w', encoding='utf-8') as f:
+              json.dump(meta, f, ensure_ascii=False, indent=2, default=str)
+              f.write('\n')
+          with open('live/rekap.json', 'w', encoding='utf-8') as f:
+              json.dump(rekap, f, ensure_ascii=False,
+                        separators=(',', ':'), default=str)
+              f.write('\n')
+
+          import os
+          print(f"fase={d['fase']} versi={sidik} regu={len(d['progres'])} "
+                f"klasemen={len(d['klasemen'])} pos={len(d['pos'])} "
+                f"live.json={os.path.getsize('live/live.json')}B "
+                f"rekap.json={os.path.getsize('live/rekap.json')}B")
+          PY
 
       - uses: actions/setup-node@v4
         with:

@@ -79,6 +79,51 @@ export function tanggalJam(t) {
   return `${tanggalPanjang(t)} ${jamMenit(t)}`;
 }
 
+/** Membaca jam yang DIKETIK panitia dan mengembalikannya sebagai "HH:MM"
+ *  24 jam — atau `null` kalau bukan jam yang sah.
+ *
+ *  Ini menggantikan `<input type="time">` di dua meja yang mencatat jam.
+ *  Alasannya bukan selera: kotak jam bawaan browser dirender menurut locale
+ *  BROWSER, bukan `lang="id"` halaman ini, jadi laptop panitia yang Chrome-nya
+ *  berbahasa Inggris menampilkan "07:15 AM" — dan tidak ada atribut HTML mana
+ *  pun yang bisa memaksanya 24 jam. Satu meja memakai AM/PM sementara semua
+ *  kertas, semua layar lain, dan seluruh sisa sistem memakai 00:00-23:59
+ *  adalah cara yang murah sekali untuk mencatat 07:15 sebagai 19:15.
+ *
+ *  Yang diterima sengaja longgar, karena pencatat menyalin dari kertas dan
+ *  mengetik cepat: "745", "0745", "7:45", "7.45", "07 45" — semuanya jadi
+ *  "07:45". Yang di luar 00:00-23:59 ditolak, bukan dibetulkan diam-diam. */
+export function jamSah(teks) {
+  const angka = String(teks ?? "").replace(/\D/g, "");
+  if (angka.length < 3 || angka.length > 4) return null;
+  // "745" dibaca 7:45, bukan 74:5 — jam selalu bagian KIRI dan boleh satu
+  // digit; menitnya selalu dua digit terakhir.
+  const j = Number(angka.slice(0, angka.length - 2));
+  const m = Number(angka.slice(-2));
+  if (!Number.isInteger(j) || !Number.isInteger(m)) return null;
+  if (j > 23 || m > 59) return null;
+  return `${dua(j)}:${dua(m)}`;
+}
+
+/** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
+ *  membetulkan bentuknya saat kotak ditinggalkan, dan menandainya merah kalau
+ *  isinya bukan jam. Membetulkan saat blur, BUKAN saat tiap ketukan — menata
+ *  ulang teks di tengah orang mengetik memindahkan kursornya dan membuat
+ *  angka berikutnya mendarat di tempat yang salah. */
+export function pasangKotakJam(el) {
+  if (!el) return;
+  const nilai = () => jamSah(el.value);
+  el.addEventListener("blur", () => {
+    if (!el.value.trim()) { el.classList.remove("jam-salah"); return; }
+    const v = nilai();
+    if (v) { el.value = v; el.classList.remove("jam-salah"); }
+    else el.classList.add("jam-salah");
+  });
+  el.addEventListener("input", () => {
+    if (nilai() || !el.value.trim()) el.classList.remove("jam-salah");
+  });
+}
+
 /** Notifikasi bawah layar.
  *
  *  Keduanya hilang sendiri, tapi galat diberi waktu DUA KALI LIPAT: 8 detik

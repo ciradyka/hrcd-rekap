@@ -6,10 +6,11 @@
   <title>Rekap Live — Hiking Rally Ciradyka</title>
   <meta name="description" content="Rekap live Hiking Rally Ciradyka — periksa nilai regu sudah masuk atau belum.">
   <!-- Halaman ini TIDAK memuat kunci apa pun: tidak ada anon key, tidak ada
-       alamat Supabase, tidak ada kotak login. Seluruh isinya datang dari satu
-       berkas statis (live.json) yang ditulis GitHub Actions tiap 5 menit.
-       Itu sebabnya ia berdiri di Worker sendiri, terpisah dari layar
-       panitia — lihat live/wrangler.toml. -->
+       alamat Supabase, tidak ada kotak login. Seluruh isinya datang dari dua
+       berkas statis yang ditulis GitHub Actions — live.json (kecil, di-poll)
+       dan rekap.json (besar, diambil sekali per versi). Itu sebabnya ia
+       berdiri di Worker sendiri, terpisah dari layar panitia — lihat
+       live/wrangler.toml dan kepala live.js. -->
   <link rel="stylesheet" href="live.css?v=1">
 </head>
 <body>
@@ -27,8 +28,9 @@
   <footer class="kaki">
     <p>Hiking Rally Ciradyka · Ambalan Ciung Wanara – Dyah Pitaloka,
        SMA Negeri 1 Ciamis</p>
-    <p class="kecil">Halaman ini memperbarui dirinya sendiri. Kalau angkanya
-       terasa tertinggal, tunggu sebentar — data disegarkan tiap 5 menit.</p>
+    <p class="kecil">Halaman ini memperbarui dirinya sendiri selama dibuka.
+       Jam di kepala halaman menunjukkan kapan datanya terakhir diambil dari
+       panitia.</p>
   </footer>
 
   <script src="live.js?v=1"></script>

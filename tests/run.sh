@@ -49,6 +49,7 @@ run supabase/migrations/0023_lembar_pos.sql
 run supabase/migrations/0024_komponen_pos.sql
 run supabase/migrations/0025_pos_keberangkatan_kedatangan.sql
 run supabase/migrations/0026_rekap_publik.sql
+run supabase/migrations/0027_rekap_penuh.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
@@ -81,5 +82,9 @@ run tests/sql/07_pindah_setelah_berangkat.sql
 run supabase/migrations/0024_komponen_pos.sql
 run tests/sql/08_lembar_pos.sql
 run tests/sql/09_rekap_publik.sql
+# 10 dijalankan PALING AKHIR, dan itu perlu: ia membandingkan rekap panitia
+# dengan v_poin_pos, v_total_skor, dan v_klasemen, jadi ia butuh database yang
+# sudah berisi nilai, keberangkatan, dan closing dari seluruh tes di atasnya.
+run tests/sql/10_rekap_penuh.sql
 
 echo "SEMUA TES LULUS"
