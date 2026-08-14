@@ -2028,7 +2028,7 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
   return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
 });
 
-/** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.6).
+/** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.8).
  *
  *  Identitas regu sudah tercetak, kolom nilainya kosong. Satu hal yang
  *  sengaja TIDAK ada di kertas ini: kolom Nilai Pos. Petugas lapangan hanya

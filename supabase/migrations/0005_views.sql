@@ -131,7 +131,7 @@ where exists (select 1 from keberangkatan_regu kb where kb.regu_id = t.regu_id)
               where r.id = t.regu_id and k.jam_berangkat is not null);
 
 -- 6. Monitoring input: matriks regu x pos — pos mana sudah menyetor untuk
---    regu mana (alur 8.7).
+--    regu mana (alur 8.9).
 create view v_monitoring_input with (security_invoker = on) as
 select
   r.nomor_dada,
