@@ -3035,17 +3035,33 @@ async function layarRekap() {
   gambarPanel();
   gambarTabel();
 
-  /* Kembali dari tab lain TIDAK menggambar ulang layar ini. Papan ini
-     dipantau berjam-jam sambil berpindah tab, dan menggambarnya ulang tiap
-     kali berarti kehilangan seluruh keadaan yang sedang dipakai memantau:
-     geseran samping, saringan golongan, isi kotak cari, posisi gulir. Yang
-     dijalankan cukup pengambilan angkanya. */
-  segarkanDiTempat = () => refresh();
+  /* -------------------------------------------------------------------------
+     TAB DI LATAR: BERHENTI TOTAL. TAB DIBUKA LAGI: LANGSUNG MENYUSUL.
 
-  jeda = setInterval(() => {
-    if (location.hash !== layarIni) { clearInterval(jeda); return; }
-    if (!document.hidden) refresh();
-  }, 20000);
+     Selama tab ini tidak dilihat, tidak ada gunanya bertanya ke database tiap
+     20 detik — jawabannya tidak dibaca siapa pun, dan papan ini memang
+     dibiarkan terbuka berjam-jam di sebelah tab lain. Jadi denyutnya
+     dimatikan, bukan sekadar dilewati.
+
+     Yang menyalakannya lagi adalah kepulangan itu sendiri: `segarkanDiTempat`
+     mengambil angka terbaru SEKALIGUS menghidupkan kembali denyutnya, jadi
+     layar yang dibuka lagi sudah menyusul sebelum mata sempat membacanya.
+     ---------------------------------------------------------------------- */
+  const mulaiDenyut = () => {
+    if (jeda !== null) return;
+    jeda = setInterval(() => {
+      // Membersihkan dirinya sendiri: satu tempat yang memutuskan berhenti,
+      // dipakai baik saat berpindah layar maupun saat tab disembunyikan.
+      if (location.hash !== layarIni || document.hidden) {
+        clearInterval(jeda); jeda = null; return;
+      }
+      refresh();
+    }, 20000);
+  };
+
+  segarkanDiTempat = () => { refresh(); mulaiDenyut(); };
+
+  mulaiDenyut();
 }
 
 /* ============================ RUTE ======================================= */
@@ -3109,6 +3125,19 @@ window.addEventListener("hashchange", arahkan);
 let terakhirSegar = Date.now();
 document.addEventListener("visibilitychange", () => {
   if (document.hidden || !sesi()) return;
+
+  /* Layar yang bisa memperbarui angkanya sendiri: LANGSUNG, tanpa satu pun
+     pengaman di bawah.
+
+     Ketiga pengaman itu ada untuk melindungi dari GAMBAR ULANG — ketikan yang
+     terhapus, dialog yang tertutup sendiri, nilai yang belum sampai server.
+     Pembaruan di tempat tidak melakukan satu pun dari itu, jadi menerapkan
+     pengaman yang sama di sini cuma menghasilkan satu akibat: refresh yang
+     DIBATALKAN pada kejadian yang paling sering terjadi. Kursor tertinggal di
+     kotak cari saat berpindah tab sudah cukup untuk membuat papan pantau
+     kembali dengan angka lama, tanpa memberi tahu siapa pun. */
+  if (segarkanDiTempat) { terakhirSegar = Date.now(); segarkanDiTempat(); return; }
+
   if (Date.now() - terakhirSegar < 5000) return;
   const fokus = document.activeElement;
   if (fokus && ["INPUT", "SELECT", "TEXTAREA"].includes(fokus.tagName)) return;
@@ -3119,14 +3148,7 @@ document.addEventListener("visibilitychange", () => {
   // yang ia lihat hanyalah tabel yang tiba-tiba bersih.
   if (adaYangBelumTersimpan()) return;
   terakhirSegar = Date.now();
-  // Layar yang bisa memperbarui angkanya sendiri TIDAK digambar ulang.
-  // Rekapitulasi dipantau berjam-jam sambil berpindah tab; menggambarnya
-  // ulang tiap kali tab itu dilihat lagi berarti cincin muat, geseran
-  // samping kembali ke kolom pertama, saringan golongan kembali ke bawaan,
-  // dan kotak cari kosong — seluruh keadaan yang sedang dipakai memantau,
-  // hilang justru pada gerakan yang paling sering dilakukan orang.
-  if (segarkanDiTempat) segarkanDiTempat();
-  else arahkan();
+  arahkan();
 });
 
 /** Baris lembar pos yang isinya belum sampai ke database. */

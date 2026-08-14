@@ -337,6 +337,19 @@ Berpindah tab adalah gerakan yang paling sering dilakukan orang yang sedang
 memantau, dan menggambar ulang di situ membuang persis keadaan yang sedang
 dipakai memantau.
 
+Kait itu **melewati ketiga pengaman** yang mendahuluinya (jeda 5 detik, kotak
+isian yang sedang difokus, dialog yang terbuka). Pengaman-pengaman itu ada
+untuk melindungi dari gambar ulang; pembaruan di tempat tidak menghapus
+ketikan siapa pun, jadi menerapkannya di sini cuma menghasilkan satu akibat —
+refresh yang dibatalkan. Kursor tertinggal di kotak cari saat berpindah tab
+sudah cukup untuk membuat papan pantau kembali dengan angka lama, diam-diam.
+
+Di latar, layar ini **berhenti total**. Denyut 20 detiknya dimatikan begitu
+tab-nya disembunyikan, bukan sekadar dilewati: jawabannya tidak dibaca siapa
+pun, dan papan ini memang dibiarkan terbuka berjam-jam di sebelah tab lain.
+Yang menyalakannya kembali adalah kepulangan itu sendiri — `segarkanDiTempat`
+mengambil angka terbaru sekaligus menghidupkan ulang denyutnya.
+
 Rank kosong berarti kloter regu itu belum tercatat berangkat, jadi ia belum
 masuk klasemen resmi (`rancangan-b.md` 11.12). Barisnya tidak dibuang; ia
 turun ke bawah kelompoknya dan tetap terurut menurut total, supaya papan ini
