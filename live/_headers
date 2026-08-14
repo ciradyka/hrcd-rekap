@@ -1,0 +1,26 @@
+# ============================================================================
+# hrcd-rekap : live/_headers — aturan cache halaman rekap peserta.
+#
+# live.json ditulis ulang GitHub Actions tiap 5 menit, dan yang membacanya
+# ratusan HP di jaringan seluler yang gemar menyimpan berkas sendiri. no-store
+# untuk berkas itu: bukan cuma "wajib divalidasi", melainkan "jangan simpan
+# sama sekali". Halaman rekap yang menyajikan data setengah jam lalu lebih
+# buruk daripada halaman yang lambat — orang akan mengira nilainya hilang.
+#
+# Berkasnya kecil (ratusan regu ~60 KB), jadi harganya murah.
+# ============================================================================
+
+/*
+  Cache-Control: no-cache
+
+/live.json
+  Cache-Control: no-store
+  Content-Type: application/json; charset=utf-8
+
+/*.js
+  Cache-Control: no-cache
+  Content-Type: text/javascript; charset=utf-8
+
+/*.css
+  Cache-Control: no-cache
+  Content-Type: text/css; charset=utf-8

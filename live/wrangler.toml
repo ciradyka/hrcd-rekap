@@ -1,0 +1,31 @@
+# ============================================================================
+# hrcd-rekap : live/wrangler.toml — Worker TERPISAH untuk halaman rekap
+# peserta.
+#
+# KENAPA BUKAN SATU PROYEK DENGAN LAYAR PANITIA
+#
+# Bukan karena memisahkan URL mencegah orang mencoba masuk — alamat panitia
+# tetap ada dan tetap bisa dibuka siapa pun. Yang benar-benar didapat:
+#
+#   1. Halaman ini tidak memuat KUNCI apa pun. web/config.js membawa anon key
+#      dan alamat Supabase; halaman rekap cuma berisi HTML, CSS, dan satu
+#      berkas JSON statis. Tidak ada jalur ke database sama sekali.
+#   2. Link yang dibagikan ke ratusan peserta di grup WhatsApp tidak
+#      sekaligus menyebarkan alamat login panitia.
+#   3. Ratusan HP yang me-refresh tidak menyentuh Worker yang sedang dipakai
+#      panitia bekerja.
+#
+# JANGAN SAMBUNGKAN KE GIT. Berbeda dari web/, proyek ini di-deploy oleh
+# .github/workflows/publish-live.yml — workflow itu menulis live.json yang
+# baru lalu men-deploy seluruh folder. Kalau ia juga tersambung Git, tiap
+# push ke main akan menimpa live.json dengan berkas contoh di repo.
+#
+# Nama memuat nomor edisi, sama seperti web/ — tiap tahun ganti nama + URL
+# (hrcd37-rekap -> hrcd38-rekap), proyek lama dihapus dari dashboard.
+# ============================================================================
+
+name = "hrcd37-rekap"
+compatibility_date = "2026-08-14"
+
+[assets]
+directory = "."

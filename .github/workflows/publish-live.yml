@@ -1,0 +1,86 @@
+# ============================================================================
+# hrcd-rekap : publish-live.yml — tulis live.json lalu deploy halaman rekap.
+#
+# Halaman rekap peserta TIDAK membaca database. Workflow inilah yang membaca,
+# menulis hasilnya jadi satu berkas statis, lalu men-deploy folder live/.
+# Ratusan HP peserta hanya menyentuh hosting statis Cloudflare — nol
+# permintaan ke Supabase, dan halaman itu tidak perlu membawa kunci apa pun
+# (docs/rancangan-b.md bagian 7).
+#
+# YANG MENJAGA KEJUTAN ADA DI DATABASE, BUKAN DI SINI.
+# Selama status_acara.fase_live masih 'progres', v_klasemen_publik memang
+# mengembalikan nol baris dan v_progres_publik tidak memuat satu pun angka
+# nilai. Jadi live.json yang dihasilkan workflow ini memang TIDAK BERISI
+# nilai — bukan berisi nilai yang disembunyikan tampilan. Admin memindah fase
+# ke 'penuh' saat hasil diumumkan, dan jalan berikutnya klasemennya ikut.
+#
+# CRON SENGAJA DIMATIKAN (baris `schedule` dikomentari). Nyalakan pada minggu
+# lomba, matikan lagi sesudahnya — repo ini privat, dan menit Actions
+# terpakai walau tidak ada yang berubah. Tombol Run workflow tetap bisa
+# ditekan kapan pun, termasuk dari HP.
+#
+# Butuh repository secret (dua-duanya sudah dipakai workflow lain):
+#   SUPABASE_DB_URL       connection string Postgres (Session pooler, 5432)
+#   CLOUDFLARE_API_TOKEN  template "Edit Cloudflare Workers"
+# ============================================================================
+
+name: Publish rekap live
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '*/5 * * * *'   # nyalakan pada minggu lomba
+
+# Dua jalan yang bertumpuk akan saling menimpa live.json di Cloudflare, dan
+# yang menang belum tentu yang terbaru. Satu jalan saja pada satu waktu.
+concurrency:
+  group: publish-live
+  cancel-in-progress: false
+
+jobs:
+  terbitkan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tulis live.json dari database
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DB_URL" ]; then
+            echo "Secret SUPABASE_DB_URL belum diisi."
+            exit 1
+          fi
+          # -A -t: keluaran mentah tanpa bingkai tabel dan tanpa judul kolom,
+          # sehingga yang tertulis ke berkas benar-benar JSON saja.
+          psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
+            -f supabase/checks/live_json.sql > live/live.json
+
+          # Pagar terakhir sebelum berkasnya di-deploy: JSON yang rusak akan
+          # membuat halaman rekap kosong tanpa pesan apa pun, dan tidak ada
+          # yang akan menyadarinya sampai ada peserta yang bertanya.
+          python3 -c "
+          import json, sys
+          d = json.load(open('live/live.json'))
+          for k in ('dibuat_pada','fase','pos','progres','klasemen'):
+              if k not in d: sys.exit(f'kunci {k} hilang dari live.json')
+          print(f\"fase={d['fase']} regu={len(d['progres'])} klasemen={len(d['klasemen'])} pos={len(d['pos'])}\")
+          if d['fase'] != 'penuh' and d['klasemen']:
+              sys.exit('BOCOR: klasemen ikut tertulis padahal fase belum penuh')
+          "
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install -g wrangler
+
+      - name: Deploy halaman rekap
+        working-directory: live
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: wrangler deploy
+
+      - name: Ringkasan
+        run: echo "REKAP TERBIT — $(date -u '+%Y-%m-%d %H:%M UTC')"

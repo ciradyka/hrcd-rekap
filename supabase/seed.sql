@@ -9,12 +9,19 @@ insert into edisi (nomor, name, tahun, tanggal_lomba, biaya_per_regu,
                    lompatan_kloter, interval_berangkat_menit, is_active)
 values (37, 'HRCD XXXVII', 2027, date '2027-02-21', 250000, 10, 30, 40, 2, 4, true);
 
+-- Pos 0 dan Pos 5 adalah garis start dan garis finish (migrasi 0025): tempat
+-- yang sama, disebut Pos 0 saat berangkat dan Pos 5 saat kembali. Keduanya
+-- TIDAK dinilai — tidak punya baris wahana — dan yang dicatat di sana waktu.
+-- Namanya ditulis di sini, bukan hanya di migrasi 0025, supaya database yang
+-- disiapkan dari nol sudah benar tanpa perlu menjalankan ulang migrasi mana
+-- pun. (Migrasi 0025 tetap ada untuk database yang sudah terlanjur berjalan.)
 insert into pos (edisi, nomor, name, bobot) values
+  (37, 0, 'Keberangkatan', 1.00),
   (37, 1, 'Pos 1', 1.00),
   (37, 2, 'Pos 2', 1.00),
   (37, 3, 'Pos 3', 1.00),
   (37, 4, 'Pos 4', 1.00),
-  (37, 5, 'Pos 5', 1.00);
+  (37, 5, 'Kedatangan', 1.00);
 
 -- Satu contoh per bentuk konversi — angka persis dari rancangan-b.md supaya
 -- tes bisa mencocokkan hasil hitung dengan dokumen.

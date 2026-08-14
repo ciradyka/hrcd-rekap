@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rekap Live — Hiking Rally Ciradyka</title>
+  <meta name="description" content="Rekap live Hiking Rally Ciradyka — periksa nilai regu sudah masuk atau belum.">
+  <!-- Halaman ini TIDAK memuat kunci apa pun: tidak ada anon key, tidak ada
+       alamat Supabase, tidak ada kotak login. Seluruh isinya datang dari satu
+       berkas statis (live.json) yang ditulis GitHub Actions tiap 5 menit.
+       Itu sebabnya ia berdiri di Worker sendiri, terpisah dari layar
+       panitia — lihat live/wrangler.toml. -->
+  <link rel="stylesheet" href="live.css?v=1">
+</head>
+<body>
+  <header class="kepala">
+    <div class="kepala-isi">
+      <h1 id="judul">Rekap Live</h1>
+      <p class="sinkron" id="sinkron">Memuat…</p>
+    </div>
+  </header>
+
+  <main id="isi">
+    <p class="memuat">Memuat rekap…</p>
+  </main>
+
+  <footer class="kaki">
+    <p>Hiking Rally Ciradyka · Ambalan Ciung Wanara – Dyah Pitaloka,
+       SMA Negeri 1 Ciamis</p>
+    <p class="kecil">Halaman ini memperbarui dirinya sendiri. Kalau angkanya
+       terasa tertinggal, tunggu sebentar — data disegarkan tiap 5 menit.</p>
+  </footer>
+
+  <script src="live.js?v=1"></script>
+</body>
+</html>

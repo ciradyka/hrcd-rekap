@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0025`.
+Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0026`.
 
 ---
 
@@ -19,6 +19,7 @@ sendiri di server:
 | Database | Postgres + Auth + RLS + seluruh logika | Supabase |
 | Tampilan | SPA statis, tanpa build step | Cloudflare Workers static assets |
 | Gateway | Penerima form pendaftaran publik | Cloudflare Worker |
+| Rekap live | Halaman peserta, statis, tanpa kunci apa pun | Cloudflare Worker TERPISAH |
 
 **Tidak ada server aplikasi.** Layar panitia berbicara langsung ke Supabase
 lewat PostgREST memakai anon key; yang menjaga data bukan lapisan tengah,
@@ -26,14 +27,17 @@ melainkan RLS dan RPC di database. Satu-satunya kode server adalah gateway,
 dan ia hanya menangani satu hal: form pendaftaran publik, yang harus bisa
 dikirim tanpa login.
 
-Yang **tidak** dipakai, meski disebut di dokumen lama: Google Sheets, Cloudflare
-Pages, halaman `live.json`/`live.html`. Tidak ada satu pun di kode.
+Yang **tidak** dipakai, meski disebut di dokumen lama: Google Sheets dan
+Cloudflare Pages. Halaman live publik SUDAH ada sejak 14 Agustus 2026, tapi
+bentuknya `live/index.html` + `live/live.json` di Worker sendiri — bukan
+`live.html` di proyek yang sama seperti tertulis di `rancangan-b.md` bagian 7.
 
 ### Alamat produksi
 
 | Apa | Alamat |
 | --- | --- |
 | Layar panitia + form daftar | `https://hrcd37.ciradyka.workers.dev` |
+| Rekap live peserta | `https://hrcd37-rekap.ciradyka.workers.dev` |
 | Gateway pendaftaran | `https://gateway.ciradyka.workers.dev` |
 | Supabase | `https://pwszijhnftvqjkdldqrf.supabase.co` |
 
@@ -46,7 +50,7 @@ di `workers/gateway/worker.js` wajib ikut diubah.
 
 ## 2. Database
 
-25 migrasi, `0001` sampai `0025`, dijalankan berurutan tanpa lubang penomoran.
+26 migrasi, `0001` sampai `0026`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -252,6 +256,62 @@ lembar kosong terbaca sebagai "belum ada peserta", bukan sebagai galat hak
 akses. Pagarnya dipasang di dalam view: `peran() is not null`, dan operator
 hanya posnya sendiri.
 
+---
+
+## 3b. Halaman rekap live untuk peserta
+
+Satu pertanyaan yang dijawab halaman ini sepanjang lomba, dan hanya itu:
+**"nilai regu saya sudah masuk belum, atau hilang?"** Jawabannya centang per
+pos, ditambah fakta operasional yang memang sudah diketahui regunya sendiri —
+kloter, kontrak waktu, jam berangkat, jam datang. Menerbitkan jam justru
+layanan: regu bisa memastikan yang tercatat panitia sama dengan catatan
+mereka SEBELUM hasilnya final, dan sengketa yang ketahuan pagi hari jauh
+lebih murah daripada yang ketahuan saat pengumuman.
+
+### Yang menjaga kejutan adalah database, bukan tampilan
+
+Selama `status_acara.fase_live` masih `progres`, `v_klasemen_publik`
+mengembalikan **nol baris** dan `v_progres_publik` tidak punya satu pun kolom
+berisi angka nilai. Jadi `live.json` yang terbit memang **tidak memuat**
+nilai — bukan memuatnya lalu disembunyikan CSS, yang bisa dibuka siapa pun
+dengan membuka alamat berkasnya langsung. Admin memindah fase ke `penuh` saat
+hasil diumumkan, dan jalan berikutnya klasemen empat golongan beserta juaranya
+ikut terbit.
+
+`tests/sql/09_rekap_publik.sql` menjaga janji itu dari dua arah: klasemen
+harus nol baris di fase progres, dan `v_progres_publik` diperiksa **lewat
+katalog** supaya kolom baru yang berbau nilai tertangkap — yang menambahkannya
+tahun depan belum tentu ingat janji ini.
+
+### Kenapa Worker sendiri
+
+Memisahkan URL **tidak** mencegah orang mencoba masuk — alamat panitia tetap
+ada. Yang benar-benar didapat tiga hal:
+
+1. Halaman rekap tidak memuat **kunci apa pun**. `web/config.js` membawa anon
+   key dan alamat Supabase; `live/` cuma HTML, CSS, dan satu berkas JSON.
+2. Link yang disebar ke ratusan peserta tidak sekaligus menyebarkan alamat
+   login panitia.
+3. Ratusan HP yang me-refresh tidak menyentuh Worker yang sedang dipakai
+   panitia bekerja.
+
+### Cara datanya sampai
+
+`publish-live.yml` menjalankan `supabase/checks/live_json.sql` — satu query
+yang menghasilkan seluruh berkas — lalu men-deploy folder `live/`. Halaman
+peserta hanya membaca berkas statis itu tiap 60 detik; **nol permintaan ke
+Supabase dari HP peserta**.
+
+Cap **"Sinkronisasi terakhir"** di kepala halaman memakai jam saat berkasnya
+DIBUAT di server, bukan jam halaman dimuat — kalau workflow tersendat, peserta
+harus bisa melihat bahwa angkanya tua. Lewat 15 menit, capnya berubah warna
+dan menambahkan "data mungkin tertinggal".
+
+Sebelum di-deploy, workflow memeriksa berkasnya sendiri: JSON harus terurai,
+kunci wajib harus ada, dan **klasemen harus kosong selama fase belum `penuh`**.
+JSON yang rusak akan membuat halaman rekap kosong tanpa pesan apa pun, dan
+tidak ada yang menyadarinya sampai ada peserta yang bertanya.
+
 ### Bentuk tabel meja menurut lebar layar
 
 Meja Pembayaran dan Meja Daftar Ulang berganti bentuk di dua ambang. Angkanya
@@ -297,8 +357,14 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
 | Situs statis (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
+| Rekap live (`live/`) | GitHub Actions `publish-live.yml` | manual + cron 5 menit (dimatikan di luar minggu lomba) |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
+
+`live/` **sengaja TIDAK tersambung Git.** Yang di-deploy bukan isi repo
+melainkan `live.json` yang baru saja ditulis workflow dari database; kalau ia
+juga tersambung Git, tiap push ke `main` akan menimpanya dengan berkas contoh
+fase `pra` yang ada di repo.
 
 **Merge ke `main` = deploy situs.** Tidak ada build step; berkas di `web/`
 disajikan apa adanya, dengan `web/wrangler.toml` menyetel root proyek ke folder
@@ -397,9 +463,10 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   lain), padahal di layar selalu tiga digit. Migrasi `0020` baru membetulkan
   `berangkatkan_kloter`; sisanya menunggu karena tiap perbaikan menuntut
   seluruh badan fungsinya disalin ulang.
-- **Halaman live publik belum ada.** `live.html` + `live.json` di
-  `rancangan-b.md` bagian 7 tidak pernah dibangun, dan tidak ada workflow yang
-  menghasilkannya.
+- **Cron rekap live masih dimatikan.** `publish-live.yml` punya jadwal 5
+  menit yang sengaja dikomentari; nyalakan pada minggu lomba dan matikan lagi
+  sesudahnya. Sampai dinyalakan, halaman rekap hanya diperbarui saat tombol
+  Run workflow ditekan.
 - **Upload massal nilai belum ada.** `rancangan-b.md` bagian 6 menjelaskan
   jalur tempel-dari-Excel lengkap dengan layar preview. Yang sudah dibangun
   baru input tabelnya (`#/pos`) — yang sebenarnya sudah menutup sebagian besar
