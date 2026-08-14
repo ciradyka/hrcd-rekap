@@ -20,6 +20,14 @@
 -- akibatnya diperiksa, lalu dikembalikan.
 -- ============================================================================
 
+-- Dijalankan sebagai ADMIN, bukan tanpa peran. `v_lembar_pos` dipagari
+-- `peran() is not null` (0023), jadi sesi tanpa identitas mendapat NOL BARIS —
+-- dan nol baris di sini terbaca sebagai "nilainya hilang", yaitu persis
+-- kesimpulan yang sedang diuji. Menulis langsung ke nilai_mentah juga menuntut
+-- admin (policy adm_nilai, 0003). Jebakan yang sama pernah menjatuhkan 13.3.
+select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
+set role authenticated;
+
 -- ---------------------------------------------------------------------------
 -- 16.1 Baris yang HILANG menyumbang tepat nol — tidak lebih, tidak kurang.
 --
@@ -150,4 +158,5 @@ begin
 end;
 $$;
 
+reset role;
 select '16_kosong_bukan_nol OK' as hasil;
