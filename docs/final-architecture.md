@@ -501,6 +501,24 @@ Dikumpulkan dari kesalahan yang benar-benar terjadi, bukan daftar teoretis.
    sesudahnya tanpa galat apa pun. Layout tampak jalan lewat kolom implisit.
 7. **`AGENTS.md` wajib identik dengan `CLAUDE.md`.** Ia pernah menyimpang 21
    baris dan tiga stringnya rusak oleh find-and-replace atas nama agen.
+8. **Dua project Cloudflare bisa menyajikan folder yang sama tanpa satu pun
+   galat.** Yang menentukan folder mana yang terbit adalah kotak "Root
+   directory" di dashboard — tidak terlihat dari repo, tidak ikut ter-review,
+   tidak ada di git. Saat `panitia-hrcd37` dibuat, kotak itu terisi `live`:
+   dua alamat menjawab 200 dengan halaman yang sama persis, dan layar panitia
+   tidak dilayani siapa pun. Cara memeriksanya dari luar, tanpa login:
+
+   ```bash
+   curl -sI https://panitia-hrcd37.ciradyka.workers.dev/js/app.js | head -1  # 200
+   curl -sI https://hrcd37.ciradyka.workers.dev/js/app.js | head -1          # 404
+   ```
+
+   `js/app.js` hanya ada di `web/`, `live.js` hanya ada di `live/` — keduanya
+   penanda yang cukup untuk tahu folder mana yang sedang terbit.
+9. **Mengubah "Root directory" tidak menerbitkan ulang apa pun.** Setelan itu
+   berlaku untuk build BERIKUTNYA. Selama belum ada push atau "Retry
+   deployment", yang tersaji tetap hasil build lama dengan folder lama —
+   setelan sudah benar di layar, produksi masih salah.
 
 ---
 
