@@ -1452,6 +1452,29 @@ input.small-input { text-align: center; }
       lembar Input Pos yang harus memuat input setinggi jempol.
    ------------------------------------------------------------------------- */
 
+/* INI perbaikan yang paling menentukan bentuk layar ini.
+
+   .table dan .table-pos sama-sama menyetel `width: 100%`, yang benar untuk
+   lembar satu pos (±11 kolom) dan bencana untuk rekap (±38). Dengan lebar
+   dipatok ke lebar wadahnya, tabel tidak pernah melebihi layar — jadi ia
+   tidak menggeser, melainkan MENGEMPIS: tiap kolom diperas sampai judulnya
+   pecah jadi tumpukan huruf dan angkanya berdesakan. Yang terlihat bukan
+   tabel lebar yang bisa digulir, melainkan tabel sempit yang rusak.
+
+   `max-content` membalikkannya: tabel selebar isinya, wadahnya yang
+   menggeser (.table-wrapper sudah `overflow-x: auto`). `min-width: 100%`
+   menjaga agar saringan yang menyisakan dua baris tidak membuat tabelnya
+   menciut ke tengah kartu. */
+.table-rekap { width: max-content; min-width: 100%; }
+
+/* Input Pos memakai kolom TERAKHIR sebagai penyerap sisa lebar (.table-pos
+   th:last-child), dan di sana itu benar: yang terakhir adalah kolom status
+   simpan, sehingga lahan kosongnya jatuh di tempat yang tidak dikerjakan
+   siapa pun. Di rekap kolom terakhir adalah NILAI TOTAL — angka yang paling
+   dicari mata — dan membiarkannya menyerap membuatnya melayang sendirian
+   jauh di kanan, terpisah dari Penalti yang seharusnya dibacanya bersama. */
+.table-rekap th:last-child, .table-rekap td:last-child { width: auto; }
+
 /* Rank dipatok lebih dulu, lalu Nomor Dada menempel tepat di belakangnya.
    Lebar kolom pertama HARUS pasti, kalau tidak `left` kolom kedua meleset —
    isinya cuma satu sampai tiga digit, jadi mematoknya tidak merugikan. */
@@ -1479,3 +1502,12 @@ input.small-input { text-align: center; }
    lapang yang tidak ada yang menyentuhnya. */
 .table-rekap th, .table-rekap td { padding: .28rem .4rem; }
 .table-rekap { font-size: .86rem; }
+
+/* Kolom biner: ikon, bukan huruf. Sebaris "v v v v" harus dieja satu per
+   satu; centang tertangkap sekali sapu. Hijau dipakai untuk "ada", sama
+   seperti centang per pos di halaman peserta dan pita simpan di Input Pos —
+   satu arti, satu warna, di seluruh sistem. */
+.table-rekap .rekap-ya {
+  color: var(--hijau); font-weight: 800; font-size: 1.05rem; line-height: 1;
+}
+.table-rekap .rekap-tidak { color: var(--garis); font-weight: 700; }

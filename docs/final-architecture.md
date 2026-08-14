@@ -321,13 +321,19 @@ satu.** Kelasnya sama persis — `.table-pos` beserta `.kolom-nama`,
 kolom datang dari `petunjukKolom()` yang sama, bukan salinannya: kalau rentang
 di satu layar berbeda dengan layar lain, panitia akan percaya yang salah.
 
-Tiga hal yang ditambahkan, dan hanya tiga:
+Lima hal yang ditambahkan, dan hanya lima:
 
 | Yang ditambah | Kenapa tidak ada di lembar satu pos |
 | --- | --- |
+| `width: max-content` | `.table` dan `.table-pos` sama-sama `width: 100%`, yang benar untuk ±11 kolom dan bencana untuk ±38: tabelnya tidak pernah melebihi layar, jadi ia tidak menggeser melainkan **mengempis** — judul pecah jadi tumpukan huruf dan angkanya berdesakan |
+| Kolom terakhir tidak lagi menyerap sisa lebar | Di Input Pos yang terakhir adalah kolom status simpan, jadi lahan kosongnya jatuh di tempat yang tidak dikerjakan siapa pun. Di sini yang terakhir Nilai Total — dibiarkan menyerap, ia melayang sendirian jauh dari Penalti yang seharusnya dibaca bersamanya |
 | **Dua** kolom dipatok di tepi kiri, bukan satu | Rank berdiri di depan Nomor Dada; barisnya baru bisa dikenali kalau keduanya ikut menempel saat digeser |
 | Garis pemisah di tiap Nilai Pos | Dengan lima kelompok kolom bersambung, salah membaca kolom Pos 3 sebagai Pos 2 adalah satu-satunya cara layar ini bisa menyesatkan |
 | Baris lebih rapat | Tidak ada kotak isian sama sekali, jadi tingginya tidak perlu memuat sasaran sentuh setinggi jempol |
+
+Kolom biner memakai **ikon centang**, bukan huruf. Sebaris `v v v v` harus
+dieja satu per satu; centang tertangkap sekali sapu — bentuk yang sama dengan
+kotak centang di Input Pos dan centang per pos di halaman peserta.
 
 Seperti lembar Input Pos, tabel ini **digeser ke samping, bukan ditumpuk jadi
 kartu** — di layar meja geser samping justru dilarang karena menyembunyikan
