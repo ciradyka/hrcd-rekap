@@ -1561,3 +1561,44 @@ input.small-input { text-align: center; }
    kartunya kuning, jadi ia harus ikut terlihat kuning — kalau tidak, warna
    kartunya jadi teka-teki. */
 .lengkap-diam { color: var(--kuning); font-weight: 700; }
+
+/* ---------------------------------------------------------------------------
+   RANGKA MUAT (kartuMemuat() di js/util.js)
+
+   Menggantikan tulisan "Memuat…". Yang paling menentukan bukan bentuknya
+   melainkan JEDANYA: sebagian besar layar terisi di bawah 200 ms, jadi
+   penanda yang tampil seketika lebih sering terlihat sebagai kedipan — dan
+   kedipan terasa seperti layar yang tersendat, bukan layar yang cepat.
+   `animation-delay` 180 ms membuatnya tidak pernah muncul untuk muat yang
+   cepat; yang melihatnya hanya orang yang memang menunggu.
+   ------------------------------------------------------------------------- */
+@keyframes hrcd-muncul { from { opacity: 0 } to { opacity: 1 } }
+@keyframes hrcd-kilau  { from { background-position: 100% 0 } to { background-position: -100% 0 } }
+
+.memuat-rangka { animation: hrcd-muncul .28s ease-out .18s both; }
+
+.memuat-baris {
+  height: 15px; border-radius: 8px; margin: .6rem 0;
+  background: linear-gradient(90deg,
+    var(--garis) 0%, var(--kertas) 45%, var(--garis) 90%);
+  background-size: 220% 100%;
+  animation: hrcd-kilau 1.5s linear infinite;
+}
+.memuat-baris:first-of-type { height: 20px; margin-top: .2rem; }
+
+/* Gerakan dimatikan, jedanya TIDAK. Durasi hampir nol menggantikan fade:
+   rangkanya tetap baru muncul setelah 180 ms, hanya tanpa animasi apa pun —
+   jadi muat yang cepat tetap tidak berkedip bagi yang menolak gerakan. */
+@media (prefers-reduced-motion: reduce) {
+  .memuat-rangka { animation: hrcd-muncul .01s linear .18s both; }
+  .memuat-baris  { animation: none; background: var(--garis); }
+}
+
+/* Ikon di dalam table-toolbar berdiri di antara kontrol setinggi 40-44px.
+   Ukuran .icon-button-inline (32px) dibuat untuk menyelip di dalam sel tabel,
+   dan di sini ia terlihat tersesat — sasaran sentuhnya pun jadi yang terkecil
+   di seluruh baris itu. Warnanya tetap warna inline: hover putih milik
+   .icon-button dibuat untuk header hijau, tidak terlihat di atas kartu. */
+.table-toolbar .icon-button-inline {
+  min-width: 40px; min-height: 40px; font-size: 1.25rem;
+}

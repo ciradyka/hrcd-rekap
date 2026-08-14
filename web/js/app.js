@@ -23,7 +23,7 @@ import {
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
-         berapaLalu } from "./util.js";
+         berapaLalu, kartuMemuat } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -152,7 +152,7 @@ function layarLogin(pesan) {
 async function layarHome() {
   pasangKepala("Home");
   const peran = sesi().peran;
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   // Operator pos tidak berhak atas layar meja — RLS akan mengosongkan
   // datanya dan itu tampak seperti "tidak ada antrean" (temuan review).
@@ -357,7 +357,7 @@ const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
 async function layarPembayaran() {
   if (!EDISI) { layarButuhEdisi("Meja Pembayaran"); return; }
   pasangKepala("Meja Pembayaran", true);
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   const layarIni = location.hash;
   let semua;
@@ -715,7 +715,7 @@ function cetakKwitansi(daftar) {
 async function layarDaftarUlang() {
   if (!EDISI) { layarButuhEdisi("Meja Daftar Ulang"); return; }
   pasangKepala("Meja Daftar Ulang", true);
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   const layarIni = location.hash;
   let semua;
@@ -1011,7 +1011,7 @@ async function layarDaftarUlang() {
 async function layarKeberangkatan() {
   if (!EDISI) { layarButuhEdisi("Keberangkatan"); return; }
   pasangKepala("Keberangkatan", true);
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   const layarIni = location.hash;
   let papan, opsi;
@@ -1376,7 +1376,7 @@ async function layarKeberangkatan() {
 
 async function layarCetakKloter() {
   pasangKepala("Cetak Daftar Kloter");
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   let baris;
   try { baris = await daftarKloter(); }
@@ -2058,7 +2058,7 @@ async function layarInputPos() {
   }
 
   pasangKepala("Input Nilai Pos", "lembar");
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   const layarIni = location.hash;
   let semuaPos;
@@ -2638,7 +2638,7 @@ async function layarRekap() {
   }
 
   pasangKepala("Rekapitulasi", "lembar");
-  LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
+  LAYAR.replaceChildren(h(kartuMemuat()));
 
   const layarIni = location.hash;
   let pos, wahana, baris, kelengkapan;
@@ -2842,8 +2842,13 @@ async function layarRekap() {
                       aria-pressed="${golongan === g}">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
           </div>
           <span class="table-count">${esc(String(tampil.length))} regu</span>
-          <button class="button button-small button-secondary" id="rekap-segarkan"
-                  type="button">Segarkan</button>
+          <!-- Ikon, bukan kata: tombol ini berdiri di deretan yang sudah penuh
+               saringan golongan, dan "Segarkan" memakan lebar yang lebih
+               berguna untuk kotak cari. Judul dan aria-label tetap berbunyi
+               lengkap — yang hilang hanya tulisannya, bukan artinya. -->
+          <button class="icon-button icon-button-inline" id="rekap-segarkan"
+                  type="button" aria-label="Segarkan sekarang"
+                  title="Segarkan sekarang (otomatis tiap 20 detik)">↻</button>
         </div>
         <p class="description">Layar ini hanya menampilkan. Nilai diubah di
            <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
@@ -2889,7 +2894,8 @@ async function layarRekap() {
       const baru = document.getElementById("rekap-cari");
       if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
     });
-    document.getElementById("rekap-segarkan").addEventListener("click", segarkan);
+    document.getElementById("rekap-segarkan")
+      .addEventListener("click", () => segarkan(true));
   }
 
   /* Menyegarkan sendiri tiap 20 detik. Inilah yang membuat papan ini terasa
