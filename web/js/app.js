@@ -2401,7 +2401,11 @@ async function layarInputPos() {
       hitungUlangJumlah();
     } catch (err) {
       statusBaris(tr, "gagal", err.message);
-      notif(`${String(dada).padStart(3, "0")}: ${err.message}`, true);
+      // "Nomor Dada 005: ...", bukan "005: ...". Notifikasi ini muncul di
+      // bawah layar, terlepas dari baris yang gagal — angka telanjang di
+      // depan kalimat tidak memberi tahu angka APA, dan di lembar yang penuh
+      // angka itu justru yang paling perlu disebut namanya.
+      notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${err.message}`, true);
     } finally {
       tr.dataset.jalan = "";
       // Ketukan yang menumpuk selagi baris ini sibuk. Dijalankan juga setelah

@@ -51,6 +51,7 @@ run supabase/migrations/0025_pos_keberangkatan_kedatangan.sql
 run supabase/migrations/0026_rekap_publik.sql
 run supabase/migrations/0027_rekap_penuh.sql
 run supabase/migrations/0028_kelengkapan_pos.sql
+run supabase/migrations/0029_pesan_rentang.sql
 run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
@@ -83,10 +84,13 @@ run tests/sql/07_pindah_setelah_berangkat.sql
 run supabase/migrations/0024_komponen_pos.sql
 run tests/sql/08_lembar_pos.sql
 run tests/sql/09_rekap_publik.sql
-# 10 dijalankan PALING AKHIR, dan itu perlu: ia membandingkan rekap panitia
+# 10 dijalankan di ujung, dan itu perlu: ia membandingkan rekap panitia
 # dengan v_poin_pos, v_total_skor, dan v_klasemen, jadi ia butuh database yang
 # sudah berisi nilai, keberangkatan, dan closing dari seluruh tes di atasnya.
 run tests/sql/10_rekap_penuh.sql
 run tests/sql/11_kelengkapan_pos.sql
+# 12 butuh komponen Pos 1 yang sebenarnya (kepramukaan_keagamaan,
+# rentang 0-20), yang baru ada setelah 0024 dijalankan giliran kedua.
+run tests/sql/12_pesan_rentang.sql
 
 echo "SEMUA TES LULUS"
