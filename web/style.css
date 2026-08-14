@@ -1562,38 +1562,6 @@ input.small-input { text-align: center; }
    kartunya jadi teka-teki. */
 .lengkap-diam { color: var(--kuning); font-weight: 700; }
 
-/* ---------------------------------------------------------------------------
-   RANGKA MUAT (kartuMemuat() di js/util.js)
-
-   Menggantikan tulisan "Memuat…". Yang paling menentukan bukan bentuknya
-   melainkan JEDANYA: sebagian besar layar terisi di bawah 200 ms, jadi
-   penanda yang tampil seketika lebih sering terlihat sebagai kedipan — dan
-   kedipan terasa seperti layar yang tersendat, bukan layar yang cepat.
-   `animation-delay` 180 ms membuatnya tidak pernah muncul untuk muat yang
-   cepat; yang melihatnya hanya orang yang memang menunggu.
-   ------------------------------------------------------------------------- */
-@keyframes hrcd-muncul { from { opacity: 0 } to { opacity: 1 } }
-@keyframes hrcd-kilau  { from { background-position: 100% 0 } to { background-position: -100% 0 } }
-
-.memuat-rangka { animation: hrcd-muncul .28s ease-out .18s both; }
-
-.memuat-baris {
-  height: 15px; border-radius: 8px; margin: .6rem 0;
-  background: linear-gradient(90deg,
-    var(--garis) 0%, var(--kertas) 45%, var(--garis) 90%);
-  background-size: 220% 100%;
-  animation: hrcd-kilau 1.5s linear infinite;
-}
-.memuat-baris:first-of-type { height: 20px; margin-top: .2rem; }
-
-/* Gerakan dimatikan, jedanya TIDAK. Durasi hampir nol menggantikan fade:
-   rangkanya tetap baru muncul setelah 180 ms, hanya tanpa animasi apa pun —
-   jadi muat yang cepat tetap tidak berkedip bagi yang menolak gerakan. */
-@media (prefers-reduced-motion: reduce) {
-  .memuat-rangka { animation: hrcd-muncul .01s linear .18s both; }
-  .memuat-baris  { animation: none; background: var(--garis); }
-}
-
 /* Ikon di dalam table-toolbar berdiri di antara kontrol setinggi 40-44px.
    Ukuran .icon-button-inline (32px) dibuat untuk menyelip di dalam sel tabel,
    dan di sini ia terlihat tersesat — sasaran sentuhnya pun jadi yang terkecil
@@ -1601,4 +1569,64 @@ input.small-input { text-align: center; }
    .icon-button dibuat untuk header hijau, tidak terlihat di atas kartu. */
 .table-toolbar .icon-button-inline {
   min-width: 40px; min-height: 40px; font-size: 1.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   PEMUAT (pemuat() di js/util.js) DAN TOMBOL SEGARKAN
+
+   Cincin berputar di tengah layar, dengan JEDA 180 ms sebelum ia muncul.
+   Jedanya yang penting: sebagian besar layar terisi di bawah 200 ms, jadi
+   penanda yang tampil seketika lebih sering terlihat sebagai kedipan — dan
+   kedipan terasa seperti layar yang tersendat, bukan layar yang cepat. Yang
+   melihat cincin ini hanya orang yang memang menunggu.
+   ------------------------------------------------------------------------- */
+@keyframes hrcd-muncul { from { opacity: 0 } to { opacity: 1 } }
+@keyframes hrcd-putar  { to { transform: rotate(360deg) } }
+
+.pemuat {
+  display: flex; align-items: center; justify-content: center;
+  padding: 3.5rem 1rem;
+  animation: hrcd-muncul .28s ease-out .18s both;
+}
+.pemuat-cincin {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid var(--garis);
+  border-top-color: var(--utama);
+  animation: hrcd-putar .8s linear infinite;
+}
+
+/* Tombol Refresh saat ditekan. TANPA ini tombolnya terasa mati: datanya
+   sering kembali dalam puluhan milidetik, tidak ada satu pun angka yang
+   berubah, dan orang yang menekan tidak punya cara tahu bahwa sesuatu
+   memang terjadi. Yang berputar ikonnya sendiri — ↻ memang sudah bentuk
+   lingkaran, jadi tidak perlu penanda kedua. */
+.icon-button.berputar {
+  animation: hrcd-putar .7s linear infinite;
+  opacity: .65; cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Jedanya TETAP, fade-nya yang hilang — muat cepat tetap tidak berkedip. */
+  .pemuat { animation: hrcd-muncul .01s linear .18s both; }
+  /* Perputaran TIDAK dimatikan: di sini gerakan itulah seluruh maknanya,
+     dan cincin diam sama saja dengan tidak ada penanda. Dipelankan saja. */
+  .pemuat-cincin        { animation-duration: 2.2s; }
+  .icon-button.berputar { animation-duration: 1.8s; }
+}
+
+/* Ikon SVG di dalam tombol: mengikuti font-size tombolnya, bukan ukuran
+   tetap, supaya satu ikon melayani tombol besar dan kecil sekaligus. */
+.icon-button .ikon { width: 1em; height: 1em; display: block; }
+
+/* Cap "Refresh terakhir" mendahului tombolnya. Di layar sempit ia yang
+   pertama dibuang — jamnya berguna, tapi tombolnya yang harus selalu ada. */
+.refresh-cap { font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .refresh-cap { display: none; } }
+
+/* Jumlah baris, cap refresh, dan tombolnya berjalan bersama. Sebagai anak
+   lepas dari .table-toolbar, tombol itu jatuh sendirian ke baris baru begitu
+   deretan saringan penuh — terpisah dari jam yang menerangkannya. */
+.toolbar-kanan {
+  display: flex; align-items: center; gap: .5rem;
+  margin-left: auto; flex-wrap: nowrap;
 }

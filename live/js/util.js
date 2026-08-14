@@ -79,31 +79,46 @@ export function tanggalJam(t) {
   return `${tanggalPanjang(t)} ${jamMenit(t)}`;
 }
 
-/** Rangka abu-abu yang berdenyut, menggantikan tulisan "Memuat…".
+/** Cincin berputar di tengah layar, menggantikan tulisan "Memuat…".
  *
  *  YANG PALING MENENTUKAN DI SINI BUKAN BENTUKNYA, MELAINKAN JEDANYA.
  *
  *  Sebagian besar layar meja terisi di bawah 200 ms. Penanda muat yang tampil
  *  seketika karena itu lebih sering terlihat sebagai KEDIPAN — muncul dan
  *  hilang sebelum sempat dibaca — dan kedipan terasa seperti layar yang
- *  tersendat, bukan layar yang cepat. Maka rangka ini punya
+ *  tersendat, bukan layar yang cepat. Maka cincin ini punya
  *  `animation-delay` 180 ms: kalau datanya keburu datang, ia tidak pernah
  *  terlihat sama sekali. Yang melihatnya hanya orang yang memang menunggu.
  *
- *  Lebar tiap batang sengaja berbeda-beda. Batang yang sama panjang terbaca
- *  sebagai bar progres yang macet; yang tidak rata terbaca sebagai teks yang
- *  belum datang, dan itu memang yang sedang terjadi.
- *
- *  `aria-busy` + satu baris tersembunyi menjaga pembaca layar tetap
- *  mendapat kabar — bagi mereka animasi tidak berarti apa-apa. */
-export function kartuMemuat(baris = 5) {
-  const lebar = [92, 74, 86, 63, 90, 70, 82];
-  return `<div class="card memuat-rangka" aria-busy="true" aria-live="polite">
-    <span class="visually-hidden">Memuat…</span>
-    ${Array.from({ length: baris }, (_, i) =>
-      `<div class="memuat-baris" style="width:${lebar[i % lebar.length]}%"></div>`).join("")}
+ *  `role="status"` + satu baris tersembunyi menjaga pembaca layar tetap
+ *  mendapat kabar — bagi mereka perputaran tidak berarti apa-apa. */
+export function pemuat(teks = "Memuat…") {
+  return `<div class="pemuat" role="status" aria-live="polite">
+    <span class="pemuat-cincin" aria-hidden="true"></span>
+    <span class="visually-hidden">${esc(teks)}</span>
   </div>`;
 }
+
+/** Ikon refresh — dua panah melingkar, sama seperti yang dipakai dashboard
+ *  pada umumnya.
+ *
+ *  SVG, bukan huruf Unicode dan bukan emoji, dan itu keputusan sadar: `↻`
+ *  tampil berbeda-beda tebal di tiap sistem dan hilang sama sekali di
+ *  sebagian font Android, sedangkan `🔄` datang dengan warnanya sendiri yang
+ *  bertabrakan dengan deretan tombol abu-abu di sekitarnya. Yang ini
+ *  mengikuti `currentColor`, jadi ia mewarisi warna tombolnya — termasuk saat
+ *  tombolnya dipudarkan sedang berputar.
+ *
+ *  Tanpa ukuran tetap: mengikuti `font-size` tombolnya lewat `1em`. */
+export const ikonRefresh = `
+  <svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true" focusable="false">
+    <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.4-3.9"/>
+    <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.4 3.9"/>
+    <polyline points="19.6 2.6 19.6 7 15.2 7"/>
+    <polyline points="4.4 21.4 4.4 17 8.8 17"/>
+  </svg>`;
 
 /** "barusan" · "23 menit lalu" · "2 jam lalu".
  *
