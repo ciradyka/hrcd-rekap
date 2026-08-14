@@ -4,7 +4,8 @@ Dokumen ini merekam alur penyelenggaraan dan aturan penilaian Hiking Rally
 Ciradyka (HRCD) sebagai dasar perancangan sistem `hrcd-rekap`.
 
 Isinya adalah hasil penjelasan panitia, bukan rancangan teknis. Keputusan
-teknologi belum diambil dan sengaja tidak dibahas di sini.
+teknologi sudah diambil dan sudah berjalan, tetapi perbandingan dan alasannya
+sengaja tidak dibahas di sini — lihat bagian 13.5 dan `final-architecture.md`.
 
 > **Penting:** aturan penilaian **berubah setiap tahun**. Semua angka di dokumen
 > ini adalah konfigurasi edisi berjalan, bukan spesifikasi permanen. Lihat
@@ -39,8 +40,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
      akses yang dibedakan per akun (bagian 8.8).
    - **Tampilan live untuk peserta** — halaman publik tanpa login, berisi
      **klasemen penuh empat golongan**, dibuka **bertahap**: selama lomba
-     hanya progres tanpa angka (regu X sudah melewati pos Y), nilai dan
-     peringkat lengkap baru tampil setelah closing. Halaman ini **disajikan
+     hanya progres tanpa angka nilai — centang per pos, ditambah kloter,
+     kontrak waktu, jam berangkat, dan jam datang regu itu sendiri, supaya
+     jamnya bisa dicocokkan sebelum hasilnya final — nilai dan peringkat
+     lengkap baru tampil setelah closing. Halaman ini **disajikan
      statis dan diperbarui berkala**, tidak pernah membaca database langsung —
      ratusan HP penonton tidak boleh bisa membebani jalur input panitia.
 
@@ -115,7 +118,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 1. Berlangsung 1–2 hari sebelum lomba.
 2. Regu yang sudah membayar langsung menuju meja daftar ulang. Regu yang belum
-   mendaftar diarahkan ke meja pendaftaran offline lebih dulu (bagian 3.5).
+   mendaftar diarahkan ke meja pendaftaran offline lebih dulu (bagian 3.6).
 3. Di meja daftar ulang, regu menyebutkan **kode pembayaran** sebagai ID.
    Panitia mengonfirmasi **nama regu** dan **asal sekolah**.
 4. Panitia lalu menyandingkan regu dengan sebuah **nomor dada**, diambil dari
@@ -136,12 +139,12 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    nomor dadanya; penyebaran kloter justru tidak boleh diserahkan ke petugas
    karena bertumpu pada keadaan seluruh sekolah, bukan satu meja saja.
 8. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
-   petugas lapangan (bagian 8.4).
+   petugas lapangan (bagian 8.6).
 
 ## 5. Kloter dan kontrak waktu
 
 1. Satu kloter berisi **paling banyak 10 regu**. Jumlahnya dapat kurang dari 10
-   bila ada regu yang batal setelah membayar (bagian 3.6).
+   bila ada regu yang batal setelah membayar (bagian 3.7).
 2. **30 kloter selalu ada**, karena jumlah peserta konsisten di kisaran 300
    regu. Kloter 31–40 dibuka hanya jika terisi, dan kloter terakhir boleh tidak
    penuh.
@@ -216,10 +219,13 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
     - **Petugas staging** — ada kolom centang kehadiran dan tempat menulis jam
       berangkat sebenarnya.
     - **Papan pengumuman utama dan barak** — dibaca peserta, memuat perkiraan
-      jam berangkat. Lembar ini juga menyediakan kotak bagi **pembina regu
-      untuk mencatat jam berangkat sebenarnya**, karena pembina biasa
-      mencatatnya sebagai bahan klarifikasi bila penilaian ketepatan waktu
-      dipersoalkan (target datang = jam berangkat + kontrak waktu).
+      jam berangkat saja; tidak ada kolom centang maupun kotak jam, karena
+      keduanya tidak berguna bagi peserta. Kebiasaan **pembina regu mencatat
+      jam berangkat sebenarnya** sebagai bahan klarifikasi bila penilaian
+      ketepatan waktu dipersoalkan (target datang = jam berangkat + kontrak
+      waktu) kini dilayani halaman rekap live, yang menampilkan kloter,
+      kontrak waktu, jam berangkat, dan jam datang tiap regu selama lomba
+      berjalan.
 11. **Peserta yang terlambat masuk kloternya** diberangkatkan di **kloter
     terakhir**. Bila keadaannya mendesak, panitia dapat memaksa nomor dada
     tertentu masuk kloter mana pun — termasuk kloter yang kertasnya sudah
@@ -345,6 +351,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    001 - Rajawali - SMPN 1 Purwadadi - Penggalang PA - V
    ```
 
+   Satu kolom sengaja **tidak** ikut dicetak: **Nilai Pos**. Petugas lapangan
+   hanya menulis data mentah dan tidak pernah menjumlahkan sendiri (poin 1) —
+   kotak berjudul Nilai Pos justru mengundang hitungan tangan yang berbeda
+   dengan angka sistem.
+
 7. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
 8. **Satu link untuk semua panitia, akses dibedakan per akun.** Setiap akun
@@ -359,15 +370,17 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    Ada tiga peran: `admin`, `meja` (petugas pembayaran / daftar ulang /
    keberangkatan), dan `operator_pos`. Akun hanya diberikan kepada admin tiap
    pos, petugas meja, dan tim IT. Operator sebuah pos tidak dapat menyentuh
-   nilai pos lain, dan akun pos ditolak masuk ke layar meja dengan pesan "Akun
-   pos, bukan akun meja" — ditegakkan oleh sistem, bukan sekadar disembunyikan
-   dari layar.
+   nilai pos lain, dan akun meja ditolak masuk ke layar input pos dengan pesan
+   "Akun meja, bukan akun pos" — ditegakkan oleh sistem, bukan sekadar
+   disembunyikan dari layar. Sebaliknya akun pos tidak diberi jalan ke layar
+   meja: Home-nya hanya memuat satu kartu, "Input Nilai Pos N", dan RLS
+   mengosongkan data meja seandainya alamatnya diketik langsung.
 9. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
    password dapat diganti bersih setiap tahun tanpa membongkar sistem.
-9. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
-   dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
-   bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
-   ketika ada yang janggal.
+10. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
+    dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
+    bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
+    ketika ada yang janggal.
 
 ## 9. Perhitungan skor
 
@@ -407,7 +420,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
      penalti dibulatkan per 10 menit.
      Targetnya ±3 detik per regu, sehingga 20 regu yang datang bersamaan pun
      tidak menumpuk. Jam yang tersimpan adalah **jam saat tombol ditekan di
-     laptop panitia**, bukan cap waktu server saat data sampai — dan tetap
+     laptop panitia**, bukan timestamp server saat data sampai — dan tetap
      dapat diubah manual untuk pencatatan susulan dari kertas (bagian 12.3).
 3. Penalti dihitung dari selisih mutlak antara jam datang dan target:
 
@@ -485,7 +498,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    jumlah jalur >= (10 * batas waktu wahana) / interval keberangkatan
    ```
 
-   Karena penumpukan sedang memang ditoleransi (bagian 7.5), kapasitas boleh
+   Karena penumpukan sedang memang ditoleransi (bagian 7.10), kapasitas boleh
    sedikit di bawah angka itu — tetapi kekurangan kapasitas berdampak
    berlipat pada kloter belakang, sehingga besarnya toleransi perlu dihitung,
    bukan dikira-kira.
@@ -495,9 +508,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
    Besar lompatan kloter (bagian 5.6) juga ditentukan di analisis yang sama,
    karena bergantung pada interval keberangkatan.
-2. **Bentuk rumus konversi data mentah menjadi poin.** Belum ditentukan, dan
-   panitia menegaskan **semua kombinasi mungkin terjadi**. Bentuk yang sudah
-   disebut:
+2. **Angka rumus konversi data mentah menjadi poin.** Bentuk-bentuknya sudah
+   selesai dirancang dan berjalan; yang belum ditentukan tinggal angkanya
+   untuk edisi berjalan. Panitia menegaskan **semua kombinasi mungkin
+   terjadi**, dan keenam bentuk berikut sudah terpasang:
 
    | Bentuk | Contoh data mentah |
    | --- | --- |
@@ -506,11 +520,14 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    | Biner | kena / tidak, benar / salah |
    | Benar dibagi total | `7` dari `10` soal |
    | Benar dikurangi salah | jawaban salah mengurangi nilai |
+   | Bertingkat | tangga poin per pita waktu — sampai 1 menit = 50, sampai 1,5 menit = 30, sampai 2 menit = 15, lebih dari itu = 0 |
 
    Karena bentuknya bisa berubah tiap tahun dan tiap wahana, konfigurasi
-   konversi harus dirancang cukup luwes untuk menampung semuanya. Perancangan
-   detailnya ditunda.
-3. **Arti singkatan `IMPK`** pada contoh lembar nilai di bagian 8.4.
+   konversi dirancang luwes untuk menampung semuanya: keenam bentuk di atas
+   ada di fungsi `hitung_poin()`, dan tiap komponen pos diatur lewat satu
+   baris konfigurasi, bukan lewat kode. Angka yang terpasang sekarang adalah
+   angka HRCD XXXVI sebagai titik awal.
+3. **Arti singkatan `IMPK`** pada contoh lembar nilai di bagian 8.6.
 4. **Dua pembacaan pada bagian 10 yang belum dipastikan:**
    - Pengurangan −100 karena tidak checkout — apakah menggantikan penalti waktu,
      atau ditambahkan padanya? Tanpa checkout tidak ada jam datang, sehingga

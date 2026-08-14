@@ -6,13 +6,16 @@
 > migrasi, tes, SPA, dan Worker — menunjuk ke nomor bagian dokumen ini
 > (`rancangan-b.md 11.9`, `bagian 4`, `2.2.1`, dan seterusnya). Menulis ulang
 > isinya akan memutus seluruh penunjuk itu, termasuk yang tertanam di migrasi
-> yang sudah diterapkan dan tidak boleh disunting.
+> yang sudah diterapkan dan tidak boleh diedit.
 >
 > Beberapa hal berubah saat dibangun, jadi jangan baca dokumen ini sebagai
 > gambaran layar hari ini. Yang sudah diketahui berbeda:
 >
 > - **Google Sheets tidak pernah dipakai.** Tidak ada di kode mana pun.
-> - **`live.html` / `live.json` tidak pernah dibangun** (bagian 7).
+> - **Halaman live sudah ada, tapi bentuknya lain** (bagian 7):
+>   `live/index.html` + `live/live.json` di Worker situs peserta sendiri,
+>   diterbitkan workflow `publish-live.yml` — bukan `live.html` di Cloudflare
+>   Pages seperti tertulis di bawah.
 > - **Chip "Jam sekarang" tidak ada.** Jam berangkat justru diisi otomatis;
 >   jam datang dikosongkan dengan keterangan "Kosong = jam saat tombol ditekan."
 > - **Meja Pembayaran bukan alur ketik-kode → kartu**, melainkan tabel berisi
@@ -66,7 +69,7 @@ penyelesaiannya dicatat di bagian 11.
 | `regu` | Satu baris per regu: nama, ketua, golongan, nomor dada, kloter, kontrak, batal | `UNIQUE (nomor_dada)` — nomor ganda **mustahil**, bukan dihindari; `UNIQUE (kloter_nomor, urutan_kloter)` + `CHECK (urutan 1–10)` — kapasitas kloter ditegakkan database; nomor dada & kloter lahir bersama (`CHECK` berpasangan) |
 | `nomor_dada_stok` | Stok fisik nomor yang disiapkan admin (mis. 1–500) | Nomor tersedia = belum ada di `regu.nomor_dada`; satu sumber kebenaran, tanpa flag yang bisa basi |
 | `pembayaran` | Satu pembayaran penuh per batch + nomor kwitansi | `UNIQUE (pendaftaran_id)` — verifikasi ganda dari dua meja tertolak |
-| `kloter` | 40 baris (30 dasar + 31–40 cadangan): jam berangkat **diketik** | `CHECK`: status berangkat wajib punya jam; **tidak ada `DEFAULT now()`** |
+| `kloter` | 40 baris (30 dasar + 31–40 cadangan): jam berangkat **diketik** | Tidak ada kolom status — berangkat = `jam_berangkat` terisi (11.5); **tidak ada `DEFAULT now()`** |
 | `keberangkatan_regu` | Ceklis berangkat per regu; keberadaan baris = berangkat | `PK (regu_id)` — ceklis ganda mustahil |
 | `nilai_mentah` | Data mentah per regu per komponen: `nilai_1`, `nilai_2` (khusus benar−salah), sumber `manual/upload` | `UNIQUE (regu_id, wahana_id)`; RLS pos |
 | `closing_regu` | Checkout: `jam_datang` **diketik & bisa di-edit**, `anggota_hadir` (0–5) | `PK (regu_id)`; upsert = mekanisme edit yang sah |
@@ -584,7 +587,8 @@ dibaca dengan koreksi ini:
    `nilai_mentah`, `closing_regu`, `keberangkatan_regu`, `penempatan_barak`
    ditutup — mencegah pemalsuan kolom pencatat dan pelompatan validasi.
    `simpan_nilai_massal` menjadi `SECURITY DEFINER` dengan cek pos eksplisit
-   (pilihan kedua di bagian 4); admin wajib menyebut pos.
+   (pilihan kedua — bagian 4 menuliskan `SECURITY INVOKER`); admin wajib
+   menyebut pos.
 3. **Nomor dada bekas tukar PENSIUN permanen** (tabel `nomor_dada_pensiun`) —
    foto lembar lama yang masih menuliskan nomor itu tidak akan pernah menilai
    regu lain. Penukaran setelah kloter berangkat hanya oleh admin.
