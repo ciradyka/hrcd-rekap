@@ -427,7 +427,12 @@ export async function komponenPos(edisi, pos) {
   return baca(null,
     `wahana?edisi=eq.${encodeURIComponent(edisi)}&pos=eq.${encodeURIComponent(pos)}` +
     `&select=kode,name,type,form,poin_maks,raw_terbaik,raw_terburuk,poin_benar,` +
-    `poin_salah,total_soal,tingkat,satuan,rentang_mentah_min,rentang_mentah_maks,sort_order` +
+    // `golongan` WAJIB ikut. Tanpanya layar tidak tahu satu lomba bisa punya
+    // beberapa baris wahana (Tebak Simpul, 0030), lalu menawarkan semuanya ke
+    // setiap regu — dan server menolak yang salah dengan pesan yang benar tapi
+    // terlambat.
+    `poin_salah,total_soal,tingkat,satuan,golongan,` +
+    `rentang_mentah_min,rentang_mentah_maks,sort_order` +
     `&order=sort_order.asc`);
 }
 

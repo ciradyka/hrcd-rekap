@@ -1940,16 +1940,65 @@ function bacaSel(tr, k) {
   return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
 }
 
-/** Kolom KERTAS untuk satu komponen. Sebagian komponen memakan dua kolom,
- *  dan pembagiannya sama persis dengan kotak di layar — supaya petugas yang
+/** SATU LOMBA BISA PUNYA BEBERAPA BARIS `wahana`, DAN TETAP SATU KOLOM.
+ *
+ *  Tebak Simpul punya empat baris — satu per golongan — karena skalanya
+ *  berbeda: Penggalang menebak 5 simpul, Penegak 10 (0030). Di layar itu tetap
+ *  satu kolom, karena tiap regu hanya berhak mengisi variannya sendiri.
+ *
+ *  Sebelum ini layar menggambar satu kolom per BARIS wahana, jadi Pos 1 punya
+ *  empat kolom bernama "Tebak Simpul" tanpa satu pun penanda golongan.
+ *  Akibatnya dua-duanya buruk sekaligus: petugas mengetik di kolom yang salah
+ *  lalu ditolak server, dan tidak ada regu yang bisa dihitung "lengkap" —
+ *  siapa pun hanya bisa mengisi tiga dari enam kotak, jadi angka di atas tabel
+ *  membeku di "0/46 lengkap" selamanya.
+ *
+ *  Aturan pengelompokannya dibuat sesederhana mungkin: komponen BERGOLONGAN
+ *  dengan nama sama jadi satu kolom, komponen tanpa golongan berdiri sendiri.
+ *  Tidak ada kolom penanda grup di database yang harus diisi benar — dua baris
+ *  yang panitia beri nama sama memang dimaksudkan sebagai satu lomba. */
+function kolomPos(komponen) {
+  const urut = [], peta = new Map();
+  for (const k of komponen) {
+    const kunci = k.golongan ? `nama:${k.name}` : `kode:${k.kode}`;
+    if (!peta.has(kunci)) {
+      peta.set(kunci, { nama: k.name, varian: [] });
+      urut.push(peta.get(kunci));
+    }
+    peta.get(kunci).varian.push(k);
+  }
+  for (const kol of urut) {
+    // Rentang yang berbeda digabung jadi "0 – 5 / 0 – 10". Kotak di tiap baris
+    // tetap dibatasi min/max variannya sendiri, jadi baris ini keterangan —
+    // bukan aturan yang bisa berbeda pendapat dengan server.
+    kol.petunjuk = [...new Set(kol.varian.map(petunjukKolom))].join(" / ");
+  }
+  return urut;
+}
+
+/** Varian yang berhak diisi regu bergolongan ini — cerminan persis
+ *  `komponen_berlaku()` di database. Kalau keduanya berbeda pendapat, yang
+ *  menang server, dan petugas menatap penolakan yang tidak bisa ia perbaiki.
+ *
+ *  null = kolom ini memang bukan untuk golongannya. Itu keadaan sah, bukan
+ *  konfigurasi rusak: Tebak Simpul Penegak tidak ada urusannya dengan regu
+ *  Penggalang. */
+const varianUntuk = (kol, golongan) =>
+  kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
+
+/** Kolom KERTAS untuk satu kolom layar. Sebagian memakan dua kolom, dan
+ *  pembagiannya sama persis dengan kotak di layar — supaya petugas yang
  *  menyalin dari kertas ke layar menemukan urutan yang sama, tidak perlu
  *  mencocokkan apa pun di kepalanya. */
-const kolomCetakPos = (komponen) => komponen.flatMap(k => {
+const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
+  // Bentuk isian sama untuk semua varian satu lomba — yang berbeda antar
+  // golongan hanya skalanya, bukan cara menulisnya.
+  const k = kol.varian[0];
   if (k.satuan === "detik") return [
-    { nama: k.name, petunjuk: "menit" }, { nama: "", petunjuk: "detik" }];
+    { nama: kol.nama, petunjuk: "menit" }, { nama: "", petunjuk: "detik" }];
   if (k.form === "benar_kurang_salah") return [
-    { nama: k.name, petunjuk: "benar" }, { nama: "", petunjuk: "salah" }];
-  return [{ nama: k.name, petunjuk: petunjukKolom(k) }];
+    { nama: kol.nama, petunjuk: "benar" }, { nama: "", petunjuk: "salah" }];
+  return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
 });
 
 /** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.6).
@@ -1987,10 +2036,10 @@ const kolomCetakPos = (komponen) => komponen.flatMap(k => {
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
 const REGU_PER_LEMBAR = 30;
 
-function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
+function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   document.getElementById("cetakan")?.remove();
 
-  const kolom = kolomCetakPos(komponen);
+  const kolom = kolomCetakPos(kolomLayar);
   const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
                              : `POS ${pos.nomor} — ${pos.name}`;
   const tanggal = tanggalPanjang(new Date());
@@ -2130,6 +2179,17 @@ async function layarInputPos() {
     return;
   }
 
+  // Satu kolom per LOMBA, bukan per baris wahana. Tebak Simpul punya empat
+  // baris (satu per golongan) dan tetap satu kolom — lihat kolomPos().
+  const kolom = kolomPos(komponen);
+
+  /** Komponen yang boleh diisi baris ini. Dipakai saat MENYIMPAN, bukan cuma
+   *  saat menggambar: kotak milik golongan lain memang tidak ada di DOM, tapi
+   *  memutar seluruh daftar komponen di sini akan membuat bacaSel() mencari
+   *  kotak yang tidak pernah ada dan jatuh di `kotak[0].value`. */
+  const komponenBaris = (tr) =>
+    kolom.map(kol => varianUntuk(kol, tr.dataset.golongan)).filter(Boolean);
+
   // Cermin nilai yang ADA DI DATABASE, bukan yang ada di kotak isian. Yang
   // dikirim ke server hanya selisih antara keduanya — kotak yang tidak diubah
   // tidak pernah ditulis ulang, jadi kepengarangan nilai tidak bergeser dan
@@ -2175,10 +2235,10 @@ async function layarInputPos() {
               <th>Nama Regu</th>
               <th>Organisasi</th>
               <th>Golongan</th>
-              ${komponen.map(k => `
+              ${kolom.map(kol => `
                 <th class="text-center">
-                  <span class="kolom-nama">${esc(k.name)}</span>
-                  <span class="kolom-petunjuk">${esc(petunjukKolom(k))}</span></th>`).join("")}
+                  <span class="kolom-nama">${esc(kol.nama)}</span>
+                  <span class="kolom-petunjuk">${esc(kol.petunjuk)}</span></th>`).join("")}
               <th class="text-center">Nilai<br>${esc(pos.bayangan ? pos.name : `Pos ${pos.nomor}`)}</th>
               <th class="text-center"><span class="visually-hidden">Status simpan</span></th>
             </tr>
@@ -2194,14 +2254,21 @@ async function layarInputPos() {
 
   const tbody = document.getElementById("isi-tabel");
   tbody.replaceChildren(h(lembar.map(r => `
-    <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}">
+    <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}"
+        data-golongan="${esc(r.golongan)}" data-komponen="${esc(r.jumlah_komponen)}">
       <td class="angka text-center" data-label="Nomor Dada">${esc(String(r.nomor_dada).padStart(3, "0"))}</td>
       <td data-label="Nama Regu"><strong>${esc(r.nama_regu)}</strong></td>
       <td data-label="Organisasi">${esc(r.nama_sekolah)}</td>
       <td data-label="Golongan">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
-      ${komponen.map(k => `
-        <td class="text-center" data-label="${esc(k.name)}">
-          ${selKomponen(k, (r.nilai || {})[k.kode])}</td>`).join("")}
+      ${kolom.map(kol => {
+        const k = varianUntuk(kol, r.golongan);
+        // Sel mati, bukan kotak kosong. Kotak yang bisa diketik tapi selalu
+        // ditolak adalah jebakan; garis pendek menjawab pertanyaannya sebelum
+        // ditanya — kolom ini bukan untuk golongan regu ini.
+        return `<td class="text-center" data-label="${esc(kol.nama)}">
+          ${k ? selKomponen(k, (r.nilai || {})[k.kode])
+              : `<span class="sel-mati" title="Bukan untuk ${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}">–</span>`}</td>`;
+      }).join("")}
       <td class="text-center pos-nilai" data-label="Nilai Pos">${esc(angkaRapi(r.nilai_pos))}</td>
       <td class="pos-status" data-label=""></td>
     </tr>`).join("")));
@@ -2348,7 +2415,7 @@ async function layarInputPos() {
     const lama = asli.get(dada) || {};
     const baris = [], dihapus = [];
 
-    for (const k of komponen) {
+    for (const k of komponenBaris(tr)) {
       const baru = bacaSel(tr, k);
       const ada = lama[k.kode] || null;
       if (baru === null) {
@@ -2456,7 +2523,12 @@ async function layarInputPos() {
     || tr.children[1].textContent.toLowerCase().includes(cari)
     || tr.children[2].textContent.toLowerCase().includes(cari);
 
-  const lengkap = (tr) => Number(tr.dataset.terisi) >= komponen.length;
+  // Pembanding wajib jumlah komponen BARIS ITU, bukan jumlah kolom tabel.
+  // Regu Penggalang di Pos 1 punya tiga komponen sementara tabelnya berkolom
+  // enam — dibandingkan dengan enam, tidak ada satu pun regu yang pernah
+  // "lengkap", dan saringan "Belum lengkap" ikut menampilkan semuanya.
+  const lengkap = (tr) =>
+    Number(tr.dataset.terisi) >= Number(tr.dataset.komponen);
 
   function hitungUlangJumlah() {
     const baris = [...tbody.children];
@@ -2485,7 +2557,7 @@ async function layarInputPos() {
     let ditutup = false;
     try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
-    siapkanCetakLembarPos(pos, komponen, tampil, ditutup);
+    siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
     window.print();
   });
 

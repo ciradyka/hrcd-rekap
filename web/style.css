@@ -1302,6 +1302,20 @@ input.small-input { text-align: center; }
    lagi tahu sedang menilai regu yang mana.
    ========================================================================== */
 
+/* Sel mati: kolom yang bukan untuk golongan regu ini. Tebak Simpul dinilai
+   dengan skala berbeda untuk Penggalang dan Penegak, jadi tiap regu hanya
+   berhak mengisi variannya sendiri.
+
+   Sengaja BUKAN kotak kosong yang di-disable. Kotak yang kelihatan bisa
+   diketik tapi selalu ditolak adalah jebakan; garis pendek yang pudar
+   menjawab pertanyaannya sebelum ditanya, dan matanya lewat begitu saja saat
+   menyusuri kolom. */
+.sel-mati {
+  color: var(--muted);
+  opacity: .45;
+  user-select: none;
+}
+
 /* Tabelnya MEMENUHI kartu, tapi kolomnya tetap rapat di kiri. Dua hal yang
    kedengarannya bertentangan, dan keduanya memang dibutuhkan:
 
