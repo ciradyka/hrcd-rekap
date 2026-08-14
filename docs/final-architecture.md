@@ -304,11 +304,30 @@ menentukannya:
    kalau ia dibiarkan membuka layar ini, kolom pos lain kosong DAN Nilai
    Totalnya ikut mengecil tanpa satu pun galat. Total yang salah lebih
    berbahaya daripada layar yang menolak dibuka.
-4. **Menyegarkan diri tiap 20 detik.** Operator pos menyimpan satu baris, dan
-   koordinator yang menatap layar ini melihat angkanya masuk tanpa menekan
-   apa pun. Pembacanya belasan orang, bukan ribuan seperti halaman peserta,
-   jadi membaca langsung dari database di sini memang murah — pertimbangan
-   yang persis kebalikan dari bagian 3b.
+4. **Menyegarkan diri tiap 20 detik, tanpa menggeser apa pun.** Operator pos
+   menyimpan satu baris, dan koordinator yang menatap layar ini melihat
+   angkanya masuk tanpa menekan apa pun. Pembacanya belasan orang, bukan
+   ribuan seperti halaman peserta, jadi membaca langsung dari database di
+   sini memang murah — pertimbangan yang persis kebalikan dari bagian 3b.
+
+**Kerangkanya dibangun SEKALI; yang diperbarui hanya `<tbody>`, kartu
+kelengkapan, dan beberapa angka kecil.** Ini bukan optimasi, melainkan syarat
+supaya layar ini bisa dipakai sama sekali. Tabelnya ±38 kolom dan dibaca
+sambil digeser ke samping; menggambar ulang seluruh kartu — yang dulu terjadi
+tiap 20 detik — berarti:
+
+- geseran samping kembali ke kolom pertama, tiap 20 detik. Orang yang sedang
+  membandingkan Pos 4 dilempar balik ke Nomor Dada;
+- kotak cari diganti kotak baru di tengah orang mengetik, jadi mengetik `001`
+  terputus di huruf kedua;
+- posisi gulir, fokus papan ketik, dan teks yang sedang disorot ikut hilang.
+
+Pembungkus `.table-wrapper` yang memegang geseran, kotak cari, dan kepala
+tabel karena itu **tidak pernah diganti**. Listener saringan dan kartu pos
+dipasang lewat delegasi pada pembungkus yang tetap itu, bukan pada tombol
+yang ikut tergambar ulang. Hasilnya layar yang boleh dibiarkan terbuka
+seharian dan tetap diam di tempat yang ditinggalkan — seperti spreadsheet,
+yang memang bentuk yang dikenal panitia.
 
 Rank kosong berarti kloter regu itu belum tercatat berangkat, jadi ia belum
 masuk klasemen resmi (`rancangan-b.md` 11.12). Barisnya tidak dibuang; ia

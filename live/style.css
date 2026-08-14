@@ -1630,11 +1630,6 @@ input.small-input { text-align: center; }
    tetap, supaya satu ikon melayani tombol besar dan kecil sekaligus. */
 .icon-button .ikon { width: 1em; height: 1em; display: block; }
 
-/* Cap "Refresh terakhir" mendahului tombolnya. Di layar sempit ia yang
-   pertama dibuang — jamnya berguna, tapi tombolnya yang harus selalu ada. */
-.refresh-cap { font-variant-numeric: tabular-nums; }
-@media (max-width: 640px) { .refresh-cap { display: none; } }
-
 /* Jumlah baris, cap refresh, dan tombolnya berjalan bersama. Sebagai anak
    lepas dari .table-toolbar, tombol itu jatuh sendirian ke baris baru begitu
    deretan saringan penuh — terpisah dari jam yang menerangkannya. */
