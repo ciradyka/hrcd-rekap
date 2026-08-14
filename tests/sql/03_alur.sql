@@ -587,9 +587,14 @@ update status_acara set fase_live = 'progres';
 set role service_role;
 do $$
 begin
-  -- 5 regu ter-ceklis berangkat: dada 1, 13, 18, 19, dan 14 (menyusul).
-  assert (select count(*) from v_progres_publik) = 5,
-         'fase progres: harusnya 5 regu yang berangkat';
+  -- SELURUH regu lunas yang bernomor dada, bukan hanya yang sudah berangkat
+  -- (migrasi 0026). Syarat "sudah berangkat" dibuang dengan sengaja: regu
+  -- yang sedang menunggu di staging membuka halaman rekap dan tidak
+  -- menemukan dirinya sama sekali, padahal justru kloter dan kontraknya yang
+  -- ingin ia periksa saat itu.
+  assert (select count(*) from v_progres_publik) = 20,
+         'fase progres: harusnya 20 regu lunas bernomor, dapat '
+         || (select count(*) from v_progres_publik);
   assert (select count(*) from v_klasemen_publik) = 0, 'klasemen bocor di fase progres';
 end;
 $$;

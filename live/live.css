@@ -1,0 +1,141 @@
+/* ============================================================================
+   hrcd-rekap : live.css — gaya halaman rekap peserta.
+
+   SENGAJA berdiri sendiri, tidak berbagi berkas dengan style.css layar
+   panitia. Dua alasan: halaman ini di-deploy sebagai Worker terpisah (tidak
+   boleh bergantung pada berkas di proyek lain), dan pembacanya berbeda —
+   peserta dan pembina, hampir semuanya di HP, sambil berdiri, kadang di bawah
+   matahari. Yang dikejar di sini keterbacaan, bukan kerapatan.
+   ========================================================================== */
+
+:root {
+  --tinta:        #1a1a1a;
+  --tinta-lembut: #5c5c5c;
+  --kertas:       #f7f6f3;
+  --kartu:        #ffffff;
+  --garis:        #dcdcd7;
+  --utama:        #00695c;   /* hijau tua HRCD */
+  --hijau:        #2e7d32;
+  --hijau-muda:   #e8f5e9;
+  --kuning:       #b26a00;
+  --kuning-muda:  #fff3e0;
+  --emas:         #b8860b;
+  --radius:       14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--kertas);
+  color: var(--tinta);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+.kepala {
+  background: var(--utama); color: #fff;
+  padding: .9rem 1rem;
+  position: sticky; top: 0; z-index: 10;
+}
+.kepala-isi { max-width: 1200px; margin: 0 auto; }
+.kepala h1 { font-size: 1.15rem; font-weight: 800; }
+/* Cap sinkronisasi: kecil tapi selalu ada. Halaman yang menyegarkan dirinya
+   sendiri harus bisa dibedakan dari halaman yang berhenti bekerja. */
+.sinkron { font-size: .8rem; opacity: .9; margin-top: .15rem; }
+.sinkron.basi { opacity: 1; font-weight: 700; color: #ffd9a0; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
+.memuat { text-align: center; color: var(--tinta-lembut); padding: 2rem 0; }
+
+.kartu {
+  background: var(--kartu); border: 1px solid var(--garis);
+  border-radius: var(--radius); padding: .9rem; margin-bottom: 1rem;
+}
+.kartu h2 { font-size: 1.05rem; margin-bottom: .35rem; }
+.kartu .keterangan { color: var(--tinta-lembut); font-size: .88rem; margin-bottom: .7rem; }
+.tengah { text-align: center; }
+.angka-besar { font-size: 2.6rem; font-weight: 800; color: var(--utama); line-height: 1.1; margin-top: .6rem; }
+.pil-baris { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+.pil { background: var(--kertas); border-radius: 999px; padding: .2rem .7rem; font-size: .85rem; }
+
+.cari-baris { display: flex; gap: .6rem; align-items: center; margin-bottom: .7rem; }
+.cari-baris input {
+  flex: 1; min-width: 0;
+  /* 16px, bukan lebih kecil: di bawah itu iOS Safari memaksa zoom setiap kali
+     kotaknya disentuh, dan halaman melompat — cacat yang sama sudah pernah
+     dibayar di layar panitia. */
+  font-size: 16px; padding: .5rem .7rem; min-height: 44px;
+  border: 1px solid var(--garis); border-radius: 10px; background: #fff;
+  font-family: inherit;
+}
+.hitung { color: var(--tinta-lembut); font-size: .85rem; white-space: nowrap; }
+
+/* Tabel digeser ke samping, TIDAK ditumpuk jadi kartu. Yang dicari orang di
+   sini deretan centang per pos — bentuk baris itulah isinya, dan menumpuknya
+   membuat satu regu memakan satu layar penuh. */
+.gulir { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabel { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
+.tabel th {
+  text-align: left; font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--tinta-lembut);
+  padding: .4rem .5rem; border-bottom: 2px solid var(--garis);
+  position: sticky; top: 0; background: var(--kartu);
+}
+.tabel td { padding: .45rem .5rem; border-bottom: 1px solid var(--garis); }
+.tabel tbody tr:nth-child(even) { background: #fafaf8; }
+
+/* Nomor dada dipatok di tepi kiri: tabelnya digeser ke samping untuk melihat
+   kolom pos, dan tanpa ini orang kehilangan jejak baris siapa yang sedang
+   dilihatnya persis saat ia menemukan centangnya. */
+.tabel td.dada, .tabel th:first-child {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--kartu); font-weight: 800; font-variant-numeric: tabular-nums;
+  box-shadow: 1px 0 0 var(--garis);
+}
+.tabel tbody tr:nth-child(even) td.dada { background: #fafaf8; }
+.tabel th:first-child { z-index: 3; }
+
+.tabel .regu { white-space: normal; min-width: 11rem; font-weight: 600; }
+.tabel .regu .sekolah {
+  display: block; font-weight: 400; font-size: .78rem; color: var(--tinta-lembut);
+}
+.tabel .gol { font-size: .82rem; color: var(--tinta-lembut); }
+.tabel .kosong { text-align: center; color: var(--tinta-lembut); padding: 1.5rem; white-space: normal; }
+
+/* Centang pos — satu-satunya hal yang dicari orang di halaman ini selama
+   lomba, jadi ia yang paling besar dan paling berwarna. */
+.tabel th.pos { text-align: center; }
+.tabel td.pos { text-align: center; font-size: 1.05rem; font-weight: 800; width: 3.2rem; }
+.tabel td.pos.ada { color: var(--hijau); background: var(--hijau-muda); }
+.tabel td.pos.belum { color: #c7c7c2; }
+.tabel tbody tr:nth-child(even) td.pos.ada { background: #dfeee0; }
+
+/* ---- klasemen (fase penuh) ---- */
+.podium { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: .9rem; }
+.juara {
+  border: 2px solid var(--garis); border-radius: var(--radius);
+  padding: .7rem; text-align: center; background: var(--kertas);
+}
+.juara.j1 { border-color: var(--emas); background: #fdf6e3; }
+.juara .peringkat { font-size: 1.5rem; font-weight: 800; color: var(--utama); }
+.juara.j1 .peringkat { color: var(--emas); }
+.juara .nama { font-weight: 800; }
+.juara .sekolah { font-size: .8rem; color: var(--tinta-lembut); }
+.juara .total { font-size: 1.35rem; font-weight: 800; margin-top: .2rem; }
+.tabel td.total { font-weight: 800; font-variant-numeric: tabular-nums; }
+.tabel tr.atas { background: #fdf6e3; }
+.tabel tr.atas td.dada { background: #fdf6e3; }
+
+.kaki {
+  max-width: 1200px; margin: 0 auto; padding: 0 .7rem 2rem;
+  color: var(--tinta-lembut); font-size: .82rem; text-align: center;
+}
+.kaki .kecil { font-size: .76rem; margin-top: .3rem; }
+
+@media (max-width: 560px) {
+  .kepala h1 { font-size: 1rem; }
+  .kartu { padding: .7rem .5rem; }
+  .tabel { font-size: .85rem; }
+  .tabel .regu { min-width: 9rem; }
+}

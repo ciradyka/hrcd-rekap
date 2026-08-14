@@ -37,18 +37,20 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
 │   └── wrangler.toml         # deploy Workers static assets
+├── live/                     # halaman rekap live peserta (Worker TERPISAH,
+│                             # tanpa kunci apa pun, isinya dari live.json)
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0025
+│   ├── migrations/           # skema database, urut 0001..0026
 │   ├── checks/               # SQL pemeriksaan manual (row_counts, smoke, dst.)
 │   └── seed.sql              # konfigurasi edisi + baris wajib
 ├── scripts/                  # provision_accounts.py, change_password.py
 ├── tests/
-│   ├── sql/                  # harness + tes constraint, alur, skor, kloter
+│   ├── sql/                  # harness + tes constraint, alur, skor, kloter, rekap
 │   ├── run.sh                # jalankan semuanya di database lokal
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
 │   └── static_server.py      # penyaji web/ tanpa cache
-├── .github/workflows/        # 5 workflow (lihat final-architecture.md)
+├── .github/workflows/        # 6 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
 └── AGENTS.md                 # salinan identik CLAUDE.md
 ```

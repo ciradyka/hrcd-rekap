@@ -30,7 +30,6 @@ run supabase/seed.sql
 # Konfigurasi pos butuh edisinya sudah ada — lihat catatan panjang yang sama
 # di tests/run.sh.
 run supabase/migrations/0024_komponen_pos.sql
-run supabase/migrations/0025_pos_keberangkatan_kedatangan.sql
 run tests/sql/01_seed_uji.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
