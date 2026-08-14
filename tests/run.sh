@@ -105,5 +105,10 @@ run supabase/migrations/0032_konfigurasi_xxxvii.sql
 run supabase/migrations/0033_nama_pos_xxxvii.sql
 run supabase/migrations/0034_nama_pos_final.sql
 run tests/sql/13_komponen_per_golongan.sql
+# 0035 hanya membetulkan satu tangga poin, jadi TIDAK dipagari "belum ada
+# nilai" seperti tiga berkas di atasnya — di database uji ia berjalan sungguhan
+# dan tidak mengenai apa pun, karena `menaksir` memang tidak ada di sini.
+run supabase/migrations/0035_tangga_menaksir.sql
+run tests/sql/14_tangga_menaksir.sql
 
 echo "SEMUA TES LULUS"
