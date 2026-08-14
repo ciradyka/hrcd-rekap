@@ -54,13 +54,37 @@
 -- OPERATOR POS BOLEH MELIHAT — POSNYA SENDIRI SAJA
 --
 -- Berbeda dengan `v_rekap_penuh` (0027) yang menolaknya, view ini justru
--- berguna untuk operator pos: "lembar saya sudah lengkap belum?". Angkanya
--- pun benar untuknya, karena RLS `sel_nilai` mengizinkan ia membaca seluruh
--- `nilai_mentah` POS-NYA — dan barisnya memang disaring ke pos itu saja,
--- persis seperti `v_monitoring_input` (0025).
+-- berguna untuk operator pos: "lembar saya sudah lengkap belum?".
+--
+-- KENAPA BUKAN `security_invoker`. Menghitung regu mana yang ikut menuntut
+-- `pendaftaran.status = 'lunas'`, dan `sel_pendaftaran` hanya mengizinkan
+-- admin dan meja — tabel itu memuat nomor WhatsApp. Dengan security_invoker,
+-- operator pos mendapat NOL BARIS: bukan panel kosong yang jujur, melainkan
+-- panel yang hilang sama sekali, dan hilangnya terbaca sebagai "belum ada
+-- data" alih-alih "kamu tidak boleh".
+--
+-- Persis persoalan `v_lembar_pos` di migrasi 0023, dan diselesaikan dengan
+-- cara yang sama: pagarnya dipindahkan KE DALAM view — `peran() is not null`
+-- ditambah penyaringan ke `pos_saya()`. Yang bocor lewat sini cuma hitungan
+-- agregat pos itu sendiri; tidak satu pun kolom `pendaftaran` keluar.
+--
+-- (Catatan: `v_monitoring_input` (0025) memakai join yang sama dengan
+-- security_invoker, jadi ia pun mengembalikan nol baris untuk operator pos.
+-- Belum ada layar yang memanggilnya, jadi belum pernah ketahuan.)
+--
+-- ---------------------------------------------------------------------------
+-- KENAPA `left join regu_ikut ... on true`, BUKAN `cross join`
+--
+-- Sebelum daftar ulang belum ada satu pun regu bernomor dada, jadi himpunan
+-- regunya kosong. `cross join` atas himpunan kosong menghasilkan nol baris,
+-- dan `group by` tidak mengeluarkan apa-apa — panelnya lenyap justru pada
+-- hari ia pertama kali dibuka orang. Dengan left join, tiap pos tetap keluar
+-- satu baris berisi 0/0. Karena itu pula yang dihitung `count(ri.id)`, bukan
+-- `count(*)`: baris kosong hasil left join tidak boleh ikut terhitung sebagai
+-- satu regu.
 -- ============================================================================
 
-create view v_kelengkapan_pos with (security_invoker = on) as
+create view v_kelengkapan_pos as
 with regu_ikut as (
   -- Regu yang sudah punya nomor dada dan batch-nya lunas. Sebelum daftar
   -- ulang tidak ada yang bisa dinilai, jadi tidak ada yang bisa hilang.
@@ -88,20 +112,20 @@ select
   p.bayangan,
   p.jumlah_komponen,
 
-  count(*)::int                                          as regu_total,
-  count(*) filter (where ri.sudah_berangkat)::int        as regu_berangkat,
-  count(*) filter (where ri.sudah_closing)::int          as regu_closing,
+  count(ri.id)::int                                      as regu_total,
+  count(ri.id) filter (where ri.sudah_berangkat)::int    as regu_berangkat,
+  count(ri.id) filter (where ri.sudah_closing)::int      as regu_closing,
 
   -- Seluruh komponen pos ini terisi.
-  count(*) filter (
+  count(ri.id) filter (
     where coalesce(t.jumlah, 0) = p.jumlah_komponen)::int as lengkap,
   -- Terisi, tapi tidak semuanya — transkripsi yang terpotong.
-  count(*) filter (
+  count(ri.id) filter (
     where coalesce(t.jumlah, 0) > 0
       and coalesce(t.jumlah, 0) < p.jumlah_komponen)::int as sebagian,
-  count(*) filter (where coalesce(t.jumlah, 0) = 0)::int  as kosong,
+  count(ri.id) filter (where coalesce(t.jumlah, 0) = 0)::int as kosong,
   -- SUDAH SELESAI LOMBA dan tetap belum lengkap di pos ini. Inilah alarmnya.
-  count(*) filter (
+  count(ri.id) filter (
     where ri.sudah_closing
       and coalesce(t.jumlah, 0) < p.jumlah_komponen)::int as hilang,
 
@@ -111,7 +135,7 @@ select
    where w.edisi = edisi_aktif() and w.pos = p.nomor)     as terakhir_masuk
 
 from v_pos p
-cross join regu_ikut ri
+left join regu_ikut ri on true
 left join terisi t on t.regu_id = ri.id and t.pos = p.nomor
 where p.jumlah_komponen > 0
   and peran() is not null

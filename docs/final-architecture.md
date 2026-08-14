@@ -354,9 +354,23 @@ menghitung seluruh golongan sementara tabelnya satu golongan, dan layar
 menyebutkan itu apa adanya saat saringannya menyala.
 
 Berbeda dengan `v_rekap_penuh`, **operator pos boleh membuka panel ini** —
-posnya sendiri saja. Angkanya jujur untuknya karena RLS memang mengizinkan ia
-membaca seluruh `nilai_mentah` pos-nya, dan "lembar saya sudah lengkap belum?"
-justru pertanyaannya sendiri.
+posnya sendiri saja, karena "lembar saya sudah lengkap belum?" justru
+pertanyaannya sendiri.
+
+Itu sebabnya `v_kelengkapan_pos` **bukan `security_invoker`**, satu-satunya
+view panitia selain `v_lembar_pos` yang begitu. Menghitung regu mana yang ikut
+menuntut `pendaftaran.status = 'lunas'`, dan `sel_pendaftaran` hanya
+mengizinkan admin dan meja — tabel itu memuat nomor WhatsApp. Dengan
+`security_invoker`, operator pos mendapat nol baris: bukan panel kosong yang
+jujur, melainkan panel yang lenyap, dan lenyapnya terbaca sebagai "belum ada
+data" alih-alih "kamu tidak boleh". Pagarnya karena itu dipindahkan ke dalam
+view, persis seperti `0023` — dan yang keluar lewat sini cuma hitungan agregat
+pos itu sendiri.
+
+> Terjaring saat menulis tesnya: `v_monitoring_input` (`0025`) memakai join
+> yang sama dengan `security_invoker`, jadi ia pun mengembalikan nol baris
+> untuk operator pos. Belum ada layar yang memanggilnya, jadi belum pernah
+> ketahuan — dan sekarang tercatat di sini sebelum ada yang memakainya.
 
 **Tabelnya adalah lembar Input Pos, hanya saja seluruh pos disambung jadi
 satu.** Kelasnya sama persis — `.table-pos` beserta `.kolom-nama`,
