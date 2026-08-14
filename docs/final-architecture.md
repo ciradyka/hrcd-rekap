@@ -329,6 +329,14 @@ yang ikut tergambar ulang. Hasilnya layar yang boleh dibiarkan terbuka
 seharian dan tetap diam di tempat yang ditinggalkan — seperti spreadsheet,
 yang memang bentuk yang dikenal panitia.
 
+Aturan yang sama berlaku untuk **kembali dari tab lain**. Bagian 7 nomor 10
+menjelaskan bahwa seluruh SPA memuat ulang dirinya saat layarnya dilihat
+kembali; layar ini dikecualikan lewat `segarkanDiTempat`, sebuah kait yang
+boleh diisi layar mana pun yang sanggup memperbarui angkanya sendiri.
+Berpindah tab adalah gerakan yang paling sering dilakukan orang yang sedang
+memantau, dan menggambar ulang di situ membuang persis keadaan yang sedang
+dipakai memantau.
+
 Rank kosong berarti kloter regu itu belum tercatat berangkat, jadi ia belum
 masuk klasemen resmi (`rancangan-b.md` 11.12). Barisnya tidak dibuang; ia
 turun ke bawah kelompoknya dan tetap terurut menurut total, supaya papan ini
@@ -751,6 +759,16 @@ Dikumpulkan dari kesalahan yang benar-benar terjadi, bukan daftar teoretis.
    berlaku untuk build BERIKUTNYA. Selama belum ada push atau "Retry
    deployment", yang tersaji tetap hasil build lama dengan folder lama —
    setelan sudah benar di layar, produksi masih salah.
+10. **SPA ini memuat ulang layarnya sendiri saat tab-nya dilihat kembali**,
+    dan itu memang disengaja: panitia berpindah ke WhatsApp lalu kembali, dan
+    angka basi yang terlihat wajar lebih berbahaya daripada layar yang
+    berkedip. Tapi "memuat ulang" berarti **menggambar ulang dari nol**, dan
+    di layar yang keadaannya sendiri berharga — geseran samping, saringan,
+    isi kotak cari — itu membuang persis apa yang sedang dipakai orangnya.
+    Layar Rekapitulasi karena itu mendaftarkan `segarkanDiTempat`, dan yang
+    dijalankan saat tab-nya kembali hanya pengambilan angkanya. Layar baru
+    yang dipantau lama harus melakukan hal yang sama; yang tidak, tetap aman
+    dengan perilaku bawaan.
 
 ---
 

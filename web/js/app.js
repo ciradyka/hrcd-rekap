@@ -31,6 +31,16 @@ const GOLONGAN_LABEL = {
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
 };
 let EDISI = null;
+
+/* Layar yang sanggup memperbarui dirinya SENDIRI tanpa digambar ulang
+   mendaftar di sini; kembali dari tab lain memanggil INI, bukan menggambar
+   ulang layarnya. Kosong berarti "gambar ulang saja" — itu yang berlaku
+   untuk hampir semua layar, dan memang benar untuk mereka.
+
+   Dideklarasikan di atas, bersama keadaan modul yang lain, meski yang
+   memakainya jauh di bawah: yang membacanya nanti harus bisa menemukan
+   seluruh keadaan yang hidup selama satu sesi di satu tempat. */
+let segarkanDiTempat = null;
 const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
@@ -3025,6 +3035,13 @@ async function layarRekap() {
   gambarPanel();
   gambarTabel();
 
+  /* Kembali dari tab lain TIDAK menggambar ulang layar ini. Papan ini
+     dipantau berjam-jam sambil berpindah tab, dan menggambarnya ulang tiap
+     kali berarti kehilangan seluruh keadaan yang sedang dipakai memantau:
+     geseran samping, saringan golongan, isi kotak cari, posisi gulir. Yang
+     dijalankan cukup pengambilan angkanya. */
+  segarkanDiTempat = () => refresh();
+
   jeda = setInterval(() => {
     if (location.hash !== layarIni) { clearInterval(jeda); return; }
     if (!document.hidden) refresh();
@@ -3046,6 +3063,7 @@ const RUTE = {
 };
 
 async function arahkan() {
+  segarkanDiTempat = null;
   if (!sesi()) { layarLogin(); return; }
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
@@ -3101,7 +3119,14 @@ document.addEventListener("visibilitychange", () => {
   // yang ia lihat hanyalah tabel yang tiba-tiba bersih.
   if (adaYangBelumTersimpan()) return;
   terakhirSegar = Date.now();
-  arahkan();
+  // Layar yang bisa memperbarui angkanya sendiri TIDAK digambar ulang.
+  // Rekapitulasi dipantau berjam-jam sambil berpindah tab; menggambarnya
+  // ulang tiap kali tab itu dilihat lagi berarti cincin muat, geseran
+  // samping kembali ke kolom pertama, saringan golongan kembali ke bawaan,
+  // dan kotak cari kosong — seluruh keadaan yang sedang dipakai memantau,
+  // hilang justru pada gerakan yang paling sering dilakukan orang.
+  if (segarkanDiTempat) segarkanDiTempat();
+  else arahkan();
 });
 
 /** Baris lembar pos yang isinya belum sampai ke database. */
