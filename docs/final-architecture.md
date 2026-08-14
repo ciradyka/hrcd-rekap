@@ -315,11 +315,24 @@ masuk klasemen resmi (`rancangan-b.md` 11.12). Barisnya tidak dibuang; ia
 turun ke bawah kelompoknya dan tetap terurut menurut total, supaya papan ini
 sudah terbaca sebagai klasemen sementara sejak nilai pertama masuk.
 
-Empat kolom pertama dibekukan di kiri saat tabelnya digeser. Ini
-**satu-satunya tabel di sistem yang boleh digeser ke samping** — di layar meja
-geser samping justru dilarang karena menyembunyikan kolom tombol (bagian 7
-nomor 3). Di sini tidak ada tombol sama sekali, dan ±35 kolom tidak akan
-pernah muat di layar mana pun.
+**Tabelnya adalah lembar Input Pos, hanya saja seluruh pos disambung jadi
+satu.** Kelasnya sama persis — `.table-pos` beserta `.kolom-nama`,
+`.kolom-petunjuk`, dan `.pos-nilai` — dan petunjuk rentang di bawah tiap nama
+kolom datang dari `petunjukKolom()` yang sama, bukan salinannya: kalau rentang
+di satu layar berbeda dengan layar lain, panitia akan percaya yang salah.
+
+Tiga hal yang ditambahkan, dan hanya tiga:
+
+| Yang ditambah | Kenapa tidak ada di lembar satu pos |
+| --- | --- |
+| **Dua** kolom dipatok di tepi kiri, bukan satu | Rank berdiri di depan Nomor Dada; barisnya baru bisa dikenali kalau keduanya ikut menempel saat digeser |
+| Garis pemisah di tiap Nilai Pos | Dengan lima kelompok kolom bersambung, salah membaca kolom Pos 3 sebagai Pos 2 adalah satu-satunya cara layar ini bisa menyesatkan |
+| Baris lebih rapat | Tidak ada kotak isian sama sekali, jadi tingginya tidak perlu memuat sasaran sentuh setinggi jempol |
+
+Seperti lembar Input Pos, tabel ini **digeser ke samping, bukan ditumpuk jadi
+kartu** — di layar meja geser samping justru dilarang karena menyembunyikan
+kolom tombol (bagian 7 nomor 3). Di sini tidak ada tombol sama sekali, dan
+±35 kolom tidak akan pernah muat di layar mana pun.
 
 ## 3b. Halaman rekap live untuk peserta
 

@@ -439,7 +439,7 @@ export async function komponenSemua(edisi) {
   if (K.mode === "dev") return baca("/komponen-semua");
   return baca(null,
     `wahana?edisi=eq.${encodeURIComponent(edisi)}` +
-    `&select=pos,kode,name,type,form,poin_maks,satuan,` +
+    `&select=pos,kode,name,type,form,poin_maks,satuan,total_soal,` +
     `rentang_mentah_min,rentang_mentah_maks,sort_order` +
     `&order=pos.asc,sort_order.asc`);
 }
