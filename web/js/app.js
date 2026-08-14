@@ -2821,94 +2821,163 @@ async function layarRekap() {
       </div>`;
   }
 
-  function gambar() {
-    const tampil = baris.filter(cocok).sort(urut);
-    // 5 kolom identitas + 9 kolom waktu/total, ditambah tiap komponen dan
-    // satu Nilai Pos per kelompok. Dipakai colspan baris "tidak ada yang
-    // cocok" — kalau meleset, barisnya tidak selebar tabelnya.
-    const lebarKolom = 14 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
+  // 5 kolom identitas + 9 kolom waktu/total, ditambah tiap komponen dan satu
+  // Nilai Pos per kelompok. Dipakai colspan baris "tidak ada yang cocok" —
+  // kalau meleset, barisnya tidak selebar tabelnya.
+  const lebarKolom = 14 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
+
+  /* ==========================================================================
+     KERANGKA DIBANGUN SEKALI, ISINYA DIPERBARUI DI TEMPAT.
+
+     Sebelumnya seluruh kartu digambar ulang tiap kali apa pun berubah —
+     termasuk sendirinya tiap 20 detik. Tabel ini lebarnya ±38 kolom dan
+     dipakai sambil digeser, jadi menggambar ulang berarti:
+
+       · geseran samping kembali ke kolom pertama, tiap 20 detik. Orang yang
+         sedang membandingkan Pos 4 dilempar balik ke Nomor Dada, dan layarnya
+         "gerak-gerak terus";
+       · kotak cari diganti dengan kotak baru di tengah orang mengetik, jadi
+         mengetik "001" terputus di huruf kedua;
+       · posisi gulir ke bawah, fokus papan ketik, dan teks yang sedang
+         disorot ikut hilang.
+
+     Sekarang yang diganti hanya `<tbody>`, kartu kelengkapan, dan beberapa
+     angka. Kotak cari, kepala tabel, dan pembungkus yang memegang geseran
+     TIDAK PERNAH disentuh — jadi layar ini bisa dibiarkan terbuka seharian
+     dan tetap diam di tempat yang ditinggalkan, seperti spreadsheet.
+     ======================================================================== */
+  function bangunKerangka() {
     LAYAR.replaceChildren(h(`
-      ${kartuKelengkapan()}
+      <div id="rekap-panel"></div>
       <div class="card">
         <div class="table-toolbar">
           <div class="field" style="margin:0;flex:1;min-width:220px">
             <label for="rekap-cari" class="visually-hidden">Cari</label>
             <input type="text" id="rekap-cari" autocomplete="off"
-                   placeholder="Cari sekolah, regu, atau nomor dada…"
-                   value="${esc(cari)}">
+                   placeholder="Cari sekolah, regu, atau nomor dada…">
           </div>
-          <div class="filter-row">
+          <div class="filter-row" id="rekap-golongan">
             ${URUTAN_GOLONGAN.map(g => `
               <button type="button" class="option option-small" data-gol="${g}"
-                      aria-pressed="${golongan === g}">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
+                      aria-pressed="false">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
           </div>
-          <!-- Ketiganya SATU kelompok, bukan tiga anak lepas dari toolbar.
+          <!-- Keduanya SATU kelompok, bukan dua anak lepas dari toolbar.
                Sebagai anak lepas, tombolnya jatuh sendirian ke baris baru
-               begitu deretan saringan penuh — terpisah dari jam yang
-               menerangkannya, dan terlihat seperti tombol nyasar. -->
+               begitu deretan saringan penuh dan terlihat seperti tombol
+               nyasar.
+
+               Jam refresh TIDAK ikut di sini. Ia sempat berdiri di sebelah
+               "N regu", dan dua label abu-abu setara yang berdempetan di
+               ujung baris yang sudah padat harus dibaca satu per satu untuk
+               dipisahkan — ujung baris ini justru tempat mata paling jarang
+               berhenti. Jamnya pindah ke kalimat keterangan di bawah, yang
+               memang sudah prosa dan tidak dibaca sebagai data. -->
           <div class="toolbar-kanan">
-            <span class="table-count">${esc(String(tampil.length))} regu</span>
-            <!-- Cap waktunya BUKAN hiasan. Data ini sering kembali tanpa satu
-                 angka pun berubah, jadi tanpa jam yang bergerak, menekan
-                 tombol refresh terasa seperti menekan tombol mati. Jam inilah
-                 buktinya bahwa layar ini baru saja bertanya ke database. -->
-            <span class="table-count refresh-cap">Refresh terakhir
-              ${esc(jamMenit(jamRefresh))}</span>
+            <span class="table-count" id="rekap-jumlah"></span>
             <!-- Ikon, bukan kata: tombol ini berdiri di deretan yang sudah
                  penuh saringan golongan, dan satu kata lagi memakan lebar
                  yang lebih berguna untuk kotak cari. Judul dan aria-label
                  tetap berbunyi lengkap — yang hilang hanya tulisannya. -->
             <button class="icon-button icon-button-inline" id="rekap-refresh"
-                    type="button" aria-label="Refresh sekarang"
-                    title="Refresh sekarang (otomatis tiap 20 detik)">${ikonRefresh}</button>
+                    type="button" aria-label="Refresh sekarang">${ikonRefresh}</button>
           </div>
         </div>
         <p class="description">Layar ini hanya menampilkan. Nilai diubah di
            <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
            begitu tersimpan. Rank kosong berarti kloter regu itu belum
            tercatat berangkat, jadi ia belum masuk klasemen resmi.
-           ${posBelum !== null ? `<strong>Sedang disaring:
-             ${esc(NAMA_GOLONGAN[golongan] || "")} yang belum lengkap di Pos
-             ${esc(String(posBelum))}.</strong> Angka di kartu pos menghitung
-             SELURUH golongan, jadi wajar kalau lebih banyak daripada baris
-             yang tampil di sini.` : ""}</p>
+           <!-- Jamnya di sini, bukan di deretan tombol: data ini sering
+                kembali tanpa satu angka pun berubah, jadi tanpa jam yang
+                bergerak menekan refresh terasa seperti menekan tombol mati.
+                Di dalam kalimat ia tetap terbaca saat dicari, tanpa ikut
+                bersaing setiap kali mata menyapu baris alat di atas. -->
+           <span id="rekap-catatan"></span></p>
         <!-- Kelas tabelnya SAMA PERSIS dengan lembar Input Pos, ditambah
              satu pengubah: di HP ia tetap tabel yang digeser ke samping,
-             tidak ditumpuk jadi kartu seperti layar meja. -->
+             tidak ditumpuk jadi kartu seperti layar meja.
+
+             PEMBUNGKUS INI TIDAK PERNAH DIGANTI. Dialah yang memegang
+             geseran samping, dan mengganti elemennya berarti mengembalikan
+             geseran ke nol — yang persis membuat layar ini "gerak-gerak"
+             tiap 20 detik. Yang diganti cuma isi <tbody> di dalamnya. -->
         <div class="table-wrapper table-wrapper-tetap">
           <table class="table data-table table-tetap table-pos table-rekap">
             <thead>${kepala()}</thead>
-            <tbody>${tampil.length ? tampil.map(barisHtml).join("")
-              : `<tr><td colspan="${lebarKolom}" class="table-empty">
-                   Tidak ada regu ${esc(NAMA_GOLONGAN[golongan] || "")} yang cocok${
-                     posBelum !== null ? ` dan belum lengkap di Pos ${esc(String(posBelum))}` : ""
-                   }.</td></tr>`}</tbody>
+            <tbody id="rekap-isi"></tbody>
           </table>
         </div>
       </div>`));
 
-    LAYAR.querySelectorAll("[data-gol]").forEach(b =>
-      b.addEventListener("click", () => { golongan = b.dataset.gol; gambar(); }));
+    /* Listener dipasang SEKALI, lewat delegasi. Kartu kelengkapan digambar
+       ulang tiap refresh, jadi listener yang menempel di tiap tombolnya akan
+       ikut hilang — didelegasikan ke pembungkusnya yang memang tidak pernah
+       diganti. */
+    document.getElementById("rekap-golongan").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-gol]");
+      if (!b) return;
+      golongan = b.dataset.gol;
+      gambarTabel();
+    });
 
     // Mengetuk pos yang sedang aktif MEMATIKAN saringannya. Tanpa itu tidak
     // ada jalan kembali ke seluruh regu selain menebak-nebak tombol lain.
-    LAYAR.querySelectorAll("[data-pos-belum]").forEach(b =>
-      b.addEventListener("click", () => {
-        const n = Number(b.dataset.posBelum);
-        posBelum = Number(posBelum) === n ? null : n;
-        gambar();
-      }));
-
-    const kotak = document.getElementById("rekap-cari");
-    kotak.addEventListener("input", () => {
-      cari = kotak.value.trim().toLowerCase();
-      const posisi = kotak.selectionStart;
-      gambar();
-      const baru = document.getElementById("rekap-cari");
-      if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
+    document.getElementById("rekap-panel").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-pos-belum]");
+      if (!b) return;
+      const n = Number(b.dataset.posBelum);
+      posBelum = Number(posBelum) === n ? null : n;
+      gambarPanel();
+      gambarTabel();
     });
+
+    // Kotak cari tidak pernah diganti lagi, jadi tidak ada lagi kursor yang
+    // perlu dipulangkan — mengetik "001" berjalan utuh walau refresh otomatis
+    // lewat di tengah ketikan.
+    document.getElementById("rekap-cari").addEventListener("input", (e) => {
+      cari = e.target.value.trim().toLowerCase();
+      gambarTabel();
+    });
+
     document.getElementById("rekap-refresh")
       .addEventListener("click", () => refresh(true));
+  }
+
+  /** Kartu kelengkapan saja. Terpisah dari tabel karena keduanya berubah pada
+   *  saat yang berbeda: panel hanya saat data baru datang, tabel juga saat
+   *  saringan diubah. */
+  function gambarPanel() {
+    document.getElementById("rekap-panel").innerHTML = kartuKelengkapan();
+  }
+
+  /** Isi tabel + angka-angka kecil di sekelilingnya. Tidak menyentuh satu pun
+   *  elemen yang memegang keadaan layar: kotak cari, kepala tabel, dan
+   *  pembungkus yang memegang geseran tetap di tempatnya. */
+  function gambarTabel() {
+    const tampil = baris.filter(cocok).sort(urut);
+
+    document.getElementById("rekap-isi").innerHTML = tampil.length
+      ? tampil.map(barisHtml).join("")
+      : `<tr><td colspan="${lebarKolom}" class="table-empty">
+           Tidak ada regu ${esc(NAMA_GOLONGAN[golongan] || "")} yang cocok${
+             posBelum !== null ? ` dan belum lengkap di Pos ${esc(String(posBelum))}` : ""
+           }.</td></tr>`;
+
+    document.getElementById("rekap-jumlah").textContent = `${tampil.length} regu`;
+
+    document.getElementById("rekap-golongan")
+      .querySelectorAll("[data-gol]").forEach(b =>
+        b.setAttribute("aria-pressed", String(b.dataset.gol === golongan)));
+
+    document.getElementById("rekap-refresh").title =
+      `Refresh sekarang · terakhir ${jamMenit(jamRefresh)} · otomatis tiap 20 detik`;
+
+    document.getElementById("rekap-catatan").innerHTML =
+      `Terakhir di-refresh <strong>${esc(jamMenit(jamRefresh))}</strong>.`
+      + (posBelum === null ? "" : ` <strong>Sedang disaring:
+          ${esc(NAMA_GOLONGAN[golongan] || "")} yang belum lengkap di Pos
+          ${esc(String(posBelum))}.</strong> Angka di kartu pos menghitung
+          SELURUH golongan, jadi wajar kalau lebih banyak daripada baris yang
+          tampil di sini.`);
   }
 
   /* Menyegarkan sendiri tiap 20 detik. Inilah yang membuat papan ini terasa
@@ -2938,7 +3007,12 @@ async function layarRekap() {
         const sisa = 500 - (Date.now() - mulai);
         if (sisa > 0) await new Promise(r => setTimeout(r, sisa));
       }
-      if (location.hash === layarIni) gambar();   // menggambar ulang = putaran berhenti
+      if (location.hash !== layarIni) return;
+      // HANYA angkanya yang diganti. Geseran samping, posisi gulir, kotak
+      // cari, dan fokus papan ketik tidak disentuh sama sekali.
+      gambarPanel();
+      gambarTabel();
+      if (tombol) { tombol.classList.remove("berputar"); tombol.disabled = false; }
     } catch (e) {
       if (tombol) { tombol.classList.remove("berputar"); tombol.disabled = false; }
       // api.js sudah melewatkan pesannya lewat pesanRamah() sebelum melempar,
@@ -2947,7 +3021,10 @@ async function layarRekap() {
     }
   }
 
-  gambar();
+  bangunKerangka();
+  gambarPanel();
+  gambarTabel();
+
   jeda = setInterval(() => {
     if (location.hash !== layarIni) { clearInterval(jeda); return; }
     if (!document.hidden) refresh();
