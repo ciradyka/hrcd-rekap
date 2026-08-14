@@ -12,11 +12,16 @@
 # total dari workers/gateway/wrangler.toml (Worker gateway punya deploy-nya
 # sendiri lewat GitHub Actions, tidak saling menyentuh dengan file ini).
 #
-# `name` SENGAJA memuat nomor edisi (beda dari gateway Worker/project
-# Supabase, yang sengaja TIDAK memuat nomor edisi supaya bisa dipakai lintas
-# tahun tanpa migrasi). Situs ini bukan cuma "rekap" (juga pendaftaran,
-# pembayaran, dst) — nama generik terasa kurang jelas. Tiap edisi ganti nama
-# + URL (hrcd37 -> hrcd38 -> ...), dan project lama dihapus dari dashboard.
+# `name` SENGAJA memuat nomor edisi, dan sejak 14 Agustus 2026 berawalan
+# `panitia-`. Alamat pendek yang gampang diingat diberikan kepada yang
+# jumlahnya RATUSAN, bukan yang jumlahnya belasan:
+#
+#   hrcd37.ciradyka.workers.dev          -> peserta (pendaftaran + rekap live)
+#   panitia-hrcd37.ciradyka.workers.dev  -> layar panitia (folder ini)
+#
+# Peserta tidak pernah menerima alamat yang ada kotak loginnya, dan link yang
+# beredar di grup WhatsApp tidak sekaligus menyebarkan pintu masuk panitia.
+# Tiap edisi ganti nama + URL (panitia-hrcd37 -> panitia-hrcd38 -> ...).
 #
 # CATATAN (2026-08-12): mengubah `name` di sini TIDAK cukup untuk merename
 # project yang sudah tersambung Git — harus lewat dashboard (Settings ->
@@ -26,7 +31,7 @@
 # ALLOWED_ORIGIN di workers/gateway/worker.js juga.
 # ============================================================================
 
-name = "hrcd37"
+name = "panitia-hrcd37"
 compatibility_date = "2026-08-12"
 
 [assets]

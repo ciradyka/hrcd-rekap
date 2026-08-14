@@ -1,0 +1,1415 @@
+/* ============================================================================
+   hrcd-rekap : gaya.css — sistem desain untuk orang awam
+
+   Ukuran dikalibrasi ulang setelah panitia mencoba di HP: versi pertama
+   memakai ukuran "meja" (tubuh 18px, input 23px, sasaran sentuh 56px) untuk
+   SEMUA layar, sehingga form pendaftaran jadi 4 layar HP penuh — kebanyakan
+   menggulir. Sekarang dibedakan:
+
+   - Tubuh 16px, input 17px, sasaran sentuh 46px  -> nyaman & padat di HP.
+   - ANGKA yang dibacakan/dicatat tetap besar (nomor dada, kode pembayaran) —
+     itu memang harus terbaca dari seberang meja.
+
+   BATAS YANG TIDAK BOLEH DILANGGAR: font kotak isian minimal 16px. Di bawah
+   itu, iOS Safari memaksa zoom setiap kali isian disentuh, dan halaman jadi
+   melompat-lompat — persis masalah yang ingin dihindari.
+
+   Aturan lain (rancangan-b.md 10.1): satu aksi utama per layar; status =
+   warna + angka; bahasa = kalimat yang memang diucapkan orang.
+   ========================================================================== */
+
+:root {
+  --tinta:        #1a1a1a;
+  --tinta-lembut: #5c5c5c;
+  --kertas:       #f7f6f3;
+  --kartu:        #ffffff;
+  --garis:        #dcdcd7;
+  --utama:        #00695c;   /* hijau tua HRCD */
+  --utama-gelap:  #004d43;
+  --utama-muda:   #e0f2f1;
+  --bahaya:       #c62828;
+  --bahaya-muda:  #ffebee;
+  --kuning:       #b26a00;
+  --kuning-muda:  #fff3e0;
+  --hijau:        #2e7d32;
+  --hijau-muda:   #e8f5e9;
+  --radius:       14px;
+  --bayang:       0 1px 3px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* [hidden] harus menang atas display:flex/grid kelas mana pun */
+[hidden] { display: none !important; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--kertas);
+  color: var(--tinta);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- kerangka layar (sama di semua layar: kepala/tengah/kaki) ------ */
+
+.header {
+  background: var(--utama);
+  color: #fff;
+  padding: .55rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+.header .title  { font-weight: 700; font-size: 1rem; }
+.header .spacer { flex: 1; }
+.header .user-info  { font-size: .85rem; opacity: .9; }
+
+.isi {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: .9rem .8rem 3rem;
+}
+.isi.wide { max-width: 1080px; }
+/* Lembar Input Pos. Patokan 1080px yang pas untuk tabel meja justru memaksa
+   lembar ini menggeser ke samping padahal layarnya masih lapang — jumlah
+   kolomnya ditentukan konfigurasi, dan Pos 1 saja sudah 11. Dilonggarkan
+   sampai 1720px: masih ada tepi di monitor lebar, dan di laptop 1366px
+   max-width tidak memaksa apa pun, ia hanya berhenti membatasi. */
+.isi.lembar { max-width: 1720px; }
+
+/* ---------- kartu ---------- */
+
+.card {
+  background: var(--kartu);
+  border: 1.5px solid var(--garis);
+  border-radius: var(--radius);
+  box-shadow: var(--bayang);
+  padding: .9rem;
+  margin-bottom: .8rem;
+}
+.card h2 { font-size: 1.1rem; margin-bottom: .45rem; }
+.card .description { color: var(--tinta-lembut); font-size: .9rem; }
+
+/* Kartu identitas hasil lookup (echo-confirm) — HARUS terbaca dari jauh */
+.card-identity {
+  border: 2.5px solid var(--utama);
+  background: var(--utama-muda);
+}
+.card-identity .nama    { font-size: 1.35rem; font-weight: 800; line-height: 1.25; }
+.card-identity .detail  { font-size: .95rem; margin-top: .15rem; }
+
+/* ---------- tombol ---------- */
+
+button { font: inherit; cursor: pointer; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 46px;
+  padding: .55rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  width: 100%;
+}
+.button-primary {
+  background: var(--utama);
+  color: #fff;
+}
+.button-primary:hover:not(:disabled)  { background: var(--utama-gelap); }
+.button-primary:disabled {
+  background: #b9c9c6;
+  cursor: not-allowed;
+}
+.button-secondary {
+  background: #fff;
+  color: var(--tinta);
+  border-color: var(--garis);
+  font-weight: 600;
+}
+.button-danger {
+  background: #fff;
+  color: var(--bahaya);
+  border-color: var(--bahaya);
+}
+.button-small { min-height: 40px; font-size: .9rem; padding: .35rem .8rem; width: auto; }
+
+/* Logo/tombol Home di pojok kiri header — ikon polos, bukan kotak tombol
+   biasa, supaya tidak bersaing dengan judul layar di sebelahnya. */
+.icon-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; min-height: 40px; font-size: 1.3rem; line-height: 1;
+  border: 0; background: transparent; border-radius: var(--radius);
+  cursor: pointer; padding: 0;
+}
+.icon-button:hover { background: rgba(255,255,255,.15); }
+/* Varian di atas kartu terang: hover putih tidak terlihat di sana, dan
+   ukurannya diturunkan supaya tidak bersaing dengan badge di sebelahnya. */
+.icon-button-inline { min-width: 32px; min-height: 32px; font-size: 1rem; color: var(--tinta-lembut); }
+.icon-button-inline:hover { background: var(--garis); color: var(--tinta); }
+
+.button:focus-visible, input:focus-visible, .option:focus-visible,
+.icon-button:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* ---------- formulir ---------- */
+
+.field { margin-bottom: .8rem; }
+.field label {
+  display: block;
+  font-weight: 700;
+  font-size: .95rem;
+  margin-bottom: .25rem;
+}
+.field .hint {
+  font-weight: 400;
+  color: var(--tinta-lembut);
+  font-size: .85rem;
+  margin-top: .2rem;
+}
+
+input[type=text], input[type=number], input[type=password], input[type=time], input[type=tel] {
+  width: 100%;
+  font: inherit;
+  font-size: 1.0625rem;
+  padding: .55rem .75rem;
+  min-height: 46px;
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+}
+/* Spinner naik-turun bawaan input[type=number] muncul saat hover dan
+   terlihat seperti scrollbar kecil di dalam kotak — jelek, dan tidak ada
+   gunanya: nomor dada DIKETIK dari kain fisik, bukan dinaik-turunkan. */
+input[type=number] { appearance: textfield; -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+input.besar { font-size: 1.45rem; letter-spacing: .05em; text-align: center; min-height: 54px; }
+input:focus { border-color: var(--utama); }
+input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
+
+.error {
+  color: var(--bahaya);
+  font-weight: 600;
+  margin-top: .25rem;
+  font-size: .9rem;
+}
+
+/* Pilihan besar (pengganti dropdown): kartu yang bisa diketuk */
+.option-row { display: grid; gap: .55rem; grid-template-columns: 1fr 1fr; }
+.option {
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: .7rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  min-height: 50px;
+}
+.option[aria-pressed="true"] {
+  border-color: var(--utama);
+  background: var(--utama-muda);
+}
+
+/* Stepper +/- untuk angka kecil (rincian golongan) */
+.stepper { display: flex; align-items: center; gap: .5rem; }
+.stepper button {
+  width: 46px; height: 46px;
+  font-size: 1.4rem; font-weight: 800;
+  border-radius: 50%;
+  border: 2px solid var(--garis);
+  background: #fff;
+}
+.stepper .angka { font-size: 1.35rem; font-weight: 800; min-width: 2rem; text-align: center; }
+
+/* ---------- lencana status: warna + angka ---------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .85rem;
+}
+.badge-green  { background: var(--hijau-muda);  color: var(--hijau); }
+.badge-yellow { background: var(--kuning-muda); color: var(--kuning); }
+.badge-red  { background: var(--bahaya-muda); color: var(--bahaya); }
+.badge-gray    { background: #eee; color: var(--tinta-lembut); }
+
+/* ---------- angka besar (kode pembayaran, nomor dada) ---------- */
+
+.giant-number {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+/* ---------- tabel sederhana ---------- */
+
+.table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.table th {
+  text-align: left;
+  color: var(--tinta-lembut);
+  font-size: .85rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: .4rem .6rem;
+  border-bottom: 2px solid var(--garis);
+}
+.table td { padding: .45rem .5rem; border-bottom: 1px solid var(--garis); }
+.table .angka { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- form satu halaman (publik) ---------- */
+
+/* Nomor bagian: penanda urutan tanpa memaksa halaman terpisah. */
+.section-number {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; margin-right: .45rem;
+  border-radius: 50%;
+  background: var(--utama); color: #fff;
+  font-size: .85rem; font-weight: 800;
+}
+
+.stepper-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .8rem; padding: .5rem 0;
+  border-bottom: 1px solid var(--garis);
+}
+.stepper-row:last-child { border-bottom: 0; }
+
+.total-box {
+  margin-top: .7rem; padding: .6rem .8rem;
+  background: var(--utama-muda);
+  border: 2px solid var(--utama);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.regu-card {
+  border: 1.5px solid var(--garis);
+  border-radius: var(--radius);
+  padding: .65rem .7rem;
+  margin-bottom: .55rem;
+}
+.regu-card-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
+
+.two-column { display: grid; gap: .6rem; grid-template-columns: 1fr 1fr; margin-top: .45rem; }
+@media (max-width: 640px) { .two-column { grid-template-columns: 1fr; } }
+
+/* Ringkasan galat: satu tempat, tiap barisnya bisa diketuk untuk melompat. */
+.error-list { list-style: none; margin-top: .5rem; }
+.error-list li { margin: .3rem 0; }
+.error-list button {
+  background: none; border: 0; padding: .3rem 0;
+  color: var(--bahaya); font: inherit; font-weight: 700;
+  text-decoration: underline; text-align: left;
+  min-height: 44px;
+}
+
+/* Tombol kirim menempel di bawah layar: pada form panjang, aksi utama tidak
+   boleh hilang di ujung gulungan. */
+.send-bar {
+  position: sticky; bottom: 0;
+  margin: .8rem -.8rem 0;
+  padding: .55rem .8rem calc(.55rem + env(safe-area-inset-bottom));
+  background: rgba(247, 246, 243, .96);
+  border-top: 1.5px solid var(--garis);
+  backdrop-filter: blur(6px);
+}
+.send-content {
+  max-width: 760px; margin: 0 auto;
+  display: flex; align-items: center; gap: 1rem;
+}
+.send-info { flex: 1; font-weight: 700; }
+.send-bar .button { width: auto; min-width: 220px; }
+@media (max-width: 560px) {
+  .send-content { flex-direction: column; align-items: stretch; gap: .5rem; }
+  .send-bar .button { width: 100%; }
+}
+
+/* ---------- daftar autocomplete ---------- */
+
+.suggestions {
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: .4rem;
+}
+.suggestions button {
+  display: block; width: 100%;
+  text-align: left;
+  padding: .6rem .8rem;
+  border: 0; background: none;
+  font-size: 1rem;
+  border-bottom: 1px solid var(--garis);
+  min-height: 48px;
+}
+.suggestions button:hover { background: var(--utama-muda); }
+.suggestions .alamat { display: block; color: var(--tinta-lembut); font-size: .85rem; }
+
+/* ---------- notifikasi ---------- */
+
+.notification {
+  position: fixed;
+  left: 50%; bottom: 1.2rem;
+  transform: translateX(-50%);
+  background: var(--tinta);
+  color: #fff;
+  padding: .8rem 1.4rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  box-shadow: var(--bayang);
+  z-index: 50;
+  max-width: 92vw;
+}
+.notification.error { background: var(--bahaya); }
+/* Memudar sebelum dibuang (lihat notif() di util.js). Transisinya dipatok di
+   sini, bukan di JavaScript, supaya aturan prefers-reduced-motion di bawah
+   berkas ini ikut mematikannya — di sana `transition: none` membuat pesannya
+   hilang seketika, tanpa gerakan. */
+.notification { transition: opacity .35s ease; }
+.notification.pudar { opacity: 0; }
+
+/* ---------- menu beranda meja ---------- */
+
+.function-menu { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.function-menu a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--kartu);
+  border: 2px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--bayang);
+}
+.function-menu a:hover { border-color: var(--utama); }
+.function-menu .function-name { font-size: 1.15rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+.function-menu .description { color: var(--tinta-lembut); margin-top: .3rem; }
+
+/* ---------- dialog (pengganti prompt) ---------- */
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; z-index: 60;
+}
+.dialog {
+  background: var(--kartu);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.dialog h2 { margin-bottom: .8rem; }
+.notification { display: flex; align-items: center; gap: .8rem; }
+.notification-close {
+  background: rgba(255,255,255,.25); color: #fff;
+  border: 0; border-radius: 8px;
+  min-width: 36px; min-height: 36px; font-size: 1rem;
+}
+
+/* ---------- cetak: hanya kwitansi yang ikut tercetak ---------- */
+
+.printout { display: none; }
+
+@media print {
+  .header, .isi, .notification, .overlay { display: none !important; }
+  .printout {
+    display: block !important;
+    font-size: 12pt;
+    color: #000;
+  }
+  .printout h1 { font-size: 16pt; margin-bottom: .6rem; }
+  .printout p { margin: .45rem 0; }
+  body { background: #fff; }
+
+  /* Daftar kloter: satu kloter per lembar, supaya tiap petugas garis start
+     memegang kertasnya sendiri. */
+  .print-page { break-after: page; page-break-after: always; }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+
+  /* Lebar disisakan 1pt dari 100%. Dengan border-collapse, garis kanan tabel
+     selebar-penuh jatuh PERSIS di batas cetak, dan pembulatan browser
+     melemparkannya keluar halaman — kolom terakhir (Hadir) tercetak tanpa
+     garis penutup dan terlihat seperti terpotong. */
+  .print-table { width: calc(100% - 1pt); border-collapse: collapse; margin-top: .5rem; }
+  .print-table th, .print-table td {
+    border: 1px solid #000;
+    padding: 5pt 6pt;
+    text-align: left;
+    font-size: 11pt;
+  }
+  .print-table th { background: #eee; font-size: 9pt; text-transform: uppercase; }
+  /* Baris TOTAL memakai <th> juga, dan uppercase mengubah "Rp" jadi "RP" —
+     jelek di kwitansi resmi. Angkanya dikembalikan ke huruf aslinya. */
+  .print-table tfoot th { text-transform: none; font-size: 11pt; }
+  .print-table .dada { font-size: 15pt; font-weight: 800; text-align: center; width: 15mm; }
+  /* Kolom centang kehadiran diisi tangan di lapangan. */
+  .print-table .kotak { width: 18mm; }
+
+  /* Lembar papan/barak: jam perkiraan harus terbaca dari jarak berdiri. */
+  .jam-besar { font-size: 18pt; font-weight: 800; margin: .3rem 0 .6rem; }
+
+  /* Kwitansi: nomornya yang dicari orang saat menyusun berkas, jadi itu yang
+     dibesarkan — bukan judulnya. */
+  .receipt-number { font-size: 20pt; font-weight: 800; margin: .2rem 0 .6rem; }
+  .receipt-signature { margin-top: 10mm; width: 60mm; margin-left: auto; text-align: center; }
+  .receipt-line { margin-top: 14mm; border-top: 1pt solid #000; padding-top: 2mm; }
+
+  .print-note { font-size: 9pt; color: #333; margin-top: .5rem; }
+  .insert-note { font-size: 9pt; font-weight: 700; margin-top: .4rem; }
+
+  /* Rentang yang boleh ditulis, di bawah nama kolomnya — sama seperti di
+     layar, supaya petugas tidak perlu mengingat skalanya. */
+  .print-table th .kolom-petunjuk {
+    display: block; max-width: none; font-size: 7pt; font-weight: 400;
+    text-transform: none; margin-top: 1pt;
+  }
+  /* ---- Lembar nilai pos: A4 LANDSCAPE ----
+     Halaman bernama, supaya HANYA lembar ini yang berputar — kwitansi dan
+     daftar kloter tetap potret. Landscape bukan selera: dengan huruf 12pt,
+     tabel Pos 1 selebar 201mm dan kertas potret cuma menyediakan 180mm.
+     Diukur, bukan dikira. */
+  @page lembar-pos { size: A4 landscape; margin: 10mm; }
+  .lembar-pos { page: lembar-pos; }
+
+  /* ---- kerapatan baris ----
+     Yang harus muat dalam satu A4 potret: kepala halaman + 30 baris + catatan
+     kaki. Karena itu SEMUANYA di lembar ini lebih rapat daripada cetakan lain
+     di sistem — kwitansi dan daftar kloter tidak dibatasi jumlah barisnya,
+     lembar ini iya. Angka-angka di bawah hasil pengukuran, bukan perkiraan. */
+  /* Semuanya DITENGAHKAN, mengikuti bentuk lembar Excel yang selama ini
+     dipakai panitia. Bukan sekadar selera: kolom identitas di sini lebarnya
+     dipatok dan isinya jauh lebih pendek dari patokannya ("Penegak PA" di
+     petak 26mm), jadi rata kiri meninggalkan pita kosong di tiap kolom dan
+     mata harus mencari-cari di mana satu kolom berakhir. Ditengahkan, tiap
+     petak punya titik berat sendiri. */
+  .lembar-pos .print-table th, .lembar-pos .print-table td { text-align: center; }
+  /* Kepala halaman dipadatkan jadi TIGA baris. Tiap baris yang dihemat di
+     sini berarti satu baris regu lebih banyak, dan 30 regu per lembar tidak
+     menyisakan ruang untuk kepala yang lega. */
+  .lembar-pos h1 {
+    font-size: 11pt; margin: 0 0 1pt; text-align: center; line-height: 1.2;
+  }
+  .lembar-pos .lembar-kepala, .lembar-pos .insert-note,
+  .lembar-pos .print-note { text-align: center; line-height: 1.2; }
+  .lembar-pos .lembar-kepala { font-size: 8pt; margin: 0 0 2pt; }
+  .lembar-pos .insert-note { font-size: 7.5pt; margin: 0 0 2pt; }
+  .lembar-pos .print-note { font-size: 7pt; margin-top: 2pt; }
+  .lembar-pos .print-table { margin-top: 0; }
+  /* 12pt untuk ISI — ukuran yang sama dengan cetakan Excel yang selama ini
+     dipakai panitia, dan memang seharusnya: yang tertulis di sini dibaca
+     lagi dari FOTO, oleh orang lain, di layar laptop. Tinggi baris tidak
+     ikut bertambah karena yang menentukannya kotak 7mm, bukan hurufnya
+     (12pt hanya ~4,2mm). JUDUL kolom tetap kecil — ia label, bukan data,
+     dan di 12pt "KEPRAMUKAAN KEAGAMAAN" akan memakan lebar yang dibutuhkan
+     kotak isiannya. */
+  .lembar-pos .print-table th, .lembar-pos .print-table td {
+    padding: 0.5pt 4pt; font-size: 12pt;
+    /* Jarak antarbaris huruf inilah yang sebenarnya menentukan tinggi baris
+       di sini — BUKAN tinggi kotak isiannya. Dengan line-height bawaan (1,6)
+       satu baris setinggi 32px meski kotaknya diminta 6mm.
+       1,0 supaya 30 baris muat: satu baris jadi ~5mm, dan itu kebetulan
+       persis tinggi baris bawaan Excel (15pt). Aman karena tiap sel di sini
+       hanya berisi SATU baris teks — tidak ada paragraf yang jadi rapat. */
+    line-height: 1;
+  }
+  .lembar-pos .print-table th { font-size: 8pt; }
+  /* Nomor dada TIDAK dibesarkan di lembar ini. Sempat 14pt, dan ternyata
+     dialah yang menentukan tinggi seluruh baris — satu sel 14pt membuat
+     barisnya 21px sementara sel 12pt lainnya cuma butuh 18px, dan selisih
+     3px dikali 30 baris persis yang membuat halaman tumpah. Tebalnya sudah
+     cukup membuatnya menonjol, dan di Excel pun semua kolom seukuran. */
+  .lembar-pos .print-table .dada { font-size: 12pt; width: 15mm; }
+  /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
+     ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
+     tinggi hanya akan mengurangi jumlah baris per lembar. */
+  .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian { width: 14mm; }
+  /* Identitas TIDAK boleh membungkus di sini: satu nama yang pecah dua baris
+     menambah tinggi satu baris, dan tiga puluh baris yang dipatok mati tidak
+     punya ruang untuk itu — lembarnya akan tumpah ke halaman berikutnya. */
+  .lembar-pos .print-table td:nth-child(2),
+  .lembar-pos .print-table td:nth-child(3),
+  .lembar-pos .print-table td:nth-child(4) {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Lebar identitas dipatok, karena di 12pt merekalah yang akan menelan
+     lebar kertas dan menyisakan kotak isian selebar jari. Nama sekolah yang
+     kepanjangan dipotong dengan elipsis — regu tetap dikenali dari nomor
+     dada dan nama regunya, dan nama sekolah di kertas ini gunanya sekadar
+     cek silang. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 38mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 40mm; }
+  .lembar-pos .print-table td:nth-child(4) { max-width: 26mm; }
+  /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
+     tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
+  .print-table td { overflow-wrap: break-word; }
+}
+
+@page { margin: 12mm; }
+
+/* ---------- responsif ---------- */
+
+@media (max-width: 560px) {
+  .option-row { grid-template-columns: 1fr; }
+  .giant-number { font-size: 1.9rem; }
+  .isi { padding: .8rem .7rem 3rem; }
+
+  /* Kepala di HP: SATU baris — judul kiri, identitas akun kanan. Dulu judul
+     dipaksa sebaris penuh (flex: 1 0 100%) supaya tidak berdesakan dengan
+     tiga tombol di sebelahnya; sejak tombol-tombol itu pindah ke menu bawah,
+     aturan itu hanya menyisakan celah kosong di bawah judul. */
+  .header { padding: .6rem .8rem; gap: .5rem; flex-wrap: nowrap; }
+  .header .title { flex: 0 1 auto; font-size: 1rem; white-space: nowrap; }
+  .header .user-info {
+    font-size: .78rem; text-align: right; line-height: 1.25;
+    min-width: 0;   /* boleh menyusut daripada mendorong judul keluar layar */
+  }
+  .header .button-small { min-height: 36px; font-size: .8rem; padding: .25rem .6rem; }
+}
+
+/* Tabel lebar (daftar regu, kloter, riwayat) tidak boleh memaksa SELURUH
+   halaman menggeser ke samping di HP — cukup tabelnya sendiri yang menggeser.
+   Panitia memakai sistem ini di HP juga, bukan hanya laptop. */
+.card { overflow-x: auto; }
+.table { min-width: 0; }
+
+@media (max-width: 560px) {
+  .table { font-size: .88rem; }
+  .table td { padding: .4rem .3rem; }
+  .table .angka { font-size: 1.05rem; }
+  /* Nama sekolah boleh membungkus, jangan memaksa tabel melebar. */
+  .table td:nth-child(2), .table td:nth-child(3) { word-break: break-word; }
+}
+
+/* ---------- aksesibilitas ---------- */
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---------- layar tabel (Pembayaran, Daftar Ulang, Keberangkatan) ---------- */
+
+.table-toolbar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: .6rem;
+  margin-bottom: .8rem;
+}
+.table-toolbar .field { margin-bottom: 0; }
+.filter-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+.option-small {
+  min-height: 40px; padding: .3rem .75rem; font-size: .88rem; width: auto;
+}
+.table-count { color: var(--tinta-lembut); font-size: .85rem; white-space: nowrap; }
+
+/* Tabel panjang: kepala menempel supaya nama kolom tidak hilang saat gulir. */
+.table-wrapper { overflow-x: auto; max-height: 68vh; overflow-y: auto; }
+.data-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--kertas); box-shadow: 0 1px 0 var(--garis);
+}
+.data-table td { vertical-align: middle; }
+.data-table tbody tr:hover { background: var(--utama-muda); }
+
+/* Pembuka rincian regu — tampil seperti link, tapi tetap tombol sungguhan
+   supaya bisa dijangkau papan ketik dan pembaca layar. */
+.button-detail {
+  background: none; border: 0; padding: .2rem 0; margin-top: .15rem;
+  min-height: 36px; color: var(--utama); font: inherit; font-size: .85rem;
+  cursor: pointer; text-align: left;
+}
+.button-detail:hover { text-decoration: underline; }
+
+/* Satuan "regu" di dalam tombol pembuka rincian meja pembayaran. Di KARTU HP
+   ia perlu — tidak ada judul kolom di sana, jadi angka telanjang "▾ 2" tidak
+   memberi tahu 2 apa. Di TABEL judulnya sudah menyebut REGU tepat di atasnya,
+   dan mengulangi kata itu di tiap baris memakan lebar kolom yang justru
+   dibutuhkan kolom di kanannya. */
+@media (min-width: 561px) {
+  .satuan-regu { display: none; }
+}
+
+/* Rincian regu di dalam satu baris invoice. */
+.detail-row > td { background: var(--kertas); padding: .7rem 1.2rem; }
+/* Lebar mengikuti ISI saja — tanpa min-width. Diberi lantai 62%, kolom
+   Biaya terlempar jauh dari Sekolah dan rata kanannya terlihat menggantung.
+   Sekarang kelima kolom menempel di kiri; yang tetap rata kanan hanya isi
+   kolom uangnya, di dalam kolomnya sendiri. */
+/* Kartu judul halaman: satu baris teks sendirian di dalam kartu terbaca
+   seperti label yang tertinggal kalau rata kiri. Ditengahkan ia jadi judul. */
+.card-title { text-align: center; }
+
+.detail-table {
+  /* MELEBAR PENUH, bukan selebar isinya. Tabel yang menciut menumpuk semua
+     kolom di kiri dan menyisakan lahan kosong di kanan — terbaca seperti
+     potongan yang terlepas dari baris induknya. Selebar kartu, kolomnya
+     jatuh sejajar dengan kolom di atasnya dan rincian terbaca menyatu. */
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.detail-table th, .detail-table td { padding-right: 1.6rem; }
+/* Angka rupiah rata kanan sampai ujung, sejajar antar baris supaya bisa
+   dibandingkan sekilas. */
+.detail-table th:last-child, .detail-table td:last-child {
+  padding-right: .4rem; text-align: right; min-width: 6rem;
+}
+.detail-table th {
+  text-align: left; padding: .25rem .4rem; font-size: .72rem;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-lembut);
+}
+.detail-table td { padding: .3rem .4rem; border-top: 1px solid var(--garis); }
+/* Golongan JANGAN dipenggal tengah kata — "Penggala/ng PA" tidak terbaca
+   sekilas, dan sekilas itulah satu-satunya cara panitia membacanya. Kalau
+   sempit, tabelnya yang menggeser di dalam kartu (aturan 10.1.13). */
+.detail-table td:nth-child(2) { white-space: nowrap; }
+
+/* SEJAJAR DENGAN TABEL INDUKNYA.
+   Kotak nomor dada harus jatuh tepat di bawah tombol "Isi N Nomor Dada" yang
+   membukanya — kalau meleset, tombol dan isiannya terbaca sebagai dua hal
+   yang kebetulan bertumpuk, dan petugas harus menelusuri baris dengan jari
+   untuk memastikan ia mengetik di sekolah yang benar.
+
+   Caranya: kedua tabel dipatok `table-layout: fixed` dengan lebar kolom yang
+   PERSIS SAMA, dan sel pembungkusnya dibuat rata tanpa padding kiri-kanan
+   supaya tabel rincian selebar tabel induk, bukan menjorok ke dalam. Empat
+   angka di bawah ini berpasangan; kalau satu diubah, pasangannya ikut.
+
+   HANYA DI LAYAR LEBAR. Di HP tabelnya berhenti jadi tabel — tiap sel
+   dijadikan blok (lihat "Di HP, tabel BERHENTI jadi tabel" di bawah), dan
+   `width: 18%` pada sebuah BLOK bukan lagi lebar kolom melainkan 18% lebar
+   kartu. Itulah yang membuat "Regu: 2" tercetak jadi "Reg / u: 2" dan kode
+   pembayaran terpenggal dua baris. Jadi seluruh patokan lebar di bawah ini
+   dikurung di min-width: 561px dan tidak pernah menyentuh layar HP. */
+@media (min-width: 941px) {
+  .table-daftar-ulang, .detail-table-dada { table-layout: fixed; }
+  /* LANTAI LEBAR. Dengan table-layout: fixed, kolom yang menyempit tidak
+     membuat isinya membungkus — isinya MELUAP menimpa kolom sebelahnya.
+     Di bawah lebar ini tabelnya menggeser di dalam kartu (.table-wrapper
+     sudah overflow-x: auto), dan tidak ada lagi yang saling tertutup. */
+  /* Lantai lebar. Harus muat di lebar kartu saat ambang 940px baru saja
+     terlewat (941 - padding - scrollbar ≈ 869), kalau tidak ia menggeser ke
+     samping tepat di ambangnya dan kolom paling kanan — kolom tombol —
+     hilang dari layar. Sempat 860px, dan persis itu yang terjadi. */
+  .table-daftar-ulang { min-width: 790px; }
+  /* Tabel induk punya TIGA kolom, rinciannya EMPAT. Yang wajib sejajar cuma
+     kolom pertama (tepi kiri rapi) dan kolom TERAKHIR — kotak nomor dada
+     harus jatuh tepat di bawah tombol "Isi N Nomor Dada" yang membukanya,
+     kalau meleset petugas harus menelusuri baris dengan jari untuk memastikan
+     ia mengetik di sekolah yang benar.
+
+     Karena itu 17% + 55% induk = 17% + 27% + 28% rincian, dua-duanya berhenti
+     di 72%, lalu kolom terakhir sama-sama 28%. Kalau salah satu angka
+     diubah, jumlah pasangannya ikut. */
+  .table-daftar-ulang th:nth-child(1), .table-daftar-ulang td:nth-child(1),
+  .detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 17%; }
+  .table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2) { width: 55%; }
+  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 27%; }
+  .detail-table-dada  th:nth-child(3), .detail-table-dada  td:nth-child(3) { width: 28%; }
+  .table-daftar-ulang th:nth-child(3), .table-daftar-ulang td:nth-child(3),
+  .detail-table-dada  th:nth-child(4), .detail-table-dada  td:nth-child(4) { width: 28%; }
+
+  /* Isi kolom terakhir DITENGAHKAN, bukan rata kiri atau rata kanan. Tombol
+     "Isi N Nomor Dada", deretan nomor yang sudah terbit, kotak isian di
+     rinciannya, dan tombol "Simpan N Nomor Dada" jadi berbagi satu garis
+     tengah — mata turun lurus dari tombol pembuka ke kotak isian ke tombol
+     simpan, tidak melompat ke kiri lalu ke kanan. */
+  /* nth-child(3), bukan (4): kolom Regu sudah dihapus, kolom aksi naik jadi
+     kolom ketiga. Salah nomor di sini tidak menimbulkan galat apa pun —
+     aturannya sekadar tidak mengenai apa-apa, dan tombol pembuka meleset
+     ~74px dari kotak nomor dada yang seharusnya jatuh tepat di bawahnya. */
+  .table-daftar-ulang td:nth-child(3) { text-align: center; }
+  .table-daftar-ulang td:nth-child(3) .pill-row { justify-content: center; }
+  /* Kotak angka melebar sedikit — sasaran klik lebih besar, dan titik
+     tengahnya jatuh persis segaris dengan tombol Simpan di bawahnya. */
+  .detail-table-dada input.small-input { width: 100%; max-width: 8rem; }
+}
+
+.detail-table-dada { width: 100%; margin: 0; }
+/* Padding sel disamakan dengan tabel induk (.table td), kalau tidak isinya
+   bergeser beberapa piksel dan kesejajarannya hilang lagi. */
+.detail-table-dada th, .detail-table-dada td { padding-left: .5rem; padding-right: .5rem; }
+.detail-table-dada th:last-child, .detail-table-dada td:last-child { min-width: 0; }
+/* Sel pembungkus rincian dibuat rata kiri-kanan supaya tabel di dalamnya
+   selebar tabel induk. Padding atas-bawah tetap, itu yang memisahkan blok. */
+.detail-cell-flush { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* Meja Pembayaran, cara yang sama. Bedanya tabel induk punya ENAM kolom dan
+   rinciannya LIMA. Rincian dulu sengaja berhenti di 71% supaya angka rupiah
+   tidak jatuh di bawah tombol aksi — tapi yang tersisa justru lahan kosong
+   selebar seperempat tabel di sebelah kanan, dan itu yang lebih mengganggu.
+   Sekarang rincian SELEBAR PENUH dan kolom Biaya berhenti mentok di kanan.
+
+   Tiap kolom rincian tetap jatuh persis di bawah kolom induknya:
+   Regu di bawah Kode Bayar, Kategori di bawah Sekolah, Ketua di bawah
+   Regu+Tagihan, Sekolah di bawah Metode, Biaya di bawah kolom aksi.
+   (Ketua memakan dua kolom induk karena nama ketua yang panjang dulu
+   bersinggungan dengan kolom sebelahnya sampai terbaca "NurhalizaSD 3
+   Ciamis". Kalau salah satu angka diubah, pasangannya ikut.)
+
+   Sama seperti tabel daftar ulang: HANYA di layar lebar. Di HP angka-angka
+   ini justru yang merusak tampilannya. */
+@media (min-width: 941px) {
+  .table-bayar, .detail-table-bayar { table-layout: fixed; }
+  /* Lantai lebar — lihat alasan lengkapnya di tabel daftar ulang. Di sinilah
+     akibatnya paling terasa: kolom Metode menyempit sampai dropdown cara
+     bayar tertimpa tombol "Tandai Lunas" di sebelahnya, jadi petugas tidak
+     bisa lagi memilih Transfer.
+
+     820px = jumlah kebutuhan minimum tiap kolom: kode pembayaran 140,
+     sekolah 197, regu 49, tagihan 98, dropdown metode 123, dan kolom tombol
+     205 (muat "Cetak Kwitansi" + "Batalkan" berdampingan). Kalau salah satu
+     kolom dilebarkan, angka ini ikut naik — DAN ambang kartu 900px di bawah
+     harus ikut naik, kalau tidak tabelnya kembali menggeser ke samping dan
+     kolom tombol hilang lagi dari layar. */
+  .table-bayar { min-width: 820px; }
+  .table-bayar th:nth-child(1), .table-bayar td:nth-child(1) { width: 18%; }
+  .table-bayar th:nth-child(2), .table-bayar td:nth-child(2) { width: 24%; }
+  .table-bayar th:nth-child(3), .table-bayar td:nth-child(3) { width:  6%; }
+  .table-bayar th:nth-child(4), .table-bayar td:nth-child(4) { width: 12%; }
+  .table-bayar th:nth-child(5), .table-bayar td:nth-child(5) { width: 15%; }
+  .table-bayar th:nth-child(6), .table-bayar td:nth-child(6) { width: 25%; }
+
+  /* Tombol aksi DITENGAHKAN di kolomnya, dan kolom Biaya di rincian memakai
+     lebar yang sama (25%). Akibatnya angka rupiah tiap regu jatuh tepat di
+     bawah tombol "Tandai Lunas" — itu jumlah yang sedang dihitung petugas
+     saat jarinya sudah di atas tombol itu. */
+  .table-bayar td:nth-child(6) { text-align: center; }
+  .table-bayar td:nth-child(6) .action-row { justify-content: center; }
+
+  .detail-table-bayar { width: 100%; }
+  .detail-table-bayar th:nth-child(1), .detail-table-bayar td:nth-child(1) { width: 18%; }
+  .detail-table-bayar th:nth-child(2), .detail-table-bayar td:nth-child(2) { width: 24%; }
+  .detail-table-bayar th:nth-child(3), .detail-table-bayar td:nth-child(3) { width: 18%; }
+  .detail-table-bayar th:nth-child(4), .detail-table-bayar td:nth-child(4) { width: 15%; }
+  .detail-table-bayar th:nth-child(5), .detail-table-bayar td:nth-child(5) { width: 25%; }
+}
+
+.detail-table-bayar { margin: 0; }
+.detail-table-bayar th, .detail-table-bayar td { padding-left: .5rem; padding-right: .5rem; }
+
+@media (max-width: 560px) {
+  /* Satu regu = satu blok dua baris, isi kolom terakhir di kanan sejajar
+     namanya. Judul kolom disembunyikan karena pasangannya sudah jelas dari
+     bentuknya. Selebar kartu — patokan persen di atas sudah tidak berlaku
+     di sini, dan tanpa ini rincian pembayaran tetap menciut ke 71%. */
+  .detail-table, .detail-table tbody, .detail-table tr, .detail-table td { display: block; }
+  .detail-table thead { display: none; }
+  .detail-table { width: 100%; }
+  .detail-table tr {
+    display: grid;
+    /* Jarak antar kolom .9rem, bukan .5rem: golongan dan nama ketua duduk
+       bersebelahan di baris kedua, dan dengan celah sempit "Penggalang PI"
+       menempel ke namanya sampai terbaca seperti satu kalimat. */
+    align-items: center; gap: .1rem .9rem;
+    padding: .55rem 0; border-top: 1px solid var(--garis);
+  }
+  .detail-table td { border: 0; padding: 0; }
+  .detail-table td:nth-child(1) { grid-area: nama; }
+  .detail-table td:nth-child(2) { grid-area: kat;   font-size: .78rem; color: var(--tinta-lembut); }
+  .detail-table td:nth-child(3) { grid-area: ketua; font-size: .78rem; color: var(--tinta-lembut); }
+
+  /* Daftar ulang: kolom keempat adalah KOTAK ISIAN nomor dada. */
+  .detail-table-dada tr {
+    grid-template-columns: auto 1fr 5.5rem;
+    grid-template-areas: "nama nama input" "kat ketua input";
+  }
+  .detail-table-dada td:nth-child(4) { grid-area: input; }
+
+  /* Pembayaran: kolom keempat BUKAN isian melainkan nama sekolah, dan kolom
+     kelima angka rupiahnya. Dua tabel ini dulu memakai satu aturan yang sama,
+     jadi "Sekolah" jatuh di petak kotak isian selebar 5,5rem dan nama ketua
+     terjepit sampai tercetak satu huruf per baris.
+
+     Kolom Sekolah dihilangkan di HP: isinya mengulang nama sekolah yang sudah
+     tertulis di kartu invoice tepat di atasnya, dan lebar yang dimakannya
+     justru yang dibutuhkan nama regu dan nama ketua. */
+  .detail-table-bayar tr {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "nama nama biaya" "kat ketua biaya";
+  }
+  .detail-table-bayar td:nth-child(4) { display: none; }
+  .detail-table-bayar td:nth-child(5) {
+    grid-area: biaya; text-align: right; font-weight: 700; min-width: 0;
+  }
+  /* Sasaran sentuh jempol: lebih lebar dan lebih tinggi daripada di laptop,
+     angkanya besar supaya terbaca sambil berdiri. */
+  .detail-table input.small-input {
+    width: 100%; min-height: 52px; font-size: 1.25rem; font-weight: 700;
+  }
+
+  /* Tombol simpan melebar penuh seperti tombol lain di HP — versi rata kiri
+     terlihat seperti tombol setengah jadi. Keterangannya turun ke bawahnya. */
+  .detail-row .action-row { flex-direction: column; align-items: stretch; }
+  .detail-row .action-row .button-small { width: 100%; }
+  .detail-row .action-row .sub { text-align: center; }
+  /* Titik pemisah diberi ruang di kanannya juga, supaya nama ketua benar-
+     benar berdiri sendiri dan tidak menempel ke titiknya. */
+  .detail-table td:nth-child(3)::before { content: "·"; padding-right: .4rem; }
+}
+
+.data-table .sub { color: var(--tinta-lembut); font-size: .82rem; margin-top: .15rem; }
+.data-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+/* .table th sudah menetapkan text-align: left dengan spesifisitas (0,1,1),
+   jadi .text-center (0,1,0) kalah dan JUDUL kolom tetap rata kiri meski
+   sudah diberi kelasnya. Disamakan spesifisitasnya di sini. */
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.table th.text-center, .table td.text-center { text-align: center; }
+.table th.text-right,  .table td.text-right  { text-align: right; }
+
+/* SELURUH kolom rincian DITENGAHKAN — judul kolom maupun isinya, di kedua
+   tabel rincian. Rincian adalah panel yang dibuka sebentar untuk dibacakan
+   ke sekolah, bukan daftar yang disapu mata dari atas ke bawah, jadi tiap
+   kolom berdiri sendiri di tengah petaknya.
+
+   HARUS DI SINI, tepat di bawah dua baris di atasnya. Tabel rincian bersarang
+   DI DALAM tabel induk, jadi `.table td.text-right` ikut mengenai sel Biaya
+   di rincian — spesifisitasnya sama (0,2,1) dengan aturan ini, dan yang
+   menang adalah yang ditulis belakangan. Dipindah ke atas, kolom Biaya
+   kembali rata kanan sendirian sementara empat kolom lain di tengah.
+
+   Hanya di layar lebar — di HP kolom sudah tidak ada, tiap regu jadi satu
+   blok dua baris dan perataannya diatur grid di bagian bawah berkas ini. */
+@media (min-width: 561px) {
+  .detail-table th, .detail-table td,
+  .detail-table th:last-child, .detail-table td:last-child,
+  .detail-table th.text-right, .detail-table td.text-right { text-align: center; }
+}
+
+/* Cara bayar disimpan huruf kecil di database ('tunai'/'transfer') karena
+   itu nilai CHECK constraint-nya. Yang dibaca panitia tetap huruf kapital
+   di depan. */
+.data-table td[data-label="Metode"] { text-transform: capitalize; }
+.data-table td[data-label="Metode"] .badge { text-transform: none; }
+.table-empty { text-align: center; color: var(--tinta-lembut); padding: 1.4rem .5rem; }
+
+/* Kontrol di dalam sel: cukup besar untuk jari, cukup ringkas untuk tabel. */
+.action-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+/* Cetak Kwitansi + Batalkan berderet ke samping, tidak menumpuk — dua aksi
+   sejajar yang sama-sama milik satu baris lunas. */
+.action-row-rapat { flex-wrap: nowrap; gap: .4rem; }
+/* Keterangan di kiri, tombol Simpan didorong ke KANAN — sejajar kolom
+   nomor dada, tempat mata dan kursor berada setelah mengetik angka
+   terakhir. Tombol di kiri memaksa perjalanan balik melintasi tabel. */
+.action-row-simpan { justify-content: space-between; }
+.action-row-simpan .sub { flex: 1; min-width: 12rem; }
+/* Tombol Simpan selebar kolom Nomor Dada (28%) supaya titik tengahnya jatuh
+   segaris dengan kotak-kotak isian di atasnya — satu pita lurus dari tombol
+   "Isi N Nomor Dada", turun ke kotak isian, turun ke tombol Simpan. Dulu
+   tombol ini menempel ke tepi kanan kartu, jauh di kanan kotak isiannya. */
+@media (min-width: 561px) {
+  .action-row-simpan .button-small { flex: 0 0 28%; }
+}
+
+/* ============================================================================
+   JENDELA SEMPIT TAPI MASIH TABEL (561px - 940px)
+
+   Di sini tabelnya TETAP tabel — bentuk tabel masih terbaca di lebar segini,
+   dan menumpuknya jadi kartu justru membuang ruang yang sebenarnya ada.
+   Yang harus hilang bukan tabelnya, melainkan LAHAN KOSONG di dalamnya.
+
+   Sebabnya patokan persen di blok min-width: 941px: dengan table-layout
+   fixed, kolom Sekolah selalu mendapat 24% lebar tabel entah isinya "SD 3
+   Ciamis" (butuh ~90px) atau nama sekolah tiga kata. Di layar lebar sisa
+   ruang itu tidak terasa; diperkecil, ia jadi dua pita kosong selebar jempol
+   — satu sesudah Sekolah, satu sesudah Metode — sementara kolom tombol di
+   ujung kanan justru terdorong keluar layar.
+
+   Jadi di rentang ini patokan persennya DILEPAS seluruhnya dan lebar kolom
+   diserahkan ke isinya (table-layout: auto). Lahan kosong itu hilang, dan
+   ruang yang dihemat cukup untuk Tagihan, Metode, dan tombolnya tetap muat
+   tanpa menggeser ke samping.
+
+   Yang dikorbankan: kolom rincian tidak lagi jatuh persis di bawah kolom
+   induknya — lebar keduanya kini ditentukan isi masing-masing, bukan angka
+   yang sama. Di rentang ini itu tukar yang benar; tombol yang hilang dari
+   layar jauh lebih merugikan daripada rincian yang meleset beberapa piksel.
+   Di 941px ke atas kesejajarannya kembali utuh.
+   ========================================================================= */
+@media (min-width: 561px) and (max-width: 940px) {
+  .table-bayar, .table-daftar-ulang,
+  .detail-table-bayar, .detail-table-dada {
+    table-layout: auto;
+    min-width: 0;
+    width: 100%;
+  }
+  /* Patokan persen dari blok layar lebar dimatikan satu per satu. `auto`
+     berarti "seukuran isinya", dan itulah yang menghapus lahan kosongnya. */
+  .table-bayar th, .table-bayar td,
+  .table-daftar-ulang th, .table-daftar-ulang td,
+  .detail-table-bayar th, .detail-table-bayar td,
+  .detail-table-dada th, .detail-table-dada td { width: auto; }
+
+  /* Kata pertama label tombol dibuang: "Tandai Lunas" jadi "Lunas", "Cetak
+     Kwitansi" jadi "Kwitansi". Kata keduanya sudah cukup membedakan aksinya,
+     dan ~50px yang dihemat tiap tombol itu yang menentukan muat atau tidak.
+     Di HP (<=560px) tabelnya sudah jadi kartu dan tombolnya melebar penuh
+     sendirian, jadi di sana label lengkap yang benar — "Lunas" sendirian di
+     tombol selebar layar terbaca seperti label status, bukan perintah. */
+  .teks-lebar { display: none; }
+
+  /* Sekolah boleh membungkus, kolom lain jangan — nama sekolah satu-satunya
+     isi yang panjangnya tak terduga, dan ia yang harus mengalah saat sempit. */
+  .table-bayar td:nth-child(2), .table-daftar-ulang td:nth-child(2) {
+    white-space: normal; overflow-wrap: break-word;
+  }
+
+  /* Jarak kiri-kanan sel dirapatkan .5rem -> .3rem. Terlihat sepele, tapi
+     enam kolom dikali dua sisi = ~38px, dan di jendela 620px selisih segitu
+     yang menentukan tabelnya menggeser ke samping atau tidak. */
+  .table-bayar th, .table-bayar td,
+  .table-daftar-ulang th, .table-daftar-ulang td {
+    padding-left: .3rem; padding-right: .3rem;
+  }
+  /* Dropdown ikut dirapatkan. 5rem masih memuat "Transfer" utuh — itu batas
+     bawahnya, jangan dikurangi lagi (lihat catatan di .select-small). */
+  .table-bayar select.select-small { min-width: 5rem; }
+}
+.select-small, .small-input {
+  /* 1rem = 16px, BUKAN .9rem. Di bawah 16px iOS Safari memaksa zoom tiap
+     kali isian disentuh — batas keras di kepala berkas ini, dan sempat
+     terlanggar di sini. */
+  min-height: 40px; padding: .3rem .5rem; font-size: 1rem;
+  border: 1px solid var(--garis); border-radius: 8px; background: #fff;
+  font-family: inherit;
+}
+/* input[type=number] (spesifisitas 0,1,1) mengalahkan .small-input (0,1,0),
+   jadi width:100% dari aturan dasar yang menang dan kotaknya melebar penuh
+   satu kolom. Disamakan spesifisitasnya supaya lebar ringkasnya berlaku. */
+/* Lebar ringkas HANYA untuk kotak ANGKA. Dropdown cara bayar harus selebar
+   isinya — dipaksa 4.5rem, "Transfer" terpotong jadi "Tuna". */
+input.small-input { width: 4.5rem; }
+select.select-small { width: auto; min-width: 6.5rem; }
+input.small-input { text-align: center; }
+/* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
+   tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
+.input-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
+/* Kedip hijau sekejap = "tersimpan", supaya edit langsung di tabel tidak
+   terasa seperti tidak terjadi apa-apa. */
+.select-small.saved, .small-input.saved {
+  border-color: var(--hijau); background: var(--hijau-muda);
+}
+.button-mini {
+  min-height: 34px; padding: .2rem .55rem; font-size: .8rem; width: auto;
+}
+
+.pill-row { display: flex; gap: .3rem; flex-wrap: wrap; align-items: center; }
+.pill-number {
+  display: inline-flex; align-items: baseline; gap: .25rem;
+  background: var(--hijau-muda); color: var(--hijau);
+  border-radius: 999px; padding: .1rem .5rem;
+  font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.pill-number .kloter-pill { font-weight: 600; font-size: .75rem; opacity: .8; }
+.checkbox { width: 26px; height: 26px; accent-color: var(--utama); cursor: pointer; }
+/* Sedang disimpan: DIREDUPKAN, bukan di-disable. Kotak yang di-disable
+   berubah abu-abu dan kehilangan kursor pointer, jadi selama sedetik itu
+   petugas mengira klik-nya tidak masuk dan mengklik lagi. Diredupkan, ia
+   tetap terlihat hidup dan centangnya tetap terbaca. */
+.checkbox.saving { opacity: .55; }
+
+/* ---------- keberangkatan ---------- */
+
+.kloter-strip { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .3rem; }
+.kloter-chip {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: .1rem;
+  border: 2px solid var(--garis); border-radius: var(--radius);
+  background: #fff; padding: .5rem .8rem; cursor: pointer;
+  font-family: inherit; text-align: left; min-height: 56px;
+}
+.kloter-chip .chip-nomor { font-weight: 800; }
+.kloter-chip .chip-ket { font-size: .78rem; color: var(--tinta-lembut); }
+.kloter-chip[aria-pressed="true"] { border-color: var(--utama); background: var(--utama-muda); }
+.kloter-chip.berangkat .chip-nomor { color: var(--hijau); }
+.kloter-chip.siap { border-color: var(--kuning); }
+.kloter-header { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.departure-bar {
+  display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap;
+  margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--garis);
+}
+.departure-bar .button { width: auto; min-width: 240px; }
+
+@media (max-width: 560px) {
+  .table-toolbar { flex-direction: column; align-items: stretch; }
+  .table-count { text-align: right; }
+  .departure-bar .button { width: 100%; min-width: 0; }
+}
+
+/* ---------- menu bawah (HP) ---------- */
+
+/* Pola yang sudah dikenal panitia dari aplikasi belanja: tiga aksi tetap di
+   bawah, selalu terjangkau jempol tanpa menggulir ke atas. Di layar lebar
+   tidak muncul — header di atas sudah cukup dan tidak menghalangi apa pun. */
+.bottom-nav { display: none; }
+
+@media (max-width: 560px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--kartu);
+    border-top: 1.5px solid var(--garis);
+    box-shadow: 0 -2px 10px rgba(0,0,0,.06);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 40;
+  }
+  .bottom-nav[hidden] { display: none; }
+  .bottom-nav-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: .15rem;
+    padding: .45rem .2rem; min-height: 56px;
+    border: 0; background: none; font-family: inherit;
+    color: var(--tinta-lembut); font-size: .72rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+  .bottom-nav-item[aria-current="page"] { color: var(--utama); }
+
+  /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
+  .isi { padding-bottom: 6rem; }
+}
+
+/* ============================================================================
+   AMBANG KEDUA: 900px — tabel BERHENTI jadi tabel.
+
+   Beda dengan 560px di atas, yang mengurus perabot HP (menu bawah, kepala
+   layar). Yang ini mengurus BENTUK TABEL, dan ambangnya jauh lebih tinggi
+   karena ditentukan oleh isi tabelnya, bukan oleh ukuran jempol.
+
+   Angkanya datang dari sini: tabel meja pembayaran butuh 780px supaya enam
+   kolomnya tidak saling menimpa (lihat .table-bayar min-width). Di bawah itu
+   ia harus menggeser ke samping — dan begitu menggeser, kolom paling kanan
+   yang hilang duluan, yaitu kolom TOMBOL. Petugas melihat tabel tanpa
+   "Tandai Lunas" dan tanpa "Isi N Nomor Dada", tidak tahu tombolnya ada.
+   Persis itu yang terjadi di jendela ~720px.
+
+   Jadi di bawah 901px tabelnya tidak dipaksakan sama sekali: tiap baris jadi
+   KARTU bertumpuk, tombolnya melebar penuh dan selalu terlihat. Di atas itu
+   tabel selalu muat tanpa geser samping (901 - padding ≈ 847 > 780).
+
+   Kalau suatu saat kolom ditambah, min-width tabelnya naik — dan ambang ini
+   harus ikut naik, kalau tidak tombol yang hilang itu kembali lagi.
+   ========================================================================= */
+@media (max-width: 560px) {
+  /* ---- tabel BERHENTI jadi tabel ----
+     Enam kolom tidak akan pernah muat di layar sempit, dan menggeser ke
+     samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
+     tombol di sebelah kanan. Jadi tiap baris dijadikan KARTU bertumpuk:
+     tidak ada geser samping sama sekali, semuanya terbaca sekali pandang.
+     Nama kolom dibawa lewat data-label karena <thead> disembunyikan. */
+  /* HANYA baris invoice yang dijadikan blok. Tanpa pembatas ini, aturannya
+     ikut menyapu .detail-table yang bersarang di dalamnya dan mematahkan
+     grid-nya — kotak angka turun ke bawah, bukan sejajar nama regu. */
+  .data-table:not(.table-tetap),
+  .data-table:not(.table-tetap) > tbody,
+  .data-table:not(.table-tetap) > tbody > tr { display: block; }
+  .data-table:not(.table-tetap) > tbody > tr > td { display: block; }
+  .data-table:not(.table-tetap) > thead { display: none; }
+  .table-wrapper { overflow-x: visible; max-height: none; }
+
+  /* .table-tetap = tabel yang TETAP tabel di HP. Keberangkatan adalah
+     CEKLIS: nomor dada, nama regu, kontrak, centang — dibaca menyamping dan
+     disapu mata cepat sambil memberangkatkan kloter. Menumpuknya membuat
+     satu regu memakan lima baris dan justru menghilangkan kemampuan itu.
+     Di sini geser samping bukan cacat, melainkan bentuk yang benar. */
+  .table-wrapper-tetap { overflow-x: auto; }
+  .table-tetap { white-space: nowrap; }
+  .table-tetap th, .table-tetap td { padding: .45rem .5rem; }
+
+  .data-table tbody tr[data-baris] {
+    border: 1.5px solid var(--garis); border-radius: var(--radius);
+    padding: .65rem .75rem; margin-bottom: .7rem; background: var(--kartu);
+  }
+  .data-table tbody tr[data-baris] > td {
+    border: 0; padding: .12rem 0; text-align: left;
+  }
+  /* Label kolom menempel di depan nilainya. Sel tanpa label (kolom aksi)
+     tidak menampilkan apa pun. */
+  .data-table tbody tr[data-baris] > td[data-label]:not([data-label=""])::before {
+    content: attr(data-label) ": ";
+    color: var(--tinta-lembut); font-size: .78rem; font-weight: 600;
+  }
+  .data-table tbody tr[data-baris] > td[data-label="Kode Bayar"] { font-size: 1.05rem; font-weight: 700; }
+  .data-table tbody tr[data-baris] > td:last-child { margin-top: .5rem; }
+  .data-table tbody tr[data-baris] .button-small { width: 100%; }
+  /* Tombol "N regu" punya margin-top .15rem sendiri — warisan dari bentuk
+     tabel, tempat ia menggantung di bawah nama sekolah. Di kartu ini ia
+     duduk sebaris dengan angka tagihan dan dropdown, dan margin itu
+     menurunkan TEKS-nya ~1px dari garis tengah petaknya. Kotaknya sudah
+     rata tengah, yang meleset isinya. */
+  .data-table tbody tr[data-baris] .button-detail { margin-top: 0; }
+
+  /* ---- Kartu invoice HP: dua keterangan per baris ----
+     Enam keterangan bertumpuk satu-satu membuat satu invoice setinggi
+     separuh layar, dan petugas harus menggulir untuk membandingkan dua
+     sekolah. Yang memang dibaca berpasangan disandingkan:
+
+         HRCD37-0C200D   SD 3 Ciamis
+         ▾ 2 regu        Rp 500.000    [Tunai]
+         [       Tandai Lunas        ]
+
+     Kolomnya ditentukan BARIS KEDUA, bukan baris pertama: kolom 1 selebar
+     "▾ 2 regu", kolom 2 selebar angka rupiah, sisanya untuk dropdown. Kode
+     pembayaran yang lebih lebar dari keduanya MELINTASI kolom 1 dan 2 —
+     kalau ia dibiarkan menghuni kolom 1 saja, kolom itu melebar jadi ~131px
+     dan 73px-nya menganggur di baris kedua, sampai dropdown di kolom ketiga
+     terpotong keluar kartu.
+
+     Label kolom dimatikan seluruhnya di kartu ini. Baris kedua harus memuat
+     TIGA keterangan, dan di layar 360px labelnya memakan ~150px — lebih
+     lebar daripada nilai yang mereka namai. Tanpa label pun kartunya tidak
+     kabur: kode pembayaran bentuknya khas (huruf mesin ketik, selalu diawali
+     HRCD), tombol regu menyebut satuannya sendiri, angka rupiah satu-satunya
+     di kartu, dan dropdown satu-satunya kotak yang bisa diketuk. */
+  .data-table.table-bayar tbody tr[data-baris] > td[data-label]::before { content: none; }
+  .table-bayar tbody tr[data-baris] {
+    display: grid;
+    grid-template-columns: max-content max-content 1fr;
+    gap: .2rem .7rem;
+    /* Ditengahkan tegak, bukan rata atas: isi tiap baris tingginya beda —
+       nama sekolah bisa dua baris sementara kodenya satu, dan angka tagihan
+       cuma setinggi teks sementara dropdown di sebelahnya 46px. */
+    align-items: center;
+  }
+  /* Nomor garis ditulis EKSPLISIT (mis. 3 / 4), bukan `-1`. Bentuk `-1` di
+     sini membuat isinya balik ke kolom 1-2 dan bertumpuk dengan kode
+     pembayaran — tercetak saling menimpa. Sudah diuji. Jangan "dirapikan". */
+  .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1 / auto / 3; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]    { grid-area: 1 / 3 / auto / 4; }
+  /* Kolom Regu memuat tombol pembuka rincian — di kartu ini ia berbunyi
+     "▾ 2 regu" lengkap dengan satuannya, karena di sini tidak ada judul
+     kolom yang menyebutkannya. */
+  .table-bayar tbody tr[data-baris] > td[data-label="Regu"]    { grid-area: 2 / 1; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"] { grid-area: 2 / 2; }
+  .table-bayar tbody tr[data-baris] > td[data-label="Metode"]  { grid-area: 2 / 3; }
+  /* Dropdown mengisi kolom ketiga, tapi dibatasi supaya di jendela lebar ia
+     tidak melar selebar kolom — dropdown dua pilihan selebar telapak tangan
+     terbaca seperti kotak isian, bukan pilihan. */
+  .table-bayar tbody tr[data-baris] select.select-small {
+    min-width: 5rem; width: 100%; max-width: 10rem;
+  }
+  .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
+
+  /* ---- Kartu HP meja daftar ulang ----
+         HRCD37-7808B6   SMPN 1 HAHAHA
+         ▾ Isi 5 Nomor Dada
+
+     Kolomnya `max-content 1fr`: kolom kiri persis selebar kode pembayaran
+     dan tidak tergerus, sisanya untuk nama sekolah. */
+  .table-daftar-ulang tbody tr[data-baris] {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .2rem .8rem;
+    /* Ditengahkan tegak, sama seperti kartu meja pembayaran: kode pembayaran
+       memakai huruf yang lebih besar daripada nama sekolah di sebelahnya. */
+    align-items: center;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
+  .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { grid-area: 1 / 2; }
+  /* Tombol pembuka melintang penuh di baris kedua, rapat ke sekolahnya —
+     aksinya membuka daftar milik sekolah yang baru saja dibaca, bukan blok
+     baru yang berdiri sendiri. Kolom Regu sudah tidak ada lagi (jumlahnya
+     tercetak di dalam tombol ini), jadi baris kedua langsung miliknya. */
+  .table-daftar-ulang tbody tr[data-baris] > td:last-child {
+    grid-area: 2 / 1 / auto / 3; margin-top: 0;
+  }
+
+  /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
+     ke kartu invoice di atasnya — bertumpuk, rincian yang mengambang bebas
+     terbaca seperti kartu invoice lain, bukan seperti isi kartu barusan. */
+  .data-table tbody tr.detail-row {
+    display: block;
+    margin: -.7rem 0 .7rem;
+    padding: .1rem .75rem .5rem;
+    background: var(--kertas);
+    border: 1.5px solid var(--garis);
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+  .data-table tbody tr.detail-row > td { display: block; padding: 0; border: 0; }
+  /* Sudut bawah kartu invoice diratakan selama rinciannya terbuka, supaya
+     sambungannya tidak menyisakan takik. Browser tanpa :has() melewatkan
+     aturan ini dan hanya kehilangan kerapian itu. */
+  .data-table tbody tr[data-baris]:has(+ tr.detail-row:not([hidden])) {
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  }
+
+}
+
+@media (max-width: 560px) {
+  /* Tombol header pindah ke menu bawah — sisakan judul dan identitas akun
+     saja. Tetap di ambang 560px, bukan 900px: yang menggantikannya adalah
+     menu bawah, dan menu bawah hanya muncul di HP. */
+  .header .icon-button, .header .button-small { display: none; }
+}
+
+/* ============================================================================
+   LEMBAR INPUT POS
+
+   Layar terlebar di seluruh sistem: empat kolom identitas + satu kolom per hal
+   yang dinilai + Nilai Pos + status simpan. Pos 1 sudah 11 kolom, dan
+   jumlahnya ditentukan konfigurasi — bisa bertambah tahun depan tanpa ada
+   yang menyentuh berkas ini.
+
+   Karena itu tabel ini SATU-SATUNYA yang memang boleh menggeser ke samping.
+   Aturan "kolom paling kanan tidak boleh hilang" di layar meja berlaku karena
+   di sana kolom terakhir berisi tombol; di sini kolom terakhir hanya penanda
+   tersimpan, dan yang dikerjakan petugas ada di tengah. Yang dijaga justru
+   nomor dada: ia dipatok di tepi kiri supaya tetap terlihat sejauh apa pun
+   tabelnya digeser — tanpa itu, petugas yang menggulir ke kolom kelima tidak
+   lagi tahu sedang menilai regu yang mana.
+   ========================================================================== */
+
+/* Tabelnya MEMENUHI kartu, tapi kolomnya tetap rapat di kiri. Dua hal yang
+   kedengarannya bertentangan, dan keduanya memang dibutuhkan:
+
+   - Kalau tabel dibiarkan selebar isinya saja, kartu putihnya ikut menyusut
+     dan tepi kanannya berhenti di tengah layar.
+   - Kalau lebar sisanya dibagi rata ke semua kolom (perilaku bawaan tabel
+     selebar 100%), kotak isian saling menjauh — dan itu terasa di tangan,
+     bukan di mata: perjalanan dari kolom pertama ke kolom terakhir jadi jauh
+     lebih panjang daripada yang dibutuhkan, tiga ratus kali sehari.
+
+   Jalan keluarnya ada di kolom TERAKHIR (lihat aturan .pos-status di bawah):
+   satu kolom diberi width 100% sehingga ia menelan SELURUH sisa lebar, dan
+   kolom lain berhenti di ukuran isinya masing-masing. */
+.table-pos { table-layout: auto; width: 100%; min-width: 0; }
+.table-pos th, .table-pos td { padding: .4rem .45rem; }
+/* Isi sel tidak membungkus; JUDUL kolom justru harus. */
+.table-pos td { white-space: nowrap; }
+.table-pos thead th { white-space: normal; }
+/* Nama regu dan organisasi TIDAK membungkus. Sempat boleh, dan begitu kolom
+   terakhir jadi serakah merekalah yang membayar: keduanya menyusut sampai
+   batas bawahnya dan "KALAKI RACING" pecah jadi dua baris, sementara 695px
+   menganggur di ujung kanan. Kolom yang boleh membungkus selalu kalah dari
+   kolom yang menuntut lebar.
+
+   Aman karena sisa lebarnya besar: nama harus mencapai ~90 huruf sebelum
+   tabelnya benar-benar meluap, dan kalaupun itu terjadi, kolom Nomor Dada
+   sudah dipatok di tepi kiri sehingga barisnya tetap bisa dikenali. */
+.table-pos td:nth-child(2), .table-pos td:nth-child(3) { white-space: nowrap; }
+
+/* Nama kolom penilaian dipatok 6rem lalu dibiarkan membungkus. Tanpa patokan
+   ini "BALAP KARUNG" dan "KEPRAMUKAAN KEAGAMAAN" berdiri satu baris dan
+   MEREKALAH yang menentukan lebar kolomnya — kotak isian selebar 4,5rem lalu
+   mengambang di tengah petak dua kali lebarnya. Block, bukan inline: hanya
+   block yang menghormati max-width di dalam sel tabel. */
+/* 7,25rem = 116px, cukup untuk kata terpanjang yang ada sekarang
+   ("KEPRAMUKAAN" butuh 113px). Patokan ini TIDAK melebarkan kolom lain:
+   tiap kolom tetap seukuran judulnya sendiri, dan "SEMAPHORE" berhenti di
+   91px. overflow-wrap adalah jaring pengamannya — nama komponen ditulis
+   panitia tiap tahun, dan kata yang lebih panjang lagi harus memotong diri
+   sendiri, bukan meluap menabrak kolom sebelahnya (yang persis terjadi saat
+   patokannya masih 6rem). */
+.kolom-nama {
+  display: block; max-width: 7.25rem; margin: 0 auto;
+  overflow-wrap: break-word;
+}
+
+/* Rentang yang boleh diketik, di bawah nama kolomnya — sama seperti "(0 - 20)"
+   yang tercetak di judul kolom lembar kertas. */
+.kolom-petunjuk {
+  display: block; font-weight: 500; font-size: .72rem;
+  color: var(--tinta-lembut); text-transform: none; letter-spacing: 0;
+}
+
+/* Nomor dada dipatok di tepi kiri. z-index 2 supaya ia lewat DI ATAS sel
+   biasa saat digeser, tapi tetap DI BAWAH kepala tabel yang juga menempel
+   (z-index 1 pada .data-table thead th, jadi kepalanya diberi 3 di bawah). */
+.table-pos td:first-child, .table-pos th:first-child {
+  position: sticky; left: 0; z-index: 2; background: var(--kartu);
+  box-shadow: 1px 0 0 var(--garis);
+}
+.table-pos thead th:first-child { z-index: 3; background: var(--kertas); }
+.table-pos tbody tr:hover td:first-child { background: var(--utama-muda); }
+
+/* Dua kotak yang sebenarnya satu nilai: Menit : Detik, atau Benar / Salah. */
+.pos-pasangan { display: inline-flex; align-items: center; gap: .25rem; }
+.pos-pasangan input.small-input { width: 3.4rem; }
+.pos-pemisah { color: var(--tinta-lembut); font-weight: 700; }
+
+/* Nilai Pos: angka yang dicari mata saat menyapu tabel dari atas ke bawah. */
+.pos-nilai {
+  font-weight: 800; font-variant-numeric: tabular-nums; font-size: 1.05rem;
+}
+/* Kolom penyerap. width 100% pada SATU kolom tabel auto-layout membuatnya
+   mengambil semua lebar yang tersisa, sehingga kolom lain tidak ikut melar.
+   Isinya (tanda ✓ / tombol Ulangi) tetap menempel kiri, jadi ia berdiri
+   persis di sebelah Nilai Pos dan lahan kosongnya jatuh di ujung kanan —
+   tempat yang memang tidak dikerjakan siapa pun. */
+.table-pos th:last-child, .table-pos td:last-child { width: 100%; }
+.pos-status { text-align: left; padding-left: .8rem; }
+
+/* Baris yang gagal tersimpan. Diberi warna SEBARIS PENUH, bukan hanya di
+   kolom statusnya: petugas sedang menatap kolom nilai di tengah tabel, dan
+   tanda sebesar satu sel di ujung kanan tidak akan pernah tertangkap. */
+.table-pos tbody tr.baris-gagal td { background: var(--bahaya-muda); }
+.table-pos tbody tr.baris-gagal td:first-child { background: var(--bahaya-muda); }
+
+@media (max-width: 560px) {
+  /* Lembar ini memakai .table-tetap (lihat blok "tabel BERHENTI jadi tabel"
+     di atas), jadi di HP ia TIDAK ditumpuk jadi kartu. Itu disengaja: satu
+     regu di Pos 1 akan jadi kartu setinggi 11 baris, dan menilai 300 regu
+     berarti menggulir 3.300 baris. Bentuk tabel itulah yang membuat "isi
+     kolom Semaphore, turun ke regu berikutnya" masuk akal. Yang dikecilkan
+     di sini hanya jaraknya. */
+  .table-pos th, .table-pos td { padding: .3rem .3rem; }
+  .table-pos input.small-input { width: 3.6rem; }
+  .table-pos .pos-pasangan input.small-input { width: 2.9rem; }
+  .table-pos td:nth-child(2), .table-pos td:nth-child(3) { min-width: 7.5rem; }
+}
+
+/* ---------------------------------------------------------------------------
+   PITA KEADAAN SIMPAN
+
+   Sebaris kalimat di atas tabel yang menjawab satu pertanyaan tanpa perlu
+   ditekan: "angka yang barusan saya ketik sudah masuk database atau belum?"
+   Bentuknya meniru Google Sheets, karena panitia sudah terbiasa dengannya —
+   cap waktu yang bergerak sendiri lebih dipercaya daripada tulisan
+   "tersimpan" yang tidak pernah berubah.
+
+   Ditaruh DI ATAS tabel, bukan di bawah: tabelnya bergulir sendiri, jadi apa
+   pun di bawahnya bisa berada di luar layar justru saat petugas sedang
+   mengetik di baris ke-80.
+   ------------------------------------------------------------------------- */
+.pos-simpan {
+  margin: 0 0 .6rem; padding: .45rem .7rem;
+  border-radius: 8px; font-size: .87rem; font-weight: 600;
+  border: 1px solid transparent;
+}
+.pos-simpan.aman     { background: var(--hijau-muda);  color: var(--hijau);  border-color: var(--hijau); }
+.pos-simpan.menunggu { background: var(--kuning-muda); color: var(--kuning); border-color: var(--kuning); }
+/* Merah TIDAK dipudarkan seperti dua keadaan di atas. Ini satu-satunya
+   keadaan yang berarti "ada nilai yang bisa hilang", dan ia harus tertangkap
+   mata orang yang sedang menatap kolom lain. */
+.pos-simpan.bahaya {
+  background: var(--bahaya); color: #fff; border-color: var(--bahaya);
+  font-weight: 700;
+}
+
+/* Baris yang sudah diketik tapi belum terkirim. Kuning tipis — cukup untuk
+   dilihat saat mata menyapu, tidak cukup untuk mengaburkan angkanya. */
+.table-pos tbody tr.baris-belum td { background: var(--kuning-muda); }
+.table-pos tbody tr.baris-belum td:first-child { background: var(--kuning-muda); }

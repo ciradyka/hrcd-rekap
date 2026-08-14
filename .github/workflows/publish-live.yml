@@ -2,7 +2,14 @@
 # hrcd-rekap : publish-live.yml — tulis live.json lalu deploy halaman rekap.
 #
 # Halaman rekap peserta TIDAK membaca database. Workflow inilah yang membaca,
-# menulis hasilnya jadi satu berkas statis, lalu men-deploy folder live/.
+# menulis hasilnya jadi satu berkas statis, lalu men-deploy folder live/ —
+# yang sejak 14 Agustus 2026 juga memuat FORM PENDAFTARAN. Artinya workflow
+# ini satu-satunya jalur deploy situs peserta, termasuk saat yang berubah
+# hanya daftar.html.
+#
+# PROJECT `hrcd37` DI CLOUDFLARE TIDAK BOLEH TERSAMBUNG GIT. Kalau tersambung,
+# tiap push ke main akan menimpa live.json dengan berkas contoh fase 'pra'
+# yang ada di repo, dan rekap peserta mendadak kosong tanpa ada yang gagal.
 # Ratusan HP peserta hanya menyentuh hosting statis Cloudflare — nol
 # permintaan ke Supabase, dan halaman itu tidak perlu membawa kunci apa pun
 # (docs/rancangan-b.md bagian 7).

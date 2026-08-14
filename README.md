@@ -29,16 +29,18 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 ```
 .
 ├── docs/                     # spesifikasi, catatan keputusan, arsitektur
-├── web/                      # SPA statis — layar panitia + form pendaftaran
+├── web/                      # SPA statis — layar panitia (panitia-hrcd37)
 │   ├── index.html            # layar panitia (butuh login)
-│   ├── daftar.html           # form pendaftaran publik
 │   ├── js/                   # api.js, app.js, daftar.js, util.js
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
 │   └── wrangler.toml         # deploy Workers static assets
-├── live/                     # halaman rekap live peserta (Worker TERPISAH,
-│                             # tanpa kunci apa pun, isinya dari live.json)
+├── live/                     # situs PESERTA (hrcd37) — Worker TERPISAH:
+│   ├── daftar.html           # form pendaftaran publik
+│   ├── index.html            # rekap live (centang per pos, isinya live.json)
+│   └── js/, style.css, …     # SALINAN dari web/ — jangan disunting di sini,
+│                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
 │   ├── migrations/           # skema database, urut 0001..0026
@@ -50,7 +52,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   ├── run.sh                # jalankan semuanya di database lokal
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
 │   └── static_server.py      # penyaji web/ tanpa cache
-├── .github/workflows/        # 6 workflow (lihat final-architecture.md)
+├── .github/workflows/        # 7 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
 └── AGENTS.md                 # salinan identik CLAUDE.md
 ```
