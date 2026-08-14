@@ -1866,6 +1866,25 @@ function selKomponen(k, nilai) {
   const n2 = nilai ? nilai.nilai_2 : null;
   const kode = esc(k.kode);
 
+  /* KOTAK KOSONG YANG MENYEBUT DIRINYA KOSONG — tapi hanya di tempat yang
+     membutuhkannya.
+
+     Di hampir semua lomba, kosong dan 0 berujung sama: nol kata benar dan
+     belum dinilai sama-sama menyumbang 0 poin, jadi menandai kotak kosong
+     tidak menjawab pertanyaan siapa pun — ia cuma menambah 38 garis kecil di
+     tabel yang sudah penuh.
+
+     Menaksir kebalikannya. Yang ditulis SELISIH, jadi 0 berarti taksirannya
+     tepat dan bernilai 100 — nilai tertinggi — sementara kotak kosong berarti
+     tidak dinilai dan bernilai 0. Di sanalah satu garis kecil sepadan.
+
+     Penandanya ikut `petunjuk`, bukan daftar kode di dalam kode ini. Komponen
+     yang sampai butuh keterangan sendiri adalah persis komponen yang kotak
+     kosongnya perlu bicara — dan kalau tahun depan ada lomba lain yang diberi
+     `petunjuk`, ia mendapat garis itu juga. Itu perilaku yang dimaksud, bukan
+     kejutan. */
+  const kosongTampak = k.petunjuk ? ` placeholder="–"` : "";
+
   if (k.form === "biner") {
     return `<input type="checkbox" class="checkbox" data-kode="${kode}"
                    ${Number(n1) > 0 ? "checked" : ""}
@@ -1877,7 +1896,7 @@ function selKomponen(k, nilai) {
     // jadi yang hilang cuma tombol panah naik-turun yang memang tidak pernah
     // dipakai untuk mencatat waktu.
     return `<input type="text" class="small-input input-waktu" inputmode="numeric"
-                   data-kode="${kode}" value="${esc(detikTeks(n1))}" placeholder="–"
+                   data-kode="${kode}" value="${esc(detikTeks(n1))}"${kosongTampak}
                    aria-label="${esc(k.name)} — detik, atau menit:detik">`;
   }
   if (k.form === "benar_kurang_salah") {
@@ -1891,19 +1910,12 @@ function selKomponen(k, nilai) {
              aria-label="${esc(k.name)} — jumlah salah">
     </span>`;
   }
-  // placeholder "–" : kotak kosong yang MENYEBUT dirinya kosong.
-  //
-  // Untuk sebagian besar lomba beda antara kosong dan 0 tidak penting — nol
-  // kata benar dan belum dinilai sama-sama 0 poin. Untuk Menaksir keduanya
-  // berlawanan sejauh mungkin: selisih 0 m berarti tepat, 100 poin, sementara
-  // kotak kosong berarti tidak dinilai, 0 poin.
-  //
-  // Sengaja placeholder, bukan nilai. Menyimpan keadaan ketiga bernama "–"
-  // akan memaksa setiap tempat yang membaca angka ini menebak maksudnya,
-  // padahal database hanya punya dua: ada barisnya, atau tidak.
+  // Sengaja placeholder, bukan nilai tersimpan. Menyimpan keadaan ketiga
+  // bernama "–" akan memaksa setiap tempat yang membaca angka ini menebak
+  // maksudnya, padahal database hanya punya dua: ada barisnya, atau tidak.
   return `<input type="number" class="small-input" inputmode="decimal" step="any"
                  min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
-                 data-kode="${kode}" value="${esc(angkaRapi(n1))}" placeholder="–"
+                 data-kode="${kode}" value="${esc(angkaRapi(n1))}"${kosongTampak}
                  aria-label="${esc(k.name)}">`;
 }
 
