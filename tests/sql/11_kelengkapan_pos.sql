@@ -25,9 +25,14 @@ begin
 
   -- Pos tanpa komponen (garis start & finish) tidak boleh muncul: kolom yang
   -- selamanya 0/0 terbaca sebagai pos yang panitianya lalai.
+  --
+  -- Aliasnya SENGAJA bukan `k` atau `p`. Blok ini punya variabel `k record`,
+  -- dan plpgsql memenangkan variabel di atas alias SQL — `k.pos` di dalam
+  -- subquery akan dibaca sebagai variabel yang belum terisi, dan galatnya
+  -- ("record k is not assigned yet") sama sekali tidak menunjuk ke sini.
   assert not exists (
-    select 1 from v_kelengkapan_pos k
-    join v_pos p on p.nomor = k.pos where p.jumlah_komponen = 0),
+    select 1 from v_kelengkapan_pos kel
+    join v_pos vp on vp.nomor = kel.pos where vp.jumlah_komponen = 0),
     'pos tanpa komponen ikut masuk panel kelengkapan';
 
   for k in select * from v_kelengkapan_pos loop
