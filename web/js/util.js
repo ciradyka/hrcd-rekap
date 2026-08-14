@@ -79,16 +79,17 @@ export function tanggalJam(t) {
   return `${tanggalPanjang(t)} ${jamMenit(t)}`;
 }
 
-/** Cincin berputar di tengah layar, menggantikan tulisan "Memuat…".
+/** Cincin berputar di TENGAH layar, menggantikan tulisan "Memuat…".
  *
- *  YANG PALING MENENTUKAN DI SINI BUKAN BENTUKNYA, MELAINKAN JEDANYA.
+ *  Tampil SEKETIKA, tanpa jeda. Versi sebelumnya menahannya 180 ms supaya
+ *  muat yang cepat tidak berkedip; akibatnya layar terlihat kosong dulu
+ *  sebelum apa pun terjadi, dan diam itu justru terbaca sebagai macet.
+ *  Kedipan sesekali ternyata harga yang lebih murah daripada keraguan
+ *  "ini jalan atau tidak" pada tiap perpindahan layar.
  *
- *  Sebagian besar layar meja terisi di bawah 200 ms. Penanda muat yang tampil
- *  seketika karena itu lebih sering terlihat sebagai KEDIPAN — muncul dan
- *  hilang sebelum sempat dibaca — dan kedipan terasa seperti layar yang
- *  tersendat, bukan layar yang cepat. Maka cincin ini punya
- *  `animation-delay` 180 ms: kalau datanya keburu datang, ia tidak pernah
- *  terlihat sama sekali. Yang melihatnya hanya orang yang memang menunggu.
+ *  Letaknya di tengah, bukan menempel di bawah header — mata mencari
+ *  penanda muat di tempat isi halaman akan muncul, bukan di baris pertama.
+ *  Tingginya diatur `.pemuat` di style.css.
  *
  *  `role="status"` + satu baris tersembunyi menjaga pembaca layar tetap
  *  mendapat kabar — bagi mereka perputaran tidak berarti apa-apa. */
