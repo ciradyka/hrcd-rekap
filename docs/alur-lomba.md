@@ -387,7 +387,45 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 1. **Aturan penilaian berubah setiap tahun.** Sistem harus dapat diubah tanpa
    mengubah kode. Yang berikut ini adalah konfigurasi edisi berjalan, bukan
    aturan tetap.
-2. Bobot setiap pos **sama rata**.
+2. **Yang setara adalah LOMBA, bukan pos.** Satuan penilaian adalah lomba, dan
+   tiap lomba bernilai maksimum **100**. Maksimum sebuah pos karena itu bukan
+   angka tetap melainkan hasil hitungan:
+
+   ```
+   maksimum pos = 100 × jumlah lomba di pos itu
+   ```
+
+   Pos berisi tiga lomba bernilai 300; pos berisi satu lomba bernilai 100; pos
+   berisi lima lomba bernilai 500. Tidak ada batas atas yang perlu dijaga —
+   angkanya mengikuti apa pun yang panitia susun tahun itu.
+
+   Edisi XXXVII kebetulan begini:
+
+   | Pos | Lomba | Maksimum |
+   | --- | --- | --- |
+   | 1 Kepramukaan | Semaphore, Tebak Simpul, Menaksir | 300 |
+   | 2 Halang Rintang | Bakiak, Lari Balok, Balap Karung | 300 |
+   | 3 P3K | Bidai, Kim Lihat, Kim Cium | 300 |
+   | 4 PBB | PBB | 100 |
+   | 5 Yel-Yel | Yel-Yel | 100 |
+
+   Akibatnya nyata dan disengaja: regu yang sempurna di Pos 1 mendapat 300,
+   yang sempurna di PBB mendapat 100 — Pos 1 tiga kali lebih menentukan
+   peringkat. Itu bukan ketimpangan, melainkan cara menghitung yang mengikuti
+   jumlah lomba yang benar-benar dikerjakan regu di sana.
+
+   Satu hal yang perlu diperhatikan saat menyusun pos tahun depan: **memindah
+   satu lomba dari satu pos ke pos lain mengubah bobot keduanya**, karena
+   bobot pos tidak pernah ditulis — ia lahir dari jumlah lombanya.
+
+   > Sampai HRCD XXXVI baris ini berbunyi "bobot setiap pos sama rata", dan
+   > waktu itu benar: tiap pos memang satu paket penilaian. Format XXXVII
+   > memecah pos menjadi beberapa lomba yang berjalan bersamaan, dan sejak itu
+   > "pos" berhenti menjadi satuan yang bisa disetarakan.
+   >
+   > Kolom `pos.bobot` tetap ada dan tetap 1,00 untuk semua. Ia masih jalan
+   > keluar bila suatu tahun panitia ingin menyetarakan pos — tidak perlu
+   > mengubah kode, cukup mengubah angkanya.
 3. Total skor = **jumlah skor seluruh pos − seluruh penalti** (bagian 10).
 4. **Penentu peringkat saat skor seri: ketepatan waktu.** Regu dengan selisih
    waktu lebih kecil terhadap targetnya menempati peringkat lebih tinggi. Ini
