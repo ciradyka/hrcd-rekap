@@ -79,6 +79,19 @@ export function tanggalJam(t) {
   return `${tanggalPanjang(t)} ${jamMenit(t)}`;
 }
 
+/** "barusan" · "23 menit lalu" · "2 jam lalu".
+ *
+ *  Umur sebuah cap, bukan jamnya. Dipakai berdampingan dengan `jamMenit`,
+ *  tidak menggantikannya: "14:32" menjawab kapan, "(23 menit lalu)" menjawab
+ *  apakah itu masih baru — dan orang yang baru menoleh ke layar butuh
+ *  keduanya sekaligus. */
+export function berapaLalu(t) {
+  const menit = Math.floor((Date.now() - new Date(t).getTime()) / 60000);
+  if (menit < 1) return "barusan";
+  if (menit < 60) return `${menit} menit lalu`;
+  return `${Math.floor(menit / 60)} jam lalu`;
+}
+
 /** Membaca jam yang DIKETIK panitia dan mengembalikannya sebagai "HH:MM"
  *  24 jam — atau `null` kalau bukan jam yang sah.
  *

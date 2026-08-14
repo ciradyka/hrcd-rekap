@@ -1511,3 +1511,53 @@ input.small-input { text-align: center; }
   color: var(--hijau); font-weight: 800; font-size: 1.05rem; line-height: 1;
 }
 .table-rekap .rekap-tidak { color: var(--garis); font-weight: 700; }
+
+/* ---------------------------------------------------------------------------
+   PANEL KELENGKAPAN POS (#/rekap)
+
+   Satu kartu per pos, dan kartunya adalah TOMBOL: mengetuknya menyaring tabel
+   di bawah ke regu yang belum lengkap di pos itu. Membaca angka lalu harus
+   mencari sendiri regu mana yang kurang adalah pekerjaan yang justru paling
+   memakan waktu saat hari-H.
+
+   Warna dipakai hemat, dan artinya tunggal: merah HANYA untuk regu yang sudah
+   selesai lomba tapi nilainya belum lengkap. Kalau kuning dan merah sama-sama
+   berarti "kurang", panel ini akan menyala sepanjang pagi dan berhenti dibaca
+   orang justru sebelum keadaan yang sungguhan muncul.
+   ------------------------------------------------------------------------- */
+.lengkap-baris {
+  display: grid; gap: .6rem; margin-top: .6rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.lengkap-kartu {
+  display: flex; flex-direction: column; gap: .12rem;
+  text-align: left; font: inherit; cursor: pointer;
+  padding: .6rem .7rem; min-height: 44px;
+  border: 2px solid var(--garis); border-radius: var(--radius);
+  background: var(--kartu); color: inherit;
+}
+.lengkap-kartu:hover { border-color: var(--utama); }
+.lengkap-kartu.aktif {
+  border-color: var(--utama); background: var(--utama-muda);
+  box-shadow: inset 0 0 0 1px var(--utama);
+}
+.lengkap-kartu.aman     { border-color: var(--hijau);  background: var(--hijau-muda); }
+.lengkap-kartu.menunggu { border-color: var(--kuning); background: var(--kuning-muda); }
+.lengkap-kartu.bahaya   { border-color: var(--bahaya); background: var(--bahaya-muda); }
+
+.lengkap-judul {
+  font-weight: 700; font-size: .82rem; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--tinta-lembut);
+}
+.lengkap-angka {
+  font-size: 1.6rem; font-weight: 800; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.lengkap-dari { font-size: 1rem; font-weight: 600; color: var(--tinta-lembut); }
+.lengkap-sub, .lengkap-catatan { font-size: .78rem; color: var(--tinta-lembut); }
+/* Satu-satunya baris yang boleh berteriak. */
+.lengkap-alarm { font-size: .8rem; font-weight: 700; color: var(--bahaya); }
+/* Pos yang berhenti menyetor lebih dari 30 menit. Kalimat ini yang membuat
+   kartunya kuning, jadi ia harus ikut terlihat kuning — kalau tidak, warna
+   kartunya jadi teka-teki. */
+.lengkap-diam { color: var(--kuning); font-weight: 700; }
