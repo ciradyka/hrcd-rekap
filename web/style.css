@@ -513,6 +513,58 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   @page lembar-pos { size: A4 landscape; margin: 10mm; }
   .lembar-pos { page: lembar-pos; }
 
+  /* ---- Slip nilai: DELAPAN per A4 potret ----
+     Bentuk kertas yang paling banyak dicetak di seluruh sistem. 500 regu di
+     pos berisi tiga lomba adalah 1.500 slip; pada jumlah itu, selisih empat
+     dan delapan slip per halaman adalah 188 lembar kertas untuk satu pos saja.
+
+     Ukurannya jadi 4 baris x 2 kolom dari A4 potret = kira-kira 99 x 68 mm,
+     selebar telapak tangan. Yang harus muat di dalamnya cuma satu angka besar,
+     tiga baris identitas, satu kotak isian, dan satu tanda tangan pendek —
+     diukur pada huruf 9pt, bukan dikira.
+
+     Garis putus-putus adalah panduan gunting. Border penuh akan membuat dua
+     slip bersebelahan punya garis ganda setelah dipotong, dan tumpukan yang
+     tepinya tidak rata jauh lebih sulit disortir daripada yang rata. */
+  @page slip-halaman { size: A4 portrait; margin: 6mm; }
+  .slip-halaman {
+    page: slip-halaman;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;
+    gap: 0;
+    height: 285mm;
+  }
+  .slip {
+    border: 1px dashed #666;
+    padding: 3mm 3.5mm;
+    display: flex;
+    flex-direction: column;
+    font-size: 9pt;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+  .slip-kepala {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 2mm; border-bottom: 1px solid #000; padding-bottom: 1mm;
+  }
+  /* Nomor dada sebesar mungkin tanpa mendorong nama lomba turun. Seluruh
+     alurnya berakhir pada mengurutkan ratusan lembar lepas, dan itu dilakukan
+     sambil melihat sudut kertas saja — lihat alur-lomba.md 8.4. */
+  .slip-dada { font-size: 20pt; font-weight: 700; letter-spacing: .5pt; }
+  .slip-lomba { font-size: 8pt; font-weight: 700; text-align: right; }
+  .slip-regu { font-weight: 700; margin: 1.5mm 0 0; }
+  .slip-asal { font-size: 8pt; margin: .5mm 0 0; }
+  /* Kotak isian didorong ke bawah supaya letaknya sama di setiap slip —
+     tangan yang menulis 1.500 kali tidak perlu mencarinya dua kali. */
+  .slip-isian { margin-top: auto; display: flex; gap: 3mm; align-items: flex-end; }
+  .slip-kotak { display: flex; flex-direction: column; gap: .8mm; flex: 1; }
+  .slip-petunjuk { font-size: 7pt; }
+  .slip-kotak .isian {
+    display: block; height: 9mm; border: 1px solid #000; border-radius: 1mm;
+  }
+  .slip-kaki { font-size: 7pt; margin: 2mm 0 0; }
+
   /* ---- kerapatan baris ----
      Yang harus muat dalam satu A4 potret: kepala halaman + 30 baris + catatan
      kaki. Karena itu SEMUANYA di lembar ini lebih rapat daripada cetakan lain

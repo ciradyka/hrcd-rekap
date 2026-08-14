@@ -378,25 +378,41 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    lahir dari tabel `wahana`, sehingga kertas tahun depan ikut berubah sendiri
    begitu konfigurasi penilaiannya diganti.
 
-   Ada tiga bentuk, dan hanya dua yang sudah jadi:
+   Ada **tiga bentuk**, dan panitia menyebutnya begini:
 
-   | Bentuk | Isi | Untuk |
+   | Bentuk | Isi | Dipakai |
    | --- | --- | --- |
-   | **Lembar pos** | satu halaman, semua lomba, 30 regu | pos yang dinilai satu meja |
-   | **Lembar per lomba** | satu set halaman tiap lomba, 30 regu | menyiapkan lomba paralel |
-   | **Slip per regu** *(belum ada)* | satu kertas kecil, satu lomba, satu regu | alur poin 3 |
+   | **Form per lomba** | satu kertas, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
+   | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | pos yang dinilai satu meja |
+   | **Form tabel per pos online** | layar Input Pos | tim IT memasukkan isi kotak |
 
-   **Alur poin 3 membutuhkan bentuk ketiga**, dan itu belum dibuat. Dua yang
-   pertama sama-sama memuat 30 regu dalam satu halaman, jadi keduanya baru
-   bisa berpindah ke kotak setelah baris terakhirnya terisi — persis yang
-   dihindari alur ini.
+   **Form per lomba adalah bentuk yang paling banyak dicetak, dan jumlahnya
+   besar.** 500 regu di pos berisi tiga lomba berarti **1.500 kertas untuk Pos
+   1 saja**. Karena itu delapan slip dimuat dalam satu A4 potret, bukan satu:
+   pada jumlah sebesar itu, selisih empat dan delapan per halaman adalah 188
+   lembar untuk satu pos.
+
+   Tiga hal yang dikerjakan form per lomba dan **tidak bisa** dikerjakan form
+   tabel:
+
+   - **Nomor dada dicetak besar di pojok kiri atas** (poin 4).
+   - **Rentangnya milik regu itu.** Di tabel, kolom Tebak Simpul harus menulis
+     `0 – 10 / 0 – 5` karena satu kolom melayani empat golongan. Di form per
+     lomba, regu Penggalang melihat `0 – 5` saja dan tidak ada yang perlu
+     dipilih petugas.
+   - **Golongan yang tidak berhak tidak dapat kertasnya sama sekali** — bukan
+     dapat lalu dicoret.
+
+   Form tabel tidak digantikan. Pos yang dinilai satu meja oleh satu juri —
+   PBB, Yel-Yel — lebih cepat dengan satu halaman berisi 30 regu, dan di sana
+   tidak ada kertas yang perlu berpindah di tengah lomba.
 
    Satu kolom sengaja **tidak** ikut dicetak di bentuk mana pun: **Nilai Pos**.
    Petugas lapangan hanya menulis data mentah dan tidak pernah menjumlahkan
    sendiri (poin 1) — kotak berjudul Nilai Pos justru mengundang hitungan
-   tangan yang berbeda dengan angka sistem. Di lembar per lomba dan slip per
-   regu alasannya bertambah satu: kertas yang hanya memuat sebagian pos tidak
-   punya cukup bahan untuk menghitungnya.
+   tangan yang berbeda dengan angka sistem. Di form per lomba alasannya
+   bertambah satu: kertas yang hanya memuat satu lomba tidak punya cukup bahan
+   untuk menghitungnya.
 
 9. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
