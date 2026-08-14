@@ -99,6 +99,11 @@ run tests/sql/12_pesan_rentang.sql
 # setelah database uji penuh nilai, supaya penolakan itu ikut terbukti —
 # dan supaya tes 02-12 tetap memakai konfigurasi yang mereka andalkan.
 run supabase/migrations/0032_konfigurasi_xxxvii.sql
+# 0033 menggantikan 0032 (Pos 1 = Kepramukaan); 0034 membetulkan dua nama
+# terakhir. Keduanya ikut dijalankan supaya berkasnya tetap teruji, walau
+# di database uji 0033 menolak memasang data — persis seperti 0032.
+run supabase/migrations/0033_nama_pos_xxxvii.sql
+run supabase/migrations/0034_nama_pos_final.sql
 run tests/sql/13_komponen_per_golongan.sql
 
 echo "SEMUA TES LULUS"
