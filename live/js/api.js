@@ -445,6 +445,7 @@ export async function komponenSemua(edisi) {
   return baca(null,
     `wahana?edisi=eq.${encodeURIComponent(edisi)}` +
     `&select=pos,kode,name,type,form,poin_maks,satuan,total_soal,` +
+    `golongan,petunjuk,` +
     `rentang_mentah_min,rentang_mentah_maks,sort_order` +
     `&order=pos.asc,sort_order.asc`);
 }

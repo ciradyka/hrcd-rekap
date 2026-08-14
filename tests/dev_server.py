@@ -140,7 +140,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select kode, name, type, form, poin_maks, raw_terbaik, "
                     "       raw_terburuk, poin_benar, poin_salah, total_soal, "
-                    "       tingkat, satuan, rentang_mentah_min, "
+                    "       tingkat, satuan, golongan, petunjuk, rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() and pos = %s "
                     "order by sort_order",
@@ -150,6 +150,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 # Rekapitulasi (#/rekap).
                 self._kirim(200, q(
                     "select pos, kode, name, type, form, poin_maks, satuan, "
+                    "       golongan, petunjuk, "
                     "       total_soal, rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() "

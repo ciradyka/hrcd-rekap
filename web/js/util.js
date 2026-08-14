@@ -160,6 +160,49 @@ export function jamSah(teks) {
   return `${dua(j)}:${dua(m)}`;
 }
 
+/** WAKTU LOMBA, SATU KOTAK. Menerima apa pun yang tertera di stopwatch:
+ *
+ *    "32"    -> 32 detik        "0:32"  -> 32 detik
+ *    "1:10"  -> 70 detik        "95"    -> 95 detik
+ *
+ *  Aturannya satu kalimat: ada titik dua berarti menit:detik, tanpa titik dua
+ *  berarti detik. Tidak ada tebakan di antaranya — "120" selalu 120 detik,
+ *  tidak pernah 1 menit 20.
+ *
+ *  Dulu ini dua kotak, Menit dan Detik terpisah. Yang membunuhnya bukan selera
+ *  melainkan hitungan: tangga poin Pos 2 habis di 40 detik, jadi kotak menit
+ *  berisi 0 di hampir setiap baris — 46 regu x 3 lomba = 138 ketukan hanya
+ *  untuk mengetik nol, di layar yang sudah harus digeser ke samping.
+ *
+ *  null = bukan waktu yang sah. Teks kosong juga null, dan itu BUKAN nol:
+ *  kotak kosong berarti belum dinilai (lihat bacaSel di app.js).
+ *
+ *  Menit tidak dibatasi — lomba yang molor sampai 90 menit tetap tercatat apa
+ *  adanya. Detik dibatasi 0-59: "1:75" adalah salah ketik, bukan 135 detik,
+ *  dan menerimanya diam-diam berarti mencatat waktu yang tidak pernah ada. */
+export function detikSah(teks) {
+  const t = String(teks ?? "").trim().replace(/[.\s]/g, ":");
+  if (t === "") return null;
+  if (!/^\d+(:\d{1,2})?$/.test(t)) return null;
+
+  const [a, b] = t.split(":");
+  if (b === undefined) return Number(a);
+  const d = Number(b);
+  if (d > 59) return null;
+  return Number(a) * 60 + d;
+}
+
+/** Kebalikan detikSah: bentuk yang akan diketik petugas untuk waktu ini.
+ *  Di bawah semenit ditulis polos ("32"), semenit ke atas pakai titik dua
+ *  ("1:10") — supaya angka yang tergambar ulang ke kotak persis angka yang
+ *  tadi diketik, dan menyimpan ulang baris tidak pernah mengubah apa pun. */
+export function detikTeks(total) {
+  if (total === null || total === undefined || total === "") return "";
+  const d = Math.round(Number(total));
+  if (!Number.isFinite(d)) return "";
+  return d < 60 ? String(d) : `${Math.floor(d / 60)}:${dua(d % 60)}`;
+}
+
 /** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
  *  membetulkan bentuknya saat kotak ditinggalkan, dan menandainya merah kalau
  *  isinya bukan jam. Membetulkan saat blur, BUKAN saat tiap ketukan — menata

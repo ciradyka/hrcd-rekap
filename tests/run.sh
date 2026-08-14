@@ -115,5 +115,10 @@ run tests/sql/14_tangga_menaksir.sql
 # kali lagi lewat \ir, dengan Pos 3 palsu yang dibangunnya sendiri.
 run supabase/migrations/0036_kriteria_bidai.sql
 run tests/sql/15_kriteria_bidai.sql
+# 0037 menambah kolom `petunjuk` dan melebarkan rentang Menaksir. Kolomnya
+# dipakai seluruh tes di bawahnya lewat v_lembar_pos, jadi ia harus sudah
+# terpasang sebelum 16 berjalan.
+run supabase/migrations/0037_petunjuk_kolom.sql
+run tests/sql/16_kosong_bukan_nol.sql
 
 echo "SEMUA TES LULUS"
