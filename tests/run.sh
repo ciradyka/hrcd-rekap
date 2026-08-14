@@ -110,5 +110,10 @@ run tests/sql/13_komponen_per_golongan.sql
 # dan tidak mengenai apa pun, karena `menaksir` memang tidak ada di sini.
 run supabase/migrations/0035_tangga_menaksir.sql
 run tests/sql/14_tangga_menaksir.sql
+# 0036 dijalankan di sini supaya penolakannya ikut terbukti — di database uji
+# pos 3 bukan P3K, jadi ia harus diam. Tes 15 memanggil berkas yang sama dua
+# kali lagi lewat \ir, dengan Pos 3 palsu yang dibangunnya sendiri.
+run supabase/migrations/0036_kriteria_bidai.sql
+run tests/sql/15_kriteria_bidai.sql
 
 echo "SEMUA TES LULUS"
