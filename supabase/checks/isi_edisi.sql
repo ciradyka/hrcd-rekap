@@ -49,3 +49,16 @@ union all select 'keberangkatan tercatat', count(*) from keberangkatan_regu
 union all select 'closing tercatat',       count(*) from closing_regu
 union all select 'sekolah SMOKE TEST',     count(*) from sekolah where name like 'SMOKE TEST%'
 union all select 'sekolah UJI',            count(*) from sekolah where name like 'UJI%';
+
+\echo ''
+\echo '=== SELURUH SEKOLAH + PENDAFTARAN (untuk memastikan mana yang uji) ==='
+select s.name as sekolah, s.address,
+       count(distinct d.id) as batch,
+       count(r.id)          as regu,
+       string_agg(distinct d.status, ', ') as status,
+       min(d.created_at)::date as terdaftar
+from sekolah s
+left join pendaftaran d on d.sekolah_id = s.id
+left join regu r        on r.pendaftaran_id = d.id
+group by s.name, s.address
+order by s.name;
