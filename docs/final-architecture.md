@@ -104,9 +104,19 @@ poin per pita, dipakai kolom waktu yang menilai "masuk pita 1 menit", bukan
 tiap detik). Layar Input Pos membangun kolomnya dari baris-baris itu, jadi
 mengubah penilaian tahun depan tidak menyentuh kode sama sekali.
 
+**Bobot pos tidak pernah ditulis; ia lahir dari jumlah lombanya.** Satuan
+penilaian adalah lomba, dan tiap lomba bernilai maksimum 100 — jadi pos
+berisi tiga lomba bernilai 300, pos berisi lima lomba bernilai 500
+(`alur-lomba.md` 9.2). `pos.bobot` tetap 1,00 untuk semua dan hanya dipakai
+kalau suatu tahun panitia ingin menyetarakan pos secara paksa.
+
+Konsekuensi yang mudah terlewat saat menyusun pos tahun depan: **memindah
+satu lomba dari satu pos ke pos lain mengubah bobot keduanya**, tanpa satu
+angka pun diubah.
+
 **Pos bayangan ikut dinilai** (migrasi `0021`). Ia pos biasa dengan penanda
 `pos.bayangan`, bernomor melanjutkan pos utama — bukan cabang tersendiri di
-mesin skor.
+mesin skor. Format XXXVII tidak memakainya.
 
 **Tidak semua baris `pos` dinilai** (migrasi `0025`). Pos 0 (Keberangkatan) dan
 Pos 5 (Kedatangan) adalah garis start dan garis finish; yang dicatat di sana
