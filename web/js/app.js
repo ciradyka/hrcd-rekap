@@ -2585,23 +2585,43 @@ const NAMA_GOLONGAN = {
 };
 const URUTAN_GOLONGAN = ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
 
-/** Sel nilai mentah, dibaca sebagaimana panitia menuliskannya di kertas.
- *  Bentuknya mengikuti `wahana.form`, bukan tipe datanya: kolom biner di
- *  lembar Excel berisi "v", bukan "1", dan menampilkan angka di situ membuat
- *  panitia mengira ada nilai yang salah ketik. */
+/** Satu sel nilai mentah, digambar seperti kotaknya di layar Input Pos —
+ *  hanya saja mati, karena layar ini tidak pernah menulis.
+ *
+ *  Mengembalikan HTML yang SUDAH aman; pemanggilnya tidak boleh meng-esc
+ *  lagi. Isinya cuma angka dari database dan penanda tetap, tidak ada teks
+ *  bebas dari siapa pun.
+ *
+ *  Kolom biner memakai ikon centang, bukan huruf "v". Sebaris "v v v v"
+ *  terbaca sebagai teks yang harus dieja satu per satu; centang tertangkap
+ *  sekali sapu, dan itu bentuk yang sama dengan kotak centang di Input Pos
+ *  dan dengan centang per pos di halaman peserta. */
 function selRekap(w, isi) {
-  if (!isi) return "";
-  const a = isi.nilai_1, b = isi.nilai_2;
-  if (a === null || a === undefined) return "";
-  if (w.form === "biner") return Number(a) ? "v" : "–";
+  const a = isi ? isi.nilai_1 : null;
+  const b = isi ? isi.nilai_2 : null;
+
+  // Belum dinilai — kosong, bukan nol. Kecuali biner: kotak centang tidak
+  // punya keadaan kosong, jadi baris yang tersimpan berarti "tidak kena".
+  if (a === null || a === undefined) {
+    return w.form === "biner" && isi
+      ? `<span class="rekap-tidak" aria-label="tidak">–</span>` : "";
+  }
+  if (w.form === "biner") {
+    return Number(a) > 0
+      ? `<span class="rekap-ya" aria-label="ya">✓</span>`
+      : `<span class="rekap-tidak" aria-label="tidak">–</span>`;
+  }
   if (w.form === "benar_kurang_salah") {
-    return `${a}${b === null || b === undefined ? "" : ` / ${b}`}`;
+    return b === null || b === undefined
+      ? esc(angkaRapi(a))
+      : `${esc(angkaRapi(a))}<span class="pos-pemisah"> / </span>${esc(angkaRapi(b))}`;
   }
   if (w.satuan === "detik") {
     const d = Number(a);
-    return `${Math.floor(d / 60)}:${String(d % 60).padStart(2, "0")}`;
+    return `${Math.floor(d / 60)}<span class="pos-pemisah">:</span>${
+      String(d % 60).padStart(2, "0")}`;
   }
-  return String(a);
+  return esc(angkaRapi(a));
 }
 
 const angka = (n) => n === null || n === undefined ? "—"
@@ -2706,7 +2726,7 @@ async function layarRekap() {
     const poin = b.poin_pos || {};
     const perPos = kolomPos.map(p => `
       ${p.komponen.map(w => `<td class="text-center">${
-        esc(selRekap(w, nilai[`${p.nomor}.${w.kode}`]))}</td>`).join("")}
+        selRekap(w, nilai[`${p.nomor}.${w.kode}`])}</td>`).join("")}
       <td class="text-center pos-nilai rekap-batas">${poin[String(p.nomor)] === undefined
         ? "" : esc(angka(poin[String(p.nomor)]))}</td>`).join("");
     const penalti = Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
