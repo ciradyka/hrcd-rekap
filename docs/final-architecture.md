@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0027`.
+Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0028`.
 
 ---
 
@@ -62,7 +62,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-27 migrasi, `0001` sampai `0027`, dijalankan berurutan tanpa lubang penomoran.
+28 migrasi, `0001` sampai `0028`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -314,6 +314,49 @@ Rank kosong berarti kloter regu itu belum tercatat berangkat, jadi ia belum
 masuk klasemen resmi (`rancangan-b.md` 11.12). Barisnya tidak dibuang; ia
 turun ke bawah kelompoknya dan tetap terurut menurut total, supaya papan ini
 sudah terbaca sebagai klasemen sementara sejak nilai pertama masuk.
+
+**Selalu satu golongan, tidak pernah gabungan** — dan karena itu tidak ada
+pilihan "Semua". Keempat golongan dinilai terpisah (`alur-lomba.md` 2.3),
+jadi satu daftar berisi keempatnya menampilkan peringkat 1 empat kali dan
+menyandingkan angka yang tidak pernah diperlombakan satu sama lain.
+
+#### Panel kelengkapan tiap pos
+
+Di atas tabel, satu kartu per pos menjawab "datanya sudah masuk semua belum?"
+Bahannya `v_kelengkapan_pos` (migrasi `0028`), satu baris per pos.
+
+Angkanya tiga, bukan satu, karena "90% terisi" sendirian tidak bisa dibedakan
+antara tiga keadaan yang sangat berbeda:
+
+| Angka | Artinya | Perlu dikejar? |
+| --- | --- | --- |
+| `kosong` | regunya belum sampai di pos itu | tidak — ini keadaan normal sepanjang lomba |
+| `sebagian` | barisnya terisi separuh | ya — hampir selalu transkripsi dari foto yang terpotong |
+| **`hilang`** | regu **sudah closing** tapi nilainya belum lengkap | **ya** — ia pasti melewati pos itu, jadi tidak ada penjelasan yang tidak buruk |
+
+`hilang` satu-satunya yang berwarna merah. Ia disandarkan pada **closing**,
+bukan pada tebakan tentang sudah sampai mana regunya — itulah yang membuatnya
+bisa dipercaya.
+
+Penyebutnya **regu yang kloternya sudah berangkat**, bukan seluruh regu: yang
+belum berangkat tidak mungkin dinilai di mana pun, dan memasukkannya membuat
+tiap pos terlihat merah sepanjang pagi sampai panelnya berhenti dibaca.
+
+Kartu juga membawa `terakhir_masuk` — jam nilai terakhir yang menyentuh pos
+itu. **Inilah pendeteksi "tidak sync" yang sebenarnya:** kalau empat pos
+menyetor terus dan satu diam 30 menit, yang rusak hampir pasti sambungan atau
+laptop di pos itu, dan itu ketahuan berjam-jam sebelum angka kelengkapan
+bergerak — angka itu baru berubah setelah regunya selesai.
+
+Mengetuk satu kartu menyaring tabel di bawahnya ke regu yang belum lengkap di
+pos itu, jadi "siapa yang kurang" tidak perlu dicari sendiri. Angka di kartu
+menghitung seluruh golongan sementara tabelnya satu golongan, dan layar
+menyebutkan itu apa adanya saat saringannya menyala.
+
+Berbeda dengan `v_rekap_penuh`, **operator pos boleh membuka panel ini** —
+posnya sendiri saja. Angkanya jujur untuknya karena RLS memang mengizinkan ia
+membaca seluruh `nilai_mentah` pos-nya, dan "lembar saya sudah lengkap belum?"
+justru pertanyaannya sendiri.
 
 **Tabelnya adalah lembar Input Pos, hanya saja seluruh pos disambung jadi
 satu.** Kelasnya sama persis — `.table-pos` beserta `.kolom-nama`,
@@ -684,7 +727,7 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
 
 - **`docs/arsitektur-hrcd.svg` dan `.png`** masih menggambarkan Google Sheets
   sebagai bagian arsitektur, dan angkanya sudah bergeser: tertulis "18 view
-  berlapis" (sekarang 20) dan "24 RPC bertransaksi" (sekarang 27 fungsi, 15 di
+  berlapis" (sekarang 21) dan "24 RPC bertransaksi" (sekarang 27 fungsi, 15 di
   antaranya dipanggil layar). Diagramnya tidak dirujuk dari dokumen mana pun,
   jadi dibiarkan sampai ada yang menggambar ulang.
 - **Beberapa RPC masih mencetak nomor dada mentah** di pesan galatnya

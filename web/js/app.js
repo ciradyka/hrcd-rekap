@@ -18,11 +18,12 @@ import {
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
-  komponenSemua, rekapPenuh,
+  komponenSemua, rekapPenuh, kelengkapanPos,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
-         dialog, kartuGagalMuat, jamSah, pasangKotakJam } from "./util.js";
+         dialog, kartuGagalMuat, jamSah, pasangKotakJam,
+         berapaLalu } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -2254,13 +2255,6 @@ async function layarInputPos() {
   // dimuat, karena saat itu angka di layar memang baru dibaca dari sana.
   let jamSinkron = new Date();
 
-  const berapaLalu = (d) => {
-    const menit = Math.floor((Date.now() - d.getTime()) / 60000);
-    if (menit < 1) return "barusan";
-    if (menit < 60) return `${menit} menit lalu`;
-    return `${Math.floor(menit / 60)} jam lalu`;
-  };
-
   function perbaruiRingkasan() {
     const baris = [...tbody.children];
     const belum = baris.filter(t => t.dataset.keadaan === "belum").length;
@@ -2647,10 +2641,10 @@ async function layarRekap() {
   LAYAR.replaceChildren(h(`<p>Memuat…</p>`));
 
   const layarIni = location.hash;
-  let pos, wahana, baris;
+  let pos, wahana, baris, kelengkapan;
   try {
-    [pos, wahana, baris] = await Promise.all([
-      daftarPos(), komponenSemua(EDISI.nomor), rekapPenuh(),
+    [pos, wahana, baris, kelengkapan] = await Promise.all([
+      daftarPos(), komponenSemua(EDISI.nomor), rekapPenuh(), kelengkapanPos(),
     ]);
   } catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarRekap)); return; }
   if (location.hash !== layarIni) return;
@@ -2663,15 +2657,35 @@ async function layarRekap() {
     ...p, komponen: wahana.filter(w => Number(w.pos) === Number(p.nomor)),
   }));
 
-  let golongan = "";      // "" = semua
+  /* SELALU satu golongan, tidak pernah gabungan — dan karena itu tidak ada
+     pilihan "Semua". Rekap dibaca untuk menjawab "siapa juara Penegak PA",
+     bukan "siapa juara seluruhnya": keempat golongan dinilai terpisah
+     (alur-lomba.md 2.3), jadi satu daftar berisi keempatnya menampilkan
+     peringkat 1 empat kali dan menyandingkan angka yang tidak pernah
+     diperlombakan satu sama lain. Menggabungkannya juga melipatempatkan
+     panjang tabel tanpa menjawab pertanyaan siapa pun. */
+  let golongan = URUTAN_GOLONGAN[0];
   let cari = "";
+  let posBelum = null;    // nomor pos yang sedang disaring "belum lengkap"
   let jeda = null;
 
-  const cocok = (b) => (!golongan || b.golongan === golongan)
-    && (!cari
-        || (b.nama_sekolah || "").toLowerCase().includes(cari)
-        || (b.nama_regu || "").toLowerCase().includes(cari)
-        || String(b.nomor_dada ?? "").padStart(3, "0").includes(cari));
+  /** Berapa komponen pos ini yang sudah terisi untuk satu regu. Dihitung dari
+   *  `nilai` yang SUDAH ada di tangan — tidak perlu permintaan tambahan, dan
+   *  angkanya pasti sama dengan yang dipakai menggambar barisnya. */
+  const terisiDiPos = (b, p) => p.komponen.reduce(
+    (n, w) => n + ((b.nilai || {})[`${p.nomor}.${w.kode}`] ? 1 : 0), 0);
+
+  const cocok = (b) => {
+    if (golongan && b.golongan !== golongan) return false;
+    if (posBelum !== null) {
+      const p = kolomPos.find(x => Number(x.nomor) === Number(posBelum));
+      if (p && terisiDiPos(b, p) >= p.komponen.length) return false;
+    }
+    return !cari
+      || (b.nama_sekolah || "").toLowerCase().includes(cari)
+      || (b.nama_regu || "").toLowerCase().includes(cari)
+      || String(b.nomor_dada ?? "").padStart(3, "0").includes(cari);
+  };
 
   /* Urutan: golongan dulu, lalu peringkat resmi, lalu total.
      Peringkat datang dari v_klasemen dan hanya ada untuk regu yang kloternya
@@ -2755,10 +2769,65 @@ async function layarRekap() {
       </tr>`;
   };
 
+  /* Panel kelengkapan. Tiga angka per pos, karena "90% terisi" sendirian
+     tidak bisa dibedakan antara "regunya memang belum sampai" dan "datanya
+     hilang" — lihat kepala migrasi 0028.
+
+     Yang merah cuma satu hal: `hilang`, yaitu regu yang SUDAH selesai lomba
+     tapi nilainya di pos itu belum lengkap. Mereka pasti melewati pos itu,
+     jadi tidak ada penjelasan yang tidak buruk. */
+  function kartuKelengkapan() {
+    if (!kelengkapan.length) return "";
+    const kartu = kelengkapan.map(k => {
+      const penyebut = k.regu_berangkat;
+      const persen = penyebut ? Math.round((k.lengkap / penyebut) * 100) : null;
+      const diam = k.terakhir_masuk
+        && Date.now() - new Date(k.terakhir_masuk).getTime() > 30 * 60000;
+      const keadaan = k.hilang > 0 ? "bahaya"
+        : (k.sebagian > 0 || diam) ? "menunggu"
+        : (penyebut && k.lengkap === penyebut) ? "aman" : "";
+      const aktif = Number(posBelum) === Number(k.pos);
+      return `
+        <button type="button" class="lengkap-kartu ${keadaan}${aktif ? " aktif" : ""}"
+                data-pos-belum="${esc(String(k.pos))}"
+                aria-pressed="${aktif}">
+          <span class="lengkap-judul">${esc(k.bayangan ? k.nama_pos : `Pos ${k.pos}`)}</span>
+          <span class="lengkap-angka">${penyebut
+            ? `${esc(String(k.lengkap))}<span class="lengkap-dari">/${esc(String(penyebut))}</span>`
+            : "—"}</span>
+          <span class="lengkap-sub">${penyebut
+            ? `${esc(String(persen))}% dari yang sudah berangkat`
+            : "belum ada kloter berangkat"}</span>
+          ${k.hilang > 0 ? `<span class="lengkap-alarm">⚠ ${esc(String(k.hilang))} sudah closing tapi belum lengkap</span>` : ""}
+          ${k.sebagian > 0 ? `<span class="lengkap-catatan">${esc(String(k.sebagian))} baris terisi separuh</span>` : ""}
+          <!-- Kalau pos ini yang membuat kartunya kuning, kalimat inilah
+               alasannya — jadi ia ikut menguning. Warna yang alasannya harus
+               ditebak sama saja dengan warna yang tidak ada. -->
+          <span class="lengkap-catatan${diam ? " lengkap-diam" : ""}">${k.terakhir_masuk
+            ? `nilai terakhir ${esc(jamMenit(k.terakhir_masuk))} (${esc(berapaLalu(k.terakhir_masuk))})`
+            : "belum ada nilai masuk"}</span>
+        </button>`;
+    }).join("");
+
+    return `
+      <div class="card">
+        <h2 style="font-size:1rem">Kelengkapan tiap pos</h2>
+        <p class="description">Ketuk satu pos untuk menyaring tabel di bawah ke
+           regu yang belum lengkap di pos itu. <strong>Merah</strong> berarti ada
+           regu yang sudah selesai lomba tapi nilainya belum masuk — itu data
+           yang benar-benar hilang, bukan regu yang belum sampai.</p>
+        <div class="lengkap-baris">${kartu}</div>
+      </div>`;
+  }
+
   function gambar() {
     const tampil = baris.filter(cocok).sort(urut);
-    const lebarKolom = 15 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
+    // 5 kolom identitas + 9 kolom waktu/total, ditambah tiap komponen dan
+    // satu Nilai Pos per kelompok. Dipakai colspan baris "tidak ada yang
+    // cocok" — kalau meleset, barisnya tidak selebar tabelnya.
+    const lebarKolom = 14 + kolomPos.reduce((n, p) => n + p.komponen.length + 1, 0);
     LAYAR.replaceChildren(h(`
+      ${kartuKelengkapan()}
       <div class="card">
         <div class="table-toolbar">
           <div class="field" style="margin:0;flex:1;min-width:220px">
@@ -2768,8 +2837,6 @@ async function layarRekap() {
                    value="${esc(cari)}">
           </div>
           <div class="filter-row">
-            <button type="button" class="option option-small" data-gol=""
-                    aria-pressed="${golongan === ""}">Semua</button>
             ${URUTAN_GOLONGAN.map(g => `
               <button type="button" class="option option-small" data-gol="${g}"
                       aria-pressed="${golongan === g}">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
@@ -2781,7 +2848,12 @@ async function layarRekap() {
         <p class="description">Layar ini hanya menampilkan. Nilai diubah di
            <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
            begitu tersimpan. Rank kosong berarti kloter regu itu belum
-           tercatat berangkat, jadi ia belum masuk klasemen resmi.</p>
+           tercatat berangkat, jadi ia belum masuk klasemen resmi.
+           ${posBelum !== null ? `<strong>Sedang disaring:
+             ${esc(NAMA_GOLONGAN[golongan] || "")} yang belum lengkap di Pos
+             ${esc(String(posBelum))}.</strong> Angka di kartu pos menghitung
+             SELURUH golongan, jadi wajar kalau lebih banyak daripada baris
+             yang tampil di sini.` : ""}</p>
         <!-- Kelas tabelnya SAMA PERSIS dengan lembar Input Pos, ditambah
              satu pengubah: di HP ia tetap tabel yang digeser ke samping,
              tidak ditumpuk jadi kartu seperti layar meja. -->
@@ -2790,13 +2862,24 @@ async function layarRekap() {
             <thead>${kepala()}</thead>
             <tbody>${tampil.length ? tampil.map(barisHtml).join("")
               : `<tr><td colspan="${lebarKolom}" class="table-empty">
-                   Tidak ada regu yang cocok.</td></tr>`}</tbody>
+                   Tidak ada regu ${esc(NAMA_GOLONGAN[golongan] || "")} yang cocok${
+                     posBelum !== null ? ` dan belum lengkap di Pos ${esc(String(posBelum))}` : ""
+                   }.</td></tr>`}</tbody>
           </table>
         </div>
       </div>`));
 
     LAYAR.querySelectorAll("[data-gol]").forEach(b =>
       b.addEventListener("click", () => { golongan = b.dataset.gol; gambar(); }));
+
+    // Mengetuk pos yang sedang aktif MEMATIKAN saringannya. Tanpa itu tidak
+    // ada jalan kembali ke seluruh regu selain menebak-nebak tombol lain.
+    LAYAR.querySelectorAll("[data-pos-belum]").forEach(b =>
+      b.addEventListener("click", () => {
+        const n = Number(b.dataset.posBelum);
+        posBelum = Number(posBelum) === n ? null : n;
+        gambar();
+      }));
 
     const kotak = document.getElementById("rekap-cari");
     kotak.addEventListener("input", () => {
@@ -2817,7 +2900,8 @@ async function layarRekap() {
   async function segarkan() {
     if (location.hash !== layarIni) return;
     try {
-      baris = await rekapPenuh();
+      const [b, k] = await Promise.all([rekapPenuh(), kelengkapanPos()]);
+      baris = b; kelengkapan = k;
       if (location.hash === layarIni) gambar();
     } catch { /* diamkan: percobaan berikutnya datang sendiri */ }
   }

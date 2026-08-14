@@ -444,6 +444,18 @@ export async function komponenSemua(edisi) {
     `&order=pos.asc,sort_order.asc`);
 }
 
+/** Kelengkapan input per pos — satu baris per pos, bukan per regu.
+ *
+ *  Sengaja agregat: layar memanggilnya tiap 20 detik, dan menarik 300 × 5
+ *  baris hanya untuk menghitungnya sendiri di browser adalah pekerjaan yang
+ *  sudah bisa dilakukan database dalam satu query. Daftar regu yang belum
+ *  lengkap TIDAK perlu diambil terpisah — `v_rekap_penuh` sudah membawa
+ *  nilai tiap komponen, jadi layar bisa menyaringnya dari data yang sama. */
+export async function kelengkapanPos() {
+  if (K.mode === "dev") return baca("/kelengkapan-pos");
+  return baca(null, "v_kelengkapan_pos?select=*&order=pos.asc");
+}
+
 /** Rekapitulasi lengkap seluruh regu × seluruh pos — layar #/rekap.
  *
  *  Hanya admin dan meja: view-nya sendiri yang menolak operator pos, karena
