@@ -418,10 +418,14 @@ begin
     if sqlerrm like 'GAGAL:%' then raise; end if;
   end;
   -- nilai_2 di luar rentang: tolak (temuan review).
+  -- Kalimatnya menyebut "Jumlah salah", bukan nama kolomnya: sejak migrasi
+  -- 0029 pesan galat ditulis untuk operator, bukan untuk yang membaca skema
+  -- (`nilai_2` tidak pernah muncul di kertas mana pun).
   v := simpan_nilai_massal('[{"nomor_dada":1,"kode":"sandi_morse","nilai_1":8,"nilai_2":99}]'::jsonb,
                            'upload', 5::smallint);
   assert v -> 0 ->> 'status' = 'ditolak'
-     and v -> 0 ->> 'alasan' like '%nilai_2%', 'nilai_2 liar lolos';
+     and v -> 0 ->> 'alasan' like 'Jumlah salah harus antara%',
+     'nilai_2 liar lolos: ' || coalesce(v -> 0 ->> 'alasan', '(tanpa alasan)');
 end;
 $$;
 
