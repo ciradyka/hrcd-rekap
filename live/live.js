@@ -95,6 +95,11 @@ function gambarPra() {
       <p>Rekap live akan tampil di halaman ini begitu lomba berjalan.</p>
       <p class="angka-besar">${esc(String(r.jumlah_regu_lunas ?? 0))}</p>
       <p>regu terdaftar</p>
+      <!-- Sebelum lomba, yang dicari orang di alamat ini bukan rekap
+           melainkan formulirnya. Halaman rekap yang kosong tanpa jalan ke
+           pendaftaran adalah jalan buntu bagi tamu yang paling banyak
+           datang saat itu. -->
+      <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
         ${URUT_GOLONGAN.filter(g => per[g]).map(g =>
           `<span class="pil">${esc(GOLONGAN[g])}: ${esc(String(per[g]))}</span>`).join("")}

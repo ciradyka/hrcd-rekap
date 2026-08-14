@@ -17,9 +17,9 @@ sendiri di server:
 | Bagian | Isi | Di mana |
 | --- | --- | --- |
 | Database | Postgres + Auth + RLS + seluruh logika | Supabase |
-| Tampilan | SPA statis, tanpa build step | Cloudflare Workers static assets |
+| Layar panitia | SPA statis, tanpa build step | Cloudflare Workers static assets |
+| Situs peserta | Pendaftaran + rekap live | Cloudflare Worker TERPISAH |
 | Gateway | Penerima form pendaftaran publik | Cloudflare Worker |
-| Rekap live | Halaman peserta, statis, tanpa kunci apa pun | Cloudflare Worker TERPISAH |
 
 **Tidak ada server aplikasi.** Layar panitia berbicara langsung ke Supabase
 lewat PostgREST memakai anon key; yang menjaga data bukan lapisan tengah,
@@ -36,10 +36,20 @@ bentuknya `live/index.html` + `live/live.json` di Worker sendiri — bukan
 
 | Apa | Alamat |
 | --- | --- |
-| Layar panitia + form daftar | `https://hrcd37.ciradyka.workers.dev` |
-| Rekap live peserta | `https://hrcd37-rekap.ciradyka.workers.dev` |
+| Situs peserta — pendaftaran + rekap live | `https://hrcd37.ciradyka.workers.dev` |
+| Layar panitia | `https://panitia-hrcd37.ciradyka.workers.dev` |
 | Gateway pendaftaran | `https://gateway.ciradyka.workers.dev` |
 | Supabase | `https://pwszijhnftvqjkdldqrf.supabase.co` |
+
+**Alamat pendek milik peserta, bukan panitia.** Yang dibagikan ke ratusan
+orang lewat grup WhatsApp adalah `hrcd37.ciradyka.workers.dev`; layar panitia
+berawalan `panitia-`. Memisahkannya tidak mencegah siapa pun mencoba masuk —
+alamat panitia tetap ada — tapi peserta tidak pernah menerima alamat yang ada
+kotak loginnya, dan link yang diteruskan ke mana-mana tidak sekaligus
+menyebarkan pintu masuknya.
+
+`ALLOWED_ORIGIN` di `workers/gateway/worker.js` menunjuk ke situs PESERTA,
+karena form pendaftaran disajikan dari sana.
 
 Nama project situs memuat nomor edisi (`hrcd37`) dan berganti tiap tahun.
 Gateway dan project Supabase sengaja TIDAK memuat nomor edisi supaya bisa
@@ -385,15 +395,31 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
-| Situs statis (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
-| Rekap live (`live/`) | GitHub Actions `publish-live.yml` | manual + cron 5 menit (dimatikan di luar minggu lomba) |
+| Layar panitia (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
+| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | manual + cron 5 menit (dimatikan di luar minggu lomba) |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
 
 `live/` **sengaja TIDAK tersambung Git.** Yang di-deploy bukan isi repo
 melainkan `live.json` yang baru saja ditulis workflow dari database; kalau ia
 juga tersambung Git, tiap push ke `main` akan menimpanya dengan berkas contoh
-fase `pra` yang ada di repo.
+fase `pra` yang ada di repo — rekap peserta mendadak kosong tanpa ada yang
+gagal. Konsekuensinya: perubahan pada `daftar.html` pun baru tayang setelah
+workflow ini dijalankan.
+
+### Berkas yang disalin, dan kenapa
+
+Form pendaftaran tinggal di situs peserta tapi memakai berkas yang sama
+dengan layar panitia: `api.js`, `util.js`, `style.css`, `config.js`.
+Cloudflare static assets menyajikan SATU folder apa adanya — tidak ada cara
+satu berkas hidup di dua akar tanpa disalin, dan repo ini sengaja tanpa build
+step yang bisa menyalinnya saat deploy.
+
+Jadi salinannya dititipkan di git, dan workflow `shared-files.yml` yang
+membuatnya tidak bisa membusuk: tiap PR membandingkan `live/` dengan acuannya
+di `web/` dan gagal kalau menyimpang. Duplikasi yang diam adalah bug yang
+menunggu; duplikasi yang berteriak tiap kali menyimpang cuma sedikit berisik.
+**`web/` yang jadi acuan** — jangan pernah menyunting salinannya.
 
 **Merge ke `main` = deploy situs.** Tidak ada build step; berkas di `web/`
 disajikan apa adanya, dengan `web/wrangler.toml` menyetel root proyek ke folder

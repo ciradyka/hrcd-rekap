@@ -168,7 +168,12 @@ async function layarHome() {
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
     <div class="function-menu">
-      <a href="daftar.html" target="_blank" rel="noopener">
+      <!-- Form pendaftaran tidak lagi tinggal di situs ini: ia pindah ke
+           situs PESERTA bersama rekap live, supaya alamat yang beredar ke
+           ratusan orang bukan alamat yang ada kotak loginnya. Karena beda
+           asal, tautannya mutlak dan diambil dari config.js. -->
+      <a href="${esc((window.HRCD && window.HRCD.pesertaUrl) || "")}/daftar.html"
+         target="_blank" rel="noopener">
         <div class="function-name">📝 Pendaftaran</div>
         <div class="description">Buka form pendaftaran — diisikan langsung, tab baru supaya meja ini tetap terbuka</div>
       </a>

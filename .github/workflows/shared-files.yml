@@ -1,0 +1,70 @@
+# ============================================================================
+# hrcd-rekap : shared-files.yml — pastikan salinan berkas bersama tidak
+# menyimpang.
+#
+# KENAPA ADA SALINAN SAMA SEKALI
+#
+# Sejak 14 Agustus 2026 ada DUA situs statis dengan akar folder berbeda:
+#
+#   web/   -> panitia-hrcd37.ciradyka.workers.dev  (layar panitia)
+#   live/  -> hrcd37.ciradyka.workers.dev          (pendaftaran + rekap live)
+#
+# Form pendaftaran tinggal di situs peserta, dan ia memakai berkas yang sama
+# dengan layar panitia: api.js, util.js, style.css, config.js. Cloudflare
+# static assets menyajikan SATU folder apa adanya — tidak ada cara satu berkas
+# hidup di dua akar tanpa disalin, dan repo ini sengaja tanpa build step yang
+# bisa menyalinnya saat deploy.
+#
+# Jadi salinannya dititipkan di git, dan workflow inilah yang membuatnya tidak
+# bisa membusuk. Duplikasi yang diam adalah bug yang menunggu; duplikasi yang
+# berteriak setiap kali menyimpang cuma sedikit berisik.
+#
+# Kalau workflow ini gagal: salin ulang dari web/ ke live/, jangan menyunting
+# salinannya. web/ yang jadi acuan.
+#
+#   cp web/style.css live/style.css
+#   cp web/config.js live/config.js
+#   cp web/js/api.js web/js/util.js live/js/
+# ============================================================================
+
+name: Shared files
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  periksa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bandingkan salinan live/ dengan acuan di web/
+        run: |
+          set -euo pipefail
+          gagal=0
+          banding() {
+            if ! diff -q "$1" "$2" >/dev/null 2>&1; then
+              echo "MENYIMPANG: $2 tidak sama dengan $1"
+              diff -u "$1" "$2" | head -40 || true
+              gagal=1
+            else
+              echo "sama: $2"
+            fi
+          }
+          banding web/style.css   live/style.css
+          banding web/config.js   live/config.js
+          banding web/js/api.js   live/js/api.js
+          banding web/js/util.js  live/js/util.js
+
+          if [ "$gagal" -ne 0 ]; then
+            echo ""
+            echo "Salin ulang dari web/ (acuan), jangan sunting salinannya:"
+            echo "  cp web/style.css live/style.css"
+            echo "  cp web/config.js live/config.js"
+            echo "  cp web/js/api.js web/js/util.js live/js/"
+            exit 1
+          fi
+          echo "Seluruh salinan sama dengan acuannya."

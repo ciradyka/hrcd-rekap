@@ -20,11 +20,17 @@
 # baru lalu men-deploy seluruh folder. Kalau ia juga tersambung Git, tiap
 # push ke main akan menimpa live.json dengan berkas contoh di repo.
 #
-# Nama memuat nomor edisi, sama seperti web/ — tiap tahun ganti nama + URL
-# (hrcd37-rekap -> hrcd38-rekap), proyek lama dihapus dari dashboard.
+# Folder ini melayani SELURUH yang dilihat peserta: form pendaftaran
+# (daftar.html) dan rekap live (index.html). Ia memegang alamat pendek —
+# hrcd37.ciradyka.workers.dev — karena dialah yang dibagikan ke ratusan orang;
+# layar panitia pindah ke panitia-hrcd37 (lihat web/wrangler.toml).
+#
+# `ALLOWED_ORIGIN` di workers/gateway/worker.js menunjuk ke alamat ini, dan
+# memang harus: form pendaftaran disajikan dari sini, jadi gerbanglah yang
+# menerima kirimannya. Kalau nama di bawah diubah, ubah juga di sana.
 # ============================================================================
 
-name = "hrcd37-rekap"
+name = "hrcd37"
 compatibility_date = "2026-08-14"
 
 [assets]
