@@ -574,6 +574,16 @@ harus selalu segar) sedangkan `rekap.json` diberi `max-age=3600, immutable`.
 Yang membuat keduanya bisa berlawanan adalah `?v=<versi>` di alamat
 `rekap.json` — alasannya di bagian 3b.
 
+Dan karena itu `live/_headers` **tidak punya aturan `/*`**, tidak seperti
+`web/_headers`. Cloudflare MENGGABUNGKAN header dari semua aturan yang cocok,
+bukan menimpanya dengan yang paling spesifik: selama `/*` masih menyetel
+`no-cache`, `rekap.json` terbit sebagai
+`no-cache, public, max-age=3600, immutable` — dan `no-cache` yang menang,
+sehingga berkasnya ditanyakan ulang tiap kali walau alamatnya sudah memuat
+versinya. Tiap jenis berkas di folder itu karena itu menyebut aturannya
+sendiri, termasuk halaman HTML yang disebut dua kali karena Workers
+menyajikannya di dua alamat (`/` dan `/index.html`).
+
 ### Workflow lain
 
 | Workflow | Nama di Actions | Untuk siapa |
