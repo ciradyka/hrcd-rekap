@@ -431,6 +431,30 @@ export async function komponenPos(edisi, pos) {
     `&order=sort_order.asc`);
 }
 
+/** Seluruh komponen penilaian SEMUA pos sekaligus, urut pos lalu kolom.
+ *  Inilah yang menentukan bentuk tabel Rekapitulasi: satu kolom per baris di
+ *  sini, persis seperti lembar Excel yang dipakai panitia — dan sama seperti
+ *  layar Input Pos, tidak satu pun nama kolom ditulis di JavaScript. */
+export async function komponenSemua(edisi) {
+  if (K.mode === "dev") return baca("/komponen-semua");
+  return baca(null,
+    `wahana?edisi=eq.${encodeURIComponent(edisi)}` +
+    `&select=pos,kode,name,type,form,poin_maks,satuan,` +
+    `rentang_mentah_min,rentang_mentah_maks,sort_order` +
+    `&order=pos.asc,sort_order.asc`);
+}
+
+/** Rekapitulasi lengkap seluruh regu × seluruh pos — layar #/rekap.
+ *
+ *  Hanya admin dan meja: view-nya sendiri yang menolak operator pos, karena
+ *  RLS akan memotong nilai_mentah pos lain dan Nilai Total-nya jadi salah
+ *  (lihat kepala migrasi 0027). ~300 baris, dimuat sekali lalu disaring dan
+ *  diurutkan di browser — pola yang sama dengan seluruh layar meja. */
+export async function rekapPenuh() {
+  if (K.mode === "dev") return baca("/rekap-penuh");
+  return baca(null, "v_rekap_penuh?select=*&order=nomor_dada.asc");
+}
+
 /** Seluruh regu + nilai yang sudah tersimpan untuk satu pos. Satu permintaan
  *  untuk seluruh lembar: ~300 baris, dimuat sekali lalu disaring di browser,
  *  sama seperti layar meja. */

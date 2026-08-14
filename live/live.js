@@ -4,12 +4,45 @@
    Satu pertanyaan yang harus dijawab halaman ini sepanjang lomba: "nilai regu
    saya sudah masuk belum, atau hilang?" Jawabannya centang per pos. TIDAK ada
    angka nilai — dan itu bukan dijaga di sini, melainkan di database: selama
-   fase masih 'progres', live.json memang tidak memuat satu pun angka nilai
-   (lihat kepala migrasi 0026). Menyembunyikannya di sisi tampilan akan
+   fase masih 'progres', berkas yang terbit memang tidak memuat satu pun angka
+   nilai (lihat kepala migrasi 0026). Menyembunyikannya di sisi tampilan akan
    percuma; siapa pun bisa membuka berkas JSON-nya langsung.
 
-   Tanpa framework, tanpa build step, tanpa kunci apa pun. Satu fetch ke
-   live.json, sisanya menggambar tabel.
+   ---------------------------------------------------------------------------
+   DUA BERKAS, BUKAN SATU — INI YANG MENAHAN 3.000 HP SEKALIGUS
+
+   Pesertanya 1.500-3.000 orang dan mereka membuka alamat yang sama, berkali-
+   kali, dalam jendela waktu yang sama. Satu berkas gemuk yang diunduh ulang
+   tiap menit oleh tiap HP adalah cara paling mudah membuat halaman ini terasa
+   berat justru di jam tersibuk. Maka isinya dipecah dua:
+
+     live.json   ±1 KB   fase, edisi, daftar pos, ringkasan, dan `versi`.
+                         INI yang di-poll tiap 60 detik.
+     rekap.json  puluhan KB   seluruh baris regu + klasemen.
+                         Diambil HANYA saat benar-benar dibutuhkan, dan hanya
+                         sekali per `versi`.
+
+   `rekap.json` diminta dengan `?v=<versi>`, jadi alamatnya berubah hanya
+   ketika isinya berubah. Selama versinya sama, jawabannya datang dari cache
+   browser atau cache tepi Cloudflare — bukan dari mana-mana. Begitu panitia
+   menerbitkan ulang, `versi` di live.json berganti dan HP mengambil yang baru
+   satu kali.
+
+   Ditambah satu hal lagi: sebelum lomba dimulai `rekap.json` TIDAK PERNAH
+   diambil sama sekali, dan selama lomba ia baru diambil setelah peserta
+   benar-benar mencari sekolahnya. HP yang membuka halaman lalu menutupnya
+   mengunduh ±1 KB, bukan puluhan.
+
+   ---------------------------------------------------------------------------
+   PENCARIAN DULU, BARU TABEL
+
+   Peserta tidak pernah ingin membaca 300 baris; ia ingin melihat regunya
+   sendiri. Jadi yang tampil lebih dulu adalah kotak "ketik nama sekolahmu",
+   dan tabelnya baru muncul untuk sekolah yang cocok. Selain lebih cepat
+   dibaca di layar HP, ini juga yang membuat pengambilan `rekap.json` bisa
+   ditunda sampai orangnya benar-benar mencari sesuatu.
+
+   Tanpa framework, tanpa build step, tanpa kunci apa pun.
    ========================================================================== */
 
 const GOLONGAN = {
@@ -24,7 +57,8 @@ const esc = (v) => v === null || v === undefined ? "" : String(v)
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 
-const dada = (n) => String(n).padStart(3, "0");
+const dada = (n) => n === null || n === undefined
+  ? "—" : String(n).padStart(3, "0");
 
 /* Bentuk waktu baku. Sengaja DISALIN dari web/js/util.js dan bukan diimpor:
    halaman ini di-deploy sebagai Worker terpisah dan tidak boleh bergantung
@@ -42,9 +76,9 @@ const jam = (t) => {
   return `${dua(d.getHours())}:${dua(d.getMinutes())}`;
 };
 
-/** "17 Agustus 2026 15:30" — dipakai cap sinkronisasi, yang bisa menunjuk
- *  hari lain: peserta membuka halaman ini kapan saja, termasuk besok paginya,
- *  dan "17:30" telanjang akan terbaca sebagai setengah jam lalu. */
+/** "17 Agustus 2026 15:30" — dipakai cap update, yang bisa menunjuk hari
+ *  lain: peserta membuka halaman ini kapan saja, termasuk besok paginya, dan
+ *  "17:30" telanjang akan terbaca sebagai setengah jam lalu. */
 const tanggalJam = (t) => {
   if (!t) return "—";
   const d = new Date(t);
@@ -64,41 +98,57 @@ const berapaLalu = (t) => {
   return `${Math.floor(menit / 60)} jam lalu`;
 };
 
-let DATA = null;
+let META = null;        // isi live.json
+let REKAP = null;       // isi rekap.json, kalau sudah diambil
+let versiRekap = null;  // versi milik REKAP yang sedang dipegang
+let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
 let cari = "";
 
+const fase = () => (META && META.fase) || "pra";
+const mulai = () => fase() !== "pra";
+
 /* ---------------------------------------------------------------------------
-   Cap sinkronisasi. Yang ditampilkan adalah jam DATA DIBUAT di server, bukan
-   jam halaman ini dimuat — kalau workflow-nya tersendat, orang harus bisa
+   Cap update. Yang ditampilkan adalah jam DATA DIBUAT di server, bukan jam
+   halaman ini dimuat — kalau penerbitannya tersendat, orang harus bisa
    melihat bahwa angkanya sudah tua, bukan mengira halamannya baru.
    ------------------------------------------------------------------------- */
 function gambarSinkron() {
   const el = document.getElementById("sinkron");
-  if (!DATA) { el.textContent = "Memuat…"; return; }
-  const t = new Date(DATA.dibuat_pada);
+  if (!META) { el.textContent = "Memuat…"; return; }
+  const t = new Date(META.dibuat_pada);
   const tua = Date.now() - t.getTime() > 15 * 60000;
+  // Warnanya tetap berubah setelah 15 menit — petunjuk yang tidak menambah
+  // satu kata pun ke barisnya. Ekor "data mungkin tertinggal" dibuang:
+  // "(1 jam lalu)" sudah mengatakan hal yang sama, dan kalimat tambahan di
+  // sebelahnya membuat baris ini terbaca seperti galat padahal normal.
   el.className = `sinkron${tua ? " basi" : ""}`;
-  el.textContent = `Sinkronisasi terakhir: ${tanggalJam(DATA.dibuat_pada)}`
-    + ` (${berapaLalu(DATA.dibuat_pada)})`
-    + (tua ? " — data mungkin tertinggal" : "");
+  el.textContent = `Update terakhir: ${tanggalJam(META.dibuat_pada)}`
+    + ` (${berapaLalu(META.dibuat_pada)})`;
 }
 
 /* ---------------------------------------------------------------------------
-   Fase 'pra' — belum ada yang berjalan.
+   Fase 'pra' — rekap TIDAK dibuka untuk siapa pun.
+
+   Ini keputusan panitia, bukan kebetulan teknis: sebelum lomba dimulai tidak
+   ada yang boleh dilihat peserta. Yang tetap ada di sini hanya jalan ke
+   formulir — sebelum lomba, itu memang satu-satunya yang dicari orang di
+   alamat ini, dan halaman buntu tanpa jalan ke pendaftaran membuang tamu yang
+   paling banyak datang saat itu.
    ------------------------------------------------------------------------- */
 function gambarPra() {
-  const r = DATA.ringkas || {};
+  const r = META.ringkas || {};
   const per = r.per_golongan || {};
+  const t = META.edisi && META.edisi.tanggal_lomba
+    ? new Date(META.edisi.tanggal_lomba) : null;
   return `
     <div class="kartu tengah">
       <h2>Belum dimulai</h2>
-      <p>Rekap live akan tampil di halaman ini begitu lomba berjalan.</p>
+      <p>Rekap live terbuka saat lomba berjalan${t
+        ? ` — ${esc(String(t.getDate()))} ${esc(BULAN[t.getMonth()])} ${esc(String(t.getFullYear()))}`
+        : ""}. Saat itu kamu bisa memeriksa apakah nilai regumu sudah masuk
+        dari tiap pos.</p>
       <p class="angka-besar">${esc(String(r.jumlah_regu_lunas ?? 0))}</p>
       <p>regu terdaftar</p>
-      <!-- Sebelum lomba, yang dicari orang di alamat ini bukan rekap
-           melainkan formulirnya. Halaman rekap yang kosong tanpa jalan ke
-           pendaftaran adalah jalan buntu bagi tamu yang paling banyak
-           datang saat itu. -->
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
         ${URUT_GOLONGAN.filter(g => per[g]).map(g =>
@@ -108,76 +158,129 @@ function gambarPra() {
 }
 
 /* ---------------------------------------------------------------------------
-   Fase 'progres' dan 'penuh' — tabel centang per pos.
-
-   Kolom pos dibangun dari daftar pos di live.json, bukan ditulis di sini:
-   jumlah dan namanya berubah tiap edisi.
+   Kotak cari. Selalu digambar begitu lomba mulai, bahkan sebelum rekap.json
+   ada di tangan — kotaknya sendiri yang MEMICU pengambilan berkas itu.
    ------------------------------------------------------------------------- */
-function barisCocok(b) {
-  if (!cari) return true;
-  return dada(b.nomor_dada).includes(cari)
-    || (b.nama_regu || "").toLowerCase().includes(cari)
-    || (b.nama_sekolah || "").toLowerCase().includes(cari);
-}
-
-function gambarProgres() {
-  const pos = DATA.pos || [];
-  const baris = (DATA.progres || []).filter(barisCocok);
-
-  const kepalaPos = pos.map(p => `<th class="pos">${esc(p.bayangan ? p.name : `Pos ${p.nomor}`)}</th>`).join("");
-
-  const isi = baris.map(b => {
-    const lewat = b.pos_terlewati || {};
-    const sel = pos.map(p => {
-      const ada = lewat[String(p.nomor)];
-      return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : "–"}</td>`;
-    }).join("");
-    return `
-      <tr>
-        <td class="dada">${esc(dada(b.nomor_dada))}</td>
-        <td class="regu">${esc(b.nama_regu)}<span class="sekolah">${esc(b.nama_sekolah)}</span></td>
-        <td class="gol">${esc(GOLONGAN[b.golongan] || b.golongan)}</td>
-        <td>${b.kloter ? esc(String(b.kloter)) : "—"}</td>
-        <td>${esc(kontrak(b.kontrak_menit))}</td>
-        <td>${esc(jam(b.jam_berangkat))}</td>
-        <td>${esc(jam(b.jam_datang))}</td>
-        ${sel}
-      </tr>`;
-  }).join("");
-
+function gambarCari() {
   return `
     <div class="kartu">
-      <h2>Nilai regu sudah masuk?</h2>
-      <p class="keterangan">Centang berarti nilai regu itu sudah diterima
-         sistem dari pos tersebut. Angkanya sengaja belum ditampilkan — hasil
-         lengkapnya dibuka setelah closing.</p>
+      <h2>Cari sekolahmu</h2>
+      <p class="keterangan">Ketik nama sekolahmu — boleh sebagiannya saja,
+         misalnya "purwadadi". Seluruh regu sekolah itu akan tampil.</p>
       <div class="cari-baris">
         <input type="search" id="cari" inputmode="search"
-               placeholder="Cari nomor dada, nama regu, atau sekolah…"
+               placeholder="Nama sekolah…"
                value="${esc(cari)}" autocomplete="off">
-        <span class="hitung">${esc(String(baris.length))} regu</span>
-      </div>
-      <div class="gulir">
-        <table class="tabel">
-          <thead>
-            <tr>
-              <th>No<br>Dada</th><th>Regu</th><th>Golongan</th>
-              <th>Kloter</th><th>Kontrak</th><th>Berangkat</th><th>Datang</th>
-              ${kepalaPos}
-            </tr>
-          </thead>
-          <tbody>${isi || `<tr><td colspan="${7 + pos.length}" class="kosong">
-            Tidak ada regu yang cocok dengan pencarian.</td></tr>`}</tbody>
-        </table>
       </div>
     </div>`;
 }
 
 /* ---------------------------------------------------------------------------
-   Fase 'penuh' — klasemen per golongan, juara di atas.
+   Hasil pencarian: dikelompokkan per SEKOLAH, dan di dalamnya urut nomor
+   dada dari awal sampai akhir.
+
+   Selama lomba yang tampil hanya centang. Kolom kloter, kontrak, dan jam baru
+   ikut muncul setelah hasilnya diumumkan (fase 'penuh') — saat itu halaman
+   ini memang berubah jadi papan hasil lengkap.
+   ------------------------------------------------------------------------- */
+/** Dicocokkan ke NAMA SEKOLAH saja — bukan nama regu, bukan nomor dada.
+ *
+ *  Itu keputusan sadar, bukan penyederhanaan. Sekolah adalah satu-satunya
+ *  kata kunci yang pasti diketahui setiap orang yang membuka halaman ini,
+ *  dan membatasi pencarian ke sana membuat halaman menjawab "bagaimana regu
+ *  KAMI" alih-alih berubah jadi alat mengintip nilai regu lain satu per satu.
+ *  Yang tampil sesudahnya memang seluruh regu sekolah itu — satu sekolah
+ *  adalah satu rombongan, dan pembinanya mengurus semuanya sekaligus. */
+function cocok(b) {
+  return (b.nama_sekolah || "").toLowerCase().includes(cari);
+}
+
+function gambarHasil() {
+  const pos = (META && META.pos) || [];
+  const penuh = fase() === "penuh";
+
+  if (cari.length < 2) {
+    return `<div class="kartu tengah">
+      <p class="keterangan">Ketik minimal dua huruf nama sekolahmu untuk
+         melihat seluruh regunya.</p></div>`;
+  }
+  if (!REKAP) {
+    return `<div class="kartu tengah"><p class="keterangan">Mencari…</p></div>`;
+  }
+
+  const baris = (REKAP.progres || []).filter(cocok);
+  if (!baris.length) {
+    return `<div class="kartu tengah">
+      <h2>Sekolah tidak ditemukan</h2>
+      <p class="keterangan">Tidak ada sekolah yang cocok dengan
+         "${esc(cari)}". Coba potong jadi satu kata saja — misalnya
+         "purwadadi" alih-alih nama lengkapnya. Kalau tetap tidak muncul,
+         pembayaran sekolahmu mungkin belum diverifikasi panitia.</p></div>`;
+  }
+
+  // Dikelompokkan per sekolah supaya satu sekolah yang mengirim sepuluh regu
+  // terbaca sebagai satu blok, bukan sepuluh baris yang tercecer.
+  const sekolah = new Map();
+  for (const b of baris) {
+    const k = b.nama_sekolah || "—";
+    if (!sekolah.has(k)) sekolah.set(k, []);
+    sekolah.get(k).push(b);
+  }
+
+  const kepalaPos = pos.map(p =>
+    `<th class="pos">${esc(p.bayangan ? p.name : `Pos ${p.nomor}`)}</th>`).join("");
+
+  return [...sekolah.entries()].sort((a, b) => a[0].localeCompare(b[0], "id"))
+    .map(([nama, isi]) => {
+      isi.sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
+      const kolomEkstra = penuh
+        ? `<th>Kloter</th><th>Kontrak</th><th>Berangkat</th><th>Datang</th>` : "";
+      return `
+        <div class="kartu">
+          <h2>${esc(nama)}</h2>
+          <p class="keterangan">${esc(String(isi.length))} regu${penuh ? "" :
+            " · centang = nilai regu itu sudah diterima sistem dari pos tersebut"}</p>
+          <div class="gulir">
+            <table class="tabel">
+              <thead>
+                <tr>
+                  <th>No<br>Dada</th><th>Regu</th><th>Golongan</th>
+                  ${kolomEkstra}${kepalaPos}
+                </tr>
+              </thead>
+              <tbody>
+                ${isi.map(b => {
+                  const lewat = b.pos_terlewati || {};
+                  const sel = pos.map(p => {
+                    const ada = lewat[String(p.nomor)];
+                    return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : "–"}</td>`;
+                  }).join("");
+                  const ekstra = penuh ? `
+                    <td>${b.kloter ? esc(String(b.kloter)) : "—"}</td>
+                    <td>${esc(kontrak(b.kontrak_menit))}</td>
+                    <td>${esc(jam(b.jam_berangkat))}</td>
+                    <td>${esc(jam(b.jam_datang))}</td>` : "";
+                  return `
+                    <tr>
+                      <td class="dada">${esc(dada(b.nomor_dada))}</td>
+                      <td class="regu">${esc(b.nama_regu)}</td>
+                      <td class="gol">${esc(GOLONGAN[b.golongan] || b.golongan)}</td>
+                      ${ekstra}${sel}
+                    </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }).join("");
+}
+
+/* ---------------------------------------------------------------------------
+   Fase 'penuh' — klasemen per golongan, juara di atas. Tampil tanpa perlu
+   mencari apa pun: inilah pengumumannya.
    ------------------------------------------------------------------------- */
 function gambarKlasemen() {
-  const semua = DATA.klasemen || [];
+  const semua = (REKAP && REKAP.klasemen) || [];
   if (!semua.length) return "";
 
   return URUT_GOLONGAN.map(g => {
@@ -227,22 +330,25 @@ function gambarKlasemen() {
    ------------------------------------------------------------------------- */
 function gambar() {
   const isi = document.getElementById("isi");
-  if (!DATA) return;
+  if (!META) return;
 
   document.getElementById("judul").textContent =
-    `Rekap Live${DATA.edisi ? ` — ${DATA.edisi.name}` : ""}`;
-  document.title = `Rekap Live — ${DATA.edisi ? DATA.edisi.name : "Hiking Rally Ciradyka"}`;
+    `Rekap Live${META.edisi ? ` — ${META.edisi.name}` : ""}`;
+  document.title = `Rekap Live — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
 
-  const fase = DATA.fase || "pra";
-  isi.innerHTML = fase === "pra"
+  isi.innerHTML = !mulai()
     ? gambarPra()
-    : (fase === "penuh" ? gambarKlasemen() : "") + gambarProgres();
+    : (fase() === "penuh" ? gambarKlasemen() : "") + gambarCari() + gambarHasil();
 
   const kotak = document.getElementById("cari");
   if (kotak) {
     kotak.addEventListener("input", () => {
       cari = kotak.value.trim().toLowerCase();
       const posisi = kotak.selectionStart;
+      // Berkas besar diambil saat orangnya benar-benar mencari, bukan saat
+      // halaman dibuka. Inilah yang membuat ribuan HP yang cuma melirik
+      // halaman ini tidak mengunduh apa pun selain live.json.
+      if (cari.length >= 2 && !REKAP) muatRekap().then(gambar);
       gambar();
       const baru = document.getElementById("cari");
       if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
@@ -252,18 +358,46 @@ function gambar() {
 }
 
 /* ---------------------------------------------------------------------------
-   Muat + segarkan sendiri. Penanda waktu di URL memaksa lewat cache browser;
-   berkasnya kecil dan sudah bertanda no-cache, tapi sebagian jaringan seluler
-   tetap menyimpannya sendiri.
+   Pengambilan berkas.
+
+   live.json  : kecil, tanpa cache, tiap 60 detik.
+   rekap.json : besar, dialamati `?v=<versi>` sehingga boleh di-cache selamanya
+                oleh browser dan oleh tepi Cloudflare. Versi berganti = alamat
+                berganti = satu unduhan baru, lalu diam lagi.
    ------------------------------------------------------------------------- */
+async function muatRekap() {
+  if (!META || mengambil) return;
+  if (REKAP && versiRekap === META.versi) return;   // sudah yang terbaru
+  mengambil = true;
+  try {
+    const r = await fetch(`rekap.json?v=${encodeURIComponent(META.versi || "0")}`);
+    if (!r.ok) throw new Error(String(r.status));
+    REKAP = await r.json();
+    versiRekap = META.versi;
+  } catch {
+    // Diamkan: yang lama tetap dipakai kalau ada, dan percobaan berikutnya
+    // datang sendiri pada poll berikutnya.
+  } finally {
+    mengambil = false;
+  }
+}
+
 async function muat() {
   try {
     const r = await fetch(`live.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(String(r.status));
-    DATA = await r.json();
+    const baru = await r.json();
+    const versiBerubah = !META || META.versi !== baru.versi;
+    META = baru;
+
+    // Rekap diambil ulang hanya kalau memang sudah dipegang (peserta sedang
+    // melihatnya) atau memang harus tampil tanpa dicari (fase 'penuh').
+    if (versiBerubah && (REKAP || fase() === "penuh")) await muatRekap();
+    else if (fase() === "penuh" && !REKAP) await muatRekap();
+
     gambar();
   } catch {
-    if (!DATA) {
+    if (!META) {
       document.getElementById("isi").innerHTML = `
         <div class="kartu tengah">
           <h2>Belum bisa dimuat</h2>
@@ -274,7 +408,22 @@ async function muat() {
 }
 
 muat();
-setInterval(muat, 60000);
+
+/* Polling hanya berjalan saat halamannya benar-benar dilihat. Ribuan HP yang
+   tertinggal terbuka di saku adalah beban yang tidak menghasilkan apa pun —
+   dan mereka tetap mendapat data segar begitu layarnya dibuka lagi. */
+let denyut = null;
+const nyalakan = () => {
+  if (denyut === null) denyut = setInterval(muat, 60000);
+};
+const matikan = () => {
+  if (denyut !== null) { clearInterval(denyut); denyut = null; }
+};
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) matikan();
+  else { nyalakan(); muat(); }
+});
+if (!document.hidden) nyalakan();
+
 // Cap "berapa menit lalu" ikut berjalan meski datanya belum berubah.
 setInterval(gambarSinkron, 30000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) muat(); });

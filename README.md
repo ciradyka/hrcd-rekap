@@ -38,7 +38,9 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   └── wrangler.toml         # deploy Workers static assets
 ├── live/                     # situs PESERTA (hrcd37) — Worker TERPISAH:
 │   ├── daftar.html           # form pendaftaran publik
-│   ├── index.html            # rekap live (centang per pos, isinya live.json)
+│   ├── index.html            # rekap live (cari sekolah → centang per pos)
+│   ├── live.json             # ±1 KB: fase + versi, INI yang di-poll tiap menit
+│   ├── rekap.json            # baris regu + klasemen, diambil sekali per versi
 │   ├── live.js, live.css     # halaman rekap — tidak ada di web/
 │   ├── js/daftar.js          # logika form pendaftaran — tidak ada di web/
 │   └── config.js, style.css, js/api.js, js/util.js
@@ -46,7 +48,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0026
+│   ├── migrations/           # skema database, urut 0001..0027
 │   ├── checks/               # SQL manual — flow_test & cleanup_smoke MENGUBAH
 │   │                         # data; live_json.sql dipakai Publish rekap live
 │   └── seed.sql              # konfigurasi edisi + baris wajib
