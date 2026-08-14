@@ -17,7 +17,7 @@
 
 import { daftarSekolah, kirimPendaftaran, infoEdisi, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
-         kartuMemuat } from "./util.js";
+         pemuat } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN = [
@@ -597,7 +597,7 @@ function sukses(hasil) {
 async function mulai() {
   // Rangka yang sama dengan layar panitia — daftar.html memang memuat
   // style.css yang sama, jadi tidak ada gaya kedua yang perlu dijaga.
-  LAYAR.replaceChildren(h(kartuMemuat(4)));
+  LAYAR.replaceChildren(h(pemuat()));
   try {
     [SEKOLAH, EDISI] = await Promise.all([daftarSekolah(), infoEdisi()]);
   } catch (e) {

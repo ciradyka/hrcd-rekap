@@ -23,7 +23,7 @@ import {
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
-         berapaLalu, kartuMemuat } from "./util.js";
+         berapaLalu, pemuat, ikonRefresh } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -152,7 +152,7 @@ function layarLogin(pesan) {
 async function layarHome() {
   pasangKepala("Home");
   const peran = sesi().peran;
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   // Operator pos tidak berhak atas layar meja — RLS akan mengosongkan
   // datanya dan itu tampak seperti "tidak ada antrean" (temuan review).
@@ -357,7 +357,7 @@ const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
 async function layarPembayaran() {
   if (!EDISI) { layarButuhEdisi("Meja Pembayaran"); return; }
   pasangKepala("Meja Pembayaran", true);
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
   let semua;
@@ -715,7 +715,7 @@ function cetakKwitansi(daftar) {
 async function layarDaftarUlang() {
   if (!EDISI) { layarButuhEdisi("Meja Daftar Ulang"); return; }
   pasangKepala("Meja Daftar Ulang", true);
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
   let semua;
@@ -1011,7 +1011,7 @@ async function layarDaftarUlang() {
 async function layarKeberangkatan() {
   if (!EDISI) { layarButuhEdisi("Keberangkatan"); return; }
   pasangKepala("Keberangkatan", true);
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
   let papan, opsi;
@@ -1376,7 +1376,7 @@ async function layarKeberangkatan() {
 
 async function layarCetakKloter() {
   pasangKepala("Cetak Daftar Kloter");
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   let baris;
   try { baris = await daftarKloter(); }
@@ -2058,7 +2058,7 @@ async function layarInputPos() {
   }
 
   pasangKepala("Input Nilai Pos", "lembar");
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
   let semuaPos;
@@ -2638,7 +2638,7 @@ async function layarRekap() {
   }
 
   pasangKepala("Rekapitulasi", "lembar");
-  LAYAR.replaceChildren(h(kartuMemuat()));
+  LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
   let pos, wahana, baris, kelengkapan;
@@ -2667,6 +2667,7 @@ async function layarRekap() {
   let golongan = URUTAN_GOLONGAN[0];
   let cari = "";
   let posBelum = null;    // nomor pos yang sedang disaring "belum lengkap"
+  let jamRefresh = new Date();
   let jeda = null;
 
   /** Berapa komponen pos ini yang sudah terisi untuk satu regu. Dihitung dari
@@ -2841,14 +2842,26 @@ async function layarRekap() {
               <button type="button" class="option option-small" data-gol="${g}"
                       aria-pressed="${golongan === g}">${esc(NAMA_GOLONGAN[g])}</button>`).join("")}
           </div>
-          <span class="table-count">${esc(String(tampil.length))} regu</span>
-          <!-- Ikon, bukan kata: tombol ini berdiri di deretan yang sudah penuh
-               saringan golongan, dan "Segarkan" memakan lebar yang lebih
-               berguna untuk kotak cari. Judul dan aria-label tetap berbunyi
-               lengkap — yang hilang hanya tulisannya, bukan artinya. -->
-          <button class="icon-button icon-button-inline" id="rekap-segarkan"
-                  type="button" aria-label="Segarkan sekarang"
-                  title="Segarkan sekarang (otomatis tiap 20 detik)">↻</button>
+          <!-- Ketiganya SATU kelompok, bukan tiga anak lepas dari toolbar.
+               Sebagai anak lepas, tombolnya jatuh sendirian ke baris baru
+               begitu deretan saringan penuh — terpisah dari jam yang
+               menerangkannya, dan terlihat seperti tombol nyasar. -->
+          <div class="toolbar-kanan">
+            <span class="table-count">${esc(String(tampil.length))} regu</span>
+            <!-- Cap waktunya BUKAN hiasan. Data ini sering kembali tanpa satu
+                 angka pun berubah, jadi tanpa jam yang bergerak, menekan
+                 tombol refresh terasa seperti menekan tombol mati. Jam inilah
+                 buktinya bahwa layar ini baru saja bertanya ke database. -->
+            <span class="table-count refresh-cap">Refresh terakhir
+              ${esc(jamMenit(jamRefresh))}</span>
+            <!-- Ikon, bukan kata: tombol ini berdiri di deretan yang sudah
+                 penuh saringan golongan, dan satu kata lagi memakan lebar
+                 yang lebih berguna untuk kotak cari. Judul dan aria-label
+                 tetap berbunyi lengkap — yang hilang hanya tulisannya. -->
+            <button class="icon-button icon-button-inline" id="rekap-refresh"
+                    type="button" aria-label="Refresh sekarang"
+                    title="Refresh sekarang (otomatis tiap 20 detik)">${ikonRefresh}</button>
+          </div>
         </div>
         <p class="description">Layar ini hanya menampilkan. Nilai diubah di
            <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
@@ -2894,8 +2907,8 @@ async function layarRekap() {
       const baru = document.getElementById("rekap-cari");
       if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
     });
-    document.getElementById("rekap-segarkan")
-      .addEventListener("click", () => segarkan(true));
+    document.getElementById("rekap-refresh")
+      .addEventListener("click", () => refresh(true));
   }
 
   /* Menyegarkan sendiri tiap 20 detik. Inilah yang membuat papan ini terasa
@@ -2903,19 +2916,41 @@ async function layarRekap() {
      layar ini melihat angkanya masuk tanpa menekan apa pun.
      Jumlah pembacanya belasan, bukan ribuan seperti halaman peserta, jadi
      membaca langsung dari database di sini memang murah. */
-  async function segarkan() {
+  async function refresh(manual = false) {
     if (location.hash !== layarIni) return;
+    // Hanya klik yang diberi putaran. Segaran otomatis tiap 20 detik dibiarkan
+    // diam-diam: penanda yang berkedip sendiri tiap 20 detik sepanjang hari
+    // akan berhenti diperhatikan justru saat ia dibutuhkan.
+    const tombol = manual ? document.getElementById("rekap-refresh") : null;
+    if (tombol) { tombol.classList.add("berputar"); tombol.disabled = true; }
+    const mulai = Date.now();
     try {
       const [b, k] = await Promise.all([rekapPenuh(), kelengkapanPos()]);
       baris = b; kelengkapan = k;
-      if (location.hash === layarIni) gambar();
-    } catch { /* diamkan: percobaan berikutnya datang sendiri */ }
+      // Dipasang SETELAH datanya benar-benar sampai, bukan saat permintaan
+      // dikirim: yang dijanjikan cap ini "angka di layar ini seumur jam itu".
+      jamRefresh = new Date();
+      // Klik HARUS terasa dijawab. Datanya sering kembali dalam puluhan
+      // milidetik dan sering tidak mengubah satu angka pun — putaran yang
+      // berhenti seketika karena itu terbaca sebagai tombol yang tidak
+      // bekerja sama sekali. Setengah detik cukup untuk terlihat berputar.
+      if (manual) {
+        const sisa = 500 - (Date.now() - mulai);
+        if (sisa > 0) await new Promise(r => setTimeout(r, sisa));
+      }
+      if (location.hash === layarIni) gambar();   // menggambar ulang = putaran berhenti
+    } catch (e) {
+      if (tombol) { tombol.classList.remove("berputar"); tombol.disabled = false; }
+      // api.js sudah melewatkan pesannya lewat pesanRamah() sebelum melempar,
+      // jadi yang sampai di sini memang kalimat yang boleh dibaca panitia.
+      if (manual) notif(e.message, true);
+    }
   }
 
   gambar();
   jeda = setInterval(() => {
     if (location.hash !== layarIni) { clearInterval(jeda); return; }
-    if (!document.hidden) segarkan();
+    if (!document.hidden) refresh();
   }, 20000);
 }
 
