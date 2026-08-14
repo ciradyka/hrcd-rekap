@@ -2051,10 +2051,28 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
 const REGU_PER_LEMBAR = 30;
 
-function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
+function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup,
+                               perLomba = false) {
   document.getElementById("cetakan")?.remove();
 
-  const kolom = kolomCetakPos(kolomLayar);
+  /* SATU LEMBAR PER LOMBA.
+
+     Di Pos 1 dan Pos 2 lombanya berjalan bersamaan di titik yang berbeda —
+     Semaphore di satu sudut, Menaksir di sudut lain. Satu kertas berisi
+     ketiganya berarti ketiga petugas memperebutkan lembar yang sama, dan yang
+     terjadi bukan penilaian bergantian melainkan angka yang dicatat di kertas
+     lain lalu disalin belakangan.
+
+     Jadi mode ini menerbitkan satu SET halaman untuk tiap lomba, masing-masing
+     dengan judul lombanya sendiri. Identitas regunya diulang di setiap set —
+     itu memang tujuannya, karena tiap set berpindah tangan sendiri-sendiri.
+
+     Yang TIDAK diulang: Nilai Pos. Lembar per lomba tidak punya cukup bahan
+     untuk menghitungnya, dan kolom bernama Nilai Pos di kertas yang hanya
+     memuat sepertiga posnya adalah undangan menjumlahkan yang salah. */
+  const set = perLomba
+    ? kolomLayar.map(kol => ({ judul: kol.nama, kolom: kolomCetakPos([kol]) }))
+    : [{ judul: null, kolom: kolomCetakPos(kolomLayar) }];
   const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
                              : `POS ${pos.nomor} — ${pos.name}`;
   const tanggal = tanggalPanjang(new Date());
@@ -2066,7 +2084,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
 
   // Sel identitas lewat tag html`` (isinya diketik orang luar); kotak kosong
   // ditempel sebagai HTML biasa karena memang tidak ada isinya.
-  const barisHtml = (r) => `
+  const barisHtml = (kolom) => (r) => `
     <tr>
       ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
       <td>${r.nama_regu}</td>
@@ -2078,10 +2096,14 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   // Tiap lembar berdiri sendiri: judul pos, nomor halaman, dan baris tanda
   // tangannya sendiri. Kertas ini beredar sebagai lembaran lepas yang
   // berpindah tangan lewat foto — halaman yang tidak menyebutkan posnya
-  // sendiri bisa dinilaikan ke pos yang salah.
-  const lembar = halaman.map((grup, i) => `
+  // sendiri bisa dinilaikan ke pos yang salah. Di mode per lomba nama
+  // lombanya ikut, karena sekarang beredar beberapa lembar berbeda dari pos
+  // yang sama sekaligus, dan "Pos 1 halaman 2/2" ada tiga.
+  const lembar = set.map(({ judul: judulLomba, kolom }) =>
+    halaman.map((grup, i) => `
     <section class="print-page lembar-pos">
-      <h1>LEMBAR NILAI · ${esc(judul)} · Halaman ${i + 1}/${halaman.length}</h1>
+      <h1>LEMBAR NILAI · ${esc(judul)}${judulLomba ? ` · ${esc(judulLomba)}` : ""}
+          · Halaman ${i + 1}/${halaman.length}</h1>
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} · ${esc(tanggal)} ·
          dada ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
          · Petugas: ______________ · Diperiksa: ______________</p>
@@ -2095,12 +2117,12 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
               <span class="kolom-petunjuk">${esc(c.petunjuk)}</span></th>`).join("")}
           </tr>
         </thead>
-        <tbody>${grup.map(barisHtml).join("")}</tbody>
+        <tbody>${grup.map(barisHtml(kolom)).join("")}</tbody>
       </table>
       ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya.
          JANGAN menjumlahkan sendiri — sistem yang mengubahnya jadi poin.
          Foto lembar ini secara berkala, jangan ditumpuk sampai pos tutup.</p>` : ""}
-    </section>`).join("");
+    </section>`).join("")).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
 }
@@ -2215,8 +2237,14 @@ async function layarInputPos() {
     <div class="card">
       ${alatTabel({
         kiri: pilihPosHtml(s, semuaPos),
+        // Dua tombol, karena keduanya menjawab hari yang berbeda. Satu lembar
+        // berisi semua lomba untuk pos yang dinilai satu meja; satu lembar per
+        // lomba untuk pos yang lombanya berjalan BERSAMAAN di beberapa titik —
+        // dan di sana satu kertas keliling adalah antrean, bukan lembar nilai.
         kanan: `<button class="button button-secondary button-small" type="button"
-                        id="cetak-lembar">🖨️ Cetak Lembar</button>`,
+                        id="cetak-lembar">🖨️ Cetak Lembar</button>
+                <button class="button button-secondary button-small" type="button"
+                        id="cetak-per-lomba">🖨️ Cetak per Lomba</button>`,
         // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
@@ -2601,7 +2629,7 @@ async function layarInputPos() {
   // Dua kebutuhan berbeda terlayani satu tombol: sebelum lomba cetak "Semua"
   // untuk lembar kosong, dan di tengah lomba saring "Belum lengkap" dulu
   // supaya kertas susulan hanya memuat regu yang memang belum dinilai.
-  document.getElementById("cetak-lembar").addEventListener("click", async () => {
+  const cetak = async (perLomba) => {
     const tampil = [...tbody.children].filter(tr => !tr.hidden)
       .map(tr => lembar.find(r => Number(r.nomor_dada) === Number(tr.dataset.dada)))
       .filter(Boolean);
@@ -2614,9 +2642,20 @@ async function layarInputPos() {
     let ditutup = false;
     try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
-    siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
+    siapkanCetakLembarPos(pos, kolom, tampil, ditutup, perLomba);
     window.print();
-  });
+  };
+
+  document.getElementById("cetak-lembar")
+    .addEventListener("click", () => cetak(false));
+
+  // Pos berkolom satu tidak punya "per lomba" — lembarnya akan sama persis,
+  // dan dua tombol yang menghasilkan kertas identik membuat orang mengira
+  // salah satunya rusak. Tombolnya dibuang, bukan dinonaktifkan: tombol mati
+  // menimbulkan pertanyaan yang tidak ada jawabannya.
+  const tombolLomba = document.getElementById("cetak-per-lomba");
+  if (kolom.length < 2) tombolLomba.remove();
+  else tombolLomba.addEventListener("click", () => cetak(true));
 
   pasangAlatTabel((cari, saring) => {
     [...tbody.children].forEach(tr => {
