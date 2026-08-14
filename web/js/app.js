@@ -132,6 +132,18 @@ function layarLogin(pesan) {
   document.getElementById("masuk").addEventListener("click", aksi);
   LAYAR.querySelectorAll("input").forEach(i =>
     i.addEventListener("keydown", e => { if (e.key === "Enter") aksi(); }));
+
+  // Nomor edisi diambil SEBELUM login, supaya judul tab sudah berbunyi
+  // "Sistem Panitia — HRCD XXXVII" di layar masuk, bukan "Sistem Panitia —
+  // HRCD" yang menggantung. Boleh: v_edisi_publik memang di-grant ke anon
+  // (migrasi 0005) — halaman pendaftaran publik membacanya dengan cara yang
+  // sama persis. Gagalnya diabaikan; judul yang kurang satu kata bukan
+  // alasan menahan kotak login.
+  if (!EDISI) {
+    infoEdisi()
+      .then(e => { EDISI = e; if (!sesi()) pasangKepala("Sistem Panitia"); })
+      .catch(() => {});
+  }
 }
 
 /* ============================ BERANDA MEJA (home) ========================= */

@@ -21,9 +21,36 @@
 #
 # Tanpa pemisahan ini, 3.000 HP × 60 KB tiap menit adalah 180 MB per menit
 # untuk data yang sebagian besar waktu tidak berubah sama sekali.
+#
+# ----------------------------------------------------------------------------
+# TIDAK ADA ATURAN `/*` DI SINI, DAN ITU DISENGAJA.
+#
+# Cloudflare MENGGABUNGKAN header dari semua aturan yang cocok, bukan
+# menimpanya dengan yang paling spesifik. Selama `/*` masih menyetel
+# `Cache-Control: no-cache`, rekap.json terbit dengan
+# `no-cache, public, max-age=3600, immutable` — dan `no-cache` yang menang.
+# Berkasnya jadi ditanyakan ulang tiap kali padahal alamatnya sudah memuat
+# versinya, yang persis menghapus penghematan yang dikejar seluruh pemecahan
+# di atas. Ini benar-benar terjadi dan baru ketahuan dari `curl -I` setelah
+# tayang, bukan dari mana pun di dalam repo.
+#
+# Jadi tiap jenis berkas menyebut aturannya sendiri. Halaman HTML disebut
+# empat kali karena Workers menyajikan satu berkas di dua alamat: `/` dan
+# `/index.html`, `/daftar` dan `/daftar.html`. Isi folder ini cuma sebelas
+# berkas — menyebutkannya satu per satu lebih murah daripada satu aturan
+# menyapu yang diam-diam merusak aturan lain.
 # ============================================================================
 
-/*
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/daftar
+  Cache-Control: no-cache
+
+/daftar.html
   Cache-Control: no-cache
 
 /live.json
