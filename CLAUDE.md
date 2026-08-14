@@ -150,3 +150,31 @@ Guidance for Claude Code when working in this repository.
    lands in the other in the same commit. No workflow checks this
    (`shared-files.yml` only compares `web/` against `live/`), and the pair has
    already drifted 21 lines once, losing all of section 5's rules 9-12.
+
+## 8. Printed forms
+
+1. **Every printed form is photocopied, not printed once per copy.** One master
+   goes to a field copier and comes back multiplied — often a copy of a copy.
+   Every rule below follows from that, and none of them are cosmetic.
+2. **No solid black fills.** A filled bar looks emphatic on screen and prints
+   fine on a laser printer, but a copier renders it blotchy or streaked, and it
+   drinks toner. Use a heavy rule instead: a line survives copying, a block
+   does not.
+3. **No reversed text.** White type on a dark ground is the first thing to
+   disappear when a copy is copied — the fill closes over the letters. Black on
+   white only.
+4. **No grey, and no tints.** Grey is what copiers handle worst: they turn it
+   into a dot screen that either drops out on a tired machine or darkens into
+   dirt. Where something must recede, make it **small and solid black** rather
+   than faint. Small and out of the way achieves the same thing as pale, and
+   survives being copied a fourth time.
+5. **Rules at least `0.75pt`.** Hairlines below that vanish entirely on a copy,
+   and a form whose boxes have no edges is not a form.
+6. **Type at least `7pt`.** Below that a copier fills in the counters — the
+   holes in `a`, `e`, `o` — and toner speckle turns the word into a smudge.
+7. **Nothing behind a writing area.** Boxes people write into stay white: no
+   tint, no watermark, no example number printed inside. Speckle on white is
+   still readable; speckle over a tint is not.
+8. These rules live in `web/style.css` under `@media print`, and `live/` holds
+   a byte-identical copy — section 7.5 applies to CSS the same way, and
+   `shared-files.yml` enforces that pair.

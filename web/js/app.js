@@ -2120,84 +2120,125 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
 }
 
-/** SLIP NILAI — satu kertas, satu lomba, SATU REGU (alur-lomba.md 8.3).
+/** Judul besar di atas kotak isian: APA yang harus ditulis di sana.
  *
- *  Bentuk ketiga, dan yang paling banyak dipakai di lapangan. Regu masuk
- *  wahana, petugas mengambil slip lombanya, regu mengerjakan, petugas menulis
- *  angkanya, slip masuk kotak penilaian. Kotaknya diserahkan ke tim IT, yang
- *  mengurutkannya menurut nomor dada sebelum memasukkannya.
+ *  Diturunkan dari bentuk komponennya, bukan ditulis per lomba, supaya lomba
+ *  baru tahun depan langsung dapat judul yang benar tanpa menyentuh berkas
+ *  ini. Empat cabang, semuanya kalimat yang panitia ucapkan sendiri. */
+function judulIsian(k) {
+  if (k.satuan === "detik") return "Waktu tempuh";
+  if (k.form === "biner") return "Kena / tidak";
+  if (k.form === "benar_kurang_salah") return "Benar dan salah";
+  if (k.form === "bertingkat") return "Hasil ukur";
+  return "Jumlah benar";
+}
+
+/** Contoh angka di bawah judul. Bukan hiasan: satu contoh nyata mencegah
+ *  seluruh kelas kesalahan yang tidak bisa dicegah kalimat mana pun — petugas
+ *  yang menulis "0:47" di kotak berlabel DETIK, atau menulis poin alih-alih
+ *  data mentah. Angkanya diambil dari rentang komponen itu sendiri, jadi ia
+ *  selalu masuk akal untuk lomba yang bersangkutan. */
+function contohIsian(k) {
+  if (k.satuan === "detik") return "dalam DETIK · contoh: 47";
+  if (k.form === "biner") return "centang bila kena";
+  if (k.petunjuk) return k.petunjuk;
+  return `angka ${petunjukKolom(k)}`;
+}
+
+/** FORM PER LOMBA — BLANGKO KOSONG, satu lembar untuk satu regu di satu lomba
+ *  (alur-lomba.md 8.3).
  *
- *  Kenapa bukan tabel 30 regu, padahal tabel jauh lebih hemat kertas: sebuah
- *  tabel baru bisa berpindah ke kotak setelah baris TERAKHIR-nya terisi, dan
- *  satu regu tidak pernah selesai di semua lomba pada saat yang sama. Slip
- *  berpindah begitu regunya selesai. Tabelnya tetap ada untuk pos yang dinilai
- *  satu meja — dua bentuk untuk dua cara kerja, bukan satu menggantikan yang
- *  lain.
+ *  KENAPA KOSONG, PADAHAL SISTEM TAHU SEMUA NAMA REGUNYA.
  *
- *  JUMLAHNYA BESAR, dan itu memang begitu adanya: 500 regu di pos berisi tiga
- *  lomba berarti 1.500 slip. Karena itu delapan slip per A4, bukan satu — pada
- *  1.500 slip, selisih empat dan delapan per halaman adalah 188 lembar kertas.
- *  Ukurannya masih selebar telapak tangan, cukup untuk satu angka besar dan
- *  satu tanda tangan pendek.
+ *  Karena regu datang ke pos dalam urutan ACAK. Kloter berangkat berurutan,
+ *  tetapi rute, kecepatan, dan antrean membuat siapa yang muncul berikutnya
+ *  tidak bisa ditebak. Kalau tiap kertas sudah tercetak identitasnya, petugas
+ *  harus MENCARI kertas nomor 005 di tumpukan berisi ratusan lembar setiap
+ *  kali satu regu masuk — pekerjaan yang lebih lama daripada lombanya sendiri,
+ *  dilakukan sambil regu menunggu.
  *
- *  Tiga hal yang dikerjakan bentuk ini dan tidak bisa dikerjakan tabel:
+ *  Jadi semua kertas identik, dan petugas menulis "005" di kotak paling kiri
+ *  atas. Yang dicetak sistem bukan datanya, melainkan BENTUKNYA: nama lomba,
+ *  satuan yang benar, contoh angkanya, dan tempat tanda tangan.
  *
- *    - Nomor dada dicetak BESAR di pojok kiri atas. Seluruh alurnya berujung
- *      pada mengurutkan ratusan lembar lepas, dan itu dilakukan sambil melihat
- *      sudut kertas saja.
- *    - Rentangnya milik regu ITU. Di tabel, Tebak Simpul harus menulis
- *      "0 – 10 / 0 – 5" karena satu kolom melayani empat golongan; di slip,
- *      regu Penggalang melihat "0 – 5" saja dan tidak ada yang perlu dipilih.
- *    - Slip untuk golongan yang tidak berhak TIDAK dicetak sama sekali —
- *      bukan dicetak lalu dicoret.
+ *  YANG DITULIS TANGAN HANYA NOMOR DADA.
+ *
+ *  Tidak ada kolom nama regu, sekolah, atau golongan — dan itu keputusan,
+ *  bukan kelalaian. Ketiganya sudah ditentukan oleh nomor dada, jadi
+ *  menuliskannya berarti menyalin ~30 huruf sebanyak 1.500 kali untuk
+ *  informasi yang sudah dimiliki sistem. Di pos yang sedang mengantre, itu
+ *  pekerjaan yang memakan waktu lomba itu sendiri.
+ *
+ *  Lebih buruk lagi: kolom yang terlalu mahal untuk diisi AKAN dikosongkan,
+ *  dan kolom kosong yang bernama "konfirmasi" adalah pengaman palsu — ia
+ *  membuat orang merasa ada pengecekan padahal tidak ada.
+ *
+ *  Pengecekannya memang ada, tapi bukan di kertas. Saat tim IT mengetik 005,
+ *  baris di layar Input Pos langsung menampilkan nama regu, sekolahnya, dan
+ *  golongannya. Salah ketik ketahuan di sana — tanpa satu huruf pun ditulis
+ *  di lapangan.
+ *
+ *  Satu baris kecil tetap disediakan untuk keadaan yang benar-benar
+ *  membutuhkan tulisan: nomor dadanya TIDAK TERBACA — robek, tertutup jaket,
+ *  atau petugas ragu antara 6 dan 8. Tanpa tempatnya, catatan itu tetap
+ *  ditulis, hanya saja di pinggir kertas tempat tidak ada yang mencarinya.
  */
-function siapkanCetakSlipPos(pos, kolomLayar, baris) {
+function siapkanCetakBlangko(pos, kolomLayar, jumlah) {
   document.getElementById("cetakan")?.remove();
 
-  const judulPos = pos.bayangan ? pos.name : `POS ${pos.nomor}`;
-  const tanggal = tanggalPanjang(new Date());
+  const judulPos = pos.bayangan ? pos.name : `POS ${pos.nomor} · ${pos.name}`;
+  const BLANGKO_PER_HALAMAN = 6;
 
-  // Dikelompokkan per lomba, bukan per regu: tiap petugas mengambil satu
-  // tumpukan utuh untuk lombanya sendiri, dan tumpukan itu sudah urut nomor
-  // dada sejak dari printer.
-  const slip = [];
-  for (const kol of kolomLayar) {
-    for (const r of baris) {
-      const k = varianUntuk(kol, r.golongan);
-      if (k) slip.push({ kol, k, r });
-    }
-  }
+  const satuBlangko = (kol) => {
+    // Varian mana pun boleh dipakai untuk menurunkan bentuknya: yang berbeda
+    // antar golongan hanya skalanya, dan skala tidak dicetak di blangko —
+    // justru itu gunanya. Petugas menulis jumlah benar apa adanya, dan sistem
+    // yang tahu 5 simpul untuk Penggalang, 10 untuk Penegak.
+    const k = kol.varian[0];
+    return `
+    <article class="blangko">
+      <p class="bl-pos">${esc(judulPos)}</p>
+      <h2 class="bl-lomba">${esc(kol.nama)}</h2>
+      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")} · Petugas: ____________</p>
 
-  const SLIP_PER_HALAMAN = 8;
-  const halaman = [];
-  for (let i = 0; i < slip.length; i += SLIP_PER_HALAMAN) {
-    halaman.push(slip.slice(i, i + SLIP_PER_HALAMAN));
-  }
+      <table class="bl-identitas"><tbody>
+        <tr>
+          <td class="bl-dada"><span class="bl-label">No Dada</span></td>
+          <td class="bl-catat"><span class="bl-label">Regu / sekolah —
+            <em>hanya bila nomor dada tidak terbaca</em></span></td>
+        </tr>
+      </tbody></table>
 
-  const satuSlip = ({ kol, k, r }) => `
-    <article class="slip">
-      <div class="slip-kepala">
-        ${html`<span class="slip-dada">${String(r.nomor_dada).padStart(3, "0")}</span>`}
-        <span class="slip-lomba">${esc(judulPos)} · ${esc(kol.nama)}</span>
+      <div class="bl-nilai">
+        <div class="bl-nilai-kepala">
+          <span class="bl-nilai-judul">${esc(judulIsian(k))}</span>
+          <span class="bl-nilai-contoh">${esc(contohIsian(k))}</span>
+        </div>
+        <div class="bl-nilai-kotak"></div>
       </div>
-      ${html`<p class="slip-regu">${r.nama_regu}</p>
-      <p class="slip-asal">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</p>`}
-      <div class="slip-isian">
-        ${kolomCetakPos([{ ...kol, varian: [k], petunjuk: petunjukKolom(k) }])
-          .map(c => `<span class="slip-kotak">
-            <span class="slip-petunjuk">${esc(c.petunjuk)}</span>
-            <span class="isian"></span></span>`).join("")}
-      </div>
-      <p class="slip-kaki">Petugas: ____________</p>
+
+      <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
+         poin.</strong> Sistem yang mengubahnya jadi nilai.</p>
+      <p class="bl-ttd">Petugas ${esc(kol.nama)}</p>
+      <p class="bl-garis"></p>
     </article>`;
+  };
 
-  const cetakan = halaman.map(grup => `
-    <section class="print-page slip-halaman">
-      ${grup.map(satuSlip).join("")}
-    </section>`).join("");
+  // Satu tumpukan per lomba, dan tiap tumpukan dimulai di HALAMAN BARU.
+  // Halaman campuran akan memaksa seseorang memilah guntingan sebelum
+  // membagikannya — pekerjaan yang tidak perlu ada, dan harganya cuma
+  // beberapa blangko kosong di halaman terakhir tiap lomba.
+  const cetakan = kolomLayar.map(kol => {
+    const isi = satuBlangko(kol);
+    const halaman = Math.ceil(jumlah / BLANGKO_PER_HALAMAN);
+    return Array.from({ length: halaman }, () => `
+      <section class="print-page blangko-halaman">
+        ${isi.repeat(BLANGKO_PER_HALAMAN)}
+      </section>`).join("");
+  }).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${cetakan}</div>`));
-  return slip.length;
+  return kolomLayar.length * Math.ceil(jumlah / BLANGKO_PER_HALAMAN);
 }
 
 /** Layar Input Pos — lembar kertas yang dipindah ke layar.
@@ -2716,16 +2757,16 @@ async function layarInputPos() {
     try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
     if (slip) {
-      // Peringatannya diucapkan, bukan dicetak. Slip dipotong-potong, jadi
-      // catatan kaki di halaman justru terbuang bersama guntingan — dan
-      // catatan yang pasti hilang lebih buruk daripada tidak ada, karena ia
-      // membuat orang mengira sudah memperingatkan.
-      if (!ditutup) {
-        notif("Daftar ulang belum ditutup — regu yang mendaftar setelah ini "
-              + "tidak ikut tercetak.", true);
-      }
-      const n = siapkanCetakSlipPos(pos, kolom, tampil);
-      notif(`${n} slip disiapkan — ${Math.ceil(n / 8)} lembar A4.`);
+      // Blangkonya KOSONG, jadi jumlah regu cuma menentukan BERAPA BANYAK yang
+      // dicetak — bukan isinya. Karena itu daftar ulang yang belum ditutup
+      // tidak lagi berbahaya di sini: regu yang menyusul tetap kebagian
+      // kertas, asal jumlahnya cukup. Ditambah seperlima sebagai cadangan,
+      // karena kertas rusak, basah, dan salah tulis adalah kejadian biasa di
+      // lapangan — dan blangko yang habis di tengah lomba menghentikan pos.
+      const perlu = Math.ceil(tampil.length * 1.2);
+      const lembar = siapkanCetakBlangko(pos, kolom, perlu);
+      notif(`${lembar} lembar A4 — ${perlu} blangko × ${kolom.length} lomba `
+            + `(${tampil.length} regu + cadangan).`);
     } else {
       siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
     }

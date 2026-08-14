@@ -407,6 +407,14 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    PBB, Yel-Yel — lebih cepat dengan satu halaman berisi 30 regu, dan di sana
    tidak ada kertas yang perlu berpindah di tengah lomba.
 
+   **Semua kertas ini digandakan dengan mesin fotokopi, dan itu menentukan
+   bentuknya.** Tidak ada blok hitam, tidak ada tulisan putih di atas gelap,
+   tidak ada abu-abu — ketiganya adalah hal yang paling buruk ditangani mesin
+   fotokopi, apalagi saat yang digandakan sudah berupa gandaan. Garis minimal
+   0,75pt dan huruf minimal 7pt, karena di bawah itu garisnya hilang dan
+   huruf-hurufnya menutup sendiri oleh serbuk toner. Kotak yang ditulisi selalu
+   putih polos. Aturan lengkapnya di `CLAUDE.md` bagian 8.
+
    Satu kolom sengaja **tidak** ikut dicetak di bentuk mana pun: **Nilai Pos**.
    Petugas lapangan hanya menulis data mentah dan tidak pernah menjumlahkan
    sendiri (poin 1) — kotak berjudul Nilai Pos justru mengundang hitungan
