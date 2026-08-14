@@ -20,7 +20,8 @@ import {
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   statusAcara,
 } from "./api.js";
-import { esc, h, html, rupiah, jamSekarang, notif, dialog, kartuGagalMuat } from "./util.js";
+import { esc, h, html, rupiah, jamMenit, tanggalPanjang, notif, dialog,
+         kartuGagalMuat } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -74,12 +75,6 @@ function pasangKepala(judul, lebar = false) {
     `${s.username} · ${EDISI ? EDISI.name : ""}`;
 }
 
-/** Jam sekarang dalam bentuk HH:MM untuk <input type="time">. */
-const jamSekarangHHMM = () => {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
-
 const kartuGalat = (pesan) => html`
   <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
     <strong>${pesan}</strong></div>`;
@@ -94,7 +89,7 @@ function barisTerakhirHtml(fungsi) {
     </table></div>`;
 }
 function catatTerakhir(fungsi, apa, detail) {
-  terakhir[fungsi].unshift({ jam: jamSekarang(), apa, detail });
+  terakhir[fungsi].unshift({ jam: jamMenit(new Date()), apa, detail });
 }
 
 /* ============================ LOGIN ===================================== */
@@ -644,8 +639,7 @@ function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
 function cetakKwitansi(daftar) {
   document.getElementById("cetakan")?.remove();
   const s = sesi();
-  const tanggal = (t) => new Date(t || Date.now()).toLocaleDateString("id-ID",
-    { day: "numeric", month: "long", year: "numeric" });
+  const tanggal = (t) => tanggalPanjang(t || Date.now());
 
   const halaman = daftar.map(b => {
     const aktif = reguAktif(b);
@@ -1072,7 +1066,7 @@ async function layarKeberangkatan() {
         <div class="kloter-header">
           <h2>Kloter ${kloterAktif}</h2>
           ${sudahBerangkat
-            ? html`<span class="badge badge-green">BERANGKAT ${jamPendek(info.jam_berangkat)}</span>
+            ? html`<span class="badge badge-green">BERANGKAT ${jamMenit(info.jam_berangkat)}</span>
                    <button class="icon-button icon-button-inline" id="koreksi-jam" type="button"
                            title="Betulkan jam berangkat"
                            aria-label="Betulkan jam berangkat Kloter ${kloterAktif}">&#9998;</button>`
@@ -1132,7 +1126,7 @@ async function layarKeberangkatan() {
           <div class="departure-bar">
             <div class="field" style="margin:0">
               <label for="jam-berangkat">Jam berangkat (diketik pencatat)</label>
-              <input type="time" id="jam-berangkat" step="60" value="${jamSekarangHHMM()}">
+              <input type="time" id="jam-berangkat" step="60" value="${jamMenit(new Date())}">
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
               🚩 Berangkatkan Kloter ${kloterAktif}
@@ -1278,20 +1272,20 @@ async function layarKeberangkatan() {
       const sebelum = papan.filter(k => k.nomor < kloterAktif && k.jam_berangkat).pop();
       const sesudah = papan.find(k => k.nomor > kloterAktif && k.jam_berangkat);
       const tetangga = [
-        sebelum && `Kloter ${sebelum.nomor} berangkat ${jamPendek(sebelum.jam_berangkat)}`,
-        sesudah && `Kloter ${sesudah.nomor} berangkat ${jamPendek(sesudah.jam_berangkat)}`,
+        sebelum && `Kloter ${sebelum.nomor} berangkat ${jamMenit(sebelum.jam_berangkat)}`,
+        sesudah && `Kloter ${sesudah.nomor} berangkat ${jamMenit(sesudah.jam_berangkat)}`,
       ].filter(Boolean).join(" · ");
 
       const jawab = await dialog({
         judul: `Betulkan jam berangkat Kloter ${kloterAktif}`,
         kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
-          <div class="nama">Sekarang tercatat ${jamPendek(info.jam_berangkat)}</div>
+          <div class="nama">Sekarang tercatat ${jamMenit(info.jam_berangkat)}</div>
           <div class="detail">Mengubah jam ini menghitung ulang penalti waktu
             seluruh regu di Kloter ${kloterAktif}.${tetangga ? ` ${tetangga}.` : ""}</div>
         </div>`,
         medan: [
           { label: "Jam berangkat yang benar", tipe: "time",
-            nilai: jamHHMM(info.jam_berangkat) },
+            nilai: jamMenit(info.jam_berangkat) },
           { label: "Alasan koreksi", contoh: "salah ketik, seharusnya 07.40" },
         ],
         labelAksi: "Simpan Koreksi",
@@ -1458,7 +1452,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
-    const perkiraan = jamCetak(contoh.perkiraan_berangkat);
+    const perkiraan = jamMenit(contoh.perkiraan_berangkat);
     const nyata = contoh.sudah_berangkat;
 
     const baris = v.isi.map(r => bentuk === "staging"
@@ -1668,7 +1662,7 @@ function layarFinish() {
     kotak.replaceChildren(h(`
       ${kartuReguFinish(r)}
       ${r.sudah_finish ? `<div class="card" style="border-color:var(--kuning);background:var(--kuning-muda);margin-top:.5rem">
-          <strong>Sudah tercatat datang ${esc(jamPendek(r.jam_datang))}.</strong>
+          <strong>Sudah tercatat datang ${esc(jamMenit(r.jam_datang))}.</strong>
           <div class="description">Menekan tombol akan MENGGANTI jam itu.</div>
         </div>` : ""}
       ${halangan ? kartuGalat(halangan) : ""}
@@ -1682,7 +1676,7 @@ function layarFinish() {
     // Regu yang sudah tercatat: tampilkan jam lamanya di kolom perbaikan,
     // supaya verifikasi terhadap kertas tinggal membandingkan lalu mengubah.
     if (r.sudah_finish && r.jam_datang) {
-      inpJam.value = new Date(r.jam_datang).toTimeString().slice(0, 5);
+      inpJam.value = jamMenit(r.jam_datang);
       inpHadir.value = r.anggota_hadir ?? 5;
     }
     perbaruiDampak();
@@ -1712,12 +1706,12 @@ function layarFinish() {
       return;
     }
     catatTerakhir("finish", String(dada).padStart(3, "0"),
-      `${nama} — ${jamPendek(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
+      `${nama} — ${jamMenit(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
     tombol.dataset.jalan = "";
     inp.value = ""; inpJam.value = ""; inpHadir.value = "5";
     bersihkan(); inp.focus();
     gambarRiwayat();
-    notif(`${String(dada).padStart(3, "0")} tercatat ${jamPendek(jam)}.`);
+    notif(`${String(dada).padStart(3, "0")} tercatat ${jamMenit(jam)}.`);
   });
 
   function gambarRiwayat() {
@@ -1734,44 +1728,6 @@ function layarFinish() {
             Ketik nomor dada regu yang baru sampai.</p>`));
   }
 }
-
-/** "07:04 Pagi" — jam dua digit, titik dua, lalu bagian harinya.
- *  toLocaleTimeString("id-ID") memberi "07.04" dengan TITIK, yang di layar
- *  mudah terbaca sebagai angka desimal. Bagian hari ditambahkan karena
- *  lomba berjalan dari pagi sampai sore dan panitia menyebut jam dengan
- *  kata itu — "empat lewat" bisa berarti 04.00 atau 16.00. */
-const bagianHari = (j) =>
-  j < 11 ? "Pagi" : j < 15 ? "Siang" : j < 18 ? "Sore" : "Malam";
-
-/** Bentuk untuk KERTAS: "07:04 AM". Layar memakai jamPendek ("07:04 Pagi")
- *  karena panitia membacanya sambil bicara; kertas dibaca diam-diam dan
- *  sering oleh orang luar (pembina, sekolah), jadi AM/PM yang lebih ringkas
- *  dan tidak perlu diterjemahkan. */
-const jamCetak = (t) => {
-  if (!t) return "—";
-  const d = new Date(t);
-  const j = d.getHours();
-  const j12 = j % 12 === 0 ? 12 : j % 12;
-  return `${String(j12).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} ${j < 12 ? "AM" : "PM"}`;
-};
-
-const jamPendek = (t) => {
-  if (!t) return "—";
-  const d = new Date(t);
-  const jj = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${jj}:${mm} ${bagianHari(d.getHours())}`;
-};
-
-/** Kebalikan jamPendek: timestamp -> "07:04" untuk mengisi <input type="time">.
- *  Dipisah dari jamPendek karena jamPendek menambahkan bagian hari ("Pagi"),
- *  dan <input type="time"> menolak apa pun selain HH:MM — diam-diam, tanpa
- *  galat, isiannya sekadar kosong. */
-const jamHHMM = (t) => {
-  if (!t) return "";
-  const d = new Date(t);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
 
 /** "14:35" -> Date hari ini pada jam itu (untuk pencatatan susulan). */
 function jamHariIni(hhmm) {
@@ -1792,8 +1748,8 @@ function kartuReguFinish(r) {
     <div class="card card-identity" style="margin:0">
       ${html`<div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
       <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
-      <div class="detail">Kloter ${r.kloter} · berangkat ${jamPendek(r.jam_berangkat)}${
-        r.target_datang ? ` · target ${jamPendek(r.target_datang)}` : ""}</div>`}
+      <div class="detail">Kloter ${r.kloter} · berangkat ${jamMenit(r.jam_berangkat)}${
+        r.target_datang ? ` · target ${jamMenit(r.target_datang)}` : ""}</div>`}
       <div style="margin-top:.4rem">${tandaWaktu}
         ${r.sisipan ? `<span class="badge badge-red">sisipan</span>` : ""}</div>
     </div>`;
@@ -1955,8 +1911,7 @@ function siapkanCetakLembarPos(pos, komponen, baris, daftarUlangDitutup) {
   const kolom = kolomCetakPos(komponen);
   const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
                              : `POS ${pos.nomor} — ${pos.name}`;
-  const tanggal = new Date().toLocaleDateString("id-ID",
-    { day: "numeric", month: "long", year: "numeric" });
+  const tanggal = tanggalPanjang(new Date());
 
   const halaman = [];
   for (let i = 0; i < baris.length; i += REGU_PER_LEMBAR) {
@@ -2228,7 +2183,6 @@ async function layarInputPos() {
   // dimuat, karena saat itu angka di layar memang baru dibaca dari sana.
   let jamSinkron = new Date();
 
-  const jamDetik = (d) => d.toTimeString().slice(0, 8);
   const berapaLalu = (d) => {
     const menit = Math.floor((Date.now() - d.getTime()) / 60000);
     if (menit < 1) return "barusan";
@@ -2242,20 +2196,22 @@ async function layarInputPos() {
     const gagal = baris.filter(t => t.dataset.keadaan === "gagal").length;
     const sibuk = baris.some(t => t.dataset.keadaan === "menyimpan");
     const putus = !navigator.onLine;
-    const cap = `Sinkronisasi Terakhir: ${jamDetik(jamSinkron)}`;
+    // Umurnya SELALU ikut, bukan hanya saat gagal. Capnya kini HH:MM (bentuk
+    // baku, lihat util.js) dan tanpa detik dua simpanan dalam satu menit
+    // terlihat identik — "barusan" yang menggantikannya sebagai tanda bahwa
+    // pitanya memang masih hidup, dan sekaligus menjawab pertanyaan yang
+    // sebenarnya: seberapa tua angka ini.
+    const cap = `Sinkronisasi Terakhir: ${jamMenit(jamSinkron)} (${berapaLalu(jamSinkron)})`;
 
     if (gagal || putus) {
-      // Keadaan paling berbahaya, jadi capnya diberi umur: "14:12:40
-      // (23 menit lalu)" langsung memberi tahu SEBERAPA BANYAK yang sedang
-      // dipertaruhkan, yang tidak bisa dijawab oleh jam telanjang.
       pita.className = "pos-simpan bahaya";
       pita.textContent = putus
-        ? `Internet putus — ${belum + gagal} baris belum tersimpan. Angkanya aman di layar dan dikirim sendiri begitu internet kembali; jangan tutup halaman ini. ${cap} (${berapaLalu(jamSinkron)}).`
+        ? `Internet putus — ${belum + gagal} baris belum tersimpan. Angkanya aman di layar dan dikirim sendiri begitu internet kembali; jangan tutup halaman ini. ${cap}.`
         // Kedua-duanya disebut. Pita yang hanya menghitung baris GAGAL sempat
         // menulis "1 baris" padahal ada dua yang belum aman di layar —
         // angka yang tidak lengkap justru menghapus gunanya sebagai jaminan.
         : `${gagal} baris gagal terkirim${belum ? ` dan ${belum} baris masih diketik` : ""}`
-          + ` — dicoba lagi sendiri tiap 15 detik. Jangan tutup halaman ini. ${cap} (${berapaLalu(jamSinkron)}).`;
+          + ` — dicoba lagi sendiri tiap 15 detik. Jangan tutup halaman ini. ${cap}.`;
       if (gagal) jadwalkanUlang();
       return;
     }

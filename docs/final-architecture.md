@@ -312,6 +312,35 @@ kunci wajib harus ada, dan **klasemen harus kosong selama fase belum `penuh`**.
 JSON yang rusak akan membuat halaman rekap kosong tanpa pesan apa pun, dan
 tidak ada yang menyadarinya sampai ada peserta yang bertanya.
 
+### Bentuk waktu
+
+Tiga bentuk, dan hanya tiga. Definisinya di `web/js/util.js`; halaman rekap
+menyalinnya karena ia Worker terpisah dan tidak boleh bergantung pada berkas
+di proyek lain.
+
+| Fungsi | Hasil | Dipakai untuk |
+| --- | --- | --- |
+| `jamMenit(t)` | `15:30` | jam yang HARINYA sudah jelas — berangkat, datang, target |
+| `tanggalPanjang(t)` | `17 Agustus 2026` | tanggal di kwitansi dan kepala lembar cetak |
+| `tanggalJam(t)` | `17 Agustus 2026 15:30` | cap yang bisa menunjuk hari lain |
+
+Aturan memilihnya satu kalimat: **pakai `jamMenit` kalau harinya sudah jelas
+dari kedudukannya, `tanggalJam` kalau tidak.** Cap "Sinkronisasi terakhir" di
+halaman rekap peserta memakai bentuk penuh justru karena peserta membukanya
+kapan saja, termasuk besok paginya — `17:30` telanjang akan terbaca sebagai
+setengah jam lalu.
+
+Dua hal yang dulu berbeda-beda dan sekarang tidak lagi: jam memakai **titik
+dua, bukan titik** (`toLocaleTimeString('id-ID')` memberi `07.04`, yang mudah
+terbaca sebagai desimal), dan nama bulan **ditulis sendiri** alih-alih lewat
+`toLocaleDateString` — berkas locale tidak selalu lengkap di WebView Android,
+dan kalau `id-ID` tidak ada, browser diam-diam mundur ke Inggris dan kwitansi
+tercetak "14 August 2026" tanpa ada yang gagal.
+
+Yang ikut hilang: akhiran bagian hari (`07:04 Pagi`) dan bentuk 12 jam di
+kertas (`07:04 AM`). Keduanya dulu ada untuk membedakan pagi dari sore, dan
+jam 24 sudah melakukannya sendiri — `04:00` tidak pernah bisa dikira `16:00`.
+
 ### Bentuk tabel meja menurut lebar layar
 
 Meja Pembayaran dan Meja Daftar Ulang berganti bentuk di dua ambang. Angkanya
