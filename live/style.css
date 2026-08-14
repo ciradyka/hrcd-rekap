@@ -1572,21 +1572,35 @@ input.small-input { text-align: center; }
 }
 
 /* ---------------------------------------------------------------------------
-   PEMUAT (pemuat() di js/util.js) DAN TOMBOL SEGARKAN
+   PEMUAT (pemuat() di js/util.js) DAN TOMBOL REFRESH
 
-   Cincin berputar di tengah layar, dengan JEDA 180 ms sebelum ia muncul.
-   Jedanya yang penting: sebagian besar layar terisi di bawah 200 ms, jadi
-   penanda yang tampil seketika lebih sering terlihat sebagai kedipan — dan
-   kedipan terasa seperti layar yang tersendat, bukan layar yang cepat. Yang
-   melihat cincin ini hanya orang yang memang menunggu.
+   Cincin berputar di TENGAH layar, tampil SEKETIKA.
+
+   Sempat ditahan 180 ms supaya muat yang cepat tidak sempat berkedip.
+   Ditinggalkan: yang didapat justru layar kosong sesaat pada tiap
+   perpindahan, dan diam itu terbaca sebagai macet. Kedipan sesekali ternyata
+   harga yang lebih murah daripada keraguan "ini jalan atau tidak".
    ------------------------------------------------------------------------- */
-@keyframes hrcd-muncul { from { opacity: 0 } to { opacity: 1 } }
 @keyframes hrcd-putar  { to { transform: rotate(360deg) } }
 
 .pemuat {
   display: flex; align-items: center; justify-content: center;
-  padding: 3.5rem 1rem;
-  animation: hrcd-muncul .28s ease-out .18s both;
+  /* Di TENGAH layar, bukan menempel di bawah header. Tanpa tinggi minimum,
+     satu cincin 36px di dalam wadah yang isinya belum ada akan berdiri di
+     baris paling atas — mata mencarinya di tengah, tempat isi halaman akan
+     muncul sebentar lagi.
+
+     10rem yang dipotong itu kepala halaman ditambah padding atas-bawah
+     `.isi`. Dengan begitu titik tengah kotak ini jatuh hampir persis di
+     tengah layar, dan totalnya tetap lebih pendek daripada satu layar —
+     jadi tidak ada scrollbar yang muncul lalu hilang lagi begitu isinya
+     datang, yang membuat seluruh halaman tersentak ke samping. */
+  min-height: calc(100vh - 10rem);
+  padding: 1rem;
+  /* TANPA jeda dan tanpa fade: penanda muat harus tampil seketika. Versi
+     sebelumnya menahannya 180 ms supaya muat yang cepat tidak berkedip, dan
+     akibatnya layar terlihat kosong dulu sebelum apa pun terjadi — diam yang
+     justru terbaca sebagai macet. */
 }
 .pemuat-cincin {
   width: 36px; height: 36px; border-radius: 50%;
@@ -1606,8 +1620,6 @@ input.small-input { text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Jedanya TETAP, fade-nya yang hilang — muat cepat tetap tidak berkedip. */
-  .pemuat { animation: hrcd-muncul .01s linear .18s both; }
   /* Perputaran TIDAK dimatikan: di sini gerakan itulah seluruh maknanya,
      dan cincin diam sama saja dengan tidak ada penanda. Dipelankan saja. */
   .pemuat-cincin        { animation-duration: 2.2s; }
