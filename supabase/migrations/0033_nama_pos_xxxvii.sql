@@ -105,8 +105,14 @@ begin
     (v_edisi, 1, 'tebak_simpul_pn_pi', 'Tebak Simpul', 'wahana', 'besar_baik',
      100, 10, 0, null, null, null, null, null, 'penegak_pi', 0, 10, 2),
 
-    -- Menaksir: yang ditulis SELISIH, jadi makin kecil makin baik — dan
-    -- tangganya berhenti di 20, bukan 0 (dua tingkat terakhir asumsi).
+    -- Menaksir: yang ditulis SELISIH, jadi makin kecil makin baik.
+    --
+    -- TANGGA DI BAWAH INI SUDAH USANG — lihat 0035, yang menggantinya dengan
+    -- angka dari panitia: turun 20 tiap meter sampai menyentuh 0. Dua tingkat
+    -- terakhir di sini memang ditandai asumsi sejak awal, dan asumsinya
+    -- meleset di dua hal: selisih 2 m ternyata 60 (bukan sama dengan 3 m), dan
+    -- poinnya habis di 0 (bukan berhenti di 20 seperti Pos 2). Dibiarkan apa
+    -- adanya karena migrasi adalah catatan sejarah, bukan keadaan terkini.
     (v_edisi, 1, 'menaksir', 'Menaksir', 'wahana', 'bertingkat',
      100, null, null, null, null, null,
      '[{"sampai": 0, "poin": 100}, {"sampai": 1, "poin": 80},
