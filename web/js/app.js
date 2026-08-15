@@ -4060,11 +4060,7 @@ async function layarLiveScore() {
      berubah bentuk sepanjang hari — Penegak PI muncul belakangan lalu
      menggeser semuanya — dan yang lebih buruk, golongan yang belum satu pun
      regunya masuk terlihat seperti golongan yang tidak ada. */
-  const papan = !klasemen.length
-    ? `<div class="card"><p class="description">Belum ada regu yang bisa
-         diperingkat di golongan mana pun. Klasemen baru terisi setelah ada
-         regu yang kloternya sudah berangkat dan nilainya masuk.</p></div>`
-    : Object.keys(GOLONGAN_LABEL).map(g => {
+  const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
         const juara = baris.filter(k => k.peringkat <= 3);
         if (!baris.length) return `
@@ -4122,7 +4118,40 @@ async function layarLiveScore() {
             </table>
           </div>
         </div>`;
-      }).join("");
+  };
+
+  /* SATU golongan pada satu waktu, dipilih lewat tab.
+     Empat papan bertumpuk berarti detail Penegak PI ada empat layar penuh di
+     bawah — dan yang membuka layar ini hampir selalu sedang menanyakan SATU
+     golongan, bukan membandingkan keempatnya. Keempat tab tetap terlihat
+     sekaligus dengan jumlah regunya, jadi yang hilang cuma gulirannya.
+
+     Semua panel digambar sekali lalu disembunyikan, bukan digambar ulang saat
+     diklik: datanya sudah ada di tangan, dan berpindah tab yang menunggu
+     apa pun terasa rusak. */
+  const GOL = Object.keys(GOLONGAN_LABEL);
+  const jumlahGol = Object.fromEntries(
+    GOL.map(g => [g, klasemen.filter(k => k.golongan === g).length]));
+  // Tab pertama yang sudah ada isinya, supaya layar tidak terbuka pada
+  // golongan kosong ketika golongan lain justru sudah penuh.
+  const golAktif = GOL.find(g => jumlahGol[g] > 0) || GOL[0];
+
+  const tab = !klasemen.length ? "" : `
+    <div class="tab-golongan" role="tablist" aria-label="Golongan">
+      ${GOL.map(g => `
+        <button type="button" role="tab" class="tab-gol" data-gol="${esc(g)}"
+                aria-selected="${g === golAktif ? "true" : "false"}">
+          ${esc(GOLONGAN_LABEL[g])}
+          <span class="tab-hitung">${esc(String(jumlahGol[g]))}</span>
+        </button>`).join("")}
+    </div>`;
+
+  const papan = !klasemen.length
+    ? `<div class="card"><p class="description">Belum ada regu yang bisa
+         diperingkat di golongan mana pun. Klasemen baru terisi setelah ada
+         regu yang kloternya sudah berangkat dan nilainya masuk.</p></div>`
+    : GOL.map(g => `<div class="panel-gol" data-gol="${esc(g)}"${
+        g === golAktif ? "" : " hidden"}>${kartuGolongan(g)}</div>`).join("");
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
@@ -4135,7 +4164,22 @@ async function layarLiveScore() {
         diumumkan.</p>
     </div>
     ${kemajuan}
+    ${tab}
     ${papan}`));
+
+  const bilah = LAYAR.querySelector(".tab-golongan");
+  if (bilah) {
+    bilah.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-gol]");
+      if (!b) return;
+      const pilih = b.dataset.gol;
+      bilah.querySelectorAll("[data-gol]").forEach(x =>
+        x.setAttribute("aria-selected", String(x.dataset.gol === pilih)));
+      LAYAR.querySelectorAll(".panel-gol").forEach(pn => {
+        pn.hidden = pn.dataset.gol !== pilih;
+      });
+    });
+  }
 }
 
 /* ============================ RUTE ======================================= */
