@@ -231,3 +231,35 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    glossing "Penggalang PA" as "SMP / MTs — putra" on the registration form was
    caught and removed for exactly this reason. Explain a term only where the
    reader genuinely cannot have met it before.
+
+## 10. Keberangkatan
+
+1. **The window is 07:00 to 10:00.** No kloter leaves before seven, and the
+   last one is away by ten. Everything below follows from that being three
+   hours for however many kloter the edition has.
+2. **The morning starts with an upacara, and an official sends off the first
+   kloter for the photographs.** That is not a delay to be engineered away —
+   it is the reason the event has a start line worth photographing. Plan the
+   schedule around it rather than against it.
+3. **Nobody dispatches everyone at once.** Three kloter are held ready and the
+   rest are in the ceremony:
+   - Kloter 1 at Pemberangkatan
+   - Kloter 2 at Staging 1
+   - Kloter 3 at Staging 2
+4. **In the ceremony formation the order is reversed.** The last kloter stands
+   at the front, and the early ones — 4, 5, 6 — stand at the back. They are
+   the next to be called, and standing at the back puts them nearest the way
+   out, so they peel off without walking through the whole formation. A
+   formation ordered 4, 5, 6 at the front looks tidier and costs several
+   minutes per kloter for the rest of the morning.
+5. **The system estimates a departure time for every kloter, spread across the
+   window.** Panitia and pembina both plan their morning from it, and "kloter
+   9, kira-kira 08:45" is the answer to the question they actually ask.
+6. **An estimate is never a record.** `kloter.jam_berangkat` is typed by the
+   recorder from a real clock at a real moment (alur 12.4) and it is what
+   penalties are computed from. The estimate exists to plan the morning; the
+   two must never be stored in the same column, and a screen showing both must
+   say which is which.
+7. **07:00 and 10:00 are configuration, not constants.** They belong beside
+   the other per-edition numbers, for the same reason as section 6.4 of
+   rancangan-b: next year's panitia change the window without touching code.
