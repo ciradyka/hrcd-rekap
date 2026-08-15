@@ -11,9 +11,9 @@
 :root {
   --tinta:        #1a1a1a;
   --tinta-lembut: #5c5c5c;
-  --kertas:       #f7f6f3;
+  --kertas:       #f0f1f4;
   --kartu:        #ffffff;
-  --garis:        #dcdcd7;
+  --garis:        #e7e8ec;
   --utama:        #00695c;   /* hijau tua HRCD */
   --hijau:        #2e7d32;
   --hijau-muda:   #e8f5e9;
@@ -21,7 +21,9 @@
   --bahaya:       #c62828;
   --kuning-muda:  #fff3e0;
   --emas:         #b8860b;
-  --radius:       14px;
+  --radius:       18px;
+  /* Sama persis dengan style.css layar panitia: dua situs, satu tampilan. */
+  --bayang:       0 1px 2px rgba(16,24,40,.04), 0 6px 20px rgba(16,24,40,.07);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +53,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 
 .kartu {
   background: var(--kartu); border: 1px solid var(--garis);
-  border-radius: var(--radius); padding: .9rem; margin-bottom: 1rem;
+  border-radius: var(--radius); padding: 1.15rem; margin-bottom: 1rem;
+  box-shadow: var(--bayang);
 }
 .kartu h2 { font-size: 1.05rem; margin-bottom: .35rem; }
 .kartu .keterangan { color: var(--tinta-lembut); font-size: .88rem; margin-bottom: .7rem; }
