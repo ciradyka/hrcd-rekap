@@ -102,8 +102,7 @@ function halaman() {
     <!-- 3. Jumlah regu -->
     <section class="card" id="bagian-jumlah">
       <h2><span class="section-number">3</span> Mendaftarkan berapa regu?</h2>
-      <p class="description">1 regu = 5 orang. Tekan + untuk menambah regu di
-         golongan yang sesuai; kotak isian namanya muncul di bawah.</p>
+      <p class="description">1 regu = 5 orang.</p>
       <div id="isi-stepper" style="margin-top:.9rem"></div>
       <div class="total-box" id="kotak-total"></div>
       <div class="error" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
@@ -118,7 +117,7 @@ function halaman() {
     <!-- 5. Kontak -->
     <section class="card" id="bagian-kontak">
       <h2><span class="section-number">5</span> Contact Person</h2>
-      <p class="description">Satu orang untuk semua regu — panitia menghubungi lewat sini.</p>
+      <p class="description">Satu orang untuk semua regu.</p>
       <div class="field" style="margin-top:.7rem">
         <label for="nama-kontak">Nama</label>
         <input type="text" id="nama-kontak" autocomplete="name"
@@ -360,8 +359,7 @@ function perbaruiTotal() {
 function gambarRegu() {
   const kotak = document.getElementById("isi-regu");
   if (!jawab.regu.length) {
-    kotak.replaceChildren(h(`<p class="description">
-      Kotak isian nama muncul di sini setelah kamu menambah regu di bagian 3.</p>`));
+    kotak.replaceChildren(h(`<p class="description">Belum ada regu.</p>`));
     return;
   }
   kotak.replaceChildren(h(jawab.regu.map((r, i) => html`
@@ -530,8 +528,7 @@ async function kirim(e) {
       <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
         <strong>Belum terkirim.</strong>
         ${err instanceof ErrorApi ? err.message : "Coba lagi ya."}
-        <div class="description" style="margin-top:.3rem">Isianmu tersimpan — tekan
-          "Kirim Pendaftaran" sekali lagi.</div>
+        <div class="description" style="margin-top:.3rem">Isianmu tersimpan.</div>
       </div>`));
     document.getElementById("ringkas-galat").scrollIntoView({ block: "center", behavior: "smooth" });
   }

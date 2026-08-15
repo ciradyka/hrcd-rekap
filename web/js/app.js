@@ -218,9 +218,7 @@ async function layarHome() {
           <div class="function-name">📋 Input Nilai Pos ${sesi().pos}</div>
         </a>
       </div>
-      <p class="description" style="margin-top:1.2rem">Akun ${sesi().username}
-         hanya menyentuh nilai Pos ${sesi().pos}. Layar meja (pembayaran,
-         daftar ulang, keberangkatan) memakai akun yang lain.</p>`));
+`));
     return;
   }
 
@@ -268,8 +266,6 @@ async function layarHome() {
         <div class="function-name">📊 Rekapitulasi</div>
       </a>
     </div>
-    <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
-       Meja boleh berganti fungsi kapan saja — cukup pilih dari sini.</p>
   `));
 }
 
@@ -290,7 +286,7 @@ function layarGantiPassword() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:0 auto">
       <h2>Ganti Password Akun Sendiri</h2>
-      <p class="description">Berlaku untuk akun yang sedang login sekarang:
+      <p class="description">
          <strong>${esc(sesi().username)}</strong>.</p>
       <div class="field">
         <label for="gp-baru">Password baru</label>
@@ -324,7 +320,7 @@ function layarGantiPassword() {
     btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
     try {
       await gantiPasswordSendiri(baru.value);
-      notif("Password berhasil diganti. Dipakai mulai login berikutnya.");
+      notif("Password berhasil diganti.");
       baru.value = ""; kode.value = "";
     } catch (err) {
       galat.textContent = err.message; galat.hidden = false;
@@ -632,7 +628,7 @@ async function layarPembayaran() {
             <div class="nama">${b.sekolah?.name || kode}</div>
             <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
           </div>`,
-          medan: [{ label: "Alasan pembatalan", contoh: "salah klik" }],
+          medan: [{ label: "Alasan pembatalan" }],
           labelAksi: "Batalkan",
         });
         if (!jawab) return;
@@ -747,7 +743,7 @@ function cetakKwitansi(daftar) {
           <p>Diterima oleh,</p>
           <p class="receipt-line">${esc(s ? s.username : "")}</p>
         </div>
-        <p class="print-note">Kwitansi ini bukti pendaftaran regu di atas.
+        <p class="print-note">
            Simpan dan bawa saat daftar ulang.</p>
       </section>`;
   }).join("");
@@ -889,7 +885,7 @@ async function layarDaftarUlang() {
             </table>
             <div class="action-row action-row-simpan" style="margin-top:.6rem">
               <span class="sub">Nomor dada yang diinput harus SAMA dengan
-                yang diberikan ke regunya. Enter = pindah ke regu berikutnya.</span>
+                yang diberikan ke regunya.</span>
               <button class="button button-primary button-small" type="button"
                       data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
             </div>
@@ -911,9 +907,9 @@ async function layarDaftarUlang() {
               <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
                   <td>${r.nama_regu}</td></tr>`).join("")}</table>`,
           medan: [
-            { label: "Nomor lama (yang rusak)", tipe: "number", contoh: "17" },
-            { label: "Nomor pengganti (dari stok)", tipe: "number", contoh: "250" },
-            { label: "Alasan", contoh: "nomor sobek" },
+            { label: "Nomor lama (yang rusak)", tipe: "number" },
+            { label: "Nomor pengganti (dari stok)", tipe: "number" },
+            { label: "Alasan" },
           ],
           labelAksi: "Tukar nomor",
         });
@@ -1075,8 +1071,6 @@ async function layarKeberangkatan() {
     LAYAR.replaceChildren(h(`
       <div class="card">
         <h2>Belum ada kloter berisi regu</h2>
-        <p class="description">Kloter muncul di sini setelah ada sekolah yang
-           daftar ulang dan menerima nomor dada.</p>
       </div>`));
     return;
   }
@@ -1087,7 +1081,6 @@ async function layarKeberangkatan() {
 
   LAYAR.replaceChildren(h(`
     <div class="card">
-      <h2 style="font-size:1rem;color:var(--tinta-lembut)">Pilih kloter</h2>
       <div class="kloter-strip" id="pita-kloter"></div>
     </div>
     <div id="isi-kloter"></div>
@@ -1204,18 +1197,17 @@ async function layarKeberangkatan() {
              ulang seluruh tabel — lihat perbaruiPeringatanKontrak(). -->
         <div id="peringatan-kontrak">${!belumKontrak.length ? "" : kartuGalat(
           `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
-          `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`)}</div>
+          `keberangkatan akan ditolak.`)}</div>
 
         ${sudahBerangkat ? "" : `
           <div class="departure-bar">
             <div class="field" style="margin:0">
-              <label for="jam-berangkat">Jam berangkat (diketik pencatat)</label>
+              <label for="jam-berangkat">Jam berangkat</label>
               <!-- Kotak ketik, bukan <input type="time">: pemilih bawaan
                    browser merender AM/PM kalau locale browsernya Inggris, dan
                    tidak ada atribut yang bisa memaksanya 24 jam. Lihat
                    jamSah() di util.js. -->
               ${kotakJamHtml("jam-berangkat", jamMenit(new Date()))}
-              <div class="hint" id="hint-jam-berangkat">24 jam · 00:00–23:59</div>
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
               🚩 Berangkatkan Kloter ${kloterAktif}
@@ -1240,7 +1232,7 @@ async function layarKeberangkatan() {
       wadah.replaceChildren(...(kurang.length
         ? [h(kartuGalat(
             `${kurang.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
-            `pilih kontraknya dulu, kalau tidak keberangkatan akan ditolak.`))]
+            `keberangkatan akan ditolak.`))]
         : []));
     };
 
@@ -1315,7 +1307,7 @@ async function layarKeberangkatan() {
               ? `Kloter ${tujuan} sudah berangkat — regu ini akan dinilai dari jam berangkat kloter itu.`
               : ""}</div>
           </div>`,
-          medan: [{ label: "Alasan pemindahan", contoh: "terlambat masuk kloter" }],
+          medan: [{ label: "Alasan pemindahan" }],
           labelAksi: "Pindahkan",
         });
         // Batal (atau gagal) mengembalikan select ke "—", kalau tidak ia
@@ -1374,7 +1366,7 @@ async function layarKeberangkatan() {
         medan: [
           { label: "Jam berangkat yang benar", tipe: "time",
             nilai: jamMenit(info.jam_berangkat) },
-          { label: "Alasan koreksi", contoh: "salah ketik, seharusnya 07.40" },
+          { label: "Alasan koreksi" },
         ],
         labelAksi: "Simpan Koreksi",
       });
@@ -1441,7 +1433,6 @@ async function layarCetakKloter() {
   if (!baris.length) {
     LAYAR.replaceChildren(h(`<div class="card">
       <h2>Belum ada regu berkloter</h2>
-      <p class="description">Daftar kloter bisa dicetak setelah ada sekolah yang daftar ulang.</p>
     </div>`));
     return;
   }
@@ -1463,9 +1454,7 @@ async function layarCetakKloter() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <h2>Daftar kloter untuk garis start</h2>
-      <p class="description">Setelah dicetak, isi kloter <strong>dibekukan</strong> —
-         kertas ini yang dipakai memanggil regu, jadi sistem tidak boleh
-         mengubahnya diam-diam. Sekolah yang daftar ulang setelah ini masuk
+      <p class="description">Setelah dicetak, isi kloter <strong>dibekukan</strong>. Sekolah yang daftar ulang setelah ini masuk
          kloter cadangan dan dicetak sebagai lembar tambahan.</p>
       <table class="table" style="margin-top:.6rem">
         <tr><td>Kloter berisi regu</td><td class="angka">${perKloter.size}</td></tr>
@@ -1582,8 +1571,6 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
           <tbody>${baris}</tbody>
         </table>
         ${adaSisipan ? `<p class="insert-note">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
-        <p class="print-note">Centang kolom Hadir saat regu masuk staging.
-           Kloter berangkat setelah semua tercentang atau diputuskan panitia.</p>
       </section>` : `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)}</h1>
@@ -1616,7 +1603,7 @@ function layarFinish() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
-        <label for="dada">Ketik nomor dada</label>
+        <label for="dada">Nomor dada</label>
         <input type="text" id="dada" class="besar" inputmode="numeric"
                autocomplete="off" placeholder="001">
       </div>
@@ -1638,12 +1625,10 @@ function layarFinish() {
             <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
                  browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. -->
             ${kotakJamHtml("jam")}
-            <div class="hint">24 jam · kosong = jam saat tombol ditekan.</div>
           </div>
           <div class="field" style="margin:0">
             <label for="hadir">Anggota hadir</label>
             <input type="number" id="hadir" min="0" max="5" inputmode="numeric" value="5">
-            <div class="hint">Tiap orang kurang: −20 poin.</div>
           </div>
         </div>
         <div id="dampak-jam" style="margin-top:.5rem"></div>
@@ -2178,9 +2163,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
         </thead>
         <tbody>${grup.map(barisHtml(kolom)).join("")}</tbody>
       </table>
-      ${i === 0 ? `<p class="print-note">CADANGAN — yang dipakai sehari-hari
-         adalah form per lomba, satu kertas satu regu. Lembar ini untuk keadaan
-         slip habis atau sinyal mati. Tulis data mentahnya apa adanya, JANGAN
+      ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya, JANGAN
          menjumlahkan sendiri. Baris tanpa nama = regu yang belum terdaftar;
          tulis nama regu dan sekolahnya di situ.</p>` : ""}
     </section>`).join("")).join("");
@@ -2307,7 +2290,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
       </div>
 
       <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
-         poin.</strong> Sistem yang mengubahnya jadi nilai.</p>
+         poin.</strong></p>
       <p class="bl-ttd">Petugas ${esc(kol.nama)}</p>
       <p class="bl-garis"></p>
     </article>`;
@@ -2411,10 +2394,6 @@ async function layarInputPos() {
       <div class="card">${pilihPosHtml(s, semuaPos)}</div>
       <div class="card">
         <h2>${esc(judulPos(pos))} tidak punya kolom penilaian</h2>
-        <p class="description">Garis start dan garis finish memang tidak
-           dinilai — yang dicatat di sana waktu, lewat layar Keberangkatan dan
-           Kedatangan. Kalau pos ini seharusnya dinilai, komponennya belum
-           diisi admin.</p>
       </div>`));
     pasangPilihPos(s);
     return;
@@ -2499,8 +2478,7 @@ async function layarInputPos() {
           <tbody id="isi-tabel"></tbody>
         </table>
         ${lembar.length ? "" : `<p class="table-empty">Belum ada regu yang
-          menerima nomor dada. Lembar pos ini terisi sendiri begitu meja
-          daftar ulang mulai jalan.</p>`}
+          menerima nomor dada.</p>`}
       </div>
     </div>
   `));
@@ -2580,7 +2558,7 @@ async function layarInputPos() {
       // mengganti angka lain?" Jadi jawabannya ditaruh di tempat pertanyaannya
       // muncul.
       sel.replaceChildren(h(`<button class="badge badge-green badge-tombol"
-        type="button" data-riwayat title="Sudah masuk database — ketuk untuk melihat riwayat">✓</button>`));
+        type="button" data-riwayat title="Sudah masuk database">✓</button>`));
       sel.querySelector("[data-riwayat]")
          .addEventListener("click", () => bukaRiwayat(tr));
     } else if (keadaan === "gagal") {
@@ -2611,8 +2589,8 @@ async function layarInputPos() {
     const sel = tr.querySelector(".pos-gembok");
     sel.replaceChildren(h(`<button type="button" class="gembok"
       data-gembok aria-pressed="${kunci}"
-      title="${kunci ? "Terkunci — ketuk untuk membuka (admin)"
-                     : "Ketuk untuk mengunci nilai regu ini"}">${
+      title="${kunci ? "Terkunci — buka gembok (admin)"
+                     : "Kunci nilai"}">${
       kunci ? "🔒" : "🔓"}</button>`));
     sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
   };
@@ -2646,7 +2624,7 @@ async function layarInputPos() {
     // sekali, sedangkan kalimatnya dibaca ulang setiap kali gembok dibuka.
     const jawab = await dialog({
       judul: `Buka gembok ${tiga}?`,
-      medan: [{ label: "Alasan membuka", contoh: "salah ketik Semaphore" }],
+      medan: [{ label: "Alasan membuka" }],
       labelAksi: "Buka",
     });
     if (!jawab) return;
@@ -2793,9 +2771,7 @@ async function layarInputPos() {
           <input type="file" accept="image/*" multiple hidden data-ambil>📷 Foto
         </label>
       </li>`).join("")}</ul>
-      <p class="description" style="margin-top:.6rem">Gambar dikecilkan otomatis
-        (abu-abu, ±70 KB) sebelum dikirim. Foto lama tidak pernah tertimpa —
-        memotret ulang menambah, bukan mengganti.</p>`;
+`;
 
     // Sama seperti bukaRiwayat: dialog() menempelkan kartunya secara SINKRON,
     // jadi pendengarnya boleh dipasang sebelum janjinya ditunggu.
@@ -2904,12 +2880,12 @@ async function layarInputPos() {
     if (gagal || putus) {
       pita.className = "pos-simpan bahaya";
       pita.textContent = putus
-        ? `Internet putus — ${belum + gagal} baris belum tersimpan. Angkanya aman di layar dan dikirim sendiri begitu internet kembali; jangan tutup halaman ini. ${cap}.`
+        ? `Internet putus — ${belum + gagal} baris belum tersimpan. Jangan tutup halaman ini. ${cap}.`
         // Kedua-duanya disebut. Pita yang hanya menghitung baris GAGAL sempat
         // menulis "1 baris" padahal ada dua yang belum aman di layar —
         // angka yang tidak lengkap justru menghapus gunanya sebagai jaminan.
         : `${gagal} baris gagal terkirim${belum ? ` dan ${belum} baris masih diketik` : ""}`
-          + ` — dicoba lagi sendiri tiap 15 detik. Jangan tutup halaman ini. ${cap}.`;
+          + ` — jangan tutup halaman ini. ${cap}.`;
       if (gagal) jadwalkanUlang();
       return;
     }
@@ -3252,8 +3228,7 @@ async function layarInputPos() {
       // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
       // di mesin fotokopi, bukan di layar ini.
       const n = siapkanCetakBlangko(pos, kolom);
-      notif(`${n} master A5 melintang, satu per lomba. Perbanyak dengan `
-            + `fotokopi sebanyak regu yang berlomba, tambah cadangan.`);
+      notif(`${n} master A5 melintang, satu per lomba.`);
     } else {
       siapkanCetakLembarPos(pos, kolom, semua, ditutup);
     }
@@ -3797,10 +3772,7 @@ async function layarRekap() {
                     type="button" aria-label="Refresh sekarang">${ikonRefresh}</button>
           </div>
         </div>
-        <p class="description">Layar ini hanya menampilkan. Nilai diubah di
-           <a href="#/pos">Input Nilai Pos</a>, dan angkanya muncul di sini
-           begitu tersimpan. Rank kosong berarti kloter regu itu belum
-           tercatat berangkat, jadi ia belum masuk klasemen resmi.
+        <p class="description">
            <!-- Jamnya di sini, bukan di deretan tombol: data ini sering
                 kembali tanpa satu angka pun berubah, jadi tanpa jam yang
                 bergerak menekan refresh terasa seperti menekan tombol mati.
@@ -3884,15 +3856,10 @@ async function layarRekap() {
         b.setAttribute("aria-pressed", String(b.dataset.gol === golongan)));
 
     document.getElementById("rekap-refresh").title =
-      `Refresh sekarang · terakhir ${jamMenit(jamRefresh)} · otomatis tiap 20 detik`;
+      `Refresh sekarang · terakhir ${jamMenit(jamRefresh)}`;
 
     document.getElementById("rekap-catatan").innerHTML =
-      `Terakhir di-refresh <strong>${esc(jamMenit(jamRefresh))}</strong>.`
-      + (posBelum === null ? "" : ` <strong>Sedang disaring:
-          ${esc(NAMA_GOLONGAN[golongan] || "")} yang belum lengkap di Pos
-          ${esc(String(posBelum))}.</strong> Angka di kartu pos menghitung
-          SELURUH golongan, jadi wajar kalau lebih banyak daripada baris yang
-          tampil di sini.`);
+      `Terakhir di-refresh <strong>${esc(jamMenit(jamRefresh))}</strong>.`;
   }
 
   /* Menyegarkan sendiri tiap 20 detik. Inilah yang membuat papan ini terasa
@@ -4119,7 +4086,7 @@ async function layarLiveScore() {
                         const w = varianUntuk(kol, k.golongan);
                         return `<td class="text-center">${w
                           ? selRekap(w, nilai[`${p.nomor}.${w.kode}`])
-                          : `<span class="sel-mati" title="Bukan untuk golongan ini">–</span>`}</td>`;
+                          : `<span class="sel-mati">–</span>`}</td>`;
                       }).join("")
                       + `<td class="text-center pos-nilai rekap-batas">${
                           poin[String(p.nomor)] === undefined
@@ -4164,18 +4131,16 @@ async function layarLiveScore() {
 
   const papan = !klasemen.length
     ? `<div class="card"><p class="description">Belum ada regu yang bisa
-         diperingkat di golongan mana pun. Klasemen baru terisi setelah ada
-         regu yang kloternya sudah berangkat dan nilainya masuk.</p></div>`
+         diperingkat di golongan mana pun.</p></div>`
     : GOL.map(g => `<div class="panel-gol" data-gol="${esc(g)}"${
         g === golAktif ? "" : " hidden"}>${kartuGolongan(g)}</div>`).join("");
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <h2>Live Score — hanya admin</h2>
-      <p class="description">Halaman peserta sendiri belum berubah: fase
+      <p class="description">Fase
         sekarang <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
-      <p class="description">Peringkat di sini hidup mengikuti input dan masih
-        bisa berubah sampai seluruh pos selesai. Jangan dibagikan sebelum
+      <p class="description">Jangan dibagikan sebelum
         diumumkan.</p>
     </div>
     ${kemajuan}

@@ -145,8 +145,7 @@ function gambarPra() {
       <h2>Belum dimulai</h2>
       <p>Rekap live terbuka saat lomba berjalan${t
         ? ` — ${esc(String(t.getDate()))} ${esc(BULAN[t.getMonth()])} ${esc(String(t.getFullYear()))}`
-        : ""}. Saat itu kamu bisa memeriksa apakah nilai regumu sudah masuk
-        dari tiap pos.</p>
+        : ""}.</p>
       <p class="angka-besar">${esc(String(r.jumlah_regu_lunas ?? 0))}</p>
       <p>regu terdaftar</p>
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
@@ -165,8 +164,6 @@ function gambarCari() {
   return `
     <div class="kartu">
       <h2>Cari sekolahmu</h2>
-      <p class="keterangan">Ketik nama sekolahmu — boleh sebagiannya saja,
-         misalnya "purwadadi". Seluruh regu sekolah itu akan tampil.</p>
       <div class="cari-baris">
         <input type="search" id="cari" inputmode="search"
                placeholder="Nama sekolah…"
@@ -200,9 +197,7 @@ function gambarHasil() {
   const penuh = fase() === "penuh";
 
   if (cari.length < 2) {
-    return `<div class="kartu tengah">
-      <p class="keterangan">Ketik minimal dua huruf nama sekolahmu untuk
-         melihat seluruh regunya.</p></div>`;
+    return "";
   }
   if (!REKAP) {
     return `<div class="kartu tengah"><p class="keterangan">Mencari…</p></div>`;
@@ -238,8 +233,7 @@ function gambarHasil() {
       return `
         <div class="kartu">
           <h2>${esc(nama)}</h2>
-          <p class="keterangan">${esc(String(isi.length))} regu${penuh ? "" :
-            " · centang = nilai regu itu sudah diterima sistem dari pos tersebut"}</p>
+          <p class="keterangan">${esc(String(isi.length))} regu</p>
           <div class="gulir">
             <table class="tabel">
               <thead>
@@ -306,8 +300,7 @@ function gambarKelengkapan() {
   return `
     <div class="kartu">
       <h2>Kemajuan input</h2>
-      <p class="keterangan">Berapa banyak regu yang nilainya sudah masuk di tiap
-        pos. Angka ini bukan nilai — nilai baru terbit saat hasil diumumkan.</p>
+      <p class="keterangan">Angka ini bukan nilai — nilai baru terbit saat hasil diumumkan.</p>
       <ul class="kemajuan">
         ${daftar.map(p => {
           const persen = Number(p.persen) || 0;
