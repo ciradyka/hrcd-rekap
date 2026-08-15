@@ -1997,3 +1997,40 @@ input.small-input { text-align: center; }
   text-align: center; font-variant-numeric: tabular-nums;
   white-space: nowrap; padding-left: .3rem; padding-right: .3rem;
 }
+
+/* ============================================================================
+   Tab golongan pada Live Score.
+
+   Empat golongan berlomba terpisah, dan yang membuka layar ini hampir selalu
+   sedang menanyakan SATU di antaranya. Tab menaruh keempat pilihannya di satu
+   baris yang terlihat sekaligus — beserta jumlah regunya, supaya golongan
+   yang belum terisi terbaca sebagai "belum ada isinya", bukan sebagai
+   golongan yang tidak ada.
+   ========================================================================== */
+.tab-golongan {
+  display: flex; gap: .4rem; margin-bottom: .9rem;
+  /* Di HP sempit empat pil tidak muat; digeser mendatar, TIDAK dipatahkan ke
+     baris kedua — tab yang berpindah baris berhenti terbaca sebagai satu
+     kelompok pilihan. */
+  overflow-x: auto; padding-bottom: .25rem;
+}
+.tab-gol {
+  flex: 1 0 auto; white-space: nowrap; cursor: pointer; font: inherit;
+  font-weight: 600; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  padding: .5rem .85rem; border-radius: 999px;
+  border: 1px solid var(--garis); background: var(--kartu);
+  color: var(--tinta-lembut);
+}
+.tab-gol[aria-selected="true"] {
+  background: var(--utama); border-color: var(--utama); color: #fff;
+}
+.tab-gol:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.tab-hitung {
+  font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--kertas); color: var(--tinta-lembut);
+  border-radius: 999px; padding: .05rem .45rem;
+}
+.tab-gol[aria-selected="true"] .tab-hitung {
+  background: rgba(255, 255, 255, .24); color: #fff;
+}
