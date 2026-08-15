@@ -1312,6 +1312,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .badge-tombol {
   border: 0; font: inherit; cursor: pointer;
   padding: .1rem .45rem; line-height: inherit;
+  /* inline-flex supaya ikon di dalamnya benar-benar di tengah. Sebagai inline
+     biasa, SVG duduk di garis dasar teks dan tampak turun sedikit dibanding
+     centang dan gembok di sebelahnya — tiga tombol sebaris yang tidak
+     sejajar. */
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .badge-tombol:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
 

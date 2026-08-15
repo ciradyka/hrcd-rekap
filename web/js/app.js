@@ -2785,11 +2785,16 @@ async function layarInputPos() {
 
     const lomba = [...new Map(kolom.map(k => [slugLomba(k.nama), k.nama]))];
 
-    const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => html`
-      <li data-kode="${kode}" data-nama="${nama}">
-        <span class="f-nama">${nama}</span>
+    /* Template BIASA, bukan tag html`` — sama alasannya dengan notif(): tag
+       html`` meng-escape SETIAP sisipan, dan ikon("camera") adalah HTML yang
+       memang harus dirender. Ditulis dengan html``, jalur SVG-nya tampil apa
+       adanya sebagai teks hijau sepanjang tiga baris di dalam tombolnya.
+       Yang datang dari luar tetap lewat esc() satu per satu. */
+    const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => `
+      <li data-kode="${esc(kode)}" data-nama="${esc(nama)}">
+        <span class="f-nama">${esc(nama)}</span>
         <span class="f-jumlah" data-jumlah>${hitung[kode]
-          ? `${hitung[kode]} foto` : "belum ada"}</span>
+          ? `${esc(String(hitung[kode]))} foto` : "belum ada"}</span>
         <button type="button" class="button button-mini" data-lihat
           ${hitung[kode] ? "" : "hidden"}>Lihat</button>
         <label class="button button-mini button-primary">
@@ -4005,14 +4010,21 @@ async function layarLiveScore() {
   const persenPos = (p) => !p.regu_total
     ? 0 : Math.floor(100 * p.lengkap / p.regu_total);
 
-  /* Merah / kuning / hijau, dan hijau sengaja mahal.
-     90, bukan 80: pos dengan 300 regu yang berhenti di 85% masih kehilangan
-     45 regu — jumlah yang butuh berjam-jam untuk dikejar, dan warna hijau di
-     angka itu memberi tahu panitia bahwa pekerjaannya selesai padahal belum.
-     Angkanya selalu tertulis di dalam cincin, jadi yang tidak bisa
-     membedakan merah dari hijau tetap membaca keadaan yang sama. */
-  const warnaPersen = (s) => s >= 90 ? "var(--hijau)"
-                           : s >= 50 ? "var(--kuning)" : "var(--bahaya)";
+  /** Merah -> kuning -> hijau mengikuti persennya, bukan tiga anak tangga.
+
+   *  Tangga membuat 49% dan 51% terlihat sangat berbeda padahal selisihnya satu
+   *  regu, sementara 51% dan 89% terlihat sama padahal itu dua puluh regu.
+   *  Gradasi menampilkan JARAKNYA, dan jarak itu yang ditanyakan orang saat
+   *  melirik lima cincin sekaligus.
+   *
+   *  Rona 0 di 0%, 50 di 50%, 140 di 100% — merah, kuning, hijau. Angkanya
+   *  tetap tertulis di dalam cincin, jadi warna tidak pernah jadi satu-satunya
+   *  kabar bagi yang sulit membedakan merah dari hijau. */
+  const warnaPersen = (s) => {
+    const p = Math.max(0, Math.min(100, Number(s) || 0));
+    const rona = p <= 50 ? p : 50 + (p - 50) * 1.8;
+    return `hsl(${Math.round(rona)}, 72%, 40%)`;
+  };
 
   const kemajuan = `
     <div class="card">
@@ -4027,9 +4039,7 @@ async function layarLiveScore() {
               <span>${esc(String(s))}<i>%</i></span>
             </div>
             <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
-            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu${
-              p.sebagian > 0 ? `<br>${esc(String(p.sebagian))} baru sebagian` : ""}${
-              p.hilang > 0 ? `<br><strong class="c-alarm">${esc(String(p.hilang))} finish tapi belum lengkap</strong>` : ""}</div>
+            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu</div>
           </li>`;
         }).join("")}
       </ul>
