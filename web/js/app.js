@@ -2585,21 +2585,66 @@ async function layarInputPos() {
        Yang dicari orang saat membukanya cuma tiga hal — lomba apa, dari berapa
        jadi berapa, dan siapa. Kepala tabel dan kalimat penjelas menambah teks
        yang harus dilewati mata sebelum sampai ke jawabannya. */
-    const isi = baris.length
-      ? `<ul class="riwayat">${baris.map(b => html`<li>
-           <span class="r-lomba">${b.nama_lomba}</span>
-           <span class="r-nilai">${b.nilai_lama === null ? "—" : angkaRapi(b.nilai_lama)}
-             → <strong>${b.nilai_baru === null ? "hapus" : angkaRapi(b.nilai_baru)}</strong></span>
-           <span class="r-oleh">${b.oleh} · ${tanggalJam(b.changed_at)}</span>
-         </li>`).join("")}</ul>`
-      : `<p class="description">Belum pernah diubah.</p>`;
+    if (!baris.length) {
+      await dialog({
+        judul: `${String(dada).padStart(3, "0")} · ${nama}`,
+        kartuHtml: `<p class="description">Belum pernah diubah.</p>`,
+        labelAksi: "Tutup", bacaSaja: true,
+      });
+      return;
+    }
 
-    await dialog({
+    /* SARINGAN PER LOMBA, dan hanya muncul kalau memang ada yang disaring.
+       Satu regu di Pos 3 bisa punya tujuh lomba dan puluhan perubahan; yang
+       ditanyakan biasanya satu — "Bidai-nya kenapa berubah dua kali?".
+       Menyaringnya di sini lebih cepat daripada menyusuri daftar.
+
+       Di pos berlomba satu, chip-nya cuma akan berbunyi "Semua" dan nama lomba
+       itu sendiri — dua tombol yang tidak menyaring apa pun. Jadi ia tidak
+       digambar sama sekali. */
+    const lomba = [...new Map(baris.map(b => [b.kode_lomba, b.nama_lomba]))];
+    const chip = lomba.length < 2 ? "" : `
+      <div class="option-row saring-riwayat">
+        <button type="button" class="option option-small" data-lomba=""
+                aria-pressed="true">Semua</button>
+        ${lomba.map(([kode, nama]) => html`
+          <button type="button" class="option option-small" data-lomba="${kode}"
+                  aria-pressed="false">${nama}</button>`).join("")}
+      </div>`;
+
+    const isi = chip + `<ul class="riwayat">${baris.map(b => html`
+      <li data-lomba="${b.kode_lomba}">
+        <span class="r-lomba">${b.nama_lomba}</span>
+        <span class="r-nilai">${b.nilai_lama === null ? "—" : angkaRapi(b.nilai_lama)}
+          → <strong>${b.nilai_baru === null ? "hapus" : angkaRapi(b.nilai_baru)}</strong></span>
+        <span class="r-oleh">${b.oleh} · ${tanggalJam(b.changed_at)}</span>
+      </li>`).join("")}</ul>`;
+
+    // dialog() menempelkan kartunya ke DOM secara SINKRON sebelum janjinya
+    // menunggu, jadi penyaringnya boleh dipasang sebelum di-await. Menunggu
+    // dulu berarti menunggu sampai dialognya ditutup.
+    const janji = dialog({
       judul: `${String(dada).padStart(3, "0")} · ${nama}`,
       kartuHtml: isi,
       labelAksi: "Tutup",
       bacaSaja: true,
     });
+
+    const kartu = document.querySelector(".dialog .saring-riwayat");
+    if (kartu) {
+      kartu.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-lomba]");
+        if (!b) return;
+        const pilih = b.dataset.lomba;
+        kartu.querySelectorAll("[data-lomba]").forEach(x =>
+          x.setAttribute("aria-pressed", String(x.dataset.lomba === pilih)));
+        document.querySelectorAll(".dialog .riwayat li").forEach(li => {
+          li.hidden = !!pilih && li.dataset.lomba !== pilih;
+        });
+      });
+    }
+
+    await janji;
   }
 
   /* ---------- pita keadaan + kirim ulang sendiri ----------

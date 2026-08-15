@@ -1097,6 +1097,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Riwayat perubahan nilai: satu baris per perubahan, tanpa kepala tabel.
    Yang dicari cuma lomba apa, dari berapa jadi berapa, dan siapa — tiga hal
    yang muat sebaris, dan mata tidak perlu melewati apa pun sebelum sampai. */
+.saring-riwayat { margin-bottom: .6rem; flex-wrap: wrap; gap: .35rem; }
 .riwayat { list-style: none; margin: 0; padding: 0; }
 .riwayat li {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem;
