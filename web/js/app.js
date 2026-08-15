@@ -2028,7 +2028,7 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
   return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
 });
 
-/** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.6).
+/** Lembar nilai untuk DITULIS TANGAN di pos (alur-lomba.md 8.8).
  *
  *  Identitas regu sudah tercetak, kolom nilainya kosong. Satu hal yang
  *  sengaja TIDAK ada di kertas ini: kolom Nilai Pos. Petugas lapangan hanya
@@ -2063,28 +2063,9 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
 const REGU_PER_LEMBAR = 30;
 
-function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup,
-                               perLomba = false) {
+function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   document.getElementById("cetakan")?.remove();
-
-  /* SATU LEMBAR PER LOMBA.
-
-     Di Pos 1 dan Pos 2 lombanya berjalan bersamaan di titik yang berbeda —
-     Semaphore di satu sudut, Menaksir di sudut lain. Satu kertas berisi
-     ketiganya berarti ketiga petugas memperebutkan lembar yang sama, dan yang
-     terjadi bukan penilaian bergantian melainkan angka yang dicatat di kertas
-     lain lalu disalin belakangan.
-
-     Jadi mode ini menerbitkan satu SET halaman untuk tiap lomba, masing-masing
-     dengan judul lombanya sendiri. Identitas regunya diulang di setiap set —
-     itu memang tujuannya, karena tiap set berpindah tangan sendiri-sendiri.
-
-     Yang TIDAK diulang: Nilai Pos. Lembar per lomba tidak punya cukup bahan
-     untuk menghitungnya, dan kolom bernama Nilai Pos di kertas yang hanya
-     memuat sepertiga posnya adalah undangan menjumlahkan yang salah. */
-  const set = perLomba
-    ? kolomLayar.map(kol => ({ judul: kol.nama, kolom: kolomCetakPos([kol]) }))
-    : [{ judul: null, kolom: kolomCetakPos(kolomLayar) }];
+  const set = [{ judul: null, kolom: kolomCetakPos(kolomLayar) }];
   const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
                              : `POS ${pos.nomor} — ${pos.name}`;
   const tanggal = tanggalPanjang(new Date());
@@ -2137,6 +2118,149 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup,
     </section>`).join("")).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
+}
+
+/** Judul besar di atas kotak isian: APA yang harus ditulis di sana.
+ *
+ *  Konfigurasi menang. Empat dari lima bentuk penilaian bisa diterjemahkan
+ *  sendiri, karena bentuknya menentukan artinya — `satuan = detik` selalu
+ *  berarti waktu, `besar_baik` selalu berarti jumlah benar.
+ *
+ *  `bertingkat` tidak bisa. Ia cuma tangga angka, dan angkanya bisa detik,
+ *  meter, selisih, atau apa pun yang panitia putuskan tahun itu. Menebaknya
+ *  pernah menghasilkan "Hasil ukur" untuk Menaksir — kata yang membaca seperti
+ *  perintah menulis jarak TERUKUR, padahal yang diminta SELISIH-nya. Kalau
+ *  petugas menulis 12 alih-alih 2, tangga Menaksir habis di atas 4 meter dan
+ *  hampir setiap regu mendapat 0, tanpa satu galat pun.
+ *
+ *  Jadi bentuk itu membawa judulnya sendiri lewat `judul_isian` (0039), dan
+ *  cadangannya sengaja tidak menjanjikan apa-apa. */
+function judulIsian(k) {
+  if (k.judul_isian) return k.judul_isian;
+  if (k.satuan === "detik") return "Waktu tempuh";
+  if (k.form === "biner") return "Kena / tidak";
+  if (k.form === "benar_kurang_salah") return "Benar dan salah";
+  if (k.form === "bertingkat") return "Data mentah";
+  return "Jumlah benar";
+}
+
+/** Keterangan di bawah judul: rentang yang boleh ditulis, dan untuk waktu satu
+ *  contoh nyata. Contoh itu bukan hiasan — ia mencegah seluruh kelas kesalahan
+ *  yang tidak bisa dicegah kalimat mana pun: petugas yang menulis "0:47" di
+ *  kotak berlabel DETIK, atau menulis poin alih-alih data mentah.
+ *
+ *  Menerima KOLOM, bukan komponen tunggal, dan itu yang penting. Satu blangko
+ *  dipakai regu golongan mana pun, sementara Tebak Simpul punya dua skala —
+ *  5 simpul untuk Penggalang, 10 untuk Penegak. Mengambil rentang dari varian
+ *  pertama saja akan mencetak "0 – 10" di kertas yang separuhnya dipegang regu
+ *  Penggalang: bukan sekadar kurang lengkap, tapi salah.
+ *
+ *  `kol.petunjuk` sudah menggabungkan rentang yang berbeda jadi
+ *  "0 – 10 / 0 – 5", sama persis dengan yang tercetak di form tabel. Keduanya
+ *  benar, tergantung golongan, dan petugas lomba itu tahu yang mana. */
+function contohIsian(kol) {
+  const k = kol.varian[0];
+  if (k.satuan === "detik") return "dalam DETIK · contoh: 47";
+  if (k.form === "biner") return "centang bila kena";
+  // Keterangan yang ditulis panitia sendiri dipakai apa adanya — ia sudah
+  // berupa kalimat, bukan rentang yang perlu diberi kata "angka".
+  if (k.petunjuk) return kol.petunjuk;
+  return `angka ${kol.petunjuk}`;
+}
+
+/** FORM PER LOMBA — BLANGKO KOSONG, satu lembar untuk satu regu di satu lomba
+ *  (alur-lomba.md 8.3).
+ *
+ *  KENAPA KOSONG, PADAHAL SISTEM TAHU SEMUA NAMA REGUNYA.
+ *
+ *  Karena regu datang ke pos dalam urutan ACAK. Kloter berangkat berurutan,
+ *  tetapi rute, kecepatan, dan antrean membuat siapa yang muncul berikutnya
+ *  tidak bisa ditebak. Kalau tiap kertas sudah tercetak identitasnya, petugas
+ *  harus MENCARI kertas nomor 005 di tumpukan berisi ratusan lembar setiap
+ *  kali satu regu masuk — pekerjaan yang lebih lama daripada lombanya sendiri,
+ *  dilakukan sambil regu menunggu.
+ *
+ *  Jadi semua kertas identik, dan petugas menulis "005" di kotak paling kiri
+ *  atas. Yang dicetak sistem bukan datanya, melainkan BENTUKNYA: nama lomba,
+ *  satuan yang benar, contoh angkanya, dan tempat tanda tangan.
+ *
+ *  YANG DITULIS TANGAN HANYA NOMOR DADA.
+ *
+ *  Tidak ada kolom nama regu, sekolah, atau golongan — dan itu keputusan,
+ *  bukan kelalaian. Ketiganya sudah ditentukan oleh nomor dada, jadi
+ *  menuliskannya berarti menyalin ~30 huruf sebanyak 1.500 kali untuk
+ *  informasi yang sudah dimiliki sistem. Di pos yang sedang mengantre, itu
+ *  pekerjaan yang memakan waktu lomba itu sendiri.
+ *
+ *  Lebih buruk lagi: kolom yang terlalu mahal untuk diisi AKAN dikosongkan,
+ *  dan kolom kosong yang bernama "konfirmasi" adalah pengaman palsu — ia
+ *  membuat orang merasa ada pengecekan padahal tidak ada.
+ *
+ *  Pengecekannya memang ada, tapi bukan di kertas. Saat tim IT mengetik 005,
+ *  baris di layar Input Pos langsung menampilkan nama regu, sekolahnya, dan
+ *  golongannya. Salah ketik ketahuan di sana — tanpa satu huruf pun ditulis
+ *  di lapangan.
+ *
+ *  Satu baris kecil tetap disediakan untuk keadaan yang benar-benar
+ *  membutuhkan tulisan: nomor dadanya TIDAK TERBACA — robek, tertutup jaket,
+ *  atau petugas ragu antara 6 dan 8. Tanpa tempatnya, catatan itu tetap
+ *  ditulis, hanya saja di pinggir kertas tempat tidak ada yang mencarinya.
+ */
+function siapkanCetakBlangko(pos, kolomLayar) {
+  document.getElementById("cetakan")?.remove();
+
+  const judulPos = pos.bayangan ? pos.name : `Pos ${pos.nomor} · ${pos.name}`;
+
+  const satuBlangko = (kol) => {
+    // Varian mana pun boleh dipakai untuk menurunkan bentuknya: yang berbeda
+    // antar golongan hanya skalanya, dan skala tidak dicetak di blangko —
+    // justru itu gunanya. Petugas menulis jumlah benar apa adanya, dan sistem
+    // yang tahu 5 simpul untuk Penggalang, 10 untuk Penegak.
+    const k = kol.varian[0];
+    return `
+    <article class="blangko">
+      <p class="bl-pos">${esc(judulPos)}</p>
+      <h2 class="bl-lomba">${esc(kol.nama)}</h2>
+      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")} · Petugas: ____________</p>
+
+      <table class="bl-identitas"><tbody>
+        <tr>
+          <td class="bl-dada"><span class="bl-label">No Dada</span></td>
+          <td class="bl-catat"><span class="bl-label">Regu / sekolah</span></td>
+        </tr>
+      </tbody></table>
+
+      <div class="bl-nilai">
+        <div class="bl-nilai-kepala">
+          <span class="bl-nilai-judul">${esc(judulIsian(k))}</span>
+          <span class="bl-nilai-contoh">${esc(contohIsian(kol))}</span>
+        </div>
+        <div class="bl-nilai-kotak"></div>
+      </div>
+
+      <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
+         poin.</strong> Sistem yang mengubahnya jadi nilai.</p>
+      <p class="bl-ttd">Petugas ${esc(kol.nama)}</p>
+      <p class="bl-garis"></p>
+    </article>`;
+  };
+
+  // SATU HALAMAN A5 MELINTANG PER LOMBA, bukan sebanyak jumlah regu.
+  //
+  // Yang dicetak dari sini adalah MASTER, bukan tumpukannya. Blangko
+  // diperbanyak dengan mesin fotokopi — 500 regu di pos berisi tiga lomba
+  // membutuhkan 1.500 lembar, dan mencetak sebanyak itu lewat browser berarti
+  // menghabiskan satu toner printer kantor untuk pekerjaan yang diselesaikan
+  // mesin fotokopi dalam beberapa menit.
+  //
+  // Jadi keluarannya tiga halaman untuk Pos 1: Semaphore, Tebak Simpul,
+  // Menaksir. Panitia menggandakan tiap halaman sebanyak yang dibutuhkan, dan
+  // tiap tumpukan otomatis berisi satu lomba saja.
+  const cetakan = kolomLayar.map(kol => `
+    <section class="print-page blangko-halaman">${satuBlangko(kol)}</section>`).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${cetakan}</div>`));
+  return kolomLayar.length;
 }
 
 /** Layar Input Pos — lembar kertas yang dipindah ke layar.
@@ -2249,14 +2373,14 @@ async function layarInputPos() {
     <div class="card">
       ${alatTabel({
         kiri: pilihPosHtml(s, semuaPos),
-        // Dua tombol, karena keduanya menjawab hari yang berbeda. Satu lembar
-        // berisi semua lomba untuk pos yang dinilai satu meja; satu lembar per
-        // lomba untuk pos yang lombanya berjalan BERSAMAAN di beberapa titik —
-        // dan di sana satu kertas keliling adalah antrean, bukan lembar nilai.
+        // Dua bentuk kertas, dua cara kerja (alur-lomba.md 8.8). Namanya
+        // memakai kosakata panitia persis — "form tabel" dan "form per lomba"
+        // adalah kata yang mereka ucapkan sendiri, dan tombol yang bernama
+        // lain memaksa penerjemahan di kepala setiap kali dipakai.
         kanan: `<button class="button button-secondary button-small" type="button"
-                        id="cetak-lembar">🖨️ Cetak Lembar</button>
+                        id="cetak-lembar">🖨️ Form Tabel</button>
                 <button class="button button-secondary button-small" type="button"
-                        id="cetak-per-lomba">🖨️ Cetak per Lomba</button>`,
+                        id="cetak-per-lomba">🖨️ Form per Lomba</button>`,
         // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
@@ -2641,7 +2765,7 @@ async function layarInputPos() {
   // Dua kebutuhan berbeda terlayani satu tombol: sebelum lomba cetak "Semua"
   // untuk lembar kosong, dan di tengah lomba saring "Belum lengkap" dulu
   // supaya kertas susulan hanya memuat regu yang memang belum dinilai.
-  const cetak = async (perLomba) => {
+  const cetak = async (slip) => {
     const tampil = [...tbody.children].filter(tr => !tr.hidden)
       .map(tr => lembar.find(r => Number(r.nomor_dada) === Number(tr.dataset.dada)))
       .filter(Boolean);
@@ -2654,20 +2778,28 @@ async function layarInputPos() {
     let ditutup = false;
     try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
-    siapkanCetakLembarPos(pos, kolom, tampil, ditutup, perLomba);
+    if (slip) {
+      // Yang dicetak MASTER, bukan tumpukannya — jadi daftar ulang yang belum
+      // ditutup tidak berpengaruh di sini, dan jumlah regu yang sedang tampil
+      // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
+      // di mesin fotokopi, bukan di layar ini.
+      const n = siapkanCetakBlangko(pos, kolom);
+      notif(`${n} master A5 melintang, satu per lomba. Perbanyak dengan `
+            + `fotokopi sebanyak regu yang berlomba, tambah cadangan.`);
+    } else {
+      siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
+    }
     window.print();
   };
 
   document.getElementById("cetak-lembar")
     .addEventListener("click", () => cetak(false));
 
-  // Pos berkolom satu tidak punya "per lomba" — lembarnya akan sama persis,
-  // dan dua tombol yang menghasilkan kertas identik membuat orang mengira
-  // salah satunya rusak. Tombolnya dibuang, bukan dinonaktifkan: tombol mati
-  // menimbulkan pertanyaan yang tidak ada jawabannya.
-  const tombolLomba = document.getElementById("cetak-per-lomba");
-  if (kolom.length < 2) tombolLomba.remove();
-  else tombolLomba.addEventListener("click", () => cetak(true));
+  // Tombolnya ada di SEMUA pos, termasuk yang berlomba satu. Di Pos 4 dan
+  // Pos 5 slipnya memang cuma satu per regu, tapi bentuknya tetap berbeda dari
+  // tabel — dan alur kotak penilaian berlaku di sana juga.
+  document.getElementById("cetak-per-lomba")
+    .addEventListener("click", () => cetak(true));
 
   pasangAlatTabel((cari, saring) => {
     [...tbody.children].forEach(tr => {

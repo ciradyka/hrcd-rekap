@@ -123,5 +123,8 @@ run tests/sql/16_kosong_bukan_nol.sql
 # 0038 hanya mengganti bunyi satu petunjuk kolom. Dijalankan supaya berkasnya
 # tetap teruji; di database uji `menaksir` tidak ada, jadi ia melapor dilewati.
 run supabase/migrations/0038_petunjuk_menaksir.sql
+# 0039 menambah kolom `judul_isian`. Dijalankan supaya berkasnya teruji; di
+# database uji `menaksir` tidak ada, jadi UPDATE-nya melapor dilewati.
+run supabase/migrations/0039_judul_isian.sql
 
 echo "SEMUA TES LULUS"

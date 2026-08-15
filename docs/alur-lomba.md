@@ -327,38 +327,106 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Wahana lari — ditulis `40` untuk 40 detik.
    - Wahana lempar — ditulis `3` untuk 3 kali kena.
    - Soal — jumlah jawaban benar, ditandai centang, atau waktu penyelesaian.
-3. **Lembar nilai tidak berpindah tangan secara fisik.** Petugas lapangan
-   **memfoto lembar secara berkala** dan mengirimkan fotonya ke operator IT di
-   pos. Dengan begitu nilai mengalir sepanjang lomba, bukan menumpuk sampai pos
-   tutup.
-4. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, melalui dua
+3. **Kertas penilaian dibuat per lomba per regu, bukan satu lembar berisi
+   banyak regu.** Alurnya di lapangan:
+
+   1. Regu masuk ke wahana.
+   2. Petugas mengambil **satu kertas soal untuk lomba itu** — misalnya Tebak
+      Simpul — beserta kertas penilaiannya.
+   3. Regu mengerjakan.
+   4. Petugas menuliskan nilai mentahnya di kertas itu, mengikuti skala lomba
+      tersebut (Tebak Simpul Penggalang `0–5`, Penegak `0–10`).
+   5. Kertas dimasukkan ke **kotak penilaian** di pos itu.
+   6. Kotaknya diserahkan ke tim IT untuk diinput.
+   7. Tim IT **mengurutkan kertasnya menurut nomor dada**, 001 sampai 500,
+      lalu memasukkannya berurutan.
+
+   Bentuk ini bukan selera, melainkan tuntutan dua hal yang terjadi bersamaan.
+   Di satu pos, beberapa lomba berjalan **serentak di titik yang berbeda** —
+   Semaphore di satu sudut, Menaksir di sudut lain. Satu lembar berisi ketiga
+   lomba berarti ketiga petugas memperebutkan kertas yang sama, dan yang
+   terjadi bukan penilaian bergantian melainkan angka dicatat di kertas lain
+   lalu disalin belakangan. Salinan itulah yang hilang.
+
+   Dan satu regu **tidak pernah selesai di semua lomba pada saat yang sama**.
+   Lembar berisi 30 regu baru bisa berpindah setelah baris terakhir terisi;
+   kertas per regu berpindah begitu regunya selesai.
+
+4. **Nomor dada adalah kepala kertas itu, bukan salah satu kolomnya.** Seluruh
+   langkah 7 di atas — mengurutkan ratusan lembar lepas — bertumpu pada satu
+   angka yang harus terbaca sambil menyortir cepat. Karena itu nomor dada
+   dicetak besar di pojok kiri atas, dan tetap terbaca walau kertasnya
+   ditumpuk hanya dengan sudut terlihat.
+5. **Kertasnya berpindah tangan secara fisik**, dan itu memang jalurnya. Foto
+   berkala tetap berguna sebagai cadangan sebelum kotak berpindah — kotak yang
+   hilang atau tertinggal di pos adalah satu-satunya cara nilai lenyap tanpa
+   jejak — tetapi apakah foto diwajibkan atau tidak belum diputuskan
+   (bagian 13).
+6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, melalui dua
    jalur:
    - **Input manual**, satu regu satu kali.
    - **Upload massal.** Tim IT boleh memakai AI untuk mengubah foto lembar
      menjadi tabel Excel, lalu meng-copy atau meng-upload-nya ke sistem.
-5. Karena jalur kedua bergantung pada pembacaan otomatis yang bisa salah,
+7. Karena jalur kedua bergantung pada pembacaan otomatis yang bisa salah,
    **upload massal wajib melewati layar preview** yang menampilkan apa saja
    yang akan berubah dan menandai kejanggalan — nomor dada tidak dikenal, nilai
    di luar rentang wajar, atau baris ganda. Data hasil transkripsi otomatis
    tidak boleh masuk langsung ke perhitungan skor tanpa dikonfirmasi manusia.
-6. Lembar nilai **dicetak sistem** setelah daftar ulang ditutup, sudah terisi
-   identitas regu, menyisakan kolom kosong untuk diisi petugas. Formatnya
-   seperti:
+8. Semua kertas **dicetak sistem** dari layar Input Pos setelah daftar ulang
+   ditutup, sudah terisi identitas regu dan menyisakan kotak kosong untuk
+   diisi petugas. Kolomnya tidak pernah ditulis tangan di berkas mana pun — ia
+   lahir dari tabel `wahana`, sehingga kertas tahun depan ikut berubah sendiri
+   begitu konfigurasi penilaiannya diganti.
 
-   ```
-   No Dada - Nama Regu - Nama Sekolah - Golongan | Penilaian (Ikuti Skala) | IMPK (benar = v) - Nilai Pos 3
+   Ada **tiga bentuk**, dan panitia menyebutnya begini:
 
-   001 - Rajawali - SMPN 1 Purwadadi - Penggalang PA - V
-   ```
+   | Bentuk | Isi | Dipakai |
+   | --- | --- | --- |
+   | **Form per lomba** | **A5 melintang**, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
+   | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | pos yang dinilai satu meja |
+   | **Form tabel per pos online** | layar Input Pos | tim IT memasukkan isi kotak |
 
-   Satu kolom sengaja **tidak** ikut dicetak: **Nilai Pos**. Petugas lapangan
-   hanya menulis data mentah dan tidak pernah menjumlahkan sendiri (poin 1) —
-   kotak berjudul Nilai Pos justru mengundang hitungan tangan yang berbeda
-   dengan angka sistem.
+   **Form per lomba adalah bentuk yang paling banyak dicetak, dan jumlahnya
+   besar.** 500 regu di pos berisi tiga lomba berarti **1.500 kertas untuk Pos
+   1 saja**. Karena itu yang dicetak dari layar adalah **master**-nya, bukan
+   tumpukannya: satu halaman per lomba, lalu diperbanyak dengan mesin
+   fotokopi. Ukurannya **A5 melintang** — separuh A4 dipotong mendatar,
+   sehingga mesin fotokopi mana pun dapat menggandakannya 2-up ke A4 dan
+   tumpukannya dipisah dengan satu potongan lurus.
 
-7. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
+   Tiga hal yang dikerjakan form per lomba dan **tidak bisa** dikerjakan form
+   tabel:
+
+   - **Nomor dada dicetak besar di pojok kiri atas** (poin 4).
+   - **Rentangnya milik regu itu.** Di tabel, kolom Tebak Simpul harus menulis
+     `0 – 10 / 0 – 5` karena satu kolom melayani empat golongan. Di form per
+     lomba, regu Penggalang melihat `0 – 5` saja dan tidak ada yang perlu
+     dipilih petugas.
+   - **Golongan yang tidak berhak tidak dapat kertasnya sama sekali** — bukan
+     dapat lalu dicoret.
+
+   Form tabel tidak digantikan. Pos yang dinilai satu meja oleh satu juri —
+   PBB, Yel-Yel — lebih cepat dengan satu halaman berisi 30 regu, dan di sana
+   tidak ada kertas yang perlu berpindah di tengah lomba.
+
+   **Semua kertas ini digandakan dengan mesin fotokopi, dan itu menentukan
+   bentuknya.** Tidak ada blok hitam, tidak ada tulisan putih di atas gelap,
+   tidak ada abu-abu — ketiganya adalah hal yang paling buruk ditangani mesin
+   fotokopi, apalagi saat yang digandakan sudah berupa gandaan. Garis minimal
+   0,75pt dan huruf minimal 7pt, karena di bawah itu garisnya hilang dan
+   huruf-hurufnya menutup sendiri oleh serbuk toner. Kotak yang ditulisi selalu
+   putih polos. Aturan lengkapnya di `CLAUDE.md` bagian 8.
+
+   Satu kolom sengaja **tidak** ikut dicetak di bentuk mana pun: **Nilai Pos**.
+   Petugas lapangan hanya menulis data mentah dan tidak pernah menjumlahkan
+   sendiri (poin 1) — kotak berjudul Nilai Pos justru mengundang hitungan
+   tangan yang berbeda dengan angka sistem. Di form per lomba alasannya
+   bertambah satu: kertas yang hanya memuat satu lomba tidak punya cukup bahan
+   untuk menghitungnya.
+
+9. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
    yang sudah menyetor dan pos mana yang belum.
-8. **Satu link untuk semua panitia, akses dibedakan per akun.** Setiap akun
+10. **Satu link untuk semua panitia, akses dibedakan per akun.** Setiap akun
    hanya melihat dan menyentuh bagiannya sendiri:
 
    | Contoh akun | Akses |
@@ -375,9 +443,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    disembunyikan dari layar. Sebaliknya akun pos tidak diberi jalan ke layar
    meja: Home-nya hanya memuat satu kartu, "Input Nilai Pos N", dan RLS
    mengosongkan data meja seandainya alamatnya diketik langsung.
-9. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
+11. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
    password dapat diganti bersih setiap tahun tanpa membongkar sistem.
-10. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
+12. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
     dicatat**: siapa memasukkan atau mengubah nilai apa, dan kapan. Tujuannya
     bukan mengawasi orang, melainkan agar setiap angka dapat ditelusuri kembali
     ketika ada yang janggal.
@@ -565,8 +633,23 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    ada di fungsi `hitung_poin()`, dan tiap komponen pos diatur lewat satu
    baris konfigurasi, bukan lewat kode. Angka yang terpasang sekarang adalah
    angka HRCD XXXVI sebagai titik awal.
-3. **Arti singkatan `IMPK`** pada contoh lembar nilai di bagian 8.6.
-4. **Dua pembacaan pada bagian 10 yang belum dipastikan:**
+3. **Arti singkatan `IMPK`.** Muncul di contoh lembar nilai yang dulu tertulis
+   di bagian 8, dan tidak pernah dijelaskan siapa pun. Contohnya sendiri sudah
+   diganti — format kertas sekarang lahir dari tabel `wahana`, bukan dari
+   contoh yang diketik tangan — jadi potongan aslinya disimpan di sini supaya
+   pertanyaannya tetap bisa dijawab:
+
+   ```
+   No Dada - Nama Regu - Nama Sekolah - Golongan | Penilaian (Ikuti Skala) | IMPK (benar = v) - Nilai Pos 3
+   ```
+4. **Apakah foto berkala tetap diwajibkan setelah kertas berpindah fisik**
+   (bagian 8.5). Alur kotak penilaian membuat foto bukan lagi jalur utama,
+   tetapi kotak yang hilang atau tertinggal di pos adalah satu-satunya cara
+   nilai lenyap tanpa jejak — dan itu justru risiko yang dulu dihindari dengan
+   tidak memindahkan kertas sama sekali. Kalau foto tidak diwajibkan, perlu
+   disepakati siapa yang bertanggung jawab atas kotak sejak pos tutup sampai
+   isinya masuk sistem.
+5. **Dua pembacaan pada bagian 10 yang belum dipastikan:**
    - Pengurangan −100 karena tidak checkout — apakah menggantikan penalti waktu,
      atau ditambahkan padanya? Tanpa checkout tidak ada jam datang, sehingga
      penalti waktu tidak dapat dihitung. Dokumen ini menuliskannya sebagai
@@ -574,7 +657,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.
-5. **Teknologi yang dipakai: SUDAH DIPUTUSKAN dan sudah berjalan.** Panitia
+6. **Teknologi yang dipakai: SUDAH DIPUTUSKAN dan sudah berjalan.** Panitia
    memilih Kandidat B — Supabase + frontend statis di Cloudflare — dengan
    syarat keras UI/UX harus mudah diajarkan. Google Sheets sempat direncanakan
    sebagai jendela baca tetapi **tidak pernah dipakai**; tidak ada di kode.
