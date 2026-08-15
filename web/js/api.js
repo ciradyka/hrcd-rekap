@@ -450,6 +450,22 @@ export async function komponenSemua(edisi) {
     `&order=pos.asc,sort_order.asc`);
 }
 
+/** Riwayat perubahan nilai satu regu di satu pos — siapa mengubah apa, kapan.
+ *
+ *  Dibaca saat penanda simpan diketuk, bukan ikut dimuat bersama lembarnya:
+ *  lembar pos memuat ratusan baris dan hampir semuanya tidak pernah ditanya
+ *  riwayatnya. */
+export async function riwayatNilai(pos, nomorDada) {
+  if (K.mode === "dev") {
+    return baca(`/riwayat-nilai?pos=${encodeURIComponent(pos)}` +
+                `&dada=${encodeURIComponent(nomorDada)}`);
+  }
+  return baca(null,
+    `v_riwayat_nilai?pos=eq.${encodeURIComponent(pos)}` +
+    `&nomor_dada=eq.${encodeURIComponent(nomorDada)}` +
+    `&select=*&order=changed_at.desc`);
+}
+
 /** Kelengkapan input per pos — satu baris per pos, bukan per regu.
  *
  *  Sengaja agregat: layar memanggilnya tiap 20 detik, dan menarik 300 × 5

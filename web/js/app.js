@@ -19,7 +19,7 @@ import {
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   batasNomorDada,
-  komponenSemua, rekapPenuh, kelengkapanPos,
+  komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
@@ -2540,7 +2540,18 @@ async function layarInputPos() {
     } else if (keadaan === "menyimpan") {
       sel.replaceChildren(h(`<span class="badge badge-gray">…</span>`));
     } else if (keadaan === "tersimpan") {
-      sel.replaceChildren(h(`<span class="badge badge-green" title="Sudah masuk database">✓</span>`));
+      // Centangnya SEKALIGUS pintu riwayat. Bukan tombol tambahan di kolom
+      // terpisah: lembar ini sudah selebar layar dua kali, dan satu kolom lagi
+      // dibayar setiap baris walau riwayatnya hampir tidak pernah ditanya.
+      //
+      // Yang ditanyakan orang saat menatap centang hijau memang persis ini —
+      // "angka ini sudah masuk, tapi siapa yang menaruhnya, dan apakah ia
+      // mengganti angka lain?" Jadi jawabannya ditaruh di tempat pertanyaannya
+      // muncul.
+      sel.replaceChildren(h(`<button class="badge badge-green badge-tombol"
+        type="button" data-riwayat title="Sudah masuk database — ketuk untuk melihat riwayat">✓</button>`));
+      sel.querySelector("[data-riwayat]")
+         .addEventListener("click", () => bukaRiwayat(tr));
     } else if (keadaan === "gagal") {
       sel.replaceChildren(h(html`<button class="button button-danger button-mini"
         type="button" data-ulang title="${pesan}">Ulangi</button>`));
@@ -2550,6 +2561,45 @@ async function layarInputPos() {
     }
     perbaruiRingkasan();
   };
+
+  /** Riwayat perubahan nilai satu regu di pos ini.
+   *
+   *  Dibaca saat DIKETUK, bukan ikut dimuat bersama lembarnya: lembar pos
+   *  memuat ratusan baris dan hampir semuanya tidak pernah ditanya riwayatnya.
+   *
+   *  Yang ditampilkan sengaja apa adanya — angka lama, angka baru, siapa,
+   *  kapan — tanpa menyimpulkan mana yang "mencurigakan". Yang tahu apakah
+   *  suatu perubahan wajar adalah orang yang berdiri di pos itu, bukan layar. */
+  async function bukaRiwayat(tr) {
+    const dada = Number(tr.dataset.dada);
+    const nama = tr.children[1].textContent.trim();
+    let baris;
+    try {
+      baris = await riwayatNilai(pos.nomor, dada);
+    } catch (err) {
+      notif(`Riwayat tidak bisa dibaca: ${err.message}`, true);
+      return;
+    }
+
+    /* Sengaja RINGKAS: satu baris per perubahan, tanpa kepala tabel.
+       Yang dicari orang saat membukanya cuma tiga hal — lomba apa, dari berapa
+       jadi berapa, dan siapa. Kepala tabel dan kalimat penjelas menambah teks
+       yang harus dilewati mata sebelum sampai ke jawabannya. */
+    const isi = baris.length
+      ? `<ul class="riwayat">${baris.map(b => html`<li>
+           <span class="r-lomba">${b.nama_lomba}</span>
+           <span class="r-nilai">${b.nilai_lama === null ? "—" : angkaRapi(b.nilai_lama)}
+             → <strong>${b.nilai_baru === null ? "hapus" : angkaRapi(b.nilai_baru)}</strong></span>
+           <span class="r-oleh">${b.oleh} · ${tanggalJam(b.changed_at)}</span>
+         </li>`).join("")}</ul>`
+      : `<p class="description">Belum pernah diubah.</p>`;
+
+    await dialog({
+      judul: `${String(dada).padStart(3, "0")} · ${nama}`,
+      kartuHtml: isi,
+      labelAksi: "Tutup",
+    });
+  }
 
   /* ---------- pita keadaan + kirim ulang sendiri ----------
 

@@ -156,6 +156,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() "
                     "order by pos, sort_order", uid=p.get("uid")))
+            elif u.path == "/riwayat-nilai":
+                self._kirim(200, q(
+                    "select * from v_riwayat_nilai where pos = %s "
+                    "and nomor_dada = %s order by changed_at desc",
+                    (p.get("pos") or 0, p.get("dada") or 0), uid=p.get("uid")))
             elif u.path == "/batas-nomor-dada":
                 self._kirim(200, q(
                     "select nomor from nomor_dada_stok order by nomor desc limit 1",
