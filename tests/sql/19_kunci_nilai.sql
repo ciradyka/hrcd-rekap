@@ -144,13 +144,20 @@ $$;
 --      uji tidak gagal di baris `delete from regu`.
 -- ---------------------------------------------------------------------------
 do $$
-declare v_aturan text;
+declare v_aturan "char";
 begin
-  select rc.delete_rule into v_aturan
-  from information_schema.referential_constraints rc
-  where rc.constraint_name = 'nilai_terkunci_regu_id_fkey';
-  assert v_aturan = 'CASCADE',
-    format('nilai_terkunci.regu_id delete_rule = %L, seharusnya CASCADE', v_aturan);
+  -- pg_constraint, BUKAN information_schema. Yang terakhir hanya memperlihatkan
+  -- constraint pada tabel yang penggunanya punya hak — dan tes ini berjalan
+  -- sebagai `authenticated`, jadi kueri-nya mengembalikan nol baris dan
+  -- v_aturan tinggal NULL. Assert-nya lalu gagal dengan alasan yang keliru:
+  -- seolah cascade tidak terpasang, padahal yang tidak ada cuma izin membaca
+  -- katalognya. pg_catalog terbaca siapa pun.
+  select c.confdeltype into v_aturan
+  from pg_constraint c
+  where c.conname = 'nilai_terkunci_regu_id_fkey';
+  assert v_aturan = 'c',
+    format('nilai_terkunci.regu_id confdeltype = %L, seharusnya c (cascade)',
+           v_aturan);
 end;
 $$;
 
