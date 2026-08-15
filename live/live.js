@@ -291,6 +291,14 @@ function gambarHasil() {
    Satu angka per pos memisahkan keduanya, dan pertanyaan yang tadinya jadi
    antrean di meja panitia terjawab sebelum diajukan.
    ------------------------------------------------------------------------- */
+/* Merah / kuning / hijau, dan hijau sengaja mahal — 90, bukan 80. Pos dengan
+   300 regu yang berhenti di 85% masih kehilangan 45 regu, dan warna hijau di
+   angka itu mengabarkan "selesai" kepada peserta yang regunya justru termasuk
+   45 itu. Angkanya selalu tertulis di dalam cincin, jadi yang tidak bisa
+   membedakan merah dari hijau membaca keadaan yang sama persis. */
+const warnaPersen = (s) => s >= 90 ? "var(--hijau)"
+                         : s >= 50 ? "var(--kuning)" : "var(--bahaya)";
+
 function gambarKelengkapan() {
   const daftar = (META && META.kelengkapan) || [];
   if (!daftar.length) return "";
@@ -305,17 +313,15 @@ function gambarKelengkapan() {
           const persen = Number(p.persen) || 0;
           return `
           <li>
-            <div class="k-kepala">
-              <span class="k-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</span>
-              <span class="k-persen">${esc(String(persen))}%</span>
-            </div>
-            <div class="k-batang" role="img"
+            <div class="cincin" style="--persen:${persen};--warna:${warnaPersen(persen)}"
+                 role="img"
                  aria-label="Pos ${esc(String(p.pos))} ${esc(String(persen))} persen selesai">
-              <span style="width:${persen}%"></span>
+              <span>${esc(String(persen))}<i>%</i></span>
             </div>
-            <div class="k-angka">${esc(String(p.lengkap))} dari
-              ${esc(String(p.regu_total))} regu${Number(p.sebagian) > 0
-                ? ` · ${esc(String(p.sebagian))} baru sebagian` : ""}</div>
+            <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
+            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu${
+              Number(p.sebagian) > 0
+                ? `<br>${esc(String(p.sebagian))} baru sebagian` : ""}</div>
           </li>`;
         }).join("")}
       </ul>
