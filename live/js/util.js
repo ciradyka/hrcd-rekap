@@ -287,6 +287,36 @@ export function pasangKotakJam(id) {
   hh.addEventListener("focus", () => pilihIsi(hh));
   mm.addEventListener("focus", () => pilihIsi(mm));
 
+  /* LAPIS KEDUA: kotak yang sudah PENUH, angka berikutnya memulai dari awal.
+     Berlaku di mana pun kursornya berada.
+
+     Memilih isi saat fokus (di atas) sudah menyelesaikan kasus yang dilaporkan,
+     tapi ia bergantung pada browser menghormati select() — dan Safari iOS
+     punya beberapa keadaan di mana ia tidak. Aturan ini tidak bergantung pada
+     apa pun: kalau kotak sudah memuat dua angka dan yang diketik satu angka
+     lagi, isinya DIGANTI, bukan disisipi. Kursor di awal, di tengah, atau di
+     ujung tidak mengubah hasilnya.
+
+     Ketikan beruntun tidak terganggu. Mengetik 1503 dari kosong tidak pernah
+     memasukkan angka ketiga ke kotak jam — begitu dua angka penuh, fokusnya
+     sudah pindah ke menit. Satu-satunya cara kotak penuh menerima ketikan lagi
+     adalah petugas sengaja kembali ke sana, dan saat itu maksudnya mengganti.
+
+     MENEMPEL dikecualikan: menempel "1503" memang harus meluap ke menit, dan
+     itu jalur yang dipakai saat layar mengisi kotak dari data. */
+  const menimpaBilaPenuh = (el) => el.addEventListener("beforeinput", (e) => {
+    if (e.inputType !== "insertText" || !/^\d$/.test(e.data || "")) return;
+    const penuh = el.value.replace(/\D/g, "").length >= 2;
+    const semuaTerpilih = el.selectionStart === 0
+                       && el.selectionEnd === el.value.length;
+    if (!penuh || semuaTerpilih) return;
+    e.preventDefault();
+    el.value = e.data;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  menimpaBilaPenuh(hh);
+  menimpaBilaPenuh(mm);
+
   const tandai = () => {
     const kosong = !hh.value.trim() && !mm.value.trim();
     const buruk = !kosong && !nilai();
