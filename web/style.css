@@ -464,6 +464,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .notification { transition: opacity .35s ease; }
 .notification.pudar { opacity: 0; }
 
+/* Di HP, pesan ini muncul TEPAT DI ATAS bar bawah, hampir selebar layar.
+
+   Sebelumnya ia pil sempit di `bottom: 1.2rem` — yaitu DI BELAKANG bar Home /
+   Setelan / Keluar, yang tingginya 56px dan menempel di dasar layar. Pesan
+   terpenting di aplikasi ini ("nomor dada sudah dipakai regu lain") separuh
+   tertutup tombol Keluar.
+   
+   Selebar layar bukan soal selera: pesannya menyebut DAFTAR nomor, dan pil
+   yang menyempit ke lebar isinya memecah daftar itu jadi dua baris pendek di
+   tengah layar yang kosong di kiri-kanannya. */
+@media (max-width: 560px) {
+  .notification {
+    left: .75rem; right: .75rem; transform: none; max-width: none;
+    bottom: calc(56px + env(safe-area-inset-bottom) + .75rem);
+  }
+  .notification-close { margin-left: auto; }
+}
+
 /* ---------- menu beranda meja ---------- */
 
 .function-menu { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
