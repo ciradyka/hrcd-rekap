@@ -2523,7 +2523,7 @@ async function layarInputPos() {
       <td class="pos-status" data-label=""></td>
       <td class="pos-foto text-center" data-label="">
         <button type="button" class="badge badge-tombol" data-foto
-          title="Foto slip penilaian regu ini">📷</button></td>
+          title="Foto slip penilaian regu ini">${ikon("camera")}</button></td>
       <td class="pos-gembok" data-label=""></td>
     </tr>`).join("")));
 
@@ -2796,7 +2796,7 @@ async function layarInputPos() {
         <button type="button" class="button button-mini" data-lihat
           ${hitung[kode] ? "" : "hidden"}>Lihat</button>
         <label class="button button-mini button-primary">
-          <input type="file" accept="image/*" multiple hidden data-ambil>📷 Foto
+          <input type="file" accept="image/*" multiple hidden data-ambil>${ikon("camera")} Foto
         </label>
       </li>`).join("")}</ul>
 `;
