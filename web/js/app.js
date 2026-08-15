@@ -41,13 +41,18 @@ const GOLONGAN_LABEL = {
  *  6 huruf — sekitar 10mm kembali ke kolom nama, di kertas yang memang sedang
  *  kekurangan.
  *
- *  Pgl dan Png memang cuma beda satu huruf, dan itu disebut supaya tidak
- *  dikira terlewat: kolom ini keterangan, bukan kunci. Nilai mengalir lewat
- *  nomor dada, jadi golongan yang salah baca tidak pernah memindahkan angka ke
- *  regu lain — paling jauh membuat petugas melihat dua kali. */
+ *  Singkatannya dipilih panitia: Pgl dan Pgk, keduanya berpola tiga huruf
+ *  konsonan. Versi pertama saya "Png" untuk Penegak, dan itu lebih buruk —
+ *  Png dan Pgl berbeda di dua huruf tengah yang sama-sama tidak menonjol,
+ *  sementara Pgk dan Pgl berbeda di huruf TERAKHIR, tempat mata berhenti.
+ *
+ *  Sekalipun tertukar, akibatnya terbatas: kolom ini keterangan, bukan kunci.
+ *  Nilai mengalir lewat nomor dada, jadi golongan yang salah baca tidak pernah
+ *  memindahkan angka ke regu lain — paling jauh membuat petugas melihat dua
+ *  kali. */
 const GOLONGAN_SINGKAT = {
   penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
-  penegak_pa: "Png Pa", penegak_pi: "Png Pi",
+  penegak_pa: "Pgk Pa", penegak_pi: "Pgk Pi",
 };
 let EDISI = null;
 

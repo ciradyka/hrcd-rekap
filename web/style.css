@@ -689,7 +689,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      seluruh sisa masuk ke kotak isian — petak berisi satu angka dua digit
      jadi selebar dua jari sementara nama sekolah di sebelahnya terpotong. */
   .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian {
-    width: 12mm; max-width: 14mm;
+    width: 16mm; max-width: 18mm;
   }
   /* Identitas SATU BARIS, dan 10pt supaya muat tanpa dipotong.
      Bukan sekadar hemat lebar: satu nama yang pecah dua baris membuat
@@ -713,14 +713,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      kepanjangan dipotong dengan elipsis — regu tetap dikenali dari nomor
      dada dan nama regunya, dan nama sekolah di kertas ini gunanya sekadar
      cek silang. */
-  /* Patokan LEBAR, bukan sempit — ia batas pengaman, bukan target. Kotak
-     isian yang dibatasi ketat (max-width di atas), jadi sisa lebar kertas
-     mengalir ke tiga kolom ini dan nama terpanjang di daftar muat utuh.
-     Pos 3 memakai 13 + 84 + maksimum 166 = 263mm dari 277mm yang tersedia;
-     sisanya jatuh ke identitas juga. */
-  .lembar-pos .print-table td:nth-child(2) { max-width: 76mm; }
-  .lembar-pos .print-table td:nth-child(3) { max-width: 76mm; }
-  /* Golongan disingkat di kertas — "Pgl Pa", bukan "Penggalang PA"
+  /* Identitas DIPADATKAN, dan itu keputusan panitia: lebih baik nama
+     terpotong sedikit daripada kotak nilai yang sempit.
+
+     Diukur pada 10pt huruf besar (~2,3mm per huruf) terhadap nama terpanjang
+     di daftar:
+
+       nama regu   "VICTORIA PUI CIJANTUNG"        22 huruf ~ 51mm -> 48mm
+       organisasi  "SMK SILIWANGI AMS BANJARSARI"  28 huruf ~ 64mm -> 58mm
+
+     Keduanya sengaja sedikit di bawah kebutuhan huruf terpanjang, jadi hanya
+     segelintir nama terpanjang yang kehilangan satu-dua huruf di ujung —
+     dan regu tetap dikenali dari nomor dadanya. Yang dibeli: 46mm kembali ke
+     kotak nilai, yang naik dari 14mm ke 18mm.
+
+     Elipsisnya tetap, dan `nowrap` tetap — memotong menjaga tinggi baris
+     seragam, dan keseragaman itu yang membuat mata bisa menyusuri mendatar
+     dari nomor dada ke kotak nilai tanpa kehilangan barisnya. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 48mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 58mm; }
+  /* Golongan disingkat di kertas — "Pgl Pa" / "Pgk Pa", bukan "Penggalang PA"
      (GOLONGAN_SINGKAT di app.js). Enam huruf pada 10pt butuh ~14mm; sisanya
      dikembalikan ke dua kolom nama di sebelahnya, yang memang sedang
      kekurangan dan karena itu dipotong elipsis. */
