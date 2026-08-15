@@ -285,13 +285,21 @@ function gambarHasil() {
    Satu angka per pos memisahkan keduanya, dan pertanyaan yang tadinya jadi
    antrean di meja panitia terjawab sebelum diajukan.
    ------------------------------------------------------------------------- */
-/* Merah / kuning / hijau, dan hijau sengaja mahal — 90, bukan 80. Pos dengan
-   300 regu yang berhenti di 85% masih kehilangan 45 regu, dan warna hijau di
-   angka itu mengabarkan "selesai" kepada peserta yang regunya justru termasuk
-   45 itu. Angkanya selalu tertulis di dalam cincin, jadi yang tidak bisa
-   membedakan merah dari hijau membaca keadaan yang sama persis. */
-const warnaPersen = (s) => s >= 90 ? "var(--hijau)"
-                         : s >= 50 ? "var(--kuning)" : "var(--bahaya)";
+/** Merah -> kuning -> hijau mengikuti persennya, bukan tiga anak tangga.
+
+ *  Tangga membuat 49% dan 51% terlihat sangat berbeda padahal selisihnya satu
+ *  regu, sementara 51% dan 89% terlihat sama padahal itu dua puluh regu.
+ *  Gradasi menampilkan JARAKNYA, dan jarak itu yang ditanyakan orang saat
+ *  melirik lima cincin sekaligus.
+ *
+ *  Rona 0 di 0%, 50 di 50%, 140 di 100% — merah, kuning, hijau. Angkanya
+ *  tetap tertulis di dalam cincin, jadi warna tidak pernah jadi satu-satunya
+ *  kabar bagi yang sulit membedakan merah dari hijau. */
+const warnaPersen = (s) => {
+  const p = Math.max(0, Math.min(100, Number(s) || 0));
+  const rona = p <= 50 ? p : 50 + (p - 50) * 1.8;
+  return `hsl(${Math.round(rona)}, 72%, 40%)`;
+};
 
 function gambarKelengkapan() {
   const daftar = (META && META.kelengkapan) || [];
