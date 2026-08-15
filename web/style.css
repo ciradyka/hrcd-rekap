@@ -878,7 +878,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* ---------- layar tabel (Pembayaran, Daftar Ulang, Keberangkatan) ---------- */
 
 .table-toolbar {
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: .6rem;
+  /* Rata TENGAH, bukan rata bawah. flex-end masuk akal waktu kotak cari masih
+     punya label di atasnya — dasar kotak dan dasar chip berbaris rapi. Kedua
+     labelnya sekarang visually-hidden dan tidak memakan tinggi sama sekali,
+     jadi yang tersisa dari flex-end cuma "0 invoice · 0 regu" yang tergantung
+     di bawah, tidak sejajar dengan apa pun. */
+  display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;
   margin-bottom: .8rem;
 }
 .table-toolbar .field { margin-bottom: 0; }
