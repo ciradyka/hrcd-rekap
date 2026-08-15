@@ -662,3 +662,18 @@ export function ikon(nama, kelas = "ikon") {
     stroke="currentColor" stroke-width="2" stroke-linecap="round"
     stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
 }
+
+/** Ikon di dalam kotak bertint — satu warna per fungsi.
+ *
+ *  Ikon garis satu warna membuat papan menu jadi rata: sepuluh ubin yang
+ *  bentuknya sama dan warnanya sama harus dibaca kata demi kata. Warna
+ *  memberi tiap ubin penanda yang dikenali sebelum tulisannya sempat dibaca,
+ *  dan sesudah beberapa kali pakai panitia menuju "yang jingga" tanpa
+ *  mengeja "Keberangkatan".
+ *
+ *  Warna TIDAK PERNAH jadi satu-satunya pembeda — namanya selalu tertulis di
+ *  sebelahnya. Sekitar satu dari dua belas laki-laki sulit membedakan merah
+ *  dari hijau, dan bagi mereka papan ini harus tetap terbaca persis sama. */
+export function ikonKotak(nama, warna) {
+  return `<span class="ikon-kotak i-${warna}">${ikon(nama)}</span>`;
+}

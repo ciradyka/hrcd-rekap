@@ -2148,6 +2148,49 @@ input.small-input { text-align: center; }
 /* Di ubin menu ikonnya sedikit lebih besar dan berwarna hijau HRCD: satu
    aksen warna pada papan yang selebihnya netral, persis peran yang dipegang
    warna di papan rujukan. */
-.function-name .ikon { width: 1.35em; height: 1.35em; color: var(--utama); }
+/* Di dalam kotak bertint, ukuran dan warnanya diatur .ikon-kotak. */
+.function-name > .ikon { width: 1.35em; height: 1.35em; color: var(--utama); }
 .icon-button .ikon { width: 1.4em; height: 1.4em; }
 .bottom-nav-icon .ikon { width: 1.5em; height: 1.5em; }
+
+/* ============================================================================
+   Kotak ikon bertint — satu warna per fungsi.
+
+   Sepuluh ubin sebentuk dan sewarna harus dibaca kata demi kata. Warna
+   memberi tiap ubin penanda yang dikenali sebelum tulisannya sempat dibaca,
+   dan sesudah beberapa hari panitia menuju "yang jingga" tanpa mengeja
+   "Keberangkatan".
+
+   Warnanya TIDAK PERNAH jadi satu-satunya pembeda: namanya selalu tertulis di
+   sebelahnya, dan bentuk ikonnya sendiri sudah berbeda. Sekitar satu dari dua
+   belas laki-laki sulit membedakan merah dari hijau, dan papan ini harus
+   terbaca sama persis bagi mereka.
+
+   Latarnya tint pucat dengan ikon versi pekat dari warna yang sama —
+   pasangan itu yang membuat kotaknya terbaca sebagai satu benda, bukan
+   sebagai kotak warna dengan gambar di atasnya.
+   ========================================================================== */
+.ikon-kotak {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.25rem; height: 2.25rem;
+  border-radius: 11px;
+  flex: 0 0 auto;
+}
+.ikon-kotak .ikon { width: 1.2rem; height: 1.2rem; }
+
+.i-biru   { background: #e7f0fd; color: #1a56db; }
+.i-hijau  { background: #e4f6ec; color: #067647; }
+.i-ungu   { background: #f0eafe; color: #6941c6; }
+.i-toska  { background: #dff2f0; color: #00695c; }
+.i-jingga { background: #fdefe0; color: #b54708; }
+.i-zamrud { background: #e2f7f0; color: #047857; }
+.i-emas   { background: #fdf3dc; color: #a16207; }
+.i-nila   { background: #e9ecfc; color: #3538cd; }
+.i-mawar  { background: #fce9ee; color: #c01048; }
+
+/* Di kertas semua tint hilang — CLAUDE.md 8.4 melarang abu dan raster, dan
+   latar berwarna yang difotokopi jadi kotoran. Ikonnya sendiri tidak dicetak
+   di blangko mana pun, tapi aturan ini menjaga kalau suatu hari ikut. */
+@media print {
+  .ikon-kotak { background: none !important; color: #000 !important; }
+}
