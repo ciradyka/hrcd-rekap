@@ -261,8 +261,23 @@ export function pasangKotakJam(id) {
   const mm = document.getElementById(`${id}-mm`);
   const pendengar = [];
 
-  const gabung = () => `${hh.value.trim()}${mm.value.trim()}`;
-  const nilai = () => jamSah(gabung());
+  /* Kedua kotak DIBACA SEBAGAI DUA, bukan disambung jadi satu teks.
+   *
+   * Versi pertama menyambung isinya lalu menyerahkannya ke jamSah(), yang
+   * membaca "dua angka terakhir adalah menit". Untuk kotak yang terpisah itu
+   * salah, dan salahnya diam-diam: jam 10 menit 5 tersambung jadi "105", lalu
+   * dibaca ulang sebagai 1:05. Petugas melihat 10 dan 5 di layarnya, dan yang
+   * tersimpan pukul satu lewat lima.
+   *
+   * Kotaknya sudah TAHU mana jam dan mana menit. Membuang keterangan itu lalu
+   * menebaknya kembali dari bentuk gabungan adalah kekeliruan yang tidak perlu
+   * ada. Sekarang keduanya dinolkan di depan lebih dulu, jadi "10" dan "5"
+   * menjadi "1005" — satu-satunya bacaan yang mungkin. */
+  const nilai = () => {
+    const h = hh.value.trim(), m = mm.value.trim();
+    if (!h || !m) return null;
+    return jamSah(h.padStart(2, "0") + m.padStart(2, "0"));
+  };
 
   /* ISI DIPILIH SAAT KOTAKNYA DIKETUK, dan tanpa ini kotak yang sudah terisi
      tidak bisa diperbaiki.

@@ -1970,6 +1970,11 @@ function petunjukKolom(k) {
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
 }
 
+/** Isi kotak yang tidak bisa dibaca sebagai angka/waktu. Sengaja BUKAN null:
+ *  null berarti "kotak kosong", dan jalur simpan menerjemahkan itu jadi
+ *  perintah MENGHAPUS nilai yang sudah tersimpan. */
+const TIDAK_SAH = Symbol("tidak sah");
+
 /** Membaca satu komponen dari barisnya. null = kotaknya kosong, artinya
  *  komponen ini BELUM dinilai — bukan "dinilai nol".
  *
@@ -1984,12 +1989,16 @@ function bacaSel(tr, k) {
   if (k.form === "biner") return { nilai_1: kotak[0].checked ? 1 : 0, nilai_2: null };
 
   if (k.satuan === "detik") {
+    // TIGA keadaan, bukan dua. Kotak kosong dan kotak berisi "1:75" tidak
+    // boleh diperlakukan sama, dan dulu keduanya sama-sama mengembalikan null.
+    //
+    // Akibatnya senyap dan merusak: jalur simpan membaca null sebagai "kotak
+    // dikosongkan", jadi nilai yang SUDAH tersimpan di database ikut DIHAPUS —
+    // lalu barisnya tetap mendapat centang hijau. Petugas salah ketik satu
+    // huruf dan kehilangan angka yang sudah benar, tanpa satu pun tanda.
+    if (!kotak[0].value.trim()) return null;
     const detik = detikSah(kotak[0].value);
-    // null menutupi dua hal yang berbeda: kotak kosong, dan isi yang bukan
-    // waktu. Keduanya sengaja diperlakukan sama — TIDAK DIKIRIM. Menebak
-    // maksud "1:75" berarti mencatat waktu yang tidak pernah terjadi, dan
-    // kotaknya sendiri sudah memerah lewat .input-waktu:invalid.
-    return detik === null ? null : { nilai_1: detik, nilai_2: null };
+    return detik === null ? TIDAK_SAH : { nilai_1: detik, nilai_2: null };
   }
   if (k.form === "benar_kurang_salah") {
     const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
@@ -2817,11 +2826,15 @@ async function layarInputPos() {
     if (tr.dataset.terkunci === "1") return;
     const dada = Number(tr.dataset.dada);
     const lama = asli.get(dada) || {};
-    const baris = [], dihapus = [];
+    const baris = [], dihapus = [], takTerbaca = [];
 
     for (const k of komponenBaris(tr)) {
       const baru = bacaSel(tr, k);
       const ada = lama[k.kode] || null;
+      // Kotak berisi sesuatu yang tidak terbaca: JANGAN disentuh sama sekali.
+      // Bukan dikirim, dan bukan pula dianggap kosong — angka lamanya tetap di
+      // tempatnya sampai petugas membetulkan ketikannya.
+      if (baru === TIDAK_SAH) { takTerbaca.push(k.name); continue; }
       if (baru === null) {
         // Kotak dikosongkan padahal sebelumnya ada isinya = angka itu masuk ke
         // regu yang salah. Dihapus, bukan ditimpa nol.
@@ -2837,6 +2850,24 @@ async function layarInputPos() {
                      nilai_1: baru.nilai_1, nilai_2: baru.nilai_2 });
       }
     }
+    // Ada kotak yang tidak terbaca: barisnya berakhir MERAH, bukan hijau.
+    //
+    // Yang sah tetap dikirim — memaksa petugas mengetik ulang kotak yang sudah
+    // benar karena satu kotak lain salah adalah hukuman yang tidak perlu. Tapi
+    // barisnya tidak boleh terlihat selesai selama masih ada yang salah, dan
+    // merahnya juga yang menahan penyegaran 20 detik agar tidak menghapus
+    // ketikan yang sedang dibetulkan (baris "gagal" termasuk sibuk).
+    const pesanTakTerbaca = takTerbaca.length
+      ? `${takTerbaca.join(", ")}: isinya bukan angka/waktu yang bisa dibaca. `
+        + `Angka lamanya TIDAK diubah.`
+      : null;
+
+    if (pesanTakTerbaca && !baris.length && !dihapus.length) {
+      statusBaris(tr, "gagal", pesanTakTerbaca);
+      notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${pesanTakTerbaca}`, true);
+      return;
+    }
+
     // Tidak ada yang berubah — misalnya angka diketik ulang sama persis.
     // Barisnya dikembalikan ke keadaan istirahat, BUKAN ditinggalkan dalam
     // keadaan "belum": tanda kuning yang tidak akan pernah hilang sendiri
@@ -2868,7 +2899,12 @@ async function layarInputPos() {
       // dijanjikan cap itu adalah "sudah ada di database", dan yang
       // membuktikannya adalah baris yang barusan dibaca kembali dari sana.
       jamSinkron = new Date();
-      statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
+      if (pesanTakTerbaca) {
+        statusBaris(tr, "gagal", pesanTakTerbaca);
+        notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${pesanTakTerbaca}`, true);
+      } else {
+        statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
+      }
       hitungUlangJumlah();
     } catch (err) {
       statusBaris(tr, "gagal", err.message);
