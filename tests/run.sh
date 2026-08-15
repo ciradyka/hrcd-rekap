@@ -147,4 +147,32 @@ run supabase/migrations/0045_pos_boleh_buka_gembok.sql
 run supabase/migrations/0046_gembok_dua_lubang.sql
 run tests/sql/19_kunci_nilai.sql
 
+# --------------------------------------------------------------------------
+# 0047-0053. Ketujuhnya SEMPAT TIDAK ADA di berkas ini, dan itu berarti CI
+# hijau selama berhari-hari tanpa pernah menjalankan satu pun di antaranya —
+# termasuk tes 20, 21, dan 22 yang ditulis bersamanya. Yang menemukannya
+# akhirnya bukan CI, melainkan produksi: 0053 gagal di sana dengan "column
+# e.aktif does not exist", galat yang seharusnya muncul di sini lebih dulu.
+#
+# Daftar ini ditulis tangan, jadi migrasi baru TIDAK otomatis teruji. Setiap
+# berkas baru di supabase/migrations/ harus ditambahkan di sini pada commit
+# yang sama.
+# --------------------------------------------------------------------------
+run supabase/migrations/0047_foto_lembar.sql
+run tests/sql/20_foto_lembar.sql
+run supabase/migrations/0048_live_skor_peserta.sql
+run supabase/migrations/0049_pratinjau_live_admin.sql
+run supabase/migrations/0050_rename_live_score.sql
+# 0051 melarang nama regu kembar; dijalankan sesudah tes lain supaya mereka
+# masih bebas memakai nama apa pun.
+run supabase/migrations/0051_nama_regu_unik.sql
+run tests/sql/21_nama_regu_unik.sql
+# Fixture tes memakai nama berangka ("Regu A01", "Ketua A1"), jadi 0052 akan
+# menolaknya. Dibersihkan dengan skrip yang SAMA PERSIS dengan yang dipakai
+# produksi — sekalian membuktikan skrip itu sendiri bekerja.
+run supabase/checks/hapus_angka_nama_uji.sql
+run supabase/migrations/0052_nama_tanpa_angka.sql
+run tests/sql/22_nama_tanpa_angka.sql
+run supabase/migrations/0053_perkiraan_berangkat.sql
+
 echo "SEMUA TES LULUS"

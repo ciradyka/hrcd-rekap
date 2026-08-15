@@ -40,6 +40,14 @@ declare
   romawi text[] := array['I','II','III','IV','V','VI','VII','VIII','IX'];
   n int;
 begin
+  -- Nol tidak punya angka Romawi. Diganti huruf O, yang bentuknya memang
+  -- asalnya: fixture tes memakai "Regu A01", dan tanpa baris ini nol-nya
+  -- tertinggal lalu 0052 tetap menolak.
+  update regu set nama_regu = replace(nama_regu, '0', 'O') where nama_regu ~ '0';
+  update regu set nama_ketua = replace(nama_ketua, '0', 'O') where nama_ketua ~ '0';
+  update pendaftaran set nama_kontak = replace(nama_kontak, '0', 'O')
+  where nama_kontak ~ '0';
+
   for n in 1..9 loop
     update regu
     set nama_regu = regexp_replace(nama_regu, n::text, romawi[n], 'g')

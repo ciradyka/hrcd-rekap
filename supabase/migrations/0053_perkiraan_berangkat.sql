@@ -53,7 +53,7 @@ comment on column edisi.jam_batas_berangkat is
 
 -- ---------------------------------------------------------------------------
 -- Badan view disalin dari 0005 apa adanya, dengan SATU perubahan yang
--- disengaja: `r.batal` jadi `r.is_cancelled`.
+-- disengaja: `r.batal` jadi `r.is_cancelled`, dan `e.aktif` jadi `e.is_active`.
 --
 -- Bukan kekeliruan pada 0005 — 0014 mengganti nama kolomnya, dan PostgreSQL
 -- ikut memperbarui definisi view yang menyebutnya. Jadi yang tersimpan di
@@ -97,7 +97,7 @@ select
 from kloter k
 cross join terakhir t
 cross join edisi e
-where e.aktif
+where e.is_active
   and (exists (select 1 from regu r where r.kloter_nomor = k.nomor)
        or k.jam_berangkat is not null);
 
