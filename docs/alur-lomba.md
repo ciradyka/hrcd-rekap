@@ -382,15 +382,17 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
    | Bentuk | Isi | Dipakai |
    | --- | --- | --- |
-   | **Form per lomba** | satu kertas, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
+   | **Form per lomba** | **A5 melintang**, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
    | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | pos yang dinilai satu meja |
    | **Form tabel per pos online** | layar Input Pos | tim IT memasukkan isi kotak |
 
    **Form per lomba adalah bentuk yang paling banyak dicetak, dan jumlahnya
    besar.** 500 regu di pos berisi tiga lomba berarti **1.500 kertas untuk Pos
-   1 saja**. Karena itu delapan slip dimuat dalam satu A4 potret, bukan satu:
-   pada jumlah sebesar itu, selisih empat dan delapan per halaman adalah 188
-   lembar untuk satu pos.
+   1 saja**. Karena itu yang dicetak dari layar adalah **master**-nya, bukan
+   tumpukannya: satu halaman per lomba, lalu diperbanyak dengan mesin
+   fotokopi. Ukurannya **A5 melintang** — separuh A4 dipotong mendatar,
+   sehingga mesin fotokopi mana pun dapat menggandakannya 2-up ke A4 dan
+   tumpukannya dipisah dengan satu potongan lurus.
 
    Tiga hal yang dikerjakan form per lomba dan **tidak bisa** dikerjakan form
    tabel:

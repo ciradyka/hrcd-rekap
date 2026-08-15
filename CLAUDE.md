@@ -178,3 +178,14 @@ Guidance for Claude Code when working in this repository.
 8. These rules live in `web/style.css` under `@media print`, and `live/` holds
    a byte-identical copy — section 7.5 applies to CSS the same way, and
    `shared-files.yml` enforces that pair.
+9. **Form per lomba is A5 landscape — 210 × 148 mm, one form per page.**
+   Half an A4 cut across, so any copier can duplicate it 2-up onto A4 and the
+   stack is separated by a single straight cut. Landscape is not a preference:
+   the two things that must be written large — nomor dada and the raw value —
+   sit side by side with real room, and on A5 portrait they crowd downward
+   until the value box is half its size.
+10. **What the screen prints is the master, not the stack.** Blangko are
+    multiplied on a copier, so a pos with three lomba prints three pages, not
+    1.500. Printing the stack from a browser spends a whole office toner on
+    work a copier finishes in minutes — and the count is decided at the copier
+    anyway, since the forms are blank.

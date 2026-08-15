@@ -2122,27 +2122,50 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
 
 /** Judul besar di atas kotak isian: APA yang harus ditulis di sana.
  *
- *  Diturunkan dari bentuk komponennya, bukan ditulis per lomba, supaya lomba
- *  baru tahun depan langsung dapat judul yang benar tanpa menyentuh berkas
- *  ini. Empat cabang, semuanya kalimat yang panitia ucapkan sendiri. */
+ *  Konfigurasi menang. Empat dari lima bentuk penilaian bisa diterjemahkan
+ *  sendiri, karena bentuknya menentukan artinya — `satuan = detik` selalu
+ *  berarti waktu, `besar_baik` selalu berarti jumlah benar.
+ *
+ *  `bertingkat` tidak bisa. Ia cuma tangga angka, dan angkanya bisa detik,
+ *  meter, selisih, atau apa pun yang panitia putuskan tahun itu. Menebaknya
+ *  pernah menghasilkan "Hasil ukur" untuk Menaksir — kata yang membaca seperti
+ *  perintah menulis jarak TERUKUR, padahal yang diminta SELISIH-nya. Kalau
+ *  petugas menulis 12 alih-alih 2, tangga Menaksir habis di atas 4 meter dan
+ *  hampir setiap regu mendapat 0, tanpa satu galat pun.
+ *
+ *  Jadi bentuk itu membawa judulnya sendiri lewat `judul_isian` (0039), dan
+ *  cadangannya sengaja tidak menjanjikan apa-apa. */
 function judulIsian(k) {
+  if (k.judul_isian) return k.judul_isian;
   if (k.satuan === "detik") return "Waktu tempuh";
   if (k.form === "biner") return "Kena / tidak";
   if (k.form === "benar_kurang_salah") return "Benar dan salah";
-  if (k.form === "bertingkat") return "Hasil ukur";
+  if (k.form === "bertingkat") return "Data mentah";
   return "Jumlah benar";
 }
 
-/** Contoh angka di bawah judul. Bukan hiasan: satu contoh nyata mencegah
- *  seluruh kelas kesalahan yang tidak bisa dicegah kalimat mana pun — petugas
- *  yang menulis "0:47" di kotak berlabel DETIK, atau menulis poin alih-alih
- *  data mentah. Angkanya diambil dari rentang komponen itu sendiri, jadi ia
- *  selalu masuk akal untuk lomba yang bersangkutan. */
-function contohIsian(k) {
+/** Keterangan di bawah judul: rentang yang boleh ditulis, dan untuk waktu satu
+ *  contoh nyata. Contoh itu bukan hiasan — ia mencegah seluruh kelas kesalahan
+ *  yang tidak bisa dicegah kalimat mana pun: petugas yang menulis "0:47" di
+ *  kotak berlabel DETIK, atau menulis poin alih-alih data mentah.
+ *
+ *  Menerima KOLOM, bukan komponen tunggal, dan itu yang penting. Satu blangko
+ *  dipakai regu golongan mana pun, sementara Tebak Simpul punya dua skala —
+ *  5 simpul untuk Penggalang, 10 untuk Penegak. Mengambil rentang dari varian
+ *  pertama saja akan mencetak "0 – 10" di kertas yang separuhnya dipegang regu
+ *  Penggalang: bukan sekadar kurang lengkap, tapi salah.
+ *
+ *  `kol.petunjuk` sudah menggabungkan rentang yang berbeda jadi
+ *  "0 – 10 / 0 – 5", sama persis dengan yang tercetak di form tabel. Keduanya
+ *  benar, tergantung golongan, dan petugas lomba itu tahu yang mana. */
+function contohIsian(kol) {
+  const k = kol.varian[0];
   if (k.satuan === "detik") return "dalam DETIK · contoh: 47";
   if (k.form === "biner") return "centang bila kena";
-  if (k.petunjuk) return k.petunjuk;
-  return `angka ${petunjukKolom(k)}`;
+  // Keterangan yang ditulis panitia sendiri dipakai apa adanya — ia sudah
+  // berupa kalimat, bukan rentang yang perlu diberi kata "angka".
+  if (k.petunjuk) return kol.petunjuk;
+  return `angka ${kol.petunjuk}`;
 }
 
 /** FORM PER LOMBA — BLANGKO KOSONG, satu lembar untuk satu regu di satu lomba
@@ -2183,11 +2206,10 @@ function contohIsian(k) {
  *  atau petugas ragu antara 6 dan 8. Tanpa tempatnya, catatan itu tetap
  *  ditulis, hanya saja di pinggir kertas tempat tidak ada yang mencarinya.
  */
-function siapkanCetakBlangko(pos, kolomLayar, jumlah) {
+function siapkanCetakBlangko(pos, kolomLayar) {
   document.getElementById("cetakan")?.remove();
 
-  const judulPos = pos.bayangan ? pos.name : `POS ${pos.nomor} · ${pos.name}`;
-  const BLANGKO_PER_HALAMAN = 6;
+  const judulPos = pos.bayangan ? pos.name : `Pos ${pos.nomor} · ${pos.name}`;
 
   const satuBlangko = (kol) => {
     // Varian mana pun boleh dipakai untuk menurunkan bentuknya: yang berbeda
@@ -2204,15 +2226,14 @@ function siapkanCetakBlangko(pos, kolomLayar, jumlah) {
       <table class="bl-identitas"><tbody>
         <tr>
           <td class="bl-dada"><span class="bl-label">No Dada</span></td>
-          <td class="bl-catat"><span class="bl-label">Regu / sekolah —
-            <em>hanya bila nomor dada tidak terbaca</em></span></td>
+          <td class="bl-catat"><span class="bl-label">Regu / sekolah</span></td>
         </tr>
       </tbody></table>
 
       <div class="bl-nilai">
         <div class="bl-nilai-kepala">
           <span class="bl-nilai-judul">${esc(judulIsian(k))}</span>
-          <span class="bl-nilai-contoh">${esc(contohIsian(k))}</span>
+          <span class="bl-nilai-contoh">${esc(contohIsian(kol))}</span>
         </div>
         <div class="bl-nilai-kotak"></div>
       </div>
@@ -2224,21 +2245,22 @@ function siapkanCetakBlangko(pos, kolomLayar, jumlah) {
     </article>`;
   };
 
-  // Satu tumpukan per lomba, dan tiap tumpukan dimulai di HALAMAN BARU.
-  // Halaman campuran akan memaksa seseorang memilah guntingan sebelum
-  // membagikannya — pekerjaan yang tidak perlu ada, dan harganya cuma
-  // beberapa blangko kosong di halaman terakhir tiap lomba.
-  const cetakan = kolomLayar.map(kol => {
-    const isi = satuBlangko(kol);
-    const halaman = Math.ceil(jumlah / BLANGKO_PER_HALAMAN);
-    return Array.from({ length: halaman }, () => `
-      <section class="print-page blangko-halaman">
-        ${isi.repeat(BLANGKO_PER_HALAMAN)}
-      </section>`).join("");
-  }).join("");
+  // SATU HALAMAN A5 MELINTANG PER LOMBA, bukan sebanyak jumlah regu.
+  //
+  // Yang dicetak dari sini adalah MASTER, bukan tumpukannya. Blangko
+  // diperbanyak dengan mesin fotokopi — 500 regu di pos berisi tiga lomba
+  // membutuhkan 1.500 lembar, dan mencetak sebanyak itu lewat browser berarti
+  // menghabiskan satu toner printer kantor untuk pekerjaan yang diselesaikan
+  // mesin fotokopi dalam beberapa menit.
+  //
+  // Jadi keluarannya tiga halaman untuk Pos 1: Semaphore, Tebak Simpul,
+  // Menaksir. Panitia menggandakan tiap halaman sebanyak yang dibutuhkan, dan
+  // tiap tumpukan otomatis berisi satu lomba saja.
+  const cetakan = kolomLayar.map(kol => `
+    <section class="print-page blangko-halaman">${satuBlangko(kol)}</section>`).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${cetakan}</div>`));
-  return kolomLayar.length * Math.ceil(jumlah / BLANGKO_PER_HALAMAN);
+  return kolomLayar.length;
 }
 
 /** Layar Input Pos — lembar kertas yang dipindah ke layar.
@@ -2757,16 +2779,13 @@ async function layarInputPos() {
     try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
     if (slip) {
-      // Blangkonya KOSONG, jadi jumlah regu cuma menentukan BERAPA BANYAK yang
-      // dicetak — bukan isinya. Karena itu daftar ulang yang belum ditutup
-      // tidak lagi berbahaya di sini: regu yang menyusul tetap kebagian
-      // kertas, asal jumlahnya cukup. Ditambah seperlima sebagai cadangan,
-      // karena kertas rusak, basah, dan salah tulis adalah kejadian biasa di
-      // lapangan — dan blangko yang habis di tengah lomba menghentikan pos.
-      const perlu = Math.ceil(tampil.length * 1.2);
-      const lembar = siapkanCetakBlangko(pos, kolom, perlu);
-      notif(`${lembar} lembar A4 — ${perlu} blangko × ${kolom.length} lomba `
-            + `(${tampil.length} regu + cadangan).`);
+      // Yang dicetak MASTER, bukan tumpukannya — jadi daftar ulang yang belum
+      // ditutup tidak berpengaruh di sini, dan jumlah regu yang sedang tampil
+      // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
+      // di mesin fotokopi, bukan di layar ini.
+      const n = siapkanCetakBlangko(pos, kolom);
+      notif(`${n} master A5 melintang, satu per lomba. Perbanyak dengan `
+            + `fotokopi sebanyak regu yang berlomba, tambah cadangan.`);
     } else {
       siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
     }

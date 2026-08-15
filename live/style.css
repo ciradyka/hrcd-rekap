@@ -521,106 +521,91 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   @page lembar-pos { size: A4 landscape; margin: 10mm; }
   .lembar-pos { page: lembar-pos; }
 
-  /* ---- FORM PER LOMBA (blangko kosong): ENAM per A4 potret ----
-     Blangko, bukan kertas berisi identitas regu — regu datang ke pos dalam
-     urutan acak, jadi kertas yang sudah tercetak namanya harus DICARI setiap
-     kali satu regu masuk. Alasan lengkapnya di siapkanCetakBlangko().
+  /* ---- FORM PER LOMBA (blangko kosong): A5 MELINTANG, satu per halaman ----
+     Ukurannya ditetapkan panitia: A5 melintang, 210 x 148 mm — separuh A4
+     dipotong mendatar, jadi mesin fotokopi mana pun bisa menggandakannya
+     2-up ke A4 lalu dipotong sekali lurus.
 
-     Enam per halaman = 2 kolom x 3 baris = kira-kira 99 x 95 mm, hampir
-     persegi. Ukuran itu dipilih karena isinya: satu kotak nomor dada yang
-     harus ditulis besar, tiga baris identitas, satu kotak angka selebar
-     kertas, dan satu tanda tangan. Pada 500 regu, satu pos berisi tiga lomba
-     memakan 250 lembar — turun dari 375 kalau empat per halaman.
+     Satu halaman berisi SATU blangko, karena yang dicetak dari layar adalah
+     MASTER, bukan tumpukannya. Pos 1 menghasilkan tiga halaman — Semaphore,
+     Tebak Simpul, Menaksir — dan panitia menggandakan tiap halaman sebanyak
+     yang dibutuhkan. Alasannya di siapkanCetakBlangko().
 
-     Kotak nilainya sengaja jauh lebih besar daripada kotak identitas. Yang
-     dinilai adalah angka itu; identitas cuma penanda supaya kertasnya bisa
-     pulang ke regunya. */
-  @page blangko-halaman { size: A4 portrait; margin: 5mm; }
-  .blangko-halaman {
-    page: blangko-halaman;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 1fr;
-    gap: 0;
-    height: 287mm;
-  }
+     Melintang bukan selera. Yang harus muat: kotak nomor dada yang ditulis
+     besar dan kotak nilai yang ditulis lebih besar lagi, keduanya bersebelahan
+     dengan ruang tulis nyata. Pada A5 potret keduanya berdesakan ke bawah dan
+     kotak nilainya tinggal setengah.
+
+     Aturan cetak fotokopi (CLAUDE.md bagian 8) berlaku penuh di sini: tanpa
+     blok, tanpa abu-abu, garis >= 0,75pt, huruf >= 7pt. */
+  @page blangko-halaman { size: A5 landscape; margin: 9mm; }
+  .blangko-halaman { page: blangko-halaman; }
   .blangko {
-    border: .75pt dashed #000;
-    padding: 3.5mm 4mm;
+    height: 130mm;
     display: flex;
     flex-direction: column;
-    font-size: 8pt;
-    line-height: 1.2;
-    overflow: hidden;
+    font-size: 10pt;
+    line-height: 1.25;
   }
   .bl-pos {
-    margin: 0; text-align: center; font-size: 7pt; font-weight: 700;
-    letter-spacing: .8pt; text-transform: uppercase;
+    margin: 0; text-align: center; font-size: 9pt; font-weight: 700;
+    letter-spacing: 1.6pt; text-transform: uppercase;
   }
   .bl-lomba {
-    margin: .4mm 0 0; text-align: center; font-size: 15pt; font-weight: 800;
-    letter-spacing: .3pt; text-transform: uppercase; line-height: 1.05;
+    margin: 1mm 0 0; text-align: center; font-size: 24pt; font-weight: 800;
+    letter-spacing: .8pt; text-transform: uppercase; line-height: 1;
   }
   .bl-acara {
-    margin: 1mm 0 0; text-align: center; font-size: 7pt;
-    border-top: 1.5pt solid #000; padding-top: 1mm;
+    margin: 2mm 0 0; text-align: center; font-size: 9pt;
+    border-top: 1.5pt solid #000; padding-top: 2mm;
   }
 
-  /* Identitas: SATU kotak besar untuk nomor dada, dan satu catatan kecil di
+  /* Identitas: SATU kotak besar untuk nomor dada, dan satu kotak catatan di
      sebelahnya. Tidak ada kolom nama regu, sekolah, atau golongan — alasannya
      di siapkanCetakBlangko(): ketiganya sudah ditentukan nomor dada, dan
-     menyalinnya 1.500 kali adalah pekerjaan tanpa informasi baru.
+     menyalinnya ribuan kali adalah pekerjaan tanpa informasi baru.
 
      Kotak nomor dada dibuat tinggi supaya angkanya bisa ditulis BESAR. Ia
      dibaca dua kali dalam keadaan yang sama-sama tergesa: saat petugas
      menuliskannya di tengah antrean, dan saat tim IT mengurutkan ratusan
      lembar lepas dengan hanya melihat sudut kertas. */
-  .bl-identitas {
-    width: 100%; border-collapse: collapse; margin-top: 1.5mm;
-  }
+  .bl-identitas { width: 100%; border-collapse: collapse; margin-top: 3.5mm; }
   .bl-identitas td {
-    border: .75pt solid #000; padding: .7mm 1.2mm; height: 13mm;
+    border: 1pt solid #000; padding: 1.2mm 2mm; height: 20mm;
     vertical-align: top;
   }
-  .bl-dada { width: 34mm; }
-  .bl-catat { font-style: normal; }
+  .bl-dada { width: 58mm; }
 
-  /* Label harus tidak menghalangi tulisan tangan, TAPI TIDAK BOLEH ABU-ABU.
-     Abu-abu adalah hal yang paling buruk ditangani mesin fotokopi: ia diubah
-     jadi raster titik-titik yang bisa hilang sama sekali di mesin yang
-     tonernya menipis, atau justru menghitam jadi kotor. Yang menggantikannya:
-     hitam pekat, ukuran kecil, dan diletakkan di sudut atas sel — kecil dan
-     menepi mencapai tujuan yang sama dengan pudar, dan bertahan digandakan
-     berkali-kali. Lihat CLAUDE.md bagian 8. */
-  .bl-label { font-size: 7pt; color: #000; display: block; }
-  .bl-label em { font-style: italic; font-size: 6.5pt; }
+  /* Label tidak menghalangi tulisan tangan, TAPI TIDAK BOLEH ABU-ABU.
+     Abu-abu adalah yang paling buruk ditangani mesin fotokopi: diubah jadi
+     raster titik yang hilang di mesin bertoner tipis, atau menghitam jadi
+     kotor. Penggantinya hitam pekat, kecil, menepi di sudut sel — mencapai
+     tujuan yang sama dan bertahan digandakan berkali-kali. */
+  .bl-label { font-size: 8pt; color: #000; display: block; }
 
-  /* Kotak nilai. Kepalanya DULU blok hitam dengan tulisan putih, dan itu
+  /* Kotak nilai. Kepalanya DULU blok hitam bertulisan putih, dan itu
      kekeliruan: blok penuh boros toner, keluar belang di mesin fotokopi, dan
      tulisan putih di atasnya adalah hal PERTAMA yang hilang saat menggandakan
-     gandaan. Sekarang huruf hitam biasa, dan yang menonjolkannya adalah garis
-     tebal di bawah judul — garis bertahan, blok tidak.
+     gandaan. Sekarang huruf hitam biasa, dan yang menonjolkannya garis tebal —
+     garis bertahan, blok tidak.
 
      Contoh angka di bawah judul tetap ada. Satu contoh nyata mencegah seluruh
      kelas kesalahan yang tidak bisa dicegah kalimat mana pun: "0:47" di kotak
      berlabel DETIK, atau poin ditulis alih-alih data mentah. */
-  .bl-nilai { margin-top: 2mm; border: 1pt solid #000; }
+  .bl-nilai { margin-top: 3.5mm; border: 1.2pt solid #000; }
   .bl-nilai-kepala {
-    text-align: center; padding: 1.2mm .5mm .8mm;
-    border-bottom: 1pt solid #000;
+    text-align: center; padding: 2mm 1mm 1.5mm; border-bottom: 1.2pt solid #000;
   }
   .bl-nilai-judul {
-    display: block; font-size: 9pt; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .4pt;
+    display: block; font-size: 12pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .8pt;
   }
-  .bl-nilai-contoh { display: block; font-size: 7pt; margin-top: .4mm; }
-  .bl-nilai-kotak { height: 22mm; }
+  .bl-nilai-contoh { display: block; font-size: 9pt; margin-top: .8mm; }
+  .bl-nilai-kotak { height: 30mm; }
 
-  .bl-catatan { margin: 1.5mm 0 0; font-size: 7pt; line-height: 1.25; }
-  .bl-ttd { margin: auto 0 0; text-align: center; font-size: 7pt; }
-  .bl-garis {
-    margin: 5mm 4mm 0; border-bottom: .75pt solid #000;
-  }
+  .bl-catatan { margin: 2.5mm 0 0; font-size: 8pt; line-height: 1.3; }
+  .bl-ttd { margin: auto 0 0; text-align: center; font-size: 8pt; }
+  .bl-garis { margin: 7mm auto 0; width: 70mm; border-bottom: .75pt solid #000; }
 
   /* ---- kerapatan baris ----
      Yang harus muat dalam satu A4 potret: kepala halaman + 30 baris + catatan
