@@ -138,8 +138,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 7. **Kloternya tetap ditentukan sistem** (bagian 5.3). Yang manual hanya
    nomor dadanya; penyebaran kloter justru tidak boleh diserahkan ke petugas
    karena bertumpu pada keadaan seluruh sekolah, bukan satu meja saja.
-8. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
-   petugas lapangan (bagian 8.6).
+8. **Peserta wajib mengonfirmasi datanya sendiri, termasuk nomor dada,
+   sebelum kertas dicetak.** Yang dikonfirmasi: nama regu, asal sekolah,
+   golongan, dan nomor dada tiap regu.
+
+   Ini bukan formalitas, melainkan pintu terakhir yang masih murah. Sesudah
+   lembar kloter dicetak, isinya dibekukan: menambah regu ke kloter tercetak
+   ditolak sistem, dan menukar nomor dada hanya boleh lewat admin — nomor
+   lamanya pun dipensiunkan permanen, karena kertas yang sudah beredar masih
+   menuliskannya (bagian 8.8).
+
+   Harganya naik lagi sesudah lomba mulai. Slip penilaian per lomba hanya
+   memuat NOMOR DADA tanpa nama regu, jadi nomor dada yang salah bukan
+   sekadar salah tulis — ia memindahkan seluruh nilai satu regu ke regu lain,
+   dan tidak ada apa pun di kertas yang memperlihatkannya.
+
+   Sebelum dicetak, pembetulan hanya perlu satu ketukan di meja: nomor lama
+   kembali ke stok dan bisa langsung dipakai regu yang benar.
+9. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
+   petugas lapangan (bagian 8.8).
 
 ## 5. Kloter dan kontrak waktu
 
