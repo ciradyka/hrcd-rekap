@@ -77,6 +77,12 @@ export function pesanRamah(m) {
     return "Nama regu itu sudah dipakai regu lain. Pilih nama yang berbeda.";
   if (/regu_nama_panjang/i.test(t))
     return "Nama regu paling panjang 20 karakter.";
+  if (/nama_regu_tanpa_angka/i.test(t))
+    return "Nama regu tidak boleh memakai angka.";
+  if (/nama_ketua_tanpa_angka/i.test(t))
+    return "Nama ketua tidak boleh memakai angka.";
+  if (/nama_kontak_tanpa_angka/i.test(t))
+    return "Nama contact person tidak boleh memakai angka.";
   if (/permission denied|insufficient/i.test(t))
     return "Akun ini tidak berhak melakukan itu. Pakai akun yang sesuai.";
   if (/password.*(should be different|new password should be different)/i.test(t))

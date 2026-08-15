@@ -86,6 +86,16 @@ const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
    dilewati dengan menekan Caps Lock bukan pembatas.                        */
 
 const NAMA_MAKS = 20;
+
+/* Angka di kolom nama selalu berarti salah satu dari dua hal: kolomnya
+   tertukar (nomor WA diketik di kotak Nama), atau regunya dinomori sendiri
+   ("REGU 1") — dan nomor regu sudah ada, namanya nomor dada.
+
+   Yang ditolak HANYA digit. Nama sungguhan memuat spasi, titik, apostrof,
+   dan tanda hubung — "Nur Aisyah binti H. Abdul", "Ma'ruf", "Siti Nur-Aini"
+   — dan menolak semuanya demi menolak angka akan menolak lebih banyak nama
+   asli daripada kesalahan yang dicegahnya. */
+const ADA_ANGKA = /[0-9]/;
 const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 /* Jawaban server, diingat per nama supaya satu nama tidak ditanyakan berkali
@@ -166,7 +176,13 @@ function halaman() {
   document.getElementById("nama-kontak").value = jawab.nama_kontak;
   document.getElementById("nama-kontak").addEventListener("input", e => {
     jawab.nama_kontak = e.target.value; simpanDraf();
-    document.getElementById("g-nama-kontak").hidden = !!e.target.value.trim();
+    const salahKontak = !e.target.value.trim()
+      ? "Nama contact person wajib diisi."
+      : ADA_ANGKA.test(e.target.value)
+        ? "Nama contact person tidak boleh memakai angka." : null;
+    const gk = document.getElementById("g-nama-kontak");
+    gk.textContent = salahKontak || "";
+    gk.hidden = !salahKontak;
     if (sudahDiperiksa) periksa(false);
   });
   document.getElementById("wa").value = jawab.kontak_wa;
@@ -412,6 +428,7 @@ function gambarRegu() {
   const masalahNama = (i) => {
     const n = normalNama(jawab.regu[i].nama_regu);
     if (!n) return "Nama regu wajib diisi.";
+    if (ADA_ANGKA.test(n)) return "Nama regu tidak boleh memakai angka.";
     if (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n))
       return "Nama ini sudah dipakai regu lain di form ini.";
     if (namaTerpakai.get(n))
@@ -424,13 +441,18 @@ function gambarRegu() {
     const inpKetua = document.getElementById(`r-ketua-${i}`);
     if (!inpNama || !inpKetua) return;
     const salahNama = masalahNama(i);
-    const ketuaKosong = !inpKetua.value.trim();
+    const salahKetua = !inpKetua.value.trim()
+      ? "Nama ketua wajib diisi."
+      : ADA_ANGKA.test(inpKetua.value) ? "Nama ketua tidak boleh memakai angka." : null;
+    const ketuaKosong = !!salahKetua;
     inpNama.setAttribute("aria-invalid", String(!!salahNama));
     inpKetua.setAttribute("aria-invalid", String(ketuaKosong));
     const kotakGalat = document.getElementById(`r-nama-galat-${i}`);
     kotakGalat.textContent = salahNama || "";
     kotakGalat.hidden = !salahNama;
-    document.getElementById(`r-ketua-galat-${i}`).hidden = !ketuaKosong;
+    const kotakKetua = document.getElementById(`r-ketua-galat-${i}`);
+    kotakKetua.textContent = salahKetua || "";
+    kotakKetua.hidden = !salahKetua;
     document.getElementById(`regu-${i}`).classList.toggle("regu-card-error", !!salahNama || ketuaKosong);
   };
 
@@ -509,7 +531,7 @@ function periksa(gulir = true) {
     const namaSalah = !n
       || jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n)
       || namaTerpakai.get(n) === true;
-    const kurang = namaSalah || !r.nama_ketua;
+    const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua);
     const el = document.getElementById(`regu-${i}`);
     if (el) el.classList.toggle("regu-card-error", kurang);
     if (kurang) {
@@ -518,9 +540,12 @@ function periksa(gulir = true) {
     }
   });
 
-  const namaKontakKosong = !jawab.nama_kontak.trim();
+  const namaKontakKosong = !jawab.nama_kontak.trim()
+    || ADA_ANGKA.test(jawab.nama_kontak);
   if (namaKontakKosong)
-    galat.push({ ke: "bagian-kontak", teks: "Nama contact person belum diisi" });
+    galat.push({ ke: "bagian-kontak", teks: !jawab.nama_kontak.trim()
+      ? "Nama contact person belum diisi"
+      : "Nama contact person tidak boleh memakai angka" });
   tandai("g-nama-kontak", namaKontakKosong);
 
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
