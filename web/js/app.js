@@ -242,10 +242,19 @@ async function layarHome() {
    *  sama akan mewarnai hijau tepat pada keadaan yang paling belum selesai.
    *
    *  Jadi netral sepanjang jalan, dan hijau HANYA saat penuh. */
-  const kemajuan = (sudah, dari) => {
+  const kemajuan = (sudah, dari, judulMustahil) => {
     if (sudah === null || dari === null) return "";
-    const penuh = dari > 0 && sudah >= dari;
-    return `<span class="badge ${penuh ? "badge-green" : "badge-kemajuan"}"
+    /* Pembilang MELEBIHI penyebut berarti data rusak, bukan kemajuan.
+       Regu tidak bisa datang tanpa berangkat, jadi 44/10 hanya mungkin kalau
+       ada baris closing tanpa baris keberangkatan yang cocok — dan itu
+       menghilangkan regu-regu itu dari klasemen, karena v_klasemen menuntut
+       keduanya. Dimerahkan, bukan dibulatkan: angka yang dirapikan menyembunyikan
+       persoalan yang justru paling perlu dilihat. */
+    const mustahil = sudah > dari;
+    const penuh = !mustahil && dari > 0 && sudah >= dari;
+    const kelas = mustahil ? "badge-red" : penuh ? "badge-green" : "badge-kemajuan";
+    return `<span class="badge ${kelas}"${mustahil && judulMustahil
+      ? ` title="${esc(judulMustahil)}"` : ""}
       >${esc(String(sudah))}/${esc(String(dari))}</span>`;
   };
 
@@ -275,7 +284,9 @@ async function layarHome() {
       </a>
       <a href="#/finish">
         <div class="function-name">${ikonKotak("circle-check", "zamrud")} Kedatangan ${
-          kemajuan(r ? r.regu_datang : null, r ? r.regu_berangkat : null)}</div>
+          kemajuan(r ? r.regu_datang : null, r ? r.regu_berangkat : null,
+            "Ada regu tercatat datang tapi tidak tercatat berangkat. "
+            + "Regu itu TIDAK masuk klasemen — periksa layar Keberangkatan.")}</div>
       </a>
       ${peran === "admin" ? `
       <a href="#/pos">
