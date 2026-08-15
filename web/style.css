@@ -2358,3 +2358,9 @@ input.small-input { text-align: center; }
    berwarna tetap dan lebih besar daripada tetangganya, jadi kolom aksi
    terbaca bergerigi. */
 .badge-tombol .ikon { width: 1.15rem; height: 1.15rem; vertical-align: -.2em; }
+
+/* Judul kartu yang rata tengah. Dipakai di atas deretan cincin kemajuan:
+   isinya sendiri sederet lingkaran yang terbagi rata selebar kartu, dan judul
+   rata kiri di atas barisan yang simetris terbaca seperti tersangkut di
+   pojok. */
+.judul-tengah { text-align: center; }
