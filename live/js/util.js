@@ -208,6 +208,37 @@ export function detikTeks(total) {
  *  isinya bukan jam. Membetulkan saat blur, BUKAN saat tiap ketukan — menata
  *  ulang teks di tengah orang mengetik memindahkan kursornya dan membuat
  *  angka berikutnya mendarat di tempat yang salah. */
+/** Titik dua disisipkan SAMBIL DIKETIK: "1503" jadi "15:03".
+ *
+ *  Aturannya sama persis dengan jamSah() — dua angka terakhir adalah menit,
+ *  sisanya jam — supaya tidak ada dua aturan berbeda tentang cara membaca
+ *  "745". Satu aturan yang dipakai dua tempat, bukan dua aturan yang kebetulan
+ *  sepakat.
+ *
+ *  Dibatasi empat angka. Jam mana pun muat dalam empat, dan angka kelima yang
+ *  diterima diam-diam cuma akan ditolak saat kotaknya ditinggalkan — lebih
+ *  baik tidak pernah masuk.
+ *
+ *  Melewati tiga angka memang sempat menampilkan bentuk yang belum benar:
+ *  mengetik 1503 melewati "1:50" sebelum jadi "15:03". Itu harga dari aturan
+ *  yang sama, dan yang dibeli adalah "745" langsung jadi "7:45" — bentuk yang
+ *  paling sering diketik petugas untuk jam pagi. */
+export function maskJam(teks) {
+  const angka = String(teks ?? "").replace(/\D/g, "").slice(0, 4);
+  return angka.length >= 3
+    ? `${angka.slice(0, angka.length - 2)}:${angka.slice(-2)}`
+    : angka;
+}
+
+/** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
+ *  menyisipkan titik dua sambil diketik, membetulkan bentuknya saat kotak
+ *  ditinggalkan, dan menandainya merah kalau isinya bukan jam.
+ *
+ *  MENGHAPUS TIDAK IKUT DIRAPIKAN, dan itu bukan kelalaian. Kalau setiap
+ *  ketukan dirapikan termasuk backspace, menghapus satu huruf dari "15:03"
+ *  menyisakan "15:0" yang lalu dibaca ulang jadi "1:50" — angka berubah
+ *  sendiri di bawah jari orang yang sedang membetulkannya. Jadi saat
+ *  menghapus, isinya dibiarkan apa adanya sampai kotaknya ditinggalkan. */
 export function pasangKotakJam(el) {
   if (!el) return;
   const nilai = () => jamSah(el.value);
@@ -217,7 +248,17 @@ export function pasangKotakJam(el) {
     if (v) { el.value = v; el.classList.remove("jam-salah"); }
     else el.classList.add("jam-salah");
   });
-  el.addEventListener("input", () => {
+  el.addEventListener("input", (e) => {
+    if (!String(e.inputType || "").startsWith("delete")) {
+      const rapi = maskJam(el.value);
+      if (rapi !== el.value) {
+        el.value = rapi;
+        // Kursor ke ujung. Kotak selebar lima huruf tidak dipakai menyunting
+        // di tengah, dan kursor yang melompat ke tempat tak terduga lebih
+        // membingungkan daripada mengetik ulang empat angka.
+        try { el.setSelectionRange(rapi.length, rapi.length); } catch { /* input tanpa seleksi */ }
+      }
+    }
     if (nilai() || !el.value.trim()) el.classList.remove("jam-salah");
   });
 }
