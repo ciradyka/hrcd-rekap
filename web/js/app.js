@@ -2660,11 +2660,11 @@ async function layarInputPos() {
       return;
     }
 
+    // Tanpa kalimat penjelas. Kotak alasan yang wajib diisi sudah mengatakan
+    // seluruhnya — bahwa alasannya dicatat adalah hal yang petugas pelajari
+    // sekali, sedangkan kalimatnya dibaca ulang setiap kali gembok dibuka.
     const jawab = await dialog({
       judul: `Buka gembok ${tiga}?`,
-      kartuHtml: `<p class="description">Alasannya dicatat di riwayat, dan
-        itulah satu-satunya penjelasan yang tersisa kalau nilainya berubah
-        sesudah ini.</p>`,
       medan: [{ label: "Alasan membuka", contoh: "salah ketik Semaphore" }],
       labelAksi: "Buka",
     });
