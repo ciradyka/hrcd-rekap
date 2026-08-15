@@ -36,6 +36,13 @@ select jsonb_pretty(jsonb_build_object(
                  order by nomor), '[]'::jsonb)
           from v_pos where jumlah_komponen > 0),
 
+  -- Kemajuan input per pos (0048). Ikut ke live.json — berkas kecil yang
+  -- memang di-poll — bukan ke rekap.json, karena inilah angka yang berubah
+  -- terus sepanjang hari dan justru itu yang datang dilihat peserta.
+  'kelengkapan', (select coalesce(jsonb_agg(to_jsonb(kl) order by kl.pos),
+                         '[]'::jsonb)
+                  from v_kelengkapan_publik kl),
+
   'progres', (select coalesce(jsonb_agg(to_jsonb(p) order by p.nomor_dada),
                      '[]'::jsonb)
               from v_progres_publik p),

@@ -149,3 +149,60 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
   min-height: 48px; line-height: 34px;
 }
 .tombol:hover { background: #004d43; }
+
+/* ============================================================================
+   Kemajuan input per pos (0048).
+
+   Batang, bukan angka saja: yang dicari mata di sini perbandingan antar pos —
+   "pos mana yang tertinggal" — dan itu terbaca dari panjang dalam sekali
+   lihat, sedangkan lima angka persen harus dibaca satu per satu lalu
+   dibandingkan di kepala.
+   ========================================================================== */
+.kemajuan { list-style: none; }
+.kemajuan li { margin-bottom: .85rem; }
+.kemajuan li:last-child { margin-bottom: 0; }
+.k-kepala {
+  display: flex; align-items: baseline; gap: .5rem; margin-bottom: .3rem;
+}
+.k-nama {
+  font-weight: 600; flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.k-persen {
+  font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--utama); white-space: nowrap;
+}
+/* Tinggi 10px, bukan 4px: dibaca sambil berdiri di bawah matahari, dan garis
+   tipis yang elegan di monitor hilang sama sekali di layar HP yang silau. */
+.k-batang {
+  height: 10px; border-radius: 999px; background: var(--kertas);
+  border: 1px solid var(--garis); overflow: hidden;
+}
+.k-batang span {
+  display: block; height: 100%; background: var(--utama);
+  border-radius: 999px; transition: width .4s ease;
+}
+.k-angka { font-size: .82rem; color: var(--tinta-lembut); margin-top: .25rem; }
+
+/* ---------------------------------------------------------------------------
+   Medali. Ia MENGGANTIKAN angka besar di podium, tapi angka peringkatnya
+   tetap tertulis di bawahnya — sebagian HP lama tidak punya emoji medali dan
+   akan menggambar kotak kosong, dan podium tanpa penanda juara sama sekali
+   lebih buruk daripada podium tanpa medali.
+   ------------------------------------------------------------------------- */
+.medali { font-size: 2.2rem; line-height: 1; }
+.juara .peringkat {
+  font-size: .78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--tinta-lembut); margin-top: .15rem;
+}
+.dada-juara {
+  font-variant-numeric: tabular-nums; font-weight: 700;
+  color: var(--utama); font-size: .9rem;
+}
+
+/* Kolom poin per pos di tabel rincian. Sempit dan rata tengah supaya lima
+   kolom angka tetap muat sebelum tabelnya perlu digeser. */
+.pos-kol {
+  text-align: center; font-variant-numeric: tabular-nums;
+  white-space: nowrap; padding-left: .3rem; padding-right: .3rem;
+}

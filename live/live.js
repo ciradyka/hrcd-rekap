@@ -279,9 +279,61 @@ function gambarHasil() {
    Fase 'penuh' — klasemen per golongan, juara di atas. Tampil tanpa perlu
    mencari apa pun: inilah pengumumannya.
    ------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   Kemajuan input per pos.
+
+   Sepanjang hari peserta menanyakan satu hal: "nilai regu saya sudah masuk
+   belum?" Centang per pos di bawah sudah menjawabnya, tapi centang KOSONG
+   punya dua arti yang jauh berbeda — "regu kamu terlewat" atau "pos itu
+   memang baru mulai diinput" — dan dari kursi peserta keduanya terlihat sama
+   persis.
+
+   Satu angka per pos memisahkan keduanya, dan pertanyaan yang tadinya jadi
+   antrean di meja panitia terjawab sebelum diajukan.
+   ------------------------------------------------------------------------- */
+function gambarKelengkapan() {
+  const daftar = (META && META.kelengkapan) || [];
+  if (!daftar.length) return "";
+
+  return `
+    <div class="kartu">
+      <h2>Kemajuan input</h2>
+      <p class="keterangan">Berapa banyak regu yang nilainya sudah masuk di tiap
+        pos. Angka ini bukan nilai — nilai baru terbit saat hasil diumumkan.</p>
+      <ul class="kemajuan">
+        ${daftar.map(p => {
+          const persen = Number(p.persen) || 0;
+          return `
+          <li>
+            <div class="k-kepala">
+              <span class="k-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</span>
+              <span class="k-persen">${esc(String(persen))}%</span>
+            </div>
+            <div class="k-batang" role="img"
+                 aria-label="Pos ${esc(String(p.pos))} ${esc(String(persen))} persen selesai">
+              <span style="width:${persen}%"></span>
+            </div>
+            <div class="k-angka">${esc(String(p.lengkap))} dari
+              ${esc(String(p.regu_total))} regu${Number(p.sebagian) > 0
+                ? ` · ${esc(String(p.sebagian))} baru sebagian` : ""}</div>
+          </li>`;
+        }).join("")}
+      </ul>
+    </div>`;
+}
+
+/* Emas, perak, perunggu. Angka peringkat tetap ada di bawahnya untuk yang
+   tidak menampilkan emoji — medali di sini menggantikan angka besar, bukan
+   satu-satunya penanda juara. */
+const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
 function gambarKlasemen() {
   const semua = (REKAP && REKAP.klasemen) || [];
   if (!semua.length) return "";
+  // Kolom rincian dibentuk dari daftar pos yang terbit di live.json, bukan
+  // ditulis di sini: jumlah pos berubah tiap edisi, dan halaman peserta tidak
+  // boleh jadi tempat kedua yang harus ikut disunting saat itu terjadi.
+  const POS = (META && META.pos) || [];
 
   return URUT_GOLONGAN.map(g => {
     const baris = semua.filter(k => k.golongan === g);
@@ -293,7 +345,9 @@ function gambarKlasemen() {
         <div class="podium">
           ${juara.map(k => `
             <div class="juara j${esc(String(k.peringkat))}">
-              <div class="peringkat">${esc(String(k.peringkat))}</div>
+              <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
+              <div class="peringkat">Juara ${esc(String(k.peringkat))}</div>
+              <div class="dada-juara">${esc(dada(k.nomor_dada))}</div>
               <div class="nama">${esc(k.nama_regu)}</div>
               <div class="sekolah">${esc(k.nama_sekolah)}</div>
               <div class="total">${esc(String(k.total))}</div>
@@ -303,19 +357,32 @@ function gambarKlasemen() {
           <table class="tabel">
             <thead>
               <tr><th>#</th><th>No<br>Dada</th><th>Regu</th>
+                  ${POS.map(p => `<th class="pos-kol" title="${esc(p.name)}"
+                    >P${esc(String(p.nomor))}</th>`).join("")}
                   <th>Nilai Pos</th><th>Penalti</th><th>Total</th></tr>
             </thead>
             <tbody>
-              ${baris.map(k => `
+              ${baris.map(k => {
+                const perPos = k.poin_per_pos || {};
+                return `
                 <tr class="${k.peringkat <= 3 ? "atas" : ""}">
-                  <td class="dada">${esc(String(k.peringkat))}</td>
+                  <td class="dada">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
                   <td class="dada">${esc(dada(k.nomor_dada))}</td>
                   <td class="regu">${esc(k.nama_regu)}<span class="sekolah">${esc(k.nama_sekolah)}</span></td>
+                  ${POS.map(p => {
+                    const v = perPos[String(p.nomor)];
+                    // Garis pendek, bukan nol. Pos yang belum menyetor nilai
+                    // dan pos yang benar-benar memberi nol adalah dua hal
+                    // berbeda, dan angka 0 menyamakan keduanya.
+                    return `<td class="pos-kol">${v === undefined || v === null
+                      ? "–" : esc(String(v))}</td>`;
+                  }).join("")}
                   <td>${esc(String(k.total_pos))}</td>
                   <td>${esc(String(
                        Number(k.penalti_waktu) + Number(k.penalti_checkout) + Number(k.penalti_anggota)))}</td>
                   <td class="total">${esc(String(k.total))}</td>
-                </tr>`).join("")}
+                </tr>`;
+              }).join("")}
             </tbody>
           </table>
         </div>
@@ -338,7 +405,8 @@ function gambar() {
 
   isi.innerHTML = !mulai()
     ? gambarPra()
-    : (fase() === "penuh" ? gambarKlasemen() : "") + gambarCari() + gambarHasil();
+    : (fase() === "penuh" ? gambarKlasemen() : "")
+      + gambarKelengkapan() + gambarCari() + gambarHasil();
 
   const kotak = document.getElementById("cari");
   if (kotak) {
