@@ -155,7 +155,6 @@ function layarLogin(pesan) {
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:2rem auto">
       <h2>Masuk Panitia</h2>
-      <p class="description">Pakai akun yang dibagikan koordinatormu.</p>
       ${pesan ? `<div class="error" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
       <div class="field" style="margin-top:1rem">
         <label for="u">Username</label>
@@ -217,8 +216,6 @@ async function layarHome() {
       <div class="function-menu">
         <a href="#/pos">
           <div class="function-name">📋 Input Nilai Pos ${sesi().pos}</div>
-          <div class="description">Isi nilai tiap regu di pos ini —
-             tabelnya sama seperti lembar kertasnya</div>
         </a>
       </div>
       <p class="description" style="margin-top:1.2rem">Akun ${sesi().username}
@@ -243,41 +240,32 @@ async function layarHome() {
       <a href="${esc((window.HRCD && window.HRCD.pesertaUrl) || "")}/daftar.html"
          target="_blank" rel="noopener">
         <div class="function-name">📝 Pendaftaran</div>
-        <div class="description">Buka form pendaftaran — diisikan langsung, tab baru supaya meja ini tetap terbuka</div>
       </a>
       <a href="#/pembayaran">
         <div class="function-name">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
-        <div class="description">Periksa transfer/tunai, tandai lunas, cetak kwitansi</div>
       </a>
       <a href="#/daftar-ulang">
         <div class="function-name">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
-        <div class="description">Berikan nomor dada untuk sekolah yang sudah lunas</div>
       </a>
       <a href="#/cetak-kloter">
         <div class="function-name">🖨️ Cetak Daftar Kloter</div>
-        <div class="description">Kertas untuk papan pengumuman, barak, dan petugas staging</div>
       </a>
       <a href="#/keberangkatan">
         <div class="function-name">🚩 Keberangkatan</div>
-        <div class="description">Ceklis regu yang hadir, pilih kontrak waktu, catat jam berangkat</div>
       </a>
       <a href="#/finish">
         <div class="function-name">🏁 Kedatangan</div>
-        <div class="description">Ketik nomor dada, tekan Sampai — catat kedatangan regu</div>
       </a>
       ${peran === "admin" ? `
       <a href="#/pos">
         <div class="function-name">📋 Input Nilai Pos</div>
-        <div class="description">Lembar penilaian tiap pos — admin boleh membuka pos mana pun</div>
       </a>` : ""}
       ${peran === "admin" ? `
       <a href="#/live-score">
         <div class="function-name">🥇 Live Score</div>
-        <div class="description">Persis yang akan dilihat peserta — kemajuan input dan klasemen bermedali, sebelum diumumkan</div>
       </a>` : ""}
       <a href="#/rekap">
         <div class="function-name">📊 Rekapitulasi</div>
-        <div class="description">Nilai seluruh pos dan klasemen sementara, hidup mengikuti input — hanya dibaca</div>
       </a>
     </div>
     <p class="description" style="margin-top:1.2rem">Angka kuning = masih ada antrean.
@@ -1325,10 +1313,9 @@ async function layarKeberangkatan() {
             <div class="nama">Dari Kloter ${kloterAktif} ke Kloter ${tujuan}</div>
             <div class="detail">${papan.find(k => k.nomor === tujuan)?.jam_berangkat
               ? `Kloter ${tujuan} sudah berangkat — regu ini akan dinilai dari jam berangkat kloter itu.`
-              : "Kapasitas kloter tujuan tetap dijaga sistem."}</div>
+              : ""}</div>
           </div>`,
-          medan: [{ label: "Alasan pemindahan", contoh: "terlambat masuk kloter",
-                    bantuan: "Wajib diisi — tercatat di riwayat." }],
+          medan: [{ label: "Alasan pemindahan", contoh: "terlambat masuk kloter" }],
           labelAksi: "Pindahkan",
         });
         // Batal (atau gagal) mengembalikan select ke "—", kalau tidak ia
@@ -1660,10 +1647,6 @@ function layarFinish() {
           </div>
         </div>
         <div id="dampak-jam" style="margin-top:.5rem"></div>
-        <p class="hint">Beda semenit dua menit antara catatan kertas dan tombol
-           itu wajar — penalti dibulatkan per 10 menit, jadi biasanya tidak
-           mengubah apa pun. Yang perlu diperhatikan hanya kalau kotak di atas
-           berwarna kuning.</p>
       </details>
     </div>
     <div id="riwayat-finish"></div>
@@ -1790,7 +1773,6 @@ function layarFinish() {
       ${kartuReguFinish(r)}
       ${r.sudah_finish ? `<div class="card" style="border-color:var(--kuning);background:var(--kuning-muda);margin-top:.5rem">
           <strong>Sudah tercatat datang ${esc(jamMenit(r.jam_datang))}.</strong>
-          <div class="description">Menekan tombol akan MENGGANTI jam itu.</div>
         </div>` : ""}
       ${halangan ? kartuGalat(halangan) : ""}
     `));
@@ -1864,8 +1846,7 @@ function layarFinish() {
           <table class="table">${daftar.slice(0, 12).map(b => html`
             <tr><td class="angka">${b.apa}</td><td>${b.detail}</td></tr>`).join("")}
           </table>
-        </div>` : `<p class="description" style="text-align:center;margin-top:1rem">
-            Ketik nomor dada regu yang baru sampai.</p>`));
+        </div>` : ""));
   }
 }
 
@@ -3554,10 +3535,6 @@ async function layarRekap() {
     LAYAR.replaceChildren(h(html`
       <div class="card">
         <h2>Akun pos, bukan akun rekap</h2>
-        <p class="description">Rekapitulasi memuat nilai SELURUH pos, dan akun
-           ${s.username} hanya berhak atas Pos ${s.pos}. Kalau ditampilkan
-           untuk akun ini, kolom pos lain akan kosong dan Nilai Total ikut
-           salah — lebih baik tidak ditampilkan sama sekali.</p>
         <p><a class="button button-secondary" href="#/pos">Ke Input Nilai Pos</a></p>
       </div>`));
     return;
@@ -3755,10 +3732,6 @@ async function layarRekap() {
     return `
       <div class="card">
         <h2 style="font-size:1rem">Kelengkapan tiap pos</h2>
-        <p class="description">Ketuk satu pos untuk menyaring tabel di bawah ke
-           regu yang belum lengkap di pos itu. <strong>Merah</strong> berarti ada
-           regu yang sudah selesai lomba tapi nilainya belum masuk — itu data
-           yang benar-benar hilang, bukan regu yang belum sampai.</p>
         <div class="lengkap-baris">${kartu}</div>
       </div>`;
   }
@@ -4199,10 +4172,6 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <h2>Live Score — hanya admin</h2>
-      <p class="description">Medali dan kemajuan input di bawah sama persis
-        dengan yang akan dilihat peserta. Tabel rinciannya sengaja lebih
-        lengkap: di sini nilai per lomba, sedangkan peserta hanya menerima
-        nilai per pos.</p>
       <p class="description">Halaman peserta sendiri belum berubah: fase
         sekarang <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
       <p class="description">Peringkat di sini hidup mengikuti input dan masih
