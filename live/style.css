@@ -497,7 +497,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    ketiganya dan namanya terlempar ke tengah-kanan, menjauh dari ikon yang
    seharusnya jadi pasangannya. */
 .function-menu .function-name {
-  font-size: 1.15rem; font-weight: 800;
+  font-size: 1.1rem;
+  /* 700, bukan 800. Angka itu dipilih waktu fontnya masih Segoe UI, yang
+     menggambar 800 jauh lebih ringan daripada Inter — Inter punya bobot
+     sungguhan, jadi nilai yang sama mendadak berteriak.
+     Penekanannya juga sudah pindah: ikon berwarna di sebelah kirilah yang
+     sekarang menandai tiap ubin, jadi tulisannya boleh mengendur. */
+  font-weight: 700;
   display: flex; align-items: center; gap: .6rem;
 }
 .function-menu .function-name .badge { margin-left: auto; }
