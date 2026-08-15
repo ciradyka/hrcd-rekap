@@ -889,8 +889,8 @@ async function layarDaftarUlang() {
               </tbody>
             </table>
             <div class="action-row action-row-simpan" style="margin-top:.6rem">
-              <span class="sub">Nomor dada yang diinput harus SAMA dengan
-                yang diberikan ke regunya.</span>
+              <span class="sub">Nomor dada yang diinput <strong>HARUS SAMA</strong>
+                dengan yang diberikan ke regunya.</span>
               <button class="button button-primary button-small" type="button"
                       data-simpan-dada="${kode}">Simpan ${menunggu.length} Nomor Dada</button>
             </div>
