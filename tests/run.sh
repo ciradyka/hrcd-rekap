@@ -167,6 +167,10 @@ run supabase/migrations/0050_rename_live_score.sql
 # masih bebas memakai nama apa pun.
 run supabase/migrations/0051_nama_regu_unik.sql
 run tests/sql/21_nama_regu_unik.sql
+# Fixture tes memakai nama berangka ("Regu A01", "Ketua A1"), jadi 0052 akan
+# menolaknya. Dibersihkan dengan skrip yang SAMA PERSIS dengan yang dipakai
+# produksi — sekalian membuktikan skrip itu sendiri bekerja.
+run supabase/checks/hapus_angka_nama_uji.sql
 run supabase/migrations/0052_nama_tanpa_angka.sql
 run tests/sql/22_nama_tanpa_angka.sql
 run supabase/migrations/0053_perkiraan_berangkat.sql
