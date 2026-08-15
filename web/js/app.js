@@ -246,7 +246,7 @@ async function layarHome() {
         <div class="function-name">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
       </a>
       <a href="#/cetak-kloter">
-        <div class="function-name">🖨️ Cetak Daftar Kloter</div>
+        <div class="function-name">🖨️ Daftar Kloter</div>
       </a>
       <a href="#/keberangkatan">
         <div class="function-name">🚩 Keberangkatan</div>
@@ -1423,7 +1423,7 @@ async function layarKeberangkatan() {
 /* ============================ CETAK DAFTAR KLOTER ======================== */
 
 async function layarCetakKloter() {
-  pasangKepala("Cetak Daftar Kloter");
+  pasangKepala("Daftar Kloter");
   LAYAR.replaceChildren(h(pemuat()));
 
   let baris;

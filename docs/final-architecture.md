@@ -156,7 +156,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/home` | Home | menu + dua lencana angka: menunggu pembayaran, lunas belum bernomor |
 | `#/pembayaran` | Meja Pembayaran | tabel semua invoice, tandai lunas, cetak kwitansi |
 | `#/daftar-ulang` | Meja Daftar Ulang | isi nomor dada per regu, tukar nomor rusak |
-| `#/cetak-kloter` | Cetak Daftar Kloter | lembar per kloter untuk petugas start |
+| `#/cetak-kloter` | Daftar Kloter | lembar per kloter untuk petugas start |
 | `#/keberangkatan` | Keberangkatan | ceklis hadir, kontrak waktu, pindah kloter, berangkatkan |
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
