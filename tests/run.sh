@@ -174,5 +174,6 @@ run supabase/checks/hapus_angka_nama_uji.sql
 run supabase/migrations/0052_nama_tanpa_angka.sql
 run tests/sql/22_nama_tanpa_angka.sql
 run supabase/migrations/0053_perkiraan_berangkat.sql
+run supabase/migrations/0054_kolom_lomba.sql
 
 echo "SEMUA TES LULUS"
