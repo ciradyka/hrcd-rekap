@@ -2389,3 +2389,11 @@ input.small-input { text-align: center; }
    inline. Dua kolom juga yang diminta: keduanya disaring mata secara terpisah
    saat mencari satu regu. */
 .table-live .sub-kolom { color: var(--tinta-lembut); }
+
+/* Kloter yang perkiraan berangkatnya sudah melewati batas (bawaan 10:00,
+   edisi.jam_batas_berangkat). Diberi tepi merah, TIDAK dilarang berangkat:
+   jam yang tercatat adalah jam yang benar-benar terjadi, dan sistem yang
+   menolak mencatat kenyataan karena kenyataan itu terlambat kehilangan data
+   yang justru paling perlu dijelaskan sesudahnya. */
+.kloter-chip.lewat-batas { border-color: var(--bahaya); }
+.kloter-chip.lewat-batas .chip-ket { color: var(--bahaya); font-weight: 700; }

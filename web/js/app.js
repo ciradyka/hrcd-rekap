@@ -1108,12 +1108,24 @@ async function layarKeberangkatan() {
          start, melihat kloter mana berangkat pukul berapa, tanpa membuka
          satu-satu. Datanya sudah ikut di v_keberangkatan sejak awal; layar ini
          saja yang membuangnya. */
+      /* Yang BELUM berangkat menampilkan PERKIRAANNYA, bukan kata "menunggu".
+
+         "Menunggu" adalah hal yang sudah terbaca dari warna chip-nya, dan ia
+         menjawab pertanyaan yang tidak ada yang ajukan. Yang ditanyakan
+         sepanjang pagi cuma satu: "kloter 9 kira-kira jam berapa?" — dan
+         jawabannya sudah dihitung sejak migrasi 0009, hanya belum pernah
+         sampai ke layar ini (0053).
+
+         Tandanya "~" supaya tidak pernah tertukar dengan jam yang benar-benar
+         tercatat. Perkiraan bukan catatan — CLAUDE.md 10.6. */
       const label = k.jam_berangkat
         ? jamMenit(k.jam_berangkat)
+        : k.perkiraan_berangkat ? `~${jamMenit(k.perkiraan_berangkat)}`
         : ({ siap: "siap", konfirmasi_kontrak: "kontrak",
              menunggu: "menunggu" }[k.posisi] || "");
       return html`
-        <button type="button" class="kloter-chip ${k.posisi}"
+        <button type="button" class="kloter-chip ${k.posisi}${
+                  k.lewat_batas && !k.jam_berangkat ? " lewat-batas" : ""}"
                 data-kloter="${k.nomor}" aria-pressed="${k.nomor === kloterAktif}">
           <span class="chip-nomor">Kloter ${k.nomor}</span>
           <span class="chip-ket">${k.sudah_ceklis}/${k.jumlah_regu} · ${label}</span>
