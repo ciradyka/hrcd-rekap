@@ -85,20 +85,6 @@ let EDISI = null;
    seluruh keadaan yang hidup selama satu sesi di satu tempat. */
 let segarkanDiTempat = null;
 
-/* Layar yang TIDAK BOLEH digambar ulang sendiri, walau tidak punya cara
-   memperbarui diri di tempat.
-
-   Keberangkatan adalah satu-satunya layar yang ditunggui terus-menerus tanpa
-   mengetik apa pun: petugas berdiri di garis start memandanginya, lalu tiba
-   -tiba mencentang hadir atau menekan Berangkatkan. Menggambar ulang saat tab
-   kembali terlihat memindahkan tombol tepat sebelum jempolnya turun, dan
-   mengembalikan chip kloter ke pilihan awal — sementara datanya sendiri hanya
-   berubah lewat perbuatan petugas itu sendiri di layar yang sama.
-
-   Pengaman lain (isian sedang difokus, dialog terbuka, nilai belum tersimpan)
-   tidak menolong di sini justru karena layar ini paling sering sedang TIDAK
-   disentuh saat tab berpindah. */
-let tanpaSegarOtomatis = false;
 const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
@@ -1073,7 +1059,6 @@ async function layarDaftarUlang() {
 /* ============================ KEBERANGKATAN ============================== */
 
 async function layarKeberangkatan() {
-  tanpaSegarOtomatis = true;
   if (!EDISI) { layarButuhEdisi("Keberangkatan"); return; }
   pasangKepala("Keberangkatan", true);
   LAYAR.replaceChildren(h(pemuat()));
@@ -4216,7 +4201,6 @@ const RUTE = {
 
 async function arahkan() {
   segarkanDiTempat = null;
-  tanpaSegarOtomatis = false;
   if (!sesi()) { layarLogin(); return; }
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
@@ -4245,48 +4229,30 @@ document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);
 
-/* ---------------- muat ulang sendiri saat layar dilihat lagi -------------
-   Panitia berpindah app di HP (WhatsApp, kamera) lalu kembali, atau
-   membiarkan layar terbuka sementara meja lain terus bekerja. Menyuruh
-   mereka menekan F5 tidak bisa diandalkan: yang lupa menekan tidak melihat
-   apa pun yang memberitahu bahwa layarnya basi — angkanya tetap terlihat
-   wajar, hanya salah.
+/* TIDAK ADA yang menyegarkan sendiri saat tab kembali terlihat.
 
-   DUA pengaman, karena memuat ulang sendiri bisa lebih merusak daripada
-   data basi:
-     - kalau ada isian/pilihan yang sedang dipakai, dilewati. Menggambar
-       ulang saat petugas sedang mengetik nomor dada akan menghapus
-       ketikannya, dan ia tidak akan sadar.
-     - dijeda 5 detik, supaya berpindah app sekejap tidak memicu tembakan
-       permintaan beruntun.                                                */
-let terakhirSegar = Date.now();
+   Dulu `visibilitychange` menggambar ulang layarnya — dan itu memindahkan
+   tombol tepat sebelum jempol turun, mengembalikan chip kloter ke pilihan
+   awal, dan melempar gulirannya ke atas. Ketiga pengaman yang menjaganya
+   (isian sedang difokus, dialog terbuka, nilai belum tersimpan) semuanya
+   meleset di kejadian yang paling sering: layar yang sedang DITUNGGUI, bukan
+   sedang diketik.
+
+   Harganya disebut supaya tidak jadi kejutan: layar yang lama ditinggal bisa
+   menampilkan angka lama. Yang menutupinya tombol muat ulang di tiap layar.
+
+   Yang TETAP jalan cuma pembaruan DI TEMPAT — Input Pos dan Rekapitulasi
+   mengganti isi sel tanpa membangun ulang apa pun, jadi tidak ada tombol yang
+   berpindah dan gulirannya tidak bergerak. Itu bukan yang dikeluhkan, dan
+   melepasnya akan mematikan lembar pos yang dibuka di beberapa HP sekaligus.
+
+   Pemanggilan di bawah ini WAJIB ada, bukan kerapian: denyut kedua layar itu
+   menghentikan dirinya sendiri saat `document.hidden`, dan `segarkanDiTempat`
+   satu-satunya yang menyalakannya lagi. Tanpa baris ini, pembaruan otomatis
+   mati permanen sesudah petugas berpindah tab sekali. */
 document.addEventListener("visibilitychange", () => {
   if (document.hidden || !sesi()) return;
-
-  /* Layar yang bisa memperbarui angkanya sendiri: LANGSUNG, tanpa satu pun
-     pengaman di bawah.
-
-     Ketiga pengaman itu ada untuk melindungi dari GAMBAR ULANG — ketikan yang
-     terhapus, dialog yang tertutup sendiri, nilai yang belum sampai server.
-     Pembaruan di tempat tidak melakukan satu pun dari itu, jadi menerapkan
-     pengaman yang sama di sini cuma menghasilkan satu akibat: refresh yang
-     DIBATALKAN pada kejadian yang paling sering terjadi. Kursor tertinggal di
-     kotak cari saat berpindah tab sudah cukup untuk membuat papan pantau
-     kembali dengan angka lama, tanpa memberi tahu siapa pun. */
-  if (segarkanDiTempat) { terakhirSegar = Date.now(); segarkanDiTempat(); return; }
-
-  if (tanpaSegarOtomatis) return;
-  if (Date.now() - terakhirSegar < 5000) return;
-  const fokus = document.activeElement;
-  if (fokus && ["INPUT", "SELECT", "TEXTAREA"].includes(fokus.tagName)) return;
-  if (document.querySelector(".overlay")) return;   // dialog sedang terbuka
-  // Menggambar ulang membuang isi kotak yang belum sampai ke server. Di
-  // lembar pos itu berarti menghapus nilai yang sedang menunggu internet
-  // pulih — persis pada orang yang paling tidak berdaya menyadarinya, karena
-  // yang ia lihat hanyalah tabel yang tiba-tiba bersih.
-  if (adaYangBelumTersimpan()) return;
-  terakhirSegar = Date.now();
-  arahkan();
+  if (segarkanDiTempat) segarkanDiTempat();
 });
 
 /** Baris lembar pos yang isinya belum sampai ke database. */
