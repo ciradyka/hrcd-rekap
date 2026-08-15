@@ -31,6 +31,24 @@ const GOLONGAN_LABEL = {
   penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
 };
+
+/** Golongan versi pendek, HANYA untuk kertas. Di layar tetap panjang — di
+ *  sana lebar tidak diperebutkan siapa pun.
+ *
+ *  Di lembar cadangan ia diperebutkan, dan yang kalah selama ini nama regu dan
+ *  sekolah: keduanya dipotong elipsis supaya tinggi baris tetap seragam. Lebar
+ *  yang dihemat di sini pindah ke sana. "Penggalang PA" 13 huruf jadi "Pgl Pa"
+ *  6 huruf — sekitar 10mm kembali ke kolom nama, di kertas yang memang sedang
+ *  kekurangan.
+ *
+ *  Pgl dan Png memang cuma beda satu huruf, dan itu disebut supaya tidak
+ *  dikira terlewat: kolom ini keterangan, bukan kunci. Nilai mengalir lewat
+ *  nomor dada, jadi golongan yang salah baca tidak pernah memindahkan angka ke
+ *  regu lain — paling jauh membuat petugas melihat dua kali. */
+const GOLONGAN_SINGKAT = {
+  penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
+  penegak_pa: "Png Pa", penegak_pi: "Png Pi",
+};
 let EDISI = null;
 
 /* Layar yang sanggup memperbarui dirinya SENDIRI tanpa digambar ulang
@@ -2100,7 +2118,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
       ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
       <td>${r.nama_regu}</td>
       <td>${r.nama_sekolah}</td>
-      <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>`}
+      <td>${GOLONGAN_SINGKAT[r.golongan] || r.golongan}</td>`}
       ${kolom.map(() => `<td class="isian"></td>`).join("")}
     </tr>`;
 
