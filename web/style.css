@@ -1258,7 +1258,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    nomor dada, tempat mata dan kursor berada setelah mengetik angka
    terakhir. Tombol di kiri memaksa perjalanan balik melintasi tabel. */
 .action-row-simpan { justify-content: space-between; }
-.action-row-simpan .sub { flex: 1; min-width: 12rem; }
+/* Sejajar dengan teks di dalam tabel di atasnya, bukan dengan tepi kartu.
+   Sel tabel punya padding sendiri, jadi keterangan yang tidak punya padding
+   apa pun mulai lebih kiri daripada seluruh kolom di atasnya dan terbaca
+   seperti jatuh keluar dari tabelnya. Hanya KIRI yang diberi jarak: tombol
+   Simpan di kanan sengaja berbaris dengan kolom Nomor Dada, dan padding
+   kanan akan menggesernya keluar dari barisan itu. */
+.action-row-simpan .sub { flex: 1; min-width: 12rem; padding-left: .5rem; }
 /* Tombol Simpan selebar kolom Nomor Dada (28%) supaya titik tengahnya jatuh
    segaris dengan kotak-kotak isian di atasnya — satu pita lurus dari tombol
    "Isi N Nomor Dada", turun ke kotak isian, turun ke tombol Simpan. Dulu
