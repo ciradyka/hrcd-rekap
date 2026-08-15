@@ -4105,10 +4105,12 @@ async function layarLiveScore() {
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
                 <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
-                <div class="peringkat">Juara ${esc(String(k.peringkat))}</div>
-                <div class="dada-juara">${esc(String(k.nomor_dada).padStart(3, "0"))}</div>
-                <div class="nama">${esc(k.nama_regu)}</div>
-                <div class="sekolah">${esc(k.nama_sekolah)}</div>
+                <div class="j-teks">
+                  <div class="peringkat">Juara ${esc(String(k.peringkat))}
+                    <span class="dada-juara">${esc(String(k.nomor_dada).padStart(3, "0"))}</span></div>
+                  <div class="nama">${esc(k.nama_regu)}</div>
+                  <div class="sekolah">${esc(k.nama_sekolah)}</div>
+                </div>
                 <div class="total">${esc(angkaRapi(k.total))}</div>
               </div>`).join("")}
           </div>

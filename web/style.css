@@ -1966,30 +1966,42 @@ input.small-input { text-align: center; }
 }
 .c-alarm { color: var(--bahaya); }
 
-/* Podium. flex-wrap, bukan grid tiga kolom: di HP sempit tiga kartu juara
-   berdesakan sampai nama regu terpotong, dan nama juara adalah satu-satunya
-   hal di kartu itu yang benar-benar dicari orang. */
+/* Podium: SATU juara satu baris, bertumpuk ke bawah.
+
+   Tiga kartu berdampingan membungkus jadi 2 + 1 di layar HP, dan baris kedua
+   yang cuma berisi satu kartu terbaca seperti tampilan yang rusak, bukan
+   seperti podium. Bertumpuk, ketiganya selalu sejajar, urutannya tidak pernah
+   ambigu, dan nama regu punya selebar layar untuk dirinya sendiri — nama
+   juara adalah satu-satunya hal di baris itu yang benar-benar dicari orang. */
 .podium {
-  display: flex; flex-wrap: wrap; gap: .6rem; margin: .6rem 0 1rem;
+  display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0 1rem;
 }
 .juara {
-  flex: 1 1 8.5rem; text-align: center; padding: .7rem .5rem;
-  border: 1px solid var(--garis); border-radius: 12px; min-width: 0;
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem .75rem; border: 1px solid var(--garis); border-radius: 12px;
 }
 .juara.j1 { border-color: #b8860b; border-width: 2px; }
-.medali { font-size: 2.2rem; line-height: 1; }
+.medali { font-size: 2rem; line-height: 1; flex: 0 0 auto; }
+.j-teks { flex: 1 1 auto; min-width: 0; }
+/* Angka peringkat tetap tertulis walau medalinya sudah ada: sebagian HP lama
+   menggambar kotak kosong sebagai ganti emoji, dan podium tanpa penanda juara
+   sama sekali lebih buruk daripada podium tanpa medali. */
 .juara .peringkat {
   font-size: .72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--tinta-lembut); margin-top: .15rem;
+  letter-spacing: .04em; color: var(--tinta-lembut);
 }
 .dada-juara {
-  font-variant-numeric: tabular-nums; font-weight: 700; color: var(--utama);
-  font-size: .9rem;
+  font-variant-numeric: tabular-nums; font-weight: 700;
+  color: var(--utama); letter-spacing: 0;
 }
-.juara .nama { font-weight: 700; margin-top: .2rem; overflow-wrap: anywhere; }
-.juara .sekolah { font-size: .78rem; color: var(--tinta-lembut); overflow-wrap: anywhere; }
+.juara .nama { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.juara .sekolah {
+  font-size: .78rem; line-height: 1.25; color: var(--tinta-lembut);
+  overflow-wrap: anywhere;
+}
 .juara .total {
-  font-size: 1.5rem; font-weight: 800; color: var(--utama); margin-top: .3rem;
+  flex: 0 0 auto; margin-left: auto;
+  font-size: 1.45rem; font-weight: 800; color: var(--utama);
   font-variant-numeric: tabular-nums;
 }
 

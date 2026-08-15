@@ -113,17 +113,44 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 .tabel tbody tr:nth-child(even) td.pos.ada { background: #dfeee0; }
 
 /* ---- klasemen (fase penuh) ---- */
-.podium { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: .9rem; }
-.juara {
-  border: 2px solid var(--garis); border-radius: var(--radius);
-  padding: .7rem; text-align: center; background: var(--kertas);
+/* Podium: SATU juara satu baris, bertumpuk ke bawah.
+
+   Tiga kartu berdampingan membungkus jadi 2 + 1 di layar HP, dan baris kedua
+   yang cuma berisi satu kartu terbaca seperti tampilan yang rusak, bukan
+   seperti podium. Bertumpuk, ketiganya selalu sejajar, urutannya tidak pernah
+   ambigu, dan nama regu punya selebar layar untuk dirinya sendiri — nama
+   juara adalah satu-satunya hal di baris itu yang benar-benar dicari orang. */
+.podium {
+  display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0 1rem;
 }
-.juara.j1 { border-color: var(--emas); background: #fdf6e3; }
-.juara .peringkat { font-size: 1.5rem; font-weight: 800; color: var(--utama); }
-.juara.j1 .peringkat { color: var(--emas); }
-.juara .nama { font-weight: 800; }
-.juara .sekolah { font-size: .8rem; color: var(--tinta-lembut); }
-.juara .total { font-size: 1.35rem; font-weight: 800; margin-top: .2rem; }
+.juara {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem .75rem; border: 1px solid var(--garis); border-radius: 12px;
+}
+.juara.j1 { border-color: var(--emas); border-width: 2px; }
+.medali { font-size: 2rem; line-height: 1; flex: 0 0 auto; }
+.j-teks { flex: 1 1 auto; min-width: 0; }
+/* Angka peringkat tetap tertulis walau medalinya sudah ada: sebagian HP lama
+   menggambar kotak kosong sebagai ganti emoji, dan podium tanpa penanda juara
+   sama sekali lebih buruk daripada podium tanpa medali. */
+.juara .peringkat {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--tinta-lembut);
+}
+.dada-juara {
+  font-variant-numeric: tabular-nums; font-weight: 700;
+  color: var(--utama); letter-spacing: 0;
+}
+.juara .nama { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.juara .sekolah {
+  font-size: .78rem; line-height: 1.25; color: var(--tinta-lembut);
+  overflow-wrap: anywhere;
+}
+.juara .total {
+  flex: 0 0 auto; margin-left: auto;
+  font-size: 1.45rem; font-weight: 800; color: var(--utama);
+  font-variant-numeric: tabular-nums;
+}
 .tabel td.total { font-weight: 800; font-variant-numeric: tabular-nums; }
 .tabel tr.atas { background: #fdf6e3; }
 .tabel tr.atas td.dada { background: #fdf6e3; }
@@ -200,21 +227,6 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 }
 .c-alarm { color: var(--bahaya); }
 
-/* ---------------------------------------------------------------------------
-   Medali. Ia MENGGANTIKAN angka besar di podium, tapi angka peringkatnya
-   tetap tertulis di bawahnya — sebagian HP lama tidak punya emoji medali dan
-   akan menggambar kotak kosong, dan podium tanpa penanda juara sama sekali
-   lebih buruk daripada podium tanpa medali.
-   ------------------------------------------------------------------------- */
-.medali { font-size: 2.2rem; line-height: 1; }
-.juara .peringkat {
-  font-size: .78rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--tinta-lembut); margin-top: .15rem;
-}
-.dada-juara {
-  font-variant-numeric: tabular-nums; font-weight: 700;
-  color: var(--utama); font-size: .9rem;
-}
 
 /* Kolom poin per pos di tabel rincian. Sempit dan rata tengah supaya lima
    kolom angka tetap muat sebelum tabelnya perlu digeser. */
