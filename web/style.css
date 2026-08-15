@@ -2046,3 +2046,22 @@ input.small-input { text-align: center; }
 .tab-gol[aria-selected="true"] .tab-hitung {
   background: rgba(255, 255, 255, .24); color: #fff;
 }
+
+/* ============================================================================
+   Tabel rincian Live Score. Bentuknya meminjam .table-rekap seluruhnya —
+   kolom nomor dada yang menempel saat digeser, garis pemisah antar pos, angka
+   rata tabular — supaya tabel yang panitia sebut "seperti Rekapitulasi" memang
+   benar-benar sama, bukan mirip.
+   ========================================================================== */
+
+/* Judul pos duduk di TENGAH kolom-kolomnya. Rata kiri membuatnya menempel di
+   lomba pertama dan terbaca seolah judul untuk kolom itu saja, bukan untuk
+   kelompoknya — dan pada pos berkolom lima, jaraknya ke kolom terakhir cukup
+   jauh untuk membuat orang mengira kelompoknya berakhir lebih awal. */
+.table-live thead th[colspan] { text-align: center; }
+
+/* Jarak bernapas di kiri tiap kelompok pos. Garis .rekap-batas menutup
+   kelompok di kanan; tanpa lapangnya di kiri, kolom pertama pos berikutnya
+   menempel persis di garis itu dan keduanya terbaca sebagai satu kolom. */
+.table-live .rekap-batas + th,
+.table-live .rekap-batas + td { padding-left: .7rem; }

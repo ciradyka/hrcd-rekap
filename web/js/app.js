@@ -4112,7 +4112,7 @@ async function layarLiveScore() {
               </div>`).join("")}
           </div>
           <div class="table-wrapper table-wrapper-tetap">
-            <table class="table data-table table-tetap">
+            <table class="table data-table table-tetap table-rekap table-live">
               <thead>
                 <tr>
                   <th rowspan="2">#</th>
