@@ -76,10 +76,6 @@ const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
 
 function halaman() {
   LAYAR.replaceChildren(h(`
-    <div class="card card-title" style="border-color:var(--utama)">
-      <h2>Pendaftaran Regu</h2>
-    </div>
-
     <!-- 1. Sekolah -->
     <section class="card" id="bagian-sekolah">
       <h2><span class="section-number">1</span> Asal sekolah</h2>
@@ -605,11 +601,16 @@ async function mulai() {
   // tidak ada, dan membacanya diam-diam menghasilkan undefined.
   document.getElementById("label-edisi").textContent = EDISI.name;
   const romawi = String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim();
-  // Judul di layar DAN judul tab memakai angka romawi yang sama. Sekolah
-  // sering membuka form ini setahun sekali; tanpa nomor edisi, halaman lama
-  // yang masih terbuka di tab lain tidak bisa dibedakan dari yang baru.
-  const judul = `Pendaftaran Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
-  document.getElementById("judul-daftar").textContent = judul;
+  // Judul layar cukup satu kata. Nama acaranya sudah berdiri di kanan kepala
+  // sebagai "HRCD <edisi>", dan sebelum ini tiga label mengatakan hal yang
+  // sama bertumpuk: judul panjang, lencana edisi, dan kartu "Pendaftaran
+  // Regu" — di layar HP ketiganya memakan sepertiga tinggi sebelum kotak
+  // isian pertama muncul.
+  //
+  // Nomor edisi tetap ada di JUDUL TAB. Itulah yang sebenarnya dibutuhkan:
+  // sekolah membuka form ini setahun sekali, dan tab lama yang masih terbuka
+  // harus bisa dibedakan dari yang baru.
+  document.getElementById("judul-daftar").textContent = "Pendaftaran";
   document.title = `Pendaftaran — Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
 
   let hasilLama = null, draf = null;
