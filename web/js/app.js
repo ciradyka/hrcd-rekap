@@ -2113,7 +2113,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   const lembar = set.map(({ judul: judulLomba, kolom }) =>
     halaman.map((grup, i) => `
     <section class="print-page lembar-pos">
-      <h1>LEMBAR NILAI · ${esc(judul)}${judulLomba ? ` · ${esc(judulLomba)}` : ""}
+      <h1>LEMBAR CADANGAN · ${esc(judul)}${judulLomba ? ` · ${esc(judulLomba)}` : ""}
           · Halaman ${i + 1}/${halaman.length}</h1>
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} · ${esc(tanggal)} ·
          dada ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
@@ -2131,9 +2131,11 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
         </thead>
         <tbody>${grup.map(barisHtml(kolom)).join("")}</tbody>
       </table>
-      ${i === 0 ? `<p class="print-note">Tulis data mentahnya apa adanya.
-         JANGAN menjumlahkan sendiri — sistem yang mengubahnya jadi poin.
-         Foto lembar ini secara berkala, jangan ditumpuk sampai pos tutup.</p>` : ""}
+      ${i === 0 ? `<p class="print-note">CADANGAN — yang dipakai sehari-hari
+         adalah form per lomba, satu kertas satu regu. Lembar ini untuk keadaan
+         slip habis atau sinyal mati. Tulis data mentahnya apa adanya, JANGAN
+         menjumlahkan sendiri. Baris tanpa nama = regu yang belum terdaftar;
+         tulis nama regu dan sekolahnya di situ.</p>` : ""}
     </section>`).join("")).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
@@ -2392,14 +2394,18 @@ async function layarInputPos() {
     <div class="card">
       ${alatTabel({
         kiri: pilihPosHtml(s, semuaPos),
-        // Dua bentuk kertas, dua cara kerja (alur-lomba.md 8.8). Namanya
-        // memakai kosakata panitia persis — "form tabel" dan "form per lomba"
-        // adalah kata yang mereka ucapkan sendiri, dan tombol yang bernama
-        // lain memaksa penerjemahan di kepala setiap kali dipakai.
+        // Dua bentuk kertas, dan URUTANNYA menyatakan mana yang utama.
+        // Form per lomba dipakai setiap hari lomba di setiap pos; form tabel
+        // hanya kalau slipnya habis atau sinyal mati. Tombol cadangan yang
+        // berdiri lebih dulu akan dipakai orang yang tidak tahu bedanya.
+        //
+        // Namanya memakai kosakata panitia persis — "form per lomba" dan
+        // "form tabel" adalah kata yang mereka ucapkan sendiri, dan tombol
+        // bernama lain memaksa penerjemahan di kepala setiap kali dipakai.
         kanan: `<button class="button button-secondary button-small" type="button"
-                        id="cetak-lembar">🖨️ Form Tabel</button>
+                        id="cetak-per-lomba">🖨️ Form per Lomba</button>
                 <button class="button button-secondary button-small" type="button"
-                        id="cetak-per-lomba">🖨️ Form per Lomba</button>`,
+                        id="cetak-lembar">🖨️ Form Tabel (cadangan)</button>`,
         // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.

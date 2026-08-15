@@ -513,36 +513,37 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     display: block; max-width: none; font-size: 7pt; font-weight: 400;
     text-transform: none; margin-top: 1pt;
   }
-  /* ---- Form tabel per pos: A4 POTRET, DAN NAMA TIDAK DIPOTONG ----
-     Halaman bernama, supaya lembar ini bisa punya ukuran sendiri — kwitansi
-     dan daftar kloter memakai halaman lain.
+  /* ---- Form tabel per pos: A4 MELINTANG, NAMA UTUH, BARIS RATA ----
+     Tiga hal yang harus benar bersamaan, dan dua di antaranya sempat saling
+     mengalahkan:
 
-     Lembar ini pernah melintang, dan alasannya lebar: dengan huruf 12pt nama
-     regu dan sekolah tidak muat di 190mm bersama tujuh kotak isian Pos 3,
-     jadi keduanya dipotong elipsis. Panitia menolak pemotongan itu — nama
-     yang terpotong membuat cek silang kehilangan gunanya, dan cek silang
-     adalah satu-satunya alasan nama sekolah ada di kertas ini.
+       nama tidak terpotong  - nama sekolah adalah cek silang; yang terpotong
+                               kehilangan gunanya
+       tinggi baris rata     - mata menyusuri mendatar dari nomor dada ke
+                               kotak nilai, dan baris yang tingginya
+                               berbeda-beda memutus garis pandang itu.
+                               Buku besar bergaris rata bukan tanpa sebab.
+       muat di satu kertas   - Pos 3 punya tujuh kotak isian
 
-     Jawabannya bukan memutar kertas, melainkan BERHENTI MEMOTONG DAN MULAI
-     MEMBUNGKUS. Potret memberi tinggi 277mm melawan 190mm — 87mm ruang
-     vertikal tambahan — sementara yang kurang cuma lebar. Nama yang turun ke
-     baris kedua membelanjakan yang berlimpah untuk menutup yang kurang.
+     Membungkus menyelesaikan yang pertama dengan mengorbankan yang kedua.
+     Yang menyelesaikan ketiganya sekaligus adalah MELINTANG DENGAN IDENTITAS
+     10pt — diukur pada Pos 3, kondisi terlebar:
 
-     Tiga penyesuaian membuatnya muat, semuanya diukur pada Pos 3 (tujuh kotak
-     isian, yang terlebar di sistem) dengan nama terpanjang di daftar:
+       tersedia   277mm
+       dipakai     13mm nomor dada + 7 x 12mm kotak isian = 97mm
+       sisa       180mm untuk tiga kolom identitas
+       dibutuhkan 140mm  (nama regu 22 huruf + sekolah 28 huruf + golongan,
+                          pada 10pt huruf besar ~2,3mm)
 
-       identitas 10pt, bukan 12pt  - ia TERCETAK, bukan ditulis tangan, jadi
-                                     tidak perlu bertahan dibaca ulang dari
-                                     foto seperti angka di sebelahnya
-       kotak isian 12mm            - cukup untuk angka dua digit
-       membungkus, bukan elipsis   - dan tinggi baris ikut mengembang
+     Lega 40mm. Di potret sisanya cuma 93mm — kurang 47mm, dan kekurangan
+     itulah yang dulu memaksa memotong, lalu memaksa membungkus.
 
-     Tetap 30 baris per halaman, sama dengan waktu melintang. Potret
-     menyediakan 257mm untuk baris; 30 baris satu-baris memakan 150mm, jadi
-     tersisa 107mm untuk baris yang membungkus. Cadangan sebesar itu
-     disengaja: satu baris yang tumpah ke halaman berikutnya merusak seluruh
-     penomoran halaman. */
-  @page lembar-pos { size: A4 portrait; margin: 10mm; }
+     Potret sudah dicoba dua kali: sekali dengan elipsis (nama terpotong),
+     sekali dengan membungkus (baris tidak rata). Keduanya ditolak panitia.
+     Yang keliru pada versi melintang lama bukan orientasinya, melainkan
+     identitas 12pt dan kolom yang dipatok 38/40/26mm sementara kotak isian
+     dibiarkan melar. */
+  @page lembar-pos { size: A4 landscape; margin: 10mm; }
   .lembar-pos { page: lembar-pos; }
 
   /* ---- FORM PER LOMBA (blangko kosong): A5 MELINTANG, satu per halaman ----
@@ -690,34 +691,36 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian {
     width: 12mm; max-width: 14mm;
   }
-  /* Identitas MEMBUNGKUS, tidak lagi dipotong — dan inilah perubahan yang
-     membuat potret mungkin.
-     Aturan lama melarangnya dengan alasan yang benar untuk kertas melintang:
-     satu nama yang pecah dua baris menambah tinggi, dan 30 baris di kertas
-     setinggi 190mm tidak punya ruang. Di potret tingginya 277mm dan 30 baris
-     hanya memakai 150mm — ruang itu justru yang dibelanjakan di sini.
-     Hurufnya 10pt: identitas TERCETAK, sementara 12pt dipilih untuk angka
-     yang DITULIS TANGAN lalu dibaca ulang dari foto. */
+  /* Identitas SATU BARIS, dan 10pt supaya muat tanpa dipotong.
+     Bukan sekadar hemat lebar: satu nama yang pecah dua baris membuat
+     tingginya berbeda dari tetangganya, dan tabel yang barisnya tidak rata
+     memutus garis pandang mendatar yang dipakai membaca dari nomor dada ke
+     kotak nilai. Elipsisnya dipertahankan sebagai jaring pengaman untuk nama
+     di luar dugaan — pada 10pt di kertas melintang ia tidak pernah terpicu
+     oleh nama mana pun di daftar.
+
+     10pt, bukan 12pt: identitas TERCETAK. Angka 12pt dipilih karena ia
+     DITULIS TANGAN lalu dibaca ulang dari foto, dan nama yang sudah rapi
+     tidak menghadapi ujian itu. */
   .lembar-pos .print-table td:nth-child(2),
   .lembar-pos .print-table td:nth-child(3),
   .lembar-pos .print-table td:nth-child(4) {
-    white-space: normal; overflow-wrap: break-word;
-    font-size: 10pt; line-height: 1.05;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 10pt;
   }
   /* Lebar identitas dipatok, karena di 12pt merekalah yang akan menelan
      lebar kertas dan menyisakan kotak isian selebar jari. Nama sekolah yang
      kepanjangan dipotong dengan elipsis — regu tetap dikenali dari nomor
      dada dan nama regunya, dan nama sekolah di kertas ini gunanya sekadar
      cek silang. */
-  /* Di A4 potret tersedia 190mm. Pos 3 — yang terlebar — memakai 13mm nomor
-     dada dan tujuh kotak 12mm, menyisakan 93mm untuk tiga kolom ini. Pada
-     10pt satu huruf sekitar 1,75mm, jadi nama regu terpanjang (22 huruf) dan
-     sekolah terpanjang (28 huruf) muat berdampingan; yang lebih panjang lagi
-     turun ke baris kedua alih-alih hilang. Pos 1 yang cuma berkotak tiga
-     menyisakan 129mm — lega. */
-  .lembar-pos .print-table td:nth-child(2) { width: 30mm; }
-  .lembar-pos .print-table td:nth-child(3) { width: 36mm; }
-  .lembar-pos .print-table td:nth-child(4) { width: 22mm; }
+  /* Patokan LEBAR, bukan sempit — ia batas pengaman, bukan target. Kotak
+     isian yang dibatasi ketat (max-width di atas), jadi sisa lebar kertas
+     mengalir ke tiga kolom ini dan nama terpanjang di daftar muat utuh.
+     Pos 3 memakai 13 + 84 + maksimum 166 = 263mm dari 277mm yang tersedia;
+     sisanya jatuh ke identitas juga. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 70mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 70mm; }
+  .lembar-pos .print-table td:nth-child(4) { max-width: 26mm; }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
