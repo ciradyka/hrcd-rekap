@@ -1666,6 +1666,27 @@ input.small-input { text-align: center; }
 .table-pos tbody tr.baris-belum td { background: var(--kuning-muda); }
 .table-pos tbody tr.baris-belum td:first-child { background: var(--kuning-muda); }
 
+/* BARIS TERGEMBOK ABU-ABU SELURUHNYA, bukan cuma kotaknya.
+   Petugas menyusuri lembar dari kolom nomor dada, dan yang perlu ia ketahui
+   sebelum menyentuh apa pun adalah baris mana yang sudah selesai. Kotak yang
+   mati saja baru terlihat setelah mata sampai ke tengah tabel — dan di lembar
+   selebar dua layar, "sampai ke tengah" berarti menggeser.
+
+   Ditaruh SESUDAH baris-belum supaya keduanya punya urutan yang jelas kalau
+   sampai bertemu. Bertemunya sendiri hampir mustahil: baris tergembok tidak
+   bisa diketik, jadi ia tidak bisa punya ketikan yang belum tersimpan. Kalau
+   toh terjadi — gembok terpasang dari HP lain tepat saat baris ini sedang
+   diketik — yang menang gembok, karena itulah keadaan yang sebenarnya di
+   server. */
+.table-pos tbody tr.baris-terkunci td,
+.table-pos tbody tr.baris-terkunci td:first-child {
+  background: var(--kartu-lembut, #f3f4f6);
+  color: var(--tinta-lembut);
+}
+/* Nomor dada tetap pekat: ia satu-satunya yang masih perlu dibaca cepat di
+   baris yang sudah tidak bisa disentuh. */
+.table-pos tbody tr.baris-terkunci td.angka { color: var(--tinta); }
+
 /* ---------------------------------------------------------------------------
    REKAPITULASI (#/rekap)
 
