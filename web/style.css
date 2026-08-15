@@ -704,7 +704,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      seluruh sisa masuk ke kotak isian — petak berisi satu angka dua digit
      jadi selebar dua jari sementara nama sekolah di sebelahnya terpotong. */
   .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian {
-    width: 12mm; max-width: 14mm;
+    width: 16mm; max-width: 18mm;
   }
   /* Identitas SATU BARIS, dan 10pt supaya muat tanpa dipotong.
      Bukan sekadar hemat lebar: satu nama yang pecah dua baris membuat
@@ -733,9 +733,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      mengalir ke tiga kolom ini dan nama terpanjang di daftar muat utuh.
      Pos 3 memakai 13 + 84 + maksimum 166 = 263mm dari 277mm yang tersedia;
      sisanya jatuh ke identitas juga. */
-  .lembar-pos .print-table td:nth-child(2) { max-width: 70mm; }
-  .lembar-pos .print-table td:nth-child(3) { max-width: 70mm; }
-  .lembar-pos .print-table td:nth-child(4) { max-width: 26mm; }
+  /* Identitas DIPADATKAN, dan itu keputusan panitia: lebih baik nama terpotong
+     sedikit daripada kotak nilai yang sempit. Diukur pada 10pt huruf besar
+     (~2,3mm per huruf) terhadap nama terpanjang di daftar:
+
+       nama regu   "VICTORIA PUI CIJANTUNG"        22 huruf ~ 51mm -> 48mm
+       organisasi  "SMK SILIWANGI AMS BANJARSARI"  28 huruf ~ 64mm -> 58mm
+
+     Keduanya sengaja sedikit DI BAWAH kebutuhan nama terpanjang, jadi hanya
+     segelintir yang kehilangan satu-dua huruf di ujung — dan regu tetap
+     dikenali dari nomor dadanya. Yang dibeli: kotak nilai naik 14mm ke 18mm.
+
+     Golongan disingkat "Pgl Pa" / "Pgk Pa" (GOLONGAN_SINGKAT di app.js), jadi
+     16mm cukup dan 10mm sisanya ikut pindah ke kolom nama. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 48mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 58mm; }
+  .lembar-pos .print-table td:nth-child(4) { max-width: 16mm; }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
