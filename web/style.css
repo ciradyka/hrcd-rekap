@@ -1097,6 +1097,23 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Riwayat perubahan nilai: satu baris per perubahan, tanpa kepala tabel.
    Yang dicari cuma lomba apa, dari berapa jadi berapa, dan siapa — tiga hal
    yang muat sebaris, dan mata tidak perlu melewati apa pun sebelum sampai. */
+/* Gembok: bawaan TERBUKA, tertutup sesudah dikunci. Ukurannya sengaja sebesar
+   jari — ia satu-satunya tombol di lembar ini yang akibatnya tidak bisa
+   diurungkan sendiri, jadi tidak boleh tertekan karena meleset. */
+.gembok {
+  border: 0; background: none; cursor: pointer; font-size: 1.15rem;
+  line-height: 1; padding: .35rem .4rem; border-radius: 8px;
+}
+.gembok:hover { background: var(--kartu-lembut, rgba(0,0,0,.05)); }
+.gembok:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+
+/* Baris tergembok: kotaknya benar-benar mati, dan terlihat mati. Bukan sekadar
+   pudar — kotak yang masih bisa diketik tapi selalu ditolak adalah jebakan. */
+.baris-terkunci input:disabled {
+  background: var(--kartu-lembut, #f3f4f6);
+  color: var(--tinta-lembut); cursor: not-allowed;
+}
+
 .saring-riwayat { margin-bottom: .6rem; flex-wrap: wrap; gap: .35rem; }
 .riwayat { list-style: none; margin: 0; padding: 0; }
 .riwayat li {

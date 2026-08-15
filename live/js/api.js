@@ -450,6 +450,17 @@ export async function komponenSemua(edisi) {
     `&order=pos.asc,sort_order.asc`);
 }
 
+/** Gembok: menyatakan nilai satu regu di satu pos sudah selesai (0043).
+ *  Operator pos memakai posnya sendiri; admin dan meja wajib menyebut pos. */
+export const kunciNilaiPos = (nomorDada, pos) =>
+  rpc("kunci_nilai_pos", { p_nomor_dada: nomorDada, p_pos: pos });
+
+/** Membuka gembok. ADMIN SAJA, dan wajib beralasan — bentuk yang sama dengan
+ *  batalkan_tanda_cetak, karena keduanya membatalkan pernyataan "sudah final". */
+export const bukaKunciNilaiPos = (nomorDada, pos, alasan) =>
+  rpc("buka_kunci_nilai_pos",
+      { p_nomor_dada: nomorDada, p_pos: pos, p_alasan: alasan });
+
 /** Riwayat perubahan nilai satu regu di satu pos — siapa mengubah apa, kapan.
  *
  *  Dibaca saat penanda simpan diketuk, bukan ikut dimuat bersama lembarnya:

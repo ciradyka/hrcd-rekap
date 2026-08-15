@@ -2478,6 +2478,7 @@ async function layarInputPos() {
                   <span class="kolom-petunjuk">${esc(kol.petunjuk)}</span></th>`).join("")}
               <th class="text-center">Nilai<br>${esc(pos.bayangan ? pos.name : `Pos ${pos.nomor}`)}</th>
               <th class="text-center"><span class="visually-hidden">Status simpan</span></th>
+              <th class="text-center"><span class="visually-hidden">Gembok</span></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -2508,6 +2509,7 @@ async function layarInputPos() {
       }).join("")}
       <td class="text-center pos-nilai" data-label="Nilai Pos">${esc(angkaRapi(r.nilai_pos))}</td>
       <td class="pos-status" data-label=""></td>
+      <td class="pos-gembok" data-label=""></td>
     </tr>`).join("")));
 
   /* ---------- keadaan simpan per baris ----------
@@ -2561,6 +2563,73 @@ async function layarInputPos() {
     }
     perbaruiRingkasan();
   };
+
+  /** Gembok satu baris: rupanya, dan apa yang ikut mati bersamanya.
+   *
+   *  Terbuka adalah keadaan bawaan — semua baris bisa diisi sampai ada yang
+   *  menyatakan selesai. Sesudah dikunci, kotaknya benar-benar dimatikan, bukan
+   *  sekadar dipudarkan: kotak yang masih bisa diketik tapi selalu ditolak
+   *  adalah jebakan, dan penolakannya baru muncul sesudah petugas mengetik
+   *  angka yang ia kira tersimpan.
+   *
+   *  Yang menegakkan aturannya tetap server (0044). Ini supaya petugas tahu
+   *  SEBELUM mengetik, bukan sesudah ditolak. */
+  const gambarGembok = (tr) => {
+    const kunci = tr.dataset.terkunci === "1";
+    tr.classList.toggle("baris-terkunci", kunci);
+    tr.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
+
+    const sel = tr.querySelector(".pos-gembok");
+    sel.replaceChildren(h(`<button type="button" class="gembok"
+      data-gembok aria-pressed="${kunci}"
+      title="${kunci ? "Terkunci — ketuk untuk membuka (admin)"
+                     : "Ketuk untuk mengunci nilai regu ini"}">${
+      kunci ? "🔒" : "🔓"}</button>`));
+    sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
+  };
+
+  /** Mengunci, atau meminta admin membukanya. */
+  async function ubahGembok(tr) {
+    const dada = Number(tr.dataset.dada);
+    const kunci = tr.dataset.terkunci === "1";
+    const tiga = String(dada).padStart(3, "0");
+
+    if (!kunci) {
+      const ya = await dialog({
+        judul: `Kunci nilai ${tiga}?`,
+        kartuHtml: `<p class="description">Sesudah dikunci, nilai regu ini
+          tidak bisa diubah siapa pun — termasuk Anda sendiri. Hanya admin yang
+          bisa membukanya lagi, dan wajib menyebut alasan.</p>`,
+        labelAksi: "Kunci",
+      });
+      if (!ya) return;
+      try { await kunciNilaiPos(dada, pos.nomor); }
+      catch (err) { notif(`Gagal mengunci: ${err.message}`, true); return; }
+      tr.dataset.terkunci = "1";
+      gambarGembok(tr);
+      notif(`Nilai ${tiga} dikunci.`);
+      return;
+    }
+
+    if (sesi().peran !== "admin") {
+      notif("Nilai ini terkunci. Hanya admin yang bisa membukanya.", true);
+      return;
+    }
+    const jawab = await dialog({
+      judul: `Buka gembok ${tiga}?`,
+      kartuHtml: `<p class="description">Alasannya dicatat di riwayat, dan
+        itulah satu-satunya penjelasan yang tersisa kalau nilainya berubah
+        sesudah ini.</p>`,
+      medan: [{ label: "Alasan membuka", contoh: "salah ketik Semaphore" }],
+      labelAksi: "Buka",
+    });
+    if (!jawab) return;
+    try { await bukaKunciNilaiPos(dada, pos.nomor, jawab[0]); }
+    catch (err) { notif(`Gagal membuka: ${err.message}`, true); return; }
+    tr.dataset.terkunci = "";
+    gambarGembok(tr);
+    notif(`Gembok ${tiga} dibuka.`);
+  }
 
   /** Riwayat perubahan nilai satu regu di pos ini.
    *
@@ -2727,6 +2796,7 @@ async function layarInputPos() {
   // benar sejak halaman dibuka, bukan hanya untuk yang diketik hari ini.
   [...tbody.children].forEach(tr => {
     if (Number(tr.dataset.terisi) > 0) statusBaris(tr, "tersimpan");
+    gambarGembok(tr);
   });
   perbaruiRingkasan();
 
@@ -2744,6 +2814,9 @@ async function layarInputPos() {
     // seluruh baris, sehingga berapa pun ketukan yang menumpuk cukup
     // diselesaikan satu kali.
     if (tr.dataset.jalan === "1") { tr.dataset.antre = "1"; return; }
+    // Baris tergembok tidak pernah dikirim. Kotaknya memang sudah mati, tapi
+    // simpanBaris juga dipanggil dari antrean dan dari tombol Ulangi.
+    if (tr.dataset.terkunci === "1") return;
     const dada = Number(tr.dataset.dada);
     const lama = asli.get(dada) || {};
     const baris = [], dihapus = [];
@@ -3073,6 +3146,13 @@ async function layarInputPos() {
       if (!r) continue;
 
       asli.set(Number(r.nomor_dada), r.nilai || {});
+      // Gembok yang dipasang dari HP lain menyusul lewat penyegaran ini —
+      // paling lama 20 detik, dan server tetap menolak lebih cepat dari itu.
+      const kunciBaru = r.terkunci ? "1" : "";
+      if (tr.dataset.terkunci !== kunciBaru) {
+        tr.dataset.terkunci = kunciBaru;
+        gambarGembok(tr);
+      }
       if (tr.dataset.terisi !== String(r.jumlah_terisi)) berubah = true;
       tr.dataset.terisi = String(r.jumlah_terisi);
       tr.querySelector(".pos-nilai").textContent = angkaRapi(r.nilai_pos);
