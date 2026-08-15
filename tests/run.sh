@@ -136,5 +136,8 @@ run supabase/migrations/0039_judul_isian.sql
 # menelusuri kenapa satu tes berubah arti.
 run supabase/migrations/0041_tukar_nomor_tanpa_pensiun.sql
 run tests/sql/17_tukar_nomor_tanpa_pensiun.sql
+# 0042 membuka riwayat perubahan NILAI (dan hanya nilai) untuk petugas pos.
+run supabase/migrations/0042_riwayat_nilai.sql
+run tests/sql/18_riwayat_nilai.sql
 
 echo "SEMUA TES LULUS"
