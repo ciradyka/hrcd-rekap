@@ -21,7 +21,7 @@ import {
   batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
-  unggahFotoLembar, daftarFotoLembar, tautanFoto,
+  unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenPratinjau,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
@@ -252,6 +252,11 @@ async function layarHome() {
       <a href="#/pos">
         <div class="function-name">📋 Input Nilai Pos</div>
         <div class="description">Lembar penilaian tiap pos — admin boleh membuka pos mana pun</div>
+      </a>` : ""}
+      ${peran === "admin" ? `
+      <a href="#/pratinjau">
+        <div class="function-name">🥇 Pratinjau Rekap Live</div>
+        <div class="description">Persis yang akan dilihat peserta — kemajuan input dan klasemen bermedali, sebelum diumumkan</div>
       </a>` : ""}
       <a href="#/rekap">
         <div class="function-name">📊 Rekapitulasi</div>
@@ -3973,6 +3978,145 @@ async function layarRekap() {
   mulaiDenyut();
 }
 
+/* ==================== PRATINJAU REKAP LIVE (ADMIN) ======================= */
+
+/** Persis yang akan dilihat peserta, dibuka lebih awal untuk admin saja.
+ *
+ *  KENAPA LAYAR TERSENDIRI, BUKAN MENYALAKAN HALAMAN PESERTA LEBIH AWAL.
+ *  Halaman peserta membaca berkas statis yang diterbitkan publish-live.yml,
+ *  dan menyalakannya lebih awal berarti menerbitkan hasil lomba ke alamat
+ *  yang sudah beredar ke ratusan orang. Tidak ada tombol "hanya untuk saya"
+ *  di berkas statis — begitu terbit, ia terbit untuk semua.
+ *
+ *  Jadi pratinjaunya tinggal di situs panitia, di balik login yang sudah ada,
+ *  membaca database langsung. Yang dilihat admin sama persis, yang dilihat
+ *  peserta belum berubah sama sekali. */
+async function layarPratinjauLive() {
+  pasangKepala("Pratinjau Rekap Live", true);
+  LAYAR.replaceChildren(h(pemuat()));
+  const layarIni = location.hash;
+
+  let pos, klasemen, status;
+  try {
+    [pos, klasemen, status] = await Promise.all([
+      kelengkapanPos(), klasemenPratinjau(), statusAcara(),
+    ]);
+  } catch (e) {
+    LAYAR.replaceChildren(kartuGagalMuat(e.message, layarPratinjauLive));
+    return;
+  }
+  if (location.hash !== layarIni) return;
+
+  const fase = (status && status.fase_live) || "pra";
+  const FASE_KATA = {
+    pra: "peserta belum melihat apa pun",
+    progres: "peserta melihat kemajuan input, belum melihat nilai",
+    penuh: "peserta sudah melihat klasemen ini",
+  };
+
+  // Persen dihitung di sini, bukan di view. `v_kelengkapan_pos` sudah membawa
+  // `lengkap` dan `regu_total`, dan menambah view yang menghitung pembagian
+  // itu adalah tempat kedua yang harus ikut benar setiap kali definisi
+  // "lengkap" berubah.
+  const persenPos = (p) => !p.regu_total
+    ? 0 : Math.floor(100 * p.lengkap / p.regu_total);
+
+  const kemajuan = `
+    <div class="card">
+      <h2>Kemajuan input</h2>
+      <ul class="kemajuan">
+        ${pos.map(p => {
+          const s = persenPos(p);
+          return `
+          <li>
+            <div class="k-kepala">
+              <span class="k-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</span>
+              <span class="k-persen">${esc(String(s))}%</span>
+            </div>
+            <div class="k-batang"><span style="width:${s}%"></span></div>
+            <div class="k-angka">${esc(String(p.lengkap))} dari
+              ${esc(String(p.regu_total))} regu${p.sebagian > 0
+                ? ` · ${esc(String(p.sebagian))} baru sebagian` : ""}${p.hilang > 0
+                ? ` · <strong>${esc(String(p.hilang))} sudah finish tapi belum lengkap</strong>` : ""}</div>
+          </li>`;
+        }).join("")}
+      </ul>
+    </div>`;
+
+  const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
+  const golongan = [...new Set(klasemen.map(k => k.golongan))];
+
+  const papan = !klasemen.length
+    ? `<div class="card"><p class="description">Belum ada regu yang bisa
+         diperingkat. Klasemen baru terisi setelah ada regu yang kloternya
+         sudah berangkat dan nilainya masuk.</p></div>`
+    : golongan.map(g => {
+        const baris = klasemen.filter(k => k.golongan === g);
+        const juara = baris.filter(k => k.peringkat <= 3);
+        return `
+        <div class="card">
+          <h2>${esc(GOLONGAN_LABEL[g] || g)}</h2>
+          <div class="podium">
+            ${juara.map(k => `
+              <div class="juara j${esc(String(k.peringkat))}">
+                <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
+                <div class="peringkat">Juara ${esc(String(k.peringkat))}</div>
+                <div class="dada-juara">${esc(String(k.nomor_dada).padStart(3, "0"))}</div>
+                <div class="nama">${esc(k.nama_regu)}</div>
+                <div class="sekolah">${esc(k.nama_sekolah)}</div>
+                <div class="total">${esc(angkaRapi(k.total))}</div>
+              </div>`).join("")}
+          </div>
+          <div class="table-wrap">
+            <table class="table data-table">
+              <thead>
+                <tr><th>#</th><th>No<br>Dada</th><th>Regu</th>
+                  ${pos.map(p => `<th class="pos-kol" title="${esc(p.nama_pos)}"
+                    >P${esc(String(p.pos))}</th>`).join("")}
+                  <th>Nilai Pos</th><th>Penalti</th><th>Total</th></tr>
+              </thead>
+              <tbody>
+                ${baris.map(k => {
+                  const perPos = k.poin_per_pos || {};
+                  return `
+                  <tr>
+                    <td class="angka">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
+                    <td class="angka">${esc(String(k.nomor_dada).padStart(3, "0"))}</td>
+                    <td>${esc(k.nama_regu)}<span class="sub">${esc(k.nama_sekolah)}</span></td>
+                    ${pos.map(p => {
+                      const v = perPos[String(p.pos)];
+                      // Garis pendek, bukan nol: pos yang belum menyetor dan
+                      // pos yang memang memberi nol bukan hal yang sama.
+                      return `<td class="pos-kol">${v === undefined || v === null
+                        ? "–" : esc(angkaRapi(v))}</td>`;
+                    }).join("")}
+                    <td class="text-center">${esc(angkaRapi(k.total_pos))}</td>
+                    <td class="text-center">${esc(angkaRapi(
+                      Number(k.penalti_waktu) + Number(k.penalti_checkout)
+                      + Number(k.penalti_anggota)))}</td>
+                    <td class="text-center"><strong>${esc(angkaRapi(k.total))}</strong></td>
+                  </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }).join("");
+
+  LAYAR.replaceChildren(h(`
+    <div class="card" style="border-color:var(--utama)">
+      <h2>Pratinjau — hanya admin</h2>
+      <p class="description">Ini yang <strong>akan</strong> dilihat peserta.
+        Halaman peserta sendiri belum berubah: fase sekarang
+        <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
+      <p class="description">Peringkat di sini hidup mengikuti input dan masih
+        bisa berubah sampai seluruh pos selesai. Jangan dibagikan sebelum
+        diumumkan.</p>
+    </div>
+    ${kemajuan}
+    ${papan}`));
+}
+
 /* ============================ RUTE ======================================= */
 
 const RUTE = {
@@ -3984,6 +4128,7 @@ const RUTE = {
   "#/finish": layarFinish,
   "#/pos": layarInputPos,
   "#/rekap": layarRekap,
+  "#/pratinjau": layarPratinjauLive,
   "#/ganti-password": layarGantiPassword,
 };
 

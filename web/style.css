@@ -1916,3 +1916,65 @@ input.small-input { text-align: center; }
   display: flex; align-items: center; gap: .5rem;
   margin-left: auto; flex-wrap: nowrap;
 }
+
+/* ============================================================================
+   Pratinjau Rekap Live (0049) — kemajuan input dan podium bermedali.
+
+   Gayanya sengaja mengikuti live.css halaman peserta, bukan sisa layar
+   panitia: yang dinilai admin di layar ini justru "apakah tampilannya sudah
+   benar untuk peserta", dan pratinjau yang tampil berbeda dari aslinya tidak
+   menjawab pertanyaan itu.
+   ========================================================================== */
+.kemajuan { list-style: none; margin: 0; padding: 0; }
+.kemajuan li { margin-bottom: .85rem; }
+.kemajuan li:last-child { margin-bottom: 0; }
+.k-kepala { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .3rem; }
+.k-nama {
+  font-weight: 600; flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.k-persen {
+  font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--utama); white-space: nowrap;
+}
+.k-batang {
+  height: 10px; border-radius: 999px; background: var(--kertas, #f4f4f2);
+  border: 1px solid var(--garis); overflow: hidden;
+}
+.k-batang span {
+  display: block; height: 100%; background: var(--utama);
+  border-radius: 999px; transition: width .4s ease;
+}
+.k-angka { font-size: .82rem; color: var(--tinta-lembut); margin-top: .25rem; }
+
+/* Podium. flex-wrap, bukan grid tiga kolom: di HP sempit tiga kartu juara
+   berdesakan sampai nama regu terpotong, dan nama juara adalah satu-satunya
+   hal di kartu itu yang benar-benar dicari orang. */
+.podium {
+  display: flex; flex-wrap: wrap; gap: .6rem; margin: .6rem 0 1rem;
+}
+.juara {
+  flex: 1 1 8.5rem; text-align: center; padding: .7rem .5rem;
+  border: 1px solid var(--garis); border-radius: 12px; min-width: 0;
+}
+.juara.j1 { border-color: #b8860b; border-width: 2px; }
+.medali { font-size: 2.2rem; line-height: 1; }
+.juara .peringkat {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--tinta-lembut); margin-top: .15rem;
+}
+.dada-juara {
+  font-variant-numeric: tabular-nums; font-weight: 700; color: var(--utama);
+  font-size: .9rem;
+}
+.juara .nama { font-weight: 700; margin-top: .2rem; overflow-wrap: anywhere; }
+.juara .sekolah { font-size: .78rem; color: var(--tinta-lembut); overflow-wrap: anywhere; }
+.juara .total {
+  font-size: 1.5rem; font-weight: 800; color: var(--utama); margin-top: .3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-kol {
+  text-align: center; font-variant-numeric: tabular-nums;
+  white-space: nowrap; padding-left: .3rem; padding-right: .3rem;
+}
