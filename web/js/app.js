@@ -4016,7 +4016,7 @@ async function layarLiveScore() {
 
   const kemajuan = `
     <div class="card">
-      <h2>Kemajuan input</h2>
+      <h2 class="judul-tengah">Status</h2>
       <ul class="kemajuan">
         ${pos.map(p => {
           const s = persenPos(p);
