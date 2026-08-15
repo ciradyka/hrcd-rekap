@@ -31,9 +31,26 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
-  penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
+  penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
 };
+
+/** URUTAN BAKU golongan, di mana pun keempatnya dijejer.
+ *
+ *  Penegak lebih dulu, lalu Penggalang; PA sebelum PI. Ini urutan yang dipakai
+ *  panitia saat mengumumkan juara, dan layar yang berbeda urutan dari corong
+ *  memaksa pembaca acara mencocokkan sendiri di depan lapangan.
+ *
+ *  Ditulis eksplisit, bukan disandarkan pada urutan kunci GOLONGAN_LABEL:
+ *  urutan kunci objek memang terjaga di JavaScript, tapi ia tidak terlihat
+ *  sebagai keputusan — orang berikutnya yang merapikan daftar label itu secara
+ *  alfabetis akan mengubah urutan tampil tanpa pernah tahu ia melakukannya.
+ *
+ *  Kembarannya ada di live/live.js sebagai URUT_GOLONGAN dengan isi yang sama
+ *  persis. Halaman peserta berdiri sendiri (Worker terpisah, tanpa berkas
+ *  bersama), jadi salinannya disengaja — dan keduanya harus tetap sama, karena
+ *  layar Live Score memang menjanjikan tampilan yang identik. */
+const URUT_GOLONGAN = ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
 
 /** Golongan versi pendek, HANYA untuk kertas. Di layar tetap panjang — di sana
  *  lebar tidak diperebutkan siapa pun, dan dua nama untuk satu hal cuma
@@ -53,8 +70,8 @@ const GOLONGAN_LABEL = {
  *  Nilai mengalir lewat nomor dada, jadi golongan yang salah baca tidak pernah
  *  memindahkan angka ke regu lain. */
 const GOLONGAN_SINGKAT = {
-  penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
   penegak_pa: "Pgk Pa", penegak_pi: "Pgk Pi",
+  penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
 };
 let EDISI = null;
 
@@ -4129,7 +4146,7 @@ async function layarLiveScore() {
      Semua panel digambar sekali lalu disembunyikan, bukan digambar ulang saat
      diklik: datanya sudah ada di tangan, dan berpindah tab yang menunggu
      apa pun terasa rusak. */
-  const GOL = Object.keys(GOLONGAN_LABEL);
+  const GOL = URUT_GOLONGAN;
   const jumlahGol = Object.fromEntries(
     GOL.map(g => [g, klasemen.filter(k => k.golongan === g).length]));
   // Tab pertama yang sudah ada isinya, supaya layar tidak terbuka pada
