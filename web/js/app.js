@@ -27,7 +27,7 @@ import {
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
-         kotakJamHtml, kecilkanFoto, ukuranRapi } from "./util.js";
+         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -220,7 +220,7 @@ async function layarHome() {
     LAYAR.replaceChildren(h(html`
       <div class="function-menu">
         <a href="#/pos">
-          <div class="function-name">📋 Input Nilai Pos ${sesi().pos}</div>
+          <div class="function-name">${ikon("square-pen")} Input Nilai Pos ${sesi().pos}</div>
         </a>
       </div>
 `));
@@ -242,33 +242,33 @@ async function layarHome() {
            asal, tautannya mutlak dan diambil dari config.js. -->
       <a href="${esc((window.HRCD && window.HRCD.pesertaUrl) || "")}/daftar.html"
          target="_blank" rel="noopener">
-        <div class="function-name">📝 Pendaftaran</div>
+        <div class="function-name">${ikon("clipboard-list")} Pendaftaran</div>
       </a>
       <a href="#/pembayaran">
-        <div class="function-name">💳 Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
+        <div class="function-name">${ikon("credit-card")} Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
       </a>
       <a href="#/daftar-ulang">
-        <div class="function-name">🎽 Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
+        <div class="function-name">${ikon("id-card")} Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
       </a>
       <a href="#/cetak-kloter">
-        <div class="function-name">🖨️ Daftar Kloter</div>
+        <div class="function-name">${ikon("list-ordered")} Daftar Kloter</div>
       </a>
       <a href="#/keberangkatan">
-        <div class="function-name">🚩 Keberangkatan</div>
+        <div class="function-name">${ikon("flag")} Keberangkatan</div>
       </a>
       <a href="#/finish">
-        <div class="function-name">🏁 Kedatangan</div>
+        <div class="function-name">${ikon("circle-check")} Kedatangan</div>
       </a>
       ${peran === "admin" ? `
       <a href="#/pos">
-        <div class="function-name">📋 Input Nilai Pos</div>
+        <div class="function-name">${ikon("square-pen")} Input Nilai Pos</div>
       </a>` : ""}
       ${peran === "admin" ? `
       <a href="#/live-score">
-        <div class="function-name">🥇 Live Score</div>
+        <div class="function-name">${ikon("medal")} Live Score</div>
       </a>` : ""}
       <a href="#/rekap">
-        <div class="function-name">📊 Rekapitulasi</div>
+        <div class="function-name">${ikon("chart-column")} Rekapitulasi</div>
       </a>
     </div>
   `));
