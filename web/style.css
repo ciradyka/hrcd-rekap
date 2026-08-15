@@ -1336,6 +1336,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      centang dan gembok di sebelahnya — tiga tombol sebaris yang tidak
      sejajar. */
   display: inline-flex; align-items: center; justify-content: center;
+  /* Dan `vertical-align: middle` pada TOMBOLNYA, bukan pada ikonnya.
+
+     Kotak inline-flex mengambil garis dasarnya dari garis dasar anak
+     pertamanya, dan garis dasar sebuah SVG adalah tepi BAWAHnya. Jadi seluruh
+     pil terdorong naik sampai dasar gambarnya duduk di garis dasar teks
+     sebelahnya — ikonnya sendiri sudah di tengah tombol, tombolnya yang tidak
+     di tengah baris.
+
+     `vertical-align` pada anaknya tidak menolong sama sekali: pada flex item
+     properti itu diabaikan. */
+  vertical-align: middle;
 }
 .badge-tombol:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
 
@@ -2381,7 +2392,9 @@ input.small-input { text-align: center; }
    warnanya ikut keadaan barisnya lewat currentColor — emoji dulu tampil
    berwarna tetap dan lebih besar daripada tetangganya, jadi kolom aksi
    terbaca bergerigi. */
-.badge-tombol .ikon { width: 1.15rem; height: 1.15rem; vertical-align: -.2em; }
+/* Tanpa vertical-align: ikon ini flex item, dan di sana properti itu tidak
+   berlaku — yang mengatur letaknya align-items pada tombolnya. */
+.badge-tombol .ikon { width: 1.15rem; height: 1.15rem; }
 
 /* Judul kartu yang rata tengah. Dipakai di atas deretan cincin kemajuan:
    isinya sendiri sederet lingkaran yang terbagi rata selebar kartu, dan judul
