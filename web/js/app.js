@@ -18,6 +18,7 @@ import {
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
+  batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos,
   statusAcara,
 } from "./api.js";
@@ -2077,7 +2078,24 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
 
   // Sel identitas lewat tag html`` (isinya diketik orang luar); kotak kosong
   // ditempel sebagai HTML biasa karena memang tidak ada isinya.
-  const barisHtml = (kolom) => (r) => `
+  // Nomor yang belum ada regunya di sistem tetap mendapat barisnya, dan
+  // identitasnya dibiarkan KOSONG — bukan ditandai "tidak dipakai".
+  //
+  // Dua jalan menuju baris kosong, dan keduanya nyata. Sebagian sekolah
+  // mendaftar OFFLINE, jadi regunya memakai nomor dada fisik tanpa pernah
+  // masuk sistem sampai daftar ulang menyusulkan datanya. Dan kertas ini
+  // DICETAK LEBIH DULU, sebelum pendaftaran ditutup — regu yang menyusul
+  // sesudahnya tetap harus punya tempat.
+  // Barisnya harus bisa DITULISI: petugas mengisi nama regu dan sekolahnya di
+  // tempat itu, dan meja daftar ulang memakainya untuk melengkapi data
+  // belakangan. Garis "tidak dipakai" akan membuat petugas mencari tempat
+  // lain — biasanya pinggir kertas, tempat tidak ada yang mencarinya.
+  const barisHtml = (kolom) => (r) => r.kosong ? `
+    <tr>
+      ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>`}
+      <td></td><td></td><td></td>
+      ${kolom.map(() => `<td class="isian"></td>`).join("")}
+    </tr>` : `
     <tr>
       ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
       <td>${r.nama_regu}</td>
@@ -2101,7 +2119,8 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
          dada ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
          · Petugas: ______________ · Diperiksa: ______________</p>
       ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM DITUTUP
-        — regu yang mendaftar ulang setelah kertas ini dicetak tidak ada di sini.</p>`}
+        — regu yang menyusul BARISNYA SUDAH ADA di sini, hanya namanya yang
+        belum tercetak. Tulis nama regu dan sekolahnya di baris kosong.</p>`}
       <table class="print-table">
         <thead>
           <tr>
@@ -2771,6 +2790,39 @@ async function layarInputPos() {
       .filter(Boolean);
     if (!tampil.length) { notif("Tidak ada baris yang bisa dicetak.", true); return; }
 
+    /* NOMOR DADA BERURUTAN 001 SAMPAI BATAS STOK, TANPA LOMPATAN.
+
+       Dua sebab, dan yang kedua yang menentukan.
+
+       Tim IT menyortir tumpukan slip menurut nomor dada lalu menyusurinya dari
+       atas. Lembar yang melompati satu nomor menghentikan pekerjaan itu:
+       "slip 012 hilang, atau memang tidak pernah ada?" — pertanyaan yang tidak
+       bisa dijawab dari kertas.
+
+       Dan sebagian sekolah MENDAFTAR OFFLINE. Regunya memakai nomor dada fisik
+       yang nyata, tetapi belum ada di database saat lembar ini dicetak. Kalau
+       lembarnya hanya memuat regu yang sudah terdaftar, regu itu tidak punya
+       baris sama sekali — dan nilainya ditulis di pinggir kertas, atau tidak
+       ditulis. Barisnya karena itu dicetak kosong dan siap ditulisi.
+
+       Batasnya diambil dari STOK nomor dada, bukan dari regu terdaftar: stok
+       adalah nomor fisik yang benar-benar dibawa panitia, dan mana pun di
+       antaranya bisa muncul di kotak penilaian.
+
+       HANYA saat tidak ada saringan. Lembar susulan justru dicetak untuk
+       sebagian regu — menyisipkan seluruh nomor kosong ke dalamnya
+       mengembalikan tumpukan kertas yang tadi sengaja dipersempit. */
+    let semua = tampil;
+    if (!slip && [...tbody.children].every(tr => !tr.hidden)) {
+      let batas = 0;
+      try { batas = await batasNomorDada(); } catch { /* jatuh ke daftar apa adanya */ }
+      if (batas > 0) {
+        const peta = new Map(tampil.map(r => [Number(r.nomor_dada), r]));
+        semua = Array.from({ length: batas }, (_, i) =>
+          peta.get(i + 1) || { nomor_dada: i + 1, kosong: true });
+      }
+    }
+
     // Dibaca saat menekan, bukan saat layar dimuat: layar pos sering
     // dibiarkan terbuka berjam-jam, dan status daftar ulang berubah di
     // tengahnya. Gagal membacanya tidak boleh menghalangi cetak — paling
@@ -2787,7 +2839,7 @@ async function layarInputPos() {
       notif(`${n} master A5 melintang, satu per lomba. Perbanyak dengan `
             + `fotokopi sebanyak regu yang berlomba, tambah cadangan.`);
     } else {
-      siapkanCetakLembarPos(pos, kolom, tampil, ditutup);
+      siapkanCetakLembarPos(pos, kolom, semua, ditutup);
     }
     window.print();
   };

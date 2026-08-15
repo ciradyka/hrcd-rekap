@@ -482,6 +482,24 @@ export async function lembarPos(pos) {
     `v_lembar_pos?pos=eq.${encodeURIComponent(pos)}&select=*&order=nomor_dada.asc`);
 }
 
+/** Nomor dada TERTINGGI yang disiapkan admin — batas atas lembar nilai.
+ *
+ *  Lembar tabel mencetak nomor 001 sampai batas ini BERURUTAN, termasuk nomor
+ *  yang belum diberikan ke regu mana pun. Tanpa itu, tim IT yang menyortir
+ *  tumpukan slip berhenti setiap kali lembarnya melompati satu nomor: "slip
+ *  012 hilang, atau memang tidak pernah ada?" — pertanyaan yang tidak bisa
+ *  dijawab dari kertas dan menghentikan pekerjaan.
+ *
+ *  Dibaca dari stok, bukan dari regu yang sudah terdaftar: stok adalah nomor
+ *  dada FISIK yang benar-benar dicetak dan dibawa panitia, dan itulah rentang
+ *  yang mungkin muncul di kotak penilaian. */
+export async function batasNomorDada() {
+  const d = K.mode === "dev"
+    ? await baca("/batas-nomor-dada")
+    : await baca(null, "nomor_dada_stok?select=nomor&order=nomor.desc&limit=1");
+  return d.length ? Number(d[0].nomor) : 0;
+}
+
 /** Satu baris saja, dibaca ulang sesudah menyimpan. Nilai Pos yang tampil di
  *  layar SELALU angka dari database — layar tidak pernah menghitung skor
  *  sendiri, supaya tidak ada mesin skor kedua yang bisa berbeda pendapat

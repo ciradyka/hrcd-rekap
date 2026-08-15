@@ -417,6 +417,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    huruf-hurufnya menutup sendiri oleh serbuk toner. Kotak yang ditulisi selalu
    putih polos. Aturan lengkapnya di `CLAUDE.md` bagian 8.
 
+   **Form tabel memuat nomor dada 001 sampai batas stok, BERURUTAN tanpa
+   lompatan** — termasuk nomor yang belum ada regunya. Tiga sebab, dan
+   ketiganya terjadi:
+
+   - Tim IT menyortir tumpukan slip menurut nomor dada lalu menyusurinya dari
+     atas. Lembar yang melompati satu nomor menghentikan pekerjaan itu:
+     *"slip 012 hilang, atau memang tidak pernah ada?"* — pertanyaan yang
+     tidak bisa dijawab dari kertas.
+   - Sebagian sekolah **mendaftar offline**. Regunya memakai nomor dada fisik
+     yang nyata, tetapi belum ada di database.
+   - **Kertasnya dicetak lebih dulu**, sebelum pendaftaran ditutup, dan regu
+     yang menyusul tetap harus punya tempat.
+
+   Karena itu baris tanpa regu dibiarkan **kosong dan siap ditulisi**, bukan
+   ditandai "tidak dipakai": petugas menuliskan nama regu dan sekolahnya di
+   situ, dan meja daftar ulang memakainya untuk melengkapi data belakangan.
+   Batasnya diambil dari **stok** nomor dada — nomor fisik yang benar-benar
+   dibawa panitia — bukan dari jumlah regu yang sudah terdaftar.
+
    Satu kolom sengaja **tidak** ikut dicetak di bentuk mana pun: **Nilai Pos**.
    Petugas lapangan hanya menulis data mentah dan tidak pernah menjumlahkan
    sendiri (poin 1) — kotak berjudul Nilai Pos justru mengundang hitungan
