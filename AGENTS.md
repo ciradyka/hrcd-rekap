@@ -220,3 +220,14 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 7. **Weight explanation by how often a screen is used, not by a fixed budget
    per screen.** The registration form is the exception that proves the rule: a
    pembina fills it once, has had no training, and has nobody to ask.
+8. **A name that already says what the thing is needs no gloss.** "Pendaftaran"
+   does not need "buka form pendaftaran" beneath it, and "Keberangkatan" does
+   not need a list of what happens there. If the term is clear, the interface
+   is finished.
+9. **This applies hardest to domain vocabulary.** Section 5.3 keeps `regu`,
+   `kloter`, `nomor dada`, `Penggalang` and `Penegak` untranslated precisely
+   because panitia and pembina say those words every day. Explaining them back
+   to the people who use them is the same mistake as translating them —
+   glossing "Penggalang PA" as "SMP / MTs — putra" on the registration form was
+   caught and removed for exactly this reason. Explain a term only where the
+   reader genuinely cannot have met it before.
