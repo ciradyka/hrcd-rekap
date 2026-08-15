@@ -50,8 +50,42 @@
 
 html { font-size: 16px; }
 
+
+/* ---------- huruf ----------
+
+   Inter, disimpan SENDIRI di repo — bukan diambil dari Google Fonts.
+
+   Yang membaca layar ini panitia di lapangan dan 1.500-3.000 HP peserta di
+   jaringan seluler yang sama. Host kedua berarti satu DNS dan satu jabat
+   tangan TLS lagi sebelum satu huruf pun tergambar, pada jaringan yang justru
+   sedang paling sibuk. Berkasnya 47 KB dan datang dari Worker yang sama
+   dengan halamannya.
+
+   Satu berkas untuk seluruh bobot 400-800: font variabel, jadi tebal-tipisnya
+   tidak menambah unduhan sama sekali.
+
+   `swap` bukan hiasan: teks tergambar SEKARANG dengan huruf sistem dan
+   berganti kalau Inter sudah sampai. Kalau berkasnya tidak pernah sampai,
+   layarnya tetap terbaca — hanya kurang rapi.
+
+   Lisensi SIL OFL 1.1, teksnya ikut di fonts/LICENSE.txt.                  */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/inter-latin.woff2") format("woff2");
+}
+
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* Inter digambar sedikit renggang pada ukuran teks; -0.011em mengembalikan
+     kerapatan yang membuat judul terbaca sebagai satu kata, bukan deretan
+     huruf. Angka dibuat tabular supaya kolom nilai tidak bergoyang tiap kali
+     satu digit berubah. */
+  letter-spacing: -.011em;
+  font-variant-numeric: tabular-nums;
   background: var(--kertas);
   color: var(--tinta);
   line-height: 1.5;
@@ -489,6 +523,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .printout { display: none; }
 
 @media print {
+  /* Perapatan huruf dibatalkan di kertas. Di layar -0.011em merapikan judul,
+     tapi blangko dicetak sampai 7pt lalu difotokopi, dan pada ukuran itu
+     huruf yang lebih rapat membuat serbuk toner menutup celah antar huruf —
+     persis kegagalan yang dilarang CLAUDE.md 8.6. */
+  body, .isian, .kolom-petunjuk { letter-spacing: normal; }
   .header, .isi, .notification, .overlay { display: none !important; }
   .printout {
     display: block !important;
