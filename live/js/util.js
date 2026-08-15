@@ -437,8 +437,10 @@ export function notif(pesan, galat = false) {
   // tanpa perlu menyentuh belasan `raise exception` di migrasi.
   const kalimat = String(pesan).charAt(0).toUpperCase() + String(pesan).slice(1);
   const n = h(`<div class="notification ${galat ? "error" : ""}" role="alert">
-      <span>${esc(kalimat)}</span>
-      ${galat ? '<button class="notification-close" type="button" aria-label="tutup">✕</button>' : ""}
+      <span class="notif-ikon">${ikon(galat ? "circle-alert" : "circle-check-big")}</span>
+      <span class="notif-teks">${esc(kalimat)}</span>
+      ${galat ? `<button class="notification-close" type="button" aria-label="tutup">${
+        ikon("x")}</button>` : ""}
     </div>`);
   document.body.appendChild(n);
   const el = document.body.lastElementChild;
@@ -626,6 +628,12 @@ export function ukuranRapi(bytes) {
    dan ikon yang gagal termuat meninggalkan tombol tanpa muka.            */
 
 const IKON = {
+  "circle-alert":
+    '<circle cx="12" cy="12" r="10" /> <line x1="12" x2="12" y1="8" y2="12" /> <line x1="12" x2="12.01" y1="16" y2="16" />',
+  "circle-check-big":
+    '<path d="M21.801 10A10 10 0 1 1 17 3.335" /> <path d="m9 11 3 3L22 4" />',
+  "x":
+    '<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',
   "chart-column":
     '<path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" />',
   "circle-check":
