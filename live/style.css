@@ -443,20 +443,42 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 /* ---------- notifikasi ---------- */
 
+/* Kartu putih dengan lencana ikon berwarna, bukan blok merah pekat.
+
+   Bukan sekadar selera: pesan ini dibaca sambil berdiri di bawah matahari,
+   dan tulisan putih di atas merah jenuh justru paling cepat hilang di layar
+   yang silau. Tinta gelap di atas putih terbaca jauh lebih lama.
+
+   Yang menandai galat tetap merah — lingkaran seru dan tepi kartunya — jadi
+   sifatnya dikenali sebelum satu kata pun dibaca, sementara kata-katanya
+   sendiri tetap terbaca. Warna menandai, tulisan menjelaskan; keduanya tidak
+   perlu memperebutkan permukaan yang sama. */
 .notification {
   position: fixed;
   left: 50%; bottom: 1.2rem;
   transform: translateX(-50%);
-  background: var(--tinta);
-  color: #fff;
-  padding: .8rem 1.4rem;
-  border-radius: var(--radius);
+  background: var(--kartu);
+  color: var(--tinta);
+  border: 1px solid var(--garis);
+  padding: .75rem .9rem;
+  border-radius: var(--radius-kecil);
   font-weight: 600;
-  box-shadow: var(--bayang);
+  /* Lebih pekat daripada bayangan kartu biasa: benda ini melayang DI ATAS
+     halaman, dan bayangan yang sama dengan kartu di bawahnya membuatnya
+     terbaca seperti bagian dari halaman itu. */
+  box-shadow: 0 4px 10px rgba(16,24,40,.07), 0 18px 40px rgba(16,24,40,.16);
   z-index: 50;
   max-width: 92vw;
 }
-.notification.error { background: var(--bahaya); }
+.notif-ikon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 9px; flex: 0 0 auto;
+  background: var(--utama-muda); color: var(--utama);
+}
+.notif-ikon .ikon { width: 1.15rem; height: 1.15rem; }
+.notif-teks { flex: 1 1 auto; min-width: 0; }
+.notification.error { border-color: #f3c6c6; }
+.notification.error .notif-ikon { background: var(--bahaya-muda); color: var(--bahaya); }
 /* Memudar sebelum dibuang (lihat notif() di util.js). Transisinya dipatok di
    sini, bukan di JavaScript, supaya aturan prefers-reduced-motion di bawah
    berkas ini ikut mematikannya — di sana `transition: none` membuat pesannya
@@ -544,12 +566,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   box-shadow: 0 10px 40px rgba(0,0,0,.3);
 }
 .dialog h2 { margin-bottom: .8rem; }
-.notification { display: flex; align-items: center; gap: .8rem; }
+.notification { display: flex; align-items: center; gap: .7rem; }
 .notification-close {
-  background: rgba(255,255,255,.25); color: #fff;
-  border: 0; border-radius: 8px;
-  min-width: 36px; min-height: 36px; font-size: 1rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; color: var(--tinta-lembut);
+  border: 0; border-radius: 8px; cursor: pointer;
+  min-width: 36px; min-height: 36px; flex: 0 0 auto;
 }
+.notification-close:hover { background: var(--kertas); color: var(--tinta); }
+.notification-close .ikon { width: 1.05rem; height: 1.05rem; }
 
 /* ---------- cetak: hanya kwitansi yang ikut tercetak ---------- */
 
