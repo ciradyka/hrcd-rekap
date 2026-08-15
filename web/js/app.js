@@ -1456,24 +1456,19 @@ async function layarCetakKloter() {
   };
 
   let perKloter = kelompokkan(baris);
-  const belum = [...perKloter.entries()].filter(([, v]) => !v.dicetak).length;
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
-      <h2>Daftar kloter untuk garis start</h2>
-      <p class="description">Setelah dicetak, isi kloter <strong>dibekukan</strong>. Sekolah yang daftar ulang setelah ini masuk
-         kloter cadangan dan dicetak sebagai lembar tambahan.</p>
-      <table class="table" style="margin-top:.6rem">
-        <tr><td>Kloter berisi regu</td><td class="angka">${perKloter.size}</td></tr>
-        <tr><td>Belum pernah dicetak</td><td class="angka">${belum}</td></tr>
-        <tr><td>Total regu</td><td class="angka">${baris.length}</td></tr>
+      <table class="table">
+        <tr><td>Total Kloter</td><td class="angka">${perKloter.size}</td></tr>
+        <tr><td>Total Regu</td><td class="angka">${baris.length}</td></tr>
       </table>
       <div class="option-row" style="margin-top:.9rem">
         <button class="button button-primary" id="cetak-petugas" type="button">
-          🖨️ Cetak Kloter untuk Petugas
+          ${ikon("printer")} Cetak Kloter untuk Petugas
         </button>
         <button class="button button-primary" id="cetak-peserta" type="button">
-          🖨️ Cetak Kloter untuk Peserta
+          ${ikon("printer")} Cetak Kloter untuk Peserta
         </button>
       </div>
     </div>
