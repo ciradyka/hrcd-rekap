@@ -4093,14 +4093,11 @@ async function layarLiveScore() {
         const juara = baris.filter(k => k.peringkat <= 3);
         if (!baris.length) return `
         <div class="card">
-          <h2>${esc(GOLONGAN_LABEL[g])}</h2>
           <p class="description">Belum ada regu golongan ini yang bisa
             diperingkat.</p>
         </div>`;
         return `
         <div class="card">
-          <h2>${esc(GOLONGAN_LABEL[g])}
-            <span class="sub">${esc(String(baris.length))} regu diperingkat</span></h2>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
