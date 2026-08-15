@@ -128,6 +128,84 @@ begin
 end;
 $$;
 
+-- 4.4b SEMUA kloter dasar sudah tercetak — keadaan lapangan yang sebenarnya,
+--      dan justru yang TIDAK diuji 4.4.
+--
+--      4.4 lolos karena keberuntungan: `lompatan_kloter = 2` membuat data uji
+--      hanya mengisi kloter ganjil, dan kloter genap yang kosong tidak pernah
+--      ditandai tercetak. Putaran pertama pemilihan kloter mendarat di celah
+--      kosong itu, jadi kloter tercetak tidak pernah terpilih.
+--
+--      Di lapangan celah itu habis begitu kloter 1..kloter_dasar semuanya
+--      berisi. Bagian ini menirunya dengan menandai SELURUH kloter dasar
+--      tercetak, sehingga putaran 1-3 tidak punya kandidat dan pemilihan harus
+--      jatuh ke kloter cadangan.
+--
+--      Tanpa 0040, putaran pertama tetap memilih kloter dasar yang tercetak,
+--      trigger jaga_kloter_tercetak menolak UPDATE-nya, dan SELURUH batch
+--      gagal — tidak satu regu pun mendapat nomor dada. Itulah bug yang
+--      dilaporkan panitia dari lapangan.
+do $$
+declare
+  v_kode   text;
+  v_hasil  record;
+  v_biaya  integer;
+  v_dasar  smallint;
+  v_semula smallint[];
+begin
+  reset role;
+  select biaya_per_regu, kloter_dasar into v_biaya, v_dasar
+  from edisi where is_active;
+
+  -- Dicatat dulu supaya bisa dikembalikan: 4.5 menghitung berapa kloter BARU
+  -- yang ditandai, dan tanda yang tertinggal di sini akan mengubah angkanya.
+  select array_agg(nomor) into v_semula
+  from kloter where nomor <= v_dasar and dicetak_pada is null;
+
+  update kloter set dicetak_pada = now()
+  where nomor <= v_dasar and dicetak_pada is null;
+
+  set role service_role;
+  v_kode := (submit_pendaftaran('SMP Susulan Penuh', 'Jl. Susulan 2', false,
+    '081200001111',
+    '[{"nama_regu":"Paling Telat","nama_ketua":"Tini","golongan":"penegak_pi"}]',
+    0::smallint, gen_random_uuid())) ->> 'kode_pembayaran';
+  reset role;
+
+  perform set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
+  set role authenticated;
+  perform verifikasi_pembayaran(v_kode, v_biaya, 'tunai');
+
+  select * into v_hasil from daftar_ulang_batch(v_kode, uji_dada(v_kode)) limit 1;
+  assert v_hasil.nomor_dada is not null,
+    'daftar ulang gagal padahal masih ada kloter cadangan yang belum dicetak';
+  assert v_hasil.kloter > v_dasar,
+    format('regu susulan masuk kloter %s, seharusnya kloter cadangan di atas %s',
+           v_hasil.kloter, v_dasar);
+  assert (select dicetak_pada from kloter where nomor = v_hasil.kloter) is null,
+    format('regu susulan masuk kloter %s yang SUDAH dicetak', v_hasil.kloter);
+
+  -- DIKEMBALIKAN PERSIS SEPERTI SEMULA, termasuk sekolah yang dibuat di sini.
+  --
+  -- Bukan kerapian belaka: 4.5 menghitung berapa kloter BARU yang ditandai
+  -- tercetak, dan satu regu yang tertinggal di kloter cadangan membuat
+  -- angkanya 2 alih-alih 1. Tes yang berjejak mengubah arti tes berikutnya,
+  -- dan yang gagal nanti bukan tes ini — jadi jejaknya sulit dilacak.
+  reset role;
+  update kloter set dicetak_pada = null where nomor = any(v_semula);
+
+  delete from pembayaran p using pendaftaran d
+   where p.pendaftaran_id = d.id and d.kode_pembayaran = v_kode;
+  delete from regu r using pendaftaran d
+   where r.pendaftaran_id = d.id and d.kode_pembayaran = v_kode;
+  delete from pendaftaran where kode_pembayaran = v_kode;
+  delete from sekolah where name = 'SMP Susulan Penuh';
+
+  perform set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
+  set role authenticated;
+end;
+$$;
+
 -- 4.5 Cetak lembar tambahan hanya menandai kloter baru itu.
 do $$
 declare v_baru int;
