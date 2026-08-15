@@ -4114,7 +4114,7 @@ async function layarLiveScore() {
                 <div class="total">${esc(angkaRapi(k.total))}</div>
               </div>`).join("")}
           </div>
-          <div class="table-wrap">
+          <div class="table-wrapper table-wrapper-tetap">
             <table class="table data-table table-tetap">
               <thead>
                 <tr>
