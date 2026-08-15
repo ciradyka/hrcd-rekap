@@ -2056,6 +2056,28 @@ function kolomPos(komponen) {
  *  null = kolom ini memang bukan untuk golongannya. Itu keadaan sah, bukan
  *  konfigurasi rusak: Tebak Simpul Penegak tidak ada urusannya dengan regu
  *  Penggalang. */
+/** Kolom layar dikelompokkan jadi LOMBA — tingkat ketiga yang tidak dimiliki
+ *  `wahana` sampai migrasi 0054 (CLAUDE.md bagian 11).
+ *
+ *  Kolom di layar tetap satu per PENILAIAN: Pembidaian lima kolom. Blangko
+ *  tetap satu per LOMBA: Pembidaian selembar dengan lima kotak. Keduanya
+ *  benar, dan yang satu tidak boleh "diperbaiki" mengikuti yang lain — 11.6.
+ *
+ *  `lomba` kosong berarti komponen itu lomba tersendiri, keadaan yang benar
+ *  untuk sebagian besar baris. */
+function kelompokLomba(kolom) {
+  const urut = [], peta = new Map();
+  for (const kol of kolom) {
+    const nama = kol.varian[0].lomba || kol.nama;
+    if (!peta.has(nama)) {
+      peta.set(nama, { nama, kolom: [] });
+      urut.push(peta.get(nama));
+    }
+    peta.get(nama).kolom.push(kol);
+  }
+  return urut;
+}
+
 const varianUntuk = (kol, golongan) =>
   kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
 
@@ -2274,16 +2296,16 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
   const judulPos = pos.bayangan ? pos.name : `Pos ${pos.nomor} · ${pos.name}`;
 
-  const satuBlangko = (kol) => {
+  const satuBlangko = (lomba) => {
+    const kols = lomba.kolom;
     // Varian mana pun boleh dipakai untuk menurunkan bentuknya: yang berbeda
     // antar golongan hanya skalanya, dan skala tidak dicetak di blangko —
     // justru itu gunanya. Petugas menulis jumlah benar apa adanya, dan sistem
     // yang tahu 5 simpul untuk Penggalang, 10 untuk Penegak.
-    const k = kol.varian[0];
     return `
     <article class="blangko">
       <p class="bl-pos">${esc(judulPos)}</p>
-      <h2 class="bl-lomba">${esc(kol.nama)}</h2>
+      <h2 class="bl-lomba">${esc(lomba.nama)}</h2>
       <p class="bl-acara">${esc(EDISI ? EDISI.name : "")} · Petugas: ____________</p>
 
       <table class="bl-identitas"><tbody>
@@ -2293,17 +2315,21 @@ function siapkanCetakBlangko(pos, kolomLayar) {
         </tr>
       </tbody></table>
 
-      <div class="bl-nilai">
-        <div class="bl-nilai-kepala">
-          <span class="bl-nilai-judul">${esc(judulIsian(k))}</span>
-          <span class="bl-nilai-contoh">${esc(contohIsian(kol))}</span>
-        </div>
-        <div class="bl-nilai-kotak"></div>
+      <div class="bl-nilai${kols.length > 1 ? " bl-nilai-banyak" : ""}">
+        ${kols.map(kol => `
+        <div class="bl-nilai-sel">
+          <div class="bl-nilai-kepala">
+            <span class="bl-nilai-judul">${esc(kols.length > 1
+              ? kol.nama : judulIsian(kol.varian[0]))}</span>
+            <span class="bl-nilai-contoh">${esc(contohIsian(kol))}</span>
+          </div>
+          <div class="bl-nilai-kotak"></div>
+        </div>`).join("")}
       </div>
 
       <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
          poin.</strong></p>
-      <p class="bl-ttd">Petugas ${esc(kol.nama)}</p>
+      <p class="bl-ttd">Petugas ${esc(lomba.nama)}</p>
       <p class="bl-garis"></p>
     </article>`;
   };
@@ -2319,11 +2345,12 @@ function siapkanCetakBlangko(pos, kolomLayar) {
   // Jadi keluarannya tiga halaman untuk Pos 1: Semaphore, Tebak Simpul,
   // Menaksir. Panitia menggandakan tiap halaman sebanyak yang dibutuhkan, dan
   // tiap tumpukan otomatis berisi satu lomba saja.
-  const cetakan = kolomLayar.map(kol => `
-    <section class="print-page blangko-halaman">${satuBlangko(kol)}</section>`).join("");
+  const daftarLomba = kelompokLomba(kolomLayar);
+  const cetakan = daftarLomba.map(l => `
+    <section class="print-page blangko-halaman">${satuBlangko(l)}</section>`).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${cetakan}</div>`));
-  return kolomLayar.length;
+  return daftarLomba.length;
 }
 
 /** Layar Input Pos — lembar kertas yang dipindah ke layar.

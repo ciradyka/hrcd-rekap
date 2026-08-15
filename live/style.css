@@ -766,6 +766,25 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .bl-nilai-contoh { display: block; font-size: 9pt; margin-top: .8mm; }
   .bl-nilai-kotak { height: 30mm; }
 
+  /* LOMBA BERKRITERIA BANYAK: satu kotak per kriteria, berjajar.
+
+     Pembidaian dinilai lima hal di satu meja oleh satu juri, jadi kelimanya
+     ada di kertas yang sama — selembar per kriteria menyerahkan lima kertas
+     kepada regu yang sama di satu tempat (CLAUDE.md 11.5).
+
+     Kotaknya menyusut mengikuti jumlahnya, dan itu tidak apa-apa: yang ditulis
+     di dalamnya paling banyak dua digit. Yang TIDAK boleh menyusut adalah
+     nomor dada dan identitasnya di atas — itu yang dibaca saat menyortir
+     tumpukan. */
+  .bl-nilai-banyak { display: flex; gap: 2.5mm; align-items: stretch; }
+  .bl-nilai-banyak .bl-nilai-sel { flex: 1 1 0; min-width: 0; }
+  .bl-nilai-banyak .bl-nilai-judul { font-size: 9pt; }
+  .bl-nilai-banyak .bl-nilai-kotak { min-height: 14mm; }
+  /* Judul kriteria boleh dua baris — "Diagnosis dan Penanganan Awal" tidak
+     muat satu baris pada seperlima lebar A5, dan memotongnya menghilangkan
+     kata yang membedakannya dari kriteria sebelahnya. */
+  .bl-nilai-banyak .bl-nilai-kepala { min-height: 9mm; }
+
   .bl-catatan { margin: 2.5mm 0 0; font-size: 8pt; line-height: 1.3; }
   .bl-ttd { margin: auto 0 0; text-align: center; font-size: 8pt; }
   .bl-garis { margin: 7mm auto 0; width: 70mm; border-bottom: .75pt solid #000; }
