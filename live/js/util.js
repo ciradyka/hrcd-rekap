@@ -60,17 +60,43 @@ const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
 const dua = (n) => String(n).padStart(2, "0");
 
 /** "15:30" — 24 jam. Kosong jadi "—", bukan "NaN:NaN". */
+/* SEMUA jam di layar dibaca dalam WIB, apa pun zona waktu alatnya.
+
+   Sebelumnya getHours() dipakai apa adanya, yang berarti jam yang tampil
+   adalah jam ALAT. Laptop meja IT yang zonanya UTC menampilkan 01:53 untuk
+   pukul 08:53 WIB — dan kotak "Jam berangkat" terisi angka itu sebagai
+   tebakan awal, lalu ditekan panitia yang sedang terburu-buru.
+
+   Jam berangkat menentukan penalti seluruh regu di kloter itu. Tujuh jam
+   meleset bukan salah tampilan; itu seluruh kloter dihitung salah.
+
+   Asia/Jakarta ditulis eksplisit, bukan diserahkan ke locale: satu alat yang
+   zonanya keliru cukup untuk merusak satu kloter, dan tidak ada seorang pun
+   yang akan memeriksa setelan zona waktu laptop pinjaman pada pukul enam
+   pagi. */
+const ZONA = "Asia/Jakarta";
+const FMT_JAM = new Intl.DateTimeFormat("en-GB", {
+  timeZone: ZONA, hour: "2-digit", minute: "2-digit", hour12: false,
+});
+const FMT_TANGGAL = new Intl.DateTimeFormat("en-GB", {
+  timeZone: ZONA, day: "numeric", month: "numeric", year: "numeric",
+});
+
 export function jamMenit(t) {
   if (!t) return "—";
-  const d = new Date(t);
-  return `${dua(d.getHours())}:${dua(d.getMinutes())}`;
+  return FMT_JAM.format(new Date(t));
 }
 
 /** "17 Agustus 2026" */
 export function tanggalPanjang(t) {
   if (!t) return "—";
-  const d = new Date(t);
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+  // Tanggalnya WIB juga, bukan cuma jamnya. tanggalJam() menggabung keduanya,
+  // dan menjelang tengah malam tanggal alat dan jam WIB bisa menunjuk hari
+  // yang berbeda — riwayat yang berbunyi "16 Agustus 06:10" untuk kejadian
+  // tanggal 17 lebih buruk daripada tidak ada tanggal sama sekali.
+  const bagian = {};
+  for (const b of FMT_TANGGAL.formatToParts(new Date(t))) bagian[b.type] = b.value;
+  return `${Number(bagian.day)} ${BULAN[Number(bagian.month) - 1]} ${bagian.year}`;
 }
 
 /** "17 Agustus 2026 15:30" */
@@ -483,10 +509,12 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
         ${kartuHtml}
         ${medan.map((m, i) => `
           <div class="field">
-            <label for="dlg-${i}">${esc(m.label)}</label>
-            <input id="dlg-${i}" type="${m.tipe || "text"}"
+            <label for="dlg-${i}${m.tipe === "jam" ? "-hh" : ""}">${esc(m.label)}</label>
+            ${m.tipe === "jam"
+              ? kotakJamHtml(`dlg-${i}`, m.nilai ?? "")
+              : `<input id="dlg-${i}" type="${m.tipe || "text"}"
                    inputmode="${m.tipe === "number" ? "numeric" : "text"}"
-                   value="${esc(m.nilai ?? "")}" placeholder="${esc(m.contoh ?? "")}">
+                   value="${esc(m.nilai ?? "")}" placeholder="${esc(m.contoh ?? "")}">`}
             ${m.bantuan ? `<div class="hint">${esc(m.bantuan)}</div>` : ""}
           </div>`).join("")}
         <div class="dialog-error error" hidden></div>
@@ -497,17 +525,45 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
         </div>
       </div>`;
 
+    /* tipe "jam" memakai kotak HH:MM buatan sendiri, BUKAN <input type="time">.
+       Pemilih bawaan browser mengikuti locale alatnya, jadi HP berbahasa
+       Inggris menampilkan "07:00 AM" — dan panitia mencatat jam berangkat
+       dalam format 24 jam di kertas. Dua format untuk satu angka adalah cara
+       07:00 dan 19:00 tertukar. */
+    const jamPasang = {};
+    medan.forEach((m, i) => {
+      if (m.tipe === "jam") jamPasang[i] = pasangKotakJam(`dlg-${i}`);
+    });
+
     const tutup = hasil => { el.remove(); resolve(hasil); };
     el.querySelector("[data-batal]")?.addEventListener("click", () => tutup(null));
     el.addEventListener("click", e => { if (e.target === el) tutup(null); });
     el.querySelector("[data-ok]").addEventListener("click", () => {
-      const nilai = medan.map((_, i) => el.querySelector(`#dlg-${i}`).value.trim());
+      const nilai = medan.map((m, i) => m.tipe === "jam"
+        ? (jamPasang[i]?.nilai() ?? "")
+        : el.querySelector(`#dlg-${i}`).value.trim());
+
+      // Jam yang TERISI TAPI TIDAK MASUK AKAL harus ditolak dengan kalimatnya
+      // sendiri. Tanpa ini "99:99" jatuh ke cabang "wajib diisi" — nilai()
+      // mengembalikan null untuk jam ngawur maupun kotak kosong, dan pesan
+      // "wajib diisi" di atas kotak yang jelas-jelas terisi membingungkan.
+      const jamNgawur = medan.findIndex((m, i) => m.tipe === "jam"
+        && !nilai[i] && !jamPasang[i]?.kosong());
+      if (jamNgawur >= 0) {
+        const g = el.querySelector(".dialog-error");
+        g.textContent = `${medan[jamNgawur].label} di luar 00:00–23:59.`;
+        g.hidden = false;
+        jamPasang[jamNgawur].fokus();
+        return;
+      }
+
       const kosong = medan.findIndex((m, i) => m.wajib !== false && !nilai[i]);
       if (kosong >= 0) {
         const g = el.querySelector(".dialog-error");
         g.textContent = `${medan[kosong].label} wajib diisi.`;
         g.hidden = false;
-        el.querySelector(`#dlg-${kosong}`).focus();
+        if (medan[kosong].tipe === "jam") jamPasang[kosong].fokus();
+        else el.querySelector(`#dlg-${kosong}`).focus();
         return;
       }
       tutup(nilai);

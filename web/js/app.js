@@ -1371,9 +1371,9 @@ async function layarKeberangkatan() {
             seluruh regu di Kloter ${kloterAktif}.${tetangga ? ` ${tetangga}.` : ""}</div>
         </div>`,
         medan: [
-          { label: "Jam berangkat yang benar", tipe: "time",
+          { label: "Jam berangkat yang benar", tipe: "jam",
             nilai: jamMenit(info.jam_berangkat) },
-          { label: "Alasan koreksi" },
+          { label: "Alasan koreksi", contoh: "salah input" },
         ],
         labelAksi: "Simpan Koreksi",
       });
