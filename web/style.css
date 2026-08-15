@@ -1103,11 +1103,18 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   padding: .5rem 0; border-bottom: 1px solid var(--garis);
 }
 .riwayat li:last-child { border-bottom: 0; }
-.r-lomba { font-weight: 600; flex: 1 1 8rem; }
+/* Nama lomba yang mengalah, bukan barisnya yang patah. Menaksir bisa bernilai
+   empat digit, dan sebelumnya angka selebar itu mendorong kolom "oleh" turun ke
+   baris kedua — hanya untuk sebagian baris, sehingga daftarnya jadi bergerigi
+   dan justru lebih sulit disapu mata daripada nama yang terpotong. */
+.r-lomba {
+  font-weight: 600; flex: 1 1 6rem; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .r-nilai { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.r-oleh  { color: var(--tinta-lembut); font-size: .82rem; flex: 1 1 100%; }
-@media (min-width: 480px) {
-  .r-oleh { flex: 0 0 auto; text-align: right; }
+.r-oleh  {
+  color: var(--tinta-lembut); font-size: .82rem;
+  white-space: nowrap; margin-left: auto;
 }
 
 .badge-tombol {
