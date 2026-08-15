@@ -203,14 +203,29 @@ input.besar { font-size: 1.45rem; letter-spacing: .05em; text-align: center; min
    kotak selebar layar mengundang orang mengetik kalimat ke dalamnya. Angka
    tabular supaya "11:11" dan "07:45" sama lebarnya dan kolomnya tidak
    bergoyang saat diketik. */
+/* SEPASANG kotak jam: [HH] : [MM]. Dipisah supaya bagian menit bisa diklik
+   dan diperbaiki sendiri; mengetik beruntun tetap jalan karena HH meluap ke MM
+   (pasangKotakJam di util.js). */
+.jam-pasang {
+  display: inline-flex; align-items: center; gap: .3rem;
+}
+.jam-titik {
+  font-size: 1.25rem; font-weight: 700; line-height: 1;
+  /* Sedikit terangkat: titik dua duduk di garis dasar huruf, sementara yang
+     harus disejajarkan adalah TENGAH kotak di kiri-kanannya. */
+  transform: translateY(-.06em);
+}
 input.jam-ketik {
-  width: 7.5em;
+  width: 3.2em;
   max-width: 100%;
   font-variant-numeric: tabular-nums;
   letter-spacing: .08em;
   text-align: center;
 }
-input.jam-ketik.jam-salah {
+/* Merah dipasang di WADAH, bukan salah satu kotak: yang salah adalah jamnya
+   sebagai satu kesatuan. Menyalahkan kotak menit untuk "jam 25" menyuruh
+   petugas membetulkan tempat yang keliru. */
+.jam-pasang.jam-salah input.jam-ketik {
   border-color: var(--bahaya);
   background: var(--bahaya-muda);
 }

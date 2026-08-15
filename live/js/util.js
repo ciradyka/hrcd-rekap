@@ -208,67 +208,134 @@ export function detikTeks(total) {
  *  isinya bukan jam. Membetulkan saat blur, BUKAN saat tiap ketukan — menata
  *  ulang teks di tengah orang mengetik memindahkan kursornya dan membuat
  *  angka berikutnya mendarat di tempat yang salah. */
-/** Titik dua disisipkan SETELAH DUA ANGKA: mengetik 15 langsung jadi "15:",
- *  lalu 03 mengisi menitnya. Dua angka pertama SELALU jam, dua berikutnya
- *  SELALU menit — angka yang sudah diketik tidak pernah berubah arti oleh
- *  angka sesudahnya.
+/** DUA KOTAK JAM: [HH] : [MM], tapi mengetik "1503" beruntun tetap jalan.
  *
- *  SATU PENGECUALIAN, DAN IA MENYELAMATKAN CARA MENGETIK YANG PALING SERING.
+ *  Dua kotak supaya bagian menit bisa diklik dan diperbaiki sendiri tanpa
+ *  mengetik ulang jamnya. Satu kotak tidak bisa memberi itu: mengklik di tengah
+ *  lalu mengetik membuat kursor melompat ke ujung.
  *
- *  Jam tertinggi 23, jadi angka pertama 3-9 MUSTAHIL menjadi awal jam dua
- *  angka. Kalau yang diketik 7, satu-satunya bacaan yang mungkin adalah jam
- *  07 — jadi nolnya dipasangkan saat itu juga, dan "745" jadi "07:45".
+ *  Yang tidak boleh hilang karena pemisahan itu adalah mengetik beruntun.
+ *  Petugas keberangkatan mengetik empat angka tanpa melihat layar, dan memaksa
+ *  mereka berpindah kotak di tengah akan lebih lambat daripada sebelumnya. Jadi
+ *  HH MELUAP sendiri ke MM begitu ia penuh.
  *
- *  Tanpa pengecualian itu "745" akan jadi "74:5" dan ditolak, padahal itulah
- *  bentuk yang paling sering diketik petugas untuk jam pagi — dan lomba ini
- *  berangkat pukul tujuh.
+ *  KAPAN HH DIANGGAP PENUH — dan di sinilah satu aturan menyelamatkan bentuk
+ *  ketikan yang paling sering:
+ *
+ *    dua angka           -> penuh. "15" lalu lompat.
+ *    satu angka 3-9      -> penuh JUGA, dan dijadikan "07".
+ *
+ *  Jam tertinggi 23, jadi angka pertama 3-9 mustahil menjadi awal jam dua
+ *  angka: kalau yang diketik 7, satu-satunya bacaan yang mungkin adalah 07.
+ *  Karena itu "745" jadi 07:45 — bentuk yang paling sering diketik untuk jam
+ *  pagi, dan lomba ini berangkat pukul tujuh.
  *
  *  Yang dikorbankan: "250" tidak lagi terbaca 2:50, karena angka pertama 2
  *  memang bisa menjadi awal jam 20-23. Jam dua pagi tidak pernah terjadi di
  *  lomba yang berangkat pukul 07.00 dan selesai sore.
- *
- *  Dibatasi empat angka. Jam mana pun muat, dan angka kelima yang diterima
- *  diam-diam cuma akan ditolak saat kotaknya ditinggalkan. */
-export function maskJam(teks) {
-  let angka = String(teks ?? "").replace(/\D/g, "");
-  if (angka.length && Number(angka[0]) > 2) angka = "0" + angka;
-  angka = angka.slice(0, 4);
-  if (angka.length < 2) return angka;
-  return `${angka.slice(0, 2)}:${angka.slice(2)}`;
+ */
+
+/** Markup sepasang kotak jam. `id` jadi patokan: `<id>-hh` dan `<id>-mm`. */
+export function kotakJamHtml(id, nilai = "") {
+  const [hh = "", mm = ""] = String(nilai || "").split(":");
+  return `<span class="jam-pasang" id="${id}">
+    <input type="text" class="jam-ketik jam-hh" id="${id}-hh" value="${hh}"
+           inputmode="numeric" maxlength="2" autocomplete="off"
+           spellcheck="false" placeholder="HH" aria-label="Jam">
+    <span class="jam-titik" aria-hidden="true">:</span>
+    <input type="text" class="jam-ketik jam-mm" id="${id}-mm" value="${mm}"
+           inputmode="numeric" maxlength="2" autocomplete="off"
+           spellcheck="false" placeholder="MM" aria-label="Menit">
+  </span>`;
 }
 
-
-/** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
- *  menyisipkan titik dua sambil diketik, membetulkan bentuknya saat kotak
- *  ditinggalkan, dan menandainya merah kalau isinya bukan jam.
+/** Menyalakan sepasang kotak jam dan mengembalikan kendalinya.
  *
- *  MENGHAPUS TIDAK IKUT DIRAPIKAN, dan itu bukan kelalaian. Kalau setiap
- *  ketukan dirapikan termasuk backspace, menghapus satu huruf dari "15:03"
- *  menyisakan "15:0" yang lalu dibaca ulang jadi "1:50" — angka berubah
- *  sendiri di bawah jari orang yang sedang membetulkannya. Jadi saat
- *  menghapus, isinya dibiarkan apa adanya sampai kotaknya ditinggalkan. */
-export function pasangKotakJam(el) {
-  if (!el) return;
-  const nilai = () => jamSah(el.value);
-  el.addEventListener("blur", () => {
-    if (!el.value.trim()) { el.classList.remove("jam-salah"); return; }
-    const v = nilai();
-    if (v) { el.value = v; el.classList.remove("jam-salah"); }
-    else el.classList.add("jam-salah");
-  });
-  el.addEventListener("input", (e) => {
-    if (!String(e.inputType || "").startsWith("delete")) {
-      const rapi = maskJam(el.value);
-      if (rapi !== el.value) {
-        el.value = rapi;
-        // Kursor ke ujung. Kotak selebar lima huruf tidak dipakai menyunting
-        // di tengah, dan kursor yang melompat ke tempat tak terduga lebih
-        // membingungkan daripada mengetik ulang empat angka.
-        try { el.setSelectionRange(rapi.length, rapi.length); } catch { /* input tanpa seleksi */ }
-      }
+ *  Sengaja BUKAN objek yang menyamar jadi <input>. Layar memanggil nilai() dan
+ *  setNilai() dengan nama itu, jadi terbaca bahwa yang dipegang adalah sepasang
+ *  kotak — bukan satu kotak yang kebetulan punya titik dua. */
+export function pasangKotakJam(id) {
+  const wadah = document.getElementById(id);
+  if (!wadah) return null;
+  const hh = document.getElementById(`${id}-hh`);
+  const mm = document.getElementById(`${id}-mm`);
+  const pendengar = [];
+
+  const gabung = () => `${hh.value.trim()}${mm.value.trim()}`;
+  const nilai = () => jamSah(gabung());
+
+  const tandai = () => {
+    const kosong = !hh.value.trim() && !mm.value.trim();
+    const buruk = !kosong && !nilai();
+    // Merah dipasang di WADAH, bukan di salah satu kotak: yang salah adalah
+    // jamnya sebagai satu kesatuan, dan menyalahkan kotak menit untuk jam 25
+    // menyuruh petugas membetulkan tempat yang benar.
+    wadah.classList.toggle("jam-salah", buruk);
+    return !buruk;
+  };
+
+  const beri = (fn) => { pendengar.forEach(fn); };
+
+  hh.addEventListener("input", () => {
+    const angka = hh.value.replace(/\D/g, "");
+    // Ketikan beruntun / tempel: sisanya dijatuhkan ke menit, bukan dibuang.
+    if (angka.length > 2) {
+      hh.value = angka.slice(0, 2);
+      mm.value = angka.slice(2, 4);
+      mm.focus(); mm.setSelectionRange(mm.value.length, mm.value.length);
+    } else if (angka.length === 2) {
+      hh.value = angka; mm.focus(); mm.select();
+    } else if (angka.length === 1 && Number(angka) > 2) {
+      hh.value = `0${angka}`; mm.focus(); mm.select();
+    } else {
+      hh.value = angka;
     }
-    if (nilai() || !el.value.trim()) el.classList.remove("jam-salah");
+    tandai(); beri(f => f());
   });
+
+  mm.addEventListener("input", () => {
+    mm.value = mm.value.replace(/\D/g, "").slice(0, 2);
+    tandai(); beri(f => f());
+  });
+
+  // Backspace di menit yang sudah kosong melompat balik ke jam. Tanpa itu
+  // petugas harus mengangkat tangan dari papan angka untuk mengetuk kotak
+  // sebelahnya — satu-satunya gerakan yang tidak bisa dilakukan sambil menatap
+  // regu di depan meja.
+  mm.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && mm.value === "") {
+      hh.focus(); hh.setSelectionRange(hh.value.length, hh.value.length);
+    }
+  });
+
+  // Dirapikan saat SEPASANG kotak ini ditinggalkan, bukan saat pindah antar
+  // keduanya: "7" di jam belum tentu salah, ia mungkin sedang menuju "07".
+  const rapikan = () => {
+    setTimeout(() => {
+      if (document.activeElement === hh || document.activeElement === mm) return;
+      const v = nilai();
+      if (v) { [hh.value, mm.value] = v.split(":"); }
+      tandai();
+    }, 0);
+  };
+  hh.addEventListener("blur", rapikan);
+  mm.addEventListener("blur", rapikan);
+
+  return {
+    nilai,
+    setNilai(v) {
+      const [a = "", b = ""] = String(v || "").split(":");
+      hh.value = a; mm.value = b; tandai();
+    },
+    kosong: () => !hh.value.trim() && !mm.value.trim(),
+    salah(ya) { wadah.classList.toggle("jam-salah", !!ya); },
+    fokus() { hh.focus(); hh.select(); },
+    dengar(fn) { pendengar.push(fn); },
+    // Peristiwa DOM dipasang ke KEDUA kotak. Enter di kotak menit harus
+    // menyimpan sama seperti Enter di kotak jam — petugas tidak boleh perlu
+    // tahu kotak mana yang sedang aktif.
+    pada(nama, fn) { hh.addEventListener(nama, fn); mm.addEventListener(nama, fn); },
+  };
 }
 
 /** Notifikasi bawah layar.

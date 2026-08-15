@@ -24,7 +24,8 @@ import {
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
-         berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks } from "./util.js";
+         berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
+         kotakJamHtml } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -1165,11 +1166,7 @@ async function layarKeberangkatan() {
                    browser merender AM/PM kalau locale browsernya Inggris, dan
                    tidak ada atribut yang bisa memaksanya 24 jam. Lihat
                    jamSah() di util.js. -->
-              <input type="text" id="jam-berangkat" class="jam-ketik"
-                     inputmode="numeric" maxlength="5" autocomplete="off"
-                     spellcheck="false" placeholder="HH:MM"
-                     aria-describedby="hint-jam-berangkat"
-                     value="${jamMenit(new Date())}">
+              ${kotakJamHtml("jam-berangkat", jamMenit(new Date()))}
               <div class="hint" id="hint-jam-berangkat">24 jam · 00:00–23:59</div>
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
@@ -1345,24 +1342,25 @@ async function layarKeberangkatan() {
       gambarKloter();
     });
 
-    const kotakJamBerangkat = document.getElementById("jam-berangkat");
-    pasangKotakJam(kotakJamBerangkat);
+    const kotakJamBerangkat = pasangKotakJam("jam-berangkat");
 
     const tombol = document.getElementById("aksi-berangkat");
     if (tombol) tombol.addEventListener("click", async () => {
       if (tombol.dataset.jalan === "1") return;
-      const mentah = kotakJamBerangkat.value.trim();
-      if (!mentah) { notif("Jam berangkat wajib diisi.", true); return; }
+      if (kotakJamBerangkat.kosong()) {
+        notif("Jam berangkat wajib diisi.", true); return;
+      }
       // Ditolak, bukan ditebak. Jam berangkat menentukan penalti seluruh
-      // kloter — menebak maksud "1975" akan menghukum sepuluh regu sekaligus.
-      const hhmm = jamSah(mentah);
+      // kloter — menebak maksud "19:75" akan menghukum sepuluh regu sekaligus.
+      const hhmm = kotakJamBerangkat.nilai();
       if (!hhmm) {
-        kotakJamBerangkat.classList.add("jam-salah");
-        kotakJamBerangkat.focus();
-        notif(`"${mentah}" bukan jam yang sah. Pakai 00:00–23:59, misalnya 07:15.`, true);
+        kotakJamBerangkat.salah(true);
+        kotakJamBerangkat.fokus();
+        notif("Jam berangkat belum lengkap atau di luar 00:00–23:59. "
+              + "Contoh: 07:15.", true);
         return;
       }
-      kotakJamBerangkat.value = hhmm;
+      kotakJamBerangkat.setNilai(hhmm);
       tombol.dataset.jalan = "1"; tombol.disabled = true; tombol.textContent = "Menyimpan…";
       try {
         await berangkatkanKloter(kloterAktif, jamHariIni(hhmm).toISOString());
@@ -1592,9 +1590,7 @@ function layarFinish() {
             <label for="jam">Jam datang</label>
             <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
                  browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. -->
-            <input type="text" id="jam" class="jam-ketik" inputmode="numeric"
-                   maxlength="5" autocomplete="off" spellcheck="false"
-                   placeholder="HH:MM">
+            ${kotakJamHtml("jam")}
             <div class="hint">24 jam · kosong = jam saat tombol ditekan.</div>
           </div>
           <div class="field" style="margin:0">
@@ -1616,7 +1612,7 @@ function layarFinish() {
   const inp = document.getElementById("dada");
   const kotak = document.getElementById("kartu-regu");
   const tombol = document.getElementById("sampai");
-  const inpJam = document.getElementById("jam");
+  const inpJam = pasangKotakJam("jam");
   const inpHadir = document.getElementById("hadir");
   let regu = null;
   let jeda = null;
@@ -1624,9 +1620,11 @@ function layarFinish() {
   inp.focus();
   gambarRiwayat();
 
-  [inpJam, inpHadir].forEach(el => el.addEventListener("keydown", e => {
+  const enter = (e) => {
     if (e.key === "Enter" && !tombol.disabled) { e.preventDefault(); tombol.click(); }
-  }));
+  };
+  inpJam.pada("keydown", enter);
+  inpHadir.addEventListener("keydown", enter);
 
   // Angka penalti dipakai untuk menjawab pertanyaan yang sebenarnya saat
   // membandingkan catatan kertas dengan jam tombol: bukan "beda berapa menit",
@@ -1653,7 +1651,7 @@ function layarFinish() {
     // Setengah jam yang sedang diketik ("07" menuju "07:15") bukan jam, dan
     // menghitung dampak dari angka setengah jadi membuat lencananya
     // berkedip-kedip menampilkan penalti yang tidak pernah berlaku.
-    const isi = jamSah(inpJam.value);
+    const isi = inpJam.nilai();
     const jamIsi = isi ? jamHariIni(isi) : dasar;
     const pDasar = hitungPenalti(dasar, regu.target_datang);
     const pIsi = hitungPenalti(jamIsi, regu.target_datang);
@@ -1673,12 +1671,11 @@ function layarFinish() {
       ? html`<span class="badge badge-green">${arah} — penalti tetap ${tulis(pIsi)}</span>`
       : html`<span class="badge badge-yellow">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
   };
-  inpJam.addEventListener("input", perbaruiDampak);
-  pasangKotakJam(inpJam);
+  inpJam.dengar(perbaruiDampak);
   // Bentuknya dirapikan saat kotak ditinggalkan, jadi lencana dampaknya ikut
   // dihitung ulang sesudah itu — tanpa ini "745" yang jadi "07:45" saat blur
   // meninggalkan lencana menampilkan hitungan dari teks yang sudah tidak ada.
-  inpJam.addEventListener("blur", perbaruiDampak);
+
 
   const bersihkan = () => {
     regu = null;
@@ -1746,7 +1743,7 @@ function layarFinish() {
     // Regu yang sudah tercatat: tampilkan jam lamanya di kolom perbaikan,
     // supaya verifikasi terhadap kertas tinggal membandingkan lalu mengubah.
     if (r.sudah_finish && r.jam_datang) {
-      inpJam.value = jamMenit(r.jam_datang);
+      inpJam.setNilai(jamMenit(r.jam_datang));
       inpHadir.value = r.anggota_hadir ?? 5;
     }
     perbaruiDampak();
@@ -1765,12 +1762,12 @@ function layarFinish() {
     // bukan diam-diam dilewati: petugas mengetiknya justru karena jam tombol
     // salah, dan menyimpan jam tombol setelah ia mengetik yang lain adalah
     // membuang koreksi yang sedang dia kerjakan.
-    const jamKetikan = inpJam.value.trim();
-    const jamIsi = jamKetikan ? jamSah(jamKetikan) : null;
-    if (jamKetikan && !jamIsi) {
-      inpJam.classList.add("jam-salah");
-      inpJam.focus();
-      notif(`"${jamKetikan}" bukan jam yang sah. Pakai 00:00–23:59, atau kosongkan.`, true);
+    const jamIsi = inpJam.kosong() ? null : inpJam.nilai();
+    if (!inpJam.kosong() && !jamIsi) {
+      inpJam.salah(true);
+      inpJam.fokus();
+      notif("Jam datang belum lengkap atau di luar 00:00–23:59. "
+            + "Kosongkan untuk memakai jam saat tombol ditekan.", true);
       return;
     }
     tombol.dataset.jalan = "1"; tombol.disabled = true;
@@ -1791,7 +1788,7 @@ function layarFinish() {
     catatTerakhir("finish", String(dada).padStart(3, "0"),
       `${nama} — ${jamMenit(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
     tombol.dataset.jalan = "";
-    inp.value = ""; inpJam.value = ""; inpHadir.value = "5";
+    inp.value = ""; inpJam.setNilai(""); inpHadir.value = "5";
     bersihkan(); inp.focus();
     gambarRiwayat();
     notif(`${String(dada).padStart(3, "0")} tercatat ${jamMenit(jam)}.`);
