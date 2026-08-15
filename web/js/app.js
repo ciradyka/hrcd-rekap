@@ -1083,8 +1083,22 @@ async function layarKeberangkatan() {
 
   const gambarPita = () => {
     document.getElementById("pita-kloter").replaceChildren(h(papan.map(k => {
-      const label = { berangkat: "berangkat", siap: "siap",
-                      konfirmasi_kontrak: "kontrak", menunggu: "menunggu" }[k.posisi] || "";
+      /* Kloter yang SUDAH berangkat menampilkan JAMNYA, bukan kata
+         "berangkat".
+
+         Kata itu tidak menambah apa pun — chip-nya sudah berwarna hijau
+         "berangkat", dan angka ceklis di sebelahnya sudah penuh. Sementara
+         jamnya adalah hal yang justru dicari, dan sebelumnya hanya bisa
+         dilihat dengan MENGETUK kloternya satu per satu lalu membaca pitanya.
+
+         Panitia memeriksa jadwal keberangkatan dari luar — berdiri di garis
+         start, melihat kloter mana berangkat pukul berapa, tanpa membuka
+         satu-satu. Datanya sudah ikut di v_keberangkatan sejak awal; layar ini
+         saja yang membuangnya. */
+      const label = k.jam_berangkat
+        ? jamMenit(k.jam_berangkat)
+        : ({ siap: "siap", konfirmasi_kontrak: "kontrak",
+             menunggu: "menunggu" }[k.posisi] || "");
       return html`
         <button type="button" class="kloter-chip ${k.posisi}"
                 data-kloter="${k.nomor}" aria-pressed="${k.nomor === kloterAktif}">
