@@ -21,7 +21,7 @@ import {
   batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
-  unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenPratinjau,
+  unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
@@ -254,8 +254,8 @@ async function layarHome() {
         <div class="description">Lembar penilaian tiap pos — admin boleh membuka pos mana pun</div>
       </a>` : ""}
       ${peran === "admin" ? `
-      <a href="#/pratinjau">
-        <div class="function-name">🥇 Pratinjau Rekap Live</div>
+      <a href="#/live-score">
+        <div class="function-name">🥇 Live Score</div>
         <div class="description">Persis yang akan dilihat peserta — kemajuan input dan klasemen bermedali, sebelum diumumkan</div>
       </a>` : ""}
       <a href="#/rekap">
@@ -3978,7 +3978,7 @@ async function layarRekap() {
   mulaiDenyut();
 }
 
-/* ==================== PRATINJAU REKAP LIVE (ADMIN) ======================= */
+/* ======================= LIVE SCORE (ADMIN) ============================== */
 
 /** Persis yang akan dilihat peserta, dibuka lebih awal untuk admin saja.
  *
@@ -3988,21 +3988,21 @@ async function layarRekap() {
  *  yang sudah beredar ke ratusan orang. Tidak ada tombol "hanya untuk saya"
  *  di berkas statis — begitu terbit, ia terbit untuk semua.
  *
- *  Jadi pratinjaunya tinggal di situs panitia, di balik login yang sudah ada,
+ *  Jadi Live Score tinggal di situs panitia, di balik login yang sudah ada,
  *  membaca database langsung. Yang dilihat admin sama persis, yang dilihat
  *  peserta belum berubah sama sekali. */
-async function layarPratinjauLive() {
-  pasangKepala("Pratinjau Rekap Live", true);
+async function layarLiveScore() {
+  pasangKepala("Live Score", true);
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
 
   let pos, klasemen, status;
   try {
     [pos, klasemen, status] = await Promise.all([
-      kelengkapanPos(), klasemenPratinjau(), statusAcara(),
+      kelengkapanPos(), klasemenLiveScore(), statusAcara(),
     ]);
   } catch (e) {
-    LAYAR.replaceChildren(kartuGagalMuat(e.message, layarPratinjauLive));
+    LAYAR.replaceChildren(kartuGagalMuat(e.message, layarLiveScore));
     return;
   }
   if (location.hash !== layarIni) return;
@@ -4044,18 +4044,31 @@ async function layarPratinjauLive() {
     </div>`;
 
   const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
-  const golongan = [...new Set(klasemen.map(k => k.golongan))];
-
+  /* KEEMPAT golongan selalu digambar, dengan urutan tetap — bukan hanya yang
+     kebetulan sudah punya baris.
+     Empat golongan berlomba TERPISAH: masing-masing punya juara sendiri, dan
+     tidak ada satu pun peringkat yang membandingkan Penggalang dengan
+     Penegak. Menggambar hanya golongan yang sudah terisi membuat papannya
+     berubah bentuk sepanjang hari — Penegak PI muncul belakangan lalu
+     menggeser semuanya — dan yang lebih buruk, golongan yang belum satu pun
+     regunya masuk terlihat seperti golongan yang tidak ada. */
   const papan = !klasemen.length
     ? `<div class="card"><p class="description">Belum ada regu yang bisa
-         diperingkat. Klasemen baru terisi setelah ada regu yang kloternya
-         sudah berangkat dan nilainya masuk.</p></div>`
-    : golongan.map(g => {
+         diperingkat di golongan mana pun. Klasemen baru terisi setelah ada
+         regu yang kloternya sudah berangkat dan nilainya masuk.</p></div>`
+    : Object.keys(GOLONGAN_LABEL).map(g => {
         const baris = klasemen.filter(k => k.golongan === g);
         const juara = baris.filter(k => k.peringkat <= 3);
+        if (!baris.length) return `
+        <div class="card">
+          <h2>${esc(GOLONGAN_LABEL[g])}</h2>
+          <p class="description">Belum ada regu golongan ini yang bisa
+            diperingkat.</p>
+        </div>`;
         return `
         <div class="card">
-          <h2>${esc(GOLONGAN_LABEL[g] || g)}</h2>
+          <h2>${esc(GOLONGAN_LABEL[g])}
+            <span class="sub">${esc(String(baris.length))} regu diperingkat</span></h2>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
@@ -4105,7 +4118,7 @@ async function layarPratinjauLive() {
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
-      <h2>Pratinjau — hanya admin</h2>
+      <h2>Live Score — hanya admin</h2>
       <p class="description">Ini yang <strong>akan</strong> dilihat peserta.
         Halaman peserta sendiri belum berubah: fase sekarang
         <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
@@ -4128,7 +4141,7 @@ const RUTE = {
   "#/finish": layarFinish,
   "#/pos": layarInputPos,
   "#/rekap": layarRekap,
-  "#/pratinjau": layarPratinjauLive,
+  "#/live-score": layarLiveScore,
   "#/ganti-password": layarGantiPassword,
 };
 

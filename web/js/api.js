@@ -551,15 +551,16 @@ export const simpanNilaiPos = (baris, pos) =>
 export const hapusNilaiPos = (nomorDada, kode, pos) =>
   rpc("hapus_nilai_pos", { p_nomor_dada: nomorDada, p_kode: kode, p_pos: pos });
 
-/** Klasemen yang AKAN dilihat peserta, dibuka lebih awal untuk admin (0049).
+/** Klasemen yang AKAN dilihat peserta, dibuka lebih awal untuk admin
+ *  (0049, dinamai ulang 0050).
  *
  *  Bukan `v_klasemen_publik`: view itu dipagari `fase_live = 'penuh'` dan
  *  pagar itu yang menahan hasil lomba supaya tidak bocor sebelum diumumkan.
  *  Yang ini dipagari peran, dan hanya admin yang mendapat baris. */
-export async function klasemenPratinjau() {
-  if (K.mode === "dev") return baca("/klasemen-pratinjau");
+export async function klasemenLiveScore() {
+  if (K.mode === "dev") return baca("/klasemen-live-score");
   return baca(null,
-    "v_klasemen_pratinjau?select=*&order=golongan.asc,peringkat.asc");
+    "v_klasemen_live_score?select=*&order=golongan.asc,peringkat.asc");
 }
 
 /* ============================ FOTO LEMBAR =============================== */
