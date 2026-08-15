@@ -550,3 +550,101 @@ export const simpanNilaiPos = (baris, pos) =>
  *  sel kosong berarti "belum dinilai", bukan "hapus". */
 export const hapusNilaiPos = (nomorDada, kode, pos) =>
   rpc("hapus_nilai_pos", { p_nomor_dada: nomorDada, p_kode: kode, p_pos: pos });
+
+/* ============================ FOTO LEMBAR =============================== */
+
+/* Salinan slip penilaian di server (migrasi 0047). Kertas hilang; foto tidak.
+   Difoto petugas IT dengan HP sambil mengetik, jadi fotonya tertaut sendiri ke
+   nomor dada dan lomba yang tepat.
+
+   Gambar TIDAK lewat rpc/baca di atas: keduanya mengirim dan menerima JSON,
+   sedangkan ini mengunggah biner ke Storage — endpoint, header, dan bentuk
+   jawabannya semuanya berbeda. Dibuat jalur sendiri, bukan dengan menambah
+   cabang ke pembungkus yang sudah ada. */
+
+const BUCKET = "lembar";
+
+/** Nama objek di bucket. Prefiks pertama WAJIB `pos<n>` — itulah yang dipagari
+ *  policy storage.objects, dan RPC catat_foto_lembar menolak path yang tidak
+ *  cocok dengan posnya. */
+export function namaObjekFoto(pos, kodeLomba, nomorDada) {
+  const acak = Math.random().toString(36).slice(2, 8);
+  return `pos${pos}/${kodeLomba}/` +
+         `${String(nomorDada).padStart(3, "0")}-${Date.now()}-${acak}.jpg`;
+}
+
+/** Unggah satu gambar, lalu catat barisnya.
+ *
+ *  Urutannya disengaja: gambar dulu, baris sesudahnya. Baris tanpa gambar
+ *  adalah kebohongan — layar bilang "sudah difoto" padahal tidak ada apa-apa.
+ *  Gambar tanpa baris cuma berkas yatim yang masih bisa ditemukan lewat
+ *  path-nya, dan tidak merugikan siapa pun. */
+export async function unggahFotoLembar(pos, kodeLomba, namaLomba, nomorDada, blob) {
+  const path = namaObjekFoto(pos, kodeLomba, nomorDada);
+
+  if (K.mode === "dev") {
+    // Dev server tidak punya Storage. Barisnya tetap dicatat supaya alur
+    // layarnya bisa dicoba tanpa Supabase.
+    await rpc("catat_foto_lembar", {
+      p_nomor_dada: nomorDada, p_pos: pos, p_kode_lomba: kodeLomba,
+      p_nama_lomba: namaLomba, p_path: path, p_ukuran: blob.size,
+    });
+    return { path, ukuran: blob.size };
+  }
+
+  await pastikanSesiSegar();
+  const s = sesi();
+  await kirim(`${K.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: K.anonKey,
+      Authorization: `Bearer ${s && s.token ? s.token : K.anonKey}`,
+      "Content-Type": "image/jpeg",
+      "x-upsert": "false",
+    },
+    body: blob,
+  });
+
+  await rpc("catat_foto_lembar", {
+    p_nomor_dada: nomorDada, p_pos: pos, p_kode_lomba: kodeLomba,
+    p_nama_lomba: namaLomba, p_path: path, p_ukuran: blob.size,
+  });
+  return { path, ukuran: blob.size };
+}
+
+/** Foto satu regu di satu pos, terbaru dulu. */
+export async function daftarFotoLembar(pos, nomorDada) {
+  if (K.mode === "dev") {
+    return baca(`/foto-lembar?pos=${encodeURIComponent(pos)}` +
+                `&dada=${encodeURIComponent(nomorDada)}`);
+  }
+  return baca(null,
+    `v_foto_lembar?pos=eq.${encodeURIComponent(pos)}` +
+    `&nomor_dada=eq.${encodeURIComponent(nomorDada)}` +
+    `&select=*&order=diunggah_pada.desc`);
+}
+
+/** Link sementara untuk melihat satu foto. Bucket-nya privat, jadi tidak ada
+ *  URL tetap — dan itu memang yang diinginkan: link yang tidak kedaluwarsa
+ *  akan beredar di WhatsApp selamanya. Satu jam cukup untuk melihatnya. */
+export async function tautanFoto(path) {
+  if (K.mode === "dev") return null;
+  await pastikanSesiSegar();
+  const j = await kirim(`${K.supabaseUrl}/storage/v1/object/sign/${BUCKET}/${path}`, {
+    method: "POST",
+    headers: kepalaSupabase(),
+    body: JSON.stringify({ expiresIn: 3600 }),
+  });
+  return `${K.supabaseUrl}/storage/v1${j.signedURL || j.signedUrl}`;
+}
+
+/** Pemakaian kuota. Dibaca layar supaya kehabisan ruang tidak jadi kejutan di
+ *  tengah acara — dan supaya rata-rata yang membengkak (tanda pengecilan
+ *  gambar gagal di sebagian HP) terlihat sebagai angka, bukan sebagai
+ *  unggahan yang tiba-tiba ditolak semua. */
+export async function kuotaFoto() {
+  const d = K.mode === "dev"
+    ? await baca("/kuota-foto")
+    : await baca(null, "v_kuota_foto?select=*");
+  return Array.isArray(d) ? d[0] : d;
+}

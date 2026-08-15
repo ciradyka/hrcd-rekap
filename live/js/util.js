@@ -533,3 +533,77 @@ export function kartuGagalMuat(pesan, saatCobaLagi) {
   frag.querySelector("[data-ulang]").addEventListener("click", saatCobaLagi);
   return frag;
 }
+
+/* ---------- gambar ----------
+
+   Foto slip penilaian TIDAK PERNAH diunggah apa adanya. Satu acara berisi
+   ~5.500 slip; kalau tiap foto 4 MB seperti keluaran kamera HP, seluruhnya
+   22 GB — dua puluh dua kali kuota yang ada.
+
+   Yang dibuang tidak membawa informasi apa pun:
+
+     warna       slip adalah tinta hitam di kertas putih
+     resolusi    12 MP untuk membaca angka setinggi satu sentimeter
+     mutu JPEG   detail yang hilang di mutu 0,6 adalah tekstur kertas
+
+   Sisanya ~50-90 KB per foto, dan angkanya tetap terbaca jelas: pada 1400 px
+   melintang selembar A5 (210 mm), satu digit setinggi 10 mm masih 67 piksel.
+
+   Kalau hasilnya masih di atas 150 KB — foto ruangan gelap penuh derau, yang
+   tidak bisa dimampatkan JPEG — dicoba sekali lagi dengan mutu lebih rendah.
+   Sekali, bukan sampai muat: gelung yang mengejar ukuran akan menurunkan mutu
+   tanpa batas demi angka, dan foto yang tidak terbaca bukan backup.          */
+
+const SISI_MAKS = 1400;
+const MUTU_AWAL = 0.6;
+const MUTU_ULANG = 0.45;
+const TARGET_BYTES = 150 * 1024;
+
+/** Kecilkan + abu-abukan satu foto jadi Blob JPEG siap unggah.
+ *  Melempar Error kalau berkasnya bukan gambar yang bisa dibaca browser. */
+export async function kecilkanFoto(file) {
+  let gambar;
+  try {
+    gambar = await createImageBitmap(file);
+  } catch {
+    throw new Error("Berkas ini tidak bisa dibaca sebagai gambar. Coba foto ulang.");
+  }
+
+  const skala = Math.min(1, SISI_MAKS / Math.max(gambar.width, gambar.height));
+  const lebar = Math.max(1, Math.round(gambar.width * skala));
+  const tinggi = Math.max(1, Math.round(gambar.height * skala));
+
+  const kanvas = document.createElement("canvas");
+  kanvas.width = lebar;
+  kanvas.height = tinggi;
+  const ktx = kanvas.getContext("2d");
+  // Latar putih lebih dulu: PNG/HEIC dengan alpha akan jadi hitam pekat di
+  // JPEG kalau kanvasnya dibiarkan transparan, dan slip hitam total tidak
+  // bisa dibaca siapa pun.
+  ktx.fillStyle = "#fff";
+  ktx.fillRect(0, 0, lebar, tinggi);
+  ktx.filter = "grayscale(1)";
+  ktx.drawImage(gambar, 0, 0, lebar, tinggi);
+  if (gambar.close) gambar.close();
+
+  const jadikan = (mutu) => new Promise((selesai, gagal) => {
+    kanvas.toBlob(b => b ? selesai(b) : gagal(new Error("Gagal memproses gambar.")),
+                  "image/jpeg", mutu);
+  });
+
+  let blob = await jadikan(MUTU_AWAL);
+  if (blob.size > TARGET_BYTES) {
+    const lagi = await jadikan(MUTU_ULANG);
+    if (lagi.size < blob.size) blob = lagi;
+  }
+  return blob;
+}
+
+/** "83 KB", "1,4 MB" — dipakai layar foto supaya pemakaian kuota terbaca
+ *  tanpa menghitung apa pun di kepala. */
+export function ukuranRapi(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1048576).toFixed(1).replace(".", ",")} MB`;
+}
