@@ -21,12 +21,13 @@ import {
   batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
+  unggahFotoLembar, daftarFotoLembar, tautanFoto,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
-         kotakJamHtml } from "./util.js";
+         kotakJamHtml, kecilkanFoto, ukuranRapi } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -2488,6 +2489,7 @@ async function layarInputPos() {
                   <span class="kolom-petunjuk">${esc(kol.petunjuk)}</span></th>`).join("")}
               <th class="text-center">Nilai<br>${esc(pos.bayangan ? pos.name : `Pos ${pos.nomor}`)}</th>
               <th class="text-center"><span class="visually-hidden">Status simpan</span></th>
+              <th class="text-center"><span class="visually-hidden">Foto</span></th>
               <th class="text-center"><span class="visually-hidden">Gembok</span></th>
             </tr>
           </thead>
@@ -2520,8 +2522,21 @@ async function layarInputPos() {
       }).join("")}
       <td class="text-center pos-nilai" data-label="Nilai Pos">${esc(angkaRapi(r.nilai_pos))}</td>
       <td class="pos-status" data-label=""></td>
+      <td class="pos-foto text-center" data-label="">
+        <button type="button" class="badge badge-tombol" data-foto
+          title="Foto slip penilaian regu ini">📷</button></td>
       <td class="pos-gembok" data-label=""></td>
     </tr>`).join("")));
+
+  /* Kamera dipasang lewat satu pendengar di tbody, bukan satu per baris.
+     Tombolnya digambar sekali di template dan tidak pernah digambar ulang —
+     berbeda dengan gembok dan penanda simpan, yang berganti rupa mengikuti
+     keadaan barisnya. Menempelkan ~300 pendengar untuk tombol yang tidak
+     pernah berubah adalah ongkos yang tidak dibayar apa-apa. */
+  tbody.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-foto]");
+    if (b) bukaFoto(b.closest("tr"));
+  });
 
   /* ---------- keadaan simpan per baris ----------
 
@@ -2717,6 +2732,134 @@ async function layarInputPos() {
         document.querySelectorAll(".dialog .riwayat li").forEach(li => {
           li.hidden = !!pilih && li.dataset.lomba !== pilih;
         });
+      });
+    }
+
+    await janji;
+  }
+
+  /** Slug lomba dari NAMANYA, bukan dari kode wahana.
+   *
+   *  Satu slip = satu lomba, tapi satu lomba bisa punya beberapa baris wahana:
+   *  Bidai lima kriteria di satu kertas, Tebak Simpul satu baris per golongan.
+   *  Kode wahana karena itu bukan penanda selembar kertas — namanya yang
+   *  justru satu, dan itulah yang sudah dipakai kolomPos() mengelompokkan. */
+  const slugLomba = (nama) => String(nama).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
+
+  /** Foto slip penilaian satu regu — satu foto per lomba (migrasi 0047).
+   *
+   *  Kertas berpindah tangan dari pos ke kotak ke meja IT, dan begitu hilang
+   *  tidak ada apa pun yang bisa memulihkan angkanya. Difoto di sini, di meja
+   *  IT, karena di sinilah fotonya tertaut sendiri ke nomor dada dan lomba
+   *  yang tepat — petugas baru saja mengetiknya.
+   *
+   *  Gembok TIDAK mematikan tombol ini. Mengunci berarti angkanya final;
+   *  fotonya justru bukti untuk angka final itu, dan menolak bukti setelah
+   *  putusan adalah urutan yang terbalik. */
+  async function bukaFoto(tr) {
+    const dada = Number(tr.dataset.dada);
+    const namaRegu = tr.children[1].textContent.trim();
+    const tiga = String(dada).padStart(3, "0");
+
+    let sudah = [];
+    try {
+      sudah = await daftarFotoLembar(pos.nomor, dada);
+    } catch (err) {
+      notif(`Daftar foto tidak bisa dibaca: ${err.message}`, true);
+    }
+
+    const hitung = {};
+    const terbaru = {};
+    sudah.forEach(f => {
+      hitung[f.kode_lomba] = (hitung[f.kode_lomba] || 0) + 1;
+      if (!terbaru[f.kode_lomba]) terbaru[f.kode_lomba] = f.path;   // sudah urut terbaru dulu
+    });
+
+    const lomba = [...new Map(kolom.map(k => [slugLomba(k.nama), k.nama]))];
+
+    const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => html`
+      <li data-kode="${kode}" data-nama="${nama}">
+        <span class="f-nama">${nama}</span>
+        <span class="f-jumlah" data-jumlah>${hitung[kode]
+          ? `${hitung[kode]} foto` : "belum ada"}</span>
+        <button type="button" class="button button-mini" data-lihat
+          ${hitung[kode] ? "" : "hidden"}>Lihat</button>
+        <label class="button button-mini button-primary">
+          <input type="file" accept="image/*" multiple hidden data-ambil>📷 Foto
+        </label>
+      </li>`).join("")}</ul>
+      <p class="description" style="margin-top:.6rem">Gambar dikecilkan otomatis
+        (abu-abu, ±70 KB) sebelum dikirim. Foto lama tidak pernah tertimpa —
+        memotret ulang menambah, bukan mengganti.</p>`;
+
+    // Sama seperti bukaRiwayat: dialog() menempelkan kartunya secara SINKRON,
+    // jadi pendengarnya boleh dipasang sebelum janjinya ditunggu.
+    const janji = dialog({
+      judul: `Foto slip · ${tiga} · ${namaRegu}`,
+      kartuHtml: isi,
+      labelAksi: "Tutup",
+      bacaSaja: true,
+    });
+
+    const kartu = document.querySelector(".dialog .foto-lomba");
+    if (kartu) {
+      kartu.addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-lihat]");
+        if (!b) return;
+        const kode = b.closest("li").dataset.kode;
+        if (!terbaru[kode]) return;
+        // Jendelanya dibuka SEBELUM await. Dibuka sesudahnya, browser HP
+        // menganggapnya popup yang tidak diminta pengguna dan memblokirnya.
+        const jendela = window.open("", "_blank");
+        try {
+          const url = await tautanFoto(terbaru[kode]);
+          if (jendela && url) jendela.location = url;
+          else if (jendela) jendela.close();
+        } catch (err) {
+          if (jendela) jendela.close();
+          notif(`Foto tidak bisa dibuka: ${err.message}`, true);
+        }
+      });
+
+      kartu.addEventListener("change", async (e) => {
+        const inp = e.target.closest("[data-ambil]");
+        if (!inp || !inp.files || !inp.files.length) return;
+        const li = inp.closest("li");
+        const kode = li.dataset.kode;
+        const status = li.querySelector("[data-jumlah]");
+        const berkas = [...inp.files];
+        // Dikosongkan supaya memilih BERKAS YANG SAMA lagi tetap memicu change
+        // — persis yang dilakukan orang setelah unggahan pertama gagal.
+        inp.value = "";
+
+        for (const f of berkas) {
+          let blob;
+          try {
+            status.textContent = "mengecilkan…";
+            blob = await kecilkanFoto(f);
+          } catch (err) {
+            status.textContent = err.message;
+            continue;
+          }
+          try {
+            status.textContent = `mengirim ${ukuranRapi(blob.size)}…`;
+            const hasil = await unggahFotoLembar(
+              pos.nomor, kode, li.dataset.nama, dada, blob);
+            hitung[kode] = (hitung[kode] || 0) + 1;
+            terbaru[kode] = hasil.path;
+            status.textContent = `${hitung[kode]} foto · ${ukuranRapi(blob.size)}`;
+            const lihat = li.querySelector("[data-lihat]");
+            if (lihat) lihat.hidden = false;
+          } catch (err) {
+            // Blob-nya sudah tidak dipegang, tapi berkas aslinya masih di
+            // galeri HP — dan itulah antreannya. Petugas memilih ulang berkas
+            // yang sama, dan input di atas sengaja sudah dikosongkan supaya
+            // pilihan itu terbaca.
+            status.textContent = `gagal — ${err.message}`;
+            notif(`Foto ${tiga} ${li.dataset.nama} gagal terkirim: ${err.message}`, true);
+          }
+        }
       });
     }
 
