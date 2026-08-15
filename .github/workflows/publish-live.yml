@@ -78,7 +78,7 @@ jobs:
 
           d = json.load(open('/tmp/rekap-utuh.json'))
           for k in ('dibuat_pada', 'fase', 'edisi', 'ringkas', 'pos',
-                    'progres', 'klasemen'):
+                    'kelengkapan', 'progres', 'klasemen'):
               if k not in d:
                   sys.exit(f'kunci {k} hilang dari keluaran live_json.sql')
 
@@ -90,6 +90,8 @@ jobs:
           # Kalau suatu hari ia tidak lagi begitu, berhenti di sini.
           if d['fase'] == 'pra' and d['progres']:
               sys.exit('BOCOR: baris regu ikut tertulis padahal fase masih pra')
+          if d['fase'] == 'pra' and d['kelengkapan']:
+              sys.exit('BOCOR: kelengkapan pos tertulis padahal fase masih pra')
 
           rekap = {'progres': d['progres'], 'klasemen': d['klasemen']}
           sidik = hashlib.sha256(json.dumps(
@@ -104,6 +106,11 @@ jobs:
               'edisi':       d['edisi'],
               'ringkas':     d['ringkas'],
               'pos':         d['pos'],
+              # Kemajuan input per pos (0048). Ditaruh di live.json dan bukan
+              # di rekap.json justru karena ia berubah terus: rekap.json
+              # dialamati `?v=<versi>` dan sengaja mengendap di cache, jadi
+              # angka yang harus selalu segar tidak boleh menumpang di sana.
+              'kelengkapan': d['kelengkapan'],
               'jumlah_regu': len(d['progres']),
           }
 
