@@ -2734,6 +2734,33 @@ async function layarInputPos() {
     if (tr) simpanBaris(tr);
   });
 
+  /* ISI KOTAK DIPILIH SAAT DIKETUK, jadi ketukan pertama MENGGANTI.
+
+     Kotak nilai tidak pernah dimaksudkan untuk DITAMBAHI — tidak ada juri yang
+     bermaksud "sambung angka ini ke angka yang sudah ada". Tanpa seleksi,
+     mengetuk kotak berisi 1 lalu menekan 8 menghasilkan 18, dan di situlah
+     bahayanya: untuk Bidai yang rentangnya 0-20, 18 adalah angka SAH. Server
+     menerimanya, tidak ada yang memerah, dan yang tersimpan bukan yang
+     dimaksud siapa pun.
+
+     Di Semaphore (0-5) kesalahan yang sama tertolak dan terlihat. Justru itu
+     yang membuatnya berbahaya di tempat lain: ia hanya senyap di kolom yang
+     rentangnya cukup lebar untuk menampung angka gabungan.
+
+     Hanya saat DIKETUK. Mengetik beruntun di kotak yang sedang dipegang tidak
+     terganggu — "12" untuk Menaksir tetap 12, karena seleksi cuma terjadi
+     sekali saat fokus masuk, bukan tiap ketukan.
+
+     Lewat setTimeout dengan alasan yang sama dengan kotak jam: Safari iOS
+     membatalkan select() yang dipanggil di dalam penanganan focus itu sendiri. */
+  tbody.addEventListener("focusin", (e) => {
+    const el = e.target;
+    if (el.tagName !== "INPUT" || el.type === "checkbox" || !el.value) return;
+    setTimeout(() => {
+      if (document.activeElement === el) { try { el.select(); } catch { /* abaikan */ } }
+    }, 0);
+  });
+
   /* Kotak waktu: dirapikan dan diperiksa saat DITINGGALKAN.
 
      Satu kotak yang menerima "32" maupun "1:10" punya satu kelemahan yang
