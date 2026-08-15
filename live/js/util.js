@@ -208,27 +208,35 @@ export function detikTeks(total) {
  *  isinya bukan jam. Membetulkan saat blur, BUKAN saat tiap ketukan — menata
  *  ulang teks di tengah orang mengetik memindahkan kursornya dan membuat
  *  angka berikutnya mendarat di tempat yang salah. */
-/** Titik dua disisipkan SAMBIL DIKETIK: "1503" jadi "15:03".
+/** Titik dua disisipkan SETELAH DUA ANGKA: mengetik 15 langsung jadi "15:",
+ *  lalu 03 mengisi menitnya. Dua angka pertama SELALU jam, dua berikutnya
+ *  SELALU menit — angka yang sudah diketik tidak pernah berubah arti oleh
+ *  angka sesudahnya.
  *
- *  Aturannya sama persis dengan jamSah() — dua angka terakhir adalah menit,
- *  sisanya jam — supaya tidak ada dua aturan berbeda tentang cara membaca
- *  "745". Satu aturan yang dipakai dua tempat, bukan dua aturan yang kebetulan
- *  sepakat.
+ *  SATU PENGECUALIAN, DAN IA MENYELAMATKAN CARA MENGETIK YANG PALING SERING.
  *
- *  Dibatasi empat angka. Jam mana pun muat dalam empat, dan angka kelima yang
- *  diterima diam-diam cuma akan ditolak saat kotaknya ditinggalkan — lebih
- *  baik tidak pernah masuk.
+ *  Jam tertinggi 23, jadi angka pertama 3-9 MUSTAHIL menjadi awal jam dua
+ *  angka. Kalau yang diketik 7, satu-satunya bacaan yang mungkin adalah jam
+ *  07 — jadi nolnya dipasangkan saat itu juga, dan "745" jadi "07:45".
  *
- *  Melewati tiga angka memang sempat menampilkan bentuk yang belum benar:
- *  mengetik 1503 melewati "1:50" sebelum jadi "15:03". Itu harga dari aturan
- *  yang sama, dan yang dibeli adalah "745" langsung jadi "7:45" — bentuk yang
- *  paling sering diketik petugas untuk jam pagi. */
+ *  Tanpa pengecualian itu "745" akan jadi "74:5" dan ditolak, padahal itulah
+ *  bentuk yang paling sering diketik petugas untuk jam pagi — dan lomba ini
+ *  berangkat pukul tujuh.
+ *
+ *  Yang dikorbankan: "250" tidak lagi terbaca 2:50, karena angka pertama 2
+ *  memang bisa menjadi awal jam 20-23. Jam dua pagi tidak pernah terjadi di
+ *  lomba yang berangkat pukul 07.00 dan selesai sore.
+ *
+ *  Dibatasi empat angka. Jam mana pun muat, dan angka kelima yang diterima
+ *  diam-diam cuma akan ditolak saat kotaknya ditinggalkan. */
 export function maskJam(teks) {
-  const angka = String(teks ?? "").replace(/\D/g, "").slice(0, 4);
-  return angka.length >= 3
-    ? `${angka.slice(0, angka.length - 2)}:${angka.slice(-2)}`
-    : angka;
+  let angka = String(teks ?? "").replace(/\D/g, "");
+  if (angka.length && Number(angka[0]) > 2) angka = "0" + angka;
+  angka = angka.slice(0, 4);
+  if (angka.length < 2) return angka;
+  return `${angka.slice(0, 2)}:${angka.slice(2)}`;
 }
+
 
 /** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
  *  menyisipkan titik dua sambil diketik, membetulkan bentuknya saat kotak
