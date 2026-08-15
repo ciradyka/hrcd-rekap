@@ -513,11 +513,25 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     display: block; max-width: none; font-size: 7pt; font-weight: 400;
     text-transform: none; margin-top: 1pt;
   }
-  /* ---- Lembar nilai pos: A4 LANDSCAPE ----
+  /* ---- Form tabel per pos: A4 MELINTANG ----
      Halaman bernama, supaya HANYA lembar ini yang berputar — kwitansi dan
-     daftar kloter tetap potret. Landscape bukan selera: dengan huruf 12pt,
-     tabel Pos 1 selebar 201mm dan kertas potret cuma menyediakan 180mm.
-     Diukur, bukan dikira. */
+     daftar kloter tetap potret.
+
+     Melintang bukan selera, tapi ANGKA PEMBENARNYA SUDAH BERGANTI. Dulu
+     alasannya "tabel Pos 1 selebar 201mm, potret cuma menyediakan 180mm".
+     Itu tidak lagi berlaku: sejak kolom dikelompokkan per lomba, Tebak Simpul
+     yang memakan empat kolom (satu per golongan) jadi satu, dan Pos 1 turun
+     dari enam kolom nilai ke tiga. Pos 1 sendiri sekarang muat di potret.
+
+     Yang menentukan sekarang POS 3, bukan Pos 1: tujuh kolom nilai — lima
+     kriteria Bidai, Kim Lihat, Kim Cium. Tujuh kali 14mm ditambah nomor dada
+     memakan 113mm, menyisakan 77mm untuk tiga kolom identitas di kertas
+     potret. Muat di atas kertas, tapi sempit untuk ditulisi tangan di
+     lapangan, dan panitia memilih melintang setelah melihat cetakannya.
+
+     Potret sudah dicoba dan ditolak. Kalau ada yang menghitung ulang lebar
+     Pos 1 lalu menyimpulkan potret cukup: benar untuk Pos 1, salah untuk
+     Pos 3, dan kelima pos memakai satu bentuk yang sama. */
   @page lembar-pos { size: A4 landscape; margin: 10mm; }
   .lembar-pos { page: lembar-pos; }
 
