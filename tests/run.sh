@@ -144,6 +144,7 @@ run tests/sql/18_riwayat_nilai.sql
 run supabase/migrations/0043_kunci_nilai.sql
 run supabase/migrations/0044_gembok_di_jalur_tulis.sql
 run supabase/migrations/0045_pos_boleh_buka_gembok.sql
+run supabase/migrations/0046_gembok_dua_lubang.sql
 run tests/sql/19_kunci_nilai.sql
 
 echo "SEMUA TES LULUS"

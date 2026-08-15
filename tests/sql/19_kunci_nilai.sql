@@ -106,5 +106,53 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 19.4 Akun TANPA peran ditolak (0046). Bukan kasus teoretis: itulah akun yang
+--      sesinya masih sah tetapi barisnya sudah dicabut dari akun_panitia, dan
+--      `null not in (...)` di PostgreSQL bernilai NULL — bukan true — sehingga
+--      cabang penolakan versi 0045 tidak pernah jalan untuknya.
+-- ---------------------------------------------------------------------------
+do $$
+declare v_dada integer; v_pos smallint; v_tolak boolean := false;
+begin
+  perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
+  select r.nomor_dada, w.pos into strict v_dada, v_pos
+  from nilai_mentah n join wahana w on w.id = n.wahana_id
+  join regu r on r.id = n.regu_id
+  where w.edisi = edisi_aktif() and r.nomor_dada is not null limit 1;
+  perform kunci_nilai_pos(v_dada, v_pos);
+
+  -- uid yang tidak ada di akun_panitia sama sekali -> peran() NULL.
+  perform set_config('app.uid', '00000000-0000-0000-0000-0000000000ff', false);
+  assert peran() is null, 'akun uji ternyata punya peran';
+  begin
+    perform buka_kunci_nilai_pos(v_dada, v_pos, 'harusnya ditolak');
+    raise exception 'GAGAL: akun tanpa peran bisa membuka gembok';
+  exception when raise_exception then
+    if sqlerrm like 'GAGAL:%' then raise; end if;
+    v_tolak := true;
+  end;
+  assert v_tolak, 'akun tanpa peran tidak ditolak';
+
+  perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
+  perform buka_kunci_nilai_pos(v_dada, v_pos, 'uji 19.4 selesai');
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 19.5 Gembok ikut terhapus bersama regunya (0046), supaya pembersihan data
+--      uji tidak gagal di baris `delete from regu`.
+-- ---------------------------------------------------------------------------
+do $$
+declare v_aturan text;
+begin
+  select rc.delete_rule into v_aturan
+  from information_schema.referential_constraints rc
+  where rc.constraint_name = 'nilai_terkunci_regu_id_fkey';
+  assert v_aturan = 'CASCADE',
+    format('nilai_terkunci.regu_id delete_rule = %L, seharusnya CASCADE', v_aturan);
+end;
+$$;
+
 reset role;
 select '19_kunci_nilai OK' as hasil;
