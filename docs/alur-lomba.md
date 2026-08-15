@@ -383,7 +383,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    | Bentuk | Isi | Dipakai |
    | --- | --- | --- |
    | **Form per lomba** | **A5 melintang**, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
-   | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | pos yang dinilai satu meja |
+   | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | **cadangan** — slip habis atau sinyal mati |
    | **Form tabel per pos online** | layar Input Pos | tim IT memasukkan isi kotak |
 
    **Form per lomba adalah bentuk yang paling banyak dicetak, dan jumlahnya
@@ -405,9 +405,19 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - **Golongan yang tidak berhak tidak dapat kertasnya sama sekali** — bukan
      dapat lalu dicoret.
 
-   Form tabel tidak digantikan. Pos yang dinilai satu meja oleh satu juri —
-   PBB, Yel-Yel — lebih cepat dengan satu halaman berisi 30 regu, dan di sana
-   tidak ada kertas yang perlu berpindah di tengah lomba.
+   **Form tabel turun jadi cadangan, dan itu keputusan.** Ia sempat
+   dipertahankan untuk pos yang dinilai satu meja — PBB, Yel-Yel — dengan
+   alasan satu halaman berisi 30 regu lebih cepat. Alasan itu keliru, dan
+   sebabnya sama dengan yang membuat kertas per lomba dibuat kosong: **regu
+   datang acak**. Di form tabel yang urut nomor dada, petugas harus MENCARI
+   baris 005 setiap kali satu regu masuk — pekerjaan yang persis dihapus oleh
+   blangko. Tabel mengembalikannya, termasuk di pos berjuri satu.
+
+   Yang tersisa untuknya adalah keadaan yang tidak bisa dilayani kertas lain:
+   **blangko habis di tengah lomba, atau sinyal mati sehingga layar tidak bisa
+   dibuka**. Untuk itu ia dicetak lebih dulu dan disimpan, tidak dibagikan.
+   Kepala halamannya berbunyi LEMBAR CADANGAN supaya petugas yang memegangnya
+   tahu itu bukan lembar utama.
 
    **Semua kertas ini digandakan dengan mesin fotokopi, dan itu menentukan
    bentuknya.** Tidak ada blok hitam, tidak ada tulisan putih di atas gelap,
@@ -416,6 +426,25 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    0,75pt dan huruf minimal 7pt, karena di bawah itu garisnya hilang dan
    huruf-hurufnya menutup sendiri oleh serbuk toner. Kotak yang ditulisi selalu
    putih polos. Aturan lengkapnya di `CLAUDE.md` bagian 8.
+
+   **Form tabel memuat nomor dada 001 sampai batas stok, BERURUTAN tanpa
+   lompatan** — termasuk nomor yang belum ada regunya. Tiga sebab, dan
+   ketiganya terjadi:
+
+   - Tim IT menyortir tumpukan slip menurut nomor dada lalu menyusurinya dari
+     atas. Lembar yang melompati satu nomor menghentikan pekerjaan itu:
+     *"slip 012 hilang, atau memang tidak pernah ada?"* — pertanyaan yang
+     tidak bisa dijawab dari kertas.
+   - Sebagian sekolah **mendaftar offline**. Regunya memakai nomor dada fisik
+     yang nyata, tetapi belum ada di database.
+   - **Kertasnya dicetak lebih dulu**, sebelum pendaftaran ditutup, dan regu
+     yang menyusul tetap harus punya tempat.
+
+   Karena itu baris tanpa regu dibiarkan **kosong dan siap ditulisi**, bukan
+   ditandai "tidak dipakai": petugas menuliskan nama regu dan sekolahnya di
+   situ, dan meja daftar ulang memakainya untuk melengkapi data belakangan.
+   Batasnya diambil dari **stok** nomor dada — nomor fisik yang benar-benar
+   dibawa panitia — bukan dari jumlah regu yang sudah terdaftar.
 
    Satu kolom sengaja **tidak** ikut dicetak di bentuk mana pun: **Nilai Pos**.
    Petugas lapangan hanya menulis data mentah dan tidak pernah menjumlahkan
