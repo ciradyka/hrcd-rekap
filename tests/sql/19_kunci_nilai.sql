@@ -84,19 +84,22 @@ begin
   assert v_tolak, 'alasan kosong tidak ditolak';
   assert nilai_tergembok(v_regu, v_pos), 'gembok terlanjur terbuka';
 
-  -- Operator pos ditolak, walaupun posnya sendiri.
+  -- Operator pos ditolak untuk pos ORANG LAIN (0045). Pagar posnya sama
+  -- persis dengan aturan menguncinya.
   perform set_config('app.uid', '00000000-0000-0000-0000-000000000001', false);
-  v_tolak := false;
-  begin
-    perform buka_kunci_nilai_pos(v_dada, v_pos, 'coba-coba');
-    raise exception 'GAGAL: operator pos bisa membuka gembok';
-  exception when raise_exception then
-    if sqlerrm like 'GAGAL:%' then raise; end if;
-    v_tolak := true;
-  end;
-  assert v_tolak, 'operator pos tidak ditolak';
+  if v_pos <> pos_saya() then
+    v_tolak := false;
+    begin
+      perform buka_kunci_nilai_pos(v_dada, v_pos, 'coba-coba');
+      raise exception 'GAGAL: operator pos membuka gembok pos lain';
+    exception when raise_exception then
+      if sqlerrm like 'GAGAL:%' then raise; end if;
+      v_tolak := true;
+    end;
+    assert v_tolak, 'operator pos pos lain tidak ditolak';
+  end if;
 
-  -- Admin dengan alasan: berhasil, dan menulis pun kembali bisa.
+  -- Dengan alasan: berhasil.
   perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
   perform buka_kunci_nilai_pos(v_dada, v_pos, 'uji: dibuka kembali');
   assert not nilai_tergembok(v_regu, v_pos), 'gembok tidak terbuka';

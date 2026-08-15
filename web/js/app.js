@@ -2600,8 +2600,8 @@ async function layarInputPos() {
       const ya = await dialog({
         judul: `Kunci nilai ${tiga}?`,
         kartuHtml: `<p class="description">Sesudah dikunci, nilai regu ini
-          tidak bisa diubah siapa pun — termasuk Anda sendiri. Hanya admin yang
-          bisa membukanya lagi, dan wajib menyebut alasan.</p>`,
+          tidak bisa diubah sampai gemboknya dibuka lagi — dan membukanya
+          wajib menyebut alasan, yang tercatat di riwayat.</p>`,
         labelAksi: "Kunci",
       });
       if (!ya) return;
@@ -2613,10 +2613,6 @@ async function layarInputPos() {
       return;
     }
 
-    if (sesi().peran !== "admin") {
-      notif("Nilai ini terkunci. Hanya admin yang bisa membukanya.", true);
-      return;
-    }
     const jawab = await dialog({
       judul: `Buka gembok ${tiga}?`,
       kartuHtml: `<p class="description">Alasannya dicatat di riwayat, dan

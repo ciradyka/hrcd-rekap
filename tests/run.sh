@@ -143,6 +143,7 @@ run tests/sql/18_riwayat_nilai.sql
 # di akhir supaya tes 02-18 memakai nilai yang belum tergembok.
 run supabase/migrations/0043_kunci_nilai.sql
 run supabase/migrations/0044_gembok_di_jalur_tulis.sql
+run supabase/migrations/0045_pos_boleh_buka_gembok.sql
 run tests/sql/19_kunci_nilai.sql
 
 echo "SEMUA TES LULUS"
