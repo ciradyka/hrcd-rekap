@@ -264,6 +264,29 @@ export function pasangKotakJam(id) {
   const gabung = () => `${hh.value.trim()}${mm.value.trim()}`;
   const nilai = () => jamSah(gabung());
 
+  /* ISI DIPILIH SAAT KOTAKNYA DIKETUK, dan tanpa ini kotak yang sudah terisi
+     tidak bisa diperbaiki.
+
+     Kotak HH berisi "10". Petugas mengetuknya untuk mengubah jam, menekan 1,
+     dan yang terjadi bukan "1" melainkan "110" — angka baru DISISIPKAN di
+     sebelah yang lama. Tiga angka lalu terbaca sebagai ketikan beruntun, jadi
+     luapannya menendang satu angka ke kotak menit. Petugas menekan satu tombol
+     dan kursornya sudah pindah kotak.
+
+     Memilih seluruh isi saat fokus membuat ketukan pertama MENGGANTI, bukan
+     menyisipkan — perilaku yang sama dengan kotak jam di aplikasi mana pun.
+     Mengetuk kedua kali tetap menaruh kursor seperti biasa, jadi menyunting
+     satu angka masih mungkin bagi yang menginginkannya.
+
+     Lewat setTimeout karena Safari iOS membatalkan select() yang dipanggil di
+     dalam penanganan focus itu sendiri — dan HP iOS adalah yang dipegang
+     petugas di garis start. */
+  const pilihIsi = (el) => setTimeout(() => {
+    if (document.activeElement === el) { try { el.select(); } catch { /* abaikan */ } }
+  }, 0);
+  hh.addEventListener("focus", () => pilihIsi(hh));
+  mm.addEventListener("focus", () => pilihIsi(mm));
+
   const tandai = () => {
     const kosong = !hh.value.trim() && !mm.value.trim();
     const buruk = !kosong && !nilai();
