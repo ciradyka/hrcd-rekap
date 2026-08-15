@@ -672,7 +672,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
      ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
      tinggi hanya akan mengurangi jumlah baris per lembar. */
-  .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian { width: 14mm; }
+  /* Kotak isian dipatok DUA ARAH, dan max-width itu yang penting.
+     `width` pada sel tabel cuma usulan: dengan table-layout auto, kolom
+     tumbuh mengisi sisa lebar kertas. Di Pos 1 sisa itu besar — tiga kotak
+     isian saja — jadi kotaknya melar sampai selebar dua jari sementara nama
+     regu di sebelahnya terpotong elipsis. Persis terbalik dari yang
+     dibutuhkan: yang perlu lebar adalah nama, bukan petak berisi satu angka
+     dua digit. */
+  .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian {
+    width: 14mm; max-width: 16mm;
+  }
   /* Identitas TIDAK boleh membungkus di sini: satu nama yang pecah dua baris
      menambah tinggi satu baris, dan tiga puluh baris yang dipatok mati tidak
      punya ruang untuk itu — lembarnya akan tumpah ke halaman berikutnya. */
@@ -681,14 +690,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .lembar-pos .print-table td:nth-child(4) {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  /* Lebar identitas dipatok, karena di 12pt merekalah yang akan menelan
-     lebar kertas dan menyisakan kotak isian selebar jari. Nama sekolah yang
-     kepanjangan dipotong dengan elipsis — regu tetap dikenali dari nomor
-     dada dan nama regunya, dan nama sekolah di kertas ini gunanya sekadar
-     cek silang. */
-  .lembar-pos .print-table td:nth-child(2) { max-width: 38mm; }
-  .lembar-pos .print-table td:nth-child(3) { max-width: 40mm; }
-  .lembar-pos .print-table td:nth-child(4) { max-width: 26mm; }
+  /* Identitas MENGAMBIL sisa lebar, tidak lagi dipatok mati.
+     Patokan 38/40/26mm ditulis waktu kotak isian dikhawatirkan tergencet.
+     Yang terjadi justru sebaliknya: kotak isian yang melar dan nama yang
+     terpotong. Sekarang kotak isian yang dibatasi (max-width di atas), dan
+     sisa lebarnya mengalir ke tiga kolom ini.
+
+     Di A4 melintang tersedia 277mm. Pos 1 memakai 15mm nomor dada + tiga
+     kotak isian, menyisakan ~215mm untuk identitas; Pos 3 yang berkotak tujuh
+     menyisakan ~160mm. Keduanya lebih dari cukup untuk nama terpanjang di
+     daftar ("SMK SILIWANGI AMS BANJARSARI", 28 huruf ≈ 62mm di 12pt).
+
+     Elipsisnya tidak dibuang — ia tetap jaring pengaman untuk nama yang
+     benar-benar di luar dugaan, dan regu tetap dikenali dari nomor dada. */
+  .lembar-pos .print-table td:nth-child(2) { max-width: 78mm; }
+  .lembar-pos .print-table td:nth-child(3) { max-width: 78mm; }
+  .lembar-pos .print-table td:nth-child(4) { max-width: 30mm; }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
