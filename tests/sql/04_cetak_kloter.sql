@@ -185,9 +185,22 @@ begin
   assert (select dicetak_pada from kloter where nomor = v_hasil.kloter) is null,
     format('regu susulan masuk kloter %s yang SUDAH dicetak', v_hasil.kloter);
 
-  -- Dikembalikan persis seperti semula.
+  -- DIKEMBALIKAN PERSIS SEPERTI SEMULA, termasuk sekolah yang dibuat di sini.
+  --
+  -- Bukan kerapian belaka: 4.5 menghitung berapa kloter BARU yang ditandai
+  -- tercetak, dan satu regu yang tertinggal di kloter cadangan membuat
+  -- angkanya 2 alih-alih 1. Tes yang berjejak mengubah arti tes berikutnya,
+  -- dan yang gagal nanti bukan tes ini — jadi jejaknya sulit dilacak.
   reset role;
   update kloter set dicetak_pada = null where nomor = any(v_semula);
+
+  delete from pembayaran p using pendaftaran d
+   where p.pendaftaran_id = d.id and d.kode_pembayaran = v_kode;
+  delete from regu r using pendaftaran d
+   where r.pendaftaran_id = d.id and d.kode_pembayaran = v_kode;
+  delete from pendaftaran where kode_pembayaran = v_kode;
+  delete from sekolah where name = 'SMP Susulan Penuh';
+
   perform set_config('app.uid', '00000000-0000-0000-0000-0000000000b1', false);
   set role authenticated;
 end;
