@@ -2364,3 +2364,23 @@ input.small-input { text-align: center; }
    rata kiri di atas barisan yang simetris terbaca seperti tersangkut di
    pojok. */
 .judul-tengah { text-align: center; }
+/* ---------------------------------------------------------------------------
+   Tabel rincian Live Score: kolom peringkat, dan pemisah sebelum pos pertama.
+   ------------------------------------------------------------------------- */
+
+/* Peringkat rata KANAN. Tiga baris teratas membawa medali di depan angkanya
+   dan sisanya tidak, jadi rata kiri menaruh "1" pada posisi yang berbeda dari
+   "4" — kolom angka yang tidak berbaris adalah kolom yang harus dibaca satu
+   per satu, bukan disapu. */
+.table-live .rekap-rank {
+  text-align: right; white-space: nowrap;
+  font-variant-numeric: tabular-nums; font-weight: 700;
+}
+.table-live .rekap-rank .rank-angka { margin-left: .15rem; }
+
+/* Nama sekolah kolomnya sendiri, bukan menumpang di bawah nama regu.
+   Sebagai <span> inline ia menempel di ujung nama regu — "SATYA
+   PAJAJARANSMKN 3 TASIKMALAYA" — karena margin-top tidak berlaku pada elemen
+   inline. Dua kolom juga yang diminta: keduanya disaring mata secara terpisah
+   saat mencari satu regu. */
+.table-live .sub-kolom { color: var(--tinta-lembut); }
