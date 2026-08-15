@@ -202,7 +202,12 @@ function layarLogin(pesan) {
 /* ============================ BERANDA MEJA (home) ========================= */
 
 async function layarHome() {
-  pasangKepala("Home");
+  // Lebar penuh: pada 760px hanya muat dua kolom, dan menu sepuluh tombol
+  // jadi kolom sempit dengan lapangan kosong di kanannya. 1080px muat tiga,
+  // sehingga seluruh menu terlihat sekaligus tanpa menggulir. Di HP grid-nya
+  // tetap runtuh jadi satu kolom — minmax(280px, 1fr) yang memutuskan, bukan
+  // lebar wadahnya.
+  pasangKepala("Home", true);
   const peran = sesi().peran;
   LAYAR.replaceChildren(h(pemuat()));
 
