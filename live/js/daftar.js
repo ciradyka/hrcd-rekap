@@ -15,7 +15,7 @@
      tidak ada "perbaiki satu, ketemu satu lagi".
    ========================================================================== */
 
-import { daftarSekolah, kirimPendaftaran, infoEdisi, ErrorApi } from "./api.js";
+import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
          pemuat } from "./util.js";
 
@@ -71,6 +71,27 @@ window.addEventListener("beforeunload", (e) => {
 const totalRincian = () => Object.values(jawab.rincian).reduce((a, b) => a + b, 0);
 const normal = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
+
+/* ---------- nama regu: 20 karakter, dan tidak boleh kembar (0051) ----------
+
+   20 diturunkan dari kolom Nama Regu pada form tabel per pos: 48mm pada huruf
+   10pt memuat ~21 karakter kapital. Lebih dari itu terpotong DIAM-DIAM di
+   kertas cadangan, yang justru dipakai saat internet mati.
+
+   Kembar ditolak di seluruh edisi karena nama juara dibacakan di depan
+   lapangan, dan nama yang sudah pernah disebut kehilangan momennya.
+
+   Perbandingannya dinormalkan persis seperti indeks di database: huruf
+   besar-kecil diabaikan, spasi beruntun dirapatkan. Pembatas yang bisa
+   dilewati dengan menekan Caps Lock bukan pembatas.                        */
+
+const NAMA_MAKS = 20;
+const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
+
+/* Jawaban server, diingat per nama supaya satu nama tidak ditanyakan berkali
+   -kali sementara pembina masih mengetik nama berikutnya. */
+const namaTerpakai = new Map();
+let jamPeriksaNama = null;
 
 /* ============================ RANGKA HALAMAN ============================= */
 
@@ -364,7 +385,8 @@ function gambarRegu() {
       <div class="two-column">
         <div class="field" style="margin:0">
           <label for="r-nama-${i}">Nama regu</label>
-          <input type="text" id="r-nama-${i}" value="${r.nama_regu}" placeholder="contoh: Rajawali">
+          <input type="text" id="r-nama-${i}" value="${r.nama_regu}"
+                 maxlength="${NAMA_MAKS}" placeholder="contoh: Rajawali">
           <div class="error" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
         <div class="field" style="margin:0">
@@ -378,22 +400,65 @@ function gambarRegu() {
   // Warning SEKETIKA kalau nama regu/ketua kosong — tidak menunggu tombol
   // Kirim ditekan dulu. Dua isian dicek bersama supaya kartu tidak salah
   // dianggap lengkap hanya karena satu dari dua kotaknya sudah terisi.
+  /** Apa yang salah dengan nama regu ke-i, atau null kalau tidak ada.
+   *
+   *  Urutannya disengaja: kosong dulu, lalu kembar di dalam form ini, baru
+   *  jawaban server. Yang paling dekat dengan apa yang sedang diketik pembina
+   *  disebut lebih dulu — ia bisa membetulkannya tanpa menunggu jaringan.
+   *
+   *  Hanya kemunculan KEDUA yang ditandai (j < i), jadi mengetik "Rajawali"
+   *  dua kali menyalakan satu galat, bukan dua kartu merah yang keduanya
+   *  menuduh. */
+  const masalahNama = (i) => {
+    const n = normalNama(jawab.regu[i].nama_regu);
+    if (!n) return "Nama regu wajib diisi.";
+    if (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n))
+      return "Nama ini sudah dipakai regu lain di form ini.";
+    if (namaTerpakai.get(n))
+      return "Nama ini sudah dipakai regu lain. Pilih nama yang berbeda.";
+    return null;
+  };
+
   const cekRegu = (i) => {
     const inpNama = document.getElementById(`r-nama-${i}`);
     const inpKetua = document.getElementById(`r-ketua-${i}`);
-    const namaKosong = !inpNama.value.trim();
+    if (!inpNama || !inpKetua) return;
+    const salahNama = masalahNama(i);
     const ketuaKosong = !inpKetua.value.trim();
-    inpNama.setAttribute("aria-invalid", String(namaKosong));
+    inpNama.setAttribute("aria-invalid", String(!!salahNama));
     inpKetua.setAttribute("aria-invalid", String(ketuaKosong));
-    document.getElementById(`r-nama-galat-${i}`).hidden = !namaKosong;
+    const kotakGalat = document.getElementById(`r-nama-galat-${i}`);
+    kotakGalat.textContent = salahNama || "";
+    kotakGalat.hidden = !salahNama;
     document.getElementById(`r-ketua-galat-${i}`).hidden = !ketuaKosong;
-    document.getElementById(`regu-${i}`).classList.toggle("regu-card-error", namaKosong || ketuaKosong);
+    document.getElementById(`regu-${i}`).classList.toggle("regu-card-error", !!salahNama || ketuaKosong);
+  };
+
+  /** Tanya server nama mana yang sudah terpakai — ditunda 450 ms supaya tiap
+   *  ketukan huruf tidak jadi satu permintaan, dan hanya untuk nama yang
+   *  belum pernah ditanyakan.
+   *
+   *  Jaringan putus DIABAIKAN diam-diam di sini: indeks unik di database yang
+   *  menjadi penjaga sebenarnya, dan pesannya diterjemahkan pesanRamah saat
+   *  Kirim ditekan. Layar ini cuma mempercepat kabarnya. */
+  const periksaNamaKeServer = () => {
+    clearTimeout(jamPeriksaNama);
+    jamPeriksaNama = setTimeout(async () => {
+      const perlu = [...new Set(jawab.regu.map(r => normalNama(r.nama_regu)))]
+        .filter(n => n && !namaTerpakai.has(n));
+      if (!perlu.length) return;
+      for (const n of perlu) {
+        try { namaTerpakai.set(n, await namaReguDipakai(n)); } catch { /* diam */ }
+      }
+      jawab.regu.forEach((_, i) => cekRegu(i));
+    }, 450);
   };
 
   jawab.regu.forEach((r, i) => {
     document.getElementById(`r-nama-${i}`).addEventListener("input", e => {
       r.nama_regu = e.target.value.trim(); simpanDraf();
       cekRegu(i);
+      periksaNamaKeServer();
       if (sudahDiperiksa) periksa(false);
     });
     document.getElementById(`r-ketua-${i}`).addEventListener("input", e => {
@@ -437,10 +502,20 @@ function periksa(gulir = true) {
   tandai("g-jumlah", !jawab.regu.length);
 
   jawab.regu.forEach((r, i) => {
-    const kurang = !r.nama_regu || !r.nama_ketua;
+    // Nama kembar menahan Kirim sama kerasnya dengan kolom kosong: dikirim
+    // pun database menolaknya, dan ditolak di sini pembina masih melihat
+    // kartu mana yang harus diubah.
+    const n = normalNama(r.nama_regu);
+    const namaSalah = !n
+      || jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n)
+      || namaTerpakai.get(n) === true;
+    const kurang = namaSalah || !r.nama_ketua;
     const el = document.getElementById(`regu-${i}`);
     if (el) el.classList.toggle("regu-card-error", kurang);
-    if (kurang) galat.push({ ke: `regu-${i}`, teks: `Regu ${i + 1} belum lengkap` });
+    if (kurang) {
+      galat.push({ ke: `regu-${i}`, teks: namaSalah && n
+        ? `Regu ${i + 1}: nama sudah dipakai` : `Regu ${i + 1} belum lengkap` });
+    }
   });
 
   const namaKontakKosong = !jawab.nama_kontak.trim();

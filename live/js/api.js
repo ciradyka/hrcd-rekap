@@ -62,6 +62,10 @@ export function pesanRamah(m) {
     return "Kloter ini sudah berangkat, jadi regunya wajib punya kontrak waktu dulu. Pilih kontraknya di kolom Kontrak Waktu, lalu centang lagi.";
   if (/daftar ulang sudah ditutup/i.test(t))
     return "Daftar ulang sudah ditutup panitia. Hubungi admin.";
+  if (/regu_nama_unik|duplicate key value violates unique constraint "regu_nama/i.test(t))
+    return "Nama regu itu sudah dipakai regu lain. Pilih nama yang berbeda.";
+  if (/regu_nama_panjang/i.test(t))
+    return "Nama regu paling panjang 20 karakter.";
   if (/permission denied|insufficient/i.test(t))
     return "Akun ini tidak berhak melakukan itu. Pakai akun yang sesuai.";
   if (/password.*(should be different|new password should be different)/i.test(t))
@@ -219,6 +223,21 @@ export async function infoEdisi() {
   });
   if (!d.length) throw new ErrorApi("Belum ada edisi lomba yang dibuka.");
   return d[0];
+}
+
+/** Apakah nama regu itu sudah dipakai (0051)? Dipanggil SAMBIL pembina
+ *  mengetik — menolak saat tombol Kirim ditekan sudah terlambat, karena saat
+ *  itu ia baru saja mengisi lima regu.
+ *
+ *  Anon: form pendaftaran memang tanpa login. */
+export async function namaReguDipakai(nama) {
+  if (K.mode === "dev") return baca(`/nama-regu-dipakai?nama=${encodeURIComponent(nama)}`);
+  return kirim(`${K.supabaseUrl}/rest/v1/rpc/nama_regu_dipakai`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: K.anonKey,
+               Authorization: `Bearer ${K.anonKey}` },
+    body: JSON.stringify({ p_nama: nama }),
+  });
 }
 
 export async function kirimPendaftaran(payload, tokenTurnstile) {
