@@ -2,7 +2,7 @@
 -- hrcd-rekap : 0039_judul_isian.sql
 --
 -- Judul besar di atas kotak isian form per lomba jadi konfigurasi, dan judul
--- Menaksir diperbaiki jadi "Selisih taksir".
+-- Menaksir diperbaiki jadi "Selisih Taksir".
 --
 -- ---------------------------------------------------------------------------
 -- KENAPA INI BUKAN SEKADAR SOAL KATA
@@ -47,14 +47,14 @@ comment on column wahana.judul_isian is
 do $$
 declare v_baris int;
 begin
-  update wahana set judul_isian = 'Selisih taksir'
+  update wahana set judul_isian = 'Selisih Taksir'
   where edisi = edisi_aktif() and kode = 'menaksir';
 
   get diagnostics v_baris = row_count;
   if v_baris = 0 then
     raise notice '0039: komponen `menaksir` tidak ada di edisi aktif — dilewati.';
   else
-    raise notice '0039: judul isian Menaksir jadi "Selisih taksir".';
+    raise notice '0039: judul isian Menaksir jadi "Selisih Taksir".';
   end if;
 end;
 $$;
