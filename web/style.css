@@ -2231,3 +2231,15 @@ input.small-input { text-align: center; }
 @media print {
   .ikon-kotak { background: none !important; color: #000 !important; }
 }
+
+/* Chip saringan dan hitungan barisnya adalah SATU baris, dan tetap satu baris
+   waktu toolbar-nya patah di layar sempit.
+
+   Sebelumnya keduanya anak langsung .table-toolbar, jadi di HP mereka jatuh ke
+   baris berbeda dan angkanya menggantung sendirian di baris ketiga, rata
+   kanan, tidak sejajar dengan apa pun. Dibungkus begini, angkanya selalu
+   duduk setinggi chip yang dihitungnya. */
+.filter-baris {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .6rem; flex: 1 1 auto; min-width: 0; flex-wrap: wrap;
+}
