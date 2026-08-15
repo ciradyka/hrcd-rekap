@@ -4013,10 +4013,11 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
 
-  let pos, klasemen, status;
+  let pos, klasemen, status, posSemua, komponen, rekap;
   try {
-    [pos, klasemen, status] = await Promise.all([
+    [pos, klasemen, status, posSemua, komponen, rekap] = await Promise.all([
       kelengkapanPos(), klasemenLiveScore(), statusAcara(),
+      daftarPos(), komponenSemua(EDISI.nomor), rekapPenuh(),
     ]);
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, layarLiveScore));
@@ -4069,6 +4070,16 @@ async function layarLiveScore() {
     </div>`;
 
   const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+  /* Kolom rincian dibangun dengan kolomPos() yang SAMA dengan layar Input Pos
+     dan Rekapitulasi. Satu kolom per LOMBA, bukan per baris wahana — tanpa itu
+     Pos 1 memakan empat kolom "Tebak Simpul" yang isinya saling meniadakan,
+     satu per golongan, dan tabelnya memanjang tanpa menambah satu keterangan
+     pun. */
+  const posKolom = posSemua
+    .filter(p => p.jumlah_komponen > 0)
+    .map(p => ({ ...p, kolom: kolomPos(komponen.filter(k => k.pos === p.nomor)) }));
+  const rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
   /* KEEMPAT golongan selalu digambar, dengan urutan tetap — bukan hanya yang
      kebetulan sudah punya baris.
      Empat golongan berlomba TERPISAH: masing-masing punya juara sendiri, dan
@@ -4102,29 +4113,44 @@ async function layarLiveScore() {
               </div>`).join("")}
           </div>
           <div class="table-wrap">
-            <table class="table data-table">
+            <table class="table data-table table-tetap">
               <thead>
-                <tr><th>#</th><th>No<br>Dada</th><th>Regu</th>
-                  ${pos.map(p => `<th class="pos-kol" title="${esc(p.nama_pos)}"
-                    >P${esc(String(p.pos))}</th>`).join("")}
-                  <th>Nilai Pos</th><th>Penalti</th><th>Total</th></tr>
+                <tr>
+                  <th rowspan="2">#</th>
+                  <th rowspan="2">No<br>Dada</th>
+                  <th rowspan="2">Regu</th>
+                  ${posKolom.map(p => `<th colspan="${p.kolom.length + 1}"
+                    class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
+                  <th rowspan="2">Penalti</th>
+                  <th rowspan="2">Total</th>
+                </tr>
+                <tr>
+                  ${posKolom.map(p => p.kolom.map(kol =>
+                      `<th class="pos-kol">${esc(kol.nama)}</th>`).join("")
+                    + `<th class="pos-kol rekap-batas">Nilai</th>`).join("")}
+                </tr>
               </thead>
               <tbody>
                 ${baris.map(k => {
-                  const perPos = k.poin_per_pos || {};
+                  const rk = rekapDada.get(k.nomor_dada) || {};
+                  const nilai = rk.nilai || {};
+                  const poin = k.poin_per_pos || {};
                   return `
                   <tr>
                     <td class="angka">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
                     <td class="angka">${esc(String(k.nomor_dada).padStart(3, "0"))}</td>
                     <td>${esc(k.nama_regu)}<span class="sub">${esc(k.nama_sekolah)}</span></td>
-                    ${pos.map(p => {
-                      const v = perPos[String(p.pos)];
-                      // Garis pendek, bukan nol: pos yang belum menyetor dan
-                      // pos yang memang memberi nol bukan hal yang sama.
-                      return `<td class="pos-kol">${v === undefined || v === null
-                        ? "–" : esc(angkaRapi(v))}</td>`;
-                    }).join("")}
-                    <td class="text-center">${esc(angkaRapi(k.total_pos))}</td>
+                    ${posKolom.map(p => p.kolom.map(kol => {
+                        // Satu lomba bisa punya baris wahana berbeda per
+                        // golongan; yang berlaku untuk regu INI yang dibaca.
+                        const w = varianUntuk(kol, k.golongan);
+                        return `<td class="text-center">${w
+                          ? selRekap(w, nilai[`${p.nomor}.${w.kode}`])
+                          : `<span class="sel-mati" title="Bukan untuk golongan ini">–</span>`}</td>`;
+                      }).join("")
+                      + `<td class="text-center pos-nilai rekap-batas">${
+                          poin[String(p.nomor)] === undefined
+                            ? "–" : esc(angkaRapi(poin[String(p.nomor)]))}</td>`).join("")}
                     <td class="text-center">${esc(angkaRapi(
                       Number(k.penalti_waktu) + Number(k.penalti_checkout)
                       + Number(k.penalti_anggota)))}</td>
@@ -4173,9 +4199,12 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <h2>Live Score — hanya admin</h2>
-      <p class="description">Ini yang <strong>akan</strong> dilihat peserta.
-        Halaman peserta sendiri belum berubah: fase sekarang
-        <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
+      <p class="description">Medali dan kemajuan input di bawah sama persis
+        dengan yang akan dilihat peserta. Tabel rinciannya sengaja lebih
+        lengkap: di sini nilai per lomba, sedangkan peserta hanya menerima
+        nilai per pos.</p>
+      <p class="description">Halaman peserta sendiri belum berubah: fase
+        sekarang <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
       <p class="description">Peringkat di sini hidup mengikuti input dan masih
         bisa berubah sampai seluruh pos selesai. Jangan dibagikan sebelum
         diumumkan.</p>
