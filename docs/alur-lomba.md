@@ -155,6 +155,17 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
    Sebelum dicetak, pembetulan hanya perlu satu ketukan di meja: nomor lama
    kembali ke stok dan bisa langsung dipakai regu yang benar.
+
+   **Bentuknya lisan: panitia membacakan, peserta mengiyakan.** Tidak ada
+   lembar tanda tangan dan tidak ada centang di sistem. Itu keputusan sadar —
+   tiap langkah tambahan di meja daftar ulang berlipat lebih dari seratus
+   sekolah, dan antrean di meja adalah biaya yang dibayar semua orang.
+
+   Yang ikut hilang disebutkan supaya tidak jadi kejutan: **tidak ada catatan
+   siapa mengonfirmasi apa dan kapan**. Kalau nanti ada sekolah yang membantah
+   nomor dadanya, tidak ada yang bisa ditunjukkan selain riwayat perubahan di
+   `history`, dan riwayat itu mencatat panitia yang mengetik — bukan peserta
+   yang mengiyakan.
 9. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
    petugas lapangan (bagian 8.8).
 
