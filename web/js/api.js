@@ -294,15 +294,20 @@ export async function ringkasanMeja() {
   if (K.mode === "dev") return baca("/ringkasan");
   // Dihitung dari sisi regu supaya angkanya benar-benar "batch lunas yang
   // masih punya regu tanpa nomor dada" (temuan review: query lama salah).
-  const [menunggu, tanpaNomor] = await Promise.all([
+  const [menunggu, tanpaNomor, kemajuan] = await Promise.all([
     baca(null, "pendaftaran?status=eq.menunggu_pembayaran&select=id"),
     baca(null, "regu?nomor_dada=is.null&is_cancelled=is.false" +
                "&select=pendaftaran_id,pendaftaran!inner(status)" +
                "&pendaftaran.status=eq.lunas"),
+    baca(null, "v_kemajuan_hari?select=*"),
   ]);
+  const k = (Array.isArray(kemajuan) ? kemajuan[0] : kemajuan) || {};
   return {
     menunggu_pembayaran: menunggu.length,
     lunas_belum_nomor: new Set(tanpaNomor.map(r => r.pendaftaran_id)).size,
+    regu_siap: k.regu_siap ?? null,
+    regu_berangkat: k.regu_berangkat ?? null,
+    regu_datang: k.regu_datang ?? null,
   };
 }
 

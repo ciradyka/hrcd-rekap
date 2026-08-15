@@ -2442,3 +2442,15 @@ input.small-input { text-align: center; }
    yang justru paling perlu dijelaskan sesudahnya. */
 .kloter-chip.lewat-batas { border-color: var(--bahaya); }
 .kloter-chip.lewat-batas .chip-ket { color: var(--bahaya); font-weight: 700; }
+
+/* Lencana KEMAJUAN (18/53), bukan antrean. Netral sepanjang jalan.
+
+   badge-yellow/green yang dipakai Pembayaran dan Daftar Ulang berarti "masih
+   ada N yang menunggu dikerjakan" — hijau saat habis. Kemajuan berlawanan
+   arah, jadi mewarnainya dengan aturan yang sama akan menyalakan hijau tepat
+   pada pagi yang belum dimulai. Warnanya baru berubah hijau saat benar-benar
+   penuh, dan itu ditentukan JavaScript, bukan kelas ini. */
+.badge-kemajuan {
+  background: var(--kertas); color: var(--tinta-lembut);
+  border: 1px solid var(--garis);
+}

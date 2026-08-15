@@ -234,6 +234,21 @@ async function layarHome() {
     ? `<span class="badge badge-gray" title="jumlah antrean tidak terbaca">?</span>`
     : `<span class="badge ${n > 0 ? "badge-yellow" : "badge-green"}">${n}</span>`;
 
+  /* KEMAJUAN, bukan antrean — dan karena itu lencananya BERBEDA.
+   *
+   *  lencana() di atas berarti "masih ada N yang menunggu dikerjakan": kuning
+   *  saat ada, hijau saat habis. Kemajuan berlawanan arah — 0/53 adalah pagi
+   *  yang belum mulai, 53/53 adalah pekerjaan selesai. Memakai lencana yang
+   *  sama akan mewarnai hijau tepat pada keadaan yang paling belum selesai.
+   *
+   *  Jadi netral sepanjang jalan, dan hijau HANYA saat penuh. */
+  const kemajuan = (sudah, dari) => {
+    if (sudah === null || dari === null) return "";
+    const penuh = dari > 0 && sudah >= dari;
+    return `<span class="badge ${penuh ? "badge-green" : "badge-kemajuan"}"
+      >${esc(String(sudah))}/${esc(String(dari))}</span>`;
+  };
+
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
     <div class="function-menu">
@@ -255,10 +270,12 @@ async function layarHome() {
         <div class="function-name">${ikonKotak("list-ordered", "toska")} Daftar Kloter</div>
       </a>
       <a href="#/keberangkatan">
-        <div class="function-name">${ikonKotak("flag", "jingga")} Keberangkatan</div>
+        <div class="function-name">${ikonKotak("flag", "jingga")} Keberangkatan ${
+          kemajuan(r ? r.regu_berangkat : null, r ? r.regu_siap : null)}</div>
       </a>
       <a href="#/finish">
-        <div class="function-name">${ikonKotak("circle-check", "zamrud")} Kedatangan</div>
+        <div class="function-name">${ikonKotak("circle-check", "zamrud")} Kedatangan ${
+          kemajuan(r ? r.regu_datang : null, r ? r.regu_berangkat : null)}</div>
       </a>
       ${peran === "admin" ? `
       <a href="#/pos">
