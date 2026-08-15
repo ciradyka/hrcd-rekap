@@ -282,6 +282,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 /* Pilihan besar (pengganti dropdown): kartu yang bisa diketuk */
 .option-row { display: grid; gap: .55rem; grid-template-columns: 1fr 1fr; }
+/* Tombol tunggal memakai kedua kolom. Tanpa ini ia duduk di sel kiri dan
+   tampil separuh lebar, rata kiri — dialog baca-saja seperti riwayat hanya
+   punya satu tombol Tutup, dan tombol separuh lebar di bawah kartu selebar
+   penuh terbaca seperti tata letak yang belum selesai. */
+.option-row > :only-child { grid-column: 1 / -1; }
 .option {
   border: 2px solid var(--garis);
   border-radius: var(--radius);

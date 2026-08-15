@@ -2677,7 +2677,17 @@ async function layarInputPos() {
        Di pos berlomba satu, chip-nya cuma akan berbunyi "Semua" dan nama lomba
        itu sendiri — dua tombol yang tidak menyaring apa pun. Jadi ia tidak
        digambar sama sekali. */
-    const lomba = [...new Map(baris.map(b => [b.kode_lomba, b.nama_lomba]))];
+    /* Chip diurutkan seperti URUTAN PENILAIAN, bukan seperti urutan perubahan.
+       Daftar riwayat di bawahnya urut waktu-terbaru-dulu, dan chip yang ikut
+       urutan itu berpindah tempat setiap kali ada nilai baru masuk — tombol
+       yang berpindah antar kunjungan harus dibaca ulang tiap kali.
+       kolom[] datang dari kolomPos() yang sudah urut sort_order, jadi
+       chip-nya berbaris sama dengan kolom di lembar: Semaphore, Tebak Simpul,
+       Menaksir. Lomba yang tidak dikenali kolom (mis. komponen yang sudah
+       dihapus admin tapi masih punya riwayat) jatuh ke belakang. */
+    const urutLomba = new Map(kolom.map((k, i) => [k.nama, i]));
+    const lomba = [...new Map(baris.map(b => [b.kode_lomba, b.nama_lomba]))]
+      .sort((a, b) => (urutLomba.get(a[1]) ?? 1e9) - (urutLomba.get(b[1]) ?? 1e9));
     const chip = lomba.length < 2 ? "" : `
       <div class="option-row saring-riwayat">
         <button type="button" class="option option-small" data-lomba=""
