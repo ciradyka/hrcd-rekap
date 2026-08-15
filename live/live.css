@@ -18,6 +18,7 @@
   --hijau:        #2e7d32;
   --hijau-muda:   #e8f5e9;
   --kuning:       #b26a00;
+  --bahaya:       #c62828;
   --kuning-muda:  #fff3e0;
   --emas:         #b8860b;
   --radius:       14px;
@@ -158,31 +159,46 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
    lihat, sedangkan lima angka persen harus dibaca satu per satu lalu
    dibandingkan di kepala.
    ========================================================================== */
-.kemajuan { list-style: none; }
-.kemajuan li { margin-bottom: .85rem; }
-.kemajuan li:last-child { margin-bottom: 0; }
-.k-kepala {
-  display: flex; align-items: baseline; gap: .5rem; margin-bottom: .3rem;
+.kemajuan {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 1rem .6rem;
 }
-.k-nama {
-  font-weight: 600; flex: 1 1 auto; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.kemajuan li { flex: 1 1 7rem; min-width: 6.5rem; text-align: center; }
+
+/* Cincin dibuat dengan conic-gradient — bukan SVG, bukan library. Satu
+   properti CSS, nol berkas tambahan, dan tebalnya diubah dengan mengganti
+   satu angka (ukuran ::before). Merah/kuning/hijau ditentukan JavaScript dan
+   masuk lewat --warna, supaya ambangnya tertulis SEKALI di satu tempat. */
+.cincin {
+  width: 84px; height: 84px; margin: 0 auto .4rem;
+  border-radius: 50%;
+  background: conic-gradient(var(--warna) calc(var(--persen) * 3.6deg),
+                             var(--garis) 0);
+  display: grid; place-items: center;
 }
-.k-persen {
-  font-weight: 800; font-variant-numeric: tabular-nums;
-  color: var(--utama); white-space: nowrap;
+.cincin::before {
+  content: ""; grid-area: 1 / 1;
+  width: 64px; height: 64px; border-radius: 50%; background: var(--kartu);
 }
-/* Tinggi 10px, bukan 4px: dibaca sambil berdiri di bawah matahari, dan garis
-   tipis yang elegan di monitor hilang sama sekali di layar HP yang silau. */
-.k-batang {
-  height: 10px; border-radius: 999px; background: var(--kertas);
-  border: 1px solid var(--garis); overflow: hidden;
+/* Angkanya di TENGAH cincin, selalu. Warna sendirian tidak boleh jadi
+   satu-satunya kabar: sekitar satu dari dua belas laki-laki sulit
+   membedakan merah dari hijau, dan bagi mereka lima cincin tanpa angka
+   adalah lima lingkaran yang sama. */
+.cincin > span {
+  grid-area: 1 / 1;
+  font-weight: 800; font-size: 1.2rem; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--warna);
 }
-.k-batang span {
-  display: block; height: 100%; background: var(--utama);
-  border-radius: 999px; transition: width .4s ease;
+.cincin i { font-style: normal; font-size: .62em; }
+.c-nama {
+  font-weight: 600; font-size: .84rem; line-height: 1.25;
+  overflow-wrap: anywhere;
 }
-.k-angka { font-size: .82rem; color: var(--tinta-lembut); margin-top: .25rem; }
+.c-angka {
+  font-size: .78rem; color: var(--tinta-lembut); line-height: 1.35;
+  margin-top: .15rem;
+}
+.c-alarm { color: var(--bahaya); }
 
 /* ---------------------------------------------------------------------------
    Medali. Ia MENGGANTIKAN angka besar di podium, tapi angka peringkatnya

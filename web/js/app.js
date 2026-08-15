@@ -4021,6 +4021,15 @@ async function layarLiveScore() {
   const persenPos = (p) => !p.regu_total
     ? 0 : Math.floor(100 * p.lengkap / p.regu_total);
 
+  /* Merah / kuning / hijau, dan hijau sengaja mahal.
+     90, bukan 80: pos dengan 300 regu yang berhenti di 85% masih kehilangan
+     45 regu — jumlah yang butuh berjam-jam untuk dikejar, dan warna hijau di
+     angka itu memberi tahu panitia bahwa pekerjaannya selesai padahal belum.
+     Angkanya selalu tertulis di dalam cincin, jadi yang tidak bisa
+     membedakan merah dari hijau tetap membaca keadaan yang sama. */
+  const warnaPersen = (s) => s >= 90 ? "var(--hijau)"
+                           : s >= 50 ? "var(--kuning)" : "var(--bahaya)";
+
   const kemajuan = `
     <div class="card">
       <h2>Kemajuan input</h2>
@@ -4029,15 +4038,14 @@ async function layarLiveScore() {
           const s = persenPos(p);
           return `
           <li>
-            <div class="k-kepala">
-              <span class="k-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</span>
-              <span class="k-persen">${esc(String(s))}%</span>
+            <div class="cincin" style="--persen:${s};--warna:${warnaPersen(s)}"
+                 role="img" aria-label="Pos ${esc(String(p.pos))} ${esc(String(s))} persen selesai">
+              <span>${esc(String(s))}<i>%</i></span>
             </div>
-            <div class="k-batang"><span style="width:${s}%"></span></div>
-            <div class="k-angka">${esc(String(p.lengkap))} dari
-              ${esc(String(p.regu_total))} regu${p.sebagian > 0
-                ? ` · ${esc(String(p.sebagian))} baru sebagian` : ""}${p.hilang > 0
-                ? ` · <strong>${esc(String(p.hilang))} sudah finish tapi belum lengkap</strong>` : ""}</div>
+            <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
+            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu${
+              p.sebagian > 0 ? `<br>${esc(String(p.sebagian))} baru sebagian` : ""}${
+              p.hilang > 0 ? `<br><strong class="c-alarm">${esc(String(p.hilang))} finish tapi belum lengkap</strong>` : ""}</div>
           </li>`;
         }).join("")}
       </ul>
