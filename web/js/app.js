@@ -84,6 +84,21 @@ let EDISI = null;
    memakainya jauh di bawah: yang membacanya nanti harus bisa menemukan
    seluruh keadaan yang hidup selama satu sesi di satu tempat. */
 let segarkanDiTempat = null;
+
+/* Layar yang TIDAK BOLEH digambar ulang sendiri, walau tidak punya cara
+   memperbarui diri di tempat.
+
+   Keberangkatan adalah satu-satunya layar yang ditunggui terus-menerus tanpa
+   mengetik apa pun: petugas berdiri di garis start memandanginya, lalu tiba
+   -tiba mencentang hadir atau menekan Berangkatkan. Menggambar ulang saat tab
+   kembali terlihat memindahkan tombol tepat sebelum jempolnya turun, dan
+   mengembalikan chip kloter ke pilihan awal — sementara datanya sendiri hanya
+   berubah lewat perbuatan petugas itu sendiri di layar yang sama.
+
+   Pengaman lain (isian sedang difokus, dialog terbuka, nilai belum tersimpan)
+   tidak menolong di sini justru karena layar ini paling sering sedang TIDAK
+   disentuh saat tab berpindah. */
+let tanpaSegarOtomatis = false;
 const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
@@ -1058,6 +1073,7 @@ async function layarDaftarUlang() {
 /* ============================ KEBERANGKATAN ============================== */
 
 async function layarKeberangkatan() {
+  tanpaSegarOtomatis = true;
   if (!EDISI) { layarButuhEdisi("Keberangkatan"); return; }
   pasangKepala("Keberangkatan", true);
   LAYAR.replaceChildren(h(pemuat()));
@@ -4191,6 +4207,7 @@ const RUTE = {
 
 async function arahkan() {
   segarkanDiTempat = null;
+  tanpaSegarOtomatis = false;
   if (!sesi()) { layarLogin(); return; }
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
@@ -4249,6 +4266,7 @@ document.addEventListener("visibilitychange", () => {
      kembali dengan angka lama, tanpa memberi tahu siapa pun. */
   if (segarkanDiTempat) { terakhirSegar = Date.now(); segarkanDiTempat(); return; }
 
+  if (tanpaSegarOtomatis) return;
   if (Date.now() - terakhirSegar < 5000) return;
   const fokus = document.activeElement;
   if (fokus && ["INPUT", "SELECT", "TEXTAREA"].includes(fokus.tagName)) return;
