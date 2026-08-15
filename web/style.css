@@ -2332,3 +2332,9 @@ input.small-input { text-align: center; }
   display: flex; align-items: center; justify-content: space-between;
   gap: .6rem; flex: 1 1 auto; min-width: 0; flex-wrap: wrap;
 }
+
+/* Tombol kamera di lembar pos: ikon polos setinggi gembok di sebelahnya, dan
+   warnanya ikut keadaan barisnya lewat currentColor — emoji dulu tampil
+   berwarna tetap dan lebih besar daripada tetangganya, jadi kolom aksi
+   terbaca bergerigi. */
+.badge-tombol .ikon { width: 1.15rem; height: 1.15rem; vertical-align: -.2em; }
