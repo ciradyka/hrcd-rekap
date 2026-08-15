@@ -491,7 +491,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .function-menu a { transition: none; }
   .function-menu a:hover { transform: none; }
 }
-.function-menu .function-name { font-size: 1.15rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+/* Ikon dan nama berdampingan di kiri, lencana didorong ke kanan.
+   Sebelumnya baris ini memakai space-between untuk sepasang anak — nama dan
+   lencana. Begitu ikon jadi anak ketiga, space-between membagi ruang di ANTARA
+   ketiganya dan namanya terlempar ke tengah-kanan, menjauh dari ikon yang
+   seharusnya jadi pasangannya. */
+.function-menu .function-name {
+  font-size: 1.15rem; font-weight: 800;
+  display: flex; align-items: center; gap: .6rem;
+}
+.function-menu .function-name .badge { margin-left: auto; }
 .function-menu .description { color: var(--tinta-lembut); margin-top: .3rem; }
 
 /* ---------- dialog (pengganti prompt) ---------- */
