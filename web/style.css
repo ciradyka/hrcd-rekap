@@ -1422,8 +1422,28 @@ input.small-input { text-align: center; }
     color: var(--tinta-lembut); font-size: .72rem; font-weight: 600;
     cursor: pointer;
   }
-  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
-  .bottom-nav-item[aria-current="page"] { color: var(--utama); }
+  .bottom-nav-icon {
+    font-size: 1.3rem; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.6rem; height: 1.9rem; border-radius: 999px;
+  }
+
+  /* Satu warna per tujuan. Tiga ikon abu-abu sebaris menuntut label dibaca
+     tiap kali; warna membuat jempol menemukan tujuannya tanpa membaca.
+
+     Keluar merah bukan hiasan — ia satu-satunya tombol di bar ini yang
+     mengakhiri sesi, dan warna yang menahan sedetak sebelum diketuk memang
+     yang diinginkan di sana. */
+  #nav-home    .ikon { color: var(--utama); }
+  #nav-setting .ikon { color: #6941c6; }
+  #nav-keluar  .ikon { color: var(--bahaya); }
+
+  /* Halaman yang sedang dibuka ditandai LATAR, bukan warna ikon — kalau
+     penandanya ikut warna, ia bertabrakan dengan warna tetap di atas dan
+     tidak ada lagi yang menunjukkan posisi. */
+  .bottom-nav-item[aria-current="page"] { color: var(--tinta); font-weight: 700; }
+  #nav-home[aria-current="page"]    .bottom-nav-icon { background: var(--utama-muda); }
+  #nav-setting[aria-current="page"] .bottom-nav-icon { background: #f0eafe; }
 
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
   .isi { padding-bottom: 6rem; }
