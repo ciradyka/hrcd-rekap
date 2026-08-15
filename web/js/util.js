@@ -442,7 +442,20 @@ export function notif(pesan, galat = false) {
 /** Dialog sederhana pengganti prompt(): punya judul, kartu identitas,
  *  beberapa isian, dan tombol batal yang jelas (temuan review: prompt()
  *  beruntun membingungkan dan batalnya senyap). */
-export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan" }) {
+/** Dialog. `bacaSaja: true` membuang tombol Batal.
+ *
+ *  "Batal" pada dialog yang tidak mengubah apa pun bukan sekadar mubazir: ia
+ *  menyiratkan ada sesuatu yang sedang berjalan dan bisa diurungkan. Orang yang
+ *  membuka riwayat lalu melihat Batal akan berhenti sejenak memikirkan apa yang
+ *  ia batalkan.
+ *
+ *  Penandanya EKSPLISIT, bukan diterka dari `medan` yang kosong. Lima dari enam
+ *  pemanggil dialog di sistem ini tidak punya medan sama sekali — mereka
+ *  konfirmasi ya/tidak yang justru paling membutuhkan tombol Batal. Menerka
+ *  akan mencabutnya dari kelimanya sekaligus, dan yang tersisa cuma tombol
+ *  "Ya". */
+export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan",
+                         bacaSaja = false }) {
   return new Promise(resolve => {
     const wadah = h(html`<div class="overlay" role="dialog" aria-modal="true"></div>`);
     document.body.appendChild(wadah);
@@ -461,13 +474,14 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
           </div>`).join("")}
         <div class="dialog-error error" hidden></div>
         <div class="option-row">
-          <button class="button button-secondary" data-batal type="button">Batal</button>
+          ${bacaSaja ? "" : `<button class="button button-secondary" data-batal
+            type="button">Batal</button>`}
           <button class="button button-primary" data-ok type="button">${esc(labelAksi)}</button>
         </div>
       </div>`;
 
     const tutup = hasil => { el.remove(); resolve(hasil); };
-    el.querySelector("[data-batal]").addEventListener("click", () => tutup(null));
+    el.querySelector("[data-batal]")?.addEventListener("click", () => tutup(null));
     el.addEventListener("click", e => { if (e.target === el) tutup(null); });
     el.querySelector("[data-ok]").addEventListener("click", () => {
       const nilai = medan.map((_, i) => el.querySelector(`#dlg-${i}`).value.trim());

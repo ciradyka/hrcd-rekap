@@ -2598,6 +2598,7 @@ async function layarInputPos() {
       judul: `${String(dada).padStart(3, "0")} · ${nama}`,
       kartuHtml: isi,
       labelAksi: "Tutup",
+      bacaSaja: true,
     });
   }
 
