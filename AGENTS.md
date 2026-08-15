@@ -263,3 +263,38 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 7. **07:00 and 10:00 are configuration, not constants.** They belong beside
    the other per-edition numbers, for the same reason as section 6.4 of
    rancangan-b: next year's panitia change the window without touching code.
+
+## 11. Pos, lomba, penilaian
+
+1. **Three levels, not two.** A pos holds several lomba; a lomba holds one or
+   more penilaian. Most of the system only ever modelled two — `pos` and
+   `wahana` — and every place that treats a wahana as a lomba is wrong in the
+   same way.
+2. **Pos 3 has two lomba, not seven.**
+   - **Pembidaian** — Diagnosis dan Penanganan Awal `0–20`, Posisi Bidai
+     `0–20`, Teknik Bidai `0–20`, Kerapihan dan Kebersihan `0–20`, Kecepatan
+     dan Kerja Sama `0–20`
+   - **KIM** — KIM Lihat `0–10`, KIM Cium `0–10`
+3. **Pos 4 is one lomba, PBB** — Sikap Sempurna `0–20`, Gerakan Dasar `0–30`,
+   Kekompakan `0–30`, Kerapihan `0–20`.
+4. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
+   Semangat `0–20`, Penampilan `0–20`.
+5. **One lomba is one form per lomba.** Pos 3 prints two blangko masters, not
+   seven; Pos 4 prints one, not four. A regu is judged once at a lomba and the
+   judge writes every criterion on the sheet in front of them — a sheet per
+   criterion would have the same regu handed five pieces of paper at one
+   station.
+6. **The screen is the other way round: one column per penilaian.** Bidai is
+   five columns on the pos sheet and one sheet on paper, and both are correct.
+   Do not "fix" one to match the other.
+7. **The data has no lomba level yet.** Each criterion is its own `wahana` row
+   with its own name, and the shared `kode` prefix — `bidai_`, `kim_`, `pbb_`,
+   `yel_` — is a naming habit, not something the database or any query
+   enforces. Anything that needs to group by lomba needs that grouping to
+   become a real column first. Splitting on the prefix works right up until an
+   edition names two unrelated components with the same first word.
+8. **`wahana.golongan` is a different axis and must not be confused with
+   this.** Several wahana rows can be one penilaian offered to different
+   golongan — that is what `kolomPos()` merges by name. Grouping by lomba is a
+   third thing on top, and doing both with one mechanism is how Tebak Simpul
+   ends up as four columns again.
