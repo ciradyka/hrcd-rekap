@@ -2114,7 +2114,7 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
 const REGU_PER_LEMBAR = 30;
 
-function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
+function siapkanCetakLembarPos(pos, kolomLayar, baris) {
   document.getElementById("cetakan")?.remove();
   const set = [{ judul: null, kolom: kolomCetakPos(kolomLayar) }];
   const judul = pos.bayangan ? `POS BAYANGAN — ${pos.name}`
@@ -2168,9 +2168,6 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} · ${esc(tanggal)} ·
          dada ${esc(dada3(grup[0].nomor_dada))}–${esc(dada3(grup[grup.length - 1].nomor_dada))}
          · Petugas: ______________ · Diperiksa: ______________</p>
-      ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM DITUTUP
-        — regu yang menyusul BARISNYA SUDAH ADA di sini, hanya namanya yang
-        belum tercetak. Tulis nama regu dan sekolahnya di baris kosong.</p>`}
       <table class="print-table">
         <thead>
           <tr>
@@ -3258,7 +3255,7 @@ async function layarInputPos() {
       const n = siapkanCetakBlangko(pos, kolom);
       notif(`${n} master A5 melintang, satu per lomba.`);
     } else {
-      siapkanCetakLembarPos(pos, kolom, semua, ditutup);
+      siapkanCetakLembarPos(pos, kolom, semua);
     }
     window.print();
   };

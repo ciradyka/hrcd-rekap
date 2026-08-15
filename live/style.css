@@ -826,9 +826,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      mengisi sisa lebar. Tanpa max-width, di Pos 1 yang cuma punya tiga kotak,
      seluruh sisa masuk ke kotak isian — petak berisi satu angka dua digit
      jadi selebar dua jari sementara nama sekolah di sebelahnya terpotong. */
+  /* LEBAR KOLOM DIPATOK, sisanya milik kolom penilaian.
+
+     Dengan table-layout auto, kolom identitas tumbuh mengikuti nama terpanjang
+     dan kolom penilaian menerima apa pun yang tersisa — pada Pos 5 itu
+     menyisakan 16mm untuk judul "KREATIVITAS", yang tumpah keluar kertas.
+
+     Nama regu 44mm karena 0051 membatasinya 20 karakter, dan 20 kapital 10pt
+     memang selebar itu. Organisasi diberi lebar yang sama dan dipotong
+     elipsis di situ: nama sekolah bisa sepanjang apa pun, dan lembar ini
+     dibaca untuk MENCOCOKKAN baris, bukan untuk membaca nama sekolah utuh —
+     nomor dada di kolom pertama yang jadi kuncinya.
+
+     Sisanya dibagi rata antar kolom penilaian oleh table-layout: fixed. */
+  .lembar-pos .print-table { table-layout: fixed; }
   .lembar-pos .print-table th.isian, .lembar-pos .print-table td.isian {
-    width: 16mm; max-width: 18mm;
+    width: auto; max-width: none;
   }
+  /* Judul kolom penilaian boleh membungkus dua baris — ia cuma dicetak SEKALI
+     di kepala tabel, jadi tingginya tidak dikalikan 30 baris seperti sel isi. */
+  .lembar-pos .print-table th.isian { white-space: normal; line-height: 1.1; }
   /* Identitas SATU BARIS, dan 10pt supaya muat tanpa dipotong.
      Bukan sekadar hemat lebar: satu nama yang pecah dua baris membuat
      tingginya berbeda dari tetangganya, dan tabel yang barisnya tidak rata
@@ -869,9 +886,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
      Golongan disingkat "Pgl Pa" / "Pgk Pa" (GOLONGAN_SINGKAT di app.js), jadi
      16mm cukup dan 10mm sisanya ikut pindah ke kolom nama. */
-  .lembar-pos .print-table td:nth-child(2) { max-width: 48mm; }
-  .lembar-pos .print-table td:nth-child(3) { max-width: 58mm; }
-  .lembar-pos .print-table td:nth-child(4) { max-width: 16mm; }
+  .lembar-pos .print-table td:nth-child(2),
+  .lembar-pos .print-table th:nth-child(2) { width: 44mm; max-width: 44mm; }
+  .lembar-pos .print-table td:nth-child(3),
+  .lembar-pos .print-table th:nth-child(3) { width: 44mm; max-width: 44mm; }
+  .lembar-pos .print-table td:nth-child(4),
+  .lembar-pos .print-table th:nth-child(4) { width: 14mm; max-width: 14mm; }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
