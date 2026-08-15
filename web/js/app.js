@@ -20,6 +20,7 @@ import {
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
+  kunciNilaiPos, bukaKunciNilaiPos,
   statusAcara,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,

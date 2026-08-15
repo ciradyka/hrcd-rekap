@@ -68,3 +68,10 @@ jobs:
             exit 1
           fi
           echo "Seluruh salinan sama dengan acuannya."
+
+      # Nama yang dipakai tanpa diimpor tidak menggagalkan apa pun sampai baris
+      # itu dijalankan: `node --check` lulus, halaman terbuka normal, dan
+      # galatnya baru muncul saat petugas menekan tombolnya di lapangan.
+      # `kunciNilaiPos` pernah lolos sampai produksi persis begitu.
+      - name: Setiap fungsi api.js yang dipanggil app.js benar-benar diimpor
+        run: python tools/periksa_impor.py
