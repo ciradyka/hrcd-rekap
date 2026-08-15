@@ -130,4 +130,11 @@ run supabase/migrations/0038_petunjuk_menaksir.sql
 # database uji `menaksir` tidak ada, jadi UPDATE-nya melapor dilewati.
 run supabase/migrations/0039_judul_isian.sql
 
+# 0041 mengubah kapan nomor lama dipensiunkan. Dijalankan di akhir supaya tes
+# 04 dan 05 masih memakai perilaku lama saat mereka berjalan — keduanya tidak
+# menyentuh tukar_nomor_dada, tapi urutan yang jelas lebih murah daripada
+# menelusuri kenapa satu tes berubah arti.
+run supabase/migrations/0041_tukar_nomor_tanpa_pensiun.sql
+run tests/sql/17_tukar_nomor_tanpa_pensiun.sql
+
 echo "SEMUA TES LULUS"
