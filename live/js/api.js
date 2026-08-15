@@ -62,6 +62,17 @@ export function pesanRamah(m) {
     return "Kloter ini sudah berangkat, jadi regunya wajib punya kontrak waktu dulu. Pilih kontraknya di kolom Kontrak Waktu, lalu centang lagi.";
   if (/daftar ulang sudah ditutup/i.test(t))
     return "Daftar ulang sudah ditutup panitia. Hubungi admin.";
+  // Pesannya lahir di database (migrasi 0011/0014) dan membawa angka mentah:
+  // "nomor dada sudah dipakai regu lain: 1, 2". Dirapikan di sini, satu
+  // tempat, bukan dengan menyalin ulang badan fungsi plpgsql-nya.
+  {
+    const m = t.match(/nomor dada sudah dipakai regu lain:\s*(.+)$/i);
+    if (m) {
+      const nomor = m[1].split(/[,\s]+/).filter(Boolean)
+        .map(x => /^\d{1,3}$/.test(x) ? x.padStart(3, "0") : x).join(", ");
+      return `Nomor dada ${nomor} sudah dipakai regu lain.`;
+    }
+  }
   if (/regu_nama_unik|duplicate key value violates unique constraint "regu_nama/i.test(t))
     return "Nama regu itu sudah dipakai regu lain. Pilih nama yang berbeda.";
   if (/regu_nama_panjang/i.test(t))
