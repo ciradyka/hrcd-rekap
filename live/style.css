@@ -2125,3 +2125,20 @@ input.small-input { text-align: center; }
    menempel persis di garis itu dan keduanya terbaca sebagai satu kolom. */
 .table-live .rekap-batas + th,
 .table-live .rekap-batas + td { padding-left: .7rem; }
+
+/* ============================================================================
+   Ikon garis (Lucide, ISC). Digambar dengan currentColor dan berukuran `em`,
+   jadi ia mewarisi warna dan ukuran teks di sebelahnya — termasuk saat panitia
+   memperbesar huruf HP-nya, yang membuat emoji dan teks berpisah ukuran.
+   ========================================================================== */
+.ikon {
+  width: 1.15em; height: 1.15em;
+  flex: 0 0 auto;
+  vertical-align: -.18em;
+}
+/* Di ubin menu ikonnya sedikit lebih besar dan berwarna hijau HRCD: satu
+   aksen warna pada papan yang selebihnya netral, persis peran yang dipegang
+   warna di papan rujukan. */
+.function-name .ikon { width: 1.35em; height: 1.35em; color: var(--utama); }
+.icon-button .ikon { width: 1.4em; height: 1.4em; }
+.bottom-nav-icon .ikon { width: 1.5em; height: 1.5em; }

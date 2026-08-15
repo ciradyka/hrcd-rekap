@@ -607,3 +607,58 @@ export function ukuranRapi(bytes) {
   if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
   return `${(n / 1048576).toFixed(1).replace(".", ",")} MB`;
 }
+
+/* ---------- ikon ----------
+
+   Ikon garis dari Lucide (ISC), disalin ke sini sebagai jalur SVG — bukan
+   emoji, dan bukan berkas yang diunduh terpisah.
+
+   Emoji terlihat BERBEDA di tiap alat: satu panitia melihat printer abu-abu,
+   yang lain melihat printer biru mengkilap, dan yang memakai HP lama melihat
+   kotak kosong. Ikon yang digambar sendiri tampil sama di mana pun.
+
+   Digambar dengan `currentColor` dan ukuran `em`, jadi ia mewarisi warna dan
+   ukuran teks di sebelahnya tanpa satu pun aturan tambahan — termasuk saat
+   ubinnya disorot atau saat panitia memperbesar huruf HP-nya.
+
+   Ditempel di dalam berkas, bukan di-fetch: satu permintaan jaringan lagi di
+   lapangan bersinyal buruk lebih mahal daripada beberapa kilobyte di sini,
+   dan ikon yang gagal termuat meninggalkan tombol tanpa muka.            */
+
+const IKON = {
+  "chart-column":
+    '<path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" />',
+  "circle-check":
+    '<circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" />',
+  "clipboard-list":
+    '<rect width="8" height="4" x="8" y="2" rx="1" ry="1" /> <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /> <path d="M12 11h4" /> <path d="M12 16h4" /> <path d="M8 11h.01" /> <path d="M8 16h.01" />',
+  "credit-card":
+    '<rect width="20" height="14" x="2" y="5" rx="2" /> <line x1="2" x2="22" y1="10" y2="10" />',
+  "flag":
+    '<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />',
+  "house":
+    '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />',
+  "id-card":
+    '<path d="M16 10h2" /> <path d="M16 14h2" /> <path d="M6.17 15a3 3 0 0 1 5.66 0" /> <circle cx="9" cy="11" r="2" /> <rect x="2" y="5" width="20" height="14" rx="2" />',
+  "list-ordered":
+    '<path d="M11 5h10" /> <path d="M11 12h10" /> <path d="M11 19h10" /> <path d="M4 4h1v5" /> <path d="M4 9h2" /> <path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02" />',
+  "log-out":
+    '<path d="m16 17 5-5-5-5" /> <path d="M21 12H9" /> <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />',
+  "medal":
+    '<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15" /> <path d="M11 12 5.12 2.2" /> <path d="m13 12 5.88-9.8" /> <path d="M8 7h8" /> <circle cx="12" cy="17" r="5" /> <path d="M12 18v-2h-.5" />',
+  "settings":
+    '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" />',
+  "square-pen":
+    '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /> <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />'
+};
+
+/** Satu ikon garis, siap ditempel ke template. Nama yang tidak dikenal
+ *  menghasilkan string kosong — tombolnya tetap punya teks, jadi tidak ada
+ *  yang rusak, hanya kehilangan mukanya. */
+export function ikon(nama, kelas = "ikon") {
+  const d = IKON[nama];
+  if (!d) return "";
+  return `<svg class="${kelas}" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+    stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
+}
