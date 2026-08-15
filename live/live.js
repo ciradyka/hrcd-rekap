@@ -320,9 +320,7 @@ function gambarKelengkapan() {
               <span>${esc(String(persen))}<i>%</i></span>
             </div>
             <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
-            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu${
-              Number(p.sebagian) > 0
-                ? `<br>${esc(String(p.sebagian))} baru sebagian` : ""}</div>
+            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu</div>
           </li>`;
         }).join("")}
       </ul>

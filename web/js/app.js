@@ -2785,11 +2785,16 @@ async function layarInputPos() {
 
     const lomba = [...new Map(kolom.map(k => [slugLomba(k.nama), k.nama]))];
 
-    const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => html`
-      <li data-kode="${kode}" data-nama="${nama}">
-        <span class="f-nama">${nama}</span>
+    /* Template BIASA, bukan tag html`` — sama alasannya dengan notif(): tag
+       html`` meng-escape SETIAP sisipan, dan ikon("camera") adalah HTML yang
+       memang harus dirender. Ditulis dengan html``, jalur SVG-nya tampil apa
+       adanya sebagai teks hijau sepanjang tiga baris di dalam tombolnya.
+       Yang datang dari luar tetap lewat esc() satu per satu. */
+    const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => `
+      <li data-kode="${esc(kode)}" data-nama="${esc(nama)}">
+        <span class="f-nama">${esc(nama)}</span>
         <span class="f-jumlah" data-jumlah>${hitung[kode]
-          ? `${hitung[kode]} foto` : "belum ada"}</span>
+          ? `${esc(String(hitung[kode]))} foto` : "belum ada"}</span>
         <button type="button" class="button button-mini" data-lihat
           ${hitung[kode] ? "" : "hidden"}>Lihat</button>
         <label class="button button-mini button-primary">
@@ -4034,9 +4039,7 @@ async function layarLiveScore() {
               <span>${esc(String(s))}<i>%</i></span>
             </div>
             <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
-            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu${
-              p.sebagian > 0 ? `<br>${esc(String(p.sebagian))} baru sebagian` : ""}${
-              p.hilang > 0 ? `<br><strong class="c-alarm">${esc(String(p.hilang))} finish tapi belum lengkap</strong>` : ""}</div>
+            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu</div>
           </li>`;
         }).join("")}
       </ul>
