@@ -58,6 +58,10 @@ run supabase/seed.sql
 run tests/sql/01_seed_uji.sql
 run tests/sql/02_constraints.sql
 run tests/sql/03_alur.sql
+# 0040 membetulkan regresi daftar_ulang_batch (kloter tercetak tetap dipilih).
+# Dijalankan SEBELUM 04, karena bagian 4.4b menguji perbaikannya.
+# SEMENTARA DIMATIKAN: membuktikan 4.4b menangkap bugnya
+# run supabase/migrations/0040_daftar_ulang_hormati_kloter_tercetak.sql
 run tests/sql/04_cetak_kloter.sql
 run tests/sql/05_pindah_kloter.sql
 run tests/sql/06_koreksi_jam_berangkat.sql
