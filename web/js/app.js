@@ -2642,15 +2642,16 @@ async function layarInputPos() {
     const kunci = tr.dataset.terkunci === "1";
     const tiga = String(dada).padStart(3, "0");
 
+    // MENGUNCI tidak bertanya. Petugas menekan gembok ratusan kali dalam satu
+    // shift, dan setiap kali harus menjawab "yakin?" untuk perbuatan yang bisa
+    // ia batalkan sendiri (0045) — ongkos itu dibayar di tiap baris, sementara
+    // yang dicegahnya cuma satu ketukan nyasar yang tinggal diketuk lagi.
+    //
+    // MEMBUKA bertanya, dan itu bukan sekadar konfirmasi: alasannya wajib, dan
+    // alasan itulah satu-satunya penjelasan yang tersisa kalau nilainya
+    // berubah sesudah gemboknya terbuka. Yang mahal memang arah itu, bukan
+    // arah sebaliknya.
     if (!kunci) {
-      const ya = await dialog({
-        judul: `Kunci nilai ${tiga}?`,
-        kartuHtml: `<p class="description">Sesudah dikunci, nilai regu ini
-          tidak bisa diubah sampai gemboknya dibuka lagi — dan membukanya
-          wajib menyebut alasan, yang tercatat di riwayat.</p>`,
-        labelAksi: "Kunci",
-      });
-      if (!ya) return;
       try { await kunciNilaiPos(dada, pos.nomor); }
       catch (err) { notif(`Gagal mengunci: ${err.message}`, true); return; }
       tr.dataset.terkunci = "1";
