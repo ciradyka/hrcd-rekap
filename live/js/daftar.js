@@ -627,7 +627,7 @@ async function mulai() {
         <div class="giant-number" style="margin:.6rem 0">${hasilLama.kode_pembayaran}</div>
         <p class="description">${hasilLama.jumlah_regu} regu · ${rupiah(hasilLama.total_tagihan)}</p>
       </div>
-      <button class="button button-secondary" id="baru" type="button">Daftarkan sekolah lain</button>`));
+      <button class="button button-primary" id="baru" type="button">Daftarkan regu lain</button>`));
     document.getElementById("baru").addEventListener("click", () => {
       try { localStorage.removeItem(KUNCI_HASIL); } catch {}
       sessionStorage.removeItem("hrcd_selesai");
