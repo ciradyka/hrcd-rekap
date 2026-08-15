@@ -191,3 +191,32 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
     1.500. Printing the stack from a browser spends a whole office toner on
     work a copier finishes in minutes — and the count is decided at the copier
     anyway, since the forms are blank.
+
+## 9. Screen text
+
+1. **Do not over-educate. People are smart.** A small feature with a clear
+   title needs no paragraph explaining itself. Panitia read these screens
+   hundreds of times in a shift, and a sentence that teaches something learned
+   once is re-read on every one of them.
+2. **A title, a labelled field, and a button name are usually the whole
+   interface.** "Buka gembok 001?" above a required field labelled "Alasan
+   membuka" already says everything the paragraph "Alasannya dicatat di
+   riwayat, dan itulah satu-satunya penjelasan yang tersisa…" said — in a
+   quarter of the height, on a phone where the field it explained had been
+   pushed down the screen to make room for it.
+3. **Cut anything that repeats the title, the field label, or the button next
+   to it.** Two labels for one fact do not reinforce each other.
+4. **Keep text that carries a fact the reader cannot get from the screen
+   itself**: the figure currently in force, the state of the data right now, a
+   consequence that cannot be undone, a warning that something is already
+   printed or has already departed.
+5. **The test when unsure** — if this sentence disappeared, could the officer
+   make a mistake that costs something? If not, cut it. "They might not know
+   how it works" is not a cost; they will after the first time.
+6. **Explain in code comments and migration headers, not on screen.** Those are
+   read by whoever maintains the thing, which is exactly the audience an
+   explanation is for. Section 6.3 asks for generous documentation — it means
+   there, not in the interface.
+7. **Weight explanation by how often a screen is used, not by a fixed budget
+   per screen.** The registration form is the exception that proves the rule: a
+   pembina fills it once, has had no training, and has nobody to ask.
