@@ -24,6 +24,12 @@ select id, nomor_dada from regu
 where nomor_dada is not null and not is_cancelled
 order by nomor_dada limit 1;
 
+-- Tabel sementara di atas dibuat SEBAGAI PEMILIK, lalu dibaca sebagai
+-- `authenticated` di bawah — dan tabel temp tidak mewarisi hak apa pun.
+-- Tanpa grant ini seluruh berkas berhenti di "permission denied for table
+-- t_regu", galat yang tidak ada hubungannya dengan apa yang sedang diuji.
+grant select on t_op, t_regu to public;
+
 select set_config('app.uid', '00000000-0000-0000-0000-00000000000a', false);
 set role authenticated;
 
