@@ -4084,6 +4084,7 @@ async function layarLiveScore() {
                   <th rowspan="2">#</th>
                   <th rowspan="2">No<br>Dada</th>
                   <th rowspan="2">Regu</th>
+                  <th rowspan="2" class="rekap-batas">Organisasi</th>
                   ${posKolom.map(p => `<th colspan="${p.kolom.length + 1}"
                     class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
                   <th rowspan="2">Penalti</th>
@@ -4102,9 +4103,10 @@ async function layarLiveScore() {
                   const poin = k.poin_per_pos || {};
                   return `
                   <tr>
-                    <td class="angka">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
+                    <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat))}</span></td>
                     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
-                    <td>${esc(k.nama_regu)}<span class="sub">${esc(k.nama_sekolah)}</span></td>
+                    <td>${esc(k.nama_regu)}</td>
+                    <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
                     ${posKolom.map(p => p.kolom.map(kol => {
                         // Satu lomba bisa punya baris wahana berbeda per
                         // golongan; yang berlaku untuk regu INI yang dibaca.
