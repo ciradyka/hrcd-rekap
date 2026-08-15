@@ -2493,7 +2493,8 @@ async function layarInputPos() {
   const tbody = document.getElementById("isi-tabel");
   tbody.replaceChildren(h(lembar.map(r => `
     <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}"
-        data-golongan="${esc(r.golongan)}" data-komponen="${esc(r.jumlah_komponen)}">
+        data-golongan="${esc(r.golongan)}" data-komponen="${esc(r.jumlah_komponen)}"
+        data-terkunci="${r.terkunci ? "1" : ""}">
       <td class="angka text-center" data-label="Nomor Dada">${esc(String(r.nomor_dada).padStart(3, "0"))}</td>
       <td data-label="Nama Regu"><strong>${esc(r.nama_regu)}</strong></td>
       <td data-label="Organisasi">${esc(r.nama_sekolah)}</td>
