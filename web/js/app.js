@@ -27,7 +27,7 @@ import {
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
-         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak } from "./util.js";
+         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3 } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -834,7 +834,7 @@ async function layarDaftarUlang() {
       const menunggu = aktif.filter(r => r.nomor_dada === null);
       const nomorHtml = aktif.filter(r => r.nomor_dada !== null)
         .sort((x, y) => x.nomor_dada - y.nomor_dada)
-        .map(r => html`<span class="pill-number">${String(r.nomor_dada).padStart(3, "0")}
+        .map(r => html`<span class="pill-number">${dada3(r.nomor_dada)}
           <span class="kloter-pill">K${r.kloter_nomor}</span></span>`).join(" ");
 
       const kode = esc(b.kode_pembayaran);
@@ -911,7 +911,7 @@ async function layarDaftarUlang() {
         const jawab = await dialog({
           judul: "Tukar nomor dada yang rusak",
           kartuHtml: `<table class="table" style="margin-bottom:.8rem">${bernomor.map(r => html`
-              <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
+              <tr><td class="angka">${dada3(r.nomor_dada)}</td>
                   <td>${r.nama_regu}</td></tr>`).join("")}</table>`,
           medan: [
             { label: "Nomor lama (yang rusak)", tipe: "number" },
@@ -1045,7 +1045,7 @@ async function layarDaftarUlang() {
         dibukaNomor.delete(kode);
         pasangan.forEach(p => nilaiDada.delete(p.regu_id));
         catatTerakhir("daftar-ulang", kode, hasil.map(x =>
-          `${x.nama_regu} ${String(x.nomor_dada).padStart(3, "0")}`).join(", "));
+          `${x.nama_regu} ${dada3(x.nomor_dada)}`).join(", "));
         const kloter = [...new Set(hasil.map(x => x.kloter))].sort((x, y) => x - y).join(", ");
         notif(`${b.sekolah?.name || kode}: ${hasil.length} regu tersimpan — kloter ${kloter}.`);
         gambar(cari, saring);
@@ -1173,7 +1173,7 @@ async function layarKeberangkatan() {
                            ${r.sudah_ceklis ? "checked" : ""}
                            aria-label="ceklis regu ${esc(r.nomor_dada)}">
                   </td>
-                  <td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
+                  <td class="angka">${dada3(r.nomor_dada)}</td>
                   <td>
                     <strong>${esc(r.nama_regu)}</strong>
                     <div class="sub">${esc(r.nama_sekolah)}${r.sisipan ? " · SISIPAN" : ""}</div>
@@ -1307,7 +1307,7 @@ async function layarKeberangkatan() {
         if (!tujuan) return;
         const dada = Number(sel.dataset.pindah);
         const jawab = await dialog({
-          judul: `Pindahkan nomor ${String(dada).padStart(3, "0")} ke Kloter ${tujuan}?`,
+          judul: `Pindahkan nomor ${dada3(dada)} ke Kloter ${tujuan}?`,
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">Dari Kloter ${kloterAktif} ke Kloter ${tujuan}</div>
             <div class="detail">${papan.find(k => k.nomor === tujuan)?.jam_berangkat
@@ -1341,7 +1341,7 @@ async function layarKeberangkatan() {
               <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
             </div>`));
         } else {
-          notif(`Nomor ${dada} pindah dari Kloter ${hasil.kloter_lama} ke Kloter ${hasil.kloter_baru}.`);
+          notif(`Nomor ${dada3(dada)} pindah dari Kloter ${hasil.kloter_lama} ke Kloter ${hasil.kloter_baru}.`);
         }
       }));
 
@@ -1487,7 +1487,7 @@ async function layarCetakKloter() {
     document.getElementById("pratayang").replaceChildren(h(
       [...peta.entries()].map(([nomor, v]) => {
         const baris = v.isi.map(r => html`
-          <tr><td class="angka">${String(r.nomor_dada).padStart(3, "0")}</td>
+          <tr><td class="angka">${dada3(r.nomor_dada)}</td>
               <td><strong>${r.nama_regu}</strong></td>
               <td>${r.nama_sekolah}</td>
               <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
@@ -1555,13 +1555,13 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 
     const baris = v.isi.map(r => bentuk === "staging"
       ? html`
-        <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+        <tr><td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}${r.sisipan ? " ★" : ""}</td>
             <td>${r.nama_sekolah}</td>
             <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
             <td class="kotak"></td></tr>`
       : html`
-        <tr><td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+        <tr><td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}</td>
             <td>${r.nama_sekolah}</td>
             <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
@@ -1819,13 +1819,13 @@ function layarFinish() {
       tombol.dataset.jalan = ""; tombol.disabled = false;
       return;
     }
-    catatTerakhir("finish", String(dada).padStart(3, "0"),
+    catatTerakhir("finish", dada3(dada),
       `${nama} — ${jamMenit(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
     tombol.dataset.jalan = "";
     inp.value = ""; inpJam.setNilai(""); inpHadir.value = "5";
     bersihkan(); inp.focus();
     gambarRiwayat();
-    notif(`${String(dada).padStart(3, "0")} tercatat ${jamMenit(jam)}.`);
+    notif(`${dada3(dada)} tercatat ${jamMenit(jam)}.`);
   });
 
   function gambarRiwayat() {
@@ -1859,7 +1859,7 @@ function kartuReguFinish(r) {
          ${selisih > 0 ? `+${selisih}` : selisih} menit dari target</span>`;
   return `
     <div class="card card-identity" style="margin:0">
-      ${html`<div class="nama">${String(r.nomor_dada).padStart(3, "0")} · ${r.nama_regu}</div>
+      ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
       <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
       <div class="detail">Kloter ${r.kloter} · berangkat ${jamMenit(r.jam_berangkat)}${
         r.target_datang ? ` · target ${jamMenit(r.target_datang)}` : ""}</div>`}
@@ -2131,12 +2131,12 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
   // lain — biasanya pinggir kertas, tempat tidak ada yang mencarinya.
   const barisHtml = (kolom) => (r) => r.kosong ? `
     <tr>
-      ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>`}
+      ${html`<td class="dada">${dada3(r.nomor_dada)}</td>`}
       <td></td><td></td><td></td>
       ${kolom.map(() => `<td class="isian"></td>`).join("")}
     </tr>` : `
     <tr>
-      ${html`<td class="dada">${String(r.nomor_dada).padStart(3, "0")}</td>
+      ${html`<td class="dada">${dada3(r.nomor_dada)}</td>
       <td>${r.nama_regu}</td>
       <td>${r.nama_sekolah}</td>
       <td>${GOLONGAN_SINGKAT[r.golongan] || r.golongan}</td>`}
@@ -2155,7 +2155,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris, daftarUlangDitutup) {
       <h1>LEMBAR CADANGAN · ${esc(judul)}${judulLomba ? ` · ${esc(judulLomba)}` : ""}
           · Halaman ${i + 1}/${halaman.length}</h1>
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} · ${esc(tanggal)} ·
-         dada ${esc(String(grup[0].nomor_dada).padStart(3, "0"))}–${esc(String(grup[grup.length - 1].nomor_dada).padStart(3, "0"))}
+         dada ${esc(dada3(grup[0].nomor_dada))}–${esc(dada3(grup[grup.length - 1].nomor_dada))}
          · Petugas: ______________ · Diperiksa: ______________</p>
       ${daftarUlangDitutup ? "" : `<p class="insert-note">DAFTAR ULANG BELUM DITUTUP
         — regu yang menyusul BARISNYA SUDAH ADA di sini, hanya namanya yang
@@ -2495,7 +2495,7 @@ async function layarInputPos() {
     <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}"
         data-golongan="${esc(r.golongan)}" data-komponen="${esc(r.jumlah_komponen)}"
         data-terkunci="${r.terkunci ? "1" : ""}">
-      <td class="angka text-center" data-label="Nomor Dada">${esc(String(r.nomor_dada).padStart(3, "0"))}</td>
+      <td class="angka text-center" data-label="Nomor Dada">${esc(dada3(r.nomor_dada))}</td>
       <td data-label="Nama Regu"><strong>${esc(r.nama_regu)}</strong></td>
       <td data-label="Organisasi">${esc(r.nama_sekolah)}</td>
       <td data-label="Golongan">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
@@ -2606,7 +2606,7 @@ async function layarInputPos() {
   async function ubahGembok(tr) {
     const dada = Number(tr.dataset.dada);
     const kunci = tr.dataset.terkunci === "1";
-    const tiga = String(dada).padStart(3, "0");
+    const tiga = dada3(dada);
 
     // MENGUNCI tidak bertanya. Petugas menekan gembok ratusan kali dalam satu
     // shift, dan setiap kali harus menjawab "yakin?" untuk perbuatan yang bisa
@@ -2667,7 +2667,7 @@ async function layarInputPos() {
        yang harus dilewati mata sebelum sampai ke jawabannya. */
     if (!baris.length) {
       await dialog({
-        judul: `${String(dada).padStart(3, "0")} · ${nama}`,
+        judul: `${dada3(dada)} · ${nama}`,
         kartuHtml: `<p class="description">Belum pernah diubah.</p>`,
         labelAksi: "Tutup", bacaSaja: true,
       });
@@ -2704,7 +2704,7 @@ async function layarInputPos() {
     // menunggu, jadi penyaringnya boleh dipasang sebelum di-await. Menunggu
     // dulu berarti menunggu sampai dialognya ditutup.
     const janji = dialog({
-      judul: `${String(dada).padStart(3, "0")} · ${nama}`,
+      judul: `${dada3(dada)} · ${nama}`,
       kartuHtml: isi,
       labelAksi: "Tutup",
       bacaSaja: true,
@@ -2749,7 +2749,7 @@ async function layarInputPos() {
   async function bukaFoto(tr) {
     const dada = Number(tr.dataset.dada);
     const namaRegu = tr.children[1].textContent.trim();
-    const tiga = String(dada).padStart(3, "0");
+    const tiga = dada3(dada);
 
     let sudah = [];
     try {
@@ -2994,7 +2994,7 @@ async function layarInputPos() {
 
     if (pesanTakTerbaca && !baris.length && !dihapus.length) {
       statusBaris(tr, "gagal", pesanTakTerbaca);
-      notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${pesanTakTerbaca}`, true);
+      notif(`Nomor Dada ${dada3(dada)}: ${pesanTakTerbaca}`, true);
       return;
     }
 
@@ -3031,7 +3031,7 @@ async function layarInputPos() {
       jamSinkron = new Date();
       if (pesanTakTerbaca) {
         statusBaris(tr, "gagal", pesanTakTerbaca);
-        notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${pesanTakTerbaca}`, true);
+        notif(`Nomor Dada ${dada3(dada)}: ${pesanTakTerbaca}`, true);
       } else {
         statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
       }
@@ -3042,7 +3042,7 @@ async function layarInputPos() {
       // bawah layar, terlepas dari baris yang gagal — angka telanjang di
       // depan kalimat tidak memberi tahu angka APA, dan di lembar yang penuh
       // angka itu justru yang paling perlu disebut namanya.
-      notif(`Nomor Dada ${String(dada).padStart(3, "0")}: ${err.message}`, true);
+      notif(`Nomor Dada ${dada3(dada)}: ${err.message}`, true);
     } finally {
       tr.dataset.jalan = "";
       // Ketukan yang menumpuk selagi baris ini sibuk. Dijalankan juga setelah
@@ -3420,7 +3420,7 @@ function kartuSisipan(sisipan) {
   const aktif = sisipan.filter(s => !s.sudah_berangkat);
   if (!aktif.length) return "";
   const baris = aktif.map(s => html`
-    <tr><td class="angka">${String(s.nomor_dada).padStart(3, "0")}</td>
+    <tr><td class="angka">${dada3(s.nomor_dada)}</td>
         <td><strong>${s.nama_regu}</strong><br>
             <span class="description">${s.nama_sekolah}</span></td>
         <td><span class="badge badge-red">Kloter ${s.kloter}</span></td>
@@ -3582,7 +3582,7 @@ async function layarRekap() {
     return !cari
       || (b.nama_sekolah || "").toLowerCase().includes(cari)
       || (b.nama_regu || "").toLowerCase().includes(cari)
-      || String(b.nomor_dada ?? "").padStart(3, "0").includes(cari);
+      || dada3(b.nomor_dada ?? "").includes(cari);
   };
 
   /* Urutan: golongan dulu, lalu peringkat resmi, lalu total.
@@ -3654,7 +3654,7 @@ async function layarRekap() {
         <td class="text-center rekap-rank">${b.peringkat ?? "—"}</td>
         <td class="text-center nomor-dada">${
           b.nomor_dada === null || b.nomor_dada === undefined
-            ? "—" : esc(String(b.nomor_dada).padStart(3, "0"))}</td>
+            ? "—" : esc(dada3(b.nomor_dada))}</td>
         <td>${esc(b.nama_regu)}</td>
         <td>${esc(b.nama_sekolah)}</td>
         <td>${esc(NAMA_GOLONGAN[b.golongan] || b.golongan)}</td>
@@ -4052,7 +4052,7 @@ async function layarLiveScore() {
                 <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
                 <div class="j-teks">
                   <div class="peringkat">Juara ${esc(String(k.peringkat))}
-                    <span class="dada-juara">${esc(String(k.nomor_dada).padStart(3, "0"))}</span></div>
+                    <span class="dada-juara">${esc(dada3(k.nomor_dada))}</span></div>
                   <div class="nama">${esc(k.nama_regu)}</div>
                   <div class="sekolah">${esc(k.nama_sekolah)}</div>
                 </div>
@@ -4085,7 +4085,7 @@ async function layarLiveScore() {
                   return `
                   <tr>
                     <td class="angka">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
-                    <td class="angka">${esc(String(k.nomor_dada).padStart(3, "0"))}</td>
+                    <td class="angka">${esc(dada3(k.nomor_dada))}</td>
                     <td>${esc(k.nama_regu)}<span class="sub">${esc(k.nama_sekolah)}</span></td>
                     ${posKolom.map(p => p.kolom.map(kol => {
                         // Satu lomba bisa punya baris wahana berbeda per

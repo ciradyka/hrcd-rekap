@@ -677,3 +677,20 @@ export function ikon(nama, kelas = "ikon") {
 export function ikonKotak(nama, warna) {
   return `<span class="ikon-kotak i-${warna}">${ikon(nama)}</span>`;
 }
+
+/** Nomor dada SELALU tiga digit di layar: 001, bukan 1.
+ *
+ *  Bukan kerapian. Nomor dada adalah kunci yang dibacakan lintas meja, ditulis
+ *  di kain, dan disortir dalam tumpukan slip — "7" dan "007" terlihat seperti
+ *  dua hal berbeda saat mata menyapu kolom angka, dan tumpukan yang disortir
+ *  1, 10, 100, 2 adalah tumpukan yang tidak bisa dicari.
+ *
+ *  Nomor di luar 0-999 dibiarkan apa adanya: memotongnya jadi tiga digit akan
+ *  MENGUBAH nomornya, dan angka salah lebih buruk daripada angka yang lebarnya
+ *  tidak seragam. */
+export function dada3(n) {
+  if (n === null || n === undefined || n === "") return "";
+  const a = Number(n);
+  return Number.isInteger(a) && a >= 0 && a <= 999
+    ? String(a).padStart(3, "0") : String(n);
+}
