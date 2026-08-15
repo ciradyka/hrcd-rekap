@@ -33,8 +33,37 @@
 
 name: Publish rekap live
 
+# AUTO DEPLOY, dan kenapa ini AMAN padahal Git integration Cloudflare tidak.
+#
+# Keduanya terdengar sama — "deploy tiap push" — tapi yang dilakukan berbeda
+# di satu titik yang menentukan:
+#
+#   Git integration Cloudflare menyajikan folder live/ APA ADANYA dari repo,
+#   termasuk live.json dan rekap.json yang tersimpan di sana sebagai contoh
+#   fase 'pra'. Tiap push akan mengosongkan rekap peserta tanpa ada yang
+#   gagal.
+#
+#   Workflow ini MENIMPA kedua berkas itu dari database lebih dulu, baru
+#   men-deploy. Berkas contoh di repo tidak pernah sampai ke Cloudflare.
+#
+# Jadi larangan di atas tetap berlaku sepenuhnya: project hrcd37 tidak boleh
+# tersambung Git. Yang ditambahkan di sini bukan jalur kedua, melainkan pemicu
+# kedua untuk jalur yang sama.
+#
+# Kenapa perlu: situs peserta memuat FORM PENDAFTARAN dan rekap live, dan
+# keduanya sempat tertinggal berjam-jam karena merge tidak menerbitkan apa
+# pun — larangan angka pada nama sudah merge tapi pembina tetap bisa mengetik
+# angka, karena berkasnya belum naik.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'live/**'
+      # Query yang menghasilkan isi live.json. Mengubahnya mengubah apa yang
+      # terbit, walau tidak satu berkas pun di live/ ikut berubah.
+      - 'supabase/checks/live_json.sql'
+      - '.github/workflows/publish-live.yml'
   # schedule:
   #   - cron: '*/5 * * * *'   # nyalakan pada minggu lomba
 
