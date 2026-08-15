@@ -1233,7 +1233,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Baris tergembok: kotaknya benar-benar mati, dan terlihat mati. Bukan sekadar
    pudar — kotak yang masih bisa diketik tapi selalu ditolak adalah jebakan. */
 .baris-terkunci input:disabled {
-  background: var(--kartu-lembut, #f3f4f6);
+  background: #dfe3e9; border-color: #cfd5de;
   color: var(--tinta-lembut); cursor: not-allowed;
 }
 
@@ -1853,11 +1853,30 @@ input.small-input { text-align: center; }
    toh terjadi — gembok terpasang dari HP lain tepat saat baris ini sedang
    diketik — yang menang gembok, karena itulah keadaan yang sebenarnya di
    server. */
+/* Baris tergembok harus terlihat DARI JAUH, bukan ditebak.
+
+   #f3f4f6 sebelumnya nyaris tidak terbaca sebagai apa pun — dan sejak
+   kertasnya jadi #f0f1f4 ia lebih pucat daripada halaman di belakangnya.
+   Lembar pos berisi ratusan baris; kalau yang terkunci tidak menonjol,
+   petugas mencoba mengetik dulu lalu menemukan kotaknya mati.
+
+   Dua penanda, bukan satu: latar yang benar-benar lebih gelap, DAN pita hijau
+   di tepi kiri. Pita itu yang terbaca saat mata menyusuri kolom nomor dada
+   dari atas ke bawah, dan ia tetap ada bagi yang sulit membedakan naungan
+   abu-abu. */
 .table-pos tbody tr.baris-terkunci td,
 .table-pos tbody tr.baris-terkunci td:first-child {
-  background: var(--kartu-lembut, #f3f4f6);
+  background: #e4e7ec;
   color: var(--tinta-lembut);
 }
+.table-pos tbody tr.baris-terkunci td:first-child {
+  box-shadow: inset 3px 0 0 var(--utama);
+}
+/* Hijau, bukan abu: gembok tertutup berarti "sudah diperiksa dan benar",
+   sekelas dengan centang hijau di baris yang sama — bukan berarti mati. */
+.table-pos tbody tr.baris-terkunci .gembok { color: var(--utama); }
+.gembok { color: var(--tinta-lembut); background: none; border: 0; cursor: pointer; }
+.gembok .ikon { width: 1.15rem; height: 1.15rem; }
 /* Nomor dada tetap pekat: ia satu-satunya yang masih perlu dibaca cepat di
    baris yang sudah tidak bisa disentuh. */
 .table-pos tbody tr.baris-terkunci td.angka { color: var(--tinta); }

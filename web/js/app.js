@@ -2593,7 +2593,7 @@ async function layarInputPos() {
       data-gembok aria-pressed="${kunci}"
       title="${kunci ? "Terkunci — buka gembok (admin)"
                      : "Kunci nilai"}">${
-      kunci ? "🔒" : "🔓"}</button>`));
+      ikon(kunci ? "lock" : "lock-open")}</button>`));
     sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
   };
 
