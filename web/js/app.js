@@ -351,12 +351,14 @@ function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan
         <input type="text" id="cari-tabel" autocomplete="off"
                placeholder="${esc(cariContoh || "Cari kode, sekolah, atau nama regu…")}">
       </div>
-      <div class="filter-row">
-        ${saringan.map(s => `
-          <button type="button" class="option option-small" data-saring="${esc(s.kode)}"
-                  aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
+      <div class="filter-baris">
+        <div class="filter-row">
+          ${saringan.map(s => `
+            <button type="button" class="option option-small" data-saring="${esc(s.kode)}"
+                    aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
+        </div>
+        <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
       </div>
-      <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
       ${kanan}
     </div>`;
 }
@@ -783,9 +785,9 @@ async function layarDaftarUlang() {
     <div class="card">
       ${alatTabel({
         saringan: [
-          { kode: "belum", label: "Belum dapat nomor" },
-          { kode: "sudah", label: "Sudah" },
-          { kode: "semua", label: "Semua yang lunas" },
+          { kode: "belum", label: "Perlu Nomor Dada" },
+          { kode: "sudah", label: "Selesai" },
+          { kode: "semua", label: "Semua" },
         ],
         saringAktif: "belum",
         jumlah: semua.length,
