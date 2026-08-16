@@ -1803,8 +1803,20 @@ input.small-input { text-align: center; }
      menempel di sisinya. Enam kolom butuh ~820px, bukan 640.
 
      Jadi dua tahap, dan kolom sekolah diberi lantai supaya ia tidak pernah
-     lagi jadi yang dikorbankan diam-diam. */
-  @media (min-width: 640px) {
+     lagi jadi yang dikorbankan diam-diam.
+
+     ANGKANYA DIUKUR, BUKAN DITEBAK. Diambil dari isi terpanjang di seluruh 25
+     invoice yang ada, lewat max-content tiap sel di browser:
+
+       kode 139 · lantai sekolah 144/176 · regu 58 · tagihan 104 · metode 130
+       tombol 197 (label panjang) / 157 (label pendek)
+
+     Ditambah jarak antar kolom dan padding: lima kolom butuh 672px, enam
+     kolom 872px. Percobaan pertama memakai 640 dan 820 — keduanya di bawah
+     kebutuhannya, jadi masing-masing rusak di seluruh rentang 640-671 dan
+     820-871. Kalau kolom ditambah lagi, ukur ulang; jangan menaikkan
+     angkanya dengan perasaan. */
+  @media (min-width: 680px) {
     .table-bayar tbody tr[data-baris] {
       grid-template-columns:
         max-content minmax(9rem, 1fr) max-content max-content max-content;
@@ -1816,7 +1828,7 @@ input.small-input { text-align: center; }
     .table-bayar tbody tr[data-baris] > td[data-label="Metode"]     { grid-area: 1 / 5; }
     .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 2 / 1 / auto / 6; }
   }
-  @media (min-width: 820px) {
+  @media (min-width: 880px) {
     .table-bayar tbody tr[data-baris] {
       grid-template-columns:
         max-content minmax(11rem, 1fr) max-content max-content max-content max-content;
