@@ -2527,9 +2527,13 @@ input.small-input { text-align: center; }
    baris berbeda dan angkanya menggantung sendirian di baris ketiga, rata
    kanan, tidak sejajar dengan apa pun. Dibungkus begini, angkanya selalu
    duduk setinggi chip yang dihitungnya. */
+/* `flex: 0 1 auto` dan rata kiri, BUKAN `1 1 auto` + space-between. Kalau ia
+   ikut melar, sisa lebar berhenti di sini sebagai pita kosong antara chip
+   terakhir dan hitungan barisnya — dan yang seharusnya menerimanya kotak
+   cari. Seukuran isinya, hitungan barisnya duduk tepat sesudah chip. */
 .filter-baris {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: .6rem; flex: 1 1 auto; min-width: 0; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: flex-start;
+  gap: .6rem; flex: 0 1 auto; min-width: 0; flex-wrap: wrap;
 }
 
 /* Tombol kamera di lembar pos: ikon polos setinggi gembok di sebelahnya, dan
@@ -2586,15 +2590,16 @@ input.small-input { text-align: center; }
   border: 1px solid var(--garis);
 }
 
-/* Kotak cari: melar sampai batas, lalu berhenti.
+/* Kotak cari mengambil SELURUH sisa lebar. Sempat dibatasi 24rem, dan
+   batasnya justru membuat lubang: sisanya jatuh ke dalam baris chip yang
+   memakai `space-between`, jadi yang muncul bukan tata letak lebih rapat
+   melainkan pita kosong selebar telapak tangan antara chip terakhir dan
+   hitungan barisnya.
 
-   Dulu `flex:1` tanpa batas atas, jadi ia menyerap SELURUH sisa lebar — pada
-   1200px itu kotak teks selebar setengah layar untuk mengetik "UJI-022" atau
-   sepotong nama sekolah. Kotak yang jauh lebih panjang daripada isinya
-   terbaca seperti kolom tulisan, bukan kotak cari, dan matanya harus berjalan
-   melewatinya untuk sampai ke chip saringan di sebelah.
+   Ruang kosong di tengah toolbar lebih buruk daripada kotak cari yang lapang:
+   yang satu tidak melakukan apa-apa, yang lain setidaknya menampung nama
+   sekolah panjang tanpa menggulir mendatar.
 
-   24rem menampung nama sekolah terpanjang di data ini dengan sisa; lebihnya
-   diserahkan ke baris chip, yang memang mendorong hitungan invoice ke tepi
-   kanan. */
-.kotak-cari { margin: 0; flex: 1 1 220px; min-width: 220px; max-width: 24rem; }
+   Supaya sisanya benar-benar sampai ke kotak cari, baris chip tidak boleh ikut
+   melar — lihat .filter-baris. */
+.kotak-cari { margin: 0; flex: 1 1 220px; min-width: 220px; }

@@ -320,8 +320,6 @@ function layarGantiPassword() {
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:0 auto">
       <h2>Ganti Password Akun Sendiri</h2>
-      <p class="description">
-         <strong>${esc(sesi().username)}</strong>.</p>
       <div class="field">
         <label for="gp-baru">Password baru</label>
         <input type="password" id="gp-baru" autocomplete="new-password">
