@@ -1507,7 +1507,17 @@ input.small-input { width: 4.5rem; }
 /* min-width naik dari 6.5rem: panah yang digambar sendiri memakan 2rem
    padding kanan, dan tanpa tambahan itu "Transfer" terpotong demi memberi
    ruang bagi panah yang baru saja ditambahkan. */
-select.select-small { width: auto; min-width: 8rem; }
+/* padding-right DIULANG di sini, dan itu perlu. Aturan `select` di atas
+   memintanya 2rem, tapi `.select-small` menyetel `padding: .3rem .5rem` —
+   singkatan, spesifisitas (0,1,0) — dan itu mengalahkan selektor elemen
+   (0,0,1). Akibatnya tulisan menempel di chevron. `select.select-small`
+   (0,1,1) menang.
+
+   Ini kekeliruan yang SAMA dengan singkatan `background` beberapa baris di
+   atas, pada kelas yang sama, dua kali berturut-turut: singkatan CSS di kelas
+   berspesifisitas tinggi diam-diam membatalkan longhand di selektor elemen.
+   Kalau menambah properti pada dropdown lagi, periksa `.select-small` dulu. */
+select.select-small { width: auto; min-width: 8rem; padding-right: 2rem; }
 input.small-input { text-align: center; }
 /* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
    tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
