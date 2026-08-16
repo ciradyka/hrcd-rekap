@@ -30,16 +30,37 @@ run supabase/seed.sql
 # Konfigurasi pos butuh edisinya sudah ada — lihat catatan panjang yang sama
 # di tests/run.sh.
 run supabase/migrations/0024_komponen_pos.sql
+# Konfigurasi pos edisi 37 (0032-0039) DIJALANKAN ULANG di sini, dan itu
+# perlu. Di glob di atas mereka berjalan sebelum seed.sql sempat membuat
+# edisi 37, jadi tidak menemukan apa-apa dan diam-diam tidak melakukan apa
+# pun — dev lalu memakai konfigurasi pos edisi LAMA (Games, Kostum) sementara
+# produksi memakai yang baru (Halang Rintang, PBB, Yel-yel). Perbedaan itu
+# tidak menggagalkan apa pun; ia cuma membuat layar yang dicoba di dev
+# berbicara tentang pos yang tidak ada di produksi.
+#
+# 0033 melewati dirinya sendiri kalau edisinya sudah memuat nilai, jadi ini
+# harus di ATAS 01_seed_uji.sql maupun pengisi nilai mana pun.
+for m in 0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final          0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom          0038_petunjuk_menaksir 0039_judul_isian; do
+  run "supabase/migrations/$m.sql"
+done
+# Constraint peran dilonggarkan SEBENTAR. Seed akun uji sengaja memakai nama
+# peran lama (meja, operator_pos), karena di tests/run.sh ia berjalan lebih
+# dulu lalu 0058 memindahkannya — itulah yang menguji migrasinya terhadap
+# database yang sudah berisi. Di sini 0058 sudah lewat di glob, jadi
+# constraint barunya menolak nama lama; dipasang kembali oleh 0058 yang
+# dijalankan ulang tepat di bawah.
+"$PSQL" -d "$DB" -v ON_ERROR_STOP=1 -q -c   "alter table akun_panitia drop constraint akun_panitia_peran_check;
+   alter table akun_panitia drop constraint akun_panitia_check;"
 run tests/sql/01_seed_uji.sql
 
-# Akun uji lahir SESUDAH 0057 dijalankan di atas, jadi INSERT pengisi hak
-# di dalam migrasi itu tidak kebagian satu baris pun — di tests/run.sh
-# urutannya kebalikannya dan tidak kelihatan. Diisi di sini dengan
-# paket_peran() yang SAMA, supaya dev dan produksi tidak pernah memakai
-# dua daftar hak yang berbeda.
-"$PSQL" -d "$DB" -v ON_ERROR_STOP=1 -q -c "
-  insert into akun_hak (user_id, fitur)
-  select a.user_id, f from akun_panitia a, unnest(paket_peran(a.peran)) f
-  on conflict do nothing;"
+# 0058 DIJALANKAN ULANG, dan seed akun di atas sengaja masih memakai nama
+# peran LAMA (meja, operator_pos). Alasannya: di tests/run.sh seed berjalan
+# lebih dulu lalu 0058 memindahkannya — itu yang menguji migrasinya terhadap
+# database yang sudah berisi. Kalau seed diganti memakai nama baru, jalur itu
+# hilang dan yang teruji tinggal database kosong.
+#
+# 0058 sekaligus menulis ulang akun_hak dari paket_peran(), jadi tidak perlu
+# langkah pengisi terpisah di sini.
+run supabase/migrations/0058_peran_per_pekerjaan.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

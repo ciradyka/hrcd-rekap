@@ -75,7 +75,7 @@ penyelesaiannya dicatat di bagian 11.
 | `closing_regu` | Checkout: `jam_datang` **diketik & bisa di-edit**, `anggota_hadir` (0–5) | `PK (regu_id)`; upsert = mekanisme edit yang sah |
 | `ruangan` | Daftar ruang kelas barak + kapasitas orang | — |
 | `penempatan_barak` | Hasil alokasi; satu sekolah **boleh** terpecah ke >1 ruangan bila terpaksa | `UNIQUE (pendaftaran_id, ruangan_id)` |
-| `akun_panitia` | Peta `auth.uid` → peran (`admin/meja/operator_pos`) + nomor pos + aktif | Rotasi tahunan tanpa menyentuh policy |
+| `akun_panitia` | Peta `auth.uid` → peran (`admin/registrasi/gerbang/juri_pos`) + nomor pos + aktif; hak sesungguhnya di `akun_hak` (migrasi 0057-0058) | Rotasi tahunan tanpa menyentuh policy |
 | `riwayat` | Audit otomatis via trigger: siapa, kapan, tabel, nilai lama → baru, + `regu_id` agar bisa dicari per regu | Append-only; tidak bisa dimatikan dari klien |
 | `status_acara` | **Satu baris** saklar hari-H: `daftar_ulang_ditutup`, `fase_live` (`pra/progres/penuh`), `konfigurasi_terkunci` | Trigger menolak edit konfigurasi saat terkunci (kecuali admin) |
 
@@ -103,8 +103,9 @@ penyelesaiannya dicatat di bagian 11.
    | Peran | Contoh akun | Boleh |
    | --- | --- | --- |
    | `admin` | `admin.ciradyka` | Semua tabel, semua layar, konfigurasi |
-   | `operator_pos` | `pos1hrcd37` … `pos5hrcd37` | `nilai_mentah` **hanya** baris `pos = pos_saya()` — ditegakkan RLS, devtools tidak menolong |
-   | `meja` | `meja1hrcd37` … | Semua layar meja (pendaftaran, pembayaran, daftar ulang, garis start, closing) — satu peran untuk semua fungsi meja, jadi **ganti fungsi = pindah layar**, tanpa admin (R14) |
+   | `juri_pos` | `pos1hrcd37` … `pos5hrcd37` | `nilai_mentah` **hanya** baris `pos = pos_saya()` — ditegakkan RLS, devtools tidak menolong |
+   | `registrasi` | `meja1hrcd37` … | Pendaftaran, pembayaran, daftar ulang, daftar kloter |
+   | `gerbang` | `gerbang1hrcd37` … | Keberangkatan dan kedatangan — satu tempat, dua nama menurut arah lari (migrasi 0025) |
 
 2. Dua fungsi helper `peran()` dan `pos_saya()` (membaca `akun_panitia` dari
    `auth.uid()`) dipakai seluruh policy; hanya akun `aktif=true` yang lolos.

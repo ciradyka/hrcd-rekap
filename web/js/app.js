@@ -22,7 +22,7 @@ import {
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
-  statusAcara,
+  statusAcara, bolehLihat,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak,
 } from "./api.js";
@@ -132,7 +132,9 @@ function pasangKepala(judul, lebar = false) {
   // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
   // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
   // tidak boleh disentuh.
-  const adminSaja = !!s && s.peran === "admin";
+  // Ikut CENTANG, bukan peran: admin yang centang Akun-nya dicabut tidak
+  // boleh tetap melihat tombolnya (0057).
+  const adminSaja = !!s && bolehLihat("akun");
   document.getElementById("btn-akun").hidden = !adminSaja;
   document.getElementById("nav-akun").hidden = !adminSaja;
   document.getElementById("judul-layar").textContent = judul;
@@ -228,7 +230,9 @@ async function layarHome() {
   // Tapi ia punya satu layar sendiri, dan Home-nya harus menunjukkan layar
   // itu: sebelumnya halaman ini buntu, dan akun pos tidak punya jalan ke
   // mana pun kecuali mengetik alamatnya sendiri.
-  if (peran === "operator_pos") {
+  // Yang hanya memegang pos tidak punya layar meja sama sekali; papan penuh
+  // untuknya adalah papan berisi ubin yang semuanya menjawab kosong.
+  if (bolehLihat("pos") && !bolehLihat("pembayaran") && !bolehLihat("keberangkatan")) {
     LAYAR.replaceChildren(h(html`
       <div class="function-menu">
         <a href="#/pos">
@@ -279,41 +283,48 @@ async function layarHome() {
            situs PESERTA bersama rekap live, supaya alamat yang beredar ke
            ratusan orang bukan alamat yang ada kotak loginnya. Karena beda
            asal, tautannya mutlak dan diambil dari config.js. -->
+      ${bolehLihat("pendaftaran") ? `
       <a href="${esc((window.HRCD && window.HRCD.pesertaUrl) || "")}/daftar.html"
          target="_blank" rel="noopener">
         <div class="function-name">${ikonKotak("clipboard-list", "biru")} Pendaftaran</div>
-      </a>
+      </a>` : ""}
+      ${bolehLihat("pembayaran") ? `
       <a href="#/pembayaran">
         <div class="function-name">${ikonKotak("credit-card", "hijau")} Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
-      </a>
+      </a>` : ""}
+      ${bolehLihat("daftar_ulang") ? `
       <a href="#/daftar-ulang">
         <div class="function-name">${ikonKotak("id-card", "ungu")} Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
-      </a>
+      </a>` : ""}
+      ${bolehLihat("cetak_kloter") ? `
       <a href="#/cetak-kloter">
         <div class="function-name">${ikonKotak("list-ordered", "toska")} Daftar Kloter</div>
-      </a>
+      </a>` : ""}
+      ${bolehLihat("keberangkatan") ? `
       <a href="#/keberangkatan">
         <div class="function-name">${ikonKotak("flag", "jingga")} Keberangkatan ${
           kemajuan(r ? r.regu_berangkat : null, r ? r.regu_siap : null)}</div>
-      </a>
+      </a>` : ""}
+      ${bolehLihat("kedatangan") ? `
       <a href="#/finish">
         <div class="function-name">${ikonKotak("circle-check", "zamrud")} Kedatangan ${
           kemajuan(r ? r.regu_datang : null, r ? r.regu_berangkat : null,
             "Ada regu tercatat datang tapi tidak tercatat berangkat. "
             + "Regu itu TIDAK masuk klasemen — periksa layar Keberangkatan.")}</div>
-      </a>
-      ${peran === "admin" ? `
+      </a>` : ""}
+      ${bolehLihat("pos") ? `
       <a href="#/pos">
         <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos</div>
       </a>` : ""}
-      ${peran === "admin" ? `
+      ${bolehLihat("live_score") ? `
       <a href="#/live-score">
         <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
       </a>` : ""}
 
+      ${bolehLihat("rekap") ? `
       <a href="#/rekap">
         <div class="function-name">${ikonKotak("chart-column", "mawar")} Rekapitulasi</div>
-      </a>
+      </a>` : ""}
     </div>
   `));
 }
@@ -2436,7 +2447,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
  */
 async function layarInputPos() {
   const s = sesi();
-  if (s.peran === "meja") {
+  if (!bolehLihat("pos")) {
     pasangKepala("Input Nilai Pos");
     LAYAR.replaceChildren(h(html`
       <div class="card">
@@ -2464,7 +2475,7 @@ async function layarInputPos() {
 
   // Operator pos tidak memilih apa pun — posnya sudah melekat di akunnya, dan
   // RLS akan menolak pos lain seandainya layar ini mencoba.
-  const nomorPos = s.peran === "operator_pos"
+  const nomorPos = s.peran === "juri_pos"
     ? Number(s.pos)
     : (posDipilih.nomor
        ?? (posDinilai.length ? posDinilai[0].nomor
@@ -3631,7 +3642,7 @@ const angka = (n) => n === null || n === undefined ? "—"
 
 async function layarRekap() {
   const s = sesi();
-  if (s.peran === "operator_pos") {
+  if (!bolehLihat("rekap")) {
     pasangKepala("Rekapitulasi");
     LAYAR.replaceChildren(h(html`
       <div class="card">
@@ -4297,7 +4308,8 @@ async function layarLiveScore() {
 
 /* ============================ AKUN ======================================= */
 
-const PERAN_LABEL = { admin: "Admin", meja: "Meja", operator_pos: "Operator Pos" };
+const PERAN_LABEL = { admin: "Admin", registrasi: "Registrasi",
+                      gerbang: "Gerbang", juri_pos: "Juri Pos" };
 
 /** Kartu password. Ditampilkan SEKALI — tidak disimpan di mana pun dan tidak
  *  bisa dibaca lagi setelah dialognya ditutup, persis seperti CSV hasil
@@ -4327,7 +4339,7 @@ async function layarAkun() {
 
   // RLS yang sebenarnya menahan — ini supaya layarnya tidak tampak kosong dan
   // membingungkan kalau alamatnya diketik langsung.
-  if (sesi().peran !== "admin") {
+  if (!bolehLihat("akun")) {
     LAYAR.replaceChildren(h(kartuGalat("Hanya admin yang bisa mengelola akun.")));
     return;
   }
@@ -4359,7 +4371,7 @@ async function layarAkun() {
       <div class="table-toolbar" style="align-items:flex-end">
         <div class="field"><label for="ak-nama">Nama akun</label>
           <input id="ak-nama" type="text" class="small-input" autocomplete="off"
-            placeholder="pos6hrcd37" style="width:14rem"></div>
+            placeholder="pos1hrcd37" style="width:14rem"></div>
         <div class="field"><label for="ak-peran">Peran</label>
           <select id="ak-peran" class="select-small">${opsiPeran("meja")}</select></div>
         <div class="field"><label for="ak-pos">Pos</label>
@@ -4372,7 +4384,7 @@ async function layarAkun() {
         <div class="field">
           <label for="ak-tempel">Satu akun per baris: nama akun, peran, pos</label>
           <textarea id="ak-tempel" rows="4"
-            placeholder="pos6hrcd37, operator_pos, 6&#10;meja3hrcd37, meja"></textarea>
+            placeholder="pos1hrcd37, juri_pos, 1&#10;meja1hrcd37, registrasi"></textarea>
         </div>
         <button class="button button-primary" id="ak-buat-massal" type="button">Buat Semua</button>
       </details>
@@ -4409,7 +4421,7 @@ async function layarAkun() {
                 a.is_active ? "" : ' <span class="badge badge-gray">nonaktif</span>'}</td>
               <td><select class="select-small" data-peran>${opsiPeran(a.peran)}</select></td>
               <td><input type="number" class="small-input" data-pos min="1" max="20" style="width:4.5rem"
-                    value="${a.pos ?? ""}" ${a.peran === "operator_pos" ? "" : "disabled"}></td>
+                    value="${a.pos ?? ""}" ${a.peran === "juri_pos" ? "" : "disabled"}></td>
               ${fitur.map(f => `
                 <td class="text-center"><input type="checkbox" class="checkbox"
                   data-fitur="${esc(f.kode)}"
@@ -4427,10 +4439,10 @@ async function layarAkun() {
   const peranBaru = document.getElementById("ak-peran");
   const posBaru = document.getElementById("ak-pos");
 
-  // Pos hanya milik operator_pos — itu check constraint di database, bukan
+  // Pos hanya milik juri_pos — itu check constraint di database, bukan
   // selera. Kotaknya dimatikan supaya bentroknya ketahuan sebelum dikirim.
   peranBaru.addEventListener("change", () => {
-    posBaru.disabled = peranBaru.value !== "operator_pos";
+    posBaru.disabled = peranBaru.value !== "juri_pos";
     if (posBaru.disabled) posBaru.value = "";
   });
 
@@ -4453,7 +4465,7 @@ async function layarAkun() {
     const nama = document.getElementById("ak-nama").value.trim();
     if (!nama) { lapor("Nama akun wajib diisi."); return; }
     kirimBuat([{ username: nama, peran: peranBaru.value,
-      pos: peranBaru.value === "operator_pos" ? Number(posBaru.value) || null : null }],
+      pos: peranBaru.value === "juri_pos" ? Number(posBaru.value) || null : null }],
       ev.currentTarget);
   });
 
@@ -4507,12 +4519,12 @@ async function layarAkun() {
     const peran = tr.querySelector("[data-peran]").value;
     const kotakPos = tr.querySelector("[data-pos]");
     if (ev.target.matches("[data-peran]")) {
-      kotakPos.disabled = peran !== "operator_pos";
+      kotakPos.disabled = peran !== "juri_pos";
       if (kotakPos.disabled) kotakPos.value = "";
       else if (!kotakPos.value) { kotakPos.focus(); return; }
     }
-    const pos = peran === "operator_pos" ? Number(kotakPos.value) || null : null;
-    if (peran === "operator_pos" && !pos) { kotakPos.focus(); return; }
+    const pos = peran === "juri_pos" ? Number(kotakPos.value) || null : null;
+    if (peran === "juri_pos" && !pos) { kotakPos.focus(); return; }
     try {
       await ubahPeranAkun(tr.dataset.uid, peran, pos);
       notif(`${tr.dataset.nama} sekarang ${PERAN_LABEL[peran]}${pos ? ` pos ${pos}` : ""}.`);

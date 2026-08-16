@@ -183,5 +183,10 @@ run tests/sql/23_perkiraan_zona_wib.sql
 # syarat migrasi ini boleh dipasang di tengah edisi.
 run supabase/migrations/0057_hak_akses.sql
 run tests/sql/24_hak_akses.sql
+# 0058 mengganti nama peran dan MENULIS ULANG hak tiap akun. Tesnya menjaga
+# yang paling mahal kalau bocor: nilai peran lama harus benar-benar ditolak
+# database, bukan sekadar tidak dipakai lagi.
+run supabase/migrations/0058_peran_per_pekerjaan.sql
+run tests/sql/25_peran_per_pekerjaan.sql
 
 echo "SEMUA TES LULUS"
