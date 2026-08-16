@@ -262,17 +262,21 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 ## 7. Rute dan pos
 
-1. Terdapat **4 pos utama** di sepanjang rute (Pos 1–4), masing-masing dengan
-   soal dan wahana yang berbeda.
+1. Terdapat **5 pos utama** di sepanjang rute (Pos 1–5), masing-masing dengan
+   soal dan wahana yang berbeda. Susunan XXXVII: 1 Kepramukaan, 2 Halang
+   Rintang, 3 P3K, 4 PBB, 5 Yel-Yel.
 
-   **Pos 0 dan Pos 5 bukan pos penilaian.** Keduanya tempat yang sama —
+   **Pos 0 dan Pos 6 bukan pos penilaian.** Keduanya tempat yang sama —
    garis start dan garis finish — dan peserta menyebutnya Pos 0 saat berangkat,
-   Pos 5 saat kembali. Yang dicatat di sana **waktu**, bukan nilai: jam
+   Pos 6 saat kembali. Garis finish dipindah dari 5 ke 6 oleh migrasi `0032`
+   supaya nomor 5 kosong untuk Yel-Yel. Yang dicatat di sana **waktu**, bukan nilai: jam
    berangkat per kloter dan jam datang per regu (bagian 6 dan 10). Tidak ada
    wahana dan tidak ada soal yang dikoreksi di keduanya.
 
-   > Dokumen ini sempat menulis "5 pos utama" dan memasukkan Pos 5 ke dalam
-   > rantai soal. Sistem sudah ikut dibetulkan di migrasi `0025`, termasuk satu
+   > Dokumen ini sempat menulis "5 pos utama" ketika yang dinilai baru empat,
+   > dan memasukkan garis finish ke dalam rantai soal. Sekarang lima memang
+   > benar — tapi karena Yel-Yel menempati nomor 5, bukan karena finish ikut
+   > dinilai. Sistem sudah ikut dibetulkan di migrasi `0025`, termasuk satu
    > akibat yang tidak kelihatan: pos tanpa komponen penilaian sempat terhitung
    > sebagai **pos yang dilewatkan regu**. Selama denda pos terlewat masih 0
    > itu tidak berdampak apa-apa — dan justru itu bahayanya, karena baru
@@ -385,24 +389,44 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    angka yang harus terbaca sambil menyortir cepat. Karena itu nomor dada
    dicetak besar di pojok kiri atas, dan tetap terbaca walau kertasnya
    ditumpuk hanya dengan sudut terlihat.
-5. **Kertasnya berpindah tangan secara fisik**, dan itu memang jalurnya. Foto
-   berkala tetap berguna sebagai cadangan sebelum kotak berpindah — kotak yang
-   hilang atau tertinggal di pos adalah satu-satunya cara nilai lenyap tanpa
-   jejak — tetapi apakah foto diwajibkan atau tidak belum diputuskan
-   (bagian 13).
-6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, melalui dua
-   jalur:
-   - **Input manual**, satu regu satu kali.
-   - **Upload massal.** Tim IT boleh memakai AI untuk mengubah foto lembar
-     menjadi tabel Excel, lalu meng-copy atau meng-upload-nya ke sistem.
-7. Karena jalur kedua bergantung pada pembacaan otomatis yang bisa salah,
-   **upload massal wajib melewati layar preview** yang menampilkan apa saja
-   yang akan berubah dan menandai kejanggalan — nomor dada tidak dikenal, nilai
-   di luar rentang wajar, atau baris ganda. Data hasil transkripsi otomatis
-   tidak boleh masuk langsung ke perhitungan skor tanpa dikonfirmasi manusia.
-8. Semua kertas **dicetak sistem** dari layar Input Pos setelah daftar ulang
-   ditutup, sudah terisi identitas regu dan menyisakan kotak kosong untuk
-   diisi petugas. Kolomnya tidak pernah ditulis tangan di berkas mana pun — ia
+5. **Kertasnya berpindah tangan secara fisik**, dan itu memang jalurnya. Kotak
+   yang hilang atau tertinggal di pos adalah satu-satunya cara nilai lenyap
+   tanpa jejak, dan cadangannya sudah dibangun (migrasi `0047`) — tapi
+   bentuknya kebalikan dari yang sempat direncanakan di sini.
+
+   **Slip difoto di MEJA IT sambil nilainya diketik**, bukan diborong di pos.
+   Alasannya: di meja, fotonya tertaut sendiri ke nomor dada dan lomba yang
+   tepat, karena petugas baru saja mengetik keduanya. Foto borongan di pos
+   harus dicari satu per satu nanti di antara ribuan gambar, dan cadangan yang
+   tidak bisa ditemukan kembali bukan cadangan.
+
+   Harganya disebut supaya tidak jadi kejutan: slip yang hilang **di jalan**
+   antara pos dan meja IT tidak pernah difoto sama sekali. Jendela itu memang
+   tidak terlindungi.
+
+   Tombolnya kamera di tiap baris lembar Input Pos; gambarnya masuk bucket
+   privat `lembar` sesudah dikecilkan jadi abu-abu 1400px di HP, ~70 KB
+   per foto.
+6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, lewat layar
+   Input Pos — satu regu satu baris, tersimpan sendiri tanpa tombol Simpan.
+
+   **Upload massal BELUM DIBANGUN.** Rencananya masih berdiri dan RPC-nya
+   sudah menerimanya (`simpan_nilai_massal` sudah punya `p_sumber = 'upload'`
+   berikut penolakan per baris), tapi tidak ada satu pun layar impor, tempel,
+   pemilih berkas, atau preview di `web/js/`. Jangan menuliskannya di sini
+   seolah ia ada — panitia yang membaca dokumen ini akan mencarinya di hari-H.
+7. Kalau jalur itu kelak dibangun, **wajib melewati layar preview** yang
+   menampilkan apa saja yang akan berubah dan menandai kejanggalan — nomor dada
+   tidak dikenal, nilai di luar rentang, baris ganda, dan terutama **nilai yang
+   akan MENIMPA angka yang sudah ada**, karena pada input pertama itu tidak
+   mungkin terjadi dan hampir selalu berarti nomor dada salah baca. Data hasil
+   transkripsi otomatis tidak boleh masuk ke perhitungan skor tanpa
+   dikonfirmasi manusia.
+8. Semua kertas **dicetak sistem** dari layar Input Pos. Yang berisi identitas
+   regu hanya form tabel cadangan; **blangko per lomba sengaja kosong**, karena
+   regu datang ke pos dengan urutan acak dan slip yang sudah bernama harus
+   dicari dulu di tumpukan 500 lembar sebelum bisa dipakai. Di blangko, nomor
+   dada ditulis tangan petugas di kotak besar pojok kiri atas. Kolomnya tidak pernah ditulis tangan di berkas mana pun — ia
    lahir dari tabel `wahana`, sehingga kertas tahun depan ikut berubah sendiri
    begitu konfigurasi penilaiannya diganti.
 
