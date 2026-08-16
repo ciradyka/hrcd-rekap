@@ -2652,3 +2652,43 @@ input.small-input { text-align: center; }
     column-gap: 1.25rem;
   }
 }
+
+/* ============================================================================
+   MATRIKS HAK AKSES (layar Akun)
+
+   Sebelas kolom centang di sebelah nama akun tidak muat di HP, dan itu tidak
+   bisa diakali dengan mengecilkan huruf — kepala kolomnya kata utuh
+   ("Keberangkatan"), bukan singkatan. Jadi kepalanya diputar tegak dan
+   tabelnya digulir mendatar di dalam wadahnya sendiri, bukan menggulirkan
+   seluruh halaman.
+   ========================================================================== */
+.matriks-gulir { overflow-x: auto; }
+
+/* Kolom nama menempel waktu digulir — tanpa ini, menggulir ke kolom kesebelas
+   berarti mencentang baris yang sudah tidak kelihatan namanya. */
+.matriks-hak th:first-child,
+.matriks-hak td:first-child {
+  position: sticky; left: 0; z-index: 1;
+  background: var(--kartu, #fff);
+}
+.matriks-hak th.tegak {
+  height: 8.5rem; padding: 0; vertical-align: bottom; width: 2.4rem;
+}
+.matriks-hak th.tegak > span {
+  display: inline-block; white-space: nowrap;
+  transform: rotate(-90deg) translateX(0.4rem); transform-origin: left bottom;
+  font-weight: 600;
+}
+.matriks-hak td.pusat { text-align: center; }
+.matriks-hak input[type="checkbox"] { width: 1.15rem; height: 1.15rem; }
+/* Akun nonaktif tetap terbaca — diredupkan, bukan disembunyikan, supaya
+   "sudah dinonaktifkan" dan "belum pernah ada" tidak terlihat sama. */
+.matriks-hak tr.mati { opacity: .55; }
+
+/* Nama akun adalah tombol, tapi harus terbaca sebagai nama. */
+.tautan {
+  background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
+  color: var(--utama, #1a56db); text-decoration: underline;
+}
+
+@media print { .matriks-gulir { overflow: visible; } }

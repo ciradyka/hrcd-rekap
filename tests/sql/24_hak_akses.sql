@@ -25,14 +25,14 @@ begin
   -- Sepuluh fitur, dan urutannya rapat 1..10. Layar Akun menggambar kolom
   -- dari tabel ini, jadi lubang di urutan berarti kolom yang meloncat.
   select count(*) into v_n from fitur;
-  assert v_n = 10, format('fitur harus 10, ada %s', v_n);
-  select count(*) into v_n from fitur where urutan between 1 and 10;
-  assert v_n = 10, 'urutan fitur harus 1..10 tanpa lubang';
+  assert v_n = 11, format('fitur harus 11, ada %s', v_n);
+  select count(*) into v_n from fitur where urutan between 1 and 11;
+  assert v_n = 11, 'urutan fitur harus 1..11 tanpa lubang';
 
   -- ------------------------------------------------------------------ 2
   -- Hak terisi dari peran, persis sebanyak paketnya.
   select count(*) into v_n from akun_hak where user_id = v_admin;
-  assert v_n = 10, format('admin harus punya 10 fitur, ada %s', v_n);
+  assert v_n = 11, format('admin harus punya 11 fitur, ada %s', v_n);
   select count(*) into v_n from akun_hak where user_id = v_meja;
   assert v_n = 7, format('meja harus punya 7 fitur, ada %s', v_n);
   select count(*) into v_n from akun_hak where user_id = v_pos;

@@ -524,8 +524,14 @@ export function notif(pesan, galat = false) {
  *  konfirmasi ya/tidak yang justru paling membutuhkan tombol Batal. Menerka
  *  akan mencabutnya dari kelimanya sekaligus, dan yang tersisa cuma tombol
  *  "Ya". */
+/* `pasang` adalah kail opsional untuk dialog yang isinya BUKAN isian: ia
+   dipanggil sesudah kartunya digambar, dengan elemennya dan fungsi penutup,
+   sehingga tombol di dalam kartuHtml bisa menutup dialog sambil membawa
+   jawabannya. Dipakai layar Akun — menu aksi per akun adalah tiga tombol,
+   bukan tiga kotak isian, dan memaksanya jadi `medan` akan meminta orang
+   MENGETIK pilihannya. */
 export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan",
-                         bacaSaja = false }) {
+                         bacaSaja = false, pasang = null }) {
   return new Promise(resolve => {
     const wadah = h(html`<div class="overlay" role="dialog" aria-modal="true"></div>`);
     document.body.appendChild(wadah);
@@ -563,6 +569,7 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
     });
 
     const tutup = hasil => { el.remove(); resolve(hasil); };
+    if (pasang) pasang(el, tutup);
     el.querySelector("[data-batal]")?.addEventListener("click", () => tutup(null));
     el.addEventListener("click", e => { if (e.target === el) tutup(null); });
     el.querySelector("[data-ok]").addEventListener("click", () => {

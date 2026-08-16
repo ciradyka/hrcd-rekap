@@ -804,3 +804,37 @@ export async function ubahUsernameAkun(userId, username) {
     });
   return gerbangAkun("/akun/username", { user_id: userId, username });
 }
+
+/** Daftar fitur (kolom matriks) — layar menggambar kolomnya dari sini, jadi
+ *  menambah fitur tahun depan cukup satu INSERT di database. */
+export async function daftarFitur() {
+  return baca("/fitur", "fitur?select=kode,nama,urutan&order=urutan.asc");
+}
+
+/** Seluruh centang, satu baris per (akun, fitur). Dibaca sekali lalu
+ *  dijodohkan di browser — 20 akun x 11 fitur cuma 220 baris. */
+export async function daftarHak() {
+  return baca("/hak", "akun_hak?select=user_id,fitur");
+}
+
+/** Centang / lepas satu kotak. Baris ADA artinya boleh, jadi mencentang =
+ *  insert dan melepas = delete. Tidak ada kolom boolean yang bisa berbeda
+ *  dengan keberadaan barisnya. */
+export async function setHak(userId, fitur, boleh) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/hak/set`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId, fitur, boleh }),
+    });
+  await pastikanSesiSegar();
+  if (boleh)
+    return kirim(`${K.supabaseUrl}/rest/v1/akun_hak`, {
+      method: "POST",
+      headers: { ...kepalaSupabase(), Prefer: "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify({ user_id: userId, fitur }),
+    });
+  return kirim(
+    `${K.supabaseUrl}/rest/v1/akun_hak?user_id=eq.${userId}&fitur=eq.${encodeURIComponent(fitur)}`,
+    { method: "DELETE", headers: { ...kepalaSupabase(), Prefer: "return=minimal" } });
+}

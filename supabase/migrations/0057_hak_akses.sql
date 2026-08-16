@@ -59,7 +59,13 @@ insert into fitur (kode, nama, urutan) values
   ('pos',          'Input Nilai Pos',7),
   ('live_score',   'Live Score',     8),
   ('rekap',        'Rekapitulasi',   9),
-  ('akun',         'Akun',          10);
+  ('akun',         'Akun',          10),
+  -- Kolom ke-11 menutup pekerjaan admin yang TIDAK punya ubin di Home:
+  -- bobot pos, wahana, kontrak waktu, penalti, kunci hari-H, penyusunan
+  -- barak, daftar sekolah, dan riwayat. Tanpa kolom ini sembilan policy
+  -- tulis tidak punya centang yang mengaturnya, dan hak akses kembali punya
+  -- dua mekanisme untuk satu pertanyaan.
+  ('pengaturan',   'Pengaturan',    11);
 
 -- ---------------------------------------------------------------------------
 -- 2. Hak per akun. Baris ADA artinya boleh; baris tidak ada artinya tidak.
@@ -127,7 +133,8 @@ as $$
   select case p_peran
     when 'admin' then array[
       'pendaftaran','pembayaran','daftar_ulang','cetak_kloter',
-      'keberangkatan','kedatangan','pos','live_score','rekap','akun']
+      'keberangkatan','kedatangan','pos','live_score','rekap','akun',
+      'pengaturan']
     -- Meja hari ini memegang seluruh layar meja, dan TIDAK memegang input
     -- nilai pos, live score, maupun akun (lihat layarHome di web/js/app.js:
     -- ketiganya digambar hanya untuk peran admin).

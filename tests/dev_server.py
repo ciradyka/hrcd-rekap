@@ -169,6 +169,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select * from v_kelengkapan_pos order by pos",
                     uid=p.get("uid")))
+            elif u.path == "/akun":
+                self._kirim(200, q(
+                    "select user_id::text, username, peran, pos, is_active "
+                    "from akun_panitia order by username",
+                    uid=p.get("uid")))
+            elif u.path == "/fitur":
+                self._kirim(200, q(
+                    "select kode, nama, urutan from fitur order by urutan",
+                    uid=p.get("uid")))
+            elif u.path == "/hak":
+                self._kirim(200, q(
+                    "select user_id::text, fitur from akun_hak", uid=p.get("uid")))
             elif u.path == "/rekap-penuh":
                 self._kirim(200, q(
                     "select * from v_rekap_penuh order by nomor_dada",
@@ -277,6 +289,71 @@ class Handler(http.server.BaseHTTPRequestHandler):
                      b.get("kunci_kirim"), b.get("nama_kontak")),
                     role="service_role", fetch="one")
                 self._kirim(200, hasil["h"])
+
+            elif u.path == "/akun/ubah":
+                b = self._badan()
+                sets, args = [], []
+                for k in ("peran", "pos", "is_active"):
+                    if k in b:
+                        sets.append(f"{k} = %s")
+                        args.append(b[k])
+                if not sets:
+                    self._kirim(400, {"message": "tidak ada yang diubah"})
+                    return
+                args.append(b.get("user_id"))
+                q(f"update akun_panitia set {', '.join(sets)} where user_id = %s::uuid",
+                  tuple(args), uid=b.get("uid"), fetch=None)
+                self._kirim(200, {"ok": True})
+
+            elif u.path == "/akun/buat":
+                # Dev tidak punya auth sungguhan: user_id digenerate di sini,
+                # dan passwordnya palsu — yang diuji alur layarnya, bukan
+                # GoTrue. Di produksi ini pekerjaan Worker gateway.
+                b = self._badan()
+                hasil = []
+                for a in b.get("akun") or []:
+                    nama = (a.get("username") or "").strip().lower()
+                    peran = (a.get("peran") or "").strip()
+                    pos = a.get("pos") or None
+                    try:
+                        baris = q(
+                            "with u as ("
+                            "  insert into auth.users (id, email)"
+                            "  values (gen_random_uuid(), %s || '@uji.local') returning id)"
+                            " insert into akun_panitia (user_id, username, peran, pos)"
+                            " select id, %s, %s, %s from u returning user_id::text",
+                            (nama, nama, peran, pos),
+                            role="service_role", fetch="one")
+                        q("insert into akun_hak (user_id, fitur)"
+                          " select %s::uuid, f from unnest(paket_peran(%s)) f"
+                          " on conflict do nothing",
+                          (baris["user_id"], peran), role="service_role", fetch=None)
+                        hasil.append({"username": nama, "ok": True, "peran": peran,
+                                      "pos": pos, "password": "dev-tanpa-password"})
+                    except Exception as e:  # noqa: BLE001 — pesannya untuk layar
+                        hasil.append({"username": nama, "ok": False,
+                                      "pesan": str(e).strip().splitlines()[0]})
+                self._kirim(200, {"hasil": hasil})
+
+            elif u.path == "/akun/password":
+                self._kirim(200, {"password": "dev-tanpa-password"})
+
+            elif u.path == "/akun/username":
+                b = self._badan()
+                q("update akun_panitia set username = %s where user_id = %s::uuid",
+                  (b.get("username"), b.get("user_id")), role="service_role", fetch=None)
+                self._kirim(200, {"username": b.get("username")})
+
+            elif u.path == "/hak/set":
+                b = self._badan()
+                if b.get("boleh"):
+                    q("insert into akun_hak (user_id, fitur) values (%s::uuid, %s)"
+                      " on conflict do nothing",
+                      (b.get("user_id"), b.get("fitur")), uid=b.get("uid"), fetch=None)
+                else:
+                    q("delete from akun_hak where user_id = %s::uuid and fitur = %s",
+                      (b.get("user_id"), b.get("fitur")), uid=b.get("uid"), fetch=None)
+                self._kirim(200, {"ok": True})
 
             elif u.path.startswith("/rpc/"):
                 nama = u.path.split("/rpc/", 1)[1]
