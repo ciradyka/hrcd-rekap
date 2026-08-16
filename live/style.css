@@ -1470,7 +1470,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      kali isian disentuh — batas keras di kepala berkas ini, dan sempat
      terlanggar di sini. */
   min-height: 40px; padding: .3rem .5rem; font-size: 1rem;
-  border: 1px solid var(--garis); border-radius: 8px; background: #fff;
+  /* background-COLOR, bukan singkatan `background`. Singkatannya mengatur
+     ulang SELURUH kelompok latar termasuk background-image — dan chevron
+     dropdown di bawah dilukis sebagai background-image. Kelas ini
+     spesifisitasnya lebih tinggi daripada selektor `select`, jadi singkatan di
+     sini menghapus panahnya dan menyisakan kotak tanpa penanda sama sekali,
+     karena appearance: none sudah membuang panah bawaan browser. */
+  border: 1px solid var(--garis); border-radius: 8px; background-color: #fff;
   font-family: inherit;
 }
 
@@ -1508,8 +1514,11 @@ input.small-input { text-align: center; }
 .input-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
 /* Kedip hijau sekejap = "tersimpan", supaya edit langsung di tabel tidak
    terasa seperti tidak terjadi apa-apa. */
+/* background-color di sini juga, alasan yang sama: singkatannya akan
+   menghapus chevron tepat pada satu detik kedipan hijau sesudah tersimpan —
+   panah yang berkedip hilang lalu muncul lagi terbaca seperti kerusakan. */
 .select-small.saved, .small-input.saved {
-  border-color: var(--hijau); background: var(--hijau-muda);
+  border-color: var(--hijau); background-color: var(--hijau-muda);
 }
 .button-mini {
   min-height: 34px; padding: .2rem .55rem; font-size: .8rem; width: auto;
