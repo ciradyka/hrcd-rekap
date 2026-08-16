@@ -1765,20 +1765,32 @@ input.small-input { text-align: center; }
      memaksa dua baris membuang satu baris penuh per kartu: pada layar 880px
      yang memuat belasan invoice, itu belasan baris kosong yang harus digulir.
 
-     Tombolnya tetap turun sendiri. Ia satu-satunya isi kartu yang DIKETUK, dan
-     mencampurnya ke barisan keterangan membuat jempol harus membidik di antara
-     teks. */
+     TOMBOLNYA IKUT SEBARIS di sini, dan itu kebalikan dari yang berlaku di
+     kartu HP. Alasannya berubah bersama alatnya: di bawah 640px kartunya
+     dipegang dan diketuk jempol, jadi tombol yang bercampur barisan keterangan
+     memaksa membidik di antara teks. Dari 640px ke atas yang memegangnya
+     kursor — bidikannya setajam satu piksel — dan yang mahal justru barisnya:
+     satu baris terbuang per invoice, belasan kali per layar.
+
+     Labelnya ikut memendek jadi "Kwitansi" dan "Lunas" lewat .teks-lebar yang
+     memang sudah ada. Kata keduanya sudah membedakan aksinya, dan ~50px yang
+     dihemat tiap tombol itu yang menentukan muat atau tidak. */
   @media (min-width: 640px) {
     .table-bayar tbody tr[data-baris] {
       grid-template-columns:
-        max-content minmax(0, 1fr) max-content max-content max-content;
+        max-content minmax(0, 1fr) max-content max-content max-content max-content;
     }
+    .table-bayar tbody tr[data-baris] .teks-lebar { display: none; }
+    /* Tombol seukuran isinya, bukan selebar petaknya — di kartu HP ia sengaja
+       melebar penuh (baris 1701), dan di sini itu akan meregangkan kolom
+       terakhir sampai menghimpit nama sekolah. */
+    .table-bayar tbody tr[data-baris] .button-small { width: auto; }
     .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
     .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]    { grid-area: 1 / 2; }
     .table-bayar tbody tr[data-baris] > td[data-label="Regu"]       { grid-area: 1 / 3; }
     .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"]    { grid-area: 1 / 4; }
     .table-bayar tbody tr[data-baris] > td[data-label="Metode"]     { grid-area: 1 / 5; }
-    .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 2 / 1 / auto / 6; }
+    .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 1 / 6; }
   }
   /* Cetak Kwitansi + Batalkan RATA KIRI di kartu HP — sempat ditengahkan dan
      dikembalikan setelah dicoba di HP sungguhan. Seluruh isi kartu lainnya
