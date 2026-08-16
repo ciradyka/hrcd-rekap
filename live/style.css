@@ -2148,18 +2148,28 @@ input.small-input { text-align: center; }
    jauh di kanan, terpisah dari Penalti yang seharusnya dibacanya bersama. */
 .table-rekap th:last-child, .table-rekap td:last-child { width: auto; }
 
-/* Rank dipatok lebih dulu, lalu Nomor Dada menempel tepat di belakangnya.
-   Lebar kolom pertama HARUS pasti, kalau tidak `left` kolom kedua meleset —
-   isinya cuma satu sampai tiga digit, jadi mematoknya tidak merugikan. */
-.table-rekap th:first-child, .table-rekap td:first-child {
-  width: 56px; min-width: 56px;
-}
+/* TIDAK ADA KOLOM YANG DIPATOK KE TEPI KIRI DI SINI. # / No Dada / Regu
+   tergeser bersama-sama, seperti kolom lainnya.
+
+   Sebelumnya Nomor Dada dipatok, dan itu tidak pernah bekerja: kolom di
+   SEBELAH KANANNYA adalah Nama Regu, jadi yang dipatok tidak berdiri di
+   pinggir tabel melainkan MELAYANG DI ATAS nama regu yang menggeser di
+   bawahnya. Setengah nama tertutup, dan yang tersisa terbaca sebagai satu
+   kata rusak — "SATYA ... RAN". Patokan itu dipasang supaya baris tetap
+   dikenali saat digeser jauh; yang sebenarnya terjadi adalah ia menutupi
+   satu-satunya kolom yang mengenali baris.
+
+   Bisa saja tiga kolomnya dipatok sekalian supaya tidak saling menutupi,
+   tapi bertiga mereka memakan ±330px — di HP itu hampir seluruh layar, dan
+   yang tersisa untuk angka yang sedang dicari tinggal sejengkal.
+
+   `left: auto`, bukan `position: static`: kepala tabel menempel ke ATAS
+   lewat `.data-table thead th { top: 0 }`, dan mematikan position di sini
+   akan ikut melepaskannya. Yang dilepas cuma patokan sampingnya. */
+.table-rekap th:first-child, .table-rekap td:first-child,
 .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) {
-  position: sticky; left: 56px; z-index: 2;
-  background: var(--kartu); box-shadow: 1px 0 0 var(--garis);
+  left: auto; box-shadow: none;
 }
-.table-rekap thead th:nth-child(2) { z-index: 3; background: var(--kertas); }
-.table-rekap tbody tr:hover td:nth-child(2) { background: var(--utama-muda); }
 
 /* Batas kanan tiap kelompok pos, dan sebelum Nilai Total. */
 .table-rekap .rekap-batas { border-right: 2px solid var(--garis); }
