@@ -136,6 +136,43 @@ berpasangan, dan urutannya penting — "biasa diucapkan" duluan.
   `SMKN 1 Manonjaya`; Dapodik ternyata mencatatnya `SMKN MANONJAYA`. Periksa
   dulu sebelum menambahkan angka.
 
+### Yang menentukan sekolah itu satu atau dua adalah NPSN — bukan namanya
+
+Nama boleh sama; NPSN tidak pernah. **NPSN dicek hanya kalau benar-benar
+ragu** — bukan untuk 189 sekolah satu per satu, tapi untuk yang namanya
+mencurigakan mirip. Begitu dua NPSN berbeda, itu dua sekolah, titik, dan
+tidak ada kesamaan alamat atau ejaan yang mengubahnya.
+
+**Maka nama di database kita harus cukup jelas untuk berdiri sendiri.** Kalau
+dua NPSN akan memakai nama tampil yang sama, nama itu diberi ekor kabupaten
+atau kota:
+
+| NPSN       | Nama tampil            |
+|------------|------------------------|
+| `20276449` | `MAN 3 Ciamis`         |
+| `20276789` | `MAN 3 Tasikmalaya`    |
+| `20280193` | `MAN 6 Ciamis`         |
+| `20276775` | `MAN 6 Tasikmalaya`    |
+
+Ini bukan gaya penulisan, dan ekornya bukan hiasan. Nama sekolah adalah yang
+dibaca panitia di layar keberangkatan, dicetak di blangko, dan dicari pembina
+di daftar. Dua sekolah bernama `MAN 3` di layar yang sama adalah kekeliruan
+yang harus diurai orang di tengah pagi.
+
+Aturannya berlaku dua arah, dan arah keduanya yang mudah terlewat: **kalau
+tidak ada tabrakan, jangan tambahkan ekor.** `MAN Darussalam` hanya ada satu,
+jadi ia tidak jadi `MAN Darussalam Ciamis` — bagian 5 sudah bilang kedekatan
+ke nama resmi tidak boleh membuat nama jadi asing, dan ekor yang tidak
+membedakan apa-apa melakukan hal yang sama. Ekor dipakai untuk memisahkan,
+bukan untuk melengkapi.
+
+`tools/periksa_sekolah.py` menjaganya dua-duanya: tidak boleh ada dua baris
+bernama sama, dan tidak boleh ada NPSN kembar.
+
+**Dan inilah yang membuat pagar kembar di database jadi sederhana.** Kalau
+nama sudah dijamin membedakan sekolah sendirian, `alamat` tidak perlu ikut
+jadi kunci — lihat bagian 11.
+
 Nama resmi yang berbeda tetap disimpan di kolom `nama_resmi`
 `sekolah_alamat.json`, jadi tidak ada yang hilang.
 
@@ -506,12 +543,27 @@ sekolah beres — atau CI-nya merah.
 Belum ada satu baris pun yang masuk tabel `sekolah`.
 
 **Sebelum memasukkannya**, pasang dulu pagar kembar di database. `sekolah`
-sekarang hanya ber-`unique (nama, alamat)` (migrasi 0001), jadi
+sekarang ber-`unique (nama, alamat)` (migrasi 0001), jadi
 `SMKN 3 Tasikmalaya` dan `SMK Negeri 3 Tasik` dengan alamat beda satu koma
 lolos berdua — satu sekolah pecah dua, regunya terbelah, rekapnya menghitung
-dua sekolah. Obatnya sama dengan yang sudah dipakai untuk `nama_regu` di
-migrasi 0051: unique index atas nama yang dinormalisasi, ditambah satu langkah
-menyamakan `SMKN` dengan `SMK NEGERI`.
+dua sekolah.
+
+Kunci itu dibuat begitu untuk alasan yang masuk akal: alur 3.2.2 ingin dua
+sekolah senama di tempat berbeda tetap bisa hidup berdampingan, dan `alamat`
+dipakai sebagai pembedanya. **Aturan NPSN di bagian 5 menjawab kebutuhan yang
+sama dengan cara yang lebih murah** — pembedanya dipindah ke dalam nama
+(`MAN 3 Ciamis` dan `MAN 3 Tasikmalaya`), di mana ia juga terbaca panitia,
+bukan hanya terbaca database. Setelah itu `alamat` tidak punya pekerjaan lagi
+sebagai kunci, dan sebaiknya berhenti jadi kunci: sebagai pembeda ia terlalu
+peka — beda satu koma sudah membelah sekolah — dan sebagai keterangan ia
+memang cuma keterangan.
+
+Jadi obatnya sama dengan yang sudah dipakai untuk `nama_regu` di migrasi 0051:
+**unique index atas nama yang dinormalisasi saja**, ditambah satu langkah
+menyamakan `SMKN` dengan `SMK NEGERI`. Yang ikut berubah: `submit_pendaftaran`
+mencari sekolahnya lewat nama, dan alamat yang diketik pembina tidak lagi
+melahirkan baris baru — baris yang sudah ada tetap dipakai dengan alamat
+kurasi yang ada di sini.
 
 **Dan akibatnya bukan cuma rekap yang menghitung dua kali.** Pembagian kloter
 menyebar regu satu sekolah supaya tidak berangkat bareng, dan penyebaran itu
