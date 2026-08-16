@@ -48,6 +48,10 @@ declare
   v_dada    int;
   v_opsi    smallint[];
   v_e       record;
+  v_kloter_semua     int;
+  v_kloter_berangkat int;
+  v_pos_selesai      int;
+  v_jml_pos          int;
 begin
   -- Identitas pelaku. Semua RPC mencatat `recorded_by`/`verified_by` dari
   -- auth.uid(), dan kolomnya NOT NULL — tanpa ini seluruh berkas gagal di
@@ -65,6 +69,7 @@ begin
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
   perform set_config('app.uid', v_admin::text, true);
 
+  select count(distinct pos) into v_jml_pos from wahana where edisi = (select nomor from edisi where is_active);
   select * into v_e from edisi where is_active;
   raise notice 'edisi aktif: % (%)', v_e.name, v_e.nomor;
 
@@ -284,21 +289,48 @@ begin
   end loop;
   raise notice '1. kontrak waktu: % regu', v_n;
 
-  -- ---------------------------------------------------------- 2. keberangkatan
-  -- BERURUT: RPC-nya menolak kloter yang mendahului kloter sebelumnya.
-  v_n := 0;
+  -- ------------------------------------------------------- 2. kemajuan dibuang
+  -- Kemajuan disetel ulang dulu supaya berkas ini bisa dijalankan lagi dengan
+  -- pola yang berbeda. Yang dibuang HANYA jejak hari lomba; pendaftaran,
+  -- pembayaran, dan nomor dada tetap — itu yang mahal dibuat ulang dan tidak
+  -- ada alasan menyentuhnya.
+  delete from closing_regu;
+  delete from nilai_terkunci;
+  delete from nilai_mentah;
+  delete from keberangkatan_regu;
+  update kloter set jam_berangkat = null where jam_berangkat is not null;
+
+  -- ---------------------------------------------------- 3. lomba yang BERJALAN
+  --
+  -- Bukan lomba yang sudah selesai. Papan yang semuanya 100% tidak
+  -- memperlihatkan satu pun keadaan yang akan dihadapi panitia siang nanti:
+  -- kloter yang belum berangkat, pos yang belum kebagian, regu yang masih di
+  -- jalan. Yang perlu dilihat justru papan yang sedang bergerak.
+  --
+  -- Bentuknya mengikuti waktu: kloter yang berangkat lebih dulu sudah melewati
+  -- lebih banyak pos. Jadi kemajuan tiap kloter ditentukan urutannya sendiri,
+  -- bukan diacak — regu kloter 1 yang baru melewati satu pos sementara kloter
+  -- 6 sudah selesai adalah pemandangan yang tidak mungkin ada di lapangan.
+  select count(*) into v_kloter_semua
+    from (select distinct kloter_nomor from regu
+           where kloter_nomor is not null and not is_cancelled) x;
+  -- 70% berangkat, dibulatkan ke atas: sisanya masih menunggu di lapangan.
+  v_kloter_berangkat := ceil(v_kloter_semua * 0.7)::int;
+  raise notice '2. kemajuan: % dari % kloter berangkat',
+    v_kloter_berangkat, v_kloter_semua;
+
+  v_i := 0;
   for v_kloter in
-    select distinct r.kloter_nomor nomor from regu r
-     where r.kloter_nomor is not null and not r.is_cancelled
-       and not exists (select 1 from kloter k
-                        where k.nomor = r.kloter_nomor and k.jam_berangkat is not null)
+    select distinct kloter_nomor nomor from regu
+     where kloter_nomor is not null and not is_cancelled
      order by 1
   loop
+    exit when v_i >= v_kloter_berangkat;
+
     for v_dada in
       select nomor_dada from regu
        where kloter_nomor = v_kloter.nomor and nomor_dada is not null
          and not is_cancelled
-         and id not in (select regu_id from keberangkatan_regu)
     loop
       perform ceklis_berangkat(v_dada);
     end loop;
@@ -306,64 +338,94 @@ begin
       v_kloter.nomor,
       (v_e.tanggal_lomba + v_e.jam_mulai_berangkat
        + make_interval(mins => v_i * v_e.interval_berangkat_menit))::timestamptz);
-    v_i := v_i + 1;
-    v_n := v_n + 1;
-  end loop;
-  raise notice '2. keberangkatan: % kloter', v_n;
 
-  -- ------------------------------------------------------------- 3. nilai pos
-  -- Rentangnya dari `wahana` — batas yang sama dengan yang divalidasi layar
-  -- pos, jadi angka acak di dalamnya pasti diterima.
-  v_n := 0;
-  for v_pos in
-    select distinct pos from wahana where edisi = v_e.nomor order by pos
-  loop
-    select jsonb_agg(jsonb_build_object(
-             'nomor_dada', d.nomor_dada,
-             'kode', w.kode,
-             'nilai_1', case when w.form = 'biner' then (random() < 0.75)::int::numeric
-                             else round((w.rentang_mentah_min
-                                  + random() * (w.rentang_mentah_maks - w.rentang_mentah_min))::numeric, 2)
-                        end,
-             'nilai_2', null))
-      into v_baris
-      from (select r.nomor_dada from regu r
-             join keberangkatan_regu k on k.regu_id = r.id
-            where r.nomor_dada is not null) d
-     cross join (select * from wahana where edisi = v_e.nomor and pos = v_pos.pos) w;
+    -- Berapa pos yang sudah dilewati kloter ini. Yang berangkat pertama sudah
+    -- melewati semuanya; yang terakhir baru satu.
+    v_pos_selesai := greatest(1,
+      v_jml_pos - floor(v_i::numeric * v_jml_pos / greatest(v_kloter_berangkat, 1))::int);
 
-    if v_baris is not null then
-      -- sumber 'manual' — itulah yang terjadi besok: juri mengetiknya di
-      -- layar pos. Nilai lain ditolak check constraint.
-      perform simpan_nilai_massal(v_baris, 'manual', v_pos.pos);
-      v_n := v_n + jsonb_array_length(v_baris);
+    for v_pos in
+      select distinct pos from wahana where edisi = v_e.nomor order by pos
+    loop
+      exit when v_pos.pos > v_pos_selesai;
+      select jsonb_agg(jsonb_build_object(
+               'nomor_dada', d.nomor_dada,
+               'kode', w.kode,
+               -- Nilai mentah dibangkitkan dari ARTI komponennya, bukan dari
+               -- rentang validasinya. Rentang validasi memang sengaja longgar
+               -- — `menaksir` berbatas 99.999.999,99 supaya isian sah apa pun
+               -- diterima — dan mengacak di dalamnya melahirkan selisih taksir
+               -- puluhan juta meter. Semaphore pun jadi 4,85 padahal ia
+               -- HITUNGAN huruf benar dari 5, bukan ukuran.
+               --
+               -- Semuanya bulat: di edisi ini tidak ada satu pun komponen yang
+               -- nilai mentahnya pecahan — hitungan benar, skor juri, dan
+               -- detik.
+               'nilai_1', case
+                 when w.form = 'biner' then (random() < 0.75)::int::numeric
+                 -- besar_baik/kecil_baik: antara terburuk dan terbaik, condong
+                 -- ke atas. Papan yang semua regunya biasa saja tidak
+                 -- memperlihatkan jarak antar juara.
+                 when w.form in ('besar_baik', 'kecil_baik') then
+                   round(least(w.raw_terbaik, w.raw_terburuk)
+                     + (0.35 + 0.65 * random())
+                       * abs(w.raw_terbaik - w.raw_terburuk))
+                 when w.form = 'benar_per_total' then
+                   floor(random() * (coalesce(w.total_soal, 10) + 1))
+                 -- bertingkat: tangganya yang menentukan rentang yang berarti.
+                 -- Tingkat penutup berbatas sangat besar (100000) dilewati —
+                 -- ia penampung, bukan target. Sedikit di ATAS tingkat terakhir
+                 -- yang nyata supaya ada juga regu yang kebagian 0.
+                 when w.form = 'bertingkat' then (
+                   select case when w.satuan = 'detik'
+                     -- durasi: tidak ada yang selesai dalam nol detik
+                     then floor(b * 0.4 + random() * b * 0.9)
+                     else floor(random() * (b * 1.25 + 1))
+                   end
+                   from (select max((t->>'sampai')::numeric) b
+                           from jsonb_array_elements(w.tingkat) t
+                          where (t->>'sampai')::numeric < 1000) x)
+                 else round(w.rentang_mentah_min
+                            + random() * (w.rentang_mentah_maks - w.rentang_mentah_min))
+               end,
+               'nilai_2', null))
+        into v_baris
+        from (select nomor_dada from regu
+               where kloter_nomor = v_kloter.nomor and nomor_dada is not null
+                 and not is_cancelled) d
+       cross join (select * from wahana where edisi = v_e.nomor and pos = v_pos.pos) w;
+      if v_baris is not null then
+        perform simpan_nilai_massal(v_baris, 'manual', v_pos.pos);
+      end if;
+    end loop;
+
+    -- Hanya yang sudah melewati SELURUH pos yang sampai garis finish. Sisanya
+    -- masih di jalan, dan itulah yang membuat kolom Kedatangan bergerak.
+    if v_pos_selesai >= v_jml_pos then
+      for v_regu in
+        select r.nomor_dada, r.kontrak_menit, kl.jam_berangkat
+          from regu r join kloter kl on kl.nomor = r.kloter_nomor
+         where r.kloter_nomor = v_kloter.nomor and r.nomor_dada is not null
+           and not r.is_cancelled and kl.jam_berangkat is not null
+      loop
+        perform catat_closing(
+          v_regu.nomor_dada,
+          v_regu.jam_berangkat
+            + make_interval(mins => coalesce(v_regu.kontrak_menit, 240)
+                                    + (random() * 37 - 12)::int),
+          5::smallint, null);
+      end loop;
     end if;
-  end loop;
-  raise notice '3. nilai pos: % nilai', v_n;
 
-  -- ------------------------------------------------------------ 4. kedatangan
-  -- Jamnya diacak di sekitar kontrak waktunya sendiri supaya SEBAGIAN regu
-  -- kena penalti dan sebagian tidak; papan yang semua regunya tepat waktu
-  -- tidak memperlihatkan kolom penalti bekerja sama sekali.
-  v_n := 0;
-  for v_regu in
-    select r.nomor_dada, r.kontrak_menit, kl.jam_berangkat
-      from regu r
-      join keberangkatan_regu k on k.regu_id = r.id
-      join kloter kl on kl.nomor = r.kloter_nomor
-      left join closing_regu c on c.regu_id = r.id
-     where c.regu_id is null and r.nomor_dada is not null
-       and kl.jam_berangkat is not null
-  loop
-    perform catat_closing(
-      v_regu.nomor_dada,
-      v_regu.jam_berangkat
-        + make_interval(mins => coalesce(v_regu.kontrak_menit, 240)
-                                + (random() * 37 - 12)::int),
-      5::smallint, null);
-    v_n := v_n + 1;
+    v_i := v_i + 1;
   end loop;
-  raise notice '4. kedatangan: % regu', v_n;
+
+  select count(*) into v_n from keberangkatan_regu;
+  raise notice '3. berangkat: % regu', v_n;
+  select count(*) into v_n from nilai_mentah;
+  raise notice '4. nilai: % baris', v_n;
+  select count(*) into v_n from closing_regu;
+  raise notice '5. sudah sampai: % regu', v_n;
 
   select count(*) into v_n from v_klasemen_live_score;
   raise notice 'klasemen: % baris. fase_live TIDAK diubah.', v_n;
