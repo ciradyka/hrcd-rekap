@@ -517,8 +517,14 @@ async function layarPembayaran() {
         // Nomor kwitansi TIDAK ditampilkan di tabel: panjang, tidak pernah
         // dicari lewat layar ini, dan sudah tercetak di kwitansinya sendiri
         // — di situlah ia berguna saat menyusun berkas.
-        ? html`<div>${b.pembayaran ? b.pembayaran.method : "—"}</div>
-               <span class="badge badge-green">LUNAS</span>`
+        // Cara bayar dan LUNAS SEBARIS, dibungkus satu pembungkus lentur.
+        // Sebelumnya cara bayarnya di dalam <div> — elemen blok — jadi LUNAS
+        // selalu jatuh ke baris berikutnya, bahkan di kartu HP yang kolomnya
+        // lapang. Dengan flex-wrap ia tetap menumpuk sendiri di kolom tabel
+        // lebar yang cuma 15%, jadi satu aturan melayani kedua tampilan.
+        ? html`<span class="metode-lunas"
+               ><span>${b.pembayaran ? b.pembayaran.method : "—"}</span
+               ><span class="badge badge-green">LUNAS</span></span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
           : `<select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
