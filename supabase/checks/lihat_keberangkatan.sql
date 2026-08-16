@@ -22,6 +22,20 @@ begin
     v_ada := true;
     raise notice 'kloter % : berangkat %  (% regu)', r.nomor, r.jam, r.regu;
   end loop;
+  -- Kloter yang sudah DICETAK dilewati waktu daftar ulang membagi regu
+  -- (0040). Sisa tanda cetak dari uji coba lama karena itu mendorong seluruh
+  -- penomoran ke atas tanpa ada yang menyadarinya.
+  for r in
+    select count(*) n, min(nomor) dari, max(nomor) sampai
+      from kloter where dicetak_pada is not null
+  loop
+    if r.n > 0 then
+      raise notice 'kloter tercetak: % buah, nomor %-% (dilewati saat pembagian)',
+        r.n, r.dari, r.sampai;
+    else
+      raise notice 'tidak ada kloter yang bertanda tercetak';
+    end if;
+  end loop;
   if not v_ada then
     raise notice 'belum ada kloter yang berangkat';
   end if;
