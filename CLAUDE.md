@@ -341,3 +341,40 @@ Guidance for Claude Code when working in this repository.
    dari tengah — produksi sempat mulai dari kloter 17 karena 24 kloter pertama
    masih bertanda tercetak, dan papan seperti itu membuat panitia mencari
    keenam belas kloter yang tidak pernah ada.
+5. **Satu sekolah tidak boleh berangkat bareng di kloter yang sama.** Regu
+   dari sekolah yang sama disebar — `daftar_ulang_batch` sudah menjaganya, dan
+   jarak antar kloternya ditentukan `lompatan_kloter` (2 di edisi 37, jadi tiga
+   regu satu sekolah mendarat di kloter 1, 3, 5). Aturan ini melunak, bukan
+   putus, kalau kloter benar-benar habis — "sesedikit mungkin", bukan "tidak
+   boleh".
+6. **Jangan menomori kloter sendiri.** Penomoran menyimpan aturan yang tidak
+   kelihatan dari nomornya: butir 5 di atas dijaga di dalam
+   `daftar_ulang_batch`, bukan oleh urutan nomor dada. Skrip contoh sempat
+   menomori ulang dengan `ceil(row_number/10)` dan mendaratkan MTs Rancah
+   bertiga di kloter 1. Kalau kloter perlu disusun ulang, bersihkan lalu
+   jalankan ulang alurnya — jangan tulis nomornya langsung.
+7. **Satu sekolah, satu baris `sekolah` — dan database belum menjaminnya.**
+   `submit_pendaftaran` mencari sekolahnya dengan pasangan **(nama, alamat)
+   persis**:
+
+   ```sql
+   insert into sekolah (nama, alamat) values (trim(p_nama_sekolah), trim(p_alamat_sekolah))
+   on conflict (nama, alamat) do nothing;
+   select id into v_sekolah from sekolah where nama = ... and alamat = ...;
+   ```
+
+   Beda satu koma, beda `Jl.` dan `Jln.`, beda spasi — lahir baris baru dengan
+   id baru. `unique (nama, alamat)` di 0001 memang disengaja, supaya dua
+   sekolah senama di tempat berbeda bisa hidup berdampingan (SMPN 1 Purwadadi
+   ada di Ciamis DAN di Subang). Niatnya benar; mekanismenya terlalu harfiah —
+   ia tidak bisa membedakan "sekolah yang sama, alamatnya diketik lebih
+   sembarangan" dari "sekolah lain di tempat lain".
+8. **Akibatnya menembus ke kloter, dan itu yang paling mahal.** Butir 5
+   berhenti berlaku di antara baris-baris kembar itu: mereka terbaca sebagai
+   sekolah berlainan, jadi regunya BERANGKAT BARENG tanpa satu pun pesan
+   galat. Lembar edisi lama menulis alamat SMPN 2 CIPAKU dengan empat ejaan
+   berbeda; di data contoh itu melahirkan empat baris sekolah sekaligus.
+   `docs/runbook-sekolah.md` bagian 11 sudah meminta pagar kembar dipasang
+   sebelum tabel `sekolah` diisi — obatnya sama dengan `nama_regu` di migrasi
+   0051: unique index atas nama yang dinormalisasi. Yang belum tercatat di
+   sana adalah akibat ini.

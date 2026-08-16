@@ -17,6 +17,22 @@ Yang sudah pernah terjadi, dan semuanya lolos tanpa suara:
   lengkap padahal tidak satu peserta pun pernah menuliskannya.
 - **Kolom `jalan` diisi dusun dan RT/RW**, yang bukan nama jalan (bagian 8).
 
+NPSN ADALAH IDENTITASNYA, NAMA HARUS MEMBEDAKANNYA SENDIRI
+
+Dua pemeriksaan di bawah ini kelihatan seperti kerapian, padahal keduanya
+adalah satu aturan (runbook bagian 5):
+
+- **NPSN tidak boleh kembar** — dua baris ber-NPSN sama adalah satu sekolah
+  yang tertulis dua kali, apa pun bedanya alamatnya.
+- **Nama tampil tidak boleh kembar** — karena nama itulah yang dibaca panitia
+  di layar keberangkatan dan dicetak di blangko. Kalau dua NPSN berbeda akan
+  memakai nama yang sama, namanya diberi ekor kabupaten: `MAN 3 Ciamis` dan
+  `MAN 3 Tasikmalaya`, bukan dua-duanya `MAN 3`.
+
+Yang kedua juga yang membuat pagar kembar di database bisa sesederhana satu
+unique index atas nama — `alamat` tidak perlu ikut jadi kunci. Selama
+pemeriksaan ini hidup, nama sudah cukup membedakan sekolah sendirian.
+
 Skrip ini tidak bisa tahu alamat sebuah sekolah benar atau salah. Yang bisa ia
 tahu: kedua berkas masih saling cocok, dan bentuk isiannya masih menuruti
 aturan yang sudah ditulis. Itu yang gagal diam-diam.
