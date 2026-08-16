@@ -227,7 +227,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                       (select count(distinct d.id) from pendaftaran d
                        join regu r on r.pendaftaran_id = d.id
                        where d.status = 'lunas' and r.nomor_dada is null
-                         and not r.is_cancelled)::int as lunas_belum_nomor
+                         and not r.is_cancelled)::int as lunas_belum_nomor,
+                      (select count(*) from regu
+                       where nomor_dada is not null and not is_cancelled)::int
+                        as regu_siap,
+                      (select count(*) from keberangkatan_regu)::int
+                        as regu_berangkat,
+                      (select count(*) from closing_regu)::int as regu_datang
                     """, uid=p.get("uid"), fetch="one"))
             elif u.path == "/batch":
                 b = q("""
