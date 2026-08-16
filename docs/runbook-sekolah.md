@@ -417,6 +417,7 @@ mirip dan petunjuk yang lebih baik.
 | `tools/data/sekolah_nama.json` | 189 sekolah: nama baku, semua ejaan, jumlah peserta, petunjuk alamat |
 | `tools/data/sekolah_alamat.json` | hasil pencarian alamat: NPSN, jalan, desa, kecamatan, kabupaten, kode pos, keyakinan, sumber |
 | `tools/periksa_sekolah.py` | penjaga: kedua berkas di atas masih saling cocok, dan bentuk isiannya masih menuruti bagian 7 dan 8 |
+| [`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md) | daftar kerja: 21 sekolah yang belum bisa dipakai, kenapa, dan apa yang ditanyakan ke pembinanya |
 
 Jalankan `normalize_sekolah.py` dari direktori berisi keempat berkas `.xlsx`.
 `periksa_sekolah.py` jalan dari mana saja, dan ikut jalan di CI lewat
@@ -472,8 +473,12 @@ disisir dari sisi alamat, bukan cuma dari sisi nama, dan buntu:
   SMPN 5 Banjarsari di Desa Kalijaya, Kec. Banjaranyar, tapi namanya tidak
   cocok, jadi sengaja tidak diisikan.
 
-Yang dibutuhkan satu pertanyaan ke pembinanya. Pertanyaannya sudah ditulis di
-kolom `catatan` masing-masing, tinggal disalin.
+Yang dibutuhkan satu pertanyaan ke pembinanya — dan bukan cuma dua ini.
+Seluruh 21 baris yang keyakinannya belum `tinggi` sudah didaftar di
+[`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md), lengkap dengan kalimat
+yang tinggal disalin ke pembinanya. `periksa_sekolah.py` menjaga daftar itu
+tetap sama persis dengan isi datanya, jadi ia menyusut sendiri begitu satu
+sekolah beres — atau CI-nya merah.
 
 **Yang masih menggantung selain itu:**
 
