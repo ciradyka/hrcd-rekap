@@ -2603,3 +2603,14 @@ input.small-input { text-align: center; }
    Supaya sisanya benar-benar sampai ke kotak cari, baris chip tidak boleh ikut
    melar — lihat .filter-baris. */
 .kotak-cari { margin: 0; flex: 1 1 220px; min-width: 220px; }
+
+/* Sepasang isian yang TETAP bersebelahan walau layarnya sempit.
+
+   .two-column runtuh jadi satu kolom di bawah 640px, dan itu benar untuk
+   pasangan isian biasa. Tapi "Jam datang" cuma dua kotak HH:MM dan "Anggota
+   hadir" satu digit — keduanya muat bersama bahkan di 360px, dan menumpuknya
+   menurunkan tombol simpan satu baris penuh pada layar yang dipakai berdiri
+   di garis finish. */
+@media (max-width: 640px) {
+  .two-column.pasangan-sempit { grid-template-columns: auto 1fr; }
+}
