@@ -181,6 +181,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/hak":
                 self._kirim(200, q(
                     "select user_id::text, fitur from akun_hak", uid=p.get("uid")))
+            elif u.path == "/klasemen-live-score":
+                # Layar Live Score tidak pernah bisa dicoba di dev sebelum
+                # ini — rutenya memang tidak ada, dan layarnya menjawab
+                # "akun tidak berhak" yang terbaca seperti masalah izin.
+                self._kirim(200, q(
+                    "select * from v_klasemen_live_score"
+                    " order by golongan, peringkat",
+                    uid=p.get("uid")))
             elif u.path == "/rekap-penuh":
                 self._kirim(200, q(
                     "select * from v_rekap_penuh order by nomor_dada",
