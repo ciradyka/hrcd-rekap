@@ -142,10 +142,29 @@ Guidance for Claude Code when working in this repository.
    something GitHub enforces. Follow it deliberately.
 3. Git identity is configured **repo-locally**, not globally:
    `Furqon Aji Yudhistira <furqonajiy@gmail.com>`.
-4. PR #1 predates this convention and was squash-merged. Apart from the root
-   `Initial commit`, it is the only commit on `main` without a merge point;
-   leave both as they are.
-5. `CLAUDE.md` and `AGENTS.md` are the same document twice — byte-identical
+4. **Two commits on `main` have no merge point**, and the root
+   `Initial commit` besides. PR #1 predates this convention and was
+   squash-merged; `5502a5a` (15 August) was pushed straight to `main` by
+   mistake and could not be undone without force-pushing the default branch,
+   which is worse than untidy history. Leave all three as they are. Verify the
+   count with `git log --first-parent` and check each commit's parent count —
+   a commit reached as a merge's *second* parent is normal and must not be
+   counted.
+5. **`tests/run.sh` lists every migration by hand.** A new migration is NOT
+   tested until it is added there, and CI stays green while ignoring it
+   completely. Seven migrations and three test files once sat unrun for a day
+   that way; what found it was a production apply failing on a column rename
+   that CI should have caught first. Add the migration to `tests/run.sh` in the
+   same commit that creates it.
+6. **Three deploy paths, and only one of them is automatic in the obvious
+   way.** The panitia site is connected to Git and ships on every merge. The
+   peserta site must **never** be connected to Git — Cloudflare would serve the
+   `pra`-phase `live.json` committed in `live/` and blank the rekap — so it
+   ships through `publish-live.yml`, which regenerates that file from the
+   database first; since #235 a push touching `live/**` triggers it
+   automatically. Migrations never ship on merge: run
+   `apply-migration.yml` with the file path, deliberately, after the PR lands.
+7. `CLAUDE.md` and `AGENTS.md` are the same document twice — byte-identical
    apart from the first heading and the intro paragraph. Every edit to one
    lands in the other in the same commit. No workflow checks this
    (`shared-files.yml` only compares `web/` against `live/`), and the pair has
@@ -285,12 +304,13 @@ Guidance for Claude Code when working in this repository.
 6. **The screen is the other way round: one column per penilaian.** Bidai is
    five columns on the pos sheet and one sheet on paper, and both are correct.
    Do not "fix" one to match the other.
-7. **The data has no lomba level yet.** Each criterion is its own `wahana` row
-   with its own name, and the shared `kode` prefix — `bidai_`, `kim_`, `pbb_`,
-   `yel_` — is a naming habit, not something the database or any query
-   enforces. Anything that needs to group by lomba needs that grouping to
-   become a real column first. Splitting on the prefix works right up until an
-   edition names two unrelated components with the same first word.
+7. **The lomba level is `wahana.lomba`** (migration `0054`). `NULL` means the
+   component is its own lomba, which is right for most rows — Semaphore,
+   Menaksir, Bakiak — so only grouped components carry a value. Read it as
+   `coalesce(lomba, name)`; `kelompokLomba()` in `app.js` does exactly that.
+   Do **not** go back to splitting the `kode` prefix: `bidai_`, `kim_`, `pbb_`,
+   `yel_` are a naming habit that nothing enforces, and it works right up until
+   an edition names two unrelated components with the same first word.
 8. **`wahana.golongan` is a different axis and must not be confused with
    this.** Several wahana rows can be one penilaian offered to different
    golongan — that is what `kolomPos()` merges by name. Grouping by lomba is a
