@@ -257,7 +257,14 @@ input.besar { font-size: 1.45rem; letter-spacing: .05em; text-align: center; min
   transform: translateY(-.06em);
 }
 input.jam-ketik {
-  width: 3.2em;
+  /* 4em, bukan 3.2em, dan padding sampingnya dipangkas. Ukuran lama dihitung
+     untuk ANGKA — dua digit tabular selalu muat. Yang tidak muat placeholder
+     "MM": huruf M jauh lebih lebar daripada H, ditambah letter-spacing di
+     bawah, dan kotak yang pas untuk "HH" memotong "MM" jadi "MN".
+     Kotak jam yang placeholder-nya terpotong terbaca seperti kotak rusak,
+     tepat pada layar yang dipakai sambil terburu-buru di garis finish. */
+  width: 4em;
+  padding-left: .4rem; padding-right: .4rem;
   max-width: 100%;
   font-variant-numeric: tabular-nums;
   letter-spacing: .08em;
