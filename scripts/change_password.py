@@ -49,7 +49,7 @@ def headers():
 def find_user_id(username):
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/akun_panitia",
-        params={"username": f"eq.{username}", "select": "user_id,peran,aktif"},
+        params={"username": f"eq.{username}", "select": "user_id,peran,is_active"},
         headers=headers(), timeout=20,
     )
     r.raise_for_status()
@@ -73,7 +73,7 @@ def main():
     if not akun:
         print(f"x Username '{username}' tidak ditemukan di akun_panitia.")
         sys.exit(1)
-    if not akun["aktif"]:
+    if not akun["is_active"]:
         print(f"! '{username}' berstatus TIDAK AKTIF (edisi lama) — password tetap diganti, "
               "tapi akun ini tidak akan bisa dipakai login sampai diaktifkan lagi.")
 

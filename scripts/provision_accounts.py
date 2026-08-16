@@ -73,7 +73,7 @@ def link_akun_panitia(user_id, username, peran, pos):
         "username": username,
         "peran": peran,
         "pos": int(pos) if pos else None,
-        "aktif": True,
+        "is_active": True,
     }
     r = requests.post(
         f"{SUPABASE_URL}/rest/v1/akun_panitia",
@@ -81,9 +81,42 @@ def link_akun_panitia(user_id, username, peran, pos):
         json=body,
         timeout=20,
     )
+    if r.status_code not in (200, 201, 204):
+        return f"HTTP {r.status_code}: {r.text[:200]}"
+    return beri_hak_awal(user_id, peran)
+
+
+def beri_hak_awal(user_id, peran):
+    """Centang awal sesuai perannya (migrasi 0057).
+
+    Sejak 0057 yang menentukan hak adalah baris di `akun_hak`, bukan kolom
+    `peran`. Akun yang dibuat tanpa langkah ini lahir dengan peran terisi tapi
+    TANPA satu centang pun — dan begitu policy berpindah ke boleh(), ia tidak
+    bisa membuka apa-apa. Gejalanya paling menyesatkan: akunnya bisa login,
+    perannya terbaca benar di layar, tapi setiap layar kosong.
+
+    Daftar fiturnya TIDAK ditulis ulang di sini. `paket_peran()` hidup di
+    database dan dipakai juga oleh layar Akun; menyalinnya ke Python berarti
+    dua daftar yang suatu hari tidak sepakat.
+    """
+    paket = requests.post(
+        f"{SUPABASE_URL}/rest/v1/rpc/paket_peran",
+        headers=headers(), json={"p_peran": peran}, timeout=20,
+    )
+    if paket.status_code != 200:
+        return f"hak awal gagal baca paket — HTTP {paket.status_code}: {paket.text[:200]}"
+    fitur = paket.json() or []
+    if not fitur:
+        return None
+    r = requests.post(
+        f"{SUPABASE_URL}/rest/v1/akun_hak",
+        headers={**headers(), "Prefer": "resolution=ignore-duplicates,return=minimal"},
+        json=[{"user_id": user_id, "fitur": f} for f in fitur],
+        timeout=20,
+    )
     if r.status_code in (200, 201, 204):
         return None
-    return f"HTTP {r.status_code}: {r.text[:200]}"
+    return f"hak awal gagal — HTTP {r.status_code}: {r.text[:200]}"
 
 
 def main():
