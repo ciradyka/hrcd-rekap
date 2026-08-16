@@ -178,5 +178,10 @@ run supabase/migrations/0054_kolom_lomba.sql
 run supabase/migrations/0055_kemajuan_hari.sql
 run supabase/migrations/0056_perkiraan_zona_wib.sql
 run tests/sql/23_perkiraan_zona_wib.sql
+# 0057 memindahkan hak akses dari kolom `peran` ke tabel `akun_hak`. Tesnya
+# menguji lebih dulu bahwa TIDAK ADA akun yang berubah aksesnya — itu
+# syarat migrasi ini boleh dipasang di tengah edisi.
+run supabase/migrations/0057_hak_akses.sql
+run tests/sql/24_hak_akses.sql
 
 echo "SEMUA TES LULUS"

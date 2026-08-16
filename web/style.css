@@ -2522,6 +2522,10 @@ input.small-input { text-align: center; }
 .i-emas   { background: #fdf3dc; color: #a16207; }
 .i-nila   { background: #e9ecfc; color: #3538cd; }
 .i-mawar  { background: #fce9ee; color: #c01048; }
+/* Netral, dan itu disengaja: Akun bukan layar operasional. Sembilan warna
+   di atas menandai pekerjaan yang dikejar sepanjang hari; layar admin yang
+   dibuka sekali di awal edisi tidak boleh ikut bersaing di papan yang sama. */
+.i-abu    { background: #eef0f3; color: #475467; }
 
 /* Di kertas semua tint hilang — CLAUDE.md 8.4 melarang abu dan raster, dan
    latar berwarna yang difotokopi jadi kotoran. Ikonnya sendiri tidak dicetak
