@@ -4341,14 +4341,23 @@ async function layarAkun() {
   LAYAR.replaceChildren(h(`
     <div class="card">
       <h2>Buat Akun</h2>
-      <div class="option-row" style="align-items:flex-end;flex-wrap:wrap;gap:12px">
-        <div class="field" style="margin:0"><label for="ak-nama">Nama akun</label>
-          <input id="ak-nama" autocomplete="off" placeholder="pos6hrcd37"></div>
-        <div class="field" style="margin:0"><label for="ak-peran">Peran</label>
-          <select id="ak-peran">${opsiPeran("meja")}</select></div>
-        <div class="field" style="margin:0"><label for="ak-pos">Pos</label>
-          <input id="ak-pos" type="number" inputmode="numeric" min="1" max="20" disabled></div>
-        <button class="button button-primary" id="ak-buat" type="button">Buat Akun</button>
+      <!-- .table-toolbar, bukan .option-row: option-row itu grid DUA kolom
+           (style.css), jadi empat isian di dalamnya jatuh 2x2 dan kotak Pos
+           yang isinya satu angka mendapat setengah lebar kartu. -->
+      <!-- Rata BAWAH, bukan rata tengah seperti toolbar saring: di sana label
+           kotak carinya visually-hidden sehingga tidak memakan tinggi, di
+           sini labelnya terlihat — dan rata tengah membuat tombolnya melayang
+           setinggi label, tidak sejajar dengan kotak isian di sebelahnya. -->
+      <div class="table-toolbar" style="align-items:flex-end">
+        <div class="field"><label for="ak-nama">Nama akun</label>
+          <input id="ak-nama" type="text" class="small-input" autocomplete="off"
+            placeholder="pos6hrcd37" style="width:14rem"></div>
+        <div class="field"><label for="ak-peran">Peran</label>
+          <select id="ak-peran" class="select-small">${opsiPeran("meja")}</select></div>
+        <div class="field"><label for="ak-pos">Pos</label>
+          <input id="ak-pos" type="number" class="small-input" inputmode="numeric"
+            min="1" max="20" style="width:5rem" disabled></div>
+        <button class="button button-primary option-small" id="ak-buat" type="button">Buat Akun</button>
       </div>
       <details>
         <summary>Buat banyak sekaligus</summary>
@@ -4381,11 +4390,12 @@ async function layarAkun() {
                 ${a.is_active ? "" : 'class="mati"'}>
               <td><button class="tautan" data-aksi type="button">${esc(a.username)}</button>${
                 a.is_active ? "" : ' <span class="badge badge-gray">nonaktif</span>'}</td>
-              <td><select data-peran>${opsiPeran(a.peran)}</select></td>
-              <td><input type="number" data-pos min="1" max="20" style="width:4.5em"
+              <td><select class="select-small" data-peran>${opsiPeran(a.peran)}</select></td>
+              <td><input type="number" class="small-input" data-pos min="1" max="20" style="width:4.5rem"
                     value="${a.pos ?? ""}" ${a.peran === "operator_pos" ? "" : "disabled"}></td>
               ${fitur.map(f => `
-                <td class="text-center"><input type="checkbox" data-fitur="${esc(f.kode)}"
+                <td class="text-center"><input type="checkbox" class="checkbox"
+                  data-fitur="${esc(f.kode)}"
                   ${punya.has(`${a.user_id}|${f.kode}`) ? "checked" : ""}
                   aria-label="${esc(a.username)} - ${esc(f.nama)}"></td>`).join("")}
             </tr>`).join("")}
@@ -4441,6 +4451,10 @@ async function layarAkun() {
   });
 
   const tabel = document.getElementById("ak-tabel");
+  // Satu antrean untuk SELURUH matriks, bukan per kotak: dua centang
+  // beruntun di baris yang sama harus mendarat urut, dan urutan itulah
+  // yang menentukan hak akhirnya.
+  let antreHak = Promise.resolve();
 
   tabel.addEventListener("change", async (ev) => {
     const tr = ev.target.closest("tr");
@@ -4449,10 +4463,27 @@ async function layarAkun() {
     // Centang: satu kotak = satu baris akun_hak. Dikirim seketika, dan
     // DIKEMBALIKAN kalau ditolak — kotak yang tetap tercentang padahal
     // servernya menolak adalah kebohongan yang baru ketahuan besok.
+    //
+    // Bentuknya SAMA PERSIS dengan ceklis keberangkatan, dan itu disengaja:
+    // diredupkan selagi disimpan (bukan di-disable, lihat .checkbox.saving di
+    // style.css), klik beruntun DIANTREKAN bukan diblokir supaya salah
+    // centang bisa langsung dibatalkan, dan gagalnya lewat notif() — di tabel
+    // yang tergulir ke kanan, tulisan galat di kartu paling atas ada di luar
+    // layar.
     if (ev.target.matches("[data-fitur]")) {
       const kotak = ev.target;
-      try { await setHak(tr.dataset.uid, kotak.dataset.fitur, kotak.checked); }
-      catch (e) { kotak.checked = !kotak.checked; lapor(e.message); }
+      const mau = kotak.checked;
+      kotak.classList.add("saving");
+      antreHak = antreHak.then(async () => {
+        try {
+          await setHak(tr.dataset.uid, kotak.dataset.fitur, mau);
+        } catch (e) {
+          kotak.checked = !mau;
+          notif(e.message, true);
+        } finally {
+          kotak.classList.remove("saving");
+        }
+      });
       return;
     }
 
