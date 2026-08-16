@@ -15,6 +15,28 @@
 -- SEMUANYA. Yang membedakan hanya orang yang menjalankannya.
 --
 -- ---------------------------------------------------------------------------
+-- JALAN KEDUA: 16 AGUSTUS 2026
+--
+-- Diminta lagi oleh pemilik, dengan alasan yang sama dan data yang lebih
+-- banyak: 55 regu, 24 sekolah, 791 nilai. Data pengganti akan diberikan
+-- sesudahnya.
+--
+-- Dua tabel DITAMBAHKAN ke berkas ini pada kesempatan itu, karena keduanya
+-- lahir sesudah jalan pertama: `nilai_terkunci` (0043) dan `foto_lembar`
+-- (0047). Keduanya sebenarnya ikut terhapus lewat `on delete cascade` dari
+-- regu, jadi tidak ada yang tertinggal — tapi daftar yang tidak menyebutnya
+-- tidak bisa MEMBUKTIKAN itu, dan laporan sebelum/sesudah yang melewatkan
+-- satu tabel adalah cara paling mudah percaya bahwa sesuatu sudah bersih
+-- padahal belum. Ini penyakit yang sama dengan `tests/run.sh` (CLAUDE.md
+-- 7.5): daftar yang ditulis tangan tidak ikut tumbuh sendiri.
+--
+-- Yang TIDAK bisa dijangkau SQL: berkas foto di bucket Storage `lembar`.
+-- Menghapus baris `foto_lembar` tidak menghapus gambarnya. Saat ini bucket
+-- itu kosong (0 baris), jadi tidak ada yang tertinggal — tapi kalau berkas
+-- ini dijalankan lagi setelah ada foto, buckets-nya harus dibersihkan
+-- terpisah lewat dashboard Supabase.
+--
+-- ---------------------------------------------------------------------------
 -- KENAPA HARUS BERSIH SEBELUM KONFIGURASI DIGANTI
 --
 -- `0033` menolak memasang format XXXVII selama edisi aktif masih memuat satu
@@ -47,6 +69,8 @@ union all select 'keberangkatan_regu', count(*) from keberangkatan_regu
 union all select 'closing_regu',       count(*) from closing_regu
 union all select 'penempatan_barak',   count(*) from penempatan_barak
 union all select 'nomor_dada_pensiun', count(*) from nomor_dada_pensiun
+union all select 'nilai_terkunci',     count(*) from nilai_terkunci
+union all select 'foto_lembar',        count(*) from foto_lembar
 union all select 'kloter berangkat',   count(*) from kloter where jam_berangkat is not null
 order by 1;
 
@@ -54,6 +78,12 @@ order by 1;
 -- Hapus, dari daun ke akar.
 -- ---------------------------------------------------------------------------
 delete from nilai_mentah;
+-- Keduanya ber-`on delete cascade` dari regu, jadi baris ini tidak wajib.
+-- Ditulis tetap: penghapusan yang terlihat di berkas bisa dibaca dan
+-- dihitung; penghapusan yang tersembunyi di definisi foreign key hanya
+-- bisa dipercaya.
+delete from nilai_terkunci;
+delete from foto_lembar;
 delete from closing_regu;
 delete from keberangkatan_regu;
 delete from penempatan_barak;
@@ -87,5 +117,7 @@ union all select 'keberangkatan_regu', count(*) from keberangkatan_regu
 union all select 'closing_regu',       count(*) from closing_regu
 union all select 'penempatan_barak',   count(*) from penempatan_barak
 union all select 'nomor_dada_pensiun', count(*) from nomor_dada_pensiun
+union all select 'nilai_terkunci',     count(*) from nilai_terkunci
+union all select 'foto_lembar',        count(*) from foto_lembar
 union all select 'kloter berangkat',   count(*) from kloter where jam_berangkat is not null
 order by 1;
