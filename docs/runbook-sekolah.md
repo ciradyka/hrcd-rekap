@@ -362,6 +362,44 @@ apa pun isinya. Dan sebelum menyimpulkan sebuah sekolah "tidak ada", **baca
 sendiri petunjuknya di `sekolah_nama.json`** — jangan percaya kutipan petunjuk
 yang ada di dalam catatan agen.
 
+**Kode pos bukan datanya Kemendikdasmen — tapi "sumber resmi" pun bisa
+bertabrakan dengan kenyataan.** Halaman Data Referensi memang tidak pernah
+memuat kolom kode pos; otoritasnya Pos Indonesia, per desa/kelurahan. Jadi
+mencarinya di situ benar. Yang tidak diduga: untuk sederet kecamatan Ciamis
+selatan, direktori Pos Indonesia mengembalikan angka yang **berbeda dari semua
+sumber lain sekaligus** —
+
+```
+Banjarsari   Pos 46283   semua direktori lain, situs sekolah, dan peserta: 46383
+Rancah       Pos 46292   ... 46387
+Cisaga       Pos 46291   ... 46386
+Purwadadi    Pos 46286   ... 46385
+Pamarican    Pos 46282   ... 46382
+```
+
+Angka 463xx itu **runtut**: Cimaragas 46381, Pamarican 46382, Banjarsari 46383,
+Padaherang 46384, Purwadadi 46385, Cisaga 46386, Rancah 46387, Parigi 46393,
+Cijulang 46394 — kecamatan bersebelahan, nomor berurutan, dan tiap satu dicari
+agen yang berbeda tanpa saling tahu. Yang paling menentukan: **MTs Al-Hasan
+Banjarsari mencetak 46383 di situsnya sendiri**, dan peserta mengetik angka
+yang sama. Satu bacaan atas formulir pencarian tidak cukup untuk menjatuhkan
+itu semua.
+
+Jadi aturannya: **kode pos baru hanya dipakai kalau tidak bertentangan dengan
+sekolah lain di kecamatan yang sama.** Itu pembanding terkuat yang ada, karena
+tumbuh dari pencarian yang berdiri sendiri-sendiri. Dan bedakan dua hal, karena
+salah satunya sah:
+
+- Kecamatan **satu kode untuk semua desa** — angka baru yang berbeda berarti
+  salah satu sumber keliru. Tolak, kosongkan, jangan tebak.
+- Kecamatan yang kodenya **beda tiap desa** — Kec. Banjar 46311–46318, Kec.
+  Langensari 46341–46346, Kec. Ciamis 46211–46219. Di sini angka baru yang
+  berbeda justru wajar. Terima **kalau agen mengutip skema penuhnya dan skema
+  itu cocok** dengan kode desa lain yang sudah ada di berkas.
+
+Yang tersisa dikosongkan, bukan ditebak. Alamat tanpa kode pos tetap sampai;
+alamat dengan kode pos yang salah belum tentu.
+
 **Petunjuk peserta bisa salah dan menggagalkan pencarian.** `SMA IT Al-Falah`
 tidak ketemu karena petunjuknya "Ciamis"; baris kembarnya
 (`SMA IT Al Falahjln` — "JLN" alamatnya menempel ke nama) membawa
@@ -389,9 +427,13 @@ mesin akan menyimpang tanpa suara.
 
 ## 11. Keadaan sekarang (16 Agustus 2026)
 
-**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 140 lengkap
+**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 178 lengkap
 dengan kode pos, tersebar di 24 kabupaten/kota. Berkas alamatnya berisi 190
 baris, bukan 189 — lihat catatan SMK Bhakti Kencana di bawah.
+
+Dua belas baris masih tanpa kode pos: dua sekolah yang memang belum ketemu, dan
+sepuluh yang angkanya bertabrakan antar sumber (lihat bagian 9) — dikosongkan,
+bukan ditebak.
 
 Yang berkeyakinan `sedang` hampir semuanya bukan soal sekolahnya, melainkan
 soal **kode posnya**: identitas dan alamat jalan sudah dari Data Referensi
