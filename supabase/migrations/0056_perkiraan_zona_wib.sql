@@ -46,11 +46,14 @@
 -- Rumusnya disalin dari 0009 ke 0053, jadi cacatnya ikut tersalin. Keduanya
 -- diperbaiki di sini supaya papan dan kertas tidak pernah berbeda.
 --
--- Badan view lainnya disalin apa adanya. Di v_daftar_kloter ada SATU
--- perubahan lain yang wajib: `e.aktif` jadi `e.is_active` dan `r.batal` jadi
--- `r.is_cancelled` — 0014 mengganti nama kolomnya dan PostgreSQL ikut
--- memperbarui definisi view yang tersimpan, jadi menulis ulang dengan nama
--- lama akan gagal. Persis yang menjatuhkan 0053 di produksi.
+-- Badan view lainnya disalin apa adanya. Di v_daftar_kloter ada TIGA
+-- perubahan lain yang wajib: `e.aktif` jadi `e.is_active`, `r.batal` jadi
+-- `r.is_cancelled`, dan `s.nama` jadi `s.name` — 0014 mengganti nama
+-- kolomnya dan PostgreSQL ikut memperbarui definisi view yang tersimpan,
+-- jadi menulis ulang dengan nama lama akan gagal. Persis yang menjatuhkan
+-- 0053 di produksi, dan yang menjatuhkan berkas ini sekali lagi di CI —
+-- alias keluarannya tetap `nama_sekolah`, jadi yang berubah hanya sisi
+-- kanannya.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -107,7 +110,7 @@ select
   r.urutan_kloter                       as urutan,
   r.nomor_dada,
   r.nama_regu,
-  s.nama                                as nama_sekolah,
+  s.name                                as nama_sekolah,
   r.golongan,
   k.dicetak_pada,
   k.jam_berangkat,
