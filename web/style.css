@@ -2656,31 +2656,17 @@ input.small-input { text-align: center; }
 /* ============================================================================
    MATRIKS HAK AKSES (layar Akun)
 
-   Sebelas kolom centang di sebelah nama akun tidak muat di HP, dan itu tidak
-   bisa diakali dengan mengecilkan huruf — kepala kolomnya kata utuh
-   ("Keberangkatan"), bukan singkatan. Jadi kepalanya diputar tegak dan
-   tabelnya digulir mendatar di dalam wadahnya sendiri, bukan menggulirkan
-   seluruh halaman.
-   ========================================================================== */
-.matriks-gulir { overflow-x: auto; }
+   Tabelnya memakai .table-pos apa adanya — kolom pertama menempel, kepala
+   tabel menempel, dan di HP ia tetap tabel yang digeser ke samping, bukan
+   ditumpuk jadi kartu. Sebelas kolom centang memang tidak muat di satu layar,
+   dan menggulir ke kanan lebih murah daripada memiringkan kepala kolomnya.
 
-/* Kolom nama menempel waktu digulir — tanpa ini, menggulir ke kolom kesebelas
-   berarti mencentang baris yang sudah tidak kelihatan namanya. */
-.matriks-hak th:first-child,
-.matriks-hak td:first-child {
-  position: sticky; left: 0; z-index: 1;
-  background: var(--kartu, #fff);
-}
-.matriks-hak th.tegak {
-  height: 8.5rem; padding: 0; vertical-align: bottom; width: 2.4rem;
-}
-.matriks-hak th.tegak > span {
-  display: inline-block; white-space: nowrap;
-  transform: rotate(-90deg) translateX(0.4rem); transform-origin: left bottom;
-  font-weight: 600;
-}
-.matriks-hak td.pusat { text-align: center; }
+   Yang tersisa di bawah cuma yang khas matriks ini.
+   ========================================================================== */
 .matriks-hak input[type="checkbox"] { width: 1.15rem; height: 1.15rem; }
+/* Kotak centang tidak perlu nowrap-nya .table-pos, dan padding sel yang lebih
+   longgar membuat jempol tidak salah kotak. */
+.matriks-hak td.text-center { padding-left: .7rem; padding-right: .7rem; }
 /* Akun nonaktif tetap terbaca — diredupkan, bukan disembunyikan, supaya
    "sudah dinonaktifkan" dan "belum pernah ada" tidak terlihat sama. */
 .matriks-hak tr.mati { opacity: .55; }
@@ -2688,7 +2674,5 @@ input.small-input { text-align: center; }
 /* Nama akun adalah tombol, tapi harus terbaca sebagai nama. */
 .tautan {
   background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
-  color: var(--utama, #1a56db); text-decoration: underline;
+  color: var(--utama); text-decoration: underline;
 }
-
-@media print { .matriks-gulir { overflow: visible; } }

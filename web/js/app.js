@@ -4365,11 +4365,15 @@ async function layarAkun() {
     <div class="card">
       <h2>${akun.length} Akun</h2>
       <p>Peran hanya mengisi centang awal. Yang menentukan hak adalah centangnya.</p>
-      <div class="matriks-gulir">
-      <table class="table matriks-hak">
+      <!-- Gaya yang sama dengan lembar Input Nilai Pos: di HP ini TETAP
+           tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
+           tabel menempel di atas. Semua itu sudah ada di .table-pos —
+           matriks ini tidak perlu aturan sendiri. -->
+      <div class="table-wrapper table-wrapper-tetap">
+      <table class="table data-table table-tetap table-pos matriks-hak">
         <thead><tr>
           <th>Nama akun</th><th>Peran</th><th>Pos</th>
-          ${fitur.map(f => `<th class="tegak"><span>${esc(f.nama)}</span></th>`).join("")}
+          ${fitur.map(f => `<th class="text-center">${esc(f.nama)}</th>`).join("")}
         </tr></thead>
         <tbody id="ak-tabel">
           ${akun.map(a => `
@@ -4381,7 +4385,7 @@ async function layarAkun() {
               <td><input type="number" data-pos min="1" max="20" style="width:4.5em"
                     value="${a.pos ?? ""}" ${a.peran === "operator_pos" ? "" : "disabled"}></td>
               ${fitur.map(f => `
-                <td class="pusat"><input type="checkbox" data-fitur="${esc(f.kode)}"
+                <td class="text-center"><input type="checkbox" data-fitur="${esc(f.kode)}"
                   ${punya.has(`${a.user_id}|${f.kode}`) ? "checked" : ""}
                   aria-label="${esc(a.username)} - ${esc(f.nama)}"></td>`).join("")}
             </tr>`).join("")}
