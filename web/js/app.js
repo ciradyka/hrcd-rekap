@@ -2578,7 +2578,7 @@ async function layarInputPos() {
       <td class="pos-status" data-label=""></td>
       <td class="pos-foto text-center" data-label="">
         <button type="button" class="badge badge-tombol" data-foto
-          title="Foto slip penilaian regu ini">${ikon("camera")}</button></td>
+          title="Foto jawaban regu ini">${ikon("camera")}</button></td>
       <td class="pos-gembok" data-label=""></td>
     </tr>`).join("")));
 
@@ -2864,7 +2864,7 @@ async function layarInputPos() {
     // Sama seperti bukaRiwayat: dialog() menempelkan kartunya secara SINKRON,
     // jadi pendengarnya boleh dipasang sebelum janjinya ditunggu.
     const janji = dialog({
-      judul: `Foto slip · ${tiga} · ${namaRegu}`,
+      judul: `Foto Jawaban · ${tiga} · ${namaRegu}`,
       kartuHtml: isi,
       labelAksi: "Tutup",
       bacaSaja: true,
@@ -3254,8 +3254,13 @@ async function layarInputPos() {
     const baris = [...tbody.children];
     const tampil = baris.filter(tr => !tr.hidden).length;
     const sudah = baris.filter(lengkap).length;
+    // DUA pecahan berpenyebut sama, bukan satu angka polos dan satu pecahan.
+    // "6 ditampilkan · 47/53 lengkap" memaksa mata membandingkan 6 dengan 47
+    // — dua angka yang menghitung hal berbeda dan kebetulan bersebelahan.
+    // Dengan penyebut yang sama di keduanya, keduanya langsung terbaca sebagai
+    // bagian dari 53 yang sama.
     document.getElementById("tabel-jumlah").textContent =
-      `${tampil} ditampilkan · ${sudah}/${baris.length} lengkap`;
+      `${tampil}/${baris.length} ditampilkan · ${sudah}/${baris.length} lengkap`;
   }
 
   /* ---------- cetak lembar kosong ---------- */
