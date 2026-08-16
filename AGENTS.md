@@ -343,3 +343,21 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    dari tengah — produksi sempat mulai dari kloter 17 karena 24 kloter pertama
    masih bertanda tercetak, dan papan seperti itu membuat panitia mencari
    keenam belas kloter yang tidak pernah ada.
+5. **Satu sekolah tidak boleh berangkat bareng di kloter yang sama.** Regu
+   dari sekolah yang sama disebar — `daftar_ulang_batch` sudah menjaganya, dan
+   jarak antar kloternya ditentukan `lompatan_kloter` (2 di edisi 37, jadi tiga
+   regu satu sekolah mendarat di kloter 1, 3, 5). Aturan ini melunak, bukan
+   putus, kalau kloter benar-benar habis — "sesedikit mungkin", bukan "tidak
+   boleh".
+6. **Jangan menomori kloter sendiri.** Penomoran menyimpan aturan yang tidak
+   kelihatan dari nomornya: butir 5 di atas dijaga di dalam
+   `daftar_ulang_batch`, bukan oleh urutan nomor dada. Skrip contoh sempat
+   menomori ulang dengan `ceil(row_number/10)` dan mendaratkan MTs Rancah
+   bertiga di kloter 1. Kalau kloter perlu disusun ulang, bersihkan lalu
+   jalankan ulang alurnya — jangan tulis nomornya langsung.
+7. **Satu sekolah, satu baris `sekolah`.** Lembar edisi lama menulis alamat
+   SMPN 2 CIPAKU dengan empat ejaan berbeda, dan `submit_pendaftaran`
+   melahirkan empat baris sekolah. Butir 5 lalu tidak berlaku di antara
+   keempatnya — mereka terbaca sebagai sekolah berlainan, dan regunya
+   berangkat bareng. Alamat yang berbeda tipis bukan sekolah yang berbeda;
+   lihat `docs/runbook-sekolah.md`.

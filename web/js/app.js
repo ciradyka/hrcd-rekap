@@ -1634,11 +1634,11 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
 
     const baris = v.isi.map(r => bentuk === "staging"
       ? html`
-        <tr><td class="dada">${dada3(r.nomor_dada)}</td>
+        <tr><td class="kotak"></td>
+            <td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}${r.sisipan ? " ★" : ""}</td>
             <td>${r.nama_sekolah}</td>
-            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
-            <td class="kotak"></td></tr>`
+            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`
       : html`
         <tr><td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}</td>
@@ -1653,7 +1653,11 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
         <p><strong>${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</strong>
            ${nyata ? "" : " · Jam sebenarnya: ________"} · Petugas: ________________</p>
         <table class="print-table">
-          <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th>Hadir</th></tr></thead>
+          <!-- Hadir di kolom PALING KIRI, sejajar dengan tombol centang di
+               layar Keberangkatan. Petugas memegang kertas ini di satu tangan
+               dan HP di tangan lain; kalau kotak centangnya di ujung yang
+               berlawanan, matanya menyeberangi seluruh baris tiap regu. -->
+          <thead><tr><th class="kotak">Hadir</th><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
         ${adaSisipan ? `<p class="insert-note">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}

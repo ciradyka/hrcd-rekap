@@ -74,37 +74,61 @@ begin
   select * into v_e from edisi where is_active;
   raise notice 'edisi aktif: % (%)', v_e.name, v_e.nomor;
 
-  -- ------------------------------------------------------------ 0. pendaftaran
-  -- 50 regu dari Database HRCD XXXVI: nama regu, sekolah, dan golongan
+  -- ------------------------------------------------------ 0. bersihkan SEMUA
+  -- "Bersihkan data" berarti kloter ikut kembali ke 1 (CLAUDE.md 12.4), dan
+  -- itu tidak bisa dicapai dengan menomori ulang sendiri: pembagian kloter
+  -- menyimpan aturan yang tidak kelihatan dari nomornya — satu sekolah tidak
+  -- boleh berangkat bareng di kloter yang sama (12.5). Versi sebelumnya
+  -- menomori ulang dengan ceil(row_number/10) dan mendaratkan MTs Rancah
+  -- bertiga di kloter 1.
+  --
+  -- Jadi yang dibuang seluruhnya, lalu SELURUH alur dijalankan lagi dari
+  -- pendaftaran. daftar_ulang_batch yang membagi kloter, dan ia sudah tahu
+  -- kedua aturan itu.
+  delete from closing_regu;
+  delete from nilai_terkunci;
+  delete from nilai_mentah;
+  delete from keberangkatan_regu;
+  delete from pembayaran;
+  delete from regu;
+  delete from pendaftaran;
+  update kloter set jam_berangkat = null, dicetak_pada = null;
+
+  -- ------------------------------------------------------------ 1. pendaftaran
+  -- 50 regu dari Database HRCD XXXVI, DIKELOMPOKKAN PER NAMA SEKOLAH.
+  --
+  -- Mengelompokkan per (nama, alamat) memecah satu sekolah jadi beberapa:
+  -- lembar aslinya menulis alamat SMPN 2 CIPAKU dengan empat ejaan berbeda,
+  -- dan submit_pendaftaran melahirkan empat baris `sekolah`. Akibatnya
+  -- daftar_ulang_batch tidak bisa menjalankan aturannya sendiri — satu
+  -- sekolah tidak boleh berangkat bareng di kloter yang sama (CLAUDE.md
+  -- 12.5) — karena keempatnya terbaca sebagai sekolah berlainan.
+  --
+  -- Nama regu, sekolah, dan golongan
   -- diambil apa adanya, karena bentuk nama yang sebenarnya (panjang, kapital,
   -- tanda baca) justru yang perlu diuji layarnya. Nama ketua placeholder —
   -- keempat edisi lampau tidak pernah punya kolomnya.
   --
-  -- Dilewati kalau sudah ada regu: berkas ini aman diulang.
-  if not exists (select 1 from regu) then
+  -- Selalu dijalankan: bagian 2 di bawah sudah mengosongkan semuanya lebih
+  -- dulu, jadi tidak ada yang bisa terlahir dua kali.
+  if true then
     perform submit_pendaftaran('SMAN 1 Maja', 'Jln prabuwangi',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Indi homogen', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('Smk bangkit indonesia talaga', 'nan',
+    perform submit_pendaftaran('SMK BANGKIT INDONESIA TALAGA', 'Jln, ganeas no 1 kec, talaga',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Prampasu putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
+        jsonb_build_object('nama_regu', 'Prampasu putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
+        jsonb_build_object('nama_regu', 'Pramapasu Putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
+        jsonb_build_object('nama_regu', 'Pramapasu Putri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMAN 1 cirebon', 'Jl siliwangi no 12',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Kandang maung', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMK BANGKIT INDONESIA TALAGA', 'Jln, ganeas no 1 kec, talaga',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Pramapasu Putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
-        jsonb_build_object('nama_regu', 'Pramapasu Putri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
     perform submit_pendaftaran('MTs Rancah', 'Jl Cibeureum No. 50',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'SIREUM ATEUL', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('MTs Rancah', 'Jl Cibeureum No 50',
-      false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'SIREUM ATEUL', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'GARUDA MUDA', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'WANOJA SUNDA', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'MOJANG GALUH', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
@@ -115,15 +139,13 @@ begin
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMAN 1 CIHAURBEUTI', 'Jalan kartawijaya no. 600 Pamokolan-Cihaurbeuti,Pamokolan,Ciamis,Kabupaten Ciamis,Jawa Barat 46262',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Bombang Rarang', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMAN 1 Cihaurbeuti', 'Jalan kartawijaya no. 600 Pamokolan-Cihaurbeuti,Pamokolan,Ciamis,Ciamis,Jawa Barat 46262',
-      false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'Bombang Rarang', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Bombang Kencana', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('MAS AL-KAUTSAR', 'jln. Pejuang No. 100, Karangpucung wetan, Desa Jajawar, Kecamatan Banjar, Kota Banjar, Provinsi Jawa Barat',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Khalid bin Walid', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
+        jsonb_build_object('nama_regu', 'Khalid bin Walid', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
+        jsonb_build_object('nama_regu', 'Fatimah Azzahra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('Mts Rijalul Hikam', 'Jatinagara',
       false, '0800000000', jsonb_build_array(
@@ -131,10 +153,7 @@ begin
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('MA ASALIMIAH', 'jl. Kiayi Haji Salim, No 1 Rt 9 rw 7 Desa Darmacaang, Kec. cikoneng, Kab, Ciamis',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Abang pulan', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('MA ASALIMIAH', 'JL. Kiyai Haji Salim, no 1 rt 9 rw 7, Desa Darmacaang, kec. cikoneng',
-      false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'Abang pulan', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Dewi Armina', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMA TERPADU CIKANYERE', 'Kec.Rajadesa,Kab.Ciamis',
@@ -145,11 +164,8 @@ begin
     perform submit_pendaftaran('MA YPI RIJALUL HIKAM', 'Jatinagara',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Nanya ka urang', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
+        jsonb_build_object('nama_regu', 'SagombayFly', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'ZAKORAYFLY', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('MA YPI Rijalul Hikam', 'Jatinagara',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'SagombayFly', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMA Islam Ainurrafiq', 'Kec. Cigandamekar Kab. Kuningan',
       false, '0800000000', jsonb_build_array(
@@ -173,16 +189,17 @@ begin
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'ADAM MALIK', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
       0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMKN 1 Losarang', 'Ds.santing kec.losarang kab.indramayu',
+    perform submit_pendaftaran('SMKN 1 Losarang', 'Jalan Raya Pantura Losarang Desa Santing Kel. Jumbleng, Santing, Kec. Losarang, Kabupaten Indramayu, Jawa Barat 45253',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'KIWANA LAS', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMK Siliwangi AMS Banjarsari', 'Ciamis,banjarsari',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Dyah Pitaloka', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
+        jsonb_build_object('nama_regu', 'KIWANA LAS', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
+        jsonb_build_object('nama_regu', 'Wana Karwek', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
+        jsonb_build_object('nama_regu', 'NYI WANA KULTUR', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
+        jsonb_build_object('nama_regu', 'Nyi Wanagri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
+        jsonb_build_object('nama_regu', 'KiWana Tok', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMK Siliwangi AMS Banjarsari', 'Banjarsari,Ciamis, Jawa barat',
       false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'Dyah Pitaloka', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'Prabu Siliwangi', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Maung Bodas', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
@@ -194,51 +211,25 @@ begin
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Hileud Jengke', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
       0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMPN 2 CIPAKU', 'Jl. Desa Cipaku No.05 Desa/kec Cipaku',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Swag Partners', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMPN 2 CIPAKU', 'Dusun Desa Cipaku',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Angel Wings', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMPN 2 CIPAKU', 'Jalan Desa Cipaku no.5 desa/kec cipaku',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Badhrika Chandra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMPN 2 CIPAKU', 'JL. Desa cipaku no.5 desa/kec cipaku',
-      false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'Swag Partners', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
+        jsonb_build_object('nama_regu', 'Angel Wings', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
+        jsonb_build_object('nama_regu', 'Badhrika Chandra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'Pandawa Lima', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
       0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMKN 2 CIAMIS', 'Jl. Sadananya no.21',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Agresi Cakra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('MAS AL-KAUTSAR', 'Jl. Pejuang No. 100 Karangpucung Wetan. Ds. Jajawar Kec. Banjar Kota Banjar',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Fatimah Azzahra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMPN 1 CIAMIS', 'Jl. Jenderal Sudirman No. 6',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Disconnect Eror', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
     perform submit_pendaftaran('SMPN 1 CIAMIS', 'Jl. Jenderal Sudirman No. 6, Ciamis',
       false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Reconnect Afk', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMPN 1 CIAMIS', 'nan',
-      false, '0800000000', jsonb_build_array(
+        jsonb_build_object('nama_regu', 'Disconnect Eror', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
+        jsonb_build_object('nama_regu', 'Reconnect Afk', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'Saliwang Sableng', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'Pacebuk Nesa', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Disconnect Ngelag', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Alah Siah Boy', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
-    perform submit_pendaftaran('SMKN 1 Losarang', 'Jalan Raya Pantura Losarang Desa Santing Kel. Jumbleng, Santing, Kec. Losarang, Kabupaten Indramayu, Jawa Barat 45253',
-      false, '0800000000', jsonb_build_array(
-        jsonb_build_object('nama_regu', 'Wana Karwek', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
-        jsonb_build_object('nama_regu', 'NYI WANA KULTUR', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
-        jsonb_build_object('nama_regu', 'Nyi Wanagri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
-        jsonb_build_object('nama_regu', 'KiWana Tok', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
       0::smallint, null, 'Pembina');
 
     -- Lunasi lalu beri nomor dada. Nominalnya harus PAS seluruh batch —
@@ -271,9 +262,9 @@ begin
     end loop;
   end if;
   select count(*) into v_n from regu where nomor_dada is not null;
-  raise notice '0. pendaftaran: % regu bernomor dada', v_n;
+  raise notice '1. pendaftaran: % regu bernomor dada', v_n;
 
-  -- --------------------------------------------------------------- 1. kontrak
+  -- --------------------------------------------------------------- 2. kontrak
   select array_agg(menit order by menit) into v_opsi
     from kontrak_opsi where edisi = v_e.nomor;
   if v_opsi is null then
@@ -288,79 +279,7 @@ begin
     perform konfirmasi_kontrak(v_regu.id, v_opsi[1 + floor(random() * array_length(v_opsi, 1))::int]);
     v_n := v_n + 1;
   end loop;
-  raise notice '1. kontrak waktu: % regu', v_n;
-
-  -- ------------------------------------------------------- 2. kemajuan dibuang
-  -- Kemajuan disetel ulang dulu supaya berkas ini bisa dijalankan lagi dengan
-  -- pola yang berbeda. Yang dibuang HANYA jejak hari lomba; pendaftaran,
-  -- pembayaran, dan nomor dada tetap — itu yang mahal dibuat ulang dan tidak
-  -- ada alasan menyentuhnya.
-  delete from closing_regu;
-  delete from nilai_terkunci;
-  delete from nilai_mentah;
-  delete from keberangkatan_regu;
-  update kloter set jam_berangkat = null where jam_berangkat is not null;
-
-  -- Tanda cetak ikut dibuang. Kloter yang sudah DICETAK dilewati waktu daftar
-  -- ulang membagi regu (0040) — dan sisa tanda cetak dari uji coba lama
-  -- mendorong seluruh penomoran ke atas: produksi sempat mulai dari kloter 17,
-  -- bukan 1, karena 24 kloter pertama masih bertanda tercetak dari percobaan
-  -- sebelumnya. Papan yang mulai dari kloter 17 membuat panitia mencari
-  -- keenam belas kloter yang tidak pernah ada.
-  update kloter set dicetak_pada = null where dicetak_pada is not null;
-
-  -- Penomoran kloter dirapatkan dari 1, mengikuti urutan nomor dada dan
-  -- kapasitas per kloter.
-  --
-  -- Ini SATU-SATUNYA tempat berkas ini menulis langsung ke tabel, bukan lewat
-  -- RPC. Alasannya disebut supaya tidak ditiru sembarangan: mengulang
-  -- pembagian lewat daftar_ulang_batch menuntut nomor dada dilepas dulu, dan
-  -- melepas nomor dada menyentuh stok serta pensiun — reset yang jauh lebih
-  -- besar dan lebih berisiko daripada yang dibutuhkan sebuah contoh.
-  -- DIPARKIR DULU, baru ditempatkan. Dua langkah, dan keduanya perlu.
-  --
-  -- Satu UPDATE sekaligus bentrok: `unique (kloter_nomor, urutan_kloter)`
-  -- tidak deferrable, jadi ia diperiksa per baris dan keadaan ANTARA ikut
-  -- dinilai walaupun keadaan akhirnya sah. Mengosongkannya dulu juga tidak
-  -- bisa — `check ((nomor_dada is null) = (kloter_nomor is null))` melarang
-  -- regu bernomor dada tanpa kloter. Dan memindahkan satu per satu urut dari
-  -- petak terkecil hanya aman kalau penomorannya selalu merapat; ia tidak,
-  -- karena regu bisa berpindah ke urutan yang lebih besar di kloter yang sama.
-  --
-  -- Yang tersisa: pindahkan semuanya ke satu kloter yang pasti kosong, lalu
-  -- tempatkan dari sana. Tidak ada petak tujuan yang pernah ditempati di
-  -- kedua langkah, jadi tidak ada keadaan antara yang melanggar.
-  -- Parkirnya BEBERAPA kloter terakhir, bukan satu: `urutan_kloter` dibatasi
-  -- 1..maks_regu_per_kloter, jadi menumpuk lima puluh regu di satu kloter
-  -- melanggar batas itu.
-  select count(*) into v_n from regu where nomor_dada is not null and not is_cancelled;
-  select max(nomor) - ceil(v_n::numeric / v_e.maks_regu_per_kloter)::int + 1
-    into v_kloter_parkir from kloter;
-  if exists (select 1 from regu where kloter_nomor >= v_kloter_parkir) then
-    raise exception 'petak parkir mulai % ternyata berisi', v_kloter_parkir;
-  end if;
-
-  with urut as (
-    select id, row_number() over (order by nomor_dada) n
-      from regu where nomor_dada is not null and not is_cancelled
-  )
-  update regu r
-     set kloter_nomor = (v_kloter_parkir
-                         + floor((u.n - 1) / v_e.maks_regu_per_kloter))::smallint,
-         urutan_kloter = (((u.n - 1) % v_e.maks_regu_per_kloter) + 1)::smallint
-    from urut u where u.id = r.id;
-
-  with urut as (
-    select id,
-           ceil(row_number() over (order by kloter_nomor, urutan_kloter)::numeric
-                / v_e.maks_regu_per_kloter)::smallint            kloter,
-           (((row_number() over (order by kloter_nomor, urutan_kloter) - 1)
-             % v_e.maks_regu_per_kloter) + 1)::smallint          urutan
-      from regu
-     where kloter_nomor >= v_kloter_parkir and nomor_dada is not null
-  )
-  update regu r set kloter_nomor = u.kloter, urutan_kloter = u.urutan
-    from urut u where u.id = r.id;
+  raise notice '2. kontrak waktu: % regu', v_n;
 
   -- ---------------------------------------------------- 3. lomba yang BERJALAN
   --
