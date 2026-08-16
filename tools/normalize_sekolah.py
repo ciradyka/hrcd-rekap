@@ -41,6 +41,10 @@ def baku(n):
     n = re.sub(r'\bMA\s*NEGERI\b', 'MAN', n, flags=re.I)
     n = re.sub(r'\bMTS?\s*NEGERI\b', 'MTsN', n, flags=re.I)
     n = re.sub(r'\bMTSN\b', 'MTsN', n, flags=re.I)
+    # "MTs N Rajadesa" — pasangan MTs untuk aturan "SMP N" di atas. Harus di
+    # ATAS baris MTS[S]? berikutnya, supaya "MTs N" sudah jadi "MTsN" sebelum
+    # pola itu sempat memisahkannya lagi.
+    n = re.sub(r'\bMT[Ss]?\s+N\b(?![a-zA-Z])', 'MTsN', n)
     # Spasi ikut dimakan lalu DIKEMBALIKAN oleh penggantinya. Kalau titiknya
     # cuma dibuang ("\.?" dengan pengganti "MTs"), "Mts.AR-rahman" jadi
     # "MTsAR-rahman" — satu kata, dan satu klaster yang berdiri sendiri.
@@ -95,23 +99,53 @@ EJAAN_SAMA = [(r'fadl?i?l?l?i?yah', 'fadliliyah'), (r'ar\s*rahman', 'arrahman'),
               (r'ma\s*arif|maarif', 'maarif'), (r'darus+alam', 'darussalam'),
               (r'assalimiyah|asalimiah|assalamiyah', 'assalimiyah'),
               (r'agrowisata\s*shaleha', 'agrowisata'), (r'ghofur|ghafur', 'ghafur'),
-              (r'sanggoro|sagoro', 'sanggoro'), (r'darul\s*huda', 'darulhuda')]
+              (r'sanggoro|sagoro', 'sanggoro'), (r'darul\s*huda', 'darulhuda'),
+              (r'ar\s*ris+alah', 'arrisalah')]
 # Kata daerah yang kadang ditempel kadang tidak: "SMPN 1 Lelea" = "SMPN 1 Lelea
 # Indramayu". Dibuang dari kunci saja, tidak dari nama tampil.
 EKOR = r'\b(indramayu|tasikmalaya|ciamis|banjar|kuningan|majalengka|cilacap|garut|cirebon)\b'
+# ...KECUALI kalau ekornya justru satu-satunya yang membedakan. Ada dua SMK
+# Bhakti Kencana — satu di Kota Banjar (NPSN 60726572), satu di Kab. Ciamis
+# (NPSN 20254625) — dan membuang ekornya melebur keduanya jadi satu sekolah
+# tanpa suara. Yang ditulis di sini adalah namanya SETELAH ekor dibuang.
+# Pemeriksaan di bagian bawah berkas ini menemukan kasus barunya sendiri.
+EKOR_MEMBEDAKAN = {"smk bhakti kencana"}
 
 def kunci(n):
     k = unicodedata.normalize("NFKD", baku(n)).lower().replace("'", "").replace("`", "")
     k = re.sub(r'[^a-z0-9]+', ' ', k)
     k = re.sub(r'\b(kabupaten|kab|kota|jawa barat|jabar)\b', ' ', k)
     for a, b in EJAAN_SAMA: k = re.sub(a, b, k)
+    # "Terpadu" dipakai sekolahnya sendiri kadang-kadang saja: SMA Ar-Risalah
+    # menulis "SMA Terpadu Ar-Risalah" di situsnya dan "SMAS AR RISSALAH" di
+    # Dapodik — satu NPSN, satu sekolah. Dibuang dari kunci, TIDAK dari nama
+    # tampil. Menyatukan tiga pasang dan tidak satu pun yang salah.
+    k = re.sub(r'\bterpadu\b', ' ', k)
+    # Angka 1 pada sekolah negeri sering tidak ditulis kalau di daerah itu cuma
+    # ada satu: "SMAN Pamanukan" = "SMAN 1 Pamanukan". Hanya angka 1 — "SMKN 2
+    # Banjar" tidak boleh runtuh ke "SMKN Banjar".
+    k = re.sub(r'^(smpn|sman|smkn|man|mtsn) 1 ', r'\1 ', k)
+    # "SMA IT AL FALAHJLN": kata "JLN" dari kolom alamat menempel ke ekor nama.
+    # Tidak ada nama sekolah yang berakhiran "jln".
+    k = re.sub(r'jln$', '', k)
     k = re.sub(r'\s+', ' ', k).strip()
     # Ekor daerah dibuang HANYA kalau kata terakhir, dan hanya bila yang tersisa
     # masih menyebut tempat/nama diri (>= 3 kata) — supaya "SMKN 1 Ciamis" tidak
     # runtuh jadi "SMKN 1".
     potong = re.sub(EKOR + r'$', '', k).strip()
-    if potong and len(potong.split()) >= 3: k = potong
+    if potong and potong not in EKOR_MEMBEDAKAN and len(potong.split()) >= 3: k = potong
     return re.sub(r'\s+', ' ', k).strip()
+
+def batang_ekor(n):
+    """(nama tanpa ekor daerah, ekornya) — hanya kalau ekornya memang KENA
+    dibuang. "SMPN 2 Ciamis" tidak: sisanya cuma dua kata, jadi ekornya
+    bertahan dan tidak ada yang perlu diperiksa. Dipakai pemeriksaan di bawah."""
+    k = kunci(n)
+    m = re.search(EKOR + r'$', k)
+    if not m: return (k, "")
+    potong = re.sub(EKOR + r'$', '', k).strip()
+    if not potong or len(potong.split()) < 3: return (k, "")
+    return (potong, m.group(0))
 
 # --------------------------------------------------------------------------
 baris = []
@@ -125,8 +159,31 @@ for e, f, sh, ks, ka in SRC:
         baris.append({"edisi": e, "mentah": s,
                       "alamat": "" if pd.isna(r.get(ka)) else str(r.get(ka)).strip()})
 
+# Kembar yang ketahuan lewat NPSN, bukan lewat nama — tidak ada aturan ejaan
+# yang bisa menemukannya, jadi ditulis tangan. Lihat runbook bagian 7:
+# "SMK Karnas" = KARya NASional, dan itu cuma alamat dan NPSN yang tahu.
 GABUNG_TANGAN = {
     "mts aliqna": "mts aliqna cisaga",
+    "mts al fadliliyah darussalam": "mts al fadliliyah",       # NPSN 20211978
+    "ma rijalul hikam": "ma ypi rijalul hikam",                 # NPSN 20280199
+    "smk karya nasional sindangkasih": "smk karnas ciamis",     # NPSN 69892759
+    "smk maarif sabilunnajat rancah": "smk maarif sabilunnajat",# NPSN 20254647
+}
+
+# Nama tampil yang dipilih tangan, karena "ejaan paling sering" memilih ejaan
+# yang menyimpang dari nama resminya. Aturannya: pakai nama yang BIASA
+# DIUCAPKAN, sedekat mungkin dengan nama resminya.
+#
+# Peserta menulis Fadliliyah, Fadilliyah, dan Fadiliyah; yang paling sering
+# kebetulan bukan yang benar. Dapodik menulis "Fadliliyah", dan itu juga
+# bentuk baku yang sudah dipakai EJAAN_SAMA.
+#
+# Yang TIDAK masuk sini walau tampak ganjil, karena keduanya memang bentuk
+# yang diucapkan orang: "MAN Darussalam" (resminya "MAN 1 Ciamis" dan tidak
+# ada yang menyebutnya begitu) dan "SMKN Manonjaya" tanpa angka (Dapodik pun
+# mencatatnya "SMKN MANONJAYA").
+NAMA_TANGAN = {
+    "mts al fadliliyah": "MTs Al-Fadliliyah Darussalam",
 }
 
 klaster = collections.defaultdict(list)
@@ -141,13 +198,26 @@ for k, v in klaster.items():
     # Dari ejaan yang paling sering, ambil yang paling panjang: paling informatif.
     pilih = sorted([n for n, c in ejaan.items() if c == top], key=lambda s: (-len(s), s))[0]
     hasil.append({
-        "kunci": k, "nama": rapikan(pilih), "peserta": len(v),
+        "kunci": k, "nama": NAMA_TANGAN.get(k, rapikan(pilih)), "peserta": len(v),
         "edisi": sorted({x["edisi"] for x in v}),
         "ejaan": sorted(ejaan),
         "petunjuk_alamat": sorted({x["alamat"] for x in v if x["alamat"]}, key=lambda s: -len(s))[:3],
     })
 
 hasil.sort(key=lambda x: (-x["peserta"], x["nama"]))
+
+# Ekor daerah yang membedakan. Kalau satu nama muncul dengan DUA ekor berbeda
+# ("... Banjar" dan "... Ciamis"), itu dua sekolah, dan membuang ekornya
+# melebur keduanya diam-diam. Gagal keras di sini, jangan diam:
+# masukkan batangnya ke EKOR_MEMBEDAKAN lalu jalankan lagi.
+tumpuk = collections.defaultdict(set)
+for b in baris:
+    batang, ekor = batang_ekor(b["mentah"])
+    if ekor: tumpuk[batang].add(ekor)
+bentrok = {b: sorted(e) for b, e in tumpuk.items()
+           if len(e) > 1 and b not in EKOR_MEMBEDAKAN}
+assert not bentrok, f"ekor daerah membedakan, belum didaftar: {bentrok}"
+
 # "MTsN" memang ber-huruf kecil di tengah; itu bentuk bakunya, bukan cacat.
 menempel = [h["nama"] for h in hasil
             if re.search(r'[a-z][A-Z]', h["nama"].replace("MTsN", "MTSN"))]

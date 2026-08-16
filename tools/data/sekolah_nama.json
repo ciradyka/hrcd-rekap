@@ -1,6 +1,6 @@
 [
  {
-  "kunci": "smpn 1 lelea",
+  "kunci": "smpn lelea",
   "nama": "SMPN 1 Lelea",
   "peserta": 29,
   "edisi": [
@@ -38,7 +38,32 @@
   ]
  },
  {
-  "kunci": "smkn 1 losarang",
+  "kunci": "man darussalam",
+  "nama": "MAN Darussalam",
+  "peserta": 27,
+  "edisi": [
+   "XXXIII",
+   "XXXIV",
+   "XXXV",
+   "XXXVI"
+  ],
+  "ejaan": [
+   "MAN 1 DARUSSALAM",
+   "MAN 1 DARUSSALAM CIAMIS",
+   "MAN 1 Darussalam Ciamis",
+   "MAN 1 Darussalam ciamis",
+   "MAN DARUSSALAM",
+   "MAN Darussalam",
+   "Man Darussalam"
+  ],
+  "petunjuk_alamat": [
+   "JL.K.H.Ahmad Fadlil , Dsn.Kandang Gajah ,Desa Dewa Sari, Kec. Cijeungjing ,Kab. Ciamis",
+   "JL.K.H.AHMAD FADLIL, Dsn. Kandang Gajah, Dewasari , Cijeungjing, Ciamis",
+   "Jl.K.Ahmad Fadlil, dsn. Kandang Gajah ,Dewasari, Cijeungjing , Ciamis"
+  ]
+ },
+ {
+  "kunci": "smkn losarang",
   "nama": "SMKN 1 Losarang",
   "peserta": 27,
   "edisi": [
@@ -56,7 +81,7 @@
   ]
  },
  {
-  "kunci": "sman 1 maja",
+  "kunci": "sman maja",
   "nama": "SMAN 1 Maja",
   "peserta": 24,
   "edisi": [
@@ -96,7 +121,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 banjar",
+  "kunci": "smkn banjar",
   "nama": "SMKN 1 Banjar",
   "peserta": 22,
   "edisi": [
@@ -110,8 +135,8 @@
    "SMKN 1 Banjar"
   ],
   "petunjuk_alamat": [
-   "Jalan KH. Mustofa Kota Banjar",
    "Jl. K. H Mustafa, kota Banjar",
+   "Jalan KH. Mustofa Kota Banjar",
    "Jl. Hussain Kartasasmita"
   ]
  },
@@ -137,7 +162,7 @@
   ]
  },
  {
-  "kunci": "sman 1 kawali",
+  "kunci": "sman kawali",
   "nama": "SMAN 1 Kawali",
   "peserta": 21,
   "edisi": [
@@ -151,13 +176,13 @@
    "SMAN 1 Kawali"
   ],
   "petunjuk_alamat": [
-   "Jln. Poronggol Raya No.9 Kawali Ciamis 46255",
+   "Jln. Poronggol Raya No.9 Kawali Ciamis 46254",
    "Jln. Poronggol Raya No.9 Kawali Ciamis 46253",
-   "Jln. Poronggol Raya No.9 Kawali Ciamis 46254"
+   "Jln. Poronggol Raya No.9 Kawali Ciamis 46255"
   ]
  },
  {
-  "kunci": "smpn 1 ciamis",
+  "kunci": "smpn ciamis",
   "nama": "SMPN 1 Ciamis",
   "peserta": 21,
   "edisi": [
@@ -178,7 +203,30 @@
   ]
  },
  {
-  "kunci": "sman 1 panawangan",
+  "kunci": "mts al fadliliyah",
+  "nama": "MTs Al-Fadliliyah Darussalam",
+  "peserta": 19,
+  "edisi": [
+   "XXXIII",
+   "XXXIV",
+   "XXXV"
+  ],
+  "ejaan": [
+   "MTS AL- FADLILIYAH DARUSSALAM",
+   "MTS AL-FADILIYAH DARUSSALAM",
+   "MTSS AL-FADILLIYAH DARUSSALAM",
+   "MTs Al-Fadiliyah Darussalam",
+   "MTs Al-Fadliiyah Darussalam",
+   "MTs Al-Fadliliyah"
+  ],
+  "petunjuk_alamat": [
+   "Jln. KH. Ahmad Fadlil I Pesantren Darussalam Ciamis",
+   "JL. K.H. AHMAD FADLIL 01 PONPES DARUSSALAM CIAMIS",
+   "JL. K.H. AHMAD FADLIL 01 PONPES DARUSSALAM CIMAIS"
+  ]
+ },
+ {
+  "kunci": "sman panawangan",
   "nama": "SMAN 1 Panawangan",
   "peserta": 19,
   "edisi": [
@@ -195,47 +243,6 @@
    "Jalan Ciamis-Cirebon KM.159, Cinyasag, Panawangan, Kabupaten Ciamis, Jawa Barat 46255",
    "Jln. Ciamis-Cirebon No. 159 Kec. Panawangan Kab. Ciamis",
    "Jl. Raya Ciamis-Cirebon km. 159 Panawangan Kab. Ciamis"
-  ]
- },
- {
-  "kunci": "man darussalam",
-  "nama": "MAN Darussalam",
-  "peserta": 18,
-  "edisi": [
-   "XXXIII",
-   "XXXIV"
-  ],
-  "ejaan": [
-   "MAN DARUSSALAM",
-   "MAN Darussalam",
-   "Man Darussalam"
-  ],
-  "petunjuk_alamat": [
-   "JL.K.H.Ahmad Fadlil , Dsn.Kandang Gajah ,Desa Dewa Sari, Kec. Cijeungjing ,Kab. Ciamis",
-   "JL.K.H.AHMAD FADLIL, Dsn. Kandang Gajah, Dewasari , Cijeungjing, Ciamis",
-   "Jl.K.Ahmad Fadlil, dsn. Kandang Gajah ,Dewasari, Cijeungjing , Ciamis"
-  ]
- },
- {
-  "kunci": "mts al fadliliyah darussalam",
-  "nama": "MTs Al-Fadilliyah Darussalam",
-  "peserta": 18,
-  "edisi": [
-   "XXXIII",
-   "XXXIV",
-   "XXXV"
-  ],
-  "ejaan": [
-   "MTS AL- FADLILIYAH DARUSSALAM",
-   "MTS AL-FADILIYAH DARUSSALAM",
-   "MTSS AL-FADILLIYAH DARUSSALAM",
-   "MTs Al-Fadiliyah Darussalam",
-   "MTs Al-Fadliiyah Darussalam"
-  ],
-  "petunjuk_alamat": [
-   "Jln. KH. Ahmad Fadlil I Pesantren Darussalam Ciamis",
-   "JL. K.H. AHMAD FADLIL 01 PONPES DARUSSALAM CIAMIS",
-   "JL. K.H. AHMAD FADLIL 01 PONPES DARUSSALAM CIMAIS"
   ]
  },
  {
@@ -279,7 +286,7 @@
   ]
  },
  {
-  "kunci": "sman 1 banjar",
+  "kunci": "sman banjar",
   "nama": "SMAN 1 Banjar",
   "peserta": 17,
   "edisi": [
@@ -293,8 +300,8 @@
    "SMAN 1 Banjar"
   ],
   "petunjuk_alamat": [
-   "Jl. K.H.Mustofa No.1 Kota Banjar",
    "Jl. K.H.MUSTOFA NO.1 Kota Banjar",
+   "Jl. K.H.Mustofa No.1 Kota Banjar",
    "JLN KH MUSTOFA NO.1 KOTA BANJAR"
   ]
  },
@@ -313,9 +320,9 @@
    "MTsN 2 Ciamis"
   ],
   "petunjuk_alamat": [
+   "Jl.Panjalu Babantar no.308 kec.Lumbung kab.Ciamis",
    "Jl.Panjalu Babantar No.308 kec.Lumbung Kab.Ciamis",
-   "Jl.Panjalu Babantar No.308 kec.Lumbung kab.ciamis",
-   "Jl.Panjalu Babantar no.308 kec.Lumbung kab.Ciamis"
+   "Jl.Panjalu Babantar No.308 kec.Lumbung kab.ciamis"
   ]
  },
  {
@@ -335,8 +342,8 @@
   ],
   "petunjuk_alamat": [
    "Jl. K. H. Ahmad Dahlan No. 2, Linggarsari, Ciamis",
-   "Jl. K.H. Ahmad Dahlan No.2 Linggasari , Ciamis",
-   "Jl. K.H Ahmad Dahlan No.02 Linggasari , Ciamis"
+   "Jl. K.H Ahmad Dahlan No.02 Linggasari , Ciamis",
+   "Jl. K.H. Ahmad Dahlan No.2 Linggasari , Ciamis"
   ]
  },
  {
@@ -361,7 +368,7 @@
   ]
  },
  {
-  "kunci": "sman 1 baregbeg",
+  "kunci": "sman baregbeg",
   "nama": "SMAN 1 Baregbeg",
   "peserta": 15,
   "edisi": [
@@ -381,7 +388,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 cimaragas",
+  "kunci": "smpn cimaragas",
   "nama": "SMPN 1 Cimaragas",
   "peserta": 15,
   "edisi": [
@@ -420,7 +427,7 @@
   ]
  },
  {
-  "kunci": "sma terpadu cikanyere",
+  "kunci": "sma cikanyere",
   "nama": "SMA Terpadu Cikanyere",
   "peserta": 14,
   "edisi": [
@@ -440,7 +447,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 baregbeg",
+  "kunci": "smpn baregbeg",
   "nama": "SMPN 1 Baregbeg",
   "peserta": 14,
   "edisi": [
@@ -473,8 +480,8 @@
    "MTs Rancah"
   ],
   "petunjuk_alamat": [
-   "Jl Cibeureum No 50 Rancah Ciamis",
    "JL.Cibeureum no.50 Rancah Ciamis",
+   "Jl Cibeureum No 50 Rancah Ciamis",
    "Jl Cibeureum No. 50"
   ]
  },
@@ -499,7 +506,7 @@
   ]
  },
  {
-  "kunci": "sman 1 banjarsari",
+  "kunci": "sman banjarsari",
   "nama": "SMAN 1 Banjarsari",
   "peserta": 12,
   "edisi": [
@@ -518,7 +525,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 rajadesa",
+  "kunci": "smkn rajadesa",
   "nama": "SMKN 1 Rajadesa",
   "peserta": 12,
   "edisi": [
@@ -533,6 +540,27 @@
    "Jln. Kubang atas no.05 Sirnabaya Rajadesa ciamis kode pos 46254",
    "Jln.  Kubang atas no. 5 sirnabaya rajadesa ciamis",
    "Jln. Kubang atas no. 5 sirnabaya rajadesa ciamis"
+  ]
+ },
+ {
+  "kunci": "smkn manonjaya",
+  "nama": "SMKN Manonjaya",
+  "peserta": 12,
+  "edisi": [
+   "XXXIII",
+   "XXXIV",
+   "XXXV",
+   "XXXVI"
+  ],
+  "ejaan": [
+   "SMK NEGERI MANONJAYA",
+   "SMKN 1 Manonjaya",
+   "SMKN MANONJAYA"
+  ],
+  "petunjuk_alamat": [
+   "Jalan Raya Gunung Tanjung KM 2,5 Manonjaya Tasikmalaya",
+   "Jl. Raya Gunungtanjung km. 2,5",
+   "Jl raya gunungtanjung km 2,5"
   ]
  },
  {
@@ -578,7 +606,26 @@
   ]
  },
  {
-  "kunci": "sman 1 lohbener",
+  "kunci": "smp arrisalah",
+  "nama": "SMP Terpadu Ar-Risalah",
+  "peserta": 11,
+  "edisi": [
+   "XXXIII",
+   "XXXIV",
+   "XXXV"
+  ],
+  "ejaan": [
+   "SMP T AR-RISALAH",
+   "SMP TERPADU ARRISALAH",
+   "SMP Terpadu Ar-Risalah"
+  ],
+  "petunjuk_alamat": [
+   "Jl Raya Banjar KM 3,5 Pamayalan,Cijeungjing. Ciamis 46271",
+   "Jl. Raya Banjar KM 3,5 Pamalayan Cijeungjing Ciamis"
+  ]
+ },
+ {
+  "kunci": "sman lohbener",
   "nama": "SMAN 1 Lohbener",
   "peserta": 10,
   "edisi": [
@@ -612,7 +659,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 kawali",
+  "kunci": "smkn kawali",
   "nama": "SMKN 1 Kawali",
   "peserta": 10,
   "edisi": [
@@ -632,26 +679,7 @@
   ]
  },
  {
-  "kunci": "smkn manonjaya",
-  "nama": "SMKN Manonjaya",
-  "peserta": 10,
-  "edisi": [
-   "XXXIV",
-   "XXXV",
-   "XXXVI"
-  ],
-  "ejaan": [
-   "SMK NEGERI MANONJAYA",
-   "SMKN MANONJAYA"
-  ],
-  "petunjuk_alamat": [
-   "Jalan Raya Gunung Tanjung KM 2,5 Manonjaya Tasikmalaya",
-   "Jl. Raya Gunungtanjung km. 2,5",
-   "Jl raya gunungtanjung km 2,5"
-  ]
- },
- {
-  "kunci": "smpn 1 cijeungjing",
+  "kunci": "smpn cijeungjing",
   "nama": "SMPN 1 Cijeungjing",
   "peserta": 10,
   "edisi": [
@@ -662,33 +690,13 @@
    "SMPN 1 CIJEUNGJING"
   ],
   "petunjuk_alamat": [
-   "Jln.raya ciamis-banjar No.388",
    "Jln.raya ciamis-banjar No.389",
+   "Jln.raya ciamis-banjar No.388",
    "JL. RAYA CIAMIS BANJAR NO.388"
   ]
  },
  {
-  "kunci": "man 1 darussalam",
-  "nama": "MAN 1 Darussalam",
-  "peserta": 9,
-  "edisi": [
-   "XXXV",
-   "XXXVI"
-  ],
-  "ejaan": [
-   "MAN 1 DARUSSALAM",
-   "MAN 1 DARUSSALAM CIAMIS",
-   "MAN 1 Darussalam Ciamis",
-   "MAN 1 Darussalam ciamis"
-  ],
-  "petunjuk_alamat": [
-   "jl. KH.Ahmad Fadil no II Dewasari",
-   "JL KH AHMAD FADLIL  NO 1 DEWASARI",
-   "JL KH AHMAD FADLIL NO II DEWASARI"
-  ]
- },
- {
-  "kunci": "sman 1 cisaga",
+  "kunci": "sman cisaga",
   "nama": "SMAN 1 Cisaga",
   "peserta": 9,
   "edisi": [
@@ -777,8 +785,8 @@
    "MAN 6 Ciamis"
   ],
   "petunjuk_alamat": [
-   "jl rumah sakit no 20 situmandala rancah",
    "Jl rumah sakit no 20 situmandala rancah",
+   "jl rumah sakit no 20 situmandala rancah",
    "Jl.Puskesmas Kec.Rancah Ds.Situmandala"
   ]
  },
@@ -817,12 +825,12 @@
   ],
   "petunjuk_alamat": [
    "Jl. Kubangpari No.36 Banjarsari , Cibadak, Kabupaten Ciamis, Jawa Barat",
-   "Jl.Raya Timur Banjarsari No.60 Ciamis",
-   "JL.RAYA TIMUR BANJARSARI NO.60 CIAMIS"
+   "JL.RAYA TIMUR BANJARSARI NO.60 CIAMIS",
+   "Jl.Raya Timur Banjarsari No.60 Ciamis"
   ]
  },
  {
-  "kunci": "smkn 1 widasari",
+  "kunci": "smkn widasari",
   "nama": "SMKN 1 Widasari",
   "peserta": 8,
   "edisi": [
@@ -836,7 +844,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 lumbung",
+  "kunci": "smpn lumbung",
   "nama": "SMPN 1 Lumbung",
   "peserta": 8,
   "edisi": [
@@ -898,6 +906,27 @@
   ]
  },
  {
+  "kunci": "ma arrahman",
+  "nama": "MA Terpadu Ar-Rahman",
+  "peserta": 7,
+  "edisi": [
+   "XXXIII",
+   "XXXV"
+  ],
+  "ejaan": [
+   "MA Ar-Rahman",
+   "MA(terpadu) Ar-Rahman",
+   "Ma (terpadu) ar-rahman",
+   "Ma ar-rahman",
+   "Ma terpadu Ar-rahman"
+  ],
+  "petunjuk_alamat": [
+   "Jln.Arrahman No.1 desa nasol ;kec.ciamis",
+   "Nasol,cikoneng ,kab.ciamis",
+   "Nasol,cikoneng ciamis"
+  ]
+ },
+ {
   "kunci": "man 2 ciamis",
   "nama": "MAN 2 Ciamis",
   "peserta": 7,
@@ -915,7 +944,7 @@
   ]
  },
  {
-  "kunci": "sman 1 parigi",
+  "kunci": "sman parigi",
   "nama": "SMAN 1 Parigi",
   "peserta": 7,
   "edisi": [
@@ -948,7 +977,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 terisi",
+  "kunci": "smkn terisi",
   "nama": "SMKN 1 Terisi",
   "peserta": 7,
   "edisi": [
@@ -977,23 +1006,7 @@
   ]
  },
  {
-  "kunci": "smp terpadu ar risalah",
-  "nama": "SMP Terpadu Ar-Risalah",
-  "peserta": 7,
-  "edisi": [
-   "XXXIII",
-   "XXXV"
-  ],
-  "ejaan": [
-   "SMP T AR-RISALAH",
-   "SMP Terpadu Ar-Risalah"
-  ],
-  "petunjuk_alamat": [
-   "Jl Raya Banjar KM 3,5 Pamayalan,Cijeungjing. Ciamis 46271"
-  ]
- },
- {
-  "kunci": "smpn 1 cipaku",
+  "kunci": "smpn cipaku",
   "nama": "SMPN 1 Cipaku",
   "peserta": 7,
   "edisi": [
@@ -1027,8 +1040,8 @@
    "Madrasah Aliyah BKMU Cikijing"
   ],
   "petunjuk_alamat": [
-   "Jalan CIrawa No.01 CIkijing-Majalengka",
    "Jalan Cirawa No.01 Cikijing-Majalengka",
+   "Jalan CIrawa No.01 CIkijing-Majalengka",
    "JLN CIRAWA NO.01 CIKIJING MAJALENGKA"
   ]
  },
@@ -1087,7 +1100,7 @@
   ]
  },
  {
-  "kunci": "smp terpadu riyadlululum waddawah",
+  "kunci": "smp riyadlululum waddawah",
   "nama": "SMP Terpadu Riyadlul Ulum Waddawah",
   "peserta": 6,
   "edisi": [
@@ -1102,8 +1115,8 @@
   ],
   "petunjuk_alamat": [
    "Setia Negara,Condong, Cibeureum,Kota Tasikmalaya",
-   "condong, setianegara, cibereum kota Tasikmalaya",
-   "Condong, Setianegara, cibereum kota Tasikmalaya"
+   "Condong, Setianegara, cibereum kota Tasikmalaya",
+   "condong, setianegara, cibereum kota Tasikmalaya"
   ]
  },
  {
@@ -1123,7 +1136,23 @@
   ]
  },
  {
-  "kunci": "man 1 kuningan",
+  "kunci": "ma ypi rijalul hikam",
+  "nama": "MA YPI Rijalul Hikam",
+  "peserta": 5,
+  "edisi": [
+   "XXXVI"
+  ],
+  "ejaan": [
+   "MA RIJALUL HIKAM",
+   "MA YPI RIJALUL HIKAM",
+   "MA YPI Rijalul Hikam"
+  ],
+  "petunjuk_alamat": [
+   "Jatinagara"
+  ]
+ },
+ {
+  "kunci": "man kuningan",
   "nama": "MAN 1 Kuningan",
   "peserta": 5,
   "edisi": [
@@ -1179,7 +1208,7 @@
   ]
  },
  {
-  "kunci": "sman 1 kandanghaur",
+  "kunci": "sman kandanghaur",
   "nama": "SMAN 1 Kandanghaur",
   "peserta": 5,
   "edisi": [
@@ -1194,7 +1223,7 @@
   ]
  },
  {
-  "kunci": "sman 1 sukadana",
+  "kunci": "sman sukadana",
   "nama": "SMAN 1 Sukadana",
   "peserta": 5,
   "edisi": [
@@ -1212,7 +1241,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 cipaku",
+  "kunci": "smkn cipaku",
   "nama": "SMKN 1 Cipaku",
   "peserta": 5,
   "edisi": [
@@ -1225,12 +1254,12 @@
   ],
   "petunjuk_alamat": [
    "Jl.Raya Kawali KM. 7 Dusun Cijoho Desa Muktisari",
-   "JL raya kawali km 7 cipaku",
-   "jl raya kawali km 7 cipaku"
+   "jl raya kawali km 7 cipaku",
+   "JL raya kawali km 7 cipaku"
   ]
  },
  {
-  "kunci": "smkn 1 gabuswetan",
+  "kunci": "smkn gabuswetan",
   "nama": "SMKN 1 Gabuswetan",
   "peserta": 5,
   "edisi": [
@@ -1244,7 +1273,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 banjar",
+  "kunci": "smpn banjar",
   "nama": "SMPN 1 Banjar",
   "peserta": 5,
   "edisi": [
@@ -1261,7 +1290,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 cikoneng",
+  "kunci": "smpn cikoneng",
   "nama": "SMPN 1 Cikoneng",
   "peserta": 5,
   "edisi": [
@@ -1277,7 +1306,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 cisaga",
+  "kunci": "smpn cisaga",
   "nama": "SMPN 1 Cisaga",
   "peserta": 5,
   "edisi": [
@@ -1296,7 +1325,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 rajadesa",
+  "kunci": "smpn rajadesa",
   "nama": "SMPN 1 Rajadesa",
   "peserta": 5,
   "edisi": [
@@ -1358,40 +1387,6 @@
   "petunjuk_alamat": [
    "Jl. Angganaya No. 37 Imbanagara Ciamis",
    "jln.angganaya imbanagara raya"
-  ]
- },
- {
-  "kunci": "ma terpadu arrahman",
-  "nama": "MA Terpadu Ar-Rahman",
-  "peserta": 4,
-  "edisi": [
-   "XXXIII",
-   "XXXV"
-  ],
-  "ejaan": [
-   "MA(terpadu) Ar-Rahman",
-   "Ma (terpadu) ar-rahman",
-   "Ma terpadu Ar-rahman"
-  ],
-  "petunjuk_alamat": [
-   "Jln.Arrahman No.1 desa nasol ;kec.ciamis",
-   "Nasol,cikoneng ciamis",
-   "Nasol-Cikoneng-Ciamis"
-  ]
- },
- {
-  "kunci": "ma ypi rijalul hikam",
-  "nama": "MA YPI Rijalul Hikam",
-  "peserta": 4,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "MA YPI RIJALUL HIKAM",
-   "MA YPI Rijalul Hikam"
-  ],
-  "petunjuk_alamat": [
-   "Jatinagara"
   ]
  },
  {
@@ -1467,7 +1462,7 @@
   ]
  },
  {
-  "kunci": "sma terpadu dampasan",
+  "kunci": "sma dampasan",
   "nama": "SMA Terpadu Dampasan",
   "peserta": 4,
   "edisi": [
@@ -1481,7 +1476,7 @@
   ]
  },
  {
-  "kunci": "sma terpadu riyadlululum",
+  "kunci": "sma riyadlululum",
   "nama": "SMA Terpadu Riyadlul Ulum",
   "peserta": 4,
   "edisi": [
@@ -1501,7 +1496,7 @@
   ]
  },
  {
-  "kunci": "sman 1 cihaurbeuti",
+  "kunci": "sman cihaurbeuti",
   "nama": "SMAN 1 Cihaurbeuti",
   "peserta": 4,
   "edisi": [
@@ -1519,7 +1514,7 @@
   ]
  },
  {
-  "kunci": "sman 1 cineam",
+  "kunci": "sman cineam",
   "nama": "SMAN 1 Cineam",
   "peserta": 4,
   "edisi": [
@@ -1535,7 +1530,7 @@
   ]
  },
  {
-  "kunci": "sman 1 mangunjaya",
+  "kunci": "sman mangunjaya",
   "nama": "SMAN 1 Mangunjaya",
   "peserta": 4,
   "edisi": [
@@ -1580,8 +1575,8 @@
   ],
   "petunjuk_alamat": [
    "Jl. Lewidahu No.62 Kota Tasikmalaya",
-   "jalan leuwidahu no 61 Tasikmalaya",
-   "jalan leuwidahu no 61 tasikmalaya"
+   "jalan leuwidahu no 61 tasikmalaya",
+   "jalan leuwidahu no 61 Tasikmalaya"
   ]
  },
  {
@@ -1621,6 +1616,23 @@
   ]
  },
  {
+  "kunci": "smk karnas ciamis",
+  "nama": "SMK Karya Nasional Sindangkasih",
+  "peserta": 4,
+  "edisi": [
+   "XXXIII",
+   "XXXIV"
+  ],
+  "ejaan": [
+   "SMK Karnas Ciamis",
+   "SMK Karya Nasional Sindangkasih"
+  ],
+  "petunjuk_alamat": [
+   "Jl. Raya Rajapolah - Sindangkasih RT 009/005 Gunungcupu Sindangkasih Ciamis 46268",
+   "Jln. Raya Rajapolah, Ds.GunungCupu, Kec. Sindangkasih, Kab. Ciamis"
+  ]
+ },
+ {
   "kunci": "smk kehutanan negeri kadipaten",
   "nama": "SMK Kehutanan Negeri Kadipaten",
   "peserta": 4,
@@ -1653,7 +1665,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 ciamis",
+  "kunci": "smkn ciamis",
   "nama": "SMKN 1 Ciamis",
   "peserta": 4,
   "edisi": [
@@ -1666,12 +1678,12 @@
   ],
   "petunjuk_alamat": [
    "JL. JENDRAL SOEDIRMAN NO.269",
-   "JL.JENDRAL SOEDIRMAN NO.269",
-   "Jl. Jendral Sudirman No.269"
+   "Jl. Jendral Sudirman No.269",
+   "JL.JENDRAL SOEDIRMAN NO.269"
   ]
  },
  {
-  "kunci": "smkn 1 rancah",
+  "kunci": "smkn rancah",
   "nama": "SMKN 1 Rancah",
   "peserta": 4,
   "edisi": [
@@ -1690,7 +1702,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 sukra",
+  "kunci": "smkn sukra",
   "nama": "SMKN 1 Sukra",
   "peserta": 4,
   "edisi": [
@@ -1718,17 +1730,21 @@
   ]
  },
  {
-  "kunci": "smp terpadu arrisalah",
-  "nama": "SMP Terpadu Arrisalah",
+  "kunci": "smp al hasan",
+  "nama": "SMP Terpadu Al Hasan Ciamis",
   "peserta": 4,
   "edisi": [
-   "XXXIV"
+   "XXXIV",
+   "XXXV"
   ],
   "ejaan": [
-   "SMP TERPADU ARRISALAH"
+   "SMP AL-HASAN",
+   "SMP TERPADU AL HASAN CIAMIS"
   ],
   "petunjuk_alamat": [
-   "Jl. Raya Banjar KM 3,5 Pamalayan Cijeungjing Ciamis"
+   "Jl. Jendral Ahmad Yani No. 120 Ciamis Jawa Barat",
+   "CIAMIS",
+   "ciamis"
   ]
  },
  {
@@ -1807,23 +1823,6 @@
   ]
  },
  {
-  "kunci": "ma arrahman",
-  "nama": "MA Ar-Rahman",
-  "peserta": 3,
-  "edisi": [
-   "XXXV"
-  ],
-  "ejaan": [
-   "MA Ar-Rahman",
-   "Ma ar-rahman"
-  ],
-  "petunjuk_alamat": [
-   "Nasol,cikoneng ,kab.ciamis",
-   "Jl. Ar-Rahman No. 01",
-   "Jl. Ar-Rahman No.01"
-  ]
- },
- {
   "kunci": "ma ibadul ghafur",
   "nama": "MA Ibadul Ghafur",
   "peserta": 3,
@@ -1869,6 +1868,23 @@
   ]
  },
  {
+  "kunci": "sma it al falah",
+  "nama": "SMA IT Al-Falah",
+  "peserta": 3,
+  "edisi": [
+   "XXXVI"
+  ],
+  "ejaan": [
+   "SMA IT AL FALAHJLN",
+   "SMA IT AL-FALAH"
+  ],
+  "petunjuk_alamat": [
+   "Jl. Raya Citalahab Ds.Mekarjaya Kec.Bungbulang Kab.Garut Kode Pos 44165",
+   "Jalan Raya Citalahab No.35 Desa Mekarjaya Kec. Bungbulang Kab. Garut",
+   "JLN Raya citalahab mekarjaya bungbulang garut"
+  ]
+ },
+ {
   "kunci": "sma islam nurul fikri",
   "nama": "SMA Islam Nurul Fikri",
   "peserta": 3,
@@ -1879,12 +1895,12 @@
    "SMAI NURUL FIKRI"
   ],
   "petunjuk_alamat": [
-   "Serang Banten",
-   "Serang banten"
+   "Serang banten",
+   "Serang Banten"
   ]
  },
  {
-  "kunci": "sman 1 ciamis",
+  "kunci": "sman ciamis",
   "nama": "SMAN 1 Ciamis",
   "peserta": 3,
   "edisi": [
@@ -1899,7 +1915,7 @@
   ]
  },
  {
-  "kunci": "sman 1 cimaragas",
+  "kunci": "sman cimaragas",
   "nama": "SMAN 1 Cimaragas",
   "peserta": 3,
   "edisi": [
@@ -1914,7 +1930,20 @@
   ]
  },
  {
-  "kunci": "sman 1 rancah",
+  "kunci": "sman pamanukan",
+  "nama": "SMAN 1 Pamanukan",
+  "peserta": 3,
+  "edisi": [
+   "XXXVI"
+  ],
+  "ejaan": [
+   "SMAN 1 PAMANUKAN",
+   "SMAN PAMANUKAN"
+  ],
+  "petunjuk_alamat": []
+ },
+ {
+  "kunci": "sman rancah",
   "nama": "SMAN 1 Rancah",
   "peserta": 3,
   "edisi": [
@@ -1956,7 +1985,24 @@
   ]
  },
  {
-  "kunci": "smkn 1 binangun",
+  "kunci": "smk maarif sabilunnajat",
+  "nama": "SMK Maarif Sabilunnajat Rancah",
+  "peserta": 3,
+  "edisi": [
+   "XXXIV",
+   "XXXV"
+  ],
+  "ejaan": [
+   "SMK Ma'arif Sabilunnajat",
+   "SMKS MAARIF SABILUNNAJAT RANCAH"
+  ],
+  "petunjuk_alamat": [
+   "Jln. Rancah-Karangpari no. 110 dsn. Sukamaju ds. Cileungsir kec. Rancah kab. Ciamis - Jawa Barat",
+   "Kecamatan rancah,desa cileungsir,dusun sukamaju"
+  ]
+ },
+ {
+  "kunci": "smkn binangun cilacap",
   "nama": "SMKN 1 Binangun Kabupaten Cilacap",
   "peserta": 3,
   "edisi": [
@@ -1970,7 +2016,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 cijulang",
+  "kunci": "smkn cijulang",
   "nama": "SMKN 1 Cijulang",
   "peserta": 3,
   "edisi": [
@@ -1984,7 +2030,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 lemahabang",
+  "kunci": "smkn lemahabang",
   "nama": "SMKN 1 Lemahabang",
   "peserta": 3,
   "edisi": [
@@ -1998,7 +2044,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 padaherang",
+  "kunci": "smkn padaherang",
   "nama": "SMKN 1 Padaherang",
   "peserta": 3,
   "edisi": [
@@ -2012,7 +2058,7 @@
   ]
  },
  {
-  "kunci": "smp terpadu dampasan",
+  "kunci": "smp dampasan",
   "nama": "SMP Terpadu Dampasan",
   "peserta": 3,
   "edisi": [
@@ -2026,7 +2072,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 purwadadi",
+  "kunci": "smpn purwadadi",
   "nama": "SMPN 1 Purwadadi",
   "peserta": 3,
   "edisi": [
@@ -2067,8 +2113,8 @@
   ],
   "petunjuk_alamat": [
    "Jln. Jendral Sudirman No. 233",
-   "Jl. Jendral Sudirman No. 233",
-   "Jl. Jenderal Sudirman No.233"
+   "Jl. Jenderal Sudirman No.233",
+   "Jl. Jendral Sudirman No. 233"
   ]
  },
  {
@@ -2102,7 +2148,7 @@
   ]
  },
  {
-  "kunci": "man 1 tasikmalaya",
+  "kunci": "man tasikmalaya",
   "nama": "MAN 1 Kota Tasikmalaya",
   "peserta": 2,
   "edisi": [
@@ -2116,7 +2162,7 @@
   ]
  },
  {
-  "kunci": "man 1 sukabumi",
+  "kunci": "man sukabumi",
   "nama": "MAN 1 Sukabumi",
   "peserta": 2,
   "edisi": [
@@ -2216,21 +2262,6 @@
   ]
  },
  {
-  "kunci": "sma it al falah",
-  "nama": "SMA IT Al-Falah",
-  "peserta": 2,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "SMA IT AL-FALAH"
-  ],
-  "petunjuk_alamat": [
-   "Jl. Raya Citalahab Ds.Mekarjaya Kec.Bungbulang Kab.Garut Kode Pos 44165",
-   "Jalan Raya Citalahab No.35 Desa Mekarjaya Kec. Bungbulang Kab. Garut"
-  ]
- },
- {
   "kunci": "sma islam ainurrafiq",
   "nama": "SMA Islam Ainurrafiq",
   "peserta": 2,
@@ -2273,6 +2304,22 @@
   ]
  },
  {
+  "kunci": "sma arrisalah",
+  "nama": "SMA Terpadu Ar-Risalah",
+  "peserta": 2,
+  "edisi": [
+   "XXXIII"
+  ],
+  "ejaan": [
+   "SMA Ar-Risalah",
+   "SMA Terpadu Ar-Risalah"
+  ],
+  "petunjuk_alamat": [
+   "Jln. Raya Banjar KM.3,5 Pamalayan, Cijeungjing, Ciamis",
+   "Jl. Raya Banjar 3,5 Cijeungjing Ciamis"
+  ]
+ },
+ {
   "kunci": "sma yrm cihawar",
   "nama": "SMA YRM Cihawar",
   "peserta": 2,
@@ -2283,8 +2330,8 @@
    "SMAS YRM CIHAWAR"
   ],
   "petunjuk_alamat": [
-   "Jln. Raya Cihawar No. 151 Desa Sukaharja, Kec. Rajadesa, Kab. Ciamis, 46254",
-   "Jln. Raya Cihawar, No. 151 Desa Sukaharja, Kec. Rajadesa, Kab. Ciamis 46254"
+   "Jln. Raya Cihawar, No. 151 Desa Sukaharja, Kec. Rajadesa, Kab. Ciamis 46254",
+   "Jln. Raya Cihawar No. 151 Desa Sukaharja, Kec. Rajadesa, Kab. Ciamis, 46254"
   ]
  },
  {
@@ -2302,7 +2349,7 @@
   ]
  },
  {
-  "kunci": "sman 1 majenang",
+  "kunci": "sman majenang",
   "nama": "SMAN 1 Majenang",
   "peserta": 2,
   "edisi": [
@@ -2316,19 +2363,7 @@
   ]
  },
  {
-  "kunci": "sman 1 pamanukan",
-  "nama": "SMAN 1 Pamanukan",
-  "peserta": 2,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "SMAN 1 PAMANUKAN"
-  ],
-  "petunjuk_alamat": []
- },
- {
-  "kunci": "sman 1 pamarican",
+  "kunci": "sman pamarican",
   "nama": "SMAN 1 Pamarican",
   "peserta": 2,
   "edisi": [
@@ -2373,49 +2408,6 @@
   ]
  },
  {
-  "kunci": "smk karnas ciamis",
-  "nama": "SMK Karnas Ciamis",
-  "peserta": 2,
-  "edisi": [
-   "XXXIII"
-  ],
-  "ejaan": [
-   "SMK Karnas Ciamis"
-  ],
-  "petunjuk_alamat": [
-   "Jln. Raya Rajapolah, Ds.GunungCupu, Kec. Sindangkasih, Kab. Ciamis"
-  ]
- },
- {
-  "kunci": "smk karya nasional sindangkasih",
-  "nama": "SMK Karya Nasional Sindangkasih",
-  "peserta": 2,
-  "edisi": [
-   "XXXIV"
-  ],
-  "ejaan": [
-   "SMK Karya Nasional Sindangkasih"
-  ],
-  "petunjuk_alamat": [
-   "Jl. Raya Rajapolah - Sindangkasih RT 009/005 Gunungcupu Sindangkasih Ciamis 46268"
-  ]
- },
- {
-  "kunci": "smk maarif sabilunnajat rancah",
-  "nama": "SMK Maarif Sabilunnajat Rancah",
-  "peserta": 2,
-  "edisi": [
-   "XXXIV"
-  ],
-  "ejaan": [
-   "SMKS MAARIF SABILUNNAJAT RANCAH"
-  ],
-  "petunjuk_alamat": [
-   "Jln. Rancah-Karangpari no. 110 dsn. Sukamaju ds. Cileungsir kec. Rancah kab. Ciamis - Jawa Barat",
-   "Kecamatan rancah,desa cileungsir,dusun sukamaju"
-  ]
- },
- {
   "kunci": "smk miftahussalam",
   "nama": "SMK Miftahussalam",
   "peserta": 2,
@@ -2444,7 +2436,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 japara",
+  "kunci": "smkn japara",
   "nama": "SMKN 1 Japara",
   "peserta": 2,
   "edisi": [
@@ -2459,7 +2451,7 @@
   ]
  },
  {
-  "kunci": "smkn 1 malausma",
+  "kunci": "smkn malausma",
   "nama": "SMKN 1 Malausma",
   "peserta": 2,
   "edisi": [
@@ -2470,20 +2462,6 @@
   ],
   "petunjuk_alamat": [
    "JL RAYA KARTABRAJA NO. 01 MALAUSMA  MAJALENGKA"
-  ]
- },
- {
-  "kunci": "smkn 1 manonjaya",
-  "nama": "SMKN 1 Manonjaya",
-  "peserta": 2,
-  "edisi": [
-   "XXXIII"
-  ],
-  "ejaan": [
-   "SMKN 1 Manonjaya"
-  ],
-  "petunjuk_alamat": [
-   "Manonjaya"
   ]
  },
  {
@@ -2547,21 +2525,6 @@
   ]
  },
  {
-  "kunci": "smp al hasan",
-  "nama": "SMP Al-Hasan",
-  "peserta": 2,
-  "edisi": [
-   "XXXV"
-  ],
-  "ejaan": [
-   "SMP AL-HASAN"
-  ],
-  "petunjuk_alamat": [
-   "CIAMIS",
-   "ciamis"
-  ]
- },
- {
   "kunci": "smp bp plus maarif nu",
   "nama": "SMP BP Plus Ma'arif NU Ciamis",
   "peserta": 2,
@@ -2589,21 +2552,7 @@
   ]
  },
  {
-  "kunci": "smp terpadu al hasan",
-  "nama": "SMP Terpadu Al Hasan Ciamis",
-  "peserta": 2,
-  "edisi": [
-   "XXXIV"
-  ],
-  "ejaan": [
-   "SMP TERPADU AL HASAN CIAMIS"
-  ],
-  "petunjuk_alamat": [
-   "Jl. Jendral Ahmad Yani No. 120 Ciamis Jawa Barat"
-  ]
- },
- {
-  "kunci": "smpn 1 karangpawitan",
+  "kunci": "smpn karangpawitan garut",
   "nama": "SMPN 1 Karangpawitan Garut",
   "peserta": 2,
   "edisi": [
@@ -2617,7 +2566,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 sukamantri",
+  "kunci": "smpn sukamantri",
   "nama": "SMPN 1 Sukamantri",
   "peserta": 2,
   "edisi": [
@@ -2702,20 +2651,6 @@
   ]
  },
  {
-  "kunci": "ma rijalul hikam",
-  "nama": "MA Rijalul Hikam",
-  "peserta": 1,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "MA RIJALUL HIKAM"
-  ],
-  "petunjuk_alamat": [
-   "Jatinagara"
-  ]
- },
- {
   "kunci": "man 4 bantul yogyakarta",
   "nama": "MAN 4 Bantul Yogyakarta",
   "peserta": 1,
@@ -2728,18 +2663,6 @@
   "petunjuk_alamat": [
    "jl.Lingkar timur, Pranti, Banguntapan, Bantul, Yogyakarta"
   ]
- },
- {
-  "kunci": "mts al fadliliyah",
-  "nama": "MTs Al-Fadliliyah",
-  "peserta": 1,
-  "edisi": [
-   "XXXV"
-  ],
-  "ejaan": [
-   "MTs Al-Fadliliyah"
-  ],
-  "petunjuk_alamat": []
  },
  {
   "kunci": "mts al hasan banjarsari",
@@ -2798,20 +2721,6 @@
   ]
  },
  {
-  "kunci": "mts n rajadesa",
-  "nama": "MTs N Rajadesa",
-  "peserta": 1,
-  "edisi": [
-   "XXXIII"
-  ],
-  "ejaan": [
-   "MTs N Rajadesa"
-  ],
-  "petunjuk_alamat": [
-   "Jln. Cipancur No.6"
-  ]
- },
- {
   "kunci": "mts rijalul ulum",
   "nama": "MTs Rijalul Ulum",
   "peserta": 1,
@@ -2836,6 +2745,20 @@
    "MTsN 9 tasikmalaya"
   ],
   "petunjuk_alamat": []
+ },
+ {
+  "kunci": "mtsn rajadesa",
+  "nama": "MTsN Rajadesa",
+  "peserta": 1,
+  "edisi": [
+   "XXXIII"
+  ],
+  "ejaan": [
+   "MTs N Rajadesa"
+  ],
+  "petunjuk_alamat": [
+   "Jln. Cipancur No.6"
+  ]
  },
  {
   "kunci": "sma al hasan banjarsari",
@@ -2880,34 +2803,6 @@
   ]
  },
  {
-  "kunci": "sma ar risalah",
-  "nama": "SMA Ar-Risalah",
-  "peserta": 1,
-  "edisi": [
-   "XXXIII"
-  ],
-  "ejaan": [
-   "SMA Ar-Risalah"
-  ],
-  "petunjuk_alamat": [
-   "Jl. Raya Banjar 3,5 Cijeungjing Ciamis"
-  ]
- },
- {
-  "kunci": "sma it al falahjln",
-  "nama": "SMA IT Al Falahjln",
-  "peserta": 1,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "SMA IT AL FALAHJLN"
-  ],
-  "petunjuk_alamat": [
-   "JLN Raya citalahab mekarjaya bungbulang garut"
-  ]
- },
- {
   "kunci": "sma plus assyfa",
   "nama": "SMA Plus Assyfa",
   "peserta": 1,
@@ -2922,21 +2817,7 @@
   ]
  },
  {
-  "kunci": "sma terpadu ar risalah",
-  "nama": "SMA Terpadu Ar-Risalah",
-  "peserta": 1,
-  "edisi": [
-   "XXXIII"
-  ],
-  "ejaan": [
-   "SMA Terpadu Ar-Risalah"
-  ],
-  "petunjuk_alamat": [
-   "Jln. Raya Banjar KM.3,5 Pamalayan, Cijeungjing, Ciamis"
-  ]
- },
- {
-  "kunci": "sman 1 cantigi",
+  "kunci": "sman cantigi",
   "nama": "SMAN 1 Cantigi",
   "peserta": 1,
   "edisi": [
@@ -2950,7 +2831,7 @@
   ]
  },
  {
-  "kunci": "sman 1 cirebon",
+  "kunci": "sman cirebon",
   "nama": "SMAN 1 Cirebon",
   "peserta": 1,
   "edisi": [
@@ -2964,7 +2845,7 @@
   ]
  },
  {
-  "kunci": "sman 1 larangan",
+  "kunci": "sman larangan",
   "nama": "SMAN 1 Larangan",
   "peserta": 1,
   "edisi": [
@@ -2990,18 +2871,6 @@
   "petunjuk_alamat": [
    "Jl Limo Raya"
   ]
- },
- {
-  "kunci": "sman pamanukan",
-  "nama": "SMAN Pamanukan",
-  "peserta": 1,
-  "edisi": [
-   "XXXVI"
-  ],
-  "ejaan": [
-   "SMAN PAMANUKAN"
-  ],
-  "petunjuk_alamat": []
  },
  {
   "kunci": "smk al istiqomah rancah",
@@ -3046,18 +2915,6 @@
   ]
  },
  {
-  "kunci": "smk maarif sabilunnajat",
-  "nama": "SMK Ma'arif Sabilunnajat",
-  "peserta": 1,
-  "edisi": [
-   "XXXV"
-  ],
-  "ejaan": [
-   "SMK Ma'arif Sabilunnajat"
-  ],
-  "petunjuk_alamat": []
- },
- {
   "kunci": "smk nusantara 1 bekasi",
   "nama": "SMK Nusantara 1 Bekasi",
   "peserta": 1,
@@ -3072,7 +2929,7 @@
   ]
  },
  {
-  "kunci": "smk terpadu al hasan",
+  "kunci": "smk al hasan",
   "nama": "SMK Terpadu Al Hasan Ciamis",
   "peserta": 1,
   "edisi": [
@@ -3128,7 +2985,7 @@
   ]
  },
  {
-  "kunci": "smp islam terpadu nurul huda kedungjajang",
+  "kunci": "smp islam nurul huda kedungjajang",
   "nama": "SMP Islam Terpadu Nurul Huda Kedungjajang",
   "peserta": 1,
   "edisi": [
@@ -3156,7 +3013,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 banjarsari",
+  "kunci": "smpn banjarsari",
   "nama": "SMPN 1 Banjarsari",
   "peserta": 1,
   "edisi": [
@@ -3170,7 +3027,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 kalijaya",
+  "kunci": "smpn kalijaya",
   "nama": "SMPN 1 Kalijaya",
   "peserta": 1,
   "edisi": [
@@ -3184,7 +3041,7 @@
   ]
  },
  {
-  "kunci": "smpn 1 padaherang",
+  "kunci": "smpn padaherang",
   "nama": "SMPN 1 Padaherang",
   "peserta": 1,
   "edisi": [
