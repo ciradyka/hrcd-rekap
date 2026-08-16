@@ -277,6 +277,14 @@ function gambarSekolah() {
     document.getElementById("manual").replaceChildren(h(`
       <div class="card" style="margin:.6rem 0 0;border-color:var(--utama)">
         <p style="font-weight:700">Sekolahmu belum ada di daftar?</p>
+        <!-- Satu-satunya kalimat penjelas di kartu ini, dan ia menahan
+             kekeliruan yang mahal: sejak migrasi 0061 sekolah dikenali dari
+             NAMANYA saja. Nama yang persis sama dengan sekolah lain akan
+             menyatu dengan sekolah itu — regunya ikut terhitung ke sana dan
+             pembagian kloternya ikut salah. Alamat tidak lagi memisahkan. -->
+        <p class="hint" style="margin:.4rem 0 0">Kalau ada sekolah lain yang
+          namanya persis sama, tambahkan kabupatennya — misalnya
+          <strong>MAN 3 Ciamis</strong>.</p>
         <div class="field" style="margin-top:.6rem">
           <label for="m-alamat">Alamat sekolah (jalan + kota)</label>
           <input type="text" id="m-alamat"
@@ -289,7 +297,10 @@ function gambarSekolah() {
       const alamat = document.getElementById("m-alamat").value.trim();
       if (!nama) { cari.focus(); return; }
       if (!alamat) {
-        notif("Isi alamat sekolahnya — untuk membedakan sekolah bernama sama.", true);
+        // Dulu berbunyi "untuk membedakan sekolah bernama sama". Sejak 0061
+        // alamat tidak membedakan apa-apa — nama yang membedakan — jadi
+        // alasan itu dihapus daripada dibiarkan mengajarkan yang keliru.
+        notif("Alamat sekolahnya belum diisi.", true);
         document.getElementById("m-alamat").focus();
         return;
       }
