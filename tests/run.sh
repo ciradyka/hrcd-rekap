@@ -193,5 +193,10 @@ run tests/sql/25_peran_per_pekerjaan.sql
 # spreadsheet tidak lewat kotak itu sama sekali.
 run supabase/migrations/0059_nilai_mentah_bulat.sql
 run tests/sql/26_nilai_mentah_bulat.sql
+# 0060 menghitung kelengkapan per golongan. Sebelumnya Pos 1 terjebak di 0%
+# sepanjang hari, karena penyebutnya seluruh komponen pos (6) sementara satu
+# regu hanya mengisi tiga — Tebak Simpul ada empat versi, satu per golongan.
+run supabase/migrations/0060_kelengkapan_per_golongan.sql
+run tests/sql/27_kelengkapan_per_golongan.sql
 
 echo "SEMUA TES LULUS"
