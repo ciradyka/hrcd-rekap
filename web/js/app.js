@@ -3253,14 +3253,13 @@ async function layarInputPos() {
   function hitungUlangJumlah() {
     const baris = [...tbody.children];
     const tampil = baris.filter(tr => !tr.hidden).length;
-    const sudah = baris.filter(lengkap).length;
-    // DUA pecahan berpenyebut sama, bukan satu angka polos dan satu pecahan.
-    // "6 ditampilkan · 47/53 lengkap" memaksa mata membandingkan 6 dengan 47
-    // — dua angka yang menghitung hal berbeda dan kebetulan bersebelahan.
-    // Dengan penyebut yang sama di keduanya, keduanya langsung terbaca sebagai
-    // bagian dari 53 yang sama.
+    // SATU pecahan. "47/53 lengkap" dibuang karena chip di sebelahnya sudah
+    // menjawabnya: dengan saringan "Belum lengkap" menyala, yang ditampilkan
+    // ITULAH yang belum lengkap — 6/53 dan 47/53 adalah angka yang sama
+    // dibaca dari dua arah. Dua pecahan bersebelahan justru menuntut orang
+    // memeriksa mana yang mana sebelum bisa membacanya.
     document.getElementById("tabel-jumlah").textContent =
-      `${tampil}/${baris.length} ditampilkan · ${sudah}/${baris.length} lengkap`;
+      `${tampil}/${baris.length} ditampilkan`;
   }
 
   /* ---------- cetak lembar kosong ---------- */
