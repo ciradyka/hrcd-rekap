@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **14 Agustus 2026**, sampai migrasi `0034`.
+Terakhir diperiksa terhadap kode: **16 Agustus 2026**, sampai migrasi `0055`.
 
 ---
 
@@ -62,7 +62,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-34 migrasi, `0001` sampai `0034`, dijalankan berurutan tanpa lubang penomoran.
+55 migrasi, `0001` sampai `0055`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -105,9 +105,15 @@ tiap detik). Layar Input Pos membangun kolomnya dari baris-baris itu, jadi
 mengubah penilaian tahun depan tidak menyentuh kode sama sekali.
 
 **Bobot pos tidak pernah ditulis; ia lahir dari jumlah lombanya.** Satuan
-penilaian adalah lomba, dan tiap lomba bernilai maksimum 100 — jadi pos
-berisi tiga lomba bernilai 300, pos berisi lima lomba bernilai 500
-(`alur-lomba.md` 9.2). `pos.bobot` tetap 1,00 untuk semua dan hanya dipakai
+penilaian adalah lomba, dan bobot pos adalah jumlah poin maksimum seluruh
+komponennya — Pos 1 berisi tiga lomba bernilai 300, Pos 4 berisi satu lomba
+(PBB, empat kriteria) bernilai 100.
+
+Aturan lama "tiap lomba bernilai maksimum 100" **tidak lagi berlaku** sejak
+lomba jadi data (`0054`): KIM adalah satu lomba berisi KIM Lihat 0–10 dan KIM
+Cium 0–10 setelah dikonversi menjadi 100 poin masing-masing, jadi Pos 3 berisi
+DUA lomba tetapi tetap 300. Yang menentukan bobot pos adalah jumlah
+`poin_maks` baris `wahana`-nya, bukan jumlah lombanya. `pos.bobot` tetap 1,00 untuk semua dan hanya dipakai
 kalau suatu tahun panitia ingin menyetarakan pos secara paksa.
 
 Konsekuensi yang mudah terlewat saat menyusun pos tahun depan: **memindah
@@ -119,8 +125,10 @@ angka pun diubah.
 mesin skor. Format XXXVII tidak memakainya.
 
 **Tidak semua baris `pos` dinilai** (migrasi `0025`). Pos 0 (Keberangkatan) dan
-Pos 5 (Kedatangan) adalah garis start dan garis finish; yang dicatat di sana
-waktu, bukan nilai. Yang menentukan sebuah pos dinilai atau tidak adalah
+Pos **6** (Kedatangan) adalah garis start dan garis finish; yang dicatat di
+sana waktu, bukan nilai. Garis finish dipindah dari 5 ke 6 oleh migrasi `0032`
+supaya nomor 5 kosong untuk Yel-Yel; susunan XXXVII sekarang 0 Keberangkatan,
+1 Kepramukaan, 2 Halang Rintang, 3 P3K, 4 PBB, 5 Yel-Yel, 6 Kedatangan. Yang menentukan sebuah pos dinilai atau tidak adalah
 **punya tidaknya baris `wahana`** — bukan kolom penanda tersendiri, supaya
 tidak ada dua sumber kebenaran untuk satu fakta. `v_pos` mengekspos
 `jumlah_komponen` untuk layar yang perlu membedakan keduanya.
@@ -153,7 +161,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 
 | Rute | Layar | Kerjanya |
 | --- | --- | --- |
-| `#/home` | Home | menu + dua lencana angka: menunggu pembayaran, lunas belum bernomor |
+| `#/home` | Home | menu + **empat** lencana: dua antrean (menunggu pembayaran, lunas belum bernomor) dan dua kemajuan berantai (Keberangkatan `berangkat/siap`, Kedatangan `datang/berangkat`) |
 | `#/pembayaran` | Meja Pembayaran | tabel semua invoice, tandai lunas, cetak kwitansi |
 | `#/daftar-ulang` | Meja Daftar Ulang | isi nomor dada per regu, tukar nomor rusak |
 | `#/cetak-kloter` | Daftar Kloter | lembar per kloter untuk petugas start |
@@ -161,12 +169,16 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/rekap` | Rekapitulasi | seluruh pos sekaligus + klasemen sementara — **hanya dibaca** |
+| `#/live-score` | Live Score | **admin saja** — cincin kemajuan per pos + podium juara per golongan, persis yang akan dibaca peserta |
 | `#/ganti-password` | Ganti Password | — |
 
 Peran akun: `admin`, `meja`, `operator_pos`. Seluruh RPC meja menuntut
 `peran() in ('admin','meja')`; akun `meja` yang membuka `#/pos` ditolak dengan
-kartu "Akun meja, bukan akun pos". Sebaliknya akun `operator_pos` tidak diberi
-kartu penolakan di layar meja — Home-nya memang hanya memuat satu jalan, layar
+kartu "Akun meja, bukan akun pos". Akun `operator_pos` yang membuka `#/rekap` juga
+ditolak dengan kartunya sendiri, "Akun pos, bukan akun rekap", sebab
+`v_rekap_penuh` memang mengosongkan pos lain untuk peran itu dan Nilai Total
+yang tersisa akan salah tanpa ada yang tahu. Di layar meja yang lain ia tidak
+diberi kartu penolakan — Home-nya memang hanya memuat satu jalan, layar
 posnya sendiri, dan RLS yang mengosongkan data meja seandainya alamatnya
 diketik langsung.
 
@@ -277,10 +289,14 @@ membuangnya kini dijaga: `beforeunload` menahan tab yang ditutup, dan muat
 ulang otomatis saat layar dilihat kembali dilewati selama masih ada baris yang
 belum tersimpan.
 
-`v_lembar_pos` adalah **satu-satunya view PANITIA yang bukan
-`security_invoker`** — empat view publik (`v_progres_publik`,
-`v_klasemen_publik`, `v_publik_ringkas`, `v_edisi_publik`) juga bukan, tapi
-mereka hanya dibaca service role saat menerbitkan `live.json`.
+`v_lembar_pos` adalah salah satu dari **enam view panitia yang bukan
+`security_invoker`**, masing-masing dengan pagar peran ditulis di dalam
+view-nya sendiri: `v_lembar_pos`, `v_kelengkapan_pos` (`0030`),
+`v_riwayat_nilai` (`0042`), `v_foto_lembar` (`0047`), `v_kuota_foto` (`0047`,
+agregat tanpa pagar) dan `v_kemajuan_hari` (`0055`, tiga hitungan tanpa PII).
+Lima view publik (`v_progres_publik`, `v_klasemen_publik`, `v_publik_ringkas`,
+`v_kelengkapan_publik`, `v_edisi_publik`) juga bukan, tapi mereka hanya dibaca
+service role saat menerbitkan `live.json`.
 Alasannya ada di kepala migrasi `0023`: jalan menuju nama sekolah melewati
 tabel `pendaftaran`, yang tertutup untuk operator pos karena memuat nomor
 WhatsApp. Kalau view-nya tunduk RLS, operator mendapat lembar kosong — dan
@@ -642,7 +658,7 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
 | Layar panitia (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
-| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | manual saja — cron 5 menit masih dikomentari, nyalakan pada minggu lomba (bagian 8) |
+| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | **otomatis** tiap push ke `main` yang menyentuh `live/**` atau `live_json.sql` (#235); cron 5 menit masih dikomentari, nyalakan pada minggu lomba supaya rekapnya ikut segar tanpa ada yang push |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
 
@@ -811,19 +827,27 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   seluruh badan fungsinya disalin ulang.
 - **Cron rekap live masih dimatikan.** `publish-live.yml` punya jadwal 5
   menit yang sengaja dikomentari; nyalakan pada minggu lomba dan matikan lagi
-  sesudahnya. Sampai dinyalakan, halaman rekap hanya diperbarui saat tombol
-  Run workflow ditekan.
+  sesudahnya. Sampai dinyalakan, halaman rekap hanya terbit saat ada push yang
+  menyentuh `live/` atau saat tombol Run workflow ditekan — dan pada hari-H
+  keduanya tidak terjadi, karena tidak ada yang mengubah kode hari itu.
+  Angkanya bergerak dari database, bukan dari repo.
+- **Foto jawaban SUDAH ada** (`0047`), dan bentuknya kebalikan dari yang
+  pernah direncanakan: slip difoto di MEJA IT sambil nilainya diketik, bukan
+  diborong di pos. Alasannya di kepala migrasinya — difoto di meja, fotonya
+  tertaut sendiri ke nomor dada dan lomba yang tepat. Gambarnya di bucket
+  privat `lembar` (Supabase Storage, maks 1 MB, hanya JPEG), barisnya di tabel
+  `foto_lembar`, dan klien mengecilkannya jadi abu-abu 1400px sebelum
+  mengunggah supaya ~5.500 foto muat dalam kuota.
 - **Upload massal nilai belum ada.** `rancangan-b.md` bagian 6 menjelaskan
   jalur tempel-dari-Excel lengkap dengan layar preview. Yang sudah dibangun
   baru input tabelnya (`#/pos`) — yang sebenarnya sudah menutup sebagian besar
   kebutuhannya, karena satu layar memuat seluruh lembar sekaligus. RPC-nya
   (`simpan_nilai_massal`) memang sudah menerima banyak baris sekaligus, jadi
   yang kurang hanya pengurai tempelan dan preview-nya.
-- **Pos 5 (Kedatangan) belum punya komponen penilaian.** Lembar penilaiannya
-  tidak ada di antara yang diserahkan panitia, jadi migrasi `0024` sengaja
-  tidak menebak komponennya; namanya baru diisi migrasi `0025`. Selama belum
-  punya baris `wahana`, Pos 5 tidak muncul sama sekali di pemilih pos layar
-  Input Pos.
+- **Pos 6 (Kedatangan) memang tidak punya komponen penilaian, dan itu bukan
+  kekurangan.** Ia garis finish: yang dicatat di sana jam datang dan jumlah
+  anggota, lewat layar `#/finish`. Selama tanpa baris `wahana` ia tidak muncul
+  di pemilih pos layar Input Pos, dan itu benar.
 - **Dua sel di lembar XXXVI tidak cocok dengan rumusnya sendiri** (Pos 3 regu
   016 tertulis 380, rumus memberi 355; Pos 4 regu 009 tertulis 100, rumus
   memberi 80). 75 dari 77 baris yang bisa dibaca cocok tanpa sisa, jadi
