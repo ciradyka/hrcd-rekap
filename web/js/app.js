@@ -375,7 +375,7 @@ function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan
   return `
     <div class="table-toolbar">
       ${kiri}
-      <div class="field" style="margin:0;flex:1;min-width:220px">
+      <div class="field kotak-cari">
         <label for="cari-tabel" class="visually-hidden">Cari</label>
         <input type="text" id="cari-tabel" autocomplete="off"
                placeholder="${esc(cariContoh || "Cari kode, sekolah, atau nama regu…")}">
@@ -3833,7 +3833,7 @@ async function layarRekap() {
       <div id="rekap-panel"></div>
       <div class="card">
         <div class="table-toolbar">
-          <div class="field" style="margin:0;flex:1;min-width:220px">
+          <div class="field kotak-cari">
             <label for="rekap-cari" class="visually-hidden">Cari</label>
             <input type="text" id="rekap-cari" autocomplete="off"
                    placeholder="Cari sekolah, regu, atau nomor dada…">
