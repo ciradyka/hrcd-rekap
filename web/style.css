@@ -1756,13 +1756,14 @@ input.small-input { text-align: center; }
     min-width: 5rem; width: 100%; max-width: 10rem;
   }
   .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
-  /* Cetak Kwitansi + Batalkan DITENGAHKAN di kartu HP. Keduanya melintangi
-     seluruh lebar kartu di barisnya sendiri, dan sepasang tombol rata kiri di
-     bawah blok yang selebihnya simetris terbaca seperti tersangkut di pojok —
-     alasan yang sama dengan judul kartu di Live Score. Tampilan tabel lebar
-     sudah ditengahkan sejak awal (lihat .table-bayar td:nth-child(6)). */
+  /* Cetak Kwitansi + Batalkan RATA KIRI di kartu HP — sempat ditengahkan dan
+     dikembalikan setelah dicoba di HP sungguhan. Seluruh isi kartu lainnya
+     rata kiri, dan sepasang tombol yang menyendiri di tengah memutus garis
+     baca tegak yang dipakai mata menyusuri kartu demi kartu. Tampilan tabel
+     lebar tetap tengah (lihat .table-bayar td:nth-child(6)): di sana tombolnya
+     mengisi satu KOLOM, bukan satu baris. */
   .table-bayar tbody tr[data-baris] > td:last-child .action-row {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   /* ---- Kartu HP meja daftar ulang ----
