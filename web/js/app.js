@@ -126,7 +126,15 @@ function pasangKepala(judul, lebar = false) {
       .setAttribute("aria-current", diHome ? "page" : "false");
     document.getElementById("nav-setting")
       .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
+    document.getElementById("nav-akun")
+      .setAttribute("aria-current", location.hash === "#/akun" ? "page" : "false");
   }
+  // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
+  // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
+  // tidak boleh disentuh.
+  const adminSaja = !!s && s.peran === "admin";
+  document.getElementById("btn-akun").hidden = !adminSaja;
+  document.getElementById("nav-akun").hidden = !adminSaja;
   document.getElementById("judul-layar").textContent = judul;
   document.title = `${judul} — ${namaAcara()}`;
   LAYAR.classList.toggle("wide", lebar === true);
@@ -246,7 +254,10 @@ async function layarHome() {
    *
    *  Jadi netral sepanjang jalan, dan hijau HANYA saat penuh. */
   const kemajuan = (sudah, dari, judulMustahil) => {
-    if (sudah === null || dari === null) return "";
+    // `== null`, BUKAN `=== null`: kalau ringkasannya tidak memuat field ini
+    // sama sekali nilainya undefined, dan `=== null` melewatkannya — papan
+    // Home lalu menggambar "undefined/undefined" di ubin Keberangkatan.
+    if (sudah == null || dari == null) return "";
     /* Pembilang MELEBIHI penyebut berarti data rusak, bukan kemajuan.
        Regu tidak bisa datang tanpa berangkat, jadi 44/10 hanya mungkin kalau
        ada baris closing tanpa baris keberangkatan yang cocok — dan itu
@@ -299,10 +310,7 @@ async function layarHome() {
       <a href="#/live-score">
         <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
       </a>` : ""}
-      ${peran === "admin" ? `
-      <a href="#/akun">
-        <div class="function-name">${ikonKotak("users", "abu")} Akun</div>
-      </a>` : ""}
+
       <a href="#/rekap">
         <div class="function-name">${ikonKotak("chart-column", "mawar")} Rekapitulasi</div>
       </a>
@@ -4610,12 +4618,17 @@ const keSetelan = () => {
   if (location.hash === "#/ganti-password") arahkan();
   else location.hash = "#/ganti-password";
 };
+const keAkun = () => {
+  if (location.hash === "#/akun") arahkan(); else location.hash = "#/akun";
+};
 const keluarSekarang = () => { keluar(); EDISI = null; location.hash = ""; arahkan(); };
 
 document.getElementById("btn-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("btn-home").addEventListener("click", keHome);
 document.getElementById("nav-home").addEventListener("click", keHome);
 document.getElementById("nav-setting").addEventListener("click", keSetelan);
+document.getElementById("btn-akun").addEventListener("click", keAkun);
+document.getElementById("nav-akun").addEventListener("click", keAkun);
 document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);
