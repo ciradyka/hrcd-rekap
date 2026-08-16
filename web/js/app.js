@@ -4372,8 +4372,17 @@ async function layarAkun() {
     </div>
 
     <div class="card">
-      <h2>${akun.length} Akun</h2>
-      <p>Peran hanya mengisi centang awal. Yang menentukan hak adalah centangnya.</p>
+      <div class="table-toolbar">
+        <h2 style="margin:0">Akun</h2>
+        <span class="hint">${akun.length} akun</span>
+      </div>
+      <!-- Ini BUKAN penjelasan cara pakai (CLAUDE.md 9.1) — ia memuat satu
+           akibat yang tidak bisa dibaca dari layar: melepas centang selain
+           Akun belum menghentikan siapa pun. Baris ini dihapus begitu 42
+           policy dan 21 RPC pindah ke boleh(). -->
+      <p>Peran hanya mengisi centang awal. Untuk sekarang baru kolom
+         <strong>Akun</strong> yang benar-benar mengunci — kolom lain masih
+         mengikuti peran.</p>
       <!-- Gaya yang sama dengan lembar Input Nilai Pos: di HP ini TETAP
            tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
            tabel menempel di atas. Semua itu sudah ada di .table-pos —
