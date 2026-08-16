@@ -67,9 +67,11 @@
 -- nyata, dan itulah satu-satunya sumber penalti (CLAUDE.md 10.6).
 -- ============================================================================
 
-\set ON_ERROR_STOP on
-
-begin;
+-- Tanpa `begin;`/`commit;` sendiri: apply-migration.yml sudah menjalankan
+-- psql dengan --single-transaction dan ON_ERROR_STOP=1, jadi `raise exception`
+-- di blok laporan paling bawah membatalkan SELURUH perubahan di atasnya.
+-- Membuka transaksi kedua di sini justru menutupnya lebih awal dan melepaskan
+-- jaring itu.
 
 -- ---------------------------------------------------------------------------
 -- 0. Pagar. Kalau edisi aktifnya sudah lewat, berhenti.
@@ -219,5 +221,3 @@ begin
   end if;
 end;
 $$;
-
-commit;
