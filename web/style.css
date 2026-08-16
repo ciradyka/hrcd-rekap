@@ -1003,7 +1003,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    memberi tahu 2 apa. Di TABEL judulnya sudah menyebut REGU tepat di atasnya,
    dan mengulangi kata itu di tiap baris memakan lebar kolom yang justru
    dibutuhkan kolom di kanannya. */
-@media (min-width: 561px) {
+/* Kata "regu" hanya dibuang saat tabelnya BENAR-BENAR tabel — dan itu kini
+   mulai 901px, bukan 561px. Di kartu, satuannya wajib: tidak ada judul kolom
+   yang menyebutkannya. */
+@media (min-width: 901px) {
   .satuan-regu { display: none; }
 }
 
@@ -1399,7 +1402,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 
 /* ============================================================================
-   JENDELA SEMPIT TAPI MASIH TABEL (561px - 940px)
+   JENDELA SEMPIT TAPI MASIH TABEL (901px - 940px)
 
    Di sini tabelnya TETAP tabel — bentuk tabel masih terbaca di lebar segini,
    dan menumpuknya jadi kartu justru membuang ruang yang sebenarnya ada.
@@ -1423,7 +1426,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    layar jauh lebih merugikan daripada rincian yang meleset beberapa piksel.
    Di 941px ke atas kesejajarannya kembali utuh.
    ========================================================================= */
-@media (min-width: 561px) and (max-width: 940px) {
+@media (min-width: 901px) and (max-width: 940px) {
   .table-bayar, .table-daftar-ulang,
   .detail-table-bayar, .detail-table-dada {
     table-layout: auto;
@@ -1628,7 +1631,7 @@ input.small-input { text-align: center; }
    Kalau suatu saat kolom ditambah, min-width tabelnya naik — dan ambang ini
    harus ikut naik, kalau tidak tombol yang hilang itu kembali lagi.
    ========================================================================= */
-@media (max-width: 560px) {
+@media (max-width: 900px) {
   /* ---- tabel BERHENTI jadi tabel ----
      Enam kolom tidak akan pernah muat di layar sempit, dan menggeser ke
      samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
