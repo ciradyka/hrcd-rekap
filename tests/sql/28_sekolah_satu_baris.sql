@@ -39,6 +39,21 @@ begin
   assert kunci_sekolah('MTs N 5 Ciamis') = kunci_sekolah('MTsN 5 Ciamis'),
          'MTs N 5 dan MTsN 5 adalah satu sekolah';
 
+  -- Huruf status Dapodik (S = Swasta) dibuang — migrasi 0062. Ia status,
+  -- bukan nama, dan pembina menulis dua-duanya.
+  assert kunci_sekolah('SMKS Galuh Rahayu') = kunci_sekolah('SMK Galuh Rahayu'),
+         'SMKS dan SMK adalah satu sekolah';
+  assert kunci_sekolah('MAS Al-Kautsar') = kunci_sekolah('MA Al-Kautsar'),
+         'MAS dan MA adalah satu sekolah';
+  assert kunci_sekolah('MTsS Al-Fadliliyah') = kunci_sekolah('MTs Al-Fadliliyah'),
+         'MTsS dan MTs adalah satu sekolah';
+
+  -- Tapi singkatan di dalam NAMA tidak dibuang. "SMA Terpadu X" dan "SMA X"
+  -- bisa saja dua sekolah, dan kunci yang menyamakannya melebur keduanya
+  -- tanpa suara — kekeliruan yang lebih sulit ditemukan daripada baris kembar.
+  assert kunci_sekolah('SMAT Riyadlul Ulum') <> kunci_sekolah('SMA Riyadlul Ulum'),
+         'SMAT tidak boleh disamakan dengan SMA begitu saja';
+
   -- Dan TIDAK lebih jauh dari itu. Ekor kabupaten adalah satu-satunya yang
   -- memisahkan dua sekolah senama (runbook bagian 5); kunci yang membuangnya
   -- akan melebur keduanya tanpa suara.

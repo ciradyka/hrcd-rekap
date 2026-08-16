@@ -204,6 +204,12 @@ run tests/sql/27_kelengkapan_per_golongan.sql
 # berbeda tetap boleh berdampingan — kebutuhan asli yang membuat 0001 memakai
 # alamat sebagai pembeda.
 run supabase/migrations/0061_sekolah_satu_baris.sql
+# 0062 membakukan enam nama yang luput dari 0061 dan memperluas
+# kunci_sekolah() ke huruf status Dapodik. Dijalankan SEBELUM tes 28, karena
+# tes itu menguji kunci versi terbaru — dan 0062 harus membuang index-nya
+# dulu sebelum mengganti fungsinya, kalau tidak index-nya tertinggal memakai
+# rumus lama dan diam-diam meloloskan baris kembar.
+run supabase/migrations/0062_sekolah_nama_dapodik.sql
 run tests/sql/28_sekolah_satu_baris.sql
 
 echo "SEMUA TES LULUS"
