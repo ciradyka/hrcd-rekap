@@ -170,6 +170,22 @@ GABUNG_TANGAN = {
     "smk maarif sabilunnajat rancah": "smk maarif sabilunnajat",# NPSN 20254647
 }
 
+# Nama tampil yang dipilih tangan, karena "ejaan paling sering" memilih ejaan
+# yang menyimpang dari nama resminya. Aturannya: pakai nama yang BIASA
+# DIUCAPKAN, sedekat mungkin dengan nama resminya.
+#
+# Peserta menulis Fadliliyah, Fadilliyah, dan Fadiliyah; yang paling sering
+# kebetulan bukan yang benar. Dapodik menulis "Fadliliyah", dan itu juga
+# bentuk baku yang sudah dipakai EJAAN_SAMA.
+#
+# Yang TIDAK masuk sini walau tampak ganjil, karena keduanya memang bentuk
+# yang diucapkan orang: "MAN Darussalam" (resminya "MAN 1 Ciamis" dan tidak
+# ada yang menyebutnya begitu) dan "SMKN Manonjaya" tanpa angka (Dapodik pun
+# mencatatnya "SMKN MANONJAYA").
+NAMA_TANGAN = {
+    "mts al fadliliyah": "MTs Al-Fadliliyah Darussalam",
+}
+
 klaster = collections.defaultdict(list)
 for b in baris:
     k = kunci(b["mentah"])
@@ -182,7 +198,7 @@ for k, v in klaster.items():
     # Dari ejaan yang paling sering, ambil yang paling panjang: paling informatif.
     pilih = sorted([n for n, c in ejaan.items() if c == top], key=lambda s: (-len(s), s))[0]
     hasil.append({
-        "kunci": k, "nama": rapikan(pilih), "peserta": len(v),
+        "kunci": k, "nama": NAMA_TANGAN.get(k, rapikan(pilih)), "peserta": len(v),
         "edisi": sorted({x["edisi"] for x in v}),
         "ejaan": sorted(ejaan),
         "petunjuk_alamat": sorted({x["alamat"] for x in v if x["alamat"]}, key=lambda s: -len(s))[:3],

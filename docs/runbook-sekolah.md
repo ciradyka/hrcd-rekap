@@ -122,6 +122,23 @@ kata**, supaya `SMPN 1 Lelea Indramayu` bertemu `SMPN 1 Lelea` tanpa membuat
 Nama tampil dipilih dari ejaan yang **paling sering**; bila seri, yang paling
 panjang — itu yang paling informatif.
 
+**Kalau yang paling sering ternyata menyimpang, aturannya: pakai nama yang
+biasa diucapkan, sedekat mungkin dengan nama resminya.** Dua kata itu bekerja
+berpasangan, dan urutannya penting — "biasa diucapkan" duluan.
+
+- `MTs Al-Fadilliyah` → `MTs Al-Fadliliyah`. Peserta menulis tiga ejaan
+  (`Fadliliyah`, `Fadilliyah`, `Fadiliyah`) dan yang paling sering kebetulan
+  bukan yang benar. Dapodik menulis `Fadliliyah`. Ini yang masuk `NAMA_TANGAN`.
+- `MAN Darussalam` **tetap** `MAN Darussalam`, walau resminya `MAN 1 Ciamis` —
+  tidak ada satu orang pun yang menyebutnya begitu. Kedekatan ke nama resmi
+  tidak boleh sampai membuat namanya asing.
+- `SMKN Manonjaya` **tetap** tanpa angka. Sempat dikira nama resminya
+  `SMKN 1 Manonjaya`; Dapodik ternyata mencatatnya `SMKN MANONJAYA`. Periksa
+  dulu sebelum menambahkan angka.
+
+Nama resmi yang berbeda tetap disimpan di kolom `nama_resmi`
+`sekolah_alamat.json`, jadi tidak ada yang hilang.
+
 Hasil: **1.102 baris peserta → 201 klaster**, dari 326 tulisan mentah.
 Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah**.
 
