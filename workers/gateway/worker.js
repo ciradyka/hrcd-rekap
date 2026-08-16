@@ -176,6 +176,23 @@ async function buatAkun(req, env, b) {
       hasil.push({ username, ok: false, pesan: e.message || "Nama akun sudah dipakai." });
       continue;
     }
+    // Centang awal sesuai perannya. Tanpa langkah ini akun baru lahir dengan
+    // peran terisi tapi TANPA satu centang pun — bisa login, perannya terbaca
+    // benar, dan setiap layar kosong. Daftar fiturnya dibaca dari
+    // paket_peran() di database, tidak disalin ke sini: dua daftar suatu hari
+    // tidak sepakat, dan yang di Worker akan jadi yang basi.
+    const paket = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/paket_peran`, {
+      method: "POST", headers: kepalaLayanan(env),
+      body: JSON.stringify({ p_peran: peran }),
+    });
+    const fitur = paket.ok ? await paket.json() : [];
+    if (fitur.length) {
+      await fetch(`${env.SUPABASE_URL}/rest/v1/akun_hak`, {
+        method: "POST",
+        headers: { ...kepalaLayanan(env), Prefer: "resolution=ignore-duplicates,return=minimal" },
+        body: JSON.stringify(fitur.map((f) => ({ user_id: user.id, fitur: f }))),
+      });
+    }
     hasil.push({ username, ok: true, peran, pos, password });
   }
   return jawab(200, { hasil }, req);
