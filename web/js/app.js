@@ -27,7 +27,8 @@ import {
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
-         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3 } from "./util.js";
+         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
+         jamPadaHari } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN_LABEL = {
@@ -1097,6 +1098,17 @@ async function layarKeberangkatan() {
 
   const layarIni = location.hash;
   let papan, opsi;
+
+  /* Tanggalnya diambil dari perkiraan berangkat, yang selalu jatuh di tanggal
+     lomba — BUKAN dari kalender alat pencatat. Petugas mengetik jam dinding,
+     dan jam dinding tidak membawa tanggal.
+
+     Ini bukan kehati-hatian teoretis: mencoba layar ini sebelum hari-H adalah
+     persis yang menaruh "kloter 1 berangkat 2026-08-15 16:00" di database,
+     enam bulan sebelum acaranya, dan membuat penalti seluruh kloter itu
+     terhitung 190 hari. */
+  const hariLomba = () =>
+    papan.find(k => k.perkiraan_berangkat)?.perkiraan_berangkat || Date.now();
   try { [papan, opsi] = await Promise.all([papanKeberangkatan(), kontrakOpsi()]); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKeberangkatan)); return; }
   // Daftar sisipan pindah ke sini bersama layar Pindah Kloter yang dihapus.
@@ -1425,7 +1437,8 @@ async function layarKeberangkatan() {
       if (!jawab) return;
       const [hhmm, alasan] = jawab;
       try {
-        await koreksiJamBerangkat(kloterAktif, jamHariIni(hhmm).toISOString(), alasan);
+        await koreksiJamBerangkat(kloterAktif,
+          jamPadaHari(hhmm, hariLomba()).toISOString(), alasan);
       } catch (err) { notif(err.message, true); return; }
       notif(`Jam berangkat Kloter ${kloterAktif} dibetulkan jadi ${hhmm}.`);
       papan = await papanKeberangkatan();
@@ -1454,7 +1467,8 @@ async function layarKeberangkatan() {
       kotakJamBerangkat.setNilai(hhmm);
       tombol.dataset.jalan = "1"; tombol.disabled = true; tombol.textContent = "Menyimpan…";
       try {
-        await berangkatkanKloter(kloterAktif, jamHariIni(hhmm).toISOString());
+        await berangkatkanKloter(kloterAktif,
+          jamPadaHari(hhmm, hariLomba()).toISOString());
       } catch (err) {
         notif(err.message, true);
         tombol.dataset.jalan = ""; tombol.disabled = false;
@@ -1727,7 +1741,7 @@ function layarFinish() {
     // menghitung dampak dari angka setengah jadi membuat lencananya
     // berkedip-kedip menampilkan penalti yang tidak pernah berlaku.
     const isi = inpJam.nilai();
-    const jamIsi = isi ? jamHariIni(isi) : dasar;
+    const jamIsi = isi ? jamPadaHari(isi, regu.target_datang) : dasar;
     const pDasar = hitungPenalti(dasar, regu.target_datang);
     const pIsi = hitungPenalti(jamIsi, regu.target_datang);
     const tulis = (n) => n === 0 ? "0" : `−${n}`;
@@ -1848,7 +1862,7 @@ function layarFinish() {
 
     // Jam dikunci DI SINI — saat tombol ditekan, dari jam laptop panitia.
     // Kolom jam hanya dipakai bila memang diisi (koreksi hasil verifikasi).
-    const jam = jamIsi ? jamHariIni(jamIsi) : new Date();
+    const jam = jamIsi ? jamPadaHari(jamIsi, regu.target_datang) : new Date();
     const hadir = Math.max(0, Math.min(5, Number(inpHadir.value) || 0));
     const dada = regu.nomor_dada;
     const nama = regu.nama_regu;
@@ -1882,17 +1896,19 @@ function layarFinish() {
   }
 }
 
-/** "14:35" -> Date hari ini pada jam itu (untuk pencatatan susulan). */
-function jamHariIni(hhmm) {
-  const [j, m] = hhmm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(j, m, 0, 0);
-  return d;
-}
-
 function kartuReguFinish(r) {
+  /* Regu yang SUDAH tercatat diukur dari jam datangnya, bukan dari jam
+     sekarang. Angka pada regu yang sudah pulang tidak boleh bergerak lagi —
+     versi sebelumnya membandingkan Date.now() dengan target, jadi lencana
+     yang sama menampilkan angka berbeda setiap kali layarnya dibuka, dan
+     enam bulan sebelum acara ia berbunyi "−271874 menit dari target".
+
+     Untuk regu yang belum pulang, jam sekarang memang pembandingnya: yang
+     ditanya petugas adalah "sudah lewat berapa menit dari targetnya". */
+  const acuan = r.sudah_finish && r.jam_datang
+    ? new Date(r.jam_datang).getTime() : Date.now();
   const selisih = r.target_datang
-    ? Math.round((Date.now() - new Date(r.target_datang).getTime()) / 60000)
+    ? Math.round((acuan - new Date(r.target_datang).getTime()) / 60000)
     : null;
   const tandaWaktu = selisih === null ? ""
     : `<span class="badge ${Math.abs(selisih) < 10 ? "badge-green" : "badge-yellow"}">

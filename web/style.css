@@ -2637,6 +2637,14 @@ input.small-input { text-align: center; }
    hadir" satu digit — keduanya muat bersama bahkan di 360px, dan menumpuknya
    menurunkan tombol simpan satu baris penuh pada layar yang dipakai berdiri
    di garis finish. */
+/* Jaraknya lebih lebar daripada .two-column biasa. Dua isian yang saling
+   bersinggungan di kolom sempit terbaca sebagai satu kelompok: kotak menit
+   berakhir 10px sebelum kotak "Anggota hadir" dimulai, dan labelnya berdiri
+   berdempetan di atasnya sehingga tidak jelas label mana milik kotak mana.
+   1,25rem sudah cukup memisahkan keduanya tanpa mendorong apa pun ke bawah. */
 @media (max-width: 640px) {
-  .two-column.pasangan-sempit { grid-template-columns: auto 1fr; }
+  .two-column.pasangan-sempit {
+    grid-template-columns: auto 1fr;
+    column-gap: 1.25rem;
+  }
 }

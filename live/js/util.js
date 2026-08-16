@@ -87,6 +87,33 @@ export function jamMenit(t) {
   return FMT_JAM.format(new Date(t));
 }
 
+/** "11:26" + hari acuan -> Date pada jam itu, di hari WIB yang sama dengan
+ *  acuan.
+ *
+ *  Bukan "hari ini". Petugas mengetik jam dinding — "11:26" — dan jam dinding
+ *  tidak membawa tanggal; tanggalnya harus datang dari peristiwa yang sedang
+ *  dicatat, bukan dari kalender alat yang dipakai mencatat. Keduanya sama
+ *  pada hari-H dan berbeda pada setiap hari lainnya, termasuk setiap kali
+ *  layar ini dibuka untuk dicoba sebelum acara.
+ *
+ *  Dirakit lewat teks ISO dengan offset +07:00, bukan lewat setHours: yang
+ *  terakhir memakai zona alat, dan satu laptop pinjaman yang zonanya keliru
+ *  cukup untuk menggeser jam yang tercatat (alasan yang sama dengan ZONA di
+ *  atas).
+ */
+export function jamPadaHari(hhmm, acuan) {
+  const [j, m] = hhmm.split(":").map(Number);
+  const bagian = {};
+  // `new Date(null)` adalah 1 Januari 1970, bukan galat — jadi acuan kosong
+  // harus ditangkap di sini, bukan dibiarkan lewat.
+  for (const b of FMT_TANGGAL.formatToParts(new Date(acuan || Date.now()))) bagian[b.type] = b.value;
+  const dd = String(bagian.day).padStart(2, "0");
+  const mm = String(bagian.month).padStart(2, "0");
+  const HH = String(j).padStart(2, "0");
+  const MM = String(m).padStart(2, "0");
+  return new Date(`${bagian.year}-${mm}-${dd}T${HH}:${MM}:00+07:00`);
+}
+
 /** "17 Agustus 2026" */
 export function tanggalPanjang(t) {
   if (!t) return "—";
