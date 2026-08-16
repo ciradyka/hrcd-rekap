@@ -2585,3 +2585,16 @@ input.small-input { text-align: center; }
   background: var(--kertas); color: var(--tinta-lembut);
   border: 1px solid var(--garis);
 }
+
+/* Kotak cari: melar sampai batas, lalu berhenti.
+
+   Dulu `flex:1` tanpa batas atas, jadi ia menyerap SELURUH sisa lebar — pada
+   1200px itu kotak teks selebar setengah layar untuk mengetik "UJI-022" atau
+   sepotong nama sekolah. Kotak yang jauh lebih panjang daripada isinya
+   terbaca seperti kolom tulisan, bukan kotak cari, dan matanya harus berjalan
+   melewatinya untuk sampai ke chip saringan di sebelah.
+
+   24rem menampung nama sekolah terpanjang di data ini dengan sisa; lebihnya
+   diserahkan ke baris chip, yang memang mendorong hitungan invoice ke tepi
+   kanan. */
+.kotak-cari { margin: 0; flex: 1 1 220px; min-width: 220px; max-width: 24rem; }
