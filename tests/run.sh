@@ -188,5 +188,10 @@ run tests/sql/24_hak_akses.sql
 # database, bukan sekadar tidak dipakai lagi.
 run supabase/migrations/0058_peran_per_pekerjaan.sql
 run tests/sql/25_peran_per_pekerjaan.sql
+# 0059 menolak nilai mentah pecahan. Tesnya membuktikan penolakannya datang
+# dari DATABASE, bukan dari kotak isian — import massal dan tempel dari
+# spreadsheet tidak lewat kotak itu sama sekali.
+run supabase/migrations/0059_nilai_mentah_bulat.sql
+run tests/sql/26_nilai_mentah_bulat.sql
 
 echo "SEMUA TES LULUS"

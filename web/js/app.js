@@ -2013,11 +2013,11 @@ function selKomponen(k, nilai) {
   }
   if (k.form === "benar_kurang_salah") {
     return `<span class="pos-pasangan">
-      <input type="number" class="small-input" inputmode="numeric" min="0"
+      <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
              data-kode="${kode}" data-slot="benar" value="${esc(angkaRapi(n1))}"
              aria-label="${esc(k.name)} — jumlah benar">
       <span class="pos-pemisah" aria-hidden="true">/</span>
-      <input type="number" class="small-input" inputmode="numeric" min="0"
+      <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
              data-kode="${kode}" data-slot="salah" value="${esc(angkaRapi(n2))}"
              aria-label="${esc(k.name)} — jumlah salah">
     </span>`;
@@ -2025,7 +2025,13 @@ function selKomponen(k, nilai) {
   // Sengaja placeholder, bukan nilai tersimpan. Menyimpan keadaan ketiga
   // bernama "–" akan memaksa setiap tempat yang membaca angka ini menebak
   // maksudnya, padahal database hanya punya dua: ada barisnya, atau tidak.
-  return `<input type="number" class="small-input" inputmode="decimal" step="any"
+  // step="1" + inputmode="numeric", BUKAN step="any" + inputmode="decimal".
+  // Nilai mentah tidak pernah pecahan (migrasi 0059), dan kotak yang
+  // memanggil papan angka bertitik desimal adalah undangan mengetik koma.
+  // Ini cuma membuatnya sulit — yang benar-benar menolak adalah constraint
+  // nilai_mentah_bulat, karena import massal dan tempel dari spreadsheet
+  // tidak lewat kotak ini sama sekali.
+  return `<input type="number" class="small-input" inputmode="numeric" step="1"
                  min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
                  data-kode="${kode}" value="${esc(angkaRapi(n1))}"${kosongTampak}
                  aria-label="${esc(k.name)}">`;
