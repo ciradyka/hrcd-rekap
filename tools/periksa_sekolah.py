@@ -129,6 +129,23 @@ def main():
         if re.search(r'[a-z][A-Z]', n.replace("MTsN", "MTSN")) or ")" in n:
             salah.append(f"{n}: kata menempel atau kurung tertinggal")
 
+    # 7. docs/sekolah-belum-tuntas.md harus memuat PERSIS sekolah yang
+    #    keyakinannya belum `tinggi` — tidak lebih, tidak kurang. Daftar kerja
+    #    yang tidak ikut menyusut waktu pekerjaannya beres akan berhenti
+    #    dipercaya, lalu berhenti dibaca, dan sekolah yang tersisa di dalamnya
+    #    ikut terlupakan.
+    doc = AKAR / "docs" / "sekolah-belum-tuntas.md"
+    if not doc.exists():
+        salah.append("docs/sekolah-belum-tuntas.md tidak ada")
+    else:
+        # Tiap baris tabel berbentuk: | **Nama Sekolah** | ...
+        didaftar = set(re.findall(r'^\| \*\*(.+?)\*\* \|', doc.read_text(encoding="utf-8"), re.M))
+        belum = {a["nama"] for a in alamat if a.get("keyakinan") != "tinggi"}
+        for n in sorted(belum - didaftar):
+            salah.append(f"{n}: keyakinan belum 'tinggi' tapi tidak ada di docs/sekolah-belum-tuntas.md")
+        for n in sorted(didaftar - belum):
+            salah.append(f"{n}: sudah 'tinggi' tapi masih terdaftar di docs/sekolah-belum-tuntas.md — hapus barisnya")
+
     if salah:
         print(f"GAGAL: {len(salah)} masalah.\n")
         for s in salah:
