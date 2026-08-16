@@ -2614,6 +2614,22 @@ input.small-input { text-align: center; }
    melar — lihat .filter-baris. */
 .kotak-cari { margin: 0; flex: 1 1 220px; min-width: 220px; }
 
+/* Di HP toolbar-nya BERDIRI (flex-direction: column, lihat @560px), dan begitu
+   arahnya berubah `flex: 1 1 220px` di atas berhenti berarti "lebar 220px"
+   lalu berarti "TINGGI 220px" — sumbu utamanya ikut memutar. Kotak carinya
+   setinggi 47px, jadi 173px sisanya berdiri kosong antara kotak cari dan baris
+   chip. Itulah lubang selebar setengah layar di Meja Daftar Ulang.
+
+   `0 0 auto`: tingginya kembali seukuran isinya, dan lebarnya tetap penuh
+   karena toolbar-nya `align-items: stretch`.
+
+   Ditaruh SESUDAH aturan di atas, bukan di dalam blok @560px yang jauh di
+   atas sana. Kekhususan keduanya sama (0,1,0), jadi yang menang adalah yang
+   belakangan — media query saja tidak menambah bobot apa pun. */
+@media (max-width: 560px) {
+  .kotak-cari { flex: 0 0 auto; min-width: 0; }
+}
+
 /* Sepasang isian yang TETAP bersebelahan walau layarnya sempit.
 
    .two-column runtuh jadi satu kolom di bawah 640px, dan itu benar untuk
