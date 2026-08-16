@@ -101,11 +101,30 @@ body {
   display: flex;
   align-items: center;
   gap: .7rem;
-  flex-wrap: wrap;
+  /* TIDAK membungkus. Dulu `wrap`, dan pada ~570px tombol Keluar jatuh ke
+     baris kedua — kepala setinggi dua baris yang memakan isi layar, tepat di
+     lebar yang paling sering dipakai tablet meja.
+     Yang benar bukan membungkus melainkan MENGALAH: judul dan identitas akun
+     dipotong elipsis, tombolnya tidak pernah bergeser. */
+  flex-wrap: nowrap;
 }
-.header .title  { font-weight: 700; font-size: 1rem; }
-.header .spacer { flex: 1; }
-.header .user-info  { font-size: .85rem; opacity: .9; }
+/* min-width: 0 wajib — anak flex bawaannya tidak boleh menyusut di bawah
+   lebar isinya, dan tanpa ini elipsisnya tidak pernah aktif. */
+.header .title {
+  font-weight: 700; font-size: 1rem;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.header .spacer { flex: 1 1 auto; min-width: 0; }
+/* Menyusut TIGA KALI lebih cepat daripada judul. Kalau ruangnya kurang, yang
+   pertama mengalah nama akun — ia terpotong dari kanan, jadi yang hilang duluan
+   nomor edisinya ("· HRCD XXXVII") dan yang bertahan justru nama akunnya.
+   Judul layar dipertahankan lebih lama: ia yang memberi tahu petugas ia sedang
+   di layar mana. */
+.header .user-info {
+  font-size: .85rem; opacity: .9;
+  flex: 0 3 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 .isi {
   max-width: 760px;
