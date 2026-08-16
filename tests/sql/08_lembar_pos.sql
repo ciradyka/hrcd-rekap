@@ -90,10 +90,19 @@ select simpan_nilai_massal('[
   {"nomor_dada": 13, "kode": "tebak_simpul",          "nilai_1": 1}
 ]'::jsonb, 'manual', 1::smallint);
 
--- Pos 3, baris 004 RIMBA KUYY: 4 / 4,5 / 8 / 40 / 2 -> 285
+-- Pos 3, baris 004 RIMBA KUYY: 4 / 5 / 8 / 40 / 2
+--
+-- Lembar aslinya menulis 4,5 untuk Merayap — nilai setengah dari juri. Sejak
+-- migrasi 0059 nilai mentah wajib bulat, jadi angka itu tidak bisa lagi
+-- dimasukkan dan fixture ini memakai 5. Totalnya ikut berubah; yang dijaga
+-- tes ini rumus penilaiannya, bukan angka lembar itu sendiri.
+--
+-- Merayap tidak ada lagi di konfigurasi edisi 37 (0033), jadi setengah nilai
+-- itu tidak menghalangi siapa pun hari ini. Kalau suatu edisi memang perlu
+-- setengah, simpan dalam satuan terkecilnya — lihat kepala 0059.
 select simpan_nilai_massal('[
   {"nomor_dada": 13, "kode": "logika",       "nilai_1": 4},
-  {"nomor_dada": 13, "kode": "merayap",      "nilai_1": 4.5},
+  {"nomor_dada": 13, "kode": "merayap",      "nilai_1": 5},
   {"nomor_dada": 13, "kode": "balap_karung", "nilai_1": 8},
   {"nomor_dada": 13, "kode": "lempar_pisau", "nilai_1": 40},
   {"nomor_dada": 13, "kode": "poros_bumi",   "nilai_1": 2}
@@ -129,7 +138,10 @@ begin
   assert l.nilai -> 'tidak_ada_kolom_ini' is null, 'kolom asing muncul di nilai';
 
   select * into strict l from v_lembar_pos where nomor_dada = 13 and pos = 3;
-  assert l.nilai_pos = 285, 'Pos 3 dada 13 = ' || l.nilai_pos || ', sheet bilang 285';
+  -- 293,33 bukan 285: Merayap naik dari 4,5 ke 5 (lihat catatan di atas),
+  -- dan 0,5 dari 6 bernilai 8,33 poin. Rumusnya tidak berubah.
+  assert round(l.nilai_pos, 2) = 293.33,
+    'Pos 3 dada 13 = ' || l.nilai_pos || ', harusnya 293,33';
 
   select * into strict l from v_lembar_pos where nomor_dada = 13 and pos = 4;
   assert l.nilai_pos = 125, 'Pos 4 dada 13 = ' || l.nilai_pos || ', sheet bilang 125';
@@ -150,8 +162,8 @@ do $$
 declare v_total numeric;
 begin
   select total_pos into v_total from v_total_skor where nomor_dada = 13;
-  assert v_total = 705,
-    'total pos dada 13 = ' || v_total || ', harusnya 230+285+125+65 = 705';
+  assert round(v_total, 2) = 713.33,
+    'total pos dada 13 = ' || v_total || ', harusnya 230+293,33+125+65 = 713,33';
 end;
 $$;
 
