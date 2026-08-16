@@ -262,6 +262,15 @@ Jalan dan nomor, koma, kabupaten/kota, kode pos tanpa koma.
 - Tanpa kode pos: berhenti di kabupaten.
 - Tanpa nama jalan: `Kec. Lelea, Indramayu 45261`.
 
+**Kalau sekolahnya memang tidak punya nama jalan, kolom `jalan` diisi dusun dan
+RT/RW-nya** — `Dusun Cigoong RT 01 RW 01` — bukan dikosongkan. Banyak sekolah
+begitu, dan Dapodik pun menulisnya begitu; 15 baris di berkasnya sudah memakai
+bentuk ini. Mengosongkannya membuat alamat surat menyusut jadi nama desa saja,
+padahal dusun itulah satu-satunya penunjuk di bawah level desa. Yang tetap
+tidak boleh masuk ke kolom `jalan`: nama **desa** dan nama **kecamatan**, karena
+keduanya sudah punya kolom sendiri dan menuliskannya dua kali bikin alamatnya
+berulang.
+
 Kabupaten tetap ditulis walau contoh aslinya tidak memakainya: 189 sekolah
 tersebar di 24 kabupaten/kota, dan `Jl. Raya Timur No. 1, 46211` tidak menolong
 pembina membedakan sekolahnya dari yang senama di sebelah.
@@ -363,9 +372,17 @@ mesin akan menyimpang tanpa suara.
 
 ## 11. Keadaan sekarang (16 Agustus 2026)
 
-**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 136 lengkap
+**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 140 lengkap
 dengan kode pos, tersebar di 24 kabupaten/kota. Berkas alamatnya berisi 190
 baris, bukan 189 — lihat catatan SMK Bhakti Kencana di bawah.
+
+Yang berkeyakinan `sedang` hampir semuanya bukan soal sekolahnya, melainkan
+soal **kode posnya**: identitas dan alamat jalan sudah dari Data Referensi
+Kemendikdasmen, tapi halaman itu memang tidak memuat kolom kode pos, jadi
+angkanya datang dari cermin Dapodik atau direktori kode pos per desa. Contoh
+paling jelas `SMPN 1 Purwadadi`: satu direktori menulis 46385, satu lagi 46380,
+dan yang 46385 salah satunya data sekolahnya sendiri — jadi 46385 yang dipakai,
+dengan keyakinan `sedang` dan alasannya ditulis di `catatan`.
 
 Dari tiga belas yang tersisa di putaran pertama, **sebelas selesai**, dan
 tujuh di antaranya selesai tanpa pencarian baru sama sekali: petunjuknya sudah

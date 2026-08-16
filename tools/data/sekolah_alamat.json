@@ -29,17 +29,17 @@
  },
  {
   "nama": "MA Al-Hasan",
-  "nama_resmi": "MAS Al Hasan",
+  "nama_resmi": "MAS AL HASAN",
   "npsn": "20276440",
-  "jalan": "Dusun Babakan RT 01 RW 01",
+  "jalan": null,
   "desa": "Karangampel",
   "kecamatan": "Baregbeg",
   "kabupaten": "Kabupaten Ciamis",
   "provinsi": "Jawa Barat",
-  "kode_pos": null,
+  "kode_pos": "46274",
   "keyakinan": "tinggi",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20276440 (Data Referensi Kemendikdasmen)",
-  "catatan": "Baregbeg, dan itu memang yang ditulis peserta. Putaran pertama menandai baris ini \"BENTROK DENGAN PETUNJUK\" karena mengira petunjuknya berbunyi \"Banjarsari\"; petunjuk yang sebenarnya di sekolah_nama.json berbunyi \"dusun babakan kec baregbeg kab ciamis\" — cocok persis dengan Data Referensi. Tidak ada bentrok. Yang di Banjarsari itu sekolah lain, SMA Al Hasan Banjarsari (NPSN 20263274), dan sudah punya barisnya sendiri. Alamat resminya tanpa nama jalan, cuma dusun. Kode pos tidak ada di sumber resmi, dikosongkan."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20276440",
+  "catatan": "Halaman NPSN 20276440 dibuka: MAS AL HASAN, alamat 'DUSUN BABAKAN RT 01 RW 01', Desa KARANGAMPEL, Kec. BAREGBEG, KAB. CIAMIS, PROV. JAWA BARAT. KOREKSI PUTARAN SEBELUMNYA: baris ini pernah ditandai 'BENTROK DENGAN PETUNJUK' karena petunjuknya dikira berbunyi 'Banjarsari'. Petunjuk peserta yang sebenarnya berbunyi 'Baregbeg', dan itu COCOK persis dengan kecamatan pada Dapodik. Tidak ada bentrok — keyakinannya tinggi. Field jalan sengaja dikosongkan (null) karena alamat resminya memang tidak punya nama jalan, hanya dusun; keterangan dusunnya: Dusun Babakan RT 01 RW 01. Halaman Dapodik tidak mencantumkan kode pos. Kode pos 46274 dipastikan lewat daftar kode pos per-desa Kec. Baregbeg (https://kodepos.nomor.net/_kodepos.php?_i=desa-kodepos&sby=010000&daerah=Kecamatan-Kab.-Ciamis&jobs=Baregbeg), yang menyebut Desa Karangampel 46274 (kode wilayah 32.07.32.2008) — seluruh desa di Kec. Baregbeg memakai 46274. Bukan tebakan dari nama kecamatan. Perlu diingat saat memakai data ini: sekolah ini BERBEDA dari SMA Al Hasan Banjarsari (NPSN 20263274) meski sama-sama bernama Al-Hasan dan sama-sama di Kab. Ciamis — yang ini MA di Kec. Baregbeg, yang itu SMA di Kec. Banjarsari, berjarak jauh dan bukan satu kompleks."
  },
  {
   "nama": "MA Al-Ishlah",
@@ -661,15 +661,15 @@
   "nama": "MTsN Rajadesa",
   "nama_resmi": "MTsN 13 Ciamis",
   "npsn": "20278700",
-  "jalan": "Jl. Cipancur No. 06",
+  "jalan": "Jl. Cipancur No. 6",
   "desa": "Sirnabaya",
   "kecamatan": "Rajadesa",
   "kabupaten": "Kabupaten Ciamis",
   "provinsi": "Jawa Barat",
   "kode_pos": "46254",
   "keyakinan": "tinggi",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278700 ; https://web.mtsn13ciamis.sch.id/ ; https://about.me/mtsnegeri13ciamis",
-  "catatan": "MTsN 13 Ciamis. Ada dua MTs Negeri di Kec. Rajadesa dan petunjuk peserta memisahkannya: \"Jln. Cipancur No.6\" adalah MTsN 13 (NPSN 20278700), bukan MTsN 12 (NPSN 20278699) yang di Jl. Raya Cihawar No. 151, Desa Sukaharja. Direktori resminya memang menulis \"MTsN 13 Ciamis (MTsN Rajadesa)\". Kode pos 46254 dari direktori, bukan dari Data Referensi; seluruh Kec. Rajadesa memakai kode itu."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278700 | https://www.nomor.net/_kodepos.php?_i=desa-kodepos&daerah=Kecamatan-Kab.-Ciamis&jobs=Rajadesa&perhal=130&urut=10&asc=0000111111&sby=000000&no1=2 | https://kodepos.cektarif.com/indonesia/desa/rajadesa-090921",
+  "catatan": "Halaman resmi Kemendikdasmen untuk NPSN 20278700 dibuka dan isinya: MTsN 13 Ciamis, Jl. Cipancur No. 06, Desa SIRNABAYA, Kec. RAJADESA, Kab. CIAMIS, Prov. JAWA BARAT. Alamat jalan ini sama persis dengan petunjuk peserta (\"Jln. Cipancur No.6\"), jadi keraguan putaran sebelumnya sudah terjawab: yang dimaksud adalah MTsN 13, BUKAN MTsN 12 Ciamis (NPSN 20278699) yang beralamat Jl. Raya Cihawar No. 151, Desa Sukaharja. Perlu diingat memang ada dua MTs Negeri di Kec. Rajadesa dan peserta hanya menulis \"MTsN Rajadesa\" — satu-satunya pembeda adalah nama jalannya, dan Cipancur hanya cocok untuk MTsN 13. Halaman resmi sekolah tidak mencantumkan kode pos, jadi kode pos diambil dari direktori kode pos (nomor.net dan kodepos.cektarif.com) untuk Desa Sirnabaya, Kec. Rajadesa = 46254; kedua sumber sepakat, dan seluruh 11 desa di Kec. Rajadesa memakai 46254 sehingga tidak ada kemungkinan salah desa. Catatan kecil: halaman resmi menulis nomornya \"No. 06\", peserta menulis \"No.6\" — angka yang sama, hanya beda penulisan nol di depan."
  },
  {
   "nama": "SMA 1 Sindangkasih",
@@ -687,7 +687,7 @@
  },
  {
   "nama": "SMA Al Hasan Banjarsari",
-  "nama_resmi": "SMA Al Hasan Banjarsari",
+  "nama_resmi": "SMAS AL HASAN BANJARSARI",
   "npsn": "20263274",
   "jalan": "Jl. Kawasen No. 80",
   "desa": "Kawasen",
@@ -695,9 +695,9 @@
   "kabupaten": "Kabupaten Ciamis",
   "provinsi": "Jawa Barat",
   "kode_pos": "46383",
-  "keyakinan": "sedang",
+  "keyakinan": "tinggi",
   "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20263274",
-  "catatan": "Pondok Pesantren Al-Hasan Banjarsari. Petunjuk peserta \"Jl. Kawasen No.80 Banjarsari Ciamis 46383\" cocok sampai nomor rumahnya. Kode pos 46383 dari situs resmi MTs Al-Hasan Banjarsari (NPSN 20278594), yang berdiri di alamat jalan yang PERSIS sama — satu pesantren, dua jenjang, dan keduanya tetap dua sekolah. Jangan tertukar dengan MA Al-Hasan di Kec. Baregbeg. Belum dibuka ulang pada putaran ini: agen pemastiannya berhenti kena batas sesi. Yang berubah di baris ini hanya kesimpulan dari data yang sudah ada, bukan pencarian baru."
+  "catatan": "Halaman NPSN 20263274 dibuka dan isinya cocok dengan petunjuk peserta: SMAS AL HASAN BANJARSARI, Jl. Kawasen No. 80 Banjarsari, Desa KAWASEN, Kec. BANJARSARI, KAB. CIAMIS, PROV. JAWA BARAT. Halaman Dapodik tidak mencantumkan kode pos. Kode pos 46383 TIDAK ditebak: dipastikan lewat daftar kode pos per-desa Kec. Banjarsari (https://kodepos.nomor.net/_kodepos.php?_i=desa-kodepos&daerah=Kecamatan-Kab.-Ciamis&jobs=Banjarsari), yang menyebut Desa Kawasen 46383 — seluruh desa di Kec. Banjarsari memakai 46383. Angka itu juga sama dengan yang ditulis peserta, dan sama dengan yang dipasang situs resmi MTs Al-Hasan Banjarsari (https://mtsalhasanbjrs.sch.id/, tertulis 'Jl. Kawasen No. 80 Banjarsari Ciamis Jawa Barat 46383'). Jadi ada tiga sumber yang sepakat. Halaman NPSN MTs Al-Hasan Banjarsari (20278594) juga dibuka dan memang beralamat persis sama, Jl. Kawasen No. 80, Desa Kawasen, Kec. Banjarsari — satu kompleks Pondok Pesantren Al-Hasan Banjarsari; ini yang membuat dua sekolah bernama Al-Hasan mudah tertukar, tapi yang ini SMA dan ada di Banjarsari. Sesuai aturan penulisan, kata 'Banjarsari' pada alamat Dapodik tidak dimasukkan ke field jalan karena itu nama kecamatan, bukan bagian nama jalan. Tidak ada yang masih diragukan pada baris ini."
  },
  {
   "nama": "SMA Al Irsyad Al Islamiyyah",
@@ -787,15 +787,15 @@
   "nama": "SMA Islam Nurul Fikri",
   "nama_resmi": "SMA ISLAM NURUL FIKRI",
   "npsn": "20607991",
-  "jalan": "Jl. Palka Kp. Cihideung",
+  "jalan": "Jl. Palka",
   "desa": "Bantarwaru",
   "kecamatan": "Cinangka",
   "kabupaten": "Kabupaten Serang",
   "provinsi": "Banten",
-  "kode_pos": null,
-  "keyakinan": "tinggi",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20607991",
-  "catatan": "Kab. Serang, Banten — dan itu memang yang ditulis peserta. Putaran pertama menandainya \"PETUNJUK TIDAK COCOK\" karena mengira petunjuknya berbunyi \"Bogor\"; petunjuk yang sebenarnya berbunyi \"Serang Banten\". Ini Nurul Fikri Boarding School, satu-satunya yang bernama persis \"SMA Islam Nurul Fikri\" di Dapodik. Kode pos tidak ada di sumber resmi, dikosongkan."
+  "kode_pos": "42167",
+  "keyakinan": "sedang",
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20607991 ; https://data.sekolah-kita.net/sekolah/SMA%20ISLAM%20NURUL%20FIKRI_6990",
+  "catatan": "Halaman resmi NPSN 20607991 sudah dibuka dan isinya: SMA ISLAM NURUL FIKRI, alamat JL. PALKA KP. CIHIDEUNG, Desa BANTARWARU, KEC. CINANGKA, KAB. SERANG, PROV. BANTEN. Ini COCOK dengan petunjuk peserta \"Serang Banten\" — putaran sebelumnya menandainya tidak cocok karena mengira petunjuknya berbunyi \"Bogor\", dan itu keliru. Tanda \"PETUNJUK TIDAK COCOK\" bisa dicabut. Sekolah ini bagian dari Nurul Fikri Boarding School (NFBS) Serang, situsnya nfbs.or.id. Catatan soal kolom \"jalan\": di Dapodik alamatnya ditulis \"JL. PALKA KP. CIHIDEUNG\"; \"Kp. Cihideung\" itu nama kampung, bukan bagian nama jalan, jadi yang masuk kolom jalan hanya \"Jl. Palka\" — kalau panitia mau alamat lengkap untuk surat, tulis \"Jl. Palka, Kp. Cihideung, Desa Bantarwaru\". Kode pos 42167 TIDAK tertulis di halaman referensi resmi (halaman itu memang tidak memuat kolom kode pos); angkanya diambil dari data.sekolah-kita.net, yaitu cermin Dapodik, dan halamannya sudah dibuka sendiri. Karena itu keyakinan ditulis \"sedang\": identitas sekolah dan alamatnya sudah pasti dari sumber resmi, yang belum dari sumber resmi hanya kode posnya. Kalau nanti perlu benar-benar pasti, kode pos bisa dicek ulang ke sekolah."
  },
  {
   "nama": "SMA Kesatrian 1 Semarang",
@@ -857,21 +857,21 @@
   "nama": "SMA Terpadu Ar-Risalah",
   "nama_resmi": "SMAS AR RISSALAH",
   "npsn": "20252464",
-  "jalan": "Jl. Raya Banjar KM 3.5",
+  "jalan": "Jl. Raya Banjar KM 3,5",
   "desa": "Pamalayan",
   "kecamatan": "Cijeungjing",
   "kabupaten": "Kabupaten Ciamis",
   "provinsi": "Jawa Barat",
   "kode_pos": "46271",
   "keyakinan": "tinggi",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252464",
-  "catatan": "Identitasnya pasti; yang tadinya kurang cuma kode pos. 46271 dipakai karena SMP Terpadu Ar-Risalah (NPSN 20211516) berdiri di alamat jalan yang PERSIS sama — Jl. Raya Banjar KM 3,5, Desa Pamalayan, Kec. Cijeungjing, satu kompleks Pondok Pesantren Ar-Risalah Cijantung IV — dan tercatat 46271; peserta juga menulis angka yang sama. Sekolah menyebut dirinya \"SMA Terpadu Ar-Risalah\" (smaterpaduarrisalah.sch.id), Dapodik menulis \"SMAS AR RISSALAH\". Klaster ini gabungan dari dua penulisan itu."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252464 | https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211516 | https://www.nomor.net/_kodepos.php?_i=desa-kodepos&sby=000000&daerah=Kecamatan-Kab.-Ciamis&jobs=Cijeungjing",
+  "catatan": "Halaman resmi Kemendikdasmen untuk NPSN 20252464 dibuka dan isinya: SMAS AR RISSALAH, JL RAYA BANJAR KM 3.5 PAMALAYAN, Desa PAMALAYAN, Kec. CIJEUNGJING, Kab. CIAMIS, Prov. JAWA BARAT — cocok dengan kedua petunjuk peserta, jadi identitas sekolah sudah pasti. Nama di Dapodik ditulis \"SMAS AR RISSALAH\" (dengan dua huruf s), sedangkan sekolahnya sendiri memakai \"SMA Terpadu Ar-Risalah\"; keduanya sekolah yang sama. KODE POS: tidak tercantum di halaman resmi sekolah, jadi 46271 dikonfirmasi langsung dari direktori kode pos nomor.net untuk Desa Pamalayan, Kec. Cijeungjing, Kab. Ciamis (kode wilayah 32.07.03.2007) — jadi angka ini berasal dari data kode pos desanya sendiri, bukan pinjaman dari sekolah lain. Seluruh 11 desa di Kec. Cijeungjing memakai 46271, jadi tidak ada kemungkinan salah desa. Angka ini juga cocok dengan yang ditulis peserta (\"Ciamis 46271\"). Sebagai pemeriksaan tambahan, halaman resmi SMP Terpadu Arrisalah (NPSN 20211516) juga dibuka dan alamatnya memang persis sama, Jl. Raya Banjar Km 3,5, Desa Pamalayan, Kec. Cijeungjing — satu kompleks dengan SMA-nya — walaupun halaman SMP itu pun tidak menampilkan kode pos. Tidak ada yang tersisa meragukan."
  },
  {
   "nama": "SMA Terpadu Cikanyere",
   "nama_resmi": "SMA Terpadu Cikanyere",
   "npsn": "69988141",
-  "jalan": null,
+  "jalan": "Dusun Cigoong RT 01 RW 01",
   "desa": "Sirnabaya",
   "kecamatan": "Rajadesa",
   "kabupaten": "Kabupaten Ciamis",
@@ -879,7 +879,7 @@
   "kode_pos": "46254",
   "keyakinan": "tinggi",
   "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69988141 ; https://data.sekolah-kita.net/sekolah/SMA%20TERPADU%20CIKANYERE_40140",
-  "catatan": "Cikanyere di sini BUKAN Desa Cikanyere di Kec. Sukaresmi, Kab. Cianjur — itu dugaan putaran pertama dan salah. Ini nama blok di Dusun Cigoong, Desa Sirnabaya, Kec. Rajadesa, Kab. Ciamis, tempat Pesantren Cikanyere berdiri; SMA ini unit SMA-nya. Data Referensi mencatat alamatnya cuma \"Dusun Cigoong\", tanpa nama jalan, jadi kolom jalan dikosongkan — untuk surat, tambahkan \"Dusun Cigoong RT 01 RW 01\" yang ditulis peserta dan cocok dengan sumber. Petunjuk peserta \"Jln. cipancur\" adalah alamat MTsN 13 Ciamis, tetangga sedesa, bukan alamat sekolah ini. Kode pos 46254 dari cermin Dapodik untuk NPSN ini, dan seluruh Kec. Rajadesa memang memakai 46254. Kontak terdaftar: smatcikanyere@gmail.com. Diperiksa ulang oleh agen kedua yang tugasnya membantah: semua titik bertahan."
+  "catatan": "Cikanyere di sini BUKAN Desa Cikanyere di Kec. Sukaresmi, Kab. Cianjur — itu dugaan putaran pertama dan salah. Ini nama blok di Dusun Cigoong, Desa Sirnabaya, Kec. Rajadesa, Kab. Ciamis, tempat Pesantren Cikanyere berdiri; SMA ini unit SMA-nya. Data Referensi mencatat alamatnya cuma \"Dusun Cigoong\", tanpa nama jalan, jadi kolom jalan diisi dusunnya — untuk surat, tambahkan \"Dusun Cigoong RT 01 RW 01\" yang ditulis peserta dan cocok dengan sumber. Petunjuk peserta \"Jln. cipancur\" adalah alamat MTsN 13 Ciamis, tetangga sedesa, bukan alamat sekolah ini. Kode pos 46254 dari cermin Dapodik untuk NPSN ini, dan seluruh Kec. Rajadesa memang memakai 46254. Kontak terdaftar: smatcikanyere@gmail.com. Diperiksa ulang oleh agen kedua yang tugasnya membantah: semua titik bertahan."
  },
  {
   "nama": "SMA Terpadu Dampasan",
@@ -2075,7 +2075,7 @@
   "nama": "SMP IT Nurul Huda Margajaya",
   "nama_resmi": "SMP Islam Terpadu Nurul Huda",
   "npsn": "69993153",
-  "jalan": null,
+  "jalan": "Dusun Sukasari RT 026 RW 011",
   "desa": "Margajaya",
   "kecamatan": "Pamarican",
   "kabupaten": "Kabupaten Ciamis",
@@ -2083,7 +2083,7 @@
   "kode_pos": null,
   "keyakinan": "tinggi",
   "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69993153 ; https://smpitnudapamarican.sch.id/",
-  "catatan": "Petunjuk peserta cuma \"Kec. Pamarican Kab. Ciamis\" dan itu ternyata sudah cukup: daftar dikdas Kec. Pamarican hanya memuat 6 SMP dan satu-satunya yang bernama Nurul Huda ada di Desa Margajaya. Putaran pertama menyisir semua desa bernama Margajaya di lima kecamatan lain dan justru melewatkan Pamarican. Alamat resminya \"Dusun Sukasari RT 026 RW 011\" — dusun, bukan nama jalan, jadi kolom jalan dikosongkan; pakai keterangan itu kalau menyurati. KODE POS DIKOSONGKAN: tidak ada di halaman resmi maupun di situs sekolah. Direktori kode pos per desa menyebut Margajaya = 46382 dan Kec. Pamarican punya tiga kode berbeda, jadi 46382 bukan tebakan — tapi karena bukan dari sumber sekolahnya sendiri, angkanya ditulis di sini saja, tidak diisikan. JANGAN menyalin kode pos dari dua sekolah senama: SMP IT Nurul Huda di Kec. Panjalu (NPSN 69948101, 46264) dan yang di Kec. Rajagaluh, Majalengka (45472). Ada juga MTs Nurul Huda (NPSN 70059036) di Desa Sukahurip, Kec. Pamarican yang sama — kalau nanti ada yang menulis \"Nurul Huda Pamarican\" saja, petunjuk itu tidak cukup untuk memilih."
+  "catatan": "Petunjuk peserta cuma \"Kec. Pamarican Kab. Ciamis\" dan itu ternyata sudah cukup: daftar dikdas Kec. Pamarican memuat 8 satuan setingkat SMP, dan yang bernama Nurul Huda ada DUA — yang ini di Desa Margajaya, dan MTs Nurul Huda (NPSN 70059036) di Desa Sukahurip. Peserta menulis \"SMP IT\" dan \"Margajaya\", jadi dua sumbu sekaligus memisahkannya. Putaran pertama menyisir semua desa bernama Margajaya di lima kecamatan lain dan justru melewatkan Pamarican. Alamat resminya \"Dusun Sukasari RT 026 RW 011\" — dusun, bukan nama jalan, jadi kolom jalan diisi dusunnya; pakai keterangan itu kalau menyurati. KODE POS DIKOSONGKAN: tidak ada di halaman resmi maupun di situs sekolah. Direktori kode pos per desa menyebut Margajaya = 46382 dan Kec. Pamarican punya tiga kode berbeda, jadi 46382 bukan tebakan — tapi karena bukan dari sumber sekolahnya sendiri, angkanya ditulis di sini saja, tidak diisikan. JANGAN menyalin kode pos dari dua sekolah senama: SMP IT Nurul Huda di Kec. Panjalu (NPSN 69948101, 46264) dan yang di Kec. Rajagaluh, Majalengka (45472). Kalau nanti ada yang menulis \"Nurul Huda Pamarican\" saja, petunjuk itu tidak cukup untuk memilih antara keduanya."
  },
  {
   "nama": "SMP Islam Ainurrafiq",
@@ -2101,17 +2101,17 @@
  },
  {
   "nama": "SMP Islam Bahrul Ulum",
-  "nama_resmi": "SMP Islam Bahrul Ulum",
+  "nama_resmi": "SMP ISLAM BAHRUL ULUM",
   "npsn": "20210721",
   "jalan": "Jl. Gunung Balong",
   "desa": "Gunungsari",
   "kecamatan": "Sukaratu",
   "kabupaten": "Kabupaten Tasikmalaya",
   "provinsi": "Jawa Barat",
-  "kode_pos": null,
+  "kode_pos": "46415",
   "keyakinan": "sedang",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20210721",
-  "catatan": "Sukaratu, Kab. Tasikmalaya. Putaran pertama menyerah karena \"petunjuk Ciamis tidak bisa memisahkan dua kandidat\"; petunjuk yang sebenarnya berbunyi \"Jl. Gunungbalong Kec. Sukaratu Kab. Tasikmalaya\" dan menunjuk kandidat ini pada dua kata sekaligus. Kandidat yang ditolak: NPSN 20224603 di Kel. Awipari, Kec. Cibeureum, Kota Tasikmalaya. Belum dibuka ulang pada putaran ini: agen pemastiannya berhenti kena batas sesi. Yang berubah di baris ini hanya kesimpulan dari data yang sudah ada, bukan pencarian baru."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20210721 | https://kodepos.nomor.net/_kodepos.php?_i=desa-kodepos&sby=010000&daerah=Kecamatan-Kab.-Tasikmalaya&jobs=Sukaratu | https://kodeposskecamatan.blogspot.com/2018/02/kode-pos-kecamatan-sukaratu-kabupaten.html",
+  "catatan": "Halaman resmi NPSN 20210721 sudah dibuka dan cocok dengan petunjuk peserta: Jl. Gunung Balong, Desa GUNUNGSARI, Kec. SUKARATU, KAB. Tasikmalaya, Prov. Jawa Barat. Kandidat pembandingnya juga sudah dibuka untuk memastikan, yaitu NPSN 20224603 — alamatnya Jl. Kel Awipari, Kel. Awipari, Kec. Cibeureum, KOTA Tasikmalaya. Kandidat itu DITOLAK karena kecamatan dan kabupatennya sama sekali lain (Cibeureum/Kota, bukan Sukaratu/Kab.). Jadi petunjuk Gunungbalong + Sukaratu memang cukup untuk memisahkan keduanya; putaran sebelumnya menyerah karena memegang petunjuk milik sekolah lain (Ciamis). PENTING untuk panitia: jangan sampai tertukar dengan yang di Kota Tasikmalaya, namanya sama persis dan kode posnya 46196 — bukan itu yang dipakai di sini. Halaman resmi tidak menampilkan kolom kode pos, dan data Dapodik sekolah ini tidak bisa dibuka (situs dapo.dikdasmen.go.id tidak merespons). Kode pos 46415 diambil dari dua direktori kode pos yang dicek terpisah, dua-duanya untuk Desa Gunungsari, Kec. Sukaratu, Kab. Tasikmalaya — bukan tebakan dari nama kecamatan; kebetulan kedelapan desa di Kec. Sukaratu memang memakai satu kode pos yang sama, jadi tidak ada pilihan yang bisa keliru di tingkat desa. Karena bukan berasal dari data sekolahnya sendiri, keyakinan ditulis sedang. Catatan tambahan: ada sumber yang menyebut nomor jalan 74 (Jl. Gunung Balong No. 74), tapi nomor itu tidak muncul di sumber resmi sehingga tidak dimasukkan ke kolom jalan."
  },
  {
   "nama": "SMP Islam Terpadu Nurul Huda Kedungjajang",
@@ -2143,17 +2143,17 @@
  },
  {
   "nama": "SMP SMA Islam Al-Ishlah bs",
-  "nama_resmi": "SMAS Al Ishlah Boarding School",
+  "nama_resmi": "SMAS AL ISHLAH BOARDING SCHOOL",
   "npsn": "20216194",
-  "jalan": "Jl. Raya Sudimampir",
+  "jalan": "Jl. Raya Sudimampir Balongan",
   "desa": "Sudimampir",
   "kecamatan": "Balongan",
   "kabupaten": "Kabupaten Indramayu",
   "provinsi": "Jawa Barat",
   "kode_pos": null,
   "keyakinan": "tinggi",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20216194",
-  "catatan": "Kab. Indramayu, dan itu memang yang ditulis peserta: \"jalan raya sudimampir balongan indramayu\". Putaran pertama menulis \"PERHATIAN: petunjuk menulis Ciamis\" — keliru. \"BS\" = Boarding School, dan ini satu-satunya SMA bernama Al Ishlah Boarding School di Dapodik nasional. PERLU DIPERIKSA: nama yang diketik peserta menyebut DUA jenjang sekaligus (\"smp sma islam al-ishlah bs\"), dan yayasan ini biasanya punya SMP dan SMA satu kompleks. Baris ini SMA-nya. Kalau regunya ternyata anak SMP, NPSN-nya lain dan harus dicari. Kode pos tidak ada di sumber resmi, dikosongkan."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20216194 ; https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20215945 ; https://referensi.data.kemendikdasmen.go.id/pendidikan/dikdas/021814/3 ; https://ban-pdm.id/satuanpendidikan/20216194 ; https://ban-pdm.id/satuanpendidikan/20215945",
+  "catatan": "Halaman resmi NPSN 20216194 sudah dibuka: SMAS AL ISHLAH BOARDING SCHOOL, JL. RAYA SUDIMAMPIR BALONGAN, Desa SUDIMAMPIR, KEC. BALONGAN, KAB. INDRAMAYU, PROV. JAWA BARAT. Petunjuk peserta \"jalan raya sudimampir balongan indramayu\" cocok kata per kata — tidak ada Ciamis di petunjuk itu. Peringatan putaran sebelumnya (\"petunjuk menulis Ciamis, tapi sekolahnya di Indramayu\") salah baca dan bisa dicabut. SOAL DUA JENJANG: benar, satu kompleks memang ada SMP-nya. SMP ISLAM AL ISHLAH BOARDING SCHOOL, NPSN 20215945, alamat \"Jl. Sudimampir - Balongan\", Desa Sudimampir, Kec. Balongan, Kab. Indramayu — halaman resminya sudah dibuka juga. Di ban-pdm.id kedua sekolah tercatat di titik yang sama, Blok Tajug RT 1 / RW 1, jadi ini satu kompleks Pondok Pesantren Al-Ishlah Tajug. Peserta menulis \"smp sma islam al-ishlah bs\", menyebut dua jenjang sekaligus, jadi panitia perlu menanyakan ke pembina: regu ini dari SMP (20215945) atau SMA (20216194)? Karena lomba ini golongan Penegak biasanya jenjang SMA, yang dipasang di sini NPSN SMA (20216194); kalau ternyata regunya Penggalang, ganti ke NPSN SMP. KODE POS SENGAJA DIKOSONGKAN. Kode pos tidak ada di halaman referensi resmi, tidak ada di ban-pdm.id untuk kedua NPSN, dan profil sekolah ini tidak ketemu di cermin Dapodik data.sekolah-kita.net (pencarian dan daftar per kabupaten sudah ditelusuri). Situs pesantrenalishlahtajug.id juga sudah dibuka dan hanya menulis \"Tajug, Indramayu, Jawa Barat\" tanpa kode pos. Direktori kode pos umum menyebut 45285 untuk Desa Sudimampir / Sudimampir Lor, Kec. Balongan, tapi itu bukan data sekolah dan tidak diambil — biar tidak ada angka tebakan masuk. Cara termurah melengkapinya: tanya langsung ke sekolah atau pembina. Kuota pencarian web tidak habis."
  },
  {
   "nama": "SMP Terpadu Al Hasan Ciamis",
@@ -2409,17 +2409,17 @@
  },
  {
   "nama": "SMPN 1 Purwadadi",
-  "nama_resmi": "SMP Negeri 1 Purwadadi",
+  "nama_resmi": "SMP NEGERI 1 PURWADADI",
   "npsn": "20252422",
   "jalan": "Jl. Sukamulya Karangpaningal",
   "desa": "Karangpaningal",
   "kecamatan": "Purwadadi",
   "kabupaten": "Kabupaten Ciamis",
   "provinsi": "Jawa Barat",
-  "kode_pos": null,
+  "kode_pos": "46385",
   "keyakinan": "sedang",
-  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252422",
-  "catatan": "CIAMIS, bukan Subang. Putaran pertama memilih SMPN 1 Purwadadi di Kab. Subang (NPSN 20217024) \"karena petunjuk peserta menulis Subang\" — petunjuk yang sebenarnya berbunyi \"Jl. Sukamulya Karangpaningal, Karangpaningal, Kec. Purwadadi, Kab. Ciamis\", sampai ke nama desanya. Kecamatan Purwadadi memang ada di dua kabupaten, dan itulah yang menjebak. Belum dibuka ulang pada putaran ini: agen pemastiannya berhenti kena batas sesi. Yang berubah di baris ini hanya kesimpulan dari data yang sudah ada, bukan pencarian baru."
+  "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252422 | https://eventkampus.com/sekolah/smp-negeri-1-purwadadi__29568 | https://kodeposina.blogspot.com/2021/12/kode-pos-seluruh-desa-di-kabupaten-ciamis.html",
+  "catatan": "Halaman resmi NPSN 20252422 sudah dibuka dan cocok persis dengan petunjuk peserta: Jl. Sukamulya Karangpaningal, Desa KARANGPANINGAL, Kec. Purwadadi, KAB. CIAMIS, Prov. Jawa Barat. Jadi pilihan putaran sebelumnya (SMPN 1 Purwadadi di Kab. Subang, NPSN 20217024) memang keliru — petunjuknya menulis Ciamis, bukan Subang. Halaman resmi TIDAK menampilkan kolom kode pos, jadi kode pos diambil dari luar: cermin Dapodik (eventkampus) menulis 46385 untuk sekolah ini, dan direktori kode pos kodeposina juga menulis 46385 untuk Desa Karangpaningal, Kec. Purwadadi, Kab. Ciamis (sembilan desa di kecamatan itu memakai kode pos yang sama). YANG MASIH PERLU DIWASPADAI: satu direktori lain, nomor.net, menulis 46380 untuk desa-desa Kec. Purwadadi. Dua sumber lawan satu, dan yang 46385 salah satunya adalah data sekolahnya sendiri, jadi 46385 yang dipakai — tapi karena bukan dari halaman resmi dan ada sumber yang berbeda, keyakinan ditulis sedang, bukan tinggi. Kalau kode pos ini nanti dipakai untuk kirim surat, sebaiknya dikonfirmasi sekali ke sekolah. Nama, NPSN, dan alamat jalannya sendiri sudah pasti."
  },
  {
   "nama": "SMPN 1 Rajadesa",
