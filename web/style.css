@@ -1258,6 +1258,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    di depan. */
 .data-table td[data-label="Metode"] { text-transform: capitalize; }
 .data-table td[data-label="Metode"] .badge { text-transform: none; }
+/* "Transfer LUNAS" pada SATU baris selama ruangnya cukup, dan menumpuk
+   sendiri kalau tidak. Di kartu HP kolomnya lapang jadi keduanya sebaris; di
+   tabel lebar kolom Metode cuma 15% jadi ia membungkus jadi dua baris seperti
+   sebelumnya. Satu aturan, dua tampilan — tanpa media query yang harus
+   ditebak batasnya. */
+.metode-lunas {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: .35rem;
+}
 /* Lencana yang SEKALIGUS tombol. Rupanya tetap lencana — yang berubah cuma
    kursornya dan cincin fokus, supaya jelas ia bisa diketuk tanpa menjadikannya
    tombol besar yang menuntut lebar kolom sendiri. */
@@ -1718,6 +1727,14 @@ input.small-input { text-align: center; }
     min-width: 5rem; width: 100%; max-width: 10rem;
   }
   .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
+  /* Cetak Kwitansi + Batalkan DITENGAHKAN di kartu HP. Keduanya melintangi
+     seluruh lebar kartu di barisnya sendiri, dan sepasang tombol rata kiri di
+     bawah blok yang selebihnya simetris terbaca seperti tersangkut di pojok —
+     alasan yang sama dengan judul kartu di Live Score. Tampilan tabel lebar
+     sudah ditengahkan sejak awal (lihat .table-bayar td:nth-child(6)). */
+  .table-bayar tbody tr[data-baris] > td:last-child .action-row {
+    justify-content: center;
+  }
 
   /* ---- Kartu HP meja daftar ulang ----
          HRCD37-7808B6   SMPN 1 HAHAHA
