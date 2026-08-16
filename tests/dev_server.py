@@ -178,6 +178,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select kode, nama, urutan from fitur order by urutan",
                     uid=p.get("uid")))
+            elif u.path == "/hak-saya":
+                self._kirim(200, q(
+                    "select fitur from akun_hak where user_id = %s::uuid",
+                    (p.get("uid"),), role="service_role"))
             elif u.path == "/hak":
                 self._kirim(200, q(
                     "select user_id::text, fitur from akun_hak", uid=p.get("uid")))

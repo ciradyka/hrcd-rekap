@@ -22,7 +22,7 @@ import {
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
-  statusAcara, bolehLihat,
+  statusAcara, bolehLihat, lengkapiHakSesi,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak,
 } from "./api.js";
@@ -4613,6 +4613,10 @@ const RUTE = {
 async function arahkan() {
   segarkanDiTempat = null;
   if (!sesi()) { layarLogin(); return; }
+  // Sesi yang dibuat sebelum `hak` dibawa ke dalamnya tidak punya field itu,
+  // dan papan Home lalu kosong untuk semua orang yang sudah login. Diisi
+  // sekali; sesudah itu panggilan ini langsung kembali.
+  await lengkapiHakSesi();
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
     catch (e) { layarButuhEdisi("Sistem Panitia"); return; }

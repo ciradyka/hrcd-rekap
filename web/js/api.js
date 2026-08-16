@@ -27,6 +27,30 @@ export function bolehLihat(fitur) {
   return !!s && Array.isArray(s.hak) && s.hak.includes(fitur);
 }
 
+/** Isi `hak` ke sesi yang belum punya.
+ *
+ *  Sesi disimpan di localStorage dan hanya ditulis ulang saat login. Waktu
+ *  `hak` mulai dibawa ke dalamnya, SETIAP orang yang sudah login memegang
+ *  sesi tanpa field itu — dan bolehLihat() menjawab false untuk semuanya:
+ *  papan Home kosong, tombol Akun hilang, dan orangnya wajar mengira
+ *  aksesnya dicabut. Memaksa mereka keluar-masuk bukan jawaban; di hari
+ *  lomba itu berarti belasan orang mengetik password di tengah antrean.
+ *
+ *  Jadi diisi sekali di sini, diam-diam, lalu tidak pernah dipanggil lagi. */
+export async function lengkapiHakSesi() {
+  const s = sesi();
+  if (!s || Array.isArray(s.hak)) return;
+  try {
+    const hak = K.mode === "dev"
+      ? await baca(`/hak-saya?uid=${s.uid}`)
+      : (await baca(null, `akun_hak?user_id=eq.${s.uid}&select=fitur`));
+    simpanSesi({ ...s, hak: (hak || []).map(x => x.fitur) });
+  } catch {
+    // Dibiarkan gagal: panggilan berikutnya mencoba lagi, dan sampai berhasil
+    // layarnya menunjukkan papan kosong — bukan papan yang salah.
+  }
+}
+
 export function sesi() {
   const s = localStorage.getItem("hrcd_sesi");
   return s ? JSON.parse(s) : null;
