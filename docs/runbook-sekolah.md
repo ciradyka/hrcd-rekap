@@ -107,6 +107,13 @@ Ekor nama daerah dibuang **hanya bila kata terakhir dan sisanya masih ≥ 3
 kata**, supaya `SMPN 1 Lelea Indramayu` bertemu `SMPN 1 Lelea` tanpa membuat
 `SMKN 1 Ciamis` runtuh jadi `SMKN 1`.
 
+> **Dan hanya bila ekornya tidak membedakan apa-apa.** `SMK Bhakti Kencana
+> Banjar` dan `SMK Bhakti Kencana Ciamis` adalah dua sekolah, dan yang
+> membedakan cuma ekor itu; membuangnya melebur keduanya tanpa suara. Nama
+> seperti ini didaftar di `EKOR_MEMBEDAKAN`, dan ada pemeriksaan di ujung
+> `normalize_sekolah.py` yang gagal keras begitu muncul kasus baru — satu nama
+> dengan dua ekor berbeda. Jangan matikan pemeriksaan itu; daftarkan namanya.
+
 > **Yang TIDAK boleh digabung: jenjang yang berbeda.**
 > `MA PUI Cijantung` dan `MTs PUI Cijantung` satu yayasan, satu halaman, dan
 > **dua sekolah**. Begitu juga MTs/MA El-Bas, MTs/MA Assalimiyah, dan MTs
@@ -115,7 +122,8 @@ kata**, supaya `SMPN 1 Lelea Indramayu` bertemu `SMPN 1 Lelea` tanpa membuat
 Nama tampil dipilih dari ejaan yang **paling sering**; bila seri, yang paling
 panjang — itu yang paling informatif.
 
-Hasil: **1.102 baris peserta → 201 sekolah**, dari 326 tulisan mentah.
+Hasil: **1.102 baris peserta → 201 klaster**, dari 326 tulisan mentah.
+Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah**.
 
 ---
 
@@ -151,23 +159,37 @@ Nama resmi sering berbeda dari nama yang dipakai sekolahnya sendiri.
 `mandarussalam.sch.id` dan menyebut diri MAN Darussalam. **Simpan nama yang
 diucapkan orang** (CLAUDE.md 5.7) dan catat nama resminya di sebelahnya.
 
-Pencariannya disebar: 201 sekolah dibagi ke ~13 agen, masing-masing belasan
+Pencariannya disebar: 200-an sekolah dibagi ke ~13 agen, masing-masing belasan
 sekolah, hasilnya divalidasi lewat JSON Schema. Satu context tidak muat.
 
 ---
 
-## 7. Temukan kembaran lewat alamat
+## 7. Temukan kembaran lewat NPSN
 
 **Ini langkah yang paling banyak menemukan, dan paling mudah dilewatkan.**
 
-Setelah semua alamat terkumpul, kelompokkan menurut `(jalan, kabupaten)`. Tiap
-alamat yang dipakai lebih dari satu nama adalah calon kembar:
+Setelah semua alamat terkumpul, kelompokkan menurut **NPSN**. NPSN sama berarti
+sekolah sama — bukan "mirip", bukan "kemungkinan besar", tapi sama, karena satu
+sekolah cuma punya satu NPSN. Itu pemeriksaan yang tidak bisa diperdebatkan, dan
+lebih tajam daripada mengelompokkan menurut `(jalan, kabupaten)`: alamat ditulis
+tiap agen dengan gaya sendiri (`Jl. Raya Puskesmas` vs `Jl. Raya Puskesmas
+Japara`) dan dua ejaan alamat yang beda satu kata terbaca sebagai dua tempat.
 
-- **alamat sama + jenjang sama → satu sekolah**, gabungkan
+Pengelompokan menurut alamat tetap berguna untuk satu hal yang tidak bisa
+dilakukan NPSN: menemukan **dua sekolah berbeda di satu kompleks**, yang harus
+tetap terpisah.
+
+- **NPSN sama → satu sekolah**, gabungkan
 - **alamat sama + jenjang beda → dua sekolah**, biarkan
 
-Sekali jalan, cara ini menemukan sembilan pasang yang lolos dari penggabungan
-berbasis nama:
+> **Menemukan kembar dan MENERAPKANNYA adalah dua pekerjaan.** Putaran pertama
+> mengerjakan yang pertama, menuliskan hasilnya di dokumen ini, lalu berhenti —
+> `sekolah_nama.json` tetap berisi kedua belah tiap pasang selama sebulan.
+> Daftar kembar yang tidak dipakai persis sama nilainya dengan tidak pernah
+> dicari. Gabungkan di berkasnya, di commit yang sama.
+
+Cara ini menemukan dua belas pasang yang lolos dari penggabungan berbasis nama.
+Sembilan yang pertama ketemu lewat alamat:
 
 ```
 MAN Darussalam            = MAN 1 Darussalam           NPSN 20276451
@@ -181,11 +203,47 @@ SMK Karnas Ciamis         = SMK Karya Nasional Sindangkasih
 MA Rijalul Hikam          = MA YPI Rijalul Hikam       Jl. Raya Jatinagara No. 03
 ```
 
+Dari sembilan itu, **dua bukan penggabungan sekolah melainkan baris ganda** —
+`SMK Bhakti Kencana` dan `SMK Bina Putera Nusantara` masing-masing satu klaster
+yang kebetulan dicari dua agen, jadi yang perlu dibuang barisnya, bukan
+klasternya. Tujuh sisanya penggabungan betulan.
+
+Lalu pengelompokan menurut NPSN menemukan lima lagi yang lolos dari
+pengelompokan menurut alamat:
+
+```
+MTs Al-Fadliliyah      = MTs Al-Fadilliyah Darussalam   NPSN 20211978
+SMP Al-Hasan           = SMP Terpadu Al Hasan Ciamis    NPSN 20238436
+SMA Ar-Risalah         = SMA Terpadu Ar-Risalah         NPSN 20252464
+SMP Terpadu Ar-Risalah = SMP Terpadu Arrisalah          NPSN 20211516
+SMA IT Al-Falah        = SMA IT Al Falahjln             satu sekolah di Garut
+```
+
 `SMK Karnas` = **KAR**ya **NAS**ional. Tidak ada algoritma nama yang akan
 menemukan itu; alamatnya yang menemukannya.
 
+Delapan dari dua belas pasang ternyata bisa ditangkap aturan, bukan didaftar
+tangan, dan aturannya sudah dipasang di `kunci()`:
+
+- **`Terpadu` dibuang dari kunci.** Sekolahnya sendiri memakainya
+  setengah-setengah: situs SMA Ar-Risalah menulis "SMA Terpadu Ar-Risalah",
+  Dapodik menulis "SMAS AR RISSALAH". Nama tampil tetap memakainya.
+- **Angka `1` pada sekolah negeri dibuang** — orang tidak menulisnya kalau di
+  daerah itu cuma ada satu. `SMAN Pamanukan` = `SMAN 1 Pamanukan`. Hanya angka
+  1; `SMKN 2 Banjar` tidak boleh runtuh jadi `SMKN Banjar`.
+- **`ar risalah` ~ `arrisalah`** masuk `EJAAN_SAMA`, seperti `ar rahman` yang
+  sudah ada.
+- **Ekor `jln` dibuang** — itu kata pertama kolom alamat yang menempel ke nama.
+
+Empat sisanya tinggal di `GABUNG_TANGAN`, karena memang tidak ada aturan yang
+bisa menemukannya. Sebelum mengubah `kunci()`, **jalankan aturan barunya ke
+seluruh daftar nama dan lihat tabrakan apa saja yang muncul** — keempat aturan
+di atas dipasang setelah dipastikan tidak satu pun tabrakannya salah.
+
 Dan yang bertabrakan tapi **benar terpisah**: `MTs Ar-Rahman` di Jl. Arrahman
 No. **2** bukan `MA Ar-Rahman` di No. **01** — sebelah-sebelahan, beda jenjang.
+
+Hasilnya: **201 klaster → 189 sekolah**.
 
 ---
 
@@ -204,8 +262,8 @@ Jalan dan nomor, koma, kabupaten/kota, kode pos tanpa koma.
 - Tanpa kode pos: berhenti di kabupaten.
 - Tanpa nama jalan: `Kec. Lelea, Indramayu 45261`.
 
-Kabupaten tetap ditulis walau contoh aslinya tidak memakainya: 201 sekolah
-tersebar di 15 kabupaten, dan `Jl. Raya Timur No. 1, 46211` tidak menolong
+Kabupaten tetap ditulis walau contoh aslinya tidak memakainya: 189 sekolah
+tersebar di 24 kabupaten/kota, dan `Jl. Raya Timur No. 1, 46211` tidak menolong
 pembina membedakan sekolahnya dari yang senama di sebelah.
 
 ---
@@ -222,7 +280,7 @@ setx CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION 1200
 ```
 
 **`args` workflow bisa sampai sebagai teks JSON, bukan array.** Kalau tidak
-dijaga, `slice()` memotong per-huruf dan 201 sekolah jadi 644 potongan omong
+dijaga, `slice()` memotong per-huruf dan dua ratusan sekolah jadi 644 potongan omong
 kosong. Selalu:
 
 ```js
@@ -250,6 +308,34 @@ assert not bad, bad
 dan `MTs Assalamiyah` adalah klaster yang sama dengan nama tampil berbeda;
 mencocokkan mentah-mentah membuatnya terhitung "belum dicari" padahal sudah.
 
+**Agen bisa mencari dengan petunjuk milik sekolah lain — dan laporannya
+terbaca persis seperti "sekolahnya memang tidak ada".** Ini jebakan yang paling
+mahal di putaran pertama: tujuh dari tiga belas sekolah yang tersisa sebenarnya
+sudah bisa diselesaikan hari itu juga, dan tertahan sebulan karena hal ini.
+Contohnya, dengan petunjuk yang sebenarnya ada di `sekolah_nama.json`:
+
+| Sekolah | Petunjuk yang sebenarnya | Yang dilaporkan agen |
+| --- | --- | --- |
+| SMPN 1 Purwadadi | `… Kec. Purwadadi, Kab. Ciamis` | "petunjuk peserta menulis Subang" |
+| SMA Islam Nurul Fikri | `Serang Banten` | "petunjuk peserta menulis Bogor" |
+| SMP Islam Bahrul Ulum | `Jl. Gunungbalong Kec. Sukaratu` | "petunjuk Ciamis tidak bisa memisahkan dua kandidat" |
+| MA Al-Hasan | `dusun babakan kec baregbeg` | "BENTROK — yang ketemu di Baregbeg, bukan Banjarsari" |
+| SMA IT Al-Falah | `… Kec. Bungbulang Kab. Garut` | "27 kecamatan Ciamis disisir, tidak ada" |
+| SMA Terpadu Cikanyere | `Ds. Sirnabaya Kec. Rajadesa` | "tidak ada di Kec. Sukaresmi, Cianjur" |
+| SMP IT Nurul Huda Margajaya | `Kec. Pamarican Kab. Ciamis` | "27 kecamatan dicek, tidak ketemu" |
+
+Perhatikan bentuknya: agen **menyisir dengan rajin**, melaporkan berapa
+kecamatan yang diperiksa, dan berhenti dengan keyakinan `rendah`. Semuanya
+tampak seperti kerja yang tuntas. Yang salah bukan pencariannya — yang salah
+petunjuk yang dibawa masuk.
+
+Penangkalnya satu baris: **suruh agen mengembalikan petunjuk yang ia terima,
+disalin apa adanya**, lalu cocokkan dengan `petunjuk_alamat` di
+`sekolah_nama.json`. Yang tidak cocok berarti hasilnya tidak bisa dipakai,
+apa pun isinya. Dan sebelum menyimpulkan sebuah sekolah "tidak ada", **baca
+sendiri petunjuknya di `sekolah_nama.json`** — jangan percaya kutipan petunjuk
+yang ada di dalam catatan agen.
+
 **Petunjuk peserta bisa salah dan menggagalkan pencarian.** `SMA IT Al-Falah`
 tidak ketemu karena petunjuknya "Ciamis"; baris kembarnya
 (`SMA IT Al Falahjln` — "JLN" alamatnya menempel ke nama) membawa
@@ -264,39 +350,77 @@ mirip dan petunjuk yang lebih baik.
 | Berkas | Isi |
 | --- | --- |
 | `tools/normalize_sekolah.py` | langkah 2–5: baca Excel, buang non-sekolah, bakukan, kelompokkan |
-| `tools/data/sekolah_nama.json` | 201 sekolah: nama baku, semua ejaan, jumlah peserta, petunjuk alamat |
+| `tools/data/sekolah_nama.json` | 189 sekolah: nama baku, semua ejaan, jumlah peserta, petunjuk alamat |
 | `tools/data/sekolah_alamat.json` | hasil pencarian alamat: NPSN, jalan, desa, kecamatan, kabupaten, kode pos, keyakinan, sumber |
+| `tools/periksa_sekolah.py` | penjaga: kedua berkas di atas masih saling cocok, dan bentuk isiannya masih menuruti bagian 7 dan 8 |
 
 Jalankan `normalize_sekolah.py` dari direktori berisi keempat berkas `.xlsx`.
+`periksa_sekolah.py` jalan dari mana saja, dan ikut jalan di CI lewat
+`shared-files.yml` — bagian 7 sudah membuktikan daftar yang tidak diperiksa
+mesin akan menyimpang tanpa suara.
 
 ---
 
 ## 11. Keadaan sekarang (16 Agustus 2026)
 
-**Belum selesai.** 201 sekolah terdaftar, **188 sudah punya alamat**
-(179 keyakinan tinggi, 142 lengkap dengan kode pos). **13 belum**:
+**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 136 lengkap
+dengan kode pos, tersebar di 24 kabupaten/kota. Berkas alamatnya berisi 190
+baris, bukan 189 — lihat catatan SMK Bhakti Kencana di bawah.
 
-**Empat belum tercari** — namanya di daftar berbeda tipis dari yang dikirim ke
-agen, jadi terlewat: `SMA Al Hasan Banjarsari`, `SMA IT Al Falahjln`,
-`SMA Terpadu Ar-Risalah`, `SMP SMA Islam Al-Ishlah bs`. Semuanya masih membawa
-petunjuk alamat dari peserta.
+Dari tiga belas yang tersisa di putaran pertama, **sebelas selesai**, dan
+tujuh di antaranya selesai tanpa pencarian baru sama sekali: petunjuknya sudah
+ada di `sekolah_nama.json` sejak awal, hanya tidak pernah sampai ke agennya
+(bagian 9).
 
-**Sembilan hasilnya lemah**, dan alasannya berbeda-beda — perlakuannya juga:
-
-| Sekolah | Masalah |
+| Sekolah | Hasil |
 | --- | --- |
-| SMA Terpadu Cikanyere | tidak ada di daftar Kec. Sukaresmi, Cianjur |
-| SMA IT Al-Falah | tidak ketemu dengan petunjuk "Ciamis" — lihat bagian 9 |
-| SMK Nusantara 1 Bekasi | 148 SMK Kota Bekasi disisir, tidak ada |
-| SMPN 1 Kalijaya | tidak ada SMP bernama Kalijaya di Kemendikdasmen |
-| SMP IT Nurul Huda Margajaya | 27 kecamatan dicek, tidak ketemu |
-| SMA Islam Nurul Fikri | petunjuk peserta bertabrakan dengan yang ditemukan |
-| MA Al-Hasan | ketemu satu, tapi bentrok dengan petunjuk |
-| SMP Islam Bahrul Ulum | **ada dua** bernama persis sama |
-| SMPN 1 Purwadadi | **ada dua** — salah satunya Kab. Subang |
+| SMA Terpadu Cikanyere | Dusun Cigoong, Sirnabaya, **Rajadesa, Ciamis** — bukan Cianjur. NPSN 69988141 |
+| SMA IT Al-Falah | Jl. Citalahab, Mekarjaya, Bungbulang, **Garut**. NPSN 69830402 |
+| SMP IT Nurul Huda Margajaya | Margajaya, **Pamarican**, Ciamis. NPSN 69993153 |
+| SMA Al Hasan Banjarsari | Jl. Kawasen No. 80, Banjarsari, Ciamis. NPSN 20263274 |
+| SMA Terpadu Ar-Risalah | sudah ada — kembar `SMA Ar-Risalah`, NPSN 20252464 |
+| SMP SMA Islam Al-Ishlah bs | Sudimampir, Balongan, **Indramayu**. NPSN 20216194 |
+| MA Al-Hasan | **Baregbeg** — memang itu yang ditulis peserta, tidak ada bentrok |
+| SMA Islam Nurul Fikri | **Serang, Banten** — memang itu yang ditulis peserta |
+| SMP Islam Bahrul Ulum | **Sukaratu**, Kab. Tasikmalaya. NPSN 20210721 |
+| SMPN 1 Purwadadi | **Ciamis**, NPSN 20252422 — bukan yang di Subang |
+| MTsN Rajadesa | MTsN 13 Ciamis, Jl. Cipancur No. 06. NPSN 20278700 |
 
-Empat yang terakhir tidak akan selesai dengan mencari lebih keras: yang
-dibutuhkan satu pertanyaan ke pembina sekolahnya.
+**Dua sisanya tidak akan selesai dengan mencari lebih keras.** Keduanya sudah
+disisir dari sisi alamat, bukan cuma dari sisi nama, dan buntu:
+
+- **SMK Nusantara 1 Bekasi** — Jl. Kapten Tendean tidak ada di Bekasi, dan
+  tidak ada sekolah menengah di Jl. Kapten Tendean Jakarta Selatan. Kelima SMK
+  "Nusantara 1" yang terdaftar alamatnya tidak ada yang cocok.
+- **SMPN 1 Kalijaya** — tidak ada sekolah dengan nama itu. Kandidat terkuat
+  SMPN 5 Banjarsari di Desa Kalijaya, Kec. Banjaranyar, tapi namanya tidak
+  cocok, jadi sengaja tidak diisikan.
+
+Yang dibutuhkan satu pertanyaan ke pembinanya. Pertanyaannya sudah ditulis di
+kolom `catatan` masing-masing, tinggal disalin.
+
+**Yang masih menggantung selain itu:**
+
+1. **`SMK Bhakti Kencana` masih satu klaster berisi dua sekolah** — satu di
+   Kota Banjar (NPSN 60726572), satu di Kab. Ciamis (NPSN 20254625). `kunci()`
+   sudah diperbaiki supaya tidak meleburnya lagi, tapi memisahkannya di
+   `sekolah_nama.json` butuh hitungan peserta per baris pendaftaran, dan itu
+   ada di keempat `.xlsx` yang tidak disimpan di repo. **Jalankan ulang
+   `normalize_sekolah.py`** dari direktori berisi keempat berkas itu. Hasilnya
+   akan memunculkan klaster ketiga bernama `SMK Bhakti Kencana` polos, dari dua
+   baris peserta yang tidak menyebut daerahnya sama sekali — salah satunya
+   berpetunjuk `Jl. Ir. H. Juanda`, yang bukan alamat kedua sekolah itu.
+   Tanyakan ke pembinanya.
+2. **Kode pos 46383 di sekolah-sekolah Kec. Banjaranyar perlu diperiksa.**
+   Banjaranyar mekar dari Banjarsari tahun 2015 dan cermin Dapodik masih
+   memakai kode lama; Desa Kalijaya, Banjaranyar tercatat 46384. Yang benar-
+   benar di Kec. Banjarsari tetap 46383. Yang perlu dicek: `SMAN 2 Banjarsari`
+   (NPSN 20255008, Desa Cigayam).
+3. **`MA Agrowisata Shaleha` dan `MTs Serba Bakti Suryalaya` tidak punya
+   NPSN** — madrasah di bawah Kemenag/EMIS memang tidak selalu ada di Dapodik.
+   Alamatnya ketemu lewat sekolah saudara di kompleks yang sama. Itu bukan
+   cacat, tapi berarti pemeriksaan kembar lewat NPSN (bagian 7) tidak bisa
+   menjangkau keduanya.
 
 Belum ada satu baris pun yang masuk tabel `sekolah`.
 

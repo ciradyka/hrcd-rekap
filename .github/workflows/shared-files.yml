@@ -82,3 +82,10 @@ jobs:
       # menyimpang membatalkan janji itu tanpa menggagalkan apa pun.
       - name: Urutan golongan sama di layar panitia dan halaman peserta
         run: python tools/periksa_urutan_golongan.py
+
+      # sekolah_nama.json dan sekolah_alamat.json dirawat terpisah dan tidak
+      # ada langkah yang memaksa keduanya cocok. Dua agen pernah mengisi baris
+      # untuk satu sekolah yang sama, dan satu baris terisi lengkap untuk
+      # sekolah yang tidak pernah ada di daftar peserta.
+      - name: Daftar sekolah masih cocok dengan daftar alamatnya
+        run: python tools/periksa_sekolah.py
