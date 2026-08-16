@@ -355,9 +355,28 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    menomori ulang dengan `ceil(row_number/10)` dan mendaratkan MTs Rancah
    bertiga di kloter 1. Kalau kloter perlu disusun ulang, bersihkan lalu
    jalankan ulang alurnya — jangan tulis nomornya langsung.
-7. **Satu sekolah, satu baris `sekolah`.** Lembar edisi lama menulis alamat
-   SMPN 2 CIPAKU dengan empat ejaan berbeda, dan `submit_pendaftaran`
-   melahirkan empat baris sekolah. Butir 5 lalu tidak berlaku di antara
-   keempatnya — mereka terbaca sebagai sekolah berlainan, dan regunya
-   berangkat bareng. Alamat yang berbeda tipis bukan sekolah yang berbeda;
-   lihat `docs/runbook-sekolah.md`.
+7. **Satu sekolah, satu baris `sekolah` — dan database belum menjaminnya.**
+   `submit_pendaftaran` mencari sekolahnya dengan pasangan **(nama, alamat)
+   persis**:
+
+   ```sql
+   insert into sekolah (nama, alamat) values (trim(p_nama_sekolah), trim(p_alamat_sekolah))
+   on conflict (nama, alamat) do nothing;
+   select id into v_sekolah from sekolah where nama = ... and alamat = ...;
+   ```
+
+   Beda satu koma, beda `Jl.` dan `Jln.`, beda spasi — lahir baris baru dengan
+   id baru. `unique (nama, alamat)` di 0001 memang disengaja, supaya dua
+   sekolah senama di tempat berbeda bisa hidup berdampingan (SMPN 1 Purwadadi
+   ada di Ciamis DAN di Subang). Niatnya benar; mekanismenya terlalu harfiah —
+   ia tidak bisa membedakan "sekolah yang sama, alamatnya diketik lebih
+   sembarangan" dari "sekolah lain di tempat lain".
+8. **Akibatnya menembus ke kloter, dan itu yang paling mahal.** Butir 5
+   berhenti berlaku di antara baris-baris kembar itu: mereka terbaca sebagai
+   sekolah berlainan, jadi regunya BERANGKAT BARENG tanpa satu pun pesan
+   galat. Lembar edisi lama menulis alamat SMPN 2 CIPAKU dengan empat ejaan
+   berbeda; di data contoh itu melahirkan empat baris sekolah sekaligus.
+   `docs/runbook-sekolah.md` bagian 11 sudah meminta pagar kembar dipasang
+   sebelum tabel `sekolah` diisi — obatnya sama dengan `nama_regu` di migrasi
+   0051: unique index atas nama yang dinormalisasi. Yang belum tercatat di
+   sana adalah akibat ini.

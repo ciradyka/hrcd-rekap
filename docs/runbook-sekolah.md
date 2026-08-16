@@ -512,3 +512,10 @@ lolos berdua — satu sekolah pecah dua, regunya terbelah, rekapnya menghitung
 dua sekolah. Obatnya sama dengan yang sudah dipakai untuk `nama_regu` di
 migrasi 0051: unique index atas nama yang dinormalisasi, ditambah satu langkah
 menyamakan `SMKN` dengan `SMK NEGERI`.
+
+**Dan akibatnya bukan cuma rekap yang menghitung dua kali.** Pembagian kloter
+menyebar regu satu sekolah supaya tidak berangkat bareng, dan penyebaran itu
+membandingkan `sekolah_id`. Dua baris kembar terbaca sebagai dua sekolah
+berlainan, jadi regunya berangkat bareng — tanpa satu pun pesan galat. Ini
+terlihat di data contoh: lembar edisi lama menulis alamat SMPN 2 CIPAKU dengan
+empat ejaan berbeda, dan keempatnya jadi baris `sekolah` tersendiri.
