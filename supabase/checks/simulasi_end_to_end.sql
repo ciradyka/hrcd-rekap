@@ -51,6 +51,7 @@ declare
   v_kloter_semua     int;
   v_kloter_berangkat int;
   v_pos_selesai      int;
+  v_kloter_parkir    smallint;
   v_jml_pos          int;
 begin
   -- Identitas pelaku. Semua RPC mencatat `recorded_by`/`verified_by` dari
@@ -300,6 +301,67 @@ begin
   delete from keberangkatan_regu;
   update kloter set jam_berangkat = null where jam_berangkat is not null;
 
+  -- Tanda cetak ikut dibuang. Kloter yang sudah DICETAK dilewati waktu daftar
+  -- ulang membagi regu (0040) — dan sisa tanda cetak dari uji coba lama
+  -- mendorong seluruh penomoran ke atas: produksi sempat mulai dari kloter 17,
+  -- bukan 1, karena 24 kloter pertama masih bertanda tercetak dari percobaan
+  -- sebelumnya. Papan yang mulai dari kloter 17 membuat panitia mencari
+  -- keenam belas kloter yang tidak pernah ada.
+  update kloter set dicetak_pada = null where dicetak_pada is not null;
+
+  -- Penomoran kloter dirapatkan dari 1, mengikuti urutan nomor dada dan
+  -- kapasitas per kloter.
+  --
+  -- Ini SATU-SATUNYA tempat berkas ini menulis langsung ke tabel, bukan lewat
+  -- RPC. Alasannya disebut supaya tidak ditiru sembarangan: mengulang
+  -- pembagian lewat daftar_ulang_batch menuntut nomor dada dilepas dulu, dan
+  -- melepas nomor dada menyentuh stok serta pensiun — reset yang jauh lebih
+  -- besar dan lebih berisiko daripada yang dibutuhkan sebuah contoh.
+  -- DIPARKIR DULU, baru ditempatkan. Dua langkah, dan keduanya perlu.
+  --
+  -- Satu UPDATE sekaligus bentrok: `unique (kloter_nomor, urutan_kloter)`
+  -- tidak deferrable, jadi ia diperiksa per baris dan keadaan ANTARA ikut
+  -- dinilai walaupun keadaan akhirnya sah. Mengosongkannya dulu juga tidak
+  -- bisa — `check ((nomor_dada is null) = (kloter_nomor is null))` melarang
+  -- regu bernomor dada tanpa kloter. Dan memindahkan satu per satu urut dari
+  -- petak terkecil hanya aman kalau penomorannya selalu merapat; ia tidak,
+  -- karena regu bisa berpindah ke urutan yang lebih besar di kloter yang sama.
+  --
+  -- Yang tersisa: pindahkan semuanya ke satu kloter yang pasti kosong, lalu
+  -- tempatkan dari sana. Tidak ada petak tujuan yang pernah ditempati di
+  -- kedua langkah, jadi tidak ada keadaan antara yang melanggar.
+  -- Parkirnya BEBERAPA kloter terakhir, bukan satu: `urutan_kloter` dibatasi
+  -- 1..maks_regu_per_kloter, jadi menumpuk lima puluh regu di satu kloter
+  -- melanggar batas itu.
+  select count(*) into v_n from regu where nomor_dada is not null and not is_cancelled;
+  select max(nomor) - ceil(v_n::numeric / v_e.maks_regu_per_kloter)::int + 1
+    into v_kloter_parkir from kloter;
+  if exists (select 1 from regu where kloter_nomor >= v_kloter_parkir) then
+    raise exception 'petak parkir mulai % ternyata berisi', v_kloter_parkir;
+  end if;
+
+  with urut as (
+    select id, row_number() over (order by nomor_dada) n
+      from regu where nomor_dada is not null and not is_cancelled
+  )
+  update regu r
+     set kloter_nomor = (v_kloter_parkir
+                         + floor((u.n - 1) / v_e.maks_regu_per_kloter))::smallint,
+         urutan_kloter = (((u.n - 1) % v_e.maks_regu_per_kloter) + 1)::smallint
+    from urut u where u.id = r.id;
+
+  with urut as (
+    select id,
+           ceil(row_number() over (order by kloter_nomor, urutan_kloter)::numeric
+                / v_e.maks_regu_per_kloter)::smallint            kloter,
+           (((row_number() over (order by kloter_nomor, urutan_kloter) - 1)
+             % v_e.maks_regu_per_kloter) + 1)::smallint          urutan
+      from regu
+     where kloter_nomor >= v_kloter_parkir and nomor_dada is not null
+  )
+  update regu r set kloter_nomor = u.kloter, urutan_kloter = u.urutan
+    from urut u where u.id = r.id;
+
   -- ---------------------------------------------------- 3. lomba yang BERJALAN
   --
   -- Bukan lomba yang sudah selesai. Papan yang semuanya 100% tidak
@@ -334,10 +396,16 @@ begin
     loop
       perform ceklis_berangkat(v_dada);
     end loop;
+    -- `at time zone 'Asia/Jakarta'`, BUKAN `::timestamptz`. Cast itu
+    -- menafsirkan waktu polos menurut zona SESI: di laptop yang berzona WIB ia
+    -- benar, di Supabase yang berjalan UTC ia menyimpan 07:00 UTC — 14:00 WIB.
+    -- Produksi sempat memuat seluruh keberangkatan tujuh jam meleset karena
+    -- ini, dan migrasi 0056 lahir dari kekeliruan yang sama persis.
     perform berangkatkan_kloter(
       v_kloter.nomor,
       (v_e.tanggal_lomba + v_e.jam_mulai_berangkat
-       + make_interval(mins => v_i * v_e.interval_berangkat_menit))::timestamptz);
+       + make_interval(mins => v_i * v_e.interval_berangkat_menit))
+      at time zone 'Asia/Jakarta');
 
     -- Berapa pos yang sudah dilewati kloter ini. Yang berangkat pertama sudah
     -- melewati semuanya; yang terakhir baru satu.

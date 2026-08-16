@@ -318,3 +318,28 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    golongan — that is what `kolomPos()` merges by name. Grouping by lomba is a
    third thing on top, and doing both with one mechanism is how Tebak Simpul
    ends up as four columns again.
+
+## 12. Kloter
+
+1. **Kloter tercetak masih boleh diisi selama belum berangkat.** Mencetak
+   daftar bukan penutupan; yang menutup sebuah kloter adalah `jam_berangkat`-nya
+   terisi. Sekolah yang daftar ulang setelah kertas dicetak tetap masuk ke
+   kloter paling awal yang masih longgar, dan kertasnya dicetak ulang — itu
+   murah, dan jauh lebih murah daripada kloter setengah kosong berangkat.
+2. **Selalu isi kloter paling awal dulu sampai penuh**, bukan menyebar rata.
+   Kloter 1 penuh sebelum kloter 2 dipakai. Yang berangkat pagi harus berangkat
+   penuh; tempat kosong yang tertinggal di kloter awal berarti kloter terakhir
+   berangkat lebih siang dari yang perlu, dan jendela 07:00–10:00 di bagian 10
+   tidak punya kelonggaran untuk itu.
+3. **Kode hari ini melanggar butir 1, dan itu belum diperbaiki.** Migrasi 0008
+   menambahkan syarat `dicetak_pada is null` ke pemilihan kloter beserta trigger
+   yang menolak penambahan ke kloter tercetak; 0040 mengembalikannya setelah
+   sempat hilang. Keduanya ditulis dengan niat melindungi kertas yang sudah
+   dibagikan — tapi niat itu bukan aturan lapangan. Perbaikannya: ganti
+   syaratnya jadi `jam_berangkat is null`.
+4. **"Bersihkan data" termasuk mengembalikan penomoran kloter ke 1**, bukan
+   hanya menghapus regu dan nilai. Kloter yang masih menyandang tanda cetak atau
+   jam berangkat dari percobaan sebelumnya membuat pembagian berikutnya mulai
+   dari tengah — produksi sempat mulai dari kloter 17 karena 24 kloter pertama
+   masih bertanda tercetak, dan papan seperti itu membuat panitia mencari
+   keenam belas kloter yang tidak pernah ada.
