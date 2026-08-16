@@ -32,4 +32,14 @@ run supabase/seed.sql
 run supabase/migrations/0024_komponen_pos.sql
 run tests/sql/01_seed_uji.sql
 
+# Akun uji lahir SESUDAH 0057 dijalankan di atas, jadi INSERT pengisi hak
+# di dalam migrasi itu tidak kebagian satu baris pun — di tests/run.sh
+# urutannya kebalikannya dan tidak kelihatan. Diisi di sini dengan
+# paket_peran() yang SAMA, supaya dev dan produksi tidak pernah memakai
+# dua daftar hak yang berbeda.
+"$PSQL" -d "$DB" -v ON_ERROR_STOP=1 -q -c "
+  insert into akun_hak (user_id, fitur)
+  select a.user_id, f from akun_panitia a, unnest(paket_peran(a.peran)) f
+  on conflict do nothing;"
+
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

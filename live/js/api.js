@@ -701,3 +701,140 @@ export async function kuotaFoto() {
     : await baca(null, "v_kuota_foto?select=*");
   return Array.isArray(d) ? d[0] : d;
 }
+
+/* ============================ AKUN PANITIA ==============================
+   Dua jalur, dan yang menentukan bukan kerapian melainkan siapa pemegang
+   kuncinya.
+
+   LEWAT REST BIASA — daftar akun, ganti peran, ganti pos, aktif/nonaktif.
+   Policy `adm_akun` (0003_rls.sql) sudah mengizinkan peran admin melakukan
+   semuanya di `akun_panitia`, jadi token sesi yang sedang login sudah cukup.
+
+   LEWAT GATEWAY WORKER — buat akun, reset password, ganti username. Ketiganya
+   menyentuh `auth.users`, dan itu menuntut service_role: kunci yang memang
+   TIDAK BOLEH ada di SPA (rancangan-b.md bagian 8). Worker memeriksa ulang
+   bahwa pemanggilnya admin aktif sebelum mengerjakannya — sesi yang perannya
+   sudah dicabut tapi tokennya belum kedaluwarsa tetap ditolak di sana.
+   ======================================================================== */
+
+/** Panggil gateway dengan token sesi yang sedang login. */
+async function gerbangAkun(jalur, badan) {
+  await pastikanSesiSegar();
+  const s = sesi();
+  return kirim(`${K.gatewayUrl}${jalur}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${s && s.token ? s.token : ""}`,
+    },
+    body: JSON.stringify(badan),
+  });
+}
+
+export async function daftarAkun() {
+  return baca("/akun", "akun_panitia?select=user_id,username,peran,pos,is_active&order=username.asc");
+}
+
+/** Ganti peran dan/atau pos. Keduanya dikirim bersama karena database
+ *  menuntutnya konsisten: operator_pos wajib punya pos, peran lain wajib
+ *  tidak (check di 0001_schema.sql). Mengirim peran saja akan ditolak
+ *  constraint itu, dan pesannya tidak akan terbaca sebagai "posnya lupa". */
+export async function ubahPeranAkun(userId, peran, pos) {
+  const badan = { peran, pos: peran === "operator_pos" ? pos : null };
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/akun/ubah`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId, ...badan }),
+    });
+  await pastikanSesiSegar();
+  return kirim(`${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${userId}`, {
+    method: "PATCH",
+    headers: { ...kepalaSupabase(), Prefer: "return=minimal" },
+    body: JSON.stringify(badan),
+  });
+}
+
+/** Nonaktifkan / aktifkan. Ini yang dipakai untuk "hapus": barisnya tetap
+ *  ada, dan `riwayat.oleh` yang menunjuk user_id ini tetap bisa ditelusuri.
+ *  Menghapus akunnya benar-benar akan memutus jejak siapa mengubah apa. */
+export async function setAktifAkun(userId, aktif) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/akun/ubah`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId, is_active: aktif }),
+    });
+  await pastikanSesiSegar();
+  return kirim(`${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${userId}`, {
+    method: "PATCH",
+    headers: { ...kepalaSupabase(), Prefer: "return=minimal" },
+    body: JSON.stringify({ is_active: aktif }),
+  });
+}
+
+/** Buat akun. Password digenerate server dan dikembalikan SEKALI — tidak
+ *  disimpan di mana pun dan tidak bisa dibaca lagi sesudah layarnya ditutup. */
+export async function buatAkun(daftar) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/akun/buat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, akun: daftar }),
+    });
+  return gerbangAkun("/akun", { akun: daftar });
+}
+
+export async function resetPasswordAkun(userId) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/akun/password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId }),
+    });
+  return gerbangAkun("/akun/password", { user_id: userId });
+}
+
+export async function ubahUsernameAkun(userId, username) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/akun/username`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId, username }),
+    });
+  return gerbangAkun("/akun/username", { user_id: userId, username });
+}
+
+/** Daftar fitur (kolom matriks) — layar menggambar kolomnya dari sini, jadi
+ *  menambah fitur tahun depan cukup satu INSERT di database. */
+export async function daftarFitur() {
+  return baca("/fitur", "fitur?select=kode,nama,urutan&order=urutan.asc");
+}
+
+/** Seluruh centang, satu baris per (akun, fitur). Dibaca sekali lalu
+ *  dijodohkan di browser — 20 akun x 11 fitur cuma 220 baris. */
+export async function daftarHak() {
+  return baca("/hak", "akun_hak?select=user_id,fitur");
+}
+
+/** Centang / lepas satu kotak. Baris ADA artinya boleh, jadi mencentang =
+ *  insert dan melepas = delete. Tidak ada kolom boolean yang bisa berbeda
+ *  dengan keberadaan barisnya. */
+export async function setHak(userId, fitur, boleh) {
+  if (K.mode === "dev")
+    return kirim(`${K.devUrl}/hak/set`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null, user_id: userId, fitur, boleh }),
+    });
+  await pastikanSesiSegar();
+  if (boleh)
+    return kirim(`${K.supabaseUrl}/rest/v1/akun_hak`, {
+      method: "POST",
+      headers: { ...kepalaSupabase(), Prefer: "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify({ user_id: userId, fitur }),
+    });
+  return kirim(
+    `${K.supabaseUrl}/rest/v1/akun_hak?user_id=eq.${userId}&fitur=eq.${encodeURIComponent(fitur)}`,
+    { method: "DELETE", headers: { ...kepalaSupabase(), Prefer: "return=minimal" } });
+}

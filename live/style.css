@@ -2522,6 +2522,10 @@ input.small-input { text-align: center; }
 .i-emas   { background: #fdf3dc; color: #a16207; }
 .i-nila   { background: #e9ecfc; color: #3538cd; }
 .i-mawar  { background: #fce9ee; color: #c01048; }
+/* Netral, dan itu disengaja: Akun bukan layar operasional. Sembilan warna
+   di atas menandai pekerjaan yang dikejar sepanjang hari; layar admin yang
+   dibuka sekali di awal edisi tidak boleh ikut bersaing di papan yang sama. */
+.i-abu    { background: #eef0f3; color: #475467; }
 
 /* Di kertas semua tint hilang — CLAUDE.md 8.4 melarang abu dan raster, dan
    latar berwarna yang difotokopi jadi kotoran. Ikonnya sendiri tidak dicetak
@@ -2647,4 +2651,28 @@ input.small-input { text-align: center; }
     grid-template-columns: auto 1fr;
     column-gap: 1.25rem;
   }
+}
+
+/* ============================================================================
+   MATRIKS HAK AKSES (layar Akun)
+
+   Tabelnya memakai .table-pos apa adanya — kolom pertama menempel, kepala
+   tabel menempel, dan di HP ia tetap tabel yang digeser ke samping, bukan
+   ditumpuk jadi kartu. Sebelas kolom centang memang tidak muat di satu layar,
+   dan menggulir ke kanan lebih murah daripada memiringkan kepala kolomnya.
+
+   Yang tersisa di bawah cuma yang khas matriks ini.
+   ========================================================================== */
+/* Kotak centangnya .checkbox yang sama dengan ceklis keberangkatan dan isian
+   biner lembar pos — 26px, hijau HRCD, dan meredup selagi disimpan. Tidak ada
+   ukuran atau warna sendiri di sini; matriks ini bukan jenis kotak yang baru. */
+.matriks-hak td.text-center { padding-left: .7rem; padding-right: .7rem; }
+/* Akun nonaktif tetap terbaca — diredupkan, bukan disembunyikan, supaya
+   "sudah dinonaktifkan" dan "belum pernah ada" tidak terlihat sama. */
+.matriks-hak tr.mati { opacity: .55; }
+
+/* Nama akun adalah tombol, tapi harus terbaca sebagai nama. */
+.tautan {
+  background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
+  color: var(--utama); text-decoration: underline;
 }

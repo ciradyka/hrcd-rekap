@@ -23,6 +23,8 @@ import {
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
   statusAcara,
+  daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
+  ubahUsernameAkun, daftarFitur, daftarHak, setHak,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
@@ -296,6 +298,10 @@ async function layarHome() {
       ${peran === "admin" ? `
       <a href="#/live-score">
         <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
+      </a>` : ""}
+      ${peran === "admin" ? `
+      <a href="#/akun">
+        <div class="function-name">${ikonKotak("users", "abu")} Akun</div>
       </a>` : ""}
       <a href="#/rekap">
         <div class="function-name">${ikonKotak("chart-column", "mawar")} Rekapitulasi</div>
@@ -4281,6 +4287,293 @@ async function layarLiveScore() {
   }
 }
 
+/* ============================ AKUN ======================================= */
+
+const PERAN_LABEL = { admin: "Admin", meja: "Meja", operator_pos: "Operator Pos" };
+
+/** Kartu password. Ditampilkan SEKALI — tidak disimpan di mana pun dan tidak
+ *  bisa dibaca lagi setelah dialognya ditutup, persis seperti CSV hasil
+ *  provision_accounts.py. Karena itu dialognya baca-saja: tidak ada tombol
+ *  Batal yang bisa tertekan sebelum angkanya sempat dicatat. */
+function tampilkanPassword(judul, baris) {
+  return dialog({
+    judul,
+    bacaSaja: true,
+    labelAksi: "Sudah dicatat",
+    kartuHtml: `
+      <div class="card">
+        <table class="table">
+          <thead><tr><th>Nama akun</th><th>Password</th></tr></thead>
+          <tbody>${baris.map(b => `
+            <tr><td>${esc(b.username)}</td>
+                <td><code style="font-size:1.15em">${esc(b.password)}</code></td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+      <p>Password ini tidak bisa dibuka lagi setelah kotak ini ditutup.</p>`,
+  });
+}
+
+async function layarAkun() {
+  pasangKepala("Akun", true);
+
+  // RLS yang sebenarnya menahan — ini supaya layarnya tidak tampak kosong dan
+  // membingungkan kalau alamatnya diketik langsung.
+  if (sesi().peran !== "admin") {
+    LAYAR.replaceChildren(h(kartuGalat("Hanya admin yang bisa mengelola akun.")));
+    return;
+  }
+
+  LAYAR.replaceChildren(h(pemuat()));
+  const layarIni = location.hash;
+  let akun, fitur, hak;
+  try { [akun, fitur, hak] = await Promise.all([daftarAkun(), daftarFitur(), daftarHak()]); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarAkun)); return; }
+  if (location.hash !== layarIni) return;
+
+  // Dijodohkan di browser: 20 akun x 11 fitur cuma 220 baris, jadi satu
+  // bacaan lebih murah daripada satu query per akun.
+  const punya = new Set(hak.map(x => `${x.user_id}|${x.fitur}`));
+  const opsiPeran = (dipilih) => Object.entries(PERAN_LABEL)
+    .map(([k, v]) => `<option value="${k}"${k === dipilih ? " selected" : ""}>${esc(v)}</option>`)
+    .join("");
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      <h2>Buat Akun</h2>
+      <!-- .table-toolbar, bukan .option-row: option-row itu grid DUA kolom
+           (style.css), jadi empat isian di dalamnya jatuh 2x2 dan kotak Pos
+           yang isinya satu angka mendapat setengah lebar kartu. -->
+      <!-- Rata BAWAH, bukan rata tengah seperti toolbar saring: di sana label
+           kotak carinya visually-hidden sehingga tidak memakan tinggi, di
+           sini labelnya terlihat — dan rata tengah membuat tombolnya melayang
+           setinggi label, tidak sejajar dengan kotak isian di sebelahnya. -->
+      <div class="table-toolbar" style="align-items:flex-end">
+        <div class="field"><label for="ak-nama">Nama akun</label>
+          <input id="ak-nama" type="text" class="small-input" autocomplete="off"
+            placeholder="pos6hrcd37" style="width:14rem"></div>
+        <div class="field"><label for="ak-peran">Peran</label>
+          <select id="ak-peran" class="select-small">${opsiPeran("meja")}</select></div>
+        <div class="field"><label for="ak-pos">Pos</label>
+          <input id="ak-pos" type="number" class="small-input" inputmode="numeric"
+            min="1" max="20" style="width:5rem" disabled></div>
+        <button class="button button-primary option-small" id="ak-buat" type="button">Buat Akun</button>
+      </div>
+      <details>
+        <summary>Buat banyak sekaligus</summary>
+        <div class="field">
+          <label for="ak-tempel">Satu akun per baris: nama akun, peran, pos</label>
+          <textarea id="ak-tempel" rows="4"
+            placeholder="pos6hrcd37, operator_pos, 6&#10;meja3hrcd37, meja"></textarea>
+        </div>
+        <button class="button button-primary" id="ak-buat-massal" type="button">Buat Semua</button>
+      </details>
+      <div class="error" id="ak-galat" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="table-toolbar">
+        <h2 style="margin:0">Akun</h2>
+        <span class="hint">${akun.length} akun</span>
+      </div>
+      <!-- Ini BUKAN penjelasan cara pakai (CLAUDE.md 9.1) — ia memuat satu
+           akibat yang tidak bisa dibaca dari layar: melepas centang selain
+           Akun belum menghentikan siapa pun. Baris ini dihapus begitu 42
+           policy dan 21 RPC pindah ke boleh(). -->
+      <p>Peran hanya mengisi centang awal. Untuk sekarang baru kolom
+         <strong>Akun</strong> yang benar-benar mengunci — kolom lain masih
+         mengikuti peran.</p>
+      <!-- Gaya yang sama dengan lembar Input Nilai Pos: di HP ini TETAP
+           tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
+           tabel menempel di atas. Semua itu sudah ada di .table-pos —
+           matriks ini tidak perlu aturan sendiri. -->
+      <div class="table-wrapper table-wrapper-tetap">
+      <table class="table data-table table-tetap table-pos matriks-hak">
+        <thead><tr>
+          <th>Nama akun</th><th>Peran</th><th>Pos</th>
+          ${fitur.map(f => `<th class="text-center">${esc(f.nama)}</th>`).join("")}
+        </tr></thead>
+        <tbody id="ak-tabel">
+          ${akun.map(a => `
+            <tr data-uid="${esc(a.user_id)}" data-nama="${esc(a.username)}"
+                ${a.is_active ? "" : 'class="mati"'}>
+              <td><button class="tautan" data-aksi type="button">${esc(a.username)}</button>${
+                a.is_active ? "" : ' <span class="badge badge-gray">nonaktif</span>'}</td>
+              <td><select class="select-small" data-peran>${opsiPeran(a.peran)}</select></td>
+              <td><input type="number" class="small-input" data-pos min="1" max="20" style="width:4.5rem"
+                    value="${a.pos ?? ""}" ${a.peran === "operator_pos" ? "" : "disabled"}></td>
+              ${fitur.map(f => `
+                <td class="text-center"><input type="checkbox" class="checkbox"
+                  data-fitur="${esc(f.kode)}"
+                  ${punya.has(`${a.user_id}|${f.kode}`) ? "checked" : ""}
+                  aria-label="${esc(a.username)} - ${esc(f.nama)}"></td>`).join("")}
+            </tr>`).join("")}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  `));
+
+  const galat = document.getElementById("ak-galat");
+  const lapor = (pesan) => { galat.textContent = pesan; galat.hidden = false; };
+  const peranBaru = document.getElementById("ak-peran");
+  const posBaru = document.getElementById("ak-pos");
+
+  // Pos hanya milik operator_pos — itu check constraint di database, bukan
+  // selera. Kotaknya dimatikan supaya bentroknya ketahuan sebelum dikirim.
+  peranBaru.addEventListener("change", () => {
+    posBaru.disabled = peranBaru.value !== "operator_pos";
+    if (posBaru.disabled) posBaru.value = "";
+  });
+
+  async function kirimBuat(daftar, tombol) {
+    galat.hidden = true;
+    if (tombol.dataset.jalan === "1") return;
+    tombol.dataset.jalan = "1"; tombol.disabled = true;
+    try {
+      const { hasil } = await buatAkun(daftar);
+      const jadi = hasil.filter(x => x.ok);
+      const gagal = hasil.filter(x => !x.ok);
+      if (jadi.length) await tampilkanPassword(`${jadi.length} Akun Dibuat`, jadi);
+      if (gagal.length) lapor(gagal.map(x => `${x.username}: ${x.pesan}`).join(" — "));
+      if (jadi.length) layarAkun();
+    } catch (e) { lapor(e.message); }
+    finally { tombol.dataset.jalan = ""; tombol.disabled = false; }
+  }
+
+  document.getElementById("ak-buat").addEventListener("click", (ev) => {
+    const nama = document.getElementById("ak-nama").value.trim();
+    if (!nama) { lapor("Nama akun wajib diisi."); return; }
+    kirimBuat([{ username: nama, peran: peranBaru.value,
+      pos: peranBaru.value === "operator_pos" ? Number(posBaru.value) || null : null }],
+      ev.currentTarget);
+  });
+
+  document.getElementById("ak-buat-massal").addEventListener("click", (ev) => {
+    const baris = document.getElementById("ak-tempel").value
+      .split("\n").map(b => b.trim()).filter(Boolean);
+    if (!baris.length) { lapor("Belum ada baris untuk dibuat."); return; }
+    kirimBuat(baris.map(b => {
+      const [username, peran, pos] = b.split(",").map(x => (x || "").trim());
+      return { username, peran, pos: pos ? Number(pos) : null };
+    }), ev.currentTarget);
+  });
+
+  const tabel = document.getElementById("ak-tabel");
+  // Satu antrean untuk SELURUH matriks, bukan per kotak: dua centang
+  // beruntun di baris yang sama harus mendarat urut, dan urutan itulah
+  // yang menentukan hak akhirnya.
+  let antreHak = Promise.resolve();
+
+  tabel.addEventListener("change", async (ev) => {
+    const tr = ev.target.closest("tr");
+    galat.hidden = true;
+
+    // Centang: satu kotak = satu baris akun_hak. Dikirim seketika, dan
+    // DIKEMBALIKAN kalau ditolak — kotak yang tetap tercentang padahal
+    // servernya menolak adalah kebohongan yang baru ketahuan besok.
+    //
+    // Bentuknya SAMA PERSIS dengan ceklis keberangkatan, dan itu disengaja:
+    // diredupkan selagi disimpan (bukan di-disable, lihat .checkbox.saving di
+    // style.css), klik beruntun DIANTREKAN bukan diblokir supaya salah
+    // centang bisa langsung dibatalkan, dan gagalnya lewat notif() — di tabel
+    // yang tergulir ke kanan, tulisan galat di kartu paling atas ada di luar
+    // layar.
+    if (ev.target.matches("[data-fitur]")) {
+      const kotak = ev.target;
+      const mau = kotak.checked;
+      kotak.classList.add("saving");
+      antreHak = antreHak.then(async () => {
+        try {
+          await setHak(tr.dataset.uid, kotak.dataset.fitur, mau);
+        } catch (e) {
+          kotak.checked = !mau;
+          notif(e.message, true);
+        } finally {
+          kotak.classList.remove("saving");
+        }
+      });
+      return;
+    }
+
+    const peran = tr.querySelector("[data-peran]").value;
+    const kotakPos = tr.querySelector("[data-pos]");
+    if (ev.target.matches("[data-peran]")) {
+      kotakPos.disabled = peran !== "operator_pos";
+      if (kotakPos.disabled) kotakPos.value = "";
+      else if (!kotakPos.value) { kotakPos.focus(); return; }
+    }
+    const pos = peran === "operator_pos" ? Number(kotakPos.value) || null : null;
+    if (peran === "operator_pos" && !pos) { kotakPos.focus(); return; }
+    try {
+      await ubahPeranAkun(tr.dataset.uid, peran, pos);
+      notif(`${tr.dataset.nama} sekarang ${PERAN_LABEL[peran]}${pos ? ` pos ${pos}` : ""}.`);
+    } catch (e) { lapor(e.message); layarAkun(); }
+  });
+
+  // Klik NAMA membuka aksi akunnya. Ditaruh di balik nama, bukan sebagai tiga
+  // tombol per baris, karena barisnya sudah punya sebelas kotak centang —
+  // tombol tambahan di situ akan mendorong matriksnya keluar layar HP.
+  tabel.addEventListener("click", async (ev) => {
+    const tombol = ev.target.closest("[data-aksi]");
+    if (!tombol) return;
+    const tr = tombol.closest("tr");
+    const uid = tr.dataset.uid, nama = tr.dataset.nama;
+    const aktif = !tr.classList.contains("mati");
+    galat.hidden = true;
+
+    const pilih = await dialog({
+      judul: nama,
+      bacaSaja: true,
+      labelAksi: "Tutup",
+      kartuHtml: `
+        <div class="option-row" style="flex-direction:column;gap:8px;align-items:stretch">
+          <button class="button button-primary" data-pilih="password" type="button">Reset Password</button>
+          <button class="button button-secondary" data-pilih="nama" type="button">Ubah Nama Akun</button>
+          <button class="button button-secondary" data-pilih="aktif" type="button">${
+            aktif ? "Nonaktifkan" : "Aktifkan"}</button>
+        </div>`,
+      pasang: (el, tutup) => el.querySelectorAll("[data-pilih]").forEach(b =>
+        b.addEventListener("click", () => tutup(b.dataset.pilih))),
+    });
+    // Tombol "Tutup" mengembalikan array kosong (tidak ada medan), dan array
+    // kosong itu truthy — jadi yang diperiksa jenisnya, bukan kebenarannya.
+    if (typeof pilih !== "string") return;
+
+    try {
+      if (pilih === "password") {
+        const { password } = await resetPasswordAkun(uid);
+        await tampilkanPassword(`Password Baru ${nama}`, [{ username: nama, password }]);
+        return;
+      }
+      if (pilih === "nama") {
+        const jawab = await dialog({
+          judul: `Ubah nama akun ${nama}`,
+          kartuHtml: "<p>Mulai sekarang dia login memakai nama yang baru.</p>",
+          medan: [{ label: "Nama akun baru", nilai: nama }],
+          labelAksi: "Ubah Nama",
+        });
+        if (jawab === null) return;
+        await ubahUsernameAkun(uid, jawab[0]);
+      }
+      if (pilih === "aktif") {
+        if (aktif) {
+          const ya = await dialog({
+            judul: `Nonaktifkan ${nama}?`,
+            kartuHtml: "<p>Dia tidak bisa masuk lagi. Riwayat yang sudah dicatatnya tetap ada.</p>",
+            labelAksi: "Nonaktifkan",
+          });
+          if (ya === null) return;
+        }
+        await setAktifAkun(uid, !aktif);
+      }
+      layarAkun();
+    } catch (e) { lapor(e.message); }
+  });
+
+  document.getElementById("ak-nama").focus();
+}
+
 /* ============================ RUTE ======================================= */
 
 const RUTE = {
@@ -4294,6 +4587,7 @@ const RUTE = {
   "#/rekap": layarRekap,
   "#/live-score": layarLiveScore,
   "#/ganti-password": layarGantiPassword,
+  "#/akun": layarAkun,
 };
 
 async function arahkan() {
