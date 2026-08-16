@@ -1775,21 +1775,38 @@ input.small-input { text-align: center; }
      Labelnya ikut memendek jadi "Kwitansi" dan "Lunas" lewat .teks-lebar yang
      memang sudah ada. Kata keduanya sudah membedakan aksinya, dan ~50px yang
      dihemat tiap tombol itu yang menentukan muat atau tidak. */
+  /* DUA ambang, bukan satu — dan lantai lebar untuk nama sekolah.
+
+     Percobaan pertama memakai satu ambang 640px untuk enam kolom sekaligus
+     berikut tombolnya. Pada ~650px hasilnya justru lebih buruk daripada dua
+     baris: `minmax(0, 1fr)` membolehkan kolom sekolah menyusut sampai nol,
+     jadi "SMPT RIYADLUL ULUM WADDAWAH" pecah empat baris dan "1 regu"
+     menempel di sisinya. Enam kolom butuh ~820px, bukan 640.
+
+     Jadi dua tahap, dan kolom sekolah diberi lantai supaya ia tidak pernah
+     lagi jadi yang dikorbankan diam-diam. */
   @media (min-width: 640px) {
     .table-bayar tbody tr[data-baris] {
       grid-template-columns:
-        max-content minmax(0, 1fr) max-content max-content max-content max-content;
+        max-content minmax(9rem, 1fr) max-content max-content max-content;
+    }
+    .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
+    .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]    { grid-area: 1 / 2; }
+    .table-bayar tbody tr[data-baris] > td[data-label="Regu"]       { grid-area: 1 / 3; }
+    .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"]    { grid-area: 1 / 4; }
+    .table-bayar tbody tr[data-baris] > td[data-label="Metode"]     { grid-area: 1 / 5; }
+    .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 2 / 1 / auto / 6; }
+  }
+  @media (min-width: 820px) {
+    .table-bayar tbody tr[data-baris] {
+      grid-template-columns:
+        max-content minmax(11rem, 1fr) max-content max-content max-content max-content;
     }
     .table-bayar tbody tr[data-baris] .teks-lebar { display: none; }
     /* Tombol seukuran isinya, bukan selebar petaknya — di kartu HP ia sengaja
        melebar penuh (baris 1701), dan di sini itu akan meregangkan kolom
        terakhir sampai menghimpit nama sekolah. */
     .table-bayar tbody tr[data-baris] .button-small { width: auto; }
-    .table-bayar tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
-    .table-bayar tbody tr[data-baris] > td[data-label="Sekolah"]    { grid-area: 1 / 2; }
-    .table-bayar tbody tr[data-baris] > td[data-label="Regu"]       { grid-area: 1 / 3; }
-    .table-bayar tbody tr[data-baris] > td[data-label="Tagihan"]    { grid-area: 1 / 4; }
-    .table-bayar tbody tr[data-baris] > td[data-label="Metode"]     { grid-area: 1 / 5; }
     .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 1 / 6; }
   }
   /* Cetak Kwitansi + Batalkan RATA KIRI di kartu HP — sempat ditengahkan dan
