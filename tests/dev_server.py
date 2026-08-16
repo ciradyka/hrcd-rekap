@@ -279,9 +279,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             if u.path == "/login":
                 b = self._badan()
+                # Hak ikut dibawa, sama seperti jalur Supabase — kalau tidak,
+                # papan Home di dev memilih ubin dengan daftar kosong dan
+                # tampak seolah semua peran kehilangan aksesnya.
                 akun = q(
-                    "select user_id::text as uid, username, peran, pos "
-                    "from akun_panitia where username = %s and is_active",
+                    "select a.user_id::text as uid, a.username, a.peran, a.pos,"
+                    "       coalesce(array_agg(h.fitur) filter (where h.fitur is not null),"
+                    "                '{}') as hak "
+                    "from akun_panitia a left join akun_hak h on h.user_id = a.user_id "
+                    "where a.username = %s and a.is_active "
+                    "group by a.user_id, a.username, a.peran, a.pos",
                     (b.get("username", ""),), role="service_role", fetch="one")
                 # Dev server: password apa pun diterima — auth sungguhan milik
                 # Supabase; yang diuji di sini adalah alur & RLS.

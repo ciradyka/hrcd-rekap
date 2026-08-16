@@ -24,7 +24,7 @@
 # Format CSV masukan (header wajib persis ini; kolom password boleh kosong):
 #   username,email,peran,pos,password
 #   admin.ciradyka,admin.ciradyka@ciradyka.com,admin,,
-#   pos1hrcd37,pos1hrcd37@ciradyka.com,operator_pos,1,
+#   pos1hrcd37,pos1hrcd37@ciradyka.com,juri_pos,1,
 # ============================================================================
 import csv
 import os

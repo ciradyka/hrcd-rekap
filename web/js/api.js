@@ -17,6 +17,16 @@ const BATAS_MS = 20000;   // internet lambat tidak boleh menggantung selamanya
    membuka lagi. localStorage bertahan sampai betul-betul ditekan Keluar,
    dan token di dalamnya tetap kedaluwarsa sendiri via pastikanSesiSegar(). */
 
+/** Apakah akun yang sedang login memegang fitur ini.
+ *
+ *  Cermin `boleh()` di database, dan HANYA untuk menggambar layar. Yang
+ *  menegakkan tetap RLS — menyunting sesi di localStorage cuma memunculkan
+ *  ubin yang begitu diklik menjawab kosong. */
+export function bolehLihat(fitur) {
+  const s = sesi();
+  return !!s && Array.isArray(s.hak) && s.hak.includes(fitur);
+}
+
 export function sesi() {
   const s = localStorage.getItem("hrcd_sesi");
   return s ? JSON.parse(s) : null;
@@ -188,15 +198,24 @@ export async function masuk(username, password) {
       headers: { "Content-Type": "application/json", apikey: K.anonKey },
       body: JSON.stringify({ email, password }),
     });
+    const kepala = { apikey: K.anonKey, Authorization: `Bearer ${j.access_token}` };
     const akun = await kirim(
       `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,is_active`,
-      { headers: { apikey: K.anonKey, Authorization: `Bearer ${j.access_token}` } });
+      { headers: kepala });
     if (!akun.length || !akun[0].is_active)
       throw new ErrorApi("Akun ini tidak aktif di edisi sekarang. Hubungi koordinator.");
+    // Hak dibawa ke dalam sesi supaya papan Home bisa memilih ubinnya tanpa
+    // satu permintaan lagi tiap kali dibuka. Ini HANYA untuk menggambar —
+    // yang menegakkan tetap RLS, dan sesi yang diutak-atik di devtools tidak
+    // mendapat satu baris pun lebih banyak.
+    const hak = await kirim(
+      `${K.supabaseUrl}/rest/v1/akun_hak?user_id=eq.${j.user.id}&select=fitur`,
+      { headers: kepala }).catch(() => []);
     s = {
       uid: j.user.id, token: j.access_token, refresh: j.refresh_token,
       kedaluwarsa: Date.now() + (j.expires_in || 3600) * 1000,
       ...akun[0],
+      hak: (hak || []).map(x => x.fitur),
     };
   }
   simpanSesi(s);
@@ -736,11 +755,11 @@ export async function daftarAkun() {
 }
 
 /** Ganti peran dan/atau pos. Keduanya dikirim bersama karena database
- *  menuntutnya konsisten: operator_pos wajib punya pos, peran lain wajib
+ *  menuntutnya konsisten: juri_pos wajib punya pos, peran lain wajib
  *  tidak (check di 0001_schema.sql). Mengirim peran saja akan ditolak
  *  constraint itu, dan pesannya tidak akan terbaca sebagai "posnya lupa". */
 export async function ubahPeranAkun(userId, peran, pos) {
-  const badan = { peran, pos: peran === "operator_pos" ? pos : null };
+  const badan = { peran, pos: peran === "juri_pos" ? pos : null };
   if (K.mode === "dev")
     return kirim(`${K.devUrl}/akun/ubah`, {
       method: "POST",

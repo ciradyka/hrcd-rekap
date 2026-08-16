@@ -8,7 +8,7 @@
 #   1. Buka repo di app/browser GitHub -> tab Actions -> "Provision akun
 #      panitia" -> Run workflow.
 #   2. Tempel CSV di kotak "csv_akun": username,email,peran,pos (kosongkan
-#      pos untuk admin/meja). JANGAN sertakan password di sini — kotak ini
+#      pos untuk admin/registrasi/gerbang). JANGAN sertakan password di sini — kotak ini
 #      terekam di log Actions, dan password digenerate otomatis di server.
 #   3. Run workflow. Tunggu selesai (~10-20 detik untuk puluhan baris).
 #   4. Buka run yang baru selesai -> bagian "Artifacts" di bawah -> unduh
@@ -31,7 +31,7 @@ on:
       csv_akun:
         description: >-
           CSV: username,email,peran,pos (header wajib). Contoh baris:
-          meja4hrcd37,meja4hrcd37@ciradyka.com,meja,
+          meja4hrcd37,meja4hrcd37@ciradyka.com,registrasi,
         required: true
         type: string
 
