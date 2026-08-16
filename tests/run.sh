@@ -198,5 +198,12 @@ run tests/sql/26_nilai_mentah_bulat.sql
 # regu hanya mengisi tiga — Tebak Simpul ada empat versi, satu per golongan.
 run supabase/migrations/0060_kelengkapan_per_golongan.sql
 run tests/sql/27_kelengkapan_per_golongan.sql
+# 0061 melebur baris sekolah kembar dan memindahkan kuncinya dari
+# (name, address) ke nama saja. Tesnya menjaga dua arah sekaligus: alamat
+# berbeda tidak lagi melahirkan baris baru, DAN dua sekolah yang memang
+# berbeda tetap boleh berdampingan — kebutuhan asli yang membuat 0001 memakai
+# alamat sebagai pembeda.
+run supabase/migrations/0061_sekolah_satu_baris.sql
+run tests/sql/28_sekolah_satu_baris.sql
 
 echo "SEMUA TES LULUS"
