@@ -1666,7 +1666,7 @@ function layarFinish() {
         <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
           Perbaiki jam atau jumlah anggota
         </summary>
-        <div class="two-column" style="margin-top:.5rem">
+        <div class="two-column pasangan-sempit" style="margin-top:.5rem">
           <div class="field" style="margin:0">
             <label for="jam">Jam datang</label>
             <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
@@ -2000,7 +2000,13 @@ function petunjukKolom(k) {
   // menyesatkan; kolom `petunjuk` (0037) ada untuk kasus seperti itu.
   if (k.petunjuk) return k.petunjuk;
   if (k.form === "biner") return "centang bila benar";
-  if (k.satuan === "detik") return "detik, atau m:dd";
+  // "detik" saja. Sebelumnya "detik, atau m:dd" — dan bentuk kedua itu tidak
+  // pernah diminta siapa pun, cuma ditawarkan. Menawarkan dua format untuk
+  // satu angka pada kertas yang diisi tergesa di pos adalah cara sebagian
+  // petugas menulis 1:45 dan sebagian menulis 105 untuk waktu yang sama.
+  // detikSah() memang masih menerima m:dd bagi yang terlanjur hafal; yang
+  // dibuang cuma tawarannya.
+  if (k.satuan === "detik") return "detik";
   if (k.form === "benar_kurang_salah") return "benar / salah";
   if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
