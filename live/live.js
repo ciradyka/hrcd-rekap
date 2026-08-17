@@ -102,7 +102,6 @@ let META = null;        // isi live.json
 let REKAP = null;       // isi rekap.json, kalau sudah diambil
 let versiRekap = null;  // versi milik REKAP yang sedang dipegang
 let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
-let cari = "";
 
 /* Fase yang BERLAKU = yang paling ketat antara berkas dan database.
  *
@@ -199,165 +198,8 @@ function gambarPra() {
     </div>`;
 }
 
-/* ---------------------------------------------------------------------------
-   Kotak cari. Selalu digambar begitu lomba mulai, bahkan sebelum rekap.json
-   ada di tangan — kotaknya sendiri yang MEMICU pengambilan berkas itu.
-   ------------------------------------------------------------------------- */
-function gambarCari() {
-  return `
-    <div class="kartu">
-      <h2>Cari sekolahmu</h2>
-      <div class="cari-baris">
-        <input type="search" id="cari" inputmode="search"
-               placeholder="Nama sekolah…"
-               value="${esc(cari)}" autocomplete="off">
-      </div>
-    </div>`;
-}
 
-/* ---------------------------------------------------------------------------
-   Hasil pencarian: dikelompokkan per SEKOLAH, dan di dalamnya urut nomor
-   dada dari awal sampai akhir.
 
-   Selama lomba yang tampil hanya centang. Kolom kloter, kontrak, dan jam baru
-   ikut muncul setelah hasilnya diumumkan (fase 'penuh') — saat itu halaman
-   ini memang berubah jadi papan hasil lengkap.
-   ------------------------------------------------------------------------- */
-/** Dicocokkan ke NAMA SEKOLAH saja — bukan nama regu, bukan nomor dada.
- *
- *  Itu keputusan sadar, bukan penyederhanaan. Sekolah adalah satu-satunya
- *  kata kunci yang pasti diketahui setiap orang yang membuka halaman ini,
- *  dan membatasi pencarian ke sana membuat halaman menjawab "bagaimana regu
- *  KAMI" alih-alih berubah jadi alat mengintip nilai regu lain satu per satu.
- *  Yang tampil sesudahnya memang seluruh regu sekolah itu — satu sekolah
- *  adalah satu rombongan, dan pembinanya mengurus semuanya sekaligus. */
-function cocok(b) {
-  return (b.nama_sekolah || "").toLowerCase().includes(cari);
-}
-
-function gambarHasil() {
-  const pos = (META && META.pos) || [];
-  const penuh = fase() === "penuh";
-
-  if (cari.length < 2) {
-    return "";
-  }
-  if (!REKAP) {
-    return `<div class="kartu tengah"><p class="keterangan">Mencari…</p></div>`;
-  }
-
-  const baris = (REKAP.progres || []).filter(cocok);
-  if (!baris.length) {
-    return `<div class="kartu tengah">
-      <h2>Sekolah tidak ditemukan</h2>
-      <p class="keterangan">Tidak ada sekolah yang cocok dengan
-         "${esc(cari)}". Coba potong jadi satu kata saja — misalnya
-         "purwadadi" alih-alih nama lengkapnya. Kalau tetap tidak muncul,
-         pembayaran sekolahmu mungkin belum diverifikasi panitia.</p></div>`;
-  }
-
-  // Dikelompokkan per sekolah supaya satu sekolah yang mengirim sepuluh regu
-  // terbaca sebagai satu blok, bukan sepuluh baris yang tercecer.
-  const sekolah = new Map();
-  for (const b of baris) {
-    const k = b.nama_sekolah || "—";
-    if (!sekolah.has(k)) sekolah.set(k, []);
-    sekolah.get(k).push(b);
-  }
-
-  /* Kepala tabel DUA BARIS, bentuknya sama dengan layar panitia: baris atas
-     nama posnya, baris bawah nama tiap komponennya. Sebelumnya satu kolom
-     per POS — dan dengan itu peserta tidak pernah tahu Pos 1 berisi tiga hal
-     yang dinilai terpisah.
-
-     Komponen yang khusus satu golongan (Tebak Simpul punya empat versi)
-     digabung jadi SATU kolom bernama sama, persis seperti kolomPos() di layar
-     panitia. Yang membedakan barisnya: tiap regu hanya punya versi
-     golongannya sendiri. */
-  const komponen = (META && META.komponen) || [];
-  const perPos = pos.map(p => {
-    const milik = komponen.filter(w => w.pos === p.nomor);
-    const nama = [];
-    for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
-    return { pos: p, nama, milik };
-  }).filter(x => x.nama.length);
-
-  const kepalaPos = perPos.map(x =>
-    `<th class="pos" colspan="${x.nama.length}">${
-      esc(x.pos.bayangan ? x.pos.name : `Pos ${x.pos.nomor}`)}</th>`).join("");
-  const kepalaKomponen = perPos.map(x => x.nama.map(nm =>
-    `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("");
-
-  return [...sekolah.entries()].sort((a, b) => a[0].localeCompare(b[0], "id"))
-    .map(([nama, isi]) => {
-      isi.sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
-      return `
-        <div class="kartu">
-          <h2>${esc(nama)}</h2>
-          <p class="keterangan">${esc(String(isi.length))} regu</p>
-          <div class="gulir">
-            <table class="tabel">
-              <thead>
-                <tr>
-                  <th rowspan="2">No<br>Dada</th><th rowspan="2">Regu</th>
-                  <th rowspan="2">Golongan</th>
-                  ${penuh ? `<th rowspan="2">Kloter</th><th rowspan="2">Kontrak</th>
-                     <th rowspan="2">Berangkat</th><th rowspan="2">Datang</th>` : ""}
-                  ${kepalaPos}
-                </tr>
-                <tr>${kepalaKomponen}</tr>
-              </thead>
-              <tbody>
-                ${isi.map(b => {
-                  /* Inilah "masking"-nya. Bentuk tabelnya sama persis dengan
-                     layar panitia; yang berbeda hanya ISI SELNYA:
-
-                       progres  ✓ kalau nilainya sudah masuk, kosong kalau
-                                belum. Tidak ada satu angka pun.
-                       penuh    angka yang sebenarnya.
-
-                     Dan itu bukan sekadar tampilan: di fase progres,
-                     `nilai` memang objek kosong di rekap.json (0072). Yang
-                     disembunyikan tidak ada di berkasnya. */
-                  const terisi = b.komponen_terisi || {};
-                  const angka = b.nilai || {};
-                  const sel = perPos.map(x => x.nama.map(nm => {
-                    // Versi komponen yang berlaku untuk golongan regu INI.
-                    const w = x.milik.find(k =>
-                      k.name === nm && (!k.golongan || k.golongan === b.golongan));
-                    if (!w) return `<td class="pos belum">–</td>`;
-                    const kunci = `${x.pos.nomor}.${w.kode}`;
-                    if (!penuh) {
-                      const ada = terisi[kunci];
-                      return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : ""}</td>`;
-                    }
-                    const v = angka[kunci];
-                    if (!v || v.nilai_1 === null || v.nilai_1 === undefined) {
-                      return `<td class="pos belum">–</td>`;
-                    }
-                    return `<td class="pos ada">${esc(String(v.nilai_1))}${
-                      v.nilai_2 === null || v.nilai_2 === undefined
-                        ? "" : ` / ${esc(String(v.nilai_2))}`}</td>`;
-                  }).join("")).join("");
-                  const ekstra = penuh ? `
-                    <td>${b.kloter ? esc(String(b.kloter)) : "—"}</td>
-                    <td>${esc(kontrak(b.kontrak_menit))}</td>
-                    <td>${esc(jam(b.jam_berangkat))}</td>
-                    <td>${esc(jam(b.jam_datang))}</td>` : "";
-                  return `
-                    <tr>
-                      <td class="dada">${esc(dada(b.nomor_dada))}</td>
-                      <td class="regu">${esc(b.nama_regu)}</td>
-                      <td class="gol">${esc(GOLONGAN[b.golongan] || b.golongan)}</td>
-                      ${ekstra}${sel}
-                    </tr>`;
-                }).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>`;
-    }).join("");
-}
 
 /* ---------------------------------------------------------------------------
    Fase 'penuh' — klasemen per golongan, juara di atas. Tampil tanpa perlu
@@ -421,75 +263,211 @@ function gambarKelengkapan() {
    satu-satunya penanda juara. */
 const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
-function gambarKlasemen() {
-  const semua = (REKAP && REKAP.klasemen) || [];
-  if (!semua.length) return "";
-  // Kolom rincian dibentuk dari daftar pos yang terbit di live.json, bukan
-  // ditulis di sini: jumlah pos berubah tiap edisi, dan halaman peserta tidak
-  // boleh jadi tempat kedua yang harus ikut disunting saat itu terjadi.
-  const POS = (META && META.pos) || [];
 
-  return URUT_GOLONGAN.map(g => {
-    const baris = semua.filter(k => k.golongan === g);
-    if (!baris.length) return "";
-    const juara = baris.filter(k => k.peringkat <= 3);
-    return `
-      <div class="kartu">
-        <h2>${esc(GOLONGAN[g])}</h2>
-        <div class="podium">
-          ${juara.map(k => `
-            <div class="juara j${esc(String(k.peringkat))}">
-              <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
-              <div class="j-teks">
-                <div class="peringkat">Juara ${esc(String(k.peringkat))}
-                  <span class="dada-juara">${esc(dada(k.nomor_dada))}</span></div>
-                <div class="nama">${esc(k.nama_regu)}</div>
-                <div class="sekolah">${esc(k.nama_sekolah)}</div>
-              </div>
-              <div class="total">${esc(String(k.total))}</div>
-            </div>`).join("")}
+/* ---------------------------------------------------------------------------
+   PAPAN — bentuknya SAMA dengan layar Live Score panitia.
+
+   Empat tab golongan, judul "Klasemen sementara", podium tiga medali, lalu
+   tabel: No Dada, Regu, Organisasi, satu kolom per KOMPONEN, Penalti, Total.
+
+   Yang berbeda dari panitia hanya satu, dan itu bukan tata letak melainkan
+   ISI SEL:
+
+     progres  centang kalau nilainya sudah masuk, kosong kalau belum
+     penuh    angka yang sebenarnya
+
+   Dan itu bukan tirai. Di fase `progres`, `nilai` memang objek kosong di
+   rekap.json (migrasi 0072) — angkanya belum diterbitkan, bukan diterbitkan
+   lalu disembunyikan.
+
+   Kotak "Cari sekolahmu" DIGANTI penyaring Organisasi di kepala kolomnya,
+   sama seperti panitia. Kotak cari menuntut orang mengetik nama sekolahnya
+   dengan benar sebelum melihat apa pun; daftar centang menunjukkan seluruh
+   pilihan yang ada.
+   ------------------------------------------------------------------------- */
+let golAktif = URUT_GOLONGAN[0];
+
+function barisPapan() {
+  const progres = (REKAP && REKAP.progres) || [];
+  const klasemen = (REKAP && REKAP.klasemen) || [];
+  const perDada = new Map(progres.map(p => [p.nomor_dada, p]));
+  // Klasemen yang memimpin urutannya kalau ada — ia sudah berperingkat. Di
+  // fase `progres` klasemen memang kosong, jadi urutannya jatuh ke nomor dada.
+  if (klasemen.length) {
+    return klasemen.map(k => ({ ...perDada.get(k.nomor_dada), ...k }));
+  }
+  return [...progres].sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
+}
+
+function gambarTab(semua) {
+  return `<div class="tab-golongan">${URUT_GOLONGAN.map(g => {
+    const n = semua.filter(b => b.golongan === g).length;
+    return `<button type="button" class="tab ${g === golAktif ? "aktif" : ""}"
+              data-gol="${esc(g)}">${esc(GOLONGAN[g] || g)}
+              <span class="jml">${esc(String(n))}</span></button>`;
+  }).join("")}</div>`;
+}
+
+function gambarPapan() {
+  if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
+  const semua = barisPapan();
+  const penuh = fase() === "penuh";
+  const pos = (META && META.pos) || [];
+  const komponen = (META && META.komponen) || [];
+
+  // Satu kolom per komponen; versi per golongan digabung jadi satu kolom
+  // bernama sama — persis kolomPos() di layar panitia.
+  const perPos = pos.map(p => {
+    const milik = komponen.filter(w => w.pos === p.nomor);
+    const nama = [];
+    for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
+    return { pos: p, nama, milik };
+  }).filter(x => x.nama.length);
+
+  const kartu = URUT_GOLONGAN.map(g => {
+    const baris = semua.filter(b => b.golongan === g);
+    const sekolahAda = [...new Set(baris.map(b => b.nama_sekolah).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, "id"));
+    const juara = baris.filter(b => b.peringkat && b.peringkat <= 3);
+
+    const isi = !baris.length
+      ? `<p class="keterangan tengah">Belum ada regu golongan ini yang bisa
+           diperingkat.</p>`
+      : `
+        ${!juara.length ? "" : `<div class="podium">${juara.map(k => `
+          <div class="juara j${esc(String(k.peringkat))}">
+            <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
+            <div class="j-teks">
+              <div class="peringkat">Juara ${esc(String(k.peringkat))}
+                <span class="dada-juara">${esc(dada(k.nomor_dada))}</span></div>
+              <div class="nama">${esc(k.nama_regu)}</div>
+              <div class="sekolah">${esc(k.nama_sekolah)}</div>
+            </div>
+            <div class="total">${esc(String(k.total))}</div>
+          </div>`).join("")}</div>`}
+
+        <div class="isi-filter" hidden>
+          <button type="button" class="tombol-kecil tombol-semua">Hapus saringan</button>
+          ${sekolahAda.map(nm => `
+            <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
         </div>
         <div class="gulir">
           <table class="tabel">
             <thead>
-              <tr><th>#</th><th>No<br>Dada</th><th>Regu</th>
-                  ${POS.map(p => `<th class="pos-kol" title="${esc(p.name)}"
-                    >P${esc(String(p.nomor))}</th>`).join("")}
-                  <th>Nilai Pos</th><th>Penalti</th><th>Total</th></tr>
+              <tr>
+                ${penuh ? `<th rowspan="2">#</th>` : ""}
+                <th rowspan="2">No<br>Dada</th>
+                <th rowspan="2">Regu</th>
+                <th rowspan="2" class="th-saring" tabindex="0" role="button"
+                    aria-expanded="false"
+                    title="Klik untuk menyaring per sekolah">Organisasi
+                  <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
+                ${perPos.map(x => `<th class="pos" colspan="${x.nama.length}"
+                  >${esc(x.pos.bayangan ? x.pos.name : `Pos ${x.pos.nomor}`)}</th>`).join("")}
+                ${penuh ? `<th rowspan="2">Penalti</th><th rowspan="2">Total</th>` : ""}
+              </tr>
+              <tr>${perPos.map(x => x.nama.map(nm =>
+                `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("")}</tr>
             </thead>
             <tbody>
-              ${baris.map(k => {
-                const perPos = k.poin_per_pos || {};
+              ${baris.map(b => {
+                const terisi = b.komponen_terisi || {};
+                const angka = b.nilai || {};
+                const sel = perPos.map(x => x.nama.map(nm => {
+                  const w = x.milik.find(k =>
+                    k.name === nm && (!k.golongan || k.golongan === b.golongan));
+                  if (!w) return `<td class="pos belum">–</td>`;
+                  const kunci = `${x.pos.nomor}.${w.kode}`;
+                  if (!penuh) {
+                    const ada = terisi[kunci];
+                    return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : ""}</td>`;
+                  }
+                  const v = angka[kunci];
+                  if (!v || v.nilai_1 === null || v.nilai_1 === undefined) {
+                    return `<td class="pos belum">–</td>`;
+                  }
+                  return `<td class="pos ada">${esc(String(v.nilai_1))}${
+                    v.nilai_2 === null || v.nilai_2 === undefined
+                      ? "" : ` / ${esc(String(v.nilai_2))}`}</td>`;
+                }).join("")).join("");
+                const penalti = penuh
+                  ? Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
+                    + Number(b.penalti_anggota || 0)
+                  : null;
                 return `
-                <tr class="${k.peringkat <= 3 ? "atas" : ""}">
-                  <td class="dada">${MEDALI[k.peringkat] || ""}${esc(String(k.peringkat))}</td>
-                  <td class="dada">${esc(dada(k.nomor_dada))}</td>
-                  <td class="regu">${esc(k.nama_regu)}<span class="sekolah">${esc(k.nama_sekolah)}</span></td>
-                  ${POS.map(p => {
-                    const v = perPos[String(p.nomor)];
-                    // Garis pendek, bukan nol. Pos yang belum menyetor nilai
-                    // dan pos yang benar-benar memberi nol adalah dua hal
-                    // berbeda, dan angka 0 menyamakan keduanya.
-                    return `<td class="pos-kol">${v === undefined || v === null
-                      ? "–" : esc(String(v))}</td>`;
-                  }).join("")}
-                  <td>${esc(String(k.total_pos))}</td>
-                  <td>${esc(String(
-                       Number(k.penalti_waktu) + Number(k.penalti_checkout) + Number(k.penalti_anggota)))}</td>
-                  <td class="total">${esc(String(k.total))}</td>
+                <tr data-sekolah="${esc(b.nama_sekolah || "")}"
+                    class="${b.peringkat && b.peringkat <= 3 ? "atas" : ""}">
+                  ${penuh ? `<td class="dada">${MEDALI[b.peringkat] || ""}${
+                      esc(String(b.peringkat ?? ""))}</td>` : ""}
+                  <td class="dada">${esc(dada(b.nomor_dada))}</td>
+                  <td class="regu">${esc(b.nama_regu)}</td>
+                  <td class="sekolah-sel">${esc(b.nama_sekolah || "—")}</td>
+                  ${sel}
+                  ${penuh ? `<td>${esc(String(penalti))}</td>
+                     <td class="total">${esc(String(b.total ?? "—"))}</td>` : ""}
                 </tr>`;
               }).join("")}
             </tbody>
           </table>
-        </div>
+        </div>`;
+
+    return `<div class="panel-gol kartu" data-gol="${esc(g)}"${
+      g === golAktif ? "" : " hidden"}>
+        <h2 class="tengah">Klasemen sementara</h2>
+        ${isi}
       </div>`;
   }).join("");
+
+  return gambarTab(semua) + kartu;
+}
+
+function pasangPapan() {
+  document.querySelectorAll(".tab-golongan .tab").forEach(t => {
+    t.addEventListener("click", () => {
+      golAktif = t.dataset.gol;
+      document.querySelectorAll(".tab-golongan .tab").forEach(x =>
+        x.classList.toggle("aktif", x.dataset.gol === golAktif));
+      document.querySelectorAll(".panel-gol").forEach(p => {
+        p.hidden = p.dataset.gol !== golAktif;
+      });
+    });
+  });
+
+  document.querySelectorAll(".panel-gol").forEach(panel => {
+    const kotak = [...panel.querySelectorAll(".isi-filter input[type=checkbox]")];
+    const kepala = panel.querySelector(".th-saring");
+    const isi = panel.querySelector(".isi-filter");
+    const hitung = panel.querySelector(".hitung-filter");
+    if (!kepala || !isi) return;
+
+    const buka = () => {
+      isi.hidden = !isi.hidden;
+      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+    };
+    kepala.addEventListener("click", buka);
+    kepala.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buka(); }
+    });
+
+    const terapkan = () => {
+      const pilih = new Set(kotak.filter(c => c.checked).map(c => c.value));
+      panel.querySelectorAll("tbody tr[data-sekolah]").forEach(tr => {
+        tr.hidden = pilih.size > 0 && !pilih.has(tr.dataset.sekolah);
+      });
+      hitung.textContent = pilih.size ? `(${pilih.size})` : "";
+      kepala.classList.toggle("menyaring", pilih.size > 0);
+    };
+    kotak.forEach(c => c.addEventListener("change", terapkan));
+    const semua = panel.querySelector(".tombol-semua");
+    if (semua) semua.addEventListener("click", () => {
+      kotak.forEach(c => { c.checked = false; });
+      terapkan();
+    });
+  });
 }
 
 /* ---------------------------------------------------------------------------
-   Menggambar ulang. Kotak cari dipasang ulang tiap kali, dan posisi kursornya
-   dikembalikan — tanpa itu, mengetik satu huruf membuat fokusnya lepas dan
-   huruf kedua hilang.
+   Menggambar ulang seluruh badan halaman.
    ------------------------------------------------------------------------- */
 function gambar() {
   const isi = document.getElementById("isi");
@@ -499,25 +477,14 @@ function gambar() {
     `Live Score${META.edisi ? ` — ${META.edisi.name}` : ""}`;
   document.title = `Live Score — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
 
+  // Susunannya SAMA dengan layar panitia: kemajuan di atas, lalu tab
+  // golongan, lalu papan klasemen. Kotak cari sudah tidak ada — penyaring
+  // Organisasi di kepala kolom menggantikannya.
   isi.innerHTML = !mulai()
     ? gambarPra()
-    : (fase() === "penuh" ? gambarKlasemen() : "")
-      + gambarKelengkapan() + gambarCari() + gambarHasil();
+    : gambarKelengkapan() + gambarPapan();
 
-  const kotak = document.getElementById("cari");
-  if (kotak) {
-    kotak.addEventListener("input", () => {
-      cari = kotak.value.trim().toLowerCase();
-      const posisi = kotak.selectionStart;
-      // Berkas besar diambil saat orangnya benar-benar mencari, bukan saat
-      // halaman dibuka. Inilah yang membuat ribuan HP yang cuma melirik
-      // halaman ini tidak mengunduh apa pun selain live.json.
-      if (cari.length >= 2 && !REKAP) muatRekap().then(gambar);
-      gambar();
-      const baru = document.getElementById("cari");
-      if (baru) { baru.focus(); baru.setSelectionRange(posisi, posisi); }
-    });
-  }
+  if (mulai()) pasangPapan();
   gambarSinkron();
 }
 
@@ -559,8 +526,11 @@ async function muat() {
 
     // Rekap diambil ulang hanya kalau memang sudah dipegang (peserta sedang
     // melihatnya) atau memang harus tampil tanpa dicari (fase 'penuh').
-    if (versiBerubah && (REKAP || fase() === "penuh")) await muatRekap();
-    else if (fase() === "penuh" && !REKAP) await muatRekap();
+    // Papan sekarang menggambar SELURUH regu begitu lomba mulai, bukan hanya
+    // hasil pencarian — jadi rekap.json memang harus ada di tangan. Yang
+    // menahan bebannya tetap alamat ber-versi: selama isinya tidak berubah,
+    // tidak satu HP pun mengunduhnya dua kali.
+    if (mulai() && (versiBerubah || !REKAP)) await muatRekap();
 
     gambar();
   } catch {
