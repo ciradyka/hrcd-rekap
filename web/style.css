@@ -2967,3 +2967,67 @@ input.small-input { text-align: center; }
   background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
   color: var(--utama); text-decoration: underline;
 }
+
+/* ==========================================================================
+   FOTO JAWABAN — unggah borongan dari pos, penautan nomor dada menyusul.
+
+   Dua bagian yang bentuknya berbeda karena pekerjaannya berbeda: ANTREAN
+   unggah dibaca dari atas ke bawah sambil menunggu, GRID foto dibaca dengan
+   mata menyapu mencari kertas yang dikenali. Yang pertama daftar, yang kedua
+   petak.
+   ========================================================================== */
+
+/* Pos dan Lomba bersebelahan di layar lebar, menumpuk di HP. Tidak ada lebar
+   yang dipatok tangan — dua isian yang dipatok mm akan terjepit ke kanan
+   begitu wadahnya menyempit (bagian 15). */
+.baris-pilih { display: flex; flex-wrap: wrap; gap: .8rem; }
+.baris-pilih .field { flex: 1 1 12rem; min-width: 0; margin-bottom: .6rem; }
+
+/* Antrean unggah. Namanya boleh terpotong, statusnya TIDAK — status itulah
+   satu-satunya alasan barisnya ada. */
+.antrean-foto { list-style: none; margin: .6rem 0 0; padding: 0; }
+.antrean-foto li {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .35rem 0; border-top: 1px solid var(--garis); font-size: .9rem;
+}
+.antrean-foto .a-nama {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.antrean-foto .a-status { flex: 0 0 auto; color: var(--tinta-lembut); }
+.antrean-foto li.selesai .a-status { color: var(--hijau); font-weight: 700; }
+/* Gagal TIDAK menghilang dan tidak sekadar berubah warna: barisnya membawa
+   tombol Ulangi, dan berkasnya masih dipegang layar. Petugas dengan lima
+   puluh foto tidak akan memilih ulang dari galeri satu per satu. */
+.antrean-foto li.gagal { background: var(--bahaya-muda); }
+.antrean-foto li.gagal .a-status { color: var(--bahaya); }
+
+/* Petak foto. `auto-fill` dengan lantai 9rem: di HP muat dua kolom, di laptop
+   enam sampai delapan — jumlahnya mengikuti layar, bukan dipatok per ambang. */
+.grid-foto {
+  display: grid; gap: .8rem;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+}
+.ubin-foto {
+  margin: 0; border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  overflow: hidden; background: var(--kartu);
+}
+/* Gambarnya jadi latar tombol, bukan <img>: satu elemen, dan `cover` memotong
+   sisi panjang sendiri tanpa menghitung apa pun. Rasionya dipatok 3:4 —
+   kertas lembar jawaban selalu lebih tinggi daripada lebar, dan petak yang
+   tingginya mengikuti gambar membuat barisnya bergerigi. */
+.ubin-foto .ubin-gambar {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; aspect-ratio: 3 / 4; padding: 0;
+  border: 0; border-bottom: 1px solid var(--garis);
+  background: var(--kertas) center / cover no-repeat;
+  cursor: pointer;
+}
+.ubin-foto figcaption {
+  display: flex; align-items: center; gap: .4rem; padding: .45rem;
+}
+/* Kotak nomor dada mengambil sisa lebar; tombolnya seukuran isinya. Kalau
+   dibalik, tombol "Tautkan" melar selebar petak dan kotak angkanya menyusut
+   jadi dua digit — dan yang diketik di sini justru tiga digit. */
+.ubin-foto figcaption .small-input { flex: 1 1 auto; min-width: 0; width: auto; }
+.ubin-foto figcaption .button { flex: 0 0 auto; }

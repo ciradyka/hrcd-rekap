@@ -263,5 +263,11 @@ run supabase/migrations/0072_progres_komponen_publik.sql
 # 0073 mengganti nama satu sekolah. Ikut dijalankan supaya berkasnya tetap
 # teruji; di database uji ia memang tidak menemukan apa pun.
 run supabase/migrations/0073_nama_al_azhar_citangkolo.sql
+# 0074 membuka foto borongan: `foto_lembar.regu_id` boleh NULL, penautan
+# nomor dada menyusul lewat `tautkan_foto`. Tes 37 yang menjaga bahwa foto
+# yang belum tertaut tetap TERLIHAT — dengan `join` biasa ia lenyap dari
+# v_foto_lembar tanpa satu pun galat.
+run supabase/migrations/0074_foto_jawaban.sql
+run tests/sql/37_foto_jawaban.sql
 
 echo "SEMUA TES LULUS"

@@ -57,6 +57,11 @@ RPC = {
     "tandai_kloter_dicetak": ["p_kloter"],
     "pindah_kloter":         ["p_nomor_dada", "p_alasan", "p_kloter"],
     "batalkan_tanda_cetak":  ["p_kloter", "p_alasan"],
+    # Foto jawaban (0074). Gambarnya sendiri TIDAK lewat sini — dev server
+    # tidak punya Storage — tapi barisnya tetap dicatat supaya alur layarnya
+    # bisa dicoba tanpa Supabase.
+    "catat_foto_masuk":      ["p_pos", "p_kode_lomba", "p_nama_lomba", "p_path", "p_ukuran"],
+    "tautkan_foto":          ["p_foto_id", "p_nomor_dada", "p_cara"],
 }
 # RPC yang hasilnya tabel (bukan skalar/jsonb).
 RPC_TABEL = {"daftar_ulang_batch"}
@@ -133,6 +138,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/status":
                 self._kirim(200, q(
                     "select * from status_acara", uid=p.get("uid"), fetch="one"))
+            elif u.path == "/foto-belum-taut":
+                # nomor_dada NULL = foto borongan yang belum ditautkan (0074).
+                self._kirim(200, q(
+                    "select * from v_foto_lembar "
+                    "where pos = %s and kode_lomba = %s and nomor_dada is null "
+                    "order by diunggah_pada",
+                    (p.get("pos") or 0, p.get("lomba") or ""), uid=p.get("uid")))
+            elif u.path == "/kuota-foto":
+                self._kirim(200, q(
+                    "select * from v_kuota_foto", uid=p.get("uid"), fetch="one"))
             elif u.path == "/pos":
                 self._kirim(200, q(
                     "select * from v_pos order by nomor", uid=p.get("uid")))

@@ -22,6 +22,7 @@ import {
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
+  unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
@@ -249,6 +250,9 @@ async function layarHome() {
         <a href="#/pos">
           <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos ${esc(sesi().pos)}</div>
         </a>
+        <a href="#/foto">
+          <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
+        </a>
         ${bolehLihat("live_score") ? `
         <a href="#/live-score">
           <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
@@ -330,6 +334,10 @@ async function layarHome() {
       ${bolehLihat("pos") ? `
       <a href="#/pos">
         <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos</div>
+      </a>` : ""}
+      ${bolehLihat("pos") ? `
+      <a href="#/foto">
+        <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
       </a>` : ""}
       ${bolehLihat("live_score") ? `
       <a href="#/live-score">
@@ -4911,8 +4919,295 @@ async function layarAkun() {
 
 /* ============================ RUTE ======================================= */
 
+/* ============================== FOTO JAWABAN ==============================
+
+   Foto lembar jawaban yang diambil DI POS, banyak sekaligus, nomor dadanya
+   ditautkan belakangan (migrasi 0074).
+
+   KENAPA LAYAR INI ADA PADAHAL SUDAH ADA TOMBOL KAMERA DI MEJA IT
+
+   Tombol kamera di layar Input Pos memfoto satu regu yang nomor dadanya baru
+   saja diketik — fotonya tertaut sendiri, tanpa pekerjaan tambahan, dan itu
+   tetap jalur utamanya. Yang tidak bisa dilakukannya: memotret setumpuk
+   kertas di pos, sebelum kertas itu berangkat ke meja IT. Migrasi 0047 sendiri
+   mengakui lubang itu — "slip yang HILANG DI JALAN antara pos dan meja IT
+   tidak pernah difoto sama sekali".
+
+   Harganya jujur: foto borongan tidak tahu nomor dadanya, jadi ia menganggur
+   di antrean sampai ada yang menautkannya. Karena itu jumlah yang belum
+   tertaut ditampilkan sebagai ANGKA di layar, bukan disembunyikan — antrean
+   yang tidak terlihat adalah antrean yang tidak pernah dikerjakan.
+   ========================================================================= */
+async function layarFoto() {
+  if (!EDISI) { layarButuhEdisi("Foto Jawaban"); return; }
+  pasangKepala("Foto Jawaban", true);
+  LAYAR.replaceChildren(h(pemuat()));
+
+  const layarIni = location.hash;
+  const s = sesi();
+  let semuaPos;
+  try { semuaPos = await daftarPos(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarFoto)); return; }
+  if (location.hash !== layarIni) return;
+
+  const posDinilai = semuaPos.filter(p => Number(p.jumlah_komponen) > 0);
+  if (!posDinilai.length) {
+    LAYAR.replaceChildren(h(`<div class="card"><h2>Belum ada pos berpenilaian</h2></div>`));
+    return;
+  }
+
+  /* Pemilih pos muncul kalau akunnya TIDAK terkunci ke satu pos — dibaca dari
+     `sesi().pos`, bukan dari nama perannya. Sejak 0064 yang menentukan hak
+     adalah centang di layar Akun (CLAUDE.md 13.1); akun yang diberi centang
+     `pos` tanpa peran admin tetap boleh memilih pos selama posnya kosong, dan
+     memeriksa nama peran akan mengunci akun itu ke pos pertama diam-diam. */
+  const terkunci = s && s.pos != null && s.pos !== "";
+  let nomorPos = terkunci ? Number(s.pos) : Number(posDinilai[0].nomor);
+  let kodeLomba = null, namaLomba = null;
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      <div class="baris-pilih">
+        <div class="field">
+          <label for="foto-pos">Pos</label>
+          <select id="foto-pos" class="select" ${terkunci ? "disabled" : ""}>
+            ${posDinilai.map(p => `<option value="${esc(p.nomor)}"
+              ${Number(p.nomor) === nomorPos ? "selected" : ""}
+              >${esc(judulPos(p))}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label for="foto-lomba">Lomba</label>
+          <select id="foto-lomba" class="select"></select>
+        </div>
+      </div>
+      <div class="action-row" id="foto-aksi" hidden>
+        <label class="button button-primary">
+          <input type="file" accept="image/*" multiple hidden id="foto-ambil">
+          ${ikon("camera")} Pilih foto
+        </label>
+        <span class="sub" id="foto-kuota"></span>
+      </div>
+      <ul class="antrean-foto" id="foto-antrean"></ul>
+    </div>
+    <div class="card">
+      <h2>Belum tertaut <span class="badge" id="foto-belum">0</span></h2>
+      <div class="grid-foto" id="foto-grid"></div>
+    </div>
+  `));
+
+  const elPos    = document.getElementById("foto-pos");
+  const elLomba  = document.getElementById("foto-lomba");
+  const elAksi   = document.getElementById("foto-aksi");
+  const elAmbil  = document.getElementById("foto-ambil");
+  const elAntre  = document.getElementById("foto-antrean");
+  const elGrid   = document.getElementById("foto-grid");
+  const elBelum  = document.getElementById("foto-belum");
+  const elKuota  = document.getElementById("foto-kuota");
+
+  const slug = (nama) => String(nama).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
+
+  /* Daftar lomba, BUKAN daftar penilaian. Satu slip adalah satu lomba
+     (CLAUDE.md 11.5): Pembidaian punya lima kriteria di satu kertas, dan
+     menawarkan lima pilihan di sini berarti satu kertas yang sama bisa
+     mendarat di lima kode yang berbeda. kelompokLomba() yang membedakannya,
+     lewat wahana.lomba — jangan memenggal awalan kodenya (11.7). */
+  async function isiLomba() {
+    elLomba.innerHTML = `<option>memuat…</option>`;
+    let komponen;
+    try { komponen = await komponenPos(EDISI.nomor, nomorPos); }
+    catch (e) { notif(`Lomba pos ${nomorPos} tidak terbaca: ${e.message}`, true); return; }
+    const lomba = kelompokLomba(kolomPos(komponen));
+    elLomba.innerHTML = lomba.map(l =>
+      `<option value="${esc(slug(l.nama))}">${esc(l.nama)}</option>`).join("");
+    kodeLomba = lomba.length ? slug(lomba[0].nama) : null;
+    namaLomba = lomba.length ? lomba[0].nama : null;
+    elLomba.dataset.nama = namaLomba || "";
+    elAksi.hidden = !kodeLomba;
+    await muatBelum();
+  }
+
+  /** Antrean foto yang belum bernomor dada, untuk pos + lomba yang dipilih. */
+  async function muatBelum() {
+    if (!kodeLomba) return;
+    elGrid.replaceChildren(h(`<p class="keterangan">Memuat…</p>`));
+    let daftar;
+    try { daftar = await daftarFotoBelumTaut(nomorPos, kodeLomba); }
+    catch (e) { elGrid.replaceChildren(h(`<p class="keterangan">${esc(e.message)}</p>`)); return; }
+
+    elBelum.textContent = String(daftar.length);
+    if (!daftar.length) {
+      elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+      return;
+    }
+
+    elGrid.replaceChildren(h(daftar.map(f => `
+      <figure class="ubin-foto" data-id="${esc(f.id)}" data-path="${esc(f.path)}">
+        <button type="button" class="ubin-gambar" data-lihat
+          title="Buka foto"><span class="keterangan">Lihat</span></button>
+        <figcaption>
+          <input type="number" class="small-input" inputmode="numeric" min="1"
+                 placeholder="No dada" data-dada aria-label="Nomor dada">
+          <button type="button" class="button button-mini button-primary"
+                  data-taut>Tautkan</button>
+        </figcaption>
+      </figure>`).join("")));
+
+    /* Thumbnail-nya TIDAK diambil sekaligus. Satu link bertanda tangan per
+       foto adalah satu permintaan jaringan, dan di sinyal lapangan dua ratus
+       permintaan sekaligus membekukan layar sebelum satu gambar pun tampil.
+       Diambil saat ubinnya benar-benar masuk layar. */
+    const pengamat = new IntersectionObserver((masuk) => {
+      for (const e of masuk) {
+        if (!e.isIntersecting) continue;
+        pengamat.unobserve(e.target);
+        gambarUbin(e.target);
+      }
+    }, { rootMargin: "200px" });
+    elGrid.querySelectorAll(".ubin-foto").forEach(u => pengamat.observe(u));
+  }
+
+  async function gambarUbin(ubin) {
+    const tombol = ubin.querySelector(".ubin-gambar");
+    try {
+      const url = await tautanFoto(ubin.dataset.path);
+      if (url) tombol.style.backgroundImage = `url("${url}")`;
+      tombol.dataset.url = url || "";
+      const ket = tombol.querySelector(".keterangan");
+      if (ket && url) ket.remove();
+    } catch { /* Ubin tanpa gambar tetap bisa ditautkan — itu yang penting. */ }
+  }
+
+  elPos.addEventListener("change", async () => {
+    nomorPos = Number(elPos.value);
+    await isiLomba();
+  });
+  elLomba.addEventListener("change", async () => {
+    kodeLomba = elLomba.value;
+    namaLomba = elLomba.options[elLomba.selectedIndex].textContent.trim();
+    await muatBelum();
+  });
+
+  /* Membuka gambar: jendelanya dibuka SEBELUM await. Dibuka sesudahnya,
+     browser HP menganggapnya popup yang tidak diminta pengguna dan
+     memblokirnya — pelajaran yang sudah dibayar di dialog foto per regu. */
+  elGrid.addEventListener("click", async (e) => {
+    const lihat = e.target.closest("[data-lihat]");
+    if (lihat) {
+      const jendela = window.open("", "_blank");
+      try {
+        const url = lihat.dataset.url
+          || await tautanFoto(lihat.closest(".ubin-foto").dataset.path);
+        if (jendela && url) jendela.location = url; else if (jendela) jendela.close();
+      } catch (err) {
+        if (jendela) jendela.close();
+        notif(`Foto tidak bisa dibuka: ${err.message}`, true);
+      }
+      return;
+    }
+
+    const taut = e.target.closest("[data-taut]");
+    if (!taut) return;
+    const ubin = taut.closest(".ubin-foto");
+    const isian = ubin.querySelector("[data-dada]");
+    const dada = Number(isian.value);
+    if (!Number.isInteger(dada) || dada <= 0) {
+      notif("Nomor dada harus angka.", true);
+      isian.focus();
+      return;
+    }
+    taut.disabled = true;
+    try {
+      await tautkanFoto(ubin.dataset.id, dada, "tangan");
+      notif(`Foto tertaut ke ${dada3(dada)}.`);
+      ubin.remove();
+      elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
+      if (!elGrid.querySelector(".ubin-foto")) {
+        elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+      }
+    } catch (err) {
+      taut.disabled = false;
+      notif(`Gagal menautkan: ${err.message}`, true);
+    }
+  });
+
+  /* ---- Antrean unggah ----
+
+     Berkasnya DIPEGANG di sini, tidak dilepas setelah gagal. Gelung di dialog
+     foto per regu menuntut petugas memilih ulang berkas dari galeri setiap
+     kali jaringan putus; dengan lima puluh foto sekaligus itu bukan lagi
+     ketidaknyamanan melainkan pekerjaan yang tidak akan diselesaikan siapa
+     pun. Di sini yang gagal tetap di antrean dengan tombol "Ulangi". */
+  const antrean = [];
+
+  function gambarAntrean() {
+    elAntre.replaceChildren(h(antrean.map((t, i) => `
+      <li data-i="${i}" class="${esc(t.keadaan)}">
+        <span class="a-nama">${esc(t.nama)}</span>
+        <span class="a-status">${esc(t.pesan)}</span>
+        ${t.keadaan === "gagal"
+          ? `<button type="button" class="button button-mini" data-ulang>Ulangi</button>` : ""}
+      </li>`).join("")));
+  }
+
+  async function kerjakan(t) {
+    t.keadaan = "jalan";
+    try {
+      t.pesan = "mengecilkan…"; gambarAntrean();
+      const blob = await kecilkanFoto(t.berkas);
+      t.pesan = `mengirim ${ukuranRapi(blob.size)}…`; gambarAntrean();
+      await unggahFotoMasuk(t.pos, t.kode, t.nama_lomba, blob);
+      t.keadaan = "selesai";
+      t.pesan = ukuranRapi(blob.size);
+    } catch (err) {
+      t.keadaan = "gagal";
+      t.pesan = err.message;
+    }
+    gambarAntrean();
+  }
+
+  elAntre.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-ulang]");
+    if (!b) return;
+    const t = antrean[Number(b.closest("li").dataset.i)];
+    if (!t) return;
+    await kerjakan(t);
+    await muatBelum();
+  });
+
+  elAmbil.addEventListener("change", async () => {
+    const berkas = [...(elAmbil.files || [])];
+    // Dikosongkan supaya memilih berkas YANG SAMA lagi tetap memicu change.
+    elAmbil.value = "";
+    if (!berkas.length || !kodeLomba) return;
+
+    for (const f of berkas) {
+      antrean.push({
+        berkas: f, nama: f.name || "foto", pesan: "menunggu…", keadaan: "antre",
+        pos: nomorPos, kode: kodeLomba, nama_lomba: namaLomba,
+      });
+    }
+    gambarAntrean();
+
+    // Satu per satu, bukan serentak. Unggahan paralel dari HP di sinyal
+    // lapangan saling menggerus dan menabrak batas waktu bersama-sama.
+    for (const t of antrean) if (t.keadaan === "antre") await kerjakan(t);
+
+    await muatBelum();
+    try {
+      const k = await kuotaFoto();
+      if (k) elKuota.textContent =
+        `${k.jumlah_foto} foto · ${ukuranRapi(k.total_bytes || 0)} terpakai`;
+    } catch { /* Kuota cuma keterangan; gagal membacanya tidak menghalangi apa pun. */ }
+  });
+
+  await isiLomba();
+}
+
 const RUTE = {
   "#/home": layarHome,
+  "#/foto": layarFoto,
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
   "#/cetak-kloter": layarCetakKloter,

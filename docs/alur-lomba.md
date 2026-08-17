@@ -401,8 +401,18 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    tidak bisa ditemukan kembali bukan cadangan.
 
    Harganya disebut supaya tidak jadi kejutan: slip yang hilang **di jalan**
-   antara pos dan meja IT tidak pernah difoto sama sekali. Jendela itu memang
-   tidak terlindungi.
+   antara pos dan meja IT tidak pernah difoto sama sekali.
+
+   **Jendela itu sekarang ada penutupnya — layar Foto Jawaban** (migrasi
+   `0074`). Panitia di pos memilih Pos dan Lomba, lalu mengunggah banyak foto
+   sekaligus; nomor dadanya ditautkan belakangan, satu per satu di layar itu
+   juga. Yang membuatnya boleh ada bukan pembatalan alasan di atas melainkan
+   pencabutan anggapannya: foto borongan sekarang PUNYA jalan pulang, dan yang
+   belum pulang dihitung serta ditampilkan sebagai angka di layar — antrean
+   yang tidak terlihat adalah antrean yang tidak pernah dikerjakan.
+
+   Dialog kamera per regu di meja IT **tidak diganti** dan tetap jalur utama:
+   di sana fotonya tertaut sendiri, tanpa pekerjaan tambahan.
 
    Tombolnya kamera di tiap baris lembar Input Pos; gambarnya masuk bucket
    privat `lembar` sesudah dikecilkan jadi abu-abu 1400px di HP, ~70 KB
