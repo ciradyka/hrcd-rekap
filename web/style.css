@@ -667,6 +667,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   overflow-y: auto; display: flex; flex-direction: column; gap: .3rem;
   max-height: 30vh;
 }
+/* `label[hidden]` HARUS disebut ulang — sebab yang sama dengan
+   `.isi-filter[hidden]` di atas: `display: flex` di baris berikutnya
+   mengalahkan `[hidden] { display: none }` bawaan browser, jadi baris yang
+   disaring tetap terlihat. Ini kedua kalinya jebakan yang sama menggigit di
+   berkas ini. */
+.isi-filter label[hidden] { display: none; }
 .isi-filter label {
   display: flex; align-items: center; gap: .5rem; font-size: .9rem;
   font-weight: 400; cursor: pointer;

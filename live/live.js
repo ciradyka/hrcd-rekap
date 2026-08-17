@@ -475,7 +475,11 @@ function pasangPapan() {
     document.addEventListener("keydown", e => { if (e.key === "Escape") tutup(); });
     if (cariKotak) cariKotak.addEventListener("input", () => {
       const q = cariKotak.value.trim().toLowerCase();
-      panel.querySelectorAll(".daftar-filter label").forEach(l => {
+      // Dicari dari `isi`, BUKAN dari `panel`. Panelnya sudah dipindah ke
+      // <body> saat dipasang, jadi ia bukan lagi keturunan .panel-gol dan
+      // querySelectorAll dari sana mengembalikan nol elemen — kotak ketiknya
+      // tampak mati padahal huruf-hurufnya masuk.
+      isi.querySelectorAll(".daftar-filter label").forEach(l => {
         l.hidden = q.length > 0 && !l.textContent.toLowerCase().includes(q);
       });
     });
