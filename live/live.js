@@ -121,6 +121,7 @@ let cari = "";
  *  Jadi: mematikan seketika, menyalakan tetap lewat penerbitan. */
 const URUT_FASE = { pra: 0, progres: 1, penuh: 2 };
 let FASE_DB = null;
+let denyutFase = null;
 
 const fase = () => {
   const berkas = (META && META.fase) || "pra";
@@ -533,6 +534,33 @@ muat();
 let denyut = null;
 const nyalakan = () => {
   if (denyut === null) denyut = setInterval(muat, 60000);
+  /* FASE dipantau TERPISAH dan jauh lebih sering.
+   *
+   *  `live.json` di-poll 60 detik, dan itu tepat untuk isinya — ia berubah
+   *  hanya ketika panitia menerbitkan ulang. Fase berbeda: ia ditekan justru
+   *  ketika keadaan sedang panas, dan menunggu semenit bukan "langsung".
+   *
+   *  Permintaannya satu baris satu kolom, jadi 15 detik masih murah — beda
+   *  jauh dari mengambil rekap.json lebih sering.
+   *
+   *  Dan yang paling menentukan di lapangan: BEGITU HP DIBUKA LAGI. Peserta
+   *  mengunci layarnya lalu membukanya menit berikutnya; tanpa baris ini ia
+   *  melihat papan basi sampai denyut berikutnya tiba. */
+  if (denyutFase === null) {
+    denyutFase = setInterval(async () => {
+      const sebelum = FASE_DB;
+      await ambilFaseDb();
+      if (FASE_DB !== sebelum) gambar();
+    }, 15000);
+    const segera = async () => {
+      if (document.visibilityState !== "visible") return;
+      const sebelum = FASE_DB;
+      await ambilFaseDb();
+      if (FASE_DB !== sebelum) gambar();
+    };
+    document.addEventListener("visibilitychange", segera);
+    window.addEventListener("focus", segera);
+  }
 };
 const matikan = () => {
   if (denyut !== null) { clearInterval(denyut); denyut = null; }
