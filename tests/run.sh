@@ -260,5 +260,8 @@ run supabase/migrations/0071_ringkas_publik_terdaftar.sql
 # v_progres_publik, supaya halaman peserta bisa menggambar tabel yang sama
 # bentuknya dengan layar panitia.
 run supabase/migrations/0072_progres_komponen_publik.sql
+# 0073 mengganti nama satu sekolah. Ikut dijalankan supaya berkasnya tetap
+# teruji; di database uji ia memang tidak menemukan apa pun.
+run supabase/migrations/0073_nama_al_azhar_citangkolo.sql
 
 echo "SEMUA TES LULUS"
