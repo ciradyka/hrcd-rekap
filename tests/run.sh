@@ -254,5 +254,7 @@ run tests/sql/35_detail_live_score_panitia.sql
 # itu tidak boleh membawa kolom lain dari status_acara.
 run supabase/migrations/0070_fase_live_publik.sql
 run tests/sql/36_fase_live_publik.sql
+# 0071 mengubah angka di halaman peserta jadi jumlah MENDAFTAR, bukan lunas.
+run supabase/migrations/0071_ringkas_publik_terdaftar.sql
 
 echo "SEMUA TES LULUS"
