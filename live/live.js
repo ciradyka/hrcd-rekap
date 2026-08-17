@@ -183,12 +183,14 @@ function gambarPra() {
     ? new Date(META.edisi.tanggal_lomba) : null;
   return `
     <div class="kartu tengah">
-      <h2>Belum dimulai</h2>
-      <p>Rekap live terbuka saat lomba berjalan${t
-        ? ` — ${esc(String(t.getDate()))} ${esc(BULAN[t.getMonth()])} ${esc(String(t.getFullYear()))}`
-        : ""}.</p>
-      <p class="angka-besar">${esc(String(r.jumlah_regu_lunas ?? 0))}</p>
-      <p>regu terdaftar</p>
+      <!-- Sebelum lomba, halaman ini dibuka orang yang BELUM mendaftar —
+           bukan peserta yang mencari nilainya. "Belum dimulai" menjawab
+           pertanyaan yang tidak mereka punya; ajakan mendaftar menjawab
+           yang mereka punya. Tanggal lombanya ikut hilang: ia ada di
+           halaman pendaftaran, dan di sini cuma memberi alasan menunda. -->
+      <h2>Segera daftarkan dirimu di<br>Hiking Rally Ciradyka XXXVII</h2>
+      <p class="angka-besar">${esc(String(r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0))}</p>
+      <p>regu sudah mendaftar</p>
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
         ${URUT_GOLONGAN.filter(g => per[g]).map(g =>
