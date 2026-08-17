@@ -2234,30 +2234,32 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *       menyediakan 180mm; karena itu lembar ini landscape.
  *
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
-// 37, naik dari 30. Diukur — bukan ditaksir — pada A4 melintang:
+// 40, naik dari 30. Diukur — bukan ditaksir — pada A4 melintang:
 //
 //   tinggi tersedia (margin atas-bawah 6mm)   198,00mm
 //   judul + kepala + thead + catatan           17,57mm
 //   sisa untuk baris                          180,43mm
-//   tinggi satu baris                           4,80mm
-//   -> 37 baris, sisa 2,68mm   (38 kelebihan 2,12mm)
+//   tinggi satu baris (nomor dada 11pt)         4,45mm
+//   -> 40 baris, sisa 2,35mm
 //
-// 30 bukan hasil hitungan; ia angka bulat yang tidak pernah diperiksa ulang,
-// dan bahkan pada margin lama 34 baris sudah muat. Tujuh baris terbuang di
-// setiap lembar selama ini.
+// Empat langkah membawanya dari 30 ke 40, dan HANYA YANG TERAKHIR
+// mengecilkan huruf:
 //
-// Tiga hal yang membeli tujuh baris itu, tidak satu pun mengecilkan hurufnya:
-// padding vertikal sel 0,5pt -> 0,25pt, margin halaman atas-bawah 10 -> 6mm,
-// dan jarak antarbaris blok kepala 1,2 -> 1,1.
+//   padding vertikal sel   0,5pt -> 0,25pt
+//   margin halaman         10mm -> 6mm atas-bawah
+//   jarak baris kepala     1,2  -> 1,1
+//   nomor dada             12pt -> 11pt        <- ini yang membeli 38-40
+//
+// Sel isian KOSONG tidak punya line box, jadi tingginya cuma padding +
+// garis. Yang mengangkat tinggi baris adalah sel berisi yang paling besar,
+// dan itu nomor dada — karena itu ia satu-satunya huruf yang berpengaruh.
 //
 // Lembar cadangan dicetak untuk SELURUH nomor dada termasuk yang belum
-// terdaftar — 510 baris. Jadi 17 lembar turun ke 14, per pos, dikali berapa
-// kali stok cadangan dicetak ulang.
+// terdaftar — 510 baris. Jadi 17 lembar turun ke 13.
 //
-// 37 ADALAH BATASNYA selama nomor dada tetap 12pt. Menambah satu baris lagi
-// berarti mengecilkan angka yang dibaca ulang dari FOTO lembar — dan justru
-// itu alasan ia dipilih 12pt sejak awal.
-const REGU_PER_LEMBAR = 37;
+// Kalau 11pt ternyata terlalu kecil dibaca ulang dari FOTO lembar,
+// kembalikan ke 12pt di style.css dan angka ini ke 37.
+const REGU_PER_LEMBAR = 40;
 
 function siapkanCetakLembarPos(pos, kolomLayar, baris) {
   document.getElementById("cetakan")?.remove();
