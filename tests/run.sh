@@ -211,5 +211,11 @@ run supabase/migrations/0061_sekolah_satu_baris.sql
 # rumus lama dan diam-diam meloloskan baris kembar.
 run supabase/migrations/0062_sekolah_nama_dapodik.sql
 run tests/sql/28_sekolah_satu_baris.sql
+# 0063 memasang 188 sekolah kurasi. Dijalankan SESUDAH tes 28, karena tes itu
+# menghitung selisih baris sekolah dan 188 baris baru akan menenggelamkannya.
+# Tes 29 menjaga yang bisa rusak tanpa suara: dua nama yang melebur jadi satu
+# baris, dan id sekolah yang berpindah saat migrasinya dijalankan dua kali.
+run supabase/migrations/0063_sekolah_daftar_kurasi.sql
+run tests/sql/29_sekolah_daftar_kurasi.sql
 
 echo "SEMUA TES LULUS"
