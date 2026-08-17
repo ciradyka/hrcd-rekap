@@ -706,7 +706,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      Yang keliru pada versi melintang lama bukan orientasinya, melainkan
      identitas 12pt dan kolom yang dipatok 38/40/26mm sementara kotak isian
      dibiarkan melar. */
-  @page lembar-pos { size: A4 landscape; margin: 10mm; }
+  /* Atas-bawah 6mm, kiri-kanan tetap 10mm.
+     Yang di atas dan bawah cuma udara: 10mm x 2 = 20mm, dan tinggi satu baris
+     regu 4,8mm. Kiri-kanan TIDAK ikut dikurangi — di situ ada garis tabel yang
+     menempel ke tepi, dan pinggiran itulah yang paling sering hilang waktu
+     kertas ditarik miring di fotokopi.
+     6mm, bukan 5: printer kantor umumnya tidak bisa mencetak di 4-5mm terluar,
+     dan halaman yang tidak muat akan DISKALAKAN oleh browser — seluruh
+     ukuran di berkas ini ikut mengecil tanpa satu pun tanda. */
+  @page lembar-pos { size: A4 landscape; margin: 6mm 10mm; }
   .lembar-pos { page: lembar-pos; }
 
   /* ---- FORM PER LOMBA (blangko kosong): A5 MELINTANG, satu per halaman ----
@@ -829,14 +837,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* Kepala halaman dipadatkan jadi TIGA baris. Tiap baris yang dihemat di
      sini berarti satu baris regu lebih banyak, dan 30 regu per lembar tidak
      menyisakan ruang untuk kepala yang lega. */
+  /* Jarak antarbaris dirapatkan ke 1,1 dan marginnya ke 0,5pt. Ketiganya
+     hanya satu baris teks, jadi 1,2 tidak membeli keterbacaan apa pun — ia
+     cuma udara. Yang dibeli ~2mm, dan 2mm itu yang membuat baris ke-37 muat
+     dengan sisa aman alih-alih sisa 0,85mm yang bisa habis oleh pembulatan
+     printer. */
   .lembar-pos h1 {
-    font-size: 11pt; margin: 0 0 1pt; text-align: center; line-height: 1.2;
+    font-size: 11pt; margin: 0 0 0.5pt; text-align: center; line-height: 1.1;
   }
   .lembar-pos .lembar-kepala, .lembar-pos .insert-note,
-  .lembar-pos .print-note { text-align: center; line-height: 1.2; }
-  .lembar-pos .lembar-kepala { font-size: 8pt; margin: 0 0 2pt; }
-  .lembar-pos .insert-note { font-size: 7.5pt; margin: 0 0 2pt; }
-  .lembar-pos .print-note { font-size: 7pt; margin-top: 2pt; }
+  .lembar-pos .print-note { text-align: center; line-height: 1.1; }
+  .lembar-pos .lembar-kepala { font-size: 8pt; margin: 0 0 0.5pt; }
+  .lembar-pos .insert-note { font-size: 7.5pt; margin: 0 0 0.5pt; }
+  .lembar-pos .print-note { font-size: 7pt; margin-top: 1pt; }
   .lembar-pos .print-table { margin-top: 0; }
   /* 12pt untuk ISI — ukuran yang sama dengan cetakan Excel yang selama ini
      dipakai panitia, dan memang seharusnya: yang tertulis di sini dibaca

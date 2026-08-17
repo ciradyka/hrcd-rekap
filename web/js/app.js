@@ -2234,23 +2234,30 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *       menyediakan 180mm; karena itu lembar ini landscape.
  *
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
-// 35, naik dari 30. Diukur — bukan ditaksir — pada A4 melintang margin 10mm:
+// 37, naik dari 30. Diukur — bukan ditaksir — pada A4 melintang:
 //
-//   tinggi tersedia                     190,00mm
-//   judul + kepala + thead + catatan     19,33mm
-//   sisa untuk baris                    170,67mm
-//   tinggi satu baris (padding 0,25pt)     4,81mm  -> 35 baris, sisa 2,3mm
+//   tinggi tersedia (margin atas-bawah 6mm)   198,00mm
+//   judul + kepala + thead + catatan           17,57mm
+//   sisa untuk baris                          180,43mm
+//   tinggi satu baris                           4,80mm
+//   -> 37 baris, sisa 2,68mm   (38 kelebihan 2,12mm)
 //
 // 30 bukan hasil hitungan; ia angka bulat yang tidak pernah diperiksa ulang,
-// dan empat baris terbuang di setiap lembar karenanya. Lembar cadangan
-// dicetak untuk SELURUH nomor dada termasuk yang belum terdaftar, jadi
-// 510 baris turun dari 17 lembar ke 15 — dua lembar per pos, dikali jumlah
-// pos, dikali berapa kali stok cadangan dicetak ulang.
+// dan bahkan pada margin lama 34 baris sudah muat. Tujuh baris terbuang di
+// setiap lembar selama ini.
 //
-// 36 adalah batas atasnya selama nomor dada tetap 12pt: 36 baris butuh
-// 173,2mm. Lebih dari itu berarti mengecilkan nomor dadanya, dan itu angka
-// yang dibaca ulang dari FOTO lembar.
-const REGU_PER_LEMBAR = 35;
+// Tiga hal yang membeli tujuh baris itu, tidak satu pun mengecilkan hurufnya:
+// padding vertikal sel 0,5pt -> 0,25pt, margin halaman atas-bawah 10 -> 6mm,
+// dan jarak antarbaris blok kepala 1,2 -> 1,1.
+//
+// Lembar cadangan dicetak untuk SELURUH nomor dada termasuk yang belum
+// terdaftar — 510 baris. Jadi 17 lembar turun ke 14, per pos, dikali berapa
+// kali stok cadangan dicetak ulang.
+//
+// 37 ADALAH BATASNYA selama nomor dada tetap 12pt. Menambah satu baris lagi
+// berarti mengecilkan angka yang dibaca ulang dari FOTO lembar — dan justru
+// itu alasan ia dipilih 12pt sejak awal.
+const REGU_PER_LEMBAR = 37;
 
 function siapkanCetakLembarPos(pos, kolomLayar, baris) {
   document.getElementById("cetakan")?.remove();
