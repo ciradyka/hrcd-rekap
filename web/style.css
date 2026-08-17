@@ -648,14 +648,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 .dialog-silang:hover { background: var(--bahaya-muda, #fdecea); }
 
-.form-akun { display: grid; gap: .7rem; align-items: end; }
+.form-akun { display: flex; flex-direction: column; gap: .7rem; }
 .form-akun .field { margin: 0; }
 .form-akun .field label { display: block; text-align: left; }
+/* Kekhususannya sengaja dinaikkan lewat `input.small-input`.
+   `.form-akun input` (0,1,1) SERI dengan `input.small-input { width: 4.5rem }`
+   yang ditulis 1.000 baris di bawah — dan yang seri, yang belakangan menang.
+   Kotak Nama akun karena itu tetap selebar 4,5rem walau aturannya ada. */
+.form-akun input.small-input,
+.form-akun select.select-small,
 .form-akun input, .form-akun select { width: 100%; box-sizing: border-box; }
 .form-akun .button { width: 100%; }
 @media (min-width: 720px) {
-  .form-akun { grid-template-columns: 2fr 1.4fr .7fr auto; }
-  .form-akun .button { width: auto; }
+  /* Flex, bukan grid kolom tetap: kotak Pos disembunyikan untuk tiga dari
+     empat peran, dan kolom grid yang isinya hilang meninggalkan lubang. */
+  .form-akun { flex-direction: row; align-items: flex-end; }
+  .form-akun .field:first-child { flex: 2; }
+  .form-akun .field { flex: 1; }
+  .form-akun .button { width: auto; flex: 0 0 auto; }
 }
 
 .th-saring { cursor: pointer; user-select: none; }
