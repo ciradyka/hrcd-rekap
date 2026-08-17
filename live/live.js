@@ -347,9 +347,13 @@ function gambarPapan() {
           </div>`).join("")}</div>`}
 
         <div class="isi-filter" hidden>
+          <input type="search" class="cari-filter" placeholder="Ketik nama sekolah…"
+                 aria-label="Cari sekolah">
+          <div class="daftar-filter">
+            ${sekolahAda.map(nm => `
+              <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
+          </div>
           <button type="button" class="tombol-kecil tombol-semua">Hapus saringan</button>
-          ${sekolahAda.map(nm => `
-            <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
         </div>
         <div class="gulir">
           <table class="tabel">
@@ -440,10 +444,35 @@ function pasangPapan() {
     const hitung = panel.querySelector(".hitung-filter");
     if (!kepala || !isi) return;
 
-    const buka = () => {
-      isi.hidden = !isi.hidden;
-      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+    // Panel MENGAMBANG di bawah kepala kolomnya, posisinya fixed dan
+    // koordinatnya dihitung tiap kali dibuka: tabelnya duduk di wadah
+    // bergulir, dan panel yang koordinatnya dihitung sekali akan tertinggal
+    // di tempat lamanya begitu tabel digulir ke samping.
+    const cariKotak = panel.querySelector(".cari-filter");
+    const tempel = () => {
+      const r = kepala.getBoundingClientRect();
+      isi.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 300)) + "px";
+      isi.style.top = (r.bottom + 2) + "px";
     };
+    const tutup = () => {
+      isi.hidden = true;
+      kepala.setAttribute("aria-expanded", "false");
+    };
+    const buka = () => {
+      if (isi.hidden) { tempel(); isi.hidden = false; } else isi.hidden = true;
+      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+      if (!isi.hidden && cariKotak) cariKotak.focus();
+    };
+    document.addEventListener("click", e => {
+      if (!isi.hidden && !isi.contains(e.target) && !kepala.contains(e.target)) tutup();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") tutup(); });
+    if (cariKotak) cariKotak.addEventListener("input", () => {
+      const q = cariKotak.value.trim().toLowerCase();
+      panel.querySelectorAll(".daftar-filter label").forEach(l => {
+        l.hidden = q.length > 0 && !l.textContent.toLowerCase().includes(q);
+      });
+    });
     kepala.addEventListener("click", buka);
     kepala.addEventListener("keydown", e => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buka(); }

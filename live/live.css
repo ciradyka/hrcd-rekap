@@ -16,10 +16,15 @@
 .th-saring { cursor: pointer; user-select: none; }
 .th-saring.menyaring { color: #00695c; }
 .isi-filter {
-  margin: 0 0 .6rem; max-height: 40vh; overflow-y: auto;
-  border: 1px solid #d7dbe0; border-radius: 6px; padding: .5rem;
-  display: flex; flex-direction: column; gap: .3rem;
+  position: fixed; z-index: 50; width: 280px; max-height: 46vh;
+  background: #fff; border: 1px solid #d7dbe0; border-radius: 8px;
+  padding: .5rem; display: flex; flex-direction: column; gap: .4rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.16);
 }
+.isi-filter .cari-filter { padding: .35rem .5rem; border: 1px solid #d7dbe0;
+  border-radius: 6px; font-size: .85rem; font-family: inherit; }
+.isi-filter .daftar-filter { overflow-y: auto; display: flex;
+  flex-direction: column; gap: .3rem; max-height: 30vh; }
 .isi-filter label { display: flex; align-items: center; gap: .5rem;
   font-size: .9rem; cursor: pointer; }
 .tombol-kecil { padding: .25rem .6rem; font-size: .8rem; border-radius: 6px;
