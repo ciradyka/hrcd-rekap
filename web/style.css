@@ -626,7 +626,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    Sebelumnya nomor dan tombol tukar berbagi satu kolom yang mengambil seluruh
    sisa lebar, jadi pilnya terdorong jauh ke kanan — mata harus menyeberangi
    ruang kosong dari nama sekolah ke nomornya. */
+/* Yang menyerap sisa lebar adalah kolom TERAKHIR, bukan Sekolah.
+   Sebelumnya Sekolah yang mengembang, jadi nomor dada terdorong ke tepi
+   kanan layar — mata harus menyeberangi ruang kosong selebar setengah tabel
+   untuk sampai ke angka yang justru dicari. Sekarang keempatnya rapat ke
+   kiri, dan tabelnya tidak lagi perlu digulir ke samping. */
+.table-daftar-ulang th:nth-child(2),
+.table-daftar-ulang td:nth-child(2) { width: 1%; white-space: nowrap; }
 .table-daftar-ulang .kol-dada { width: 1%; white-space: nowrap; text-align: left; }
+.table-daftar-ulang .kol-tukar { width: 100%; }
 .table-daftar-ulang .kol-dada .pill-row,
 .table-daftar-ulang .kol-dada .sub { justify-content: flex-start; }
 /* Tombol tukar mengambil sisanya, rata kiri juga — ia mengikuti nomornya,
