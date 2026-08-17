@@ -4651,7 +4651,7 @@ async function layarAkun() {
             placeholder="pos1hrcd37"></div>
         <div class="field"><label for="ak-peran">Peran</label>
           <select id="ak-peran" class="select-small">${opsiPeran("registrasi")}</select></div>
-        <div class="field"><label for="ak-pos">Pos</label>
+        <div class="field" id="ak-pos-kotak" hidden><label for="ak-pos">Pos</label>
           <input id="ak-pos" type="number" class="small-input" inputmode="numeric"
             min="1" max="20" disabled></div>
         <button class="button button-primary" id="ak-buat" type="button">Buat Akun</button>
@@ -4715,12 +4715,29 @@ async function layarAkun() {
   const peranBaru = document.getElementById("ak-peran");
   const posBaru = document.getElementById("ak-pos");
 
-  // Pos hanya milik juri_pos — itu check constraint di database, bukan
-  // selera. Kotaknya dimatikan supaya bentroknya ketahuan sebelum dikirim.
-  peranBaru.addEventListener("change", () => {
-    posBaru.disabled = peranBaru.value !== "juri_pos";
-    if (posBaru.disabled) posBaru.value = "";
-  });
+  /* Pos hanya milik juri_pos — itu check constraint di database, bukan
+     selera. Kotaknya DISEMBUNYIKAN, bukan sekadar dimatikan: kotak mati
+     tetap memakan sebaris di layar HP dan tetap mengajukan pertanyaan yang
+     jawabannya tidak ada. Yang tidak berlaku sebaiknya tidak terlihat. */
+  const posKotak = document.getElementById("ak-pos-kotak");
+  const setelPos = () => {
+    const perlu = peranBaru.value === "juri_pos";
+    posKotak.hidden = !perlu;
+    posBaru.disabled = !perlu;
+    if (!perlu) posBaru.value = "";
+  };
+  peranBaru.addEventListener("change", setelPos);
+  setelPos();
+
+  /* Nama akun jadi alamat email: `<nama>@ciradyka.com` (worker gateway).
+     Jadi yang boleh hanya yang sah di bagian sebelum @ — huruf, angka, dan
+     titik — dan titiknya tidak boleh di ujung atau berdempetan.
+
+     Ditolak DI SINI supaya pesannya menyebut apa yang salah. Tanpa ini
+     GoTrue yang menolak, dengan kalimat Inggris tentang format email yang
+     tidak menyebut kotak mana yang harus dibetulkan. */
+  const POLA_NAMA = /^[a-z0-9]+(\.[a-z0-9]+)*$/;
+  const namaSah = (t) => POLA_NAMA.test(t);
 
   async function kirimBuat(daftar, tombol) {
     galat.hidden = true;
@@ -4738,8 +4755,14 @@ async function layarAkun() {
   }
 
   document.getElementById("ak-buat").addEventListener("click", (ev) => {
-    const nama = document.getElementById("ak-nama").value.trim();
+    const nama = document.getElementById("ak-nama").value.trim().toLowerCase();
     if (!nama) { lapor("Nama akun wajib diisi."); return; }
+    if (!namaSah(nama)) {
+      lapor("Nama akun hanya boleh huruf, angka, dan titik — dan titik tidak "
+            + "boleh di awal, di akhir, atau berdempetan. Contoh: pos1hrcd37 "
+            + "atau aji.furqon.");
+      return;
+    }
     kirimBuat([{ username: nama, peran: peranBaru.value,
       pos: peranBaru.value === "juri_pos" ? Number(posBaru.value) || null : null }],
       ev.currentTarget);
@@ -4821,7 +4844,7 @@ async function layarAkun() {
     const pilih = await dialog({
       judul: nama,
       bacaSaja: true,
-      labelAksi: "Tutup",
+      silangSaja: true,
       kartuHtml: `
         <div class="option-row" style="flex-direction:column;gap:8px;align-items:stretch">
           <button class="button button-primary" data-pilih="password" type="button">Reset Password</button>
@@ -4832,7 +4855,7 @@ async function layarAkun() {
       pasang: (el, tutup) => el.querySelectorAll("[data-pilih]").forEach(b =>
         b.addEventListener("click", () => tutup(b.dataset.pilih))),
     });
-    // Tombol "Tutup" mengembalikan array kosong (tidak ada medan), dan array
+    // Silang di pojok mengembalikan hal yang sama dengan Batal, dan array
     // kosong itu truthy — jadi yang diperiksa jenisnya, bukan kebenarannya.
     if (typeof pilih !== "string") return;
 
