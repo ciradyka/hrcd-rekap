@@ -414,6 +414,18 @@ export async function cariRegu(nomorDada) {
 /** Saklar hari-H: daftar_ulang_ditutup, fase_live, konfigurasi_terkunci.
  *  Dipakai layar cetak untuk memperingatkan bahwa kertas yang dicetak
  *  sebelum daftar ulang ditutup pasti kehilangan regu yang datang setelahnya. */
+/** Buka / tutup klasemen untuk peserta.
+ *
+ *  TIDAK menerbitkan apa pun sendiri. Halaman peserta membaca live.json dan
+ *  rekap.json — berkas statis yang ditulis ulang publish-live.yml. Layar yang
+ *  memanggil ini wajib mengatakannya; tombol yang mengaku sudah menerbitkan
+ *  padahal belum adalah cara tercepat membuat panitia mengumumkan juara yang
+ *  tidak ada di layar peserta. */
+export async function aturFaseLive(fase) {
+  if (K.mode === "dev") return kirim("/atur-fase-live", { method: "POST", body: JSON.stringify({ fase }) });
+  return rpc("atur_fase_live", { p_fase: fase });
+}
+
 export async function statusAcara() {
   const d = K.mode === "dev"
     ? await baca("/status")
