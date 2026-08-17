@@ -222,5 +222,10 @@ run tests/sql/29_sekolah_daftar_kurasi.sql
 # kalau pesan galatnya tidak berubah, centang di layar Akun bukan pagar.
 run supabase/migrations/0064_hak_akses_mengikat.sql
 run tests/sql/30_hak_akses_mengikat.sql
+# 0065 menutup lubang pemeriksaan 0064: VIEW bukan policy dan bukan fungsi,
+# jadi enam view lolos tanpa disebut — dua di antaranya BOCOR, menampilkan
+# lembar seluruh pos ke juri pos mana pun. Sekalian N+1 di v_rekap_penuh.
+run supabase/migrations/0065_view_hak_dan_rekap.sql
+run tests/sql/31_view_hak.sql
 
 echo "SEMUA TES LULUS"
