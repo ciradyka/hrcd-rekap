@@ -4334,7 +4334,11 @@ async function layarLiveScore() {
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
-      <h2>Live Score — hanya admin</h2>
+      <!-- Dulu "hanya admin". Sejak 0058 setiap peran memegang live_score,
+           dan sejak 0067 papannya memang terisi untuk mereka — jadi kalimat
+           itu tidak benar lagi. Yang tetap perlu disebut: ini BELUM yang
+           dilihat peserta. -->
+      <h2>Live Score — belum terlihat peserta</h2>
       <p class="description">Fase
         sekarang <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
       <p class="description">Jangan dibagikan sebelum
