@@ -5,8 +5,9 @@ edisi-edisi sebelumnya. Ditulis setelah dikerjakan sekali untuk HRCD XXXVII,
 memakai empat berkas Excel HRCD XXXIII–XXXVI.
 
 Dokumen ini merekam **yang benar-benar dilakukan**, termasuk yang salah dulu
-baru betul. Bagian 9 khusus untuk jebakan-jebakannya — bacalah sebelum mulai,
-bukan sesudah.
+baru betul. Dua bagian khusus untuk itu, dan keduanya lebih berguna dibaca
+sebelum mulai daripada sesudah: **bagian 9** untuk jebakan waktu menyusun
+daftarnya, **bagian 12** untuk jebakan waktu memasangnya ke database.
 
 ---
 
@@ -303,18 +304,37 @@ Hasilnya: **201 klaster → 189 sekolah**.
 
 ## 8. Bentuk alamat yang disimpan
 
+**Berkasnya menyimpan komponen, bukan kalimat.** `sekolah_alamat.json` punya
+kolom `jalan`, `desa`, `kecamatan`, `kabupaten`, `provinsi`, `kode_pos`
+terpisah — itu yang membuat alamatnya bisa diperiksa mesin (bagian 10) dan
+dirakit ulang kalau bentuknya berubah. Kalimatnya baru dirakit saat dipasang
+ke database:
+
 ```
-Jl. Gunung Galuh No. 37, Ciamis 46211
+Jl. Gunung Galuh No. 37, Ciamis, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46211, Indonesia
 ```
 
-Jalan dan nomor, koma, kabupaten/kota, kode pos tanpa koma.
+Urutannya: jalan, desa, `Kec.` + kecamatan, kabupaten/kota, provinsi + kode
+pos, `Indonesia`. Komponen yang kosong dilewati, bukan diganti tanda hubung.
 
 - Tulis `Jl.` — bukan `Jalan`, `JL`, `Jln`. Tulis `No.` — bukan `no`, `Nomor`.
-- `Kabupaten Ciamis` diringkas jadi `Ciamis`; **`Kota Banjar` tetap
-  `Kota Banjar`**, karena Kota Banjar dan Kabupaten Ciamis dua daerah berbeda
-  dan membuang "Kota" membuat keduanya terbaca sama.
-- Tanpa kode pos: berhenti di kabupaten.
-- Tanpa nama jalan: `Kec. Lelea, Indramayu 45261`.
+- **`Kabupaten` dan `Kota` ditulis penuh**, tidak diringkas. Kota Banjar dan
+  Kabupaten Ciamis dua daerah berbeda, dan meringkas keduanya jadi "Banjar"
+  dan "Ciamis" membuat sepasang alamat yang berjauhan terbaca mirip.
+- Tanpa nama jalan: mulai dari desa — `Santing, Kec. Losarang, Kabupaten
+  Indramayu, Jawa Barat 45253, Indonesia`.
+
+**Kenapa panjang, padahal sebelumnya direncanakan pendek.** Rancangan awal
+runbook ini memakai bentuk ringkas `Jl. Gunung Galuh No. 37, Ciamis 46211`.
+Yang dipasang ke produksi bentuk penuh di atas, dan itu keputusan pemilik
+repo — alamat ini dibaca pembina di kotak pilihan untuk memastikan sekolah yang
+mereka pilih memang sekolah mereka, dan `Kec. Ciamis` lah yang menjawabnya,
+bukan kode pos. Bentuk ini juga persis yang keluar dari Google Maps, jadi
+pembina bisa membandingkannya sekali lihat.
+
+Panjangnya memang berkonsekuensi di layar sempit. Itu diselesaikan di tempat
+yang benar — cara menampilkan — bukan dengan memendekkan data. Alamat yang
+sudah dipotong tidak bisa dipanjangkan lagi.
 
 **Kalau sekolahnya memang tidak punya nama jalan, kolom `jalan` diisi dusun dan
 RT/RW-nya** — `Dusun Cigoong RT 01 RW 01` — bukan dikosongkan. Banyak sekolah
@@ -463,7 +483,7 @@ mesin akan menyimpang tanpa suara.
 
 ---
 
-## 11. Keadaan sekarang (16 Agustus 2026)
+## 11. Keadaan sekarang (17 Agustus 2026)
 
 **189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 178 lengkap
 dengan kode pos, tersebar di 24 kabupaten/kota. Berkas alamatnya berisi 190
@@ -540,34 +560,181 @@ sekolah beres — atau CI-nya merah.
    cacat, tapi berarti pemeriksaan kembar lewat NPSN (bagian 7) tidak bisa
    menjangkau keduanya.
 
-Belum ada satu baris pun yang masuk tabel `sekolah`.
+**188 sekolah sudah terpasang di tabel `sekolah` produksi** (17 Agustus 2026,
+migrasi 0061–0063). Yang belum masuk cuma dua yang alamatnya memang belum
+ketemu. Caranya, beserta yang salah dulu baru betul, ada di bagian 12.
 
-**Sebelum memasukkannya**, pasang dulu pagar kembar di database. `sekolah`
-sekarang ber-`unique (nama, alamat)` (migrasi 0001), jadi
-`SMKN 3 Tasikmalaya` dan `SMK Negeri 3 Tasik` dengan alamat beda satu koma
-lolos berdua — satu sekolah pecah dua, regunya terbelah, rekapnya menghitung
-dua sekolah.
+---
 
-Kunci itu dibuat begitu untuk alasan yang masuk akal: alur 3.2.2 ingin dua
-sekolah senama di tempat berbeda tetap bisa hidup berdampingan, dan `alamat`
-dipakai sebagai pembedanya. **Aturan NPSN di bagian 5 menjawab kebutuhan yang
-sama dengan cara yang lebih murah** — pembedanya dipindah ke dalam nama
-(`MAN 3 Ciamis` dan `MAN 3 Tasikmalaya`), di mana ia juga terbaca panitia,
-bukan hanya terbaca database. Setelah itu `alamat` tidak punya pekerjaan lagi
-sebagai kunci, dan sebaiknya berhenti jadi kunci: sebagai pembeda ia terlalu
-peka — beda satu koma sudah membelah sekolah — dan sebagai keterangan ia
-memang cuma keterangan.
+## 12. Pasang ke database
 
-Jadi obatnya sama dengan yang sudah dipakai untuk `nama_regu` di migrasi 0051:
-**unique index atas nama yang dinormalisasi saja**, ditambah satu langkah
-menyamakan `SMKN` dengan `SMK NEGERI`. Yang ikut berubah: `submit_pendaftaran`
-mencari sekolahnya lewat nama, dan alamat yang diketik pembina tidak lagi
-melahirkan baris baru — baris yang sudah ada tetap dipakai dengan alamat
-kurasi yang ada di sini.
+Bagian 1–11 menghasilkan dua berkas JSON. Bagian ini soal memindahkannya ke
+tabel `sekolah` produksi — dikerjakan 17 Agustus 2026 lewat tiga migrasi, dan
+ditulis di sini karena **dua dari tiga lahir dari kekeliruan**, bukan dari
+rencana.
 
-**Dan akibatnya bukan cuma rekap yang menghitung dua kali.** Pembagian kloter
-menyebar regu satu sekolah supaya tidak berangkat bareng, dan penyebaran itu
-membandingkan `sekolah_id`. Dua baris kembar terbaca sebagai dua sekolah
-berlainan, jadi regunya berangkat bareng — tanpa satu pun pesan galat. Ini
-terlihat di data contoh: lembar edisi lama menulis alamat SMPN 2 CIPAKU dengan
-empat ejaan berbeda, dan keempatnya jadi baris `sekolah` tersendiri.
+### 12.1 Pasang pagarnya dulu, baru isinya
+
+Urutannya bukan selera. Tabel `sekolah` waktu itu sudah berisi 36 baris dari
+data contoh — hasil `submit_pendaftaran` yang mencari sekolah lewat pasangan
+`(name, address)` **persis**, sehingga beda satu koma melahirkan baris baru.
+`SMPN 1 CIAMIS` muncul tiga kali di kotak pilihan pendaftaran, satu di
+antaranya beralamat `nan`. `SMPN 2 CIPAKU` empat kali. Totalnya **36 baris
+untuk 23 sekolah**.
+
+Memasang 188 baris kurasi ke atas tabel seperti itu hanya menambah lapisan.
+Jadi `0061_sekolah_satu_baris.sql` mengerjakan tiga hal berurutan:
+
+1. **Lebur yang kembar.** Yang bertahan baris tertua — ia yang paling mungkin
+   sudah dirujuk pendaftaran. `pendaftaran.sekolah_id` dialihkan ke sana, baru
+   sisanya dihapus. Semua yang dilebur disebut satu per satu lewat
+   `raise notice` **sebelum** dihapus; migrasi yang menghapus baris tanpa
+   menyebut baris mana tidak bisa diperiksa sesudahnya.
+2. **Ganti kuncinya.** `unique (name, address)` dibuang, diganti unique index
+   atas `kunci_sekolah(name)`. Alasannya di bagian 5: pembeda dua sekolah
+   senama pindah ke dalam nama, jadi alamat tidak perlu ikut jadi kunci.
+3. **`submit_pendaftaran` mencari lewat nama.** Dan alamat yang diketik pembina
+   **tidak menimpa** alamat kurasi — ia sedang mendaftarkan regu, bukan sedang
+   memperbaiki data kita. Satu salah ketik tidak boleh menghapus alamat yang
+   sudah benar.
+
+Baru setelah itu `0063_sekolah_daftar_kurasi.sql` memasang 188 barisnya.
+
+### 12.2 Dua kunci penyamaan, dan jangan tertukar
+
+Ini yang paling mudah salah, dan memang salah waktu dikerjakan.
+
+| | `kunci()` di `normalize_sekolah.py` | `kunci_sekolah()` di database |
+| --- | --- | --- |
+| Tugas | **menggabungkan** tulisan tangan jadi klaster | **menolak** baris kembar |
+| Diperiksa manusia? | ya, sekali, hasilnya dibaca | tidak, selamanya |
+| Boleh agresif? | ya | tidak |
+| Menyamakan | `Assalimiyah`~`ASALIMIAH`, ekor daerah, ejaan yayasan | besar-kecil huruf, tanda baca, `SMP Negeri`~`SMPN`, huruf status Dapodik |
+
+Bedanya bukan kelalaian. Kunci database bekerja tanpa ada yang memeriksa
+hasilnya, jadi ia hanya boleh menyamakan yang **pasti** sama — melebur dua
+sekolah yang berbeda adalah kerusakan yang jauh lebih sulit ditemukan daripada
+baris kembar.
+
+**Kekeliruannya:** 0061 memakai kunci database untuk mencocokkan baris produksi
+dengan daftar kurasi. Padahal itu pekerjaan yang dilakukan sekali dan hasilnya
+diperiksa — persis pekerjaan kunci Python. Akibatnya cuma **17 dari 23** yang
+alamatnya jadi baku; enam luput karena namanya berbeda lebih jauh dari yang mau
+disamakan kunci database:
+
+```
+MA ASALIMIAH                  ->  MA Assalimiyah
+MAS AL-KAUTSAR                ->  MA Al-Kautsar
+SMAI NURUL FIKRI              ->  SMA Islam Nurul Fikri
+SMAT RIYADLUL ULUM            ->  SMA Terpadu Riyadlul Ulum
+SMKS GALUH RAHAYU             ->  SMK Galuh Rahayu
+SMPT RIYADLUL ULUM WADDAWAH   ->  SMP Terpadu Riyadlul Ulum Waddawah
+```
+
+`0062_sekolah_nama_dapodik.sql` menutupnya dengan pemetaan **tulis tangan** dari
+nama yang benar-benar ada di produksi. Enam baris, disebut satu per satu, tidak
+ada normalisasi yang perlu dipercaya.
+
+**Kalau mengulanginya tahun depan:** cocokkan ke daftar kurasi memakai `kunci()`
+Python, cetak pasangannya, baca, baru rakit migrasinya. Jangan serahkan
+pencocokan itu ke SQL.
+
+### 12.3 Huruf status Dapodik ikut dibuang, singkatan tidak
+
+Empat dari enam nama di atas berawalan bentuk Dapodik — `MAS`, `SMKS`, `SMAS`,
+`MTsS` — di mana `S` terakhir berarti **Swasta**. Itu status, bukan bagian dari
+nama, dan pembina menulis dua-duanya. `kunci_sekolah()` diperluas membuangnya,
+jadi `SMKS Galuh Rahayu` yang diketik tahun depan mendarat di baris yang sama
+dengan `SMK Galuh Rahayu`.
+
+`SMAI`, `SMAT`, `SMPT` **tidak** ikut, walau ketiganya juga singkatan (Islam,
+Terpadu). Huruf status hanya punya satu arti; membuang `T` dari `SMAT`
+menyamakan "SMA Terpadu X" dengan "SMA X", dan itu bisa saja dua sekolah. Yang
+tidak pasti diselesaikan dengan penggantian nama seperti di 12.2, bukan dengan
+kunci yang lebih rakus.
+
+### 12.4 Mengganti fungsi yang dipakai index
+
+`sekolah_kunci_unik` adalah unique index atas `kunci_sekolah(name)`. Mengganti
+isi fungsinya selagi index-nya berdiri meninggalkan index yang isinya dihitung
+dengan rumus lama: **ia tampak sehat dan diam-diam meloloskan baris kembar.**
+
+Urutan yang benar, dan itu yang ada di kepala 0062:
+
+```sql
+drop index if exists sekolah_kunci_unik;
+create or replace function kunci_sekolah(...) ...;
+-- ganti nama-namanya di sini
+create unique index sekolah_kunci_unik on sekolah (kunci_sekolah(name));
+```
+
+### 12.5 Periksa tabrakan sebelum memasang
+
+`0063` memasang 188 baris dengan `on conflict (kunci_sekolah(name)) do update`.
+Kalau dua nama kurasi menghasilkan kunci yang sama, baris kedua akan **menimpa**
+yang pertama — satu sekolah hilang, tanpa galat, dan yang menyadarinya adalah
+pembina yang tidak menemukan sekolahnya di hari pendaftaran.
+
+Jadi diperiksa dulu di luar database: 190 nama harus menghasilkan 190 kunci
+berbeda. Salin `kunci_sekolah()` ke Python dan jalankan pemeriksaan itu tiap
+kali daftarnya berubah, sebelum merakit migrasinya:
+
+```python
+def kunci_sql(n):
+    s = re.sub(r"[^a-z0-9]+", " ", (n or "").lower())
+    s = re.sub(r"\b(sd|smp|sma|smk|mi|mts|ma)\s+n(egeri)?\b", r"\1n", s)
+    s = re.sub(r"^(sd|smp|sma|smk|mi|mts|ma)s\b", r"\1", s)
+    return re.sub(r"\s+", " ", s).strip()
+```
+
+### 12.6 Yang sengaja tidak dipasang
+
+**Dua sekolah berkeyakinan `rendah`** — `SMK Nusantara 1 Bekasi` dan
+`SMPN 1 Kalijaya` — tidak ikut. Keduanya sudah disisir dari sisi alamat, bukan
+cuma dari sisi nama, dan buntu.
+
+Memasang tebakan lebih buruk daripada tidak memasang apa-apa. Pembina yang
+tidak menemukan sekolahnya akan mengetiknya sendiri, dan jalan itu memang
+disediakan; pembina yang menemukan sekolahnya dengan alamat **salah** tidak
+akan curiga sama sekali.
+
+**Sembilan belas baris `sedang` ikut dipasang.** Yang `sedang` di sana hampir
+selalu kode posnya, bukan sekolahnya — nama dan alamat jalannya sudah dari Data
+Referensi, dan yang berselisih cuma lima angka terakhir antar sumber. Menahan
+sekolah yang namanya sudah pasti karena satu digit kode pos memaksa pembinanya
+mengetik ulang seluruh alamat dari nol, yang justru lebih mungkin salah.
+
+### 12.7 Bisa dijalankan dua kali
+
+`0063` memakai `on conflict do update`, jadi menekan **Apply migration** dua
+kali dari HP tidak melahirkan baris kedua dan tidak mengubah satu pun `id`.
+Itu bukan kerapian: `pendaftaran.sekolah_id` menunjuk `id` tersebut, dan
+migrasi yang menghapus-lalu-menyisipkan akan memutus setiap pendaftaran yang
+sudah ada.
+
+### 12.8 Yang ikut berubah di layar
+
+Kartu "sekolahmu belum ada" di `live/js/daftar.js` dulu berbunyi *"Isi alamat
+sekolahnya — untuk membedakan sekolah bernama sama."* Sejak 0061 kalimat itu
+**keliru**: alamat tidak membedakan apa-apa, nama yang membedakan. Ia dihapus
+daripada dibiarkan mengajarkan yang salah.
+
+Gantinya satu kalimat yang membawa fakta yang tidak ada di layar dan mahal
+kalau tidak diketahui: nama yang persis sama akan **menyatu** dengan sekolah
+itu, jadi tambahkan kabupatennya. Ini `CLAUDE.md` bagian 9.4 dan 9.7 — form
+pendaftaran diisi sekali, oleh orang yang belum pernah dilatih dan tidak punya
+tempat bertanya.
+
+### 12.9 Migrasi dan tesnya
+
+| Berkas | Isi |
+| --- | --- |
+| `0061_sekolah_satu_baris.sql` | lebur 36→23, ganti kunci, `submit_pendaftaran` cari lewat nama |
+| `0062_sekolah_nama_dapodik.sql` | enam nama yang luput + huruf status Dapodik |
+| `0063_sekolah_daftar_kurasi.sql` | pasang 188 sekolah |
+| `tests/sql/28_sekolah_satu_baris.sql` | alamat berbeda tidak melahirkan baris baru — **dan** dua sekolah berbeda tetap boleh berdampingan |
+| `tests/sql/29_sekolah_daftar_kurasi.sql` | tidak ada yang melebur, `id` tidak berpindah saat dijalankan ulang |
+
+Arah kedua di tes 28 yang paling mudah hilang: menghapus pagar lama sambil
+merusak kebutuhan yang melahirkannya bukan perbaikan. `MAN 3 Ciamis` dan
+`MAN 3 Tasikmalaya` harus tetap dua baris.
