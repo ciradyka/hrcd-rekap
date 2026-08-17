@@ -846,7 +846,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dan di 12pt "KEPRAMUKAAN KEAGAMAAN" akan memakan lebar yang dibutuhkan
      kotak isiannya. */
   .lembar-pos .print-table th, .lembar-pos .print-table td {
-    padding: 0.5pt 3pt; font-size: 12pt;
+    /* 0,25pt, bukan 0,5pt. Padding vertikal dikalikan 35 baris: 0,25pt yang
+       dihemat di tiap sel mengembalikan 6mm ke halaman — cukup untuk satu
+       baris regu lagi. Tidak dijadikan nol: pada nol, angka tulisan tangan
+       menyentuh garis kotak, dan garis yang bersinggungan dengan angka
+       adalah hal pertama yang meleleh jadi noda di fotokopi keempat. */
+    padding: 0.25pt 3pt; font-size: 12pt;
     /* Jarak antarbaris huruf inilah yang sebenarnya menentukan tinggi baris
        di sini — BUKAN tinggi kotak isiannya. Dengan line-height bawaan (1,6)
        satu baris setinggi 32px meski kotaknya diminta 6mm.
