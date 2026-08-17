@@ -633,6 +633,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    bukan menempel di tepi kanan layar. */
 .table-daftar-ulang .kol-tukar { text-align: left; }
 
+/* Form Buat Akun: menumpuk dan penuh di HP, sebaris di layar lebar.
+   Tidak ada lebar yang dipatok tangan — itu yang dulu membuat ketiga
+   isiannya terjepit ke kanan begitu wadahnya menyempit. */
+.form-akun { display: grid; gap: .7rem; align-items: end; }
+.form-akun .field { margin: 0; }
+.form-akun .field label { display: block; text-align: left; }
+.form-akun input, .form-akun select { width: 100%; box-sizing: border-box; }
+.form-akun .button { width: 100%; }
+@media (min-width: 720px) {
+  .form-akun { grid-template-columns: 2fr 1.4fr .7fr auto; }
+  .form-akun .button { width: auto; }
+}
+
 .th-saring { cursor: pointer; user-select: none; }
 .th-saring:hover { background: var(--garis); }
 .th-saring.menyaring { color: var(--utama); }

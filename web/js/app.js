@@ -4636,16 +4636,25 @@ async function layarAkun() {
            kotak carinya visually-hidden sehingga tidak memakan tinggi, di
            sini labelnya terlihat — dan rata tengah membuat tombolnya melayang
            setinggi label, tidak sejajar dengan kotak isian di sebelahnya. -->
-      <div class="table-toolbar" style="align-items:flex-end">
+      <!-- Bentuknya sama dengan form pendaftaran: label di atas, isian
+           SELEBAR kartunya. Sebelumnya ia .table-toolbar dengan lebar
+           dipatok inline (14rem, 5rem) — di HP ketiganya terjepit ke kanan,
+           labelnya melayang di tengah, dan kotak Pos menyusut jadi seukuran
+           ibu jari. Lebar tetap di dalam wadah yang menyempit selalu
+           berakhir begitu.
+
+           Di layar lebar ia kembali sebaris lewat grid, tanpa satu pun ukuran
+           dipatok tangan. -->
+      <div class="form-akun">
         <div class="field"><label for="ak-nama">Nama akun</label>
           <input id="ak-nama" type="text" class="small-input" autocomplete="off"
-            placeholder="pos1hrcd37" style="width:14rem"></div>
+            placeholder="pos1hrcd37"></div>
         <div class="field"><label for="ak-peran">Peran</label>
-          <select id="ak-peran" class="select-small">${opsiPeran("meja")}</select></div>
+          <select id="ak-peran" class="select-small">${opsiPeran("registrasi")}</select></div>
         <div class="field"><label for="ak-pos">Pos</label>
           <input id="ak-pos" type="number" class="small-input" inputmode="numeric"
-            min="1" max="20" style="width:5rem" disabled></div>
-        <button class="button button-primary option-small" id="ak-buat" type="button">Buat Akun</button>
+            min="1" max="20" disabled></div>
+        <button class="button button-primary" id="ak-buat" type="button">Buat Akun</button>
       </div>
       <details>
         <summary>Buat banyak sekaligus</summary>
