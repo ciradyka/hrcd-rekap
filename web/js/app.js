@@ -4295,11 +4295,25 @@ async function layarLiveScore() {
                Panel ini tidak bisa ditaruh di dalam <th>: tabelnya duduk di
                dalam wadah bergulir, dan apa pun yang mengambang di dalam sana
                terpotong begitu daftarnya lebih tinggi dari kepala tabel. -->
+          <!-- Panel MENGAMBANG di bawah kepala kolomnya, bukan kotak yang
+               mendorong tabel ke bawah. Posisinya fixed, koordinatnya
+               dihitung saat dibuka: tabelnya duduk di wadah bergulir, dan
+               apa pun yang mengambang DI DALAM sana terpotong begitu
+               daftarnya lebih tinggi dari kepala tabel.
+
+               Kotak ketik di atas daftar: 23 sekolah hari ini masih bisa
+               disapu mata, ratusan tahun depan tidak. Bentuknya sengaja
+               seperti saringan Excel — orang di meja panitia sudah tahu
+               cara memakainya tanpa diberi tahu. -->
           <div class="isi-filter" hidden>
+            <input type="search" class="cari-filter" placeholder="Ketik nama sekolah…"
+                   aria-label="Cari sekolah">
+            <div class="daftar-filter">
+              ${sekolahAda.map(nm => `
+                <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
+            </div>
             <button type="button" class="button tombol-semua"
                     style="padding:.25rem .6rem;font-size:.8rem">Hapus saringan</button>
-            ${sekolahAda.map(nm => `
-              <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
           </div>
           <div class="table-wrapper table-wrapper-tetap">
             <table class="table data-table table-tetap table-rekap table-live">
@@ -4485,10 +4499,38 @@ async function layarLiveScore() {
 
     const kepala = panel.querySelector(".th-saring");
     const isi = panel.querySelector(".isi-filter");
-    const buka = () => {
-      isi.hidden = !isi.hidden;
-      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+    const cariKotak = panel.querySelector(".cari-filter");
+    const tempel = () => {
+      // Ditempel ke kepala kolomnya tiap kali dibuka, bukan sekali saat
+      // digambar: tabelnya bisa digulir ke samping, dan panel yang koordinatnya
+      // dihitung sekali akan tertinggal di tempat lamanya.
+      const r = kepala.getBoundingClientRect();
+      isi.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - 300))}px`;
+      isi.style.top = `${r.bottom + 2}px`;
     };
+    const tutup = () => {
+      isi.hidden = true;
+      kepala.setAttribute("aria-expanded", "false");
+    };
+    const buka = () => {
+      if (isi.hidden) { tempel(); isi.hidden = false; }
+      else isi.hidden = true;
+      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+      if (!isi.hidden && cariKotak) cariKotak.focus();
+    };
+    // Ditutup dengan klik di luar dan dengan Esc — dua jalan yang sudah
+    // dipakai orang tanpa diberi tahu.
+    document.addEventListener("click", e => {
+      if (!isi.hidden && !isi.contains(e.target) && e.target !== kepala
+          && !kepala.contains(e.target)) tutup();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") tutup(); });
+    if (cariKotak) cariKotak.addEventListener("input", () => {
+      const q = cariKotak.value.trim().toLowerCase();
+      panel.querySelectorAll(".daftar-filter label").forEach(l => {
+        l.hidden = q.length > 0 && !l.textContent.toLowerCase().includes(q);
+      });
+    });
     if (kepala) {
       kepala.addEventListener("click", buka);
       // Keyboard juga: <th> bukan tombol, jadi Enter/Space tidak datang
