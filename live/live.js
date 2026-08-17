@@ -350,8 +350,7 @@ function gambarKelengkapan() {
 
   return `
     <div class="kartu">
-      <h2>Kemajuan input</h2>
-      <p class="keterangan">Angka ini bukan nilai — nilai baru terbit saat hasil diumumkan.</p>
+      <h2>Status</h2>
       <ul class="kemajuan">
         ${daftar.map(p => {
           const persen = Number(p.persen) || 0;
@@ -450,8 +449,8 @@ function gambar() {
   if (!META) return;
 
   document.getElementById("judul").textContent =
-    `Rekap Live${META.edisi ? ` — ${META.edisi.name}` : ""}`;
-  document.title = `Rekap Live — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
+    `Live Score${META.edisi ? ` — ${META.edisi.name}` : ""}`;
+  document.title = `Live Score — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
 
   isi.innerHTML = !mulai()
     ? gambarPra()
