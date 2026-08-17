@@ -233,11 +233,25 @@ async function layarHome() {
   // Yang hanya memegang pos tidak punya layar meja sama sekali; papan penuh
   // untuknya adalah papan berisi ubin yang semuanya menjawab kosong.
   if (bolehLihat("pos") && !bolehLihat("pembayaran") && !bolehLihat("keberangkatan")) {
-    LAYAR.replaceChildren(h(html`
+    // Template BIASA, bukan html`` — dan itu bukan kelalaian yang dirapikan
+    // belakangan. html`` meng-escape SETIAP sisipan, sedangkan ikonKotak()
+    // mengembalikan markup; disisipkan ke sana ia tampil sebagai kode SVG
+    // mentah sepanjang empat baris, bukan sebagai ikon. Menu di bawah ini
+    // memakai template biasa untuk alasan yang sama.
+    //
+    // Cacat ini hanya terlihat oleh akun juri pos, dan tidak ada yang login
+    // sebagai juri pos sampai hari simulasi.
+    //
+    // Yang tetap wajib di-escape: nilai dari database. Di sini cuma `pos`.
+    LAYAR.replaceChildren(h(`
       <div class="function-menu">
         <a href="#/pos">
-          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos ${sesi().pos}</div>
+          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos ${esc(sesi().pos)}</div>
         </a>
+        ${bolehLihat("live_score") ? `
+        <a href="#/live-score">
+          <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
+        </a>` : ""}
       </div>
 `));
     return;
