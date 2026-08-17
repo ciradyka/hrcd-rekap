@@ -2293,7 +2293,11 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
       <table class="print-table">
         <thead>
           <tr>
-            <th>No Dada</th><th>Nama Regu</th><th>Organisasi</th><th>Golongan</th>
+            <!-- "Gol.", bukan "Golongan": judulnyalah yang melebarkan
+                 kolom ini, bukan isinya. "GOLONGAN" di 8pt butuh ~17mm
+                 sementara "Pgl Pi" di 10pt cuma ~13mm, dan selisihnya
+                 diambil dari kolom Organisasi yang justru terpotong. -->
+            <th>No Dada</th><th>Nama Regu</th><th>Organisasi</th><th>Gol.</th>
             ${kolom.map(c => `<th class="isian">${esc(c.nama)}
               <span class="kolom-petunjuk">${esc(c.petunjuk)}</span></th>`).join("")}
           </tr>

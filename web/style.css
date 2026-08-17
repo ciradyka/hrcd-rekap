@@ -861,7 +861,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      barisnya 21px sementara sel 12pt lainnya cuma butuh 18px, dan selisih
      3px dikali 30 baris persis yang membuat halaman tumpah. Tebalnya sudah
      cukup membuatnya menonjol, dan di Excel pun semua kolom seukuran. */
-  .lembar-pos .print-table .dada { font-size: 12pt; width: 13mm; }
+  /* 10mm, bukan 13mm: "001" di 12pt tebal butuh ~7mm ditambah padding —
+     yang meminta 13mm adalah JUDULNYA, dan judul boleh membungkus dua
+     baris karena ia dicetak sekali di kepala tabel. Dilaporkan dari
+     lembar yang benar-benar tercetak: kolomnya terlalu lebar. */
+  .lembar-pos .print-table .dada { font-size: 12pt; width: 10mm; }
   /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
      ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
      tinggi hanya akan mengurangi jumlah baris per lembar. */
@@ -929,13 +933,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dikenali dari nomor dadanya. Yang dibeli: kotak nilai naik 14mm ke 18mm.
 
      Golongan disingkat "Pgl Pa" / "Pgk Pa" (GOLONGAN_SINGKAT di app.js), jadi
-     16mm cukup dan 10mm sisanya ikut pindah ke kolom nama. */
+     13mm cukup dan sisanya ikut pindah ke kolom nama. */
   .lembar-pos .print-table td:nth-child(2),
   .lembar-pos .print-table th:nth-child(2) { width: 44mm; max-width: 44mm; }
+  /* Organisasi 48mm, naik 4mm dari kolom No Dada (-3) dan Gol. (-1).
+     Keduanya dulu dilebarkan oleh JUDULNYA, bukan isinya, dan lebar itu
+     diambil dari satu-satunya kolom yang benar-benar terpotong di lembar
+     tercetak: "SMK Bangkit Indonesia…", "SMA Terpadu Riyadlul …". */
   .lembar-pos .print-table td:nth-child(3),
-  .lembar-pos .print-table th:nth-child(3) { width: 44mm; max-width: 44mm; }
+  .lembar-pos .print-table th:nth-child(3) { width: 48mm; max-width: 48mm; }
+  /* 13mm cukup untuk "Pgl Pi" di 10pt; judulnya sudah dipendekkan jadi
+     "Gol." di app.js supaya ia tidak lagi yang menentukan lebar. */
   .lembar-pos .print-table td:nth-child(4),
-  .lembar-pos .print-table th:nth-child(4) { width: 14mm; max-width: 14mm; }
+  .lembar-pos .print-table th:nth-child(4) { width: 13mm; max-width: 13mm; }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
