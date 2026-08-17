@@ -470,3 +470,79 @@ Guidance for Claude Code when working in this repository.
 6. **`UPDATE` tanpa `WHERE` ditolak Supabase.** Ekstensi `safeupdate` aktif di
    produksi tapi TIDAK ada di database uji, jadi tes lokal bisa hijau
    sementara RPC-nya gagal di layar. Tulis `WHERE` yang memang berarti.
+
+---
+
+## 15. CSS tabel: dari layar lebar sampai HP
+
+1. **Setiap tabel data melewati TIGA rentang, bukan dua.** Meja Pembayaran dan
+   Meja Daftar Ulang dua-duanya begitu, dan aturan yang benar di satu rentang
+   bisa merusak yang lain:
+   - **≤ 900px** — barisnya bukan tabel lagi melainkan **kartu**
+     (`.data-table:not(.table-tetap) … { display: block }`). Patokan lebar
+     kolom tidak berarti apa pun di sini.
+   - **901–940px** — tabel `auto`. Lebar diserahkan ke isinya; blok
+     `@media (min-width: 901px) and (max-width: 940px)` yang mengaturnya.
+   - **≥ 941px** — tabel `fixed`, dipasangkan dengan tabel rinciannya.
+2. **Contoh yang benar adalah Meja Pembayaran, tiru bentuknya.** Induk enam
+   kolom `18/24/6/12/15/25`, rincian lima kolom `18/24/18/15/25`. Dua-duanya
+   berjumlah **100**, kolom pertamanya bertemu di 18% dan kolom terakhirnya di
+   25% — itulah yang membuat angka rupiah tiap regu jatuh tepat di bawah
+   tombol "Tandai Lunas". Kolom di antaranya boleh berbeda; yang harus
+   bertemu cuma yang berpasangan.
+3. **Di bawah `table-layout: fixed`, kolom yang tidak dipatok dapat NOL —
+   bukan sisanya.** Ini kebalikan dari `auto`, dan itulah jebakan yang paling
+   sering kena: menambah satu kolom tanpa menambah persentasenya membuat
+   kolom itu selebar nol dan isinya meluap keluar tabel. Kolom "Tukar nomor
+   rusak" di Meja Daftar Ulang persis begitu — terukur `170/550/280/0` px,
+   dan penggulir mendatar muncul bahkan di layar 1920px.
+4. **Dua tabel hanya sejajar kalau jumlah kolomnya SAMA.** Kalau induknya
+   punya kolom yang tidak ada di rincian, beri rincian satu **sel kosong**
+   (`<td class="kol-imbang">`) dan sembunyikan di bawah 941px. Menyiasatinya
+   dengan `width` yang tidak berjumlah 100% tidak bekerja: sisa lebarnya
+   dibagi rata ke semua kolom, dan pasangannya bergeser.
+5. **Tabel rincian bersarang DI DALAM tabel induk, jadi selektor keturunan
+   bocor.** `.table-daftar-ulang th:nth-child(3)` juga mengenai kolom ketiga
+   tabel rincian, dan yang menang cuma ditentukan urutan baris di berkas.
+   Tulis rantai anak — `.table-induk > thead > tr > th:nth-child(3)` — untuk
+   setiap patokan lebar dan perataan. Di bawah `fixed` cukup baris kepalanya:
+   hanya baris pertama yang menentukan lebar kolom.
+6. **Selektor yang sama persis, di media query yang sama, dua kali = yang
+   belakangan menang tanpa suara.** Kartu HP Meja Daftar Ulang punya blok
+   `display: flex` yang tidak pernah berlaku sedetik pun, karena 160 baris di
+   bawahnya ada blok `display: grid` dengan selektor yang sama. Dua-duanya
+   terbaca benar sendiri-sendiri. Sebelum menambah blok baru, **cari dulu
+   selektor itu di seluruh berkas.**
+7. **Aturan lebar di luar media query berlaku di rentang yang mungkin tidak
+   dimaksud.** `width: 1%` untuk kolom Sekolah dulu tidak terpakai di rentang
+   kartu, berarti harfiah 1% di rentang `fixed`, dan di rentang 901–940 justru
+   **mengalahkan** `width: auto` milik blok itu sendiri karena kekhususannya
+   lebih tinggi — nama sekolah menyusut jadi 94px dan patah empat baris. Satu
+   aturan, tiga rentang, tidak satu pun terbantu.
+8. **Aturan CSS baru WAJIB diukur, bukan dibaca.** Menambah satu baris CSS
+   terasa seperti perubahan yang pasti jadi, dan justru itu yang membuatnya
+   jarang dicek. Lima kali dalam satu hari aturannya ada, terbaca benar, dan
+   tidak mengenai apa pun. Yang menyelesaikan semuanya adalah mengukur di
+   browser.
+9. **Cara mengukurnya, dan ini murah.** Buat satu halaman contoh berisi markup
+   tabelnya (baris terpanjang, rincian terbuka, nama sekolah terpanjang di
+   data sungguhan), sajikan dengan `python -m http.server`, lalu muat di dalam
+   **iframe** dan ubah-ubah lebar iframe-nya. Media query membaca lebar
+   iframe, jadi seluruh rentang bisa disapu tanpa mengubah ukuran jendela —
+   termasuk lebar HP yang tidak bisa dicapai jendela browser. Yang diperiksa:
+   - `wrapper.scrollWidth > wrapper.clientWidth` — ada penggulir mendatar
+   - `td.scrollWidth > td.clientWidth` — isi sel meluap
+   - jarak kiri kotak isian vs tombol pasangannya — harus 0
+   - kotak yang saling tembus, dibandingkan dari `getBoundingClientRect()`
+10. **Persentase kolom diambil dari isi terpanjang di data sungguhan, bukan
+    dari perasaan.** Ukur `max-content` tiap sel di browser lebih dulu, lalu
+    periksa angkanya di tabel TERSEMPIT yang mungkin di rentang itu — untuk
+    blok `≥ 941px` itu ~869px, saat ambangnya baru saja terlewat. Kode bayar
+    140px dan tombol Tukar 151px yang menentukan 18% dan 20%, bukan
+    sebaliknya.
+11. **Kalau sebuah aturan tidak berlaku, jangan menambah aturan untuk
+    membatalkannya.** Empat kali berturut-turut hal itu dicoba di tabel yang
+    sama dan tidak satu pun mengubah apa-apa, karena yang salah bukan nilainya
+    melainkan kekhususan, urutan, atau rentangnya. Cari aturan yang menang
+    lebih dulu — di browser, lewat `el.matches(r.selectorText)` atas seluruh
+    `document.styleSheets`.
