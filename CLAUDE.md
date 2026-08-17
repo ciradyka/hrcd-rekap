@@ -508,23 +508,34 @@ Guidance for Claude Code when working in this repository.
    setiap patokan lebar dan perataan. Di bawah `fixed` cukup baris kepalanya:
    hanya baris pertama yang menentukan lebar kolom.
 6. **Selektor yang sama persis, di media query yang sama, dua kali = yang
-   belakangan menang tanpa suara.** Kartu HP Meja Daftar Ulang punya blok
-   `display: flex` yang tidak pernah berlaku sedetik pun, karena 160 baris di
-   bawahnya ada blok `display: grid` dengan selektor yang sama. Dua-duanya
-   terbaca benar sendiri-sendiri. Sebelum menambah blok baru, **cari dulu
+   belakangan menang tanpa suara.** Kartu HP Meja Daftar Ulang sempat punya
+   blok `display: flex` yang tidak pernah berlaku sedetik pun, karena 160
+   baris di bawahnya ada blok `display: grid` dengan selektor yang sama.
+   Dua-duanya terbaca benar sendiri-sendiri, dan tidak ada galat apa pun.
+   Sekarang tinggal satu blok. Sebelum menambah blok baru, **cari dulu
    selektor itu di seluruh berkas.**
-7. **Aturan lebar di luar media query berlaku di rentang yang mungkin tidak
+7. **Kartu HP juga meniru Meja Pembayaran: grid dua kolom
+   `max-content 1fr`** — kode pembayaran di kiri, nama sekolah di kanan.
+   Kolom kiri selebar kode, yang panjangnya selalu sama, jadi nama sekolah
+   berbaris lurus dari kartu ke kartu dan yang panjang membungkus DI DALAM
+   kolomnya. Dengan flex ia mengalir tepat di sebelah kodenya dan tepi
+   kirinya berpindah-pindah. **Syaratnya tiap sel diberi `grid-area`
+   sendiri** — sel yang lupa ditempatkan ikut penempatan otomatis dan
+   menumpuk sel lain, dan itulah tombol Tukar yang dulu tercetak di atas pil
+   nomor dada. Grid tidak pernah jadi masalahnya; sel yang tidak ditempatkan
+   yang jadi masalah.
+8. **Aturan lebar di luar media query berlaku di rentang yang mungkin tidak
    dimaksud.** `width: 1%` untuk kolom Sekolah dulu tidak terpakai di rentang
    kartu, berarti harfiah 1% di rentang `fixed`, dan di rentang 901–940 justru
    **mengalahkan** `width: auto` milik blok itu sendiri karena kekhususannya
    lebih tinggi — nama sekolah menyusut jadi 94px dan patah empat baris. Satu
    aturan, tiga rentang, tidak satu pun terbantu.
-8. **Aturan CSS baru WAJIB diukur, bukan dibaca.** Menambah satu baris CSS
+9. **Aturan CSS baru WAJIB diukur, bukan dibaca.** Menambah satu baris CSS
    terasa seperti perubahan yang pasti jadi, dan justru itu yang membuatnya
    jarang dicek. Lima kali dalam satu hari aturannya ada, terbaca benar, dan
    tidak mengenai apa pun. Yang menyelesaikan semuanya adalah mengukur di
    browser.
-9. **Cara mengukurnya, dan ini murah.** Buat satu halaman contoh berisi markup
+10. **Cara mengukurnya, dan ini murah.** Buat satu halaman contoh berisi markup
    tabelnya (baris terpanjang, rincian terbuka, nama sekolah terpanjang di
    data sungguhan), sajikan dengan `python -m http.server`, lalu muat di dalam
    **iframe** dan ubah-ubah lebar iframe-nya. Media query membaca lebar
@@ -534,13 +545,13 @@ Guidance for Claude Code when working in this repository.
    - `td.scrollWidth > td.clientWidth` — isi sel meluap
    - jarak kiri kotak isian vs tombol pasangannya — harus 0
    - kotak yang saling tembus, dibandingkan dari `getBoundingClientRect()`
-10. **Persentase kolom diambil dari isi terpanjang di data sungguhan, bukan
+11. **Persentase kolom diambil dari isi terpanjang di data sungguhan, bukan
     dari perasaan.** Ukur `max-content` tiap sel di browser lebih dulu, lalu
     periksa angkanya di tabel TERSEMPIT yang mungkin di rentang itu — untuk
     blok `≥ 941px` itu ~869px, saat ambangnya baru saja terlewat. Kode bayar
     140px dan tombol Tukar 151px yang menentukan 18% dan 20%, bukan
     sebaliknya.
-11. **Kalau sebuah aturan tidak berlaku, jangan menambah aturan untuk
+12. **Kalau sebuah aturan tidak berlaku, jangan menambah aturan untuk
     membatalkannya.** Empat kali berturut-turut hal itu dicoba di tabel yang
     sama dan tidak satu pun mengubah apa-apa, karena yang salah bukan nilainya
     melainkan kekhususan, urutan, atau rentangnya. Cari aturan yang menang
