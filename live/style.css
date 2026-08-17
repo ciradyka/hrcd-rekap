@@ -622,49 +622,33 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Penyaring sekolah di papan Live Score. <details> bawaan, dirapikan.
    Daftarnya bisa panjang — 23 sekolah hari ini, ratusan tahun depan — jadi ia
    digulung sendiri dan tidak pernah mendorong tabel keluar layar. */
-/* Meja Daftar Ulang: nomor dada RATA KIRI dan selebar isinya saja.
-   Sebelumnya nomor dan tombol tukar berbagi satu kolom yang mengambil seluruh
-   sisa lebar, jadi pilnya terdorong jauh ke kanan — mata harus menyeberangi
-   ruang kosong dari nama sekolah ke nomornya. */
-/* Yang menyerap sisa lebar adalah kolom TERAKHIR, bukan Sekolah.
-   Sebelumnya Sekolah yang mengembang, jadi nomor dada terdorong ke tepi
-   kanan layar — mata harus menyeberangi ruang kosong selebar setengah tabel
-   untuk sampai ke angka yang justru dicari. Sekarang keempatnya rapat ke
-   kiri, dan tabelnya tidak lagi perlu digulir ke samping. */
-/* CATATAN UNTUK YANG MELANJUTKAN — tabel ini `table-layout: fixed`.
-   Lihat @media (min-width: 941px) jauh di bawah: tabel induk dan tabel
-   rinciannya dipatok fixed dengan lebar kolom PERSIS SAMA, supaya kotak
-   nomor dada jatuh tepat di bawah tombol yang membukanya.
+/* Meja Daftar Ulang. Nomor dada RATA KIRI dan duduk rapat di sebelah nama
+   sekolah: sebelumnya kolom Sekolah yang mengembang, jadi pil nomornya
+   terdorong ke tepi kanan dan mata harus menyeberangi ruang kosong selebar
+   setengah tabel untuk sampai ke angka yang justru dicari.
 
-   Akibatnya `width: 1%` di aturan-aturan berikut TIDAK berarti "sesempit
-   isinya" — di bawah fixed ia harfiah 1%, dan kolom tanpa lebar kebagian
-   sisa yang dibagi rata. Terukur di browser: 173 / 559 / 284 / 0 px; kolom
-   tombol Tukar dapat NOL dan tombolnya meluap keluar tabel.
+   TIGA RENTANG, dan aturan lebar hanya berlaku di satu di antaranya:
 
-   Jadi memperbaikinya BUKAN dengan menambah aturan lebar lagi, melainkan
-   dengan memberi keempat kolom persentase yang berjumlah 100% — dan
-   pasangannya di .detail-table-dada harus ikut, seperti diminta catatan di
-   media query itu. Belum dikerjakan. */
+     <= 900px   barisnya BUKAN tabel lagi melainkan kartu (display: flex,
+                lihat blok @media (max-width: 900px) di bawah). Lebar kolom
+                tidak berarti apa pun di sini.
+     901-940px  tabel `auto`. Lebar kolom diserahkan ke isinya — blok
+                @media (min-width: 901px) and (max-width: 940px) yang mengatur.
+     >= 941px   tabel `fixed`, berpasangan dengan tabel rinciannya supaya
+                kotak nomor dada jatuh tepat di bawah tombol yang membukanya.
+                Lebarnya persentase, dan HARUS berjumlah 100%.
 
-/* `width: 1%` menyusutkan kolomnya sesempit isinya SELAMA masih muat — itu
-   yang membuat nomor dada duduk rapat di sebelah nama sekolah. Tapi TANPA
-   `nowrap`: nama seperti "MA Al-Azhar Citangkolo Kota Banjar" yang dilarang
-   patah memaksa tabelnya melebar melewati kartu, dan penggulir mendatar
-   muncul lagi. Kalau ruangnya sempit, yang mengalah namanya — bukan
-   tabelnya. */
-.table-daftar-ulang th:nth-child(2),
-.table-daftar-ulang td:nth-child(2) { width: 1%; }
-.table-daftar-ulang .kol-dada { width: 1%; white-space: nowrap; text-align: left; }
-/* Kolom terakhir sengaja TANPA `width`. Dengan table-layout auto, sisa lebar
-   jatuh ke kolom yang tidak dipatok — dan `width: 100%` justru meminta lebar
-   penuh untuk SATU sel, yang melebarkan tabelnya melewati wadahnya: pil nomor
-   dada terdorong ke kanan lagi dan penggulir mendatar muncul kembali.
-   Yang dibutuhkan bukan "seluas mungkin", melainkan "sisanya". */
-.table-daftar-ulang .kol-tukar { width: auto; }
+   Karena itu tidak ada lagi patokan `width` di luar media query di sini.
+   Sempat ada `width: 1%` untuk Sekolah dan kolom dada: di rentang kartu ia
+   tidak terpakai, di rentang `fixed` ia berarti harfiah 1%, dan di rentang
+   901-940 ia justru MENGALAHKAN `width: auto` milik blok itu sendiri
+   (kekhususannya lebih tinggi) — nama sekolah menyusut jadi 94px dan patah
+   empat baris. Satu aturan, tiga rentang, tidak satu pun terbantu. */
+.table-daftar-ulang .kol-dada { white-space: nowrap; text-align: left; }
 .table-daftar-ulang .kol-dada .pill-row,
 .table-daftar-ulang .kol-dada .sub { justify-content: flex-start; }
-/* Tombol tukar mengambil sisanya, rata kiri juga — ia mengikuti nomornya,
-   bukan menempel di tepi kanan layar. */
+/* Tombol tukar rata kiri juga — ia mengikuti nomornya, bukan menempel di
+   tepi kanan layar. */
 .table-daftar-ulang .kol-tukar { text-align: left; }
 
 /* Form Buat Akun: menumpuk dan penuh di HP, sebaris di layar lebar.
@@ -1324,34 +1308,60 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      samping tepat di ambangnya dan kolom paling kanan — kolom tombol —
      hilang dari layar. Sempat 860px, dan persis itu yang terjadi. */
   .table-daftar-ulang { min-width: 790px; }
-  /* Tabel induk punya TIGA kolom, rinciannya EMPAT. Yang wajib sejajar cuma
-     kolom pertama (tepi kiri rapi) dan kolom TERAKHIR — kotak nomor dada
-     harus jatuh tepat di bawah tombol "Isi N Nomor Dada" yang membukanya,
-     kalau meleset petugas harus menelusuri baris dengan jari untuk memastikan
-     ia mengetik di sekolah yang benar.
+  /* Tabel induk punya EMPAT kolom: kode, sekolah, nomor dada, tukar. Tabel
+     rinciannya juga empat isi — regu, kategori, ketua, kotak nomor dada —
+     ditambah SATU SEL KOSONG di ujung supaya jumlah kolomnya sama. Sel kosong
+     itu bukan hiasan: di bawah `fixed` dua tabel hanya sejajar kalau kolomnya
+     sama banyak.
 
-     Karena itu 17% + 55% induk = 17% + 27% + 28% rincian, dua-duanya berhenti
-     di 72%, lalu kolom terakhir sama-sama 28%. Kalau salah satu angka
-     diubah, jumlah pasangannya ikut. */
-  .table-daftar-ulang th:nth-child(1), .table-daftar-ulang td:nth-child(1),
-  .detail-table-dada  th:nth-child(1), .detail-table-dada  td:nth-child(1) { width: 17%; }
-  .table-daftar-ulang th:nth-child(2), .table-daftar-ulang td:nth-child(2) { width: 55%; }
-  .detail-table-dada  th:nth-child(2), .detail-table-dada  td:nth-child(2) { width: 27%; }
-  .detail-table-dada  th:nth-child(3), .detail-table-dada  td:nth-child(3) { width: 28%; }
-  .table-daftar-ulang th:nth-child(3), .table-daftar-ulang td:nth-child(3),
-  .detail-table-dada  th:nth-child(4), .detail-table-dada  td:nth-child(4) { width: 28%; }
+     Yang wajib sejajar ada dua: kolom pertama (tepi kiri rapi) dan kolom
+     NOMOR DADA — kotak isian di rincian harus jatuh tepat di bawah tombol
+     "Isi N Nomor Dada" yang membukanya, kalau meleset petugas harus
+     menelusuri baris dengan jari untuk memastikan ia mengetik di sekolah
+     yang benar.
 
-  /* Isi kolom terakhir DITENGAHKAN, bukan rata kiri atau rata kanan. Tombol
-     "Isi N Nomor Dada", deretan nomor yang sudah terbit, kotak isian di
-     rinciannya, dan tombol "Simpan N Nomor Dada" jadi berbagi satu garis
-     tengah — mata turun lurus dari tombol pembuka ke kotak isian ke tombol
-     simpan, tidak melompat ke kiri lalu ke kanan. */
-  /* nth-child(3), bukan (4): kolom Regu sudah dihapus, kolom aksi naik jadi
-     kolom ketiga. Salah nomor di sini tidak menimbulkan galat apa pun —
-     aturannya sekadar tidak mengenai apa-apa, dan tombol pembuka meleset
-     ~74px dari kotak nomor dada yang seharusnya jatuh tepat di bawahnya. */
-  .table-daftar-ulang td:nth-child(3) { text-align: center; }
-  .table-daftar-ulang td:nth-child(3) .pill-row { justify-content: center; }
+     Karena itu 18% + 35% induk = 18% + 18% + 17% rincian; dua-duanya berhenti
+     di 53%, lalu kolom dada sama-sama 27% dan kolom tukar sama-sama 20%.
+     Kalau salah satu angka diubah, jumlah pasangannya ikut.
+
+     KEEMPATNYA HARUS BERJUMLAH 100%. Di bawah `fixed` kolom yang tidak
+     dipatok tidak mengambil sisanya — ia dapat NOL. Persis itu yang terjadi
+     waktu kolom tukar dipisah dari kolom dada dan blok ini masih menghitung
+     tiga kolom: terukur 170 / 550 / 280 / 0 px, tombolnya meluap keluar
+     tabel dan penggulir mendatar muncul di layar selebar 1920px.
+
+     Angkanya diukur, bukan ditebak: kode bayar 140px, tombol Tukar 151px. Di
+     tabel tersempit yang mungkin di blok ini (~869px, saat ambang 941 baru
+     terlewat) 18% = 156px dan 20% = 174px — dua-duanya masih muat.
+
+     TANDA `>` ITU WAJIB, BUKAN GAYA PENULISAN. Tabel rincian berada DI DALAM
+     tabel induk — barisnya sel di tbody induk — jadi `.table-daftar-ulang
+     th:nth-child(3)` yang ditulis dengan spasi juga mengenai kolom ketiga
+     tabel RINCIAN. Kolom Ketua lalu memakai lebar kolom nomor dada induk,
+     dan yang mana yang menang cuma ditentukan urutan baris di berkas ini.
+     Terukur waktu itu: kotak isian meleset 107px dari tombol yang
+     membukanya, tanpa satu pun aturan yang terlihat salah.
+
+     Lebarnya dipasang di baris KEPALA saja. Di bawah `fixed` hanya baris
+     pertama yang menentukan lebar kolom, jadi menuliskannya dua kali (th dan
+     td) cuma menggandakan tempat untuk keliru. */
+  .table-daftar-ulang > thead > tr > th:nth-child(1),
+  .detail-table-dada  > thead > tr > th:nth-child(1) { width: 18%; }
+  .table-daftar-ulang > thead > tr > th:nth-child(2) { width: 35%; }
+  .detail-table-dada  > thead > tr > th:nth-child(2) { width: 18%; }
+  .detail-table-dada  > thead > tr > th:nth-child(3) { width: 17%; }
+  .table-daftar-ulang > thead > tr > th:nth-child(3),
+  .detail-table-dada  > thead > tr > th:nth-child(4) { width: 27%; }
+  .table-daftar-ulang > thead > tr > th:nth-child(4),
+  .detail-table-dada  > thead > tr > th:nth-child(5) { width: 20%; }
+
+  /* Isi kolom nomor dada RATA KIRI — dan kotak isian di rinciannya juga.
+     Keduanya menempati kolom 27% yang sama, jadi keduanya mulai di garis kiri
+     yang sama: mata turun lurus dari tombol pembuka ke kotak isian. Dulu
+     ditengahkan, dan di layar lebar itu membuat nomor dada mengambang jauh
+     dari nama sekolah yang baru saja dibaca. */
+  .table-daftar-ulang > tbody > tr > td:nth-child(3) { text-align: left; }
+  .table-daftar-ulang > tbody > tr > td:nth-child(3) .pill-row { justify-content: flex-start; }
   /* Kotak angka melebar sedikit — sasaran klik lebih besar, dan titik
      tengahnya jatuh persis segaris dengan tombol Simpan di bawahnya. */
   .detail-table-dada input.small-input { width: 100%; max-width: 8rem; }
@@ -1362,6 +1372,20 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    bergeser beberapa piksel dan kesejajarannya hilang lagi. */
 .detail-table-dada th, .detail-table-dada td { padding-left: .5rem; padding-right: .5rem; }
 .detail-table-dada th:last-child, .detail-table-dada td:last-child { min-width: 0; }
+/* Sel penyeimbang cuma berguna di layar lebar, tempat kedua tabel dipatok
+   `fixed` dan hanya sejajar kalau jumlah kolomnya sama. Di bawah 941px
+   tabelnya `auto` — tidak ada yang perlu disejajarkan — dan di HP barisnya
+   bahkan bukan tabel lagi melainkan kartu, jadi sel kosong itu akan muncul
+   sebagai petak melompong di bawah kotak isian.
+
+   Ditulis dengan `.detail-table-dada td.kol-imbang`, bukan `.kol-imbang`
+   saja: aturan kartu HP memakai `.detail-table td { display: block }` yang
+   kekhususannya lebih tinggi daripada satu kelas, jadi `.kol-imbang` sendirian
+   akan kalah dan selnya tetap tampil. */
+@media (max-width: 940px) {
+  .detail-table-dada th.kol-imbang,
+  .detail-table-dada td.kol-imbang { display: none; }
+}
 /* Sel pembungkus rincian dibuat rata kiri-kanan supaya tabel di dalamnya
    selebar tabel induk. Padding atas-bawah tetap, itu yang memisahkan blok. */
 .detail-cell-flush { padding-left: 0 !important; padding-right: 0 !important; }
@@ -1507,6 +1531,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .detail-table th, .detail-table td,
   .detail-table th:last-child, .detail-table td:last-child,
   .detail-table th.text-right, .detail-table td.text-right { text-align: center; }
+
+  /* KECUALI kolom nomor dada di Meja Daftar Ulang. Kolom itu punya pasangan
+     di tabel induk — tombol "Isi N Nomor Dada" yang membukanya — dan sejak
+     tombol itu dibuat rata kiri, kotaknya harus rata kiri juga. Ditengahkan,
+     kotak isian duduk 66px di kanan tombolnya meski kolomnya sudah sejajar
+     sempurna: yang meleset bukan kolomnya, melainkan isi di dalamnya.
+     Terukur, bukan dikira-kira. */
+  .detail-table-dada > thead > tr > th:nth-child(4),
+  .detail-table-dada > tbody > tr > td:nth-child(4) { text-align: left; }
 }
 
 /* Cara bayar disimpan huruf kecil di database ('tunai'/'transfer') karena
@@ -2119,27 +2152,18 @@ input.small-input { text-align: center; }
   /* ---- Kartu HP meja daftar ulang ----
          HRCD37-7808B6   SMPN 1 HAHAHA
          ▾ Isi 5 Nomor Dada
+         [ Tukar nomor rusak… ]
 
-     Kolomnya `max-content 1fr`: kolom kiri persis selebar kode pembayaran
-     dan tidak tergerus, sisanya untuk nama sekolah. */
-  .table-daftar-ulang tbody tr[data-baris] {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: .2rem .8rem;
-    /* Ditengahkan tegak, sama seperti kartu meja pembayaran: kode pembayaran
-       memakai huruf yang lebih besar daripada nama sekolah di sebelahnya. */
-    align-items: center;
-  }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] { grid-area: 1 / 1; }
-  .data-table.table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"]::before { content: none; }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] { grid-area: 1 / 2; }
-  /* Tombol pembuka melintang penuh di baris kedua, rapat ke sekolahnya —
-     aksinya membuka daftar milik sekolah yang baru saja dibaca, bukan blok
-     baru yang berdiri sendiri. Kolom Regu sudah tidak ada lagi (jumlahnya
-     tercetak di dalam tombol ini), jadi baris kedua langsung miliknya. */
-  .table-daftar-ulang tbody tr[data-baris] > td:last-child {
-    grid-area: 2 / 1 / auto / 3; margin-top: 0;
-  }
+     Aturannya ADA DI ATAS, di blok flex ~160 baris sebelum ini. Di tempat
+     inilah dulu berdiri versi grid-nya, dengan SELEKTOR YANG SAMA PERSIS dan
+     di media query yang sama — jadi ia menang hanya karena ditulis
+     belakangan, dan blok flex di atas tidak pernah berlaku sedetik pun.
+     Itulah kartu yang "tembus": tombol Tukar menumpuk pil nomor dada, karena
+     grid menempatkan sendiri sel yang lupa diberi petak.
+
+     Yang menyesatkan: kedua blok terbaca benar sendiri-sendiri, dan tidak ada
+     galat apa pun. Kalau menambah aturan kartu daftar ulang, tambahkan di
+     blok flex itu — jangan membuka blok baru di sini. */
 
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
      ke kartu invoice di atasnya — bertumpuk, rincian yang mengambang bebas

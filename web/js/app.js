@@ -964,7 +964,14 @@ async function layarDaftarUlang() {
           <td colspan="4" class="detail-cell-flush">
             <table class="detail-table detail-table-dada">
               <thead>
-                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>
+                <!-- Sel kosong terakhir menyeimbangkan kolom "Tukar nomor
+                     rusak…" di tabel induk. Tanpa itu jumlah kolom kedua
+                     tabel berbeda, dan di layar lebar (table-layout: fixed)
+                     kotak nomor dada tidak lagi jatuh tepat di bawah tombol
+                     yang membukanya. Disembunyikan di bawah 941px — lihat
+                     style.css. -->
+                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th>
+                    <th class="kol-imbang"></th></tr>
               </thead>
               <tbody>
                 ${menunggu.map(r => `
@@ -975,6 +982,7 @@ async function layarDaftarUlang() {
                     <td><input type="number" class="small-input" inputmode="numeric" min="1"
                                data-dada="${esc(r.id)}" data-untuk="${kode}"
                                value="${esc(nilaiDada.get(r.id) ?? "")}"></td>
+                    <td class="kol-imbang"></td>
                   </tr>`).join("")}
               </tbody>
             </table>
