@@ -287,6 +287,21 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
    ------------------------------------------------------------------------- */
 let golAktif = URUT_GOLONGAN[0];
 
+/* Rentang nilai di kepala kolom — aturannya DISALIN dari petunjukKolom() di
+   layar panitia, dan memang harus sama persis: dua papan yang menulis
+   rentang berbeda untuk komponen yang sama adalah dua papan yang saling
+   membantah di depan orang yang sedang membandingkannya.
+   Yang keluar cuma batas dan satuan, tidak pernah nilai siapa pun. */
+function petunjukKolom(k) {
+  if (k.petunjuk) return k.petunjuk;
+  if (k.form === "biner") return "centang bila benar";
+  if (k.satuan === "detik") return "detik";
+  if (k.form === "benar_kurang_salah") return "benar / salah";
+  if (k.form === "benar_per_total") return `0 – ${k.total_soal}`;
+  if (k.rentang_mentah_min === null || k.rentang_mentah_min === undefined) return "";
+  return `${k.rentang_mentah_min} – ${k.rentang_mentah_maks}`;
+}
+
 function barisPapan() {
   const progres = (REKAP && REKAP.progres) || [];
   const klasemen = (REKAP && REKAP.klasemen) || [];
@@ -321,7 +336,15 @@ function gambarPapan() {
     const milik = komponen.filter(w => w.pos === p.nomor);
     const nama = [];
     for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
-    return { pos: p, nama, milik };
+    // Satu nama kolom bisa punya beberapa varian golongan dengan rentang
+    // berbeda (Tebak Simpul 0-5 untuk Penggalang, 0-10 untuk Penegak).
+    // Keduanya ditulis, dipisah garis miring — sama seperti blangko cetak.
+    const petunjuk = {};
+    for (const nm of nama) {
+      petunjuk[nm] = [...new Set(milik.filter(w => w.name === nm)
+        .map(petunjukKolom).filter(Boolean))].join(" / ");
+    }
+    return { pos: p, nama, milik, petunjuk };
   }).filter(x => x.nama.length);
 
   const kartu = URUT_GOLONGAN.map(g => {
@@ -371,7 +394,9 @@ function gambarPapan() {
                 ${penuh ? `<th rowspan="2">Penalti</th><th rowspan="2">Total</th>` : ""}
               </tr>
               <tr>${perPos.map(x => x.nama.map(nm =>
-                `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("")}</tr>
+                `<th class="pos kol-komponen">${esc(nm)}${x.petunjuk[nm]
+                  ? `<span class="kolom-petunjuk">${esc(x.petunjuk[nm])}</span>`
+                  : ""}</th>`).join("")).join("")}</tr>
             </thead>
             <tbody>
               ${baris.map(b => {

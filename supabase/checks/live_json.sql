@@ -50,7 +50,14 @@ select jsonb_pretty(jsonb_build_object(
   'komponen', (select coalesce(jsonb_agg(jsonb_build_object(
                         'kode', w.kode, 'name', w.name, 'pos', w.pos,
                         'golongan', w.golongan, 'lomba', w.lomba,
-                        'sort_order', w.sort_order)
+                        'sort_order', w.sort_order,
+                        -- Bahan untuk menulis RENTANG di kepala kolom.
+                        -- Angkanya, bukan nilai siapa pun: "0 - 5" sama
+                        -- terbukanya dengan nama komponennya sendiri.
+                        'petunjuk', w.petunjuk, 'form', w.form,
+                        'satuan', w.satuan, 'total_soal', w.total_soal,
+                        'rentang_mentah_min', w.rentang_mentah_min,
+                        'rentang_mentah_maks', w.rentang_mentah_maks)
                       order by w.pos, w.sort_order, w.kode), '[]'::jsonb)
                from wahana w where w.edisi = edisi_aktif()),
 
