@@ -564,6 +564,11 @@ sekolah beres — atau CI-nya merah.
 migrasi 0061–0063). Yang belum masuk cuma dua yang alamatnya memang belum
 ketemu. Caranya, beserta yang salah dulu baru betul, ada di bagian 12.
 
+Pagar kembarnya **sudah terpasang**: `unique index` atas
+`kunci_sekolah(name)`, dan `submit_pendaftaran` mencari sekolahnya lewat
+nama — alamat yang diketik pembina tidak lagi melahirkan baris baru dan
+tidak menimpa alamat kurasi.
+
 ---
 
 ## 12. Pasang ke database
