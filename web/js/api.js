@@ -757,6 +757,92 @@ export async function kuotaFoto() {
   return Array.isArray(d) ? d[0] : d;
 }
 
+/* ---------------------------- FOTO BORONGAN ----------------------------
+
+   Foto lembar jawaban yang diambil DI POS, banyak sekaligus, nomor dadanya
+   ditautkan belakangan (migrasi 0074).
+
+   Bedanya dengan unggahFotoLembar di atas cuma satu hal, tapi hal itu yang
+   mengubah segalanya: nomor dada BELUM DIKETAHUI saat gambarnya naik. Jadi
+   ia tidak ikut ke nama berkas, dan barisnya lahir tanpa regu.
+
+   Kenapa tidak menambah cabang ke unggahFotoLembar: fungsi itu menerima nomor
+   dada sebagai argumen wajib dan memakainya di dua tempat. Membuat argumen
+   wajib jadi opsional membuat pemanggil lama diam-diam boleh lupa mengisinya
+   — dan foto yang seharusnya tertaut sendiri jadi menganggur di antrean. */
+
+/** Nama objek untuk foto yang belum berdada.
+ *
+ *  TIDAK ada segmen `belum/`. Bucket `lembar` tidak punya policy UPDATE
+ *  maupun DELETE sama sekali, jadi objeknya tidak akan pernah bisa dipindah —
+ *  folder bernama "belum tertaut" akan berbohong sejak foto itu tertaut, dan
+ *  berbohong selamanya. Keadaan tautan hidup di baris database.
+ *
+ *  Segmen pertama tetap `pos<n>`: itulah yang dipagari policy storage.objects
+ *  dan diperiksa ulang catat_foto_masuk. */
+export function namaObjekFotoMasuk(pos, kodeLomba) {
+  const acak = Math.random().toString(36).slice(2, 8);
+  return `pos${pos}/${kodeLomba}/${Date.now()}-${acak}.jpg`;
+}
+
+/** Unggah satu gambar borongan, lalu catat barisnya. Mengembalikan id barisnya
+ *  — itu yang dipakai layar untuk menautkannya ke nomor dada nanti.
+ *
+ *  Urutannya sama dengan unggahFotoLembar dan sengaja: gambar dulu, baris
+ *  sesudahnya. Baris tanpa gambar adalah kebohongan; gambar tanpa baris cuma
+ *  berkas yatim yang tidak merugikan siapa pun. */
+export async function unggahFotoMasuk(pos, kodeLomba, namaLomba, blob) {
+  const path = namaObjekFotoMasuk(pos, kodeLomba);
+  const argumen = {
+    p_pos: pos, p_kode_lomba: kodeLomba, p_nama_lomba: namaLomba,
+    p_path: path, p_ukuran: blob.size,
+  };
+
+  if (K.mode === "dev") {
+    const id = await rpc("catat_foto_masuk", argumen);
+    return { id, path, ukuran: blob.size };
+  }
+
+  await pastikanSesiSegar();
+  const s = sesi();
+  await kirim(`${K.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: K.anonKey,
+      Authorization: `Bearer ${s && s.token ? s.token : K.anonKey}`,
+      "Content-Type": "image/jpeg",
+      "x-upsert": "false",
+    },
+    body: blob,
+  });
+
+  const id = await rpc("catat_foto_masuk", argumen);
+  return { id, path, ukuran: blob.size };
+}
+
+/** Antrean foto yang belum punya nomor dada, satu pos satu lomba.
+ *
+ *  `nomor_dada=is.null` yang menyaringnya, bukan view kedua — v_foto_lembar
+ *  sejak 0074 memakai LEFT join justru supaya baris ini terlihat. */
+export async function daftarFotoBelumTaut(pos, kodeLomba) {
+  if (K.mode === "dev") {
+    return baca(`/foto-belum-taut?pos=${encodeURIComponent(pos)}` +
+                `&lomba=${encodeURIComponent(kodeLomba)}`);
+  }
+  return baca(null,
+    `v_foto_lembar?pos=eq.${encodeURIComponent(pos)}` +
+    `&kode_lomba=eq.${encodeURIComponent(kodeLomba)}` +
+    `&nomor_dada=is.null&select=*&order=diunggah_pada.asc`);
+}
+
+/** Tautkan satu foto ke nomor dada.
+ *
+ *  `cara` membedakan siapa yang memutuskan: `tangan` panitia sendiri, `mesin`
+ *  usulan pembacaan gambar yang dicentang panitia. Menautkan ulang boleh —
+ *  yang menjaganya trigger audit, bukan larangan. */
+export const tautkanFoto = (id, nomorDada, cara = "tangan") =>
+  rpc("tautkan_foto", { p_foto_id: id, p_nomor_dada: nomorDada, p_cara: cara });
+
 /* ============================ AKUN PANITIA ==============================
    Dua jalur, dan yang menentukan bukan kerapian melainkan siapa pemegang
    kuncinya.
