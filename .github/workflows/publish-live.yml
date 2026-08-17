@@ -107,7 +107,7 @@ jobs:
 
           d = json.load(open('/tmp/rekap-utuh.json'))
           for k in ('dibuat_pada', 'fase', 'edisi', 'ringkas', 'pos',
-                    'kelengkapan', 'progres', 'klasemen'):
+                    'komponen', 'kelengkapan', 'progres', 'klasemen'):
               if k not in d:
                   sys.exit(f'kunci {k} hilang dari keluaran live_json.sql')
 
@@ -121,6 +121,15 @@ jobs:
               sys.exit('BOCOR: baris regu ikut tertulis padahal fase masih pra')
           if d['fase'] == 'pra' and d['kelengkapan']:
               sys.exit('BOCOR: kelengkapan pos tertulis padahal fase masih pra')
+          # Nilai asli per komponen HANYA boleh ada di fase 'penuh'. Centang
+          # (`komponen_terisi`) boleh sejak 'progres' — ia tidak menyebut satu
+          # angka pun. Pemisahan itu satu-satunya jaminan bahwa nilai yang
+          # belum diumumkan memang TIDAK ADA di CDN, bukan sekadar tidak
+          # digambar.
+          if d['fase'] != 'penuh':
+              for baris in d['progres']:
+                  if baris.get('nilai'):
+                      sys.exit('BOCOR: nilai per komponen tertulis padahal fase belum penuh')
 
           rekap = {'progres': d['progres'], 'klasemen': d['klasemen']}
           sidik = hashlib.sha256(json.dumps(
@@ -139,6 +148,7 @@ jobs:
               # di rekap.json justru karena ia berubah terus: rekap.json
               # dialamati `?v=<versi>` dan sengaja mengendap di cache, jadi
               # angka yang harus selalu segar tidak boleh menumpang di sana.
+              'komponen':    d['komponen'],
               'kelengkapan': d['kelengkapan'],
               'jumlah_regu': len(d['progres']),
           }

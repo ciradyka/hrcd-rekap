@@ -256,5 +256,9 @@ run supabase/migrations/0070_fase_live_publik.sql
 run tests/sql/36_fase_live_publik.sql
 # 0071 mengubah angka di halaman peserta jadi jumlah MENDAFTAR, bukan lunas.
 run supabase/migrations/0071_ringkas_publik_terdaftar.sql
+# 0072 menambah centang per komponen dan nilai (hanya saat fase penuh) ke
+# v_progres_publik, supaya halaman peserta bisa menggambar tabel yang sama
+# bentuknya dengan layar panitia.
+run supabase/migrations/0072_progres_komponen_publik.sql
 
 echo "SEMUA TES LULUS"
