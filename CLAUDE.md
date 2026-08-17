@@ -353,28 +353,36 @@ Guidance for Claude Code when working in this repository.
    menomori ulang dengan `ceil(row_number/10)` dan mendaratkan MTs Rancah
    bertiga di kloter 1. Kalau kloter perlu disusun ulang, bersihkan lalu
    jalankan ulang alurnya — jangan tulis nomornya langsung.
-7. **Satu sekolah, satu baris `sekolah` — dan database belum menjaminnya.**
-   `submit_pendaftaran` mencari sekolahnya dengan pasangan **(nama, alamat)
-   persis**:
-
-   ```sql
-   insert into sekolah (nama, alamat) values (trim(p_nama_sekolah), trim(p_alamat_sekolah))
-   on conflict (nama, alamat) do nothing;
-   select id into v_sekolah from sekolah where nama = ... and alamat = ...;
-   ```
-
-   Beda satu koma, beda `Jl.` dan `Jln.`, beda spasi — lahir baris baru dengan
-   id baru. `unique (nama, alamat)` di 0001 memang disengaja, supaya dua
-   sekolah senama di tempat berbeda bisa hidup berdampingan (SMPN 1 Purwadadi
-   ada di Ciamis DAN di Subang). Niatnya benar; mekanismenya terlalu harfiah —
-   ia tidak bisa membedakan "sekolah yang sama, alamatnya diketik lebih
-   sembarangan" dari "sekolah lain di tempat lain".
-8. **Akibatnya menembus ke kloter, dan itu yang paling mahal.** Butir 5
-   berhenti berlaku di antara baris-baris kembar itu: mereka terbaca sebagai
-   sekolah berlainan, jadi regunya BERANGKAT BARENG tanpa satu pun pesan
-   galat. Lembar edisi lama menulis alamat SMPN 2 CIPAKU dengan empat ejaan
-   berbeda; di data contoh itu melahirkan empat baris sekolah sekaligus.
-   `docs/runbook-sekolah.md` bagian 11 sudah meminta pagar kembar dipasang
-   sebelum tabel `sekolah` diisi — obatnya sama dengan `nama_regu` di migrasi
-   0051: unique index atas nama yang dinormalisasi. Yang belum tercatat di
-   sana adalah akibat ini.
+7. **Satu sekolah, satu baris `sekolah`, dan kuncinya NAMA.** Sampai migrasi
+   0061 `submit_pendaftaran` mencari sekolahnya dengan pasangan
+   **(nama, alamat) persis**, jadi beda satu koma, beda `Jl.` dan `Jln.`, beda
+   spasi melahirkan baris baru dengan id baru — `SMPN 1 CIAMIS` sempat muncul
+   tiga kali di kotak pilihan pendaftaran, `SMPN 2 CIPAKU` empat kali. Sekarang
+   kuncinya `unique (kunci_sekolah(name))` dan pencariannya lewat nama.
+   **Alamat yang diketik pembina tidak lagi melahirkan baris baru, dan juga
+   tidak menimpa alamat kurasi** — ia sedang mendaftarkan regu, bukan sedang
+   memperbaiki data kita.
+8. **Yang membedakan dua sekolah senama adalah NPSN, dan pembedanya ditulis
+   di dalam nama.** `unique (nama, alamat)` di 0001 memakai alamat sebagai
+   pembeda supaya dua sekolah senama di tempat berbeda bisa berdampingan
+   (alur 3.2.2) — niatnya benar, mekanismenya terlalu harfiah: ia tidak bisa
+   membedakan "sekolah yang sama, alamatnya diketik lebih sembarangan" dari
+   "sekolah lain di tempat lain". Gantinya nama itu sendiri yang dibuat
+   membedakan: `MAN 3 Ciamis` dan `MAN 3 Tasikmalaya`, karena NPSN-nya berbeda.
+   Berlaku dua arah — kalau tidak ada tabrakan, JANGAN tambahkan ekor;
+   `MAN Darussalam` cuma ada satu dan tetap polos.
+9. **Kenapa ini butir kloter, bukan butir data.** Butir 5 berhenti berlaku di
+   antara baris-baris kembar: mereka terbaca sebagai sekolah berlainan, jadi
+   regunya BERANGKAT BARENG tanpa satu pun pesan galat. Itu yang benar-benar
+   terjadi di data contoh — empat baris SMPN 2 Cipaku, empat "sekolah". Kalau
+   suatu hari kunci sekolah dilonggarkan lagi, inilah yang rusak duluan dan
+   paling terakhir ketahuan.
+10. **Jangan tertukar antara dua kunci penyamaan nama sekolah.**
+    `kunci_sekolah()` di database sengaja JINAK — ia menolak baris tanpa ada
+    yang memeriksa, jadi ia hanya menyamakan yang pasti sama (besar-kecil
+    huruf, tanda baca, `SMP Negeri`~`SMPN`, huruf status Dapodik). `kunci()`
+    di `tools/normalize_sekolah.py` jauh lebih agresif karena tugasnya
+    menggabungkan tulisan tangan dan hasilnya dibaca manusia. Memakai yang
+    jinak untuk mencocokkan ke daftar kurasi meloloskan enam sekolah tanpa
+    dibakukan; memakai yang agresif sebagai kunci database akan melebur dua
+    sekolah yang berbeda. Rinciannya di `docs/runbook-sekolah.md` bagian 12.
