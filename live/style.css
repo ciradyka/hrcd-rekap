@@ -1919,6 +1919,39 @@ input.small-input { text-align: center; }
      rata tengah, yang meleset isinya. */
   .data-table tbody tr[data-baris] .button-detail { margin-top: 0; }
 
+  /* MEJA DAFTAR ULANG di HP: kode bayar dan nama sekolah SEBARIS di kepala
+     kartu, tanpa label.
+
+     Bentuk kartu bawaan menumpuk keempat selnya berurutan dengan label di
+     depan masing-masing — dan di meja ini hasilnya kartu setinggi layar
+     dengan "Kode Bayar:" tertulis di atas kode yang sudah jelas kode, nama
+     sekolah terdorong jauh ke bawah, dan tombol tukar melayang di tengah
+     ruang kosong.
+
+     Petugas membaca dua hal untuk menemukan barisnya — kode dan sekolah —
+     jadi keduanya duduk berdampingan di baris pertama. Sisanya menyusul. */
+  .table-daftar-ulang tbody tr[data-baris] {
+    display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem;
+    align-items: baseline;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label]::before { content: none; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] {
+    grid-column: 1; font-size: .95rem;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] {
+    grid-column: 2; text-align: right; font-size: .95rem;
+  }
+  /* Nomor dada dan tombol tukar mengambil kedua kolom, di bawahnya. */
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-dada,
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar {
+    grid-column: 1 / -1; margin-top: .35rem;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .pill-row,
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .sub {
+    display: flex; flex-wrap: wrap; gap: .3rem;
+  }
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar .button { width: 100%; }
+
   /* ---- Kartu invoice HP: dua keterangan per baris ----
      Enam keterangan bertumpuk satu-satu membuat satu invoice setinggi
      separuh layar, dan petugas harus menggulir untuk membandingkan dua
