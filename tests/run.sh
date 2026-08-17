@@ -227,5 +227,11 @@ run tests/sql/30_hak_akses_mengikat.sql
 # lembar seluruh pos ke juri pos mana pun. Sekalian N+1 di v_rekap_penuh.
 run supabase/migrations/0065_view_hak_dan_rekap.sql
 run tests/sql/31_view_hak.sql
+# 0066 membuang larangan menambah regu ke kloter tercetak/berangkat. Tesnya
+# menekan ketiga pagar lamanya dari sisi berbeda — trigger lewat UPDATE
+# langsung, dua syarat lewat pemilihan kloter — dan sekaligus memastikan
+# KAPASITAS tidak ikut terbuka.
+run supabase/migrations/0066_kloter_boleh_ditambah.sql
+run tests/sql/32_kloter_boleh_ditambah.sql
 
 echo "SEMUA TES LULUS"

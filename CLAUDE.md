@@ -319,22 +319,35 @@ Guidance for Claude Code when working in this repository.
 
 ## 12. Kloter
 
-1. **Kloter tercetak masih boleh diisi selama belum berangkat.** Mencetak
-   daftar bukan penutupan; yang menutup sebuah kloter adalah `jam_berangkat`-nya
-   terisi. Sekolah yang daftar ulang setelah kertas dicetak tetap masuk ke
-   kloter paling awal yang masih longgar, dan kertasnya dicetak ulang — itu
-   murah, dan jauh lebih murah daripada kloter setengah kosong berangkat.
+1. **Kloter tidak pernah tertutup untuk penambahan regu.** Bukan tanda
+   cetaknya, bukan juga jam berangkatnya — tidak ada keadaan yang membuat
+   sebuah kloter menolak regu baru. Yang membatasi cuma kapasitas. Mencetak
+   ulang selembar daftar itu murah; memberangkatkan kloter dengan empat tempat
+   kosong tidak bisa diulang, dan jendela 07:00-10:00 di bagian 10 tidak punya
+   kelonggaran untuk itu.
 2. **Selalu isi kloter paling awal dulu sampai penuh**, bukan menyebar rata.
    Kloter 1 penuh sebelum kloter 2 dipakai. Yang berangkat pagi harus berangkat
    penuh; tempat kosong yang tertinggal di kloter awal berarti kloter terakhir
    berangkat lebih siang dari yang perlu, dan jendela 07:00–10:00 di bagian 10
    tidak punya kelonggaran untuk itu.
-3. **Kode hari ini melanggar butir 1, dan itu belum diperbaiki.** Migrasi 0008
-   menambahkan syarat `dicetak_pada is null` ke pemilihan kloter beserta trigger
-   yang menolak penambahan ke kloter tercetak; 0040 mengembalikannya setelah
-   sempat hilang. Keduanya ditulis dengan niat melindungi kertas yang sudah
-   dibagikan — tapi niat itu bukan aturan lapangan. Perbaikannya: ganti
-   syaratnya jadi `jam_berangkat is null`.
+3. **Di lapangan semua dinamis, dan itu yang membuat butir 1 sekeras itu.**
+   Peserta yang terlambat bisa memaksa berangkat, dan panitia menambahkannya di
+   depan — "mereka seakan-akan berangkat di jam tersebut". Sistem yang menolak
+   tidak menghentikan penambahan itu; ia cuma memindahkannya ke jalan yang
+   tidak tercatat.
+
+   Konsekuensi yang perlu diketahui panitia yang menyisipkan: penalti waktu
+   dihitung dari `kloter.jam_berangkat`, jadi regu yang masuk ke kloter yang
+   sudah berangkat dihitung berangkat pada jam kloter itu — bukan jam ia
+   benar-benar jalan. Kalau maksudnya regu itu berangkat sekarang, tempatnya di
+   kloter yang belum jalan.
+
+   Riwayatnya, karena mudah dipasang kembali: migrasi 0008 menambahkan
+   `dicetak_pada is null` ke pemilihan kloter beserta trigger
+   `jaga_kloter_tercetak`; 0040 mengembalikannya setelah sempat hilang;
+   **0066 membuang keduanya beserta `jam_berangkat is null`**. Ketiganya
+   ditulis dengan niat melindungi kertas yang sudah dibagikan — niat yang
+   masuk akal di meja, dan salah di lapangan. Jangan dipasang lagi.
 4. **"Bersihkan data" termasuk mengembalikan penomoran kloter ke 1**, bukan
    hanya menghapus regu dan nilai. Kloter yang masih menyandang tanda cetak atau
    jam berangkat dari percobaan sebelumnya membuat pembagian berikutnya mulai
