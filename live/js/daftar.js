@@ -69,7 +69,28 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 const totalRincian = () => Object.values(jawab.rincian).reduce((a, b) => a + b, 0);
-const normal = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+/* Penyamaan untuk PENCARIAN sekolah, bukan untuk menyimpan.
+ *
+ *  Pembina mengetik nama yang dia ucapkan, bukan nama yang tertulis di
+ *  Dapodik. "MAS Agro" harus tetap menemukan "MA Agrowisata Shaleha" —
+ *  huruf S di "MAS" itu status Swasta, bukan bagian nama, dan tidak ada
+ *  seorang pun yang menyebutnya.
+ *
+ *  Urutannya penting: huruf statusnya dibuang SELAGI spasinya masih ada.
+ *  Versi lama langsung membuang seluruh non-huruf, jadi "MAS Agro" jadi
+ *  "masagro" dan tidak pernah cocok dengan "maagrowisatashaleha" — sekolahnya
+ *  seolah tidak terdaftar, dan pembina mendaftarkannya lagi sebagai baris
+ *  baru.
+ *
+ *  Aturannya sama dengan kunci_sekolah() di database (migrasi 0062), dan
+ *  memang harus sama: yang satu memutuskan apa yang TERLIHAT saat mencari,
+ *  yang satu memutuskan apa yang dianggap SEKOLAH YANG SAMA saat menyimpan. */
+const normal = s => String(s || "").toLowerCase()
+  // "SMP Negeri 1" dan "SMP N 1" adalah "SMPN 1".
+  .replace(/\b(sd|smp|sma|smk|mi|mts|ma)\s+n(egeri)?\b/g, "$1n")
+  // Huruf status Dapodik di awal nama: MAS, SMKS, SMAS, SMPS, MTsS, MIS.
+  .replace(/^\s*(sd|smp|sma|smk|mi|mts|ma)s\b/, "$1")
+  .replace(/[^a-z0-9]/g, "");
 const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
 
 /* ---------- nama regu: 20 karakter, dan tidak boleh kembar (0051) ----------
