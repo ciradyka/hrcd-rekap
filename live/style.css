@@ -615,10 +615,31 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    satu tombol yang berganti tulisan — dengan tiga terlihat sekaligus, fase
    yang berlaku terbaca tanpa harus tahu arti tulisan tombolnya. */
 .segmen-fase { display: inline-flex; gap: 0; }
+/* Baris kepala kartu klasemen: judul di TENGAH, saklar di KANAN, dan judulnya
+   tetap di tengah kartu — bukan di tengah sisa ruang. Dua sisi berlebar sama
+   yang menjepitnya yang memastikan itu, jadi judul tidak bergeser waktu
+   saklarnya tidak digambar (akun tanpa `pengaturan`). */
+.kepala-klasemen { display: flex; align-items: center; gap: .5rem; margin: 0 0 .8rem; }
+.kepala-klasemen h2 { margin: 0; text-align: center; }
+.kepala-klasemen .sisi { flex: 1; display: flex; }
+.kepala-klasemen .sisi.kanan { justify-content: flex-end; }
+@media (max-width: 560px) {
+  /* Di HP ketiganya tidak muat sebaris. Judul naik, saklar turun ke bawahnya
+     — tetap satu kelompok, tidak ada yang terpotong. */
+  .kepala-klasemen { flex-wrap: wrap; justify-content: center; }
+  .kepala-klasemen .sisi { flex: 0 0 auto; }
+  .kepala-klasemen h2 { flex: 1 0 100%; }
+}
 .segmen-fase .button { border-radius: 0; margin: 0; }
 .segmen-fase .button:first-child { border-radius: 6px 0 0 6px; }
 .segmen-fase .button:last-child { border-radius: 0 6px 6px 0; }
 .segmen-fase .button + .button { border-left: none; }
+/* Hover HARUS lebih gelap, termasuk yang sedang menyala. Tanpa ini tombol
+   yang aktif tidak menjawab sama sekali waktu disentuh kursor, dan itu
+   terbaca seperti tombol mati — padahal ia justru satu-satunya yang sedang
+   berlaku. */
+.segmen-fase .button:hover:not(:disabled) { background: var(--garis); }
+.segmen-fase .button-primary:hover:not(:disabled) { background: var(--utama-gelap); }
 
 @media print {
   /* Perapatan huruf dibatalkan di kertas. Di layar -0.011em merapikan judul,
