@@ -4285,15 +4285,16 @@ async function layarLiveScore() {
                <details> biasa, bukan dropdown buatan sendiri — ia sudah bisa
                dibuka dengan sentuhan, ditutup dengan Esc, dan dibacakan
                pembaca layar tanpa satu baris JS pun. -->
-          <details class="filter-sekolah">
-            <summary>Organisasi <span class="hitung-filter"></span></summary>
-            <div class="isi-filter">
-              <button type="button" class="button tombol-semua"
-                      style="padding:.25rem .6rem;font-size:.8rem">Semua</button>
-              ${sekolahAda.map(nm => `
-                <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
-            </div>
-          </details>
+          <!-- Panelnya di ATAS tabel, tapi yang diklik KEPALA KOLOMNYA.
+               Panel ini tidak bisa ditaruh di dalam <th>: tabelnya duduk di
+               dalam wadah bergulir, dan apa pun yang mengambang di dalam sana
+               terpotong begitu daftarnya lebih tinggi dari kepala tabel. -->
+          <div class="isi-filter" hidden>
+            <button type="button" class="button tombol-semua"
+                    style="padding:.25rem .6rem;font-size:.8rem">Hapus saringan</button>
+            ${sekolahAda.map(nm => `
+              <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
+          </div>
           <div class="table-wrapper table-wrapper-tetap">
             <table class="table data-table table-tetap table-rekap table-live">
               <thead>
@@ -4301,7 +4302,14 @@ async function layarLiveScore() {
                   <th rowspan="2">#</th>
                   <th rowspan="2">No<br>Dada</th>
                   <th rowspan="2">Regu</th>
-                  <th rowspan="2" class="rekap-batas">Organisasi</th>
+                  <!-- Kepala kolomnya SENDIRI yang jadi tombol saringan.
+                       Tombol terpisah di atas tabel menjauhkan aksinya dari
+                       kolom yang disaringnya, dan menambah satu benda lagi di
+                       layar yang sudah padat. -->
+                  <th rowspan="2" class="rekap-batas th-saring" tabindex="0"
+                      role="button" aria-expanded="false"
+                      title="Klik untuk menyaring per sekolah">Organisasi
+                    <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
                   ${posKolom.map(p => `<th colspan="${p.kolom.length + 1}"
                     class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
                   <th rowspan="2">Penalti</th>
@@ -4465,9 +4473,24 @@ async function layarLiveScore() {
       });
       // Angkanya, bukan kata "aktif": panitia perlu tahu BERAPA yang sedang
       // menyaring tanpa membuka daftarnya.
-      hitung.textContent = pilih.size ? `· ${pilih.size} dipilih` : "";
-      panel.querySelector(".filter-sekolah").classList.toggle("menyaring", pilih.size > 0);
+      hitung.textContent = pilih.size ? `(${pilih.size})` : "";
+      panel.querySelector(".th-saring").classList.toggle("menyaring", pilih.size > 0);
     };
+
+    const kepala = panel.querySelector(".th-saring");
+    const isi = panel.querySelector(".isi-filter");
+    const buka = () => {
+      isi.hidden = !isi.hidden;
+      kepala.setAttribute("aria-expanded", String(!isi.hidden));
+    };
+    if (kepala) {
+      kepala.addEventListener("click", buka);
+      // Keyboard juga: <th> bukan tombol, jadi Enter/Space tidak datang
+      // sendiri walau tabindex dan role sudah dipasang.
+      kepala.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buka(); }
+      });
+    }
 
     kotak.forEach(c => c.addEventListener("change", terapkan));
     if (semua) semua.addEventListener("click", () => {
