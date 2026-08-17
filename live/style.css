@@ -1942,7 +1942,13 @@ input.small-input { text-align: center; }
     display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem;
     align-items: baseline;
   }
-  .table-daftar-ulang tbody tr[data-baris] > td[data-label]::before { content: none; }
+  /* Kekhususannya harus MENANDINGI aturan label umum di atas, yang berbunyi
+     `.data-table … td[data-label]:not([data-label=""])::before` — 0,4,2.
+     Tanpa `:not(...)` dan tanpa `.data-table`, aturan ini cuma 0,3,2 dan
+     kalah; labelnya tetap tercetak. Ini keempat kalinya pola yang sama
+     menggigit hari ini: aturan yang benar, terbaca, dan tidak berlaku. */
+  .data-table.table-daftar-ulang tbody tr[data-baris]
+    > td[data-label]:not([data-label=""])::before { content: none; }
   .table-daftar-ulang tbody tr[data-baris] > td[data-label="Kode Bayar"] {
     grid-column: 1; font-size: .95rem;
   }
