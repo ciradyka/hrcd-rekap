@@ -530,14 +530,23 @@ export function notif(pesan, galat = false) {
    jawabannya. Dipakai layar Akun — menu aksi per akun adalah tiga tombol,
    bukan tiga kotak isian, dan memaksanya jadi `medan` akan meminta orang
    MENGETIK pilihannya. */
+/** `silangSaja: true` mengganti tombol aksi di bawah dengan SILANG MERAH di
+ *  pojok kanan atas.
+ *
+ *  Untuk dialog yang isinya sendiri sudah berupa pilihan — menu aksi per akun
+ *  adalah tiga tombol besar — tombol keempat bertuliskan "Tutup" berdiri
+ *  sejajar ketiganya dan terbaca seperti pilihan keempat. Silang di pojok
+ *  tidak pernah salah dibaca sebagai aksi. */
 export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan",
-                         bacaSaja = false, pasang = null }) {
+                         bacaSaja = false, silangSaja = false, pasang = null }) {
   return new Promise(resolve => {
     const wadah = h(html`<div class="overlay" role="dialog" aria-modal="true"></div>`);
     document.body.appendChild(wadah);
     const el = document.body.lastElementChild;
     el.innerHTML = `
       <div class="dialog">
+        ${silangSaja ? `<button class="dialog-silang" data-batal type="button"
+          aria-label="Tutup">&times;</button>` : ""}
         <h2>${esc(judul)}</h2>
         ${kartuHtml}
         ${medan.map((m, i) => `
@@ -551,11 +560,12 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
             ${m.bantuan ? `<div class="hint">${esc(m.bantuan)}</div>` : ""}
           </div>`).join("")}
         <div class="dialog-error error" hidden></div>
+        ${silangSaja ? "" : `
         <div class="option-row">
           ${bacaSaja ? "" : `<button class="button button-secondary" data-batal
             type="button">Batal</button>`}
           <button class="button button-primary" data-ok type="button">${esc(labelAksi)}</button>
-        </div>
+        </div>`}
       </div>`;
 
     /* tipe "jam" memakai kotak HH:MM buatan sendiri, BUKAN <input type="time">.
