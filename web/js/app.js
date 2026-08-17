@@ -4157,7 +4157,8 @@ async function layarLiveScore() {
   }
   if (location.hash !== layarIni) return;
 
-  const fase = (status && status.fase_live) || "pra";
+  // `let`, bukan `const`: saklar di bawah memperbaruinya DI TEMPAT.
+  let fase = (status && status.fase_live) || "pra";
   // Persen dihitung di sini, bukan di view. `v_kelengkapan_pos` sudah membawa
   // `lengkap` dan `regu_total`, dan menambah view yang menghitung pembagian
   // itu adalah tempat kedua yang harus ikut benar setiap kali definisi
@@ -4219,25 +4220,48 @@ async function layarLiveScore() {
      berubah bentuk sepanjang hari — Penegak PI muncul belakangan lalu
      menggeser semuanya — dan yang lebih buruk, golongan yang belum satu pun
      regunya masuk terlihat seperti golongan yang tidak ada. */
+  const bisaPublish = bolehLihat("pengaturan");
+  const FASE = [
+    ["pra", "Pra"], ["progres", "Progres"], ["penuh", "Live"],
+  ];
+  const saklar = !bisaPublish ? "" : `
+    <div class="segmen-fase" role="group" aria-label="Fase Live Score">
+      ${FASE.map(([kode, teks]) => `
+        <button type="button" class="button ${kode === fase ? "button-primary" : ""}"
+                data-fase="${esc(kode)}" ${kode === fase ? "aria-current=\"true\"" : ""}
+                style="padding:.3rem .7rem;font-size:.85rem">${esc(teks)}</button>`).join("")}
+    </div>`;
+
   const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
         const juara = baris.filter(k => k.peringkat <= 3);
         if (!baris.length) return `
         <div class="card">
+          <div class="kepala-klasemen">
+            <div class="sisi"></div>
+            <!-- "sementara" yang membawa faktanya: papan ini memeringkat dari
+                 poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
+                 sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+                 layar besar terbaca seperti hasil — dan itu yang diumumkan
+                 orang. -->
+            <h2>Klasemen sementara</h2>
+            <div class="sisi kanan">${saklar}</div>
+          </div>
           <p class="description">Belum ada regu golongan ini yang bisa
             diperingkat.</p>
         </div>`;
         return `
         <div class="card">
-          <!-- Judulnya DI DALAM kartu, di atas medali. Di luar kartu ia
-               melayang tanpa induk; di sini ia jelas menerangkan tiga medali
-               di bawahnya.
-               "sementara" yang membawa faktanya: papan ini memeringkat dari
-               poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
-               sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
-               layar besar terbaca seperti hasil — dan itu yang diumumkan
-               orang. -->
-          <h2 style="margin:0 0 .8rem;text-align:center">Klasemen sementara</h2>
+          <div class="kepala-klasemen">
+            <div class="sisi"></div>
+            <!-- "sementara" yang membawa faktanya: papan ini memeringkat dari
+                 poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
+                 sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+                 layar besar terbaca seperti hasil — dan itu yang diumumkan
+                 orang. -->
+            <h2>Klasemen sementara</h2>
+            <div class="sisi kanan">${saklar}</div>
+          </div>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
@@ -4357,44 +4381,44 @@ async function layarLiveScore() {
      papan ini memeringkat dari poin yang terkumpul SEKARANG, jadi urutannya
      bisa berubah sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
      layar besar terbaca seperti hasil — dan itu yang diumumkan orang. */
-  const bisaPublish = bolehLihat("pengaturan");
-  const FASE = [
-    ["pra", "Pra"], ["progres", "Progres"], ["penuh", "Live"],
-  ];
-  const saklar = !bisaPublish ? "" : `
-    <div class="segmen-fase" role="group" aria-label="Fase Live Score">
-      ${FASE.map(([kode, teks]) => `
-        <button type="button" class="button ${kode === fase ? "button-primary" : ""}"
-                data-fase="${esc(kode)}" ${kode === fase ? "aria-current=\"true\"" : ""}
-                style="padding:.3rem .7rem;font-size:.85rem">${esc(teks)}</button>`).join("")}
-    </div>`;
-
   LAYAR.replaceChildren(h(`
     ${kemajuan}
     ${tab}
-    ${saklar ? `
-    <div style="display:flex;justify-content:flex-end;margin:.8rem 0 .4rem">
-      ${saklar}
-    </div>` : ""}
     ${papan}`));
 
+  /* Diperbarui DI TEMPAT, bukan dengan menggambar ulang layar.
+     layarLiveScore() menarik enam permintaan sekaligus — klasemen, rekap,
+     kelengkapan, pos, komponen, status — dan menggambar ulang seluruh papan.
+     Untuk satu kolom yang berpindah itu mahal, dan yang paling terasa: papan
+     berkedip dan tab golongan yang sedang dibuka kembali ke awal. Yang
+     berubah di layar cuma tombol mana yang menyala. */
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
     tb.addEventListener("click", async () => {
       const ke = tb.dataset.fase;
       if (ke === fase) return;
-      LAYAR.querySelectorAll("[data-fase]").forEach(x => { x.disabled = true; });
+      const semua = LAYAR.querySelectorAll("[data-fase]");
+      semua.forEach(x => { x.disabled = true; });
       try {
         await aturFaseLive(ke);
-        // Fakta yang TIDAK bisa dibaca dari layar mana pun, dan mahal kalau
-        // tidak diketahui: halaman peserta membaca berkas statis. Saklar ini
-        // membuka gerbangnya, bukan menerbitkan isinya.
-        notif(ke === "pra"
-          ? "Peserta tidak melihat apa pun."
-          : "Tersimpan. Halaman peserta berubah setelah Publish rekap live dijalankan.");
-        layarLiveScore();
+        fase = ke;
+        semua.forEach(x => {
+          const aktif = x.dataset.fase === ke;
+          x.classList.toggle("button-primary", aktif);
+          if (aktif) x.setAttribute("aria-current", "true");
+          else x.removeAttribute("aria-current");
+        });
+        // Halaman peserta ikut dalam hitungan detik: ia membaca fase langsung
+        // dari database tiap poll (0070). Yang masih perlu diterbitkan hanya
+        // ISINYA — saklar cuma bisa memperketat, tidak membuka lebih dari
+        // yang sudah terbit.
+        notif(ke === "penuh"
+          ? "Live. Kalau klasemennya belum pernah diterbitkan, jalankan Publish rekap live."
+          : ke === "progres" ? "Peserta melihat kemajuan, bukan nilai."
+          : "Peserta tidak melihat apa pun.");
       } catch (e) {
-        LAYAR.querySelectorAll("[data-fase]").forEach(x => { x.disabled = false; });
         notif(e.message, true);
+      } finally {
+        semua.forEach(x => { x.disabled = false; });
       }
     });
   });
