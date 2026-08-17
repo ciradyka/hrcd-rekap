@@ -239,5 +239,10 @@ run tests/sql/32_kloter_boleh_ditambah.sql
 # isolasi pos supaya tidak ikut terbuka demi mengisi papan skor.
 run supabase/migrations/0067_live_score_semua_peran.sql
 run tests/sql/33_live_score_semua_peran.sql
+# 0068 memberi tombol Publish Live Score satu RPC. Tesnya menjaga PINTUNYA,
+# bukan tombolnya: tombol di layar cuma menyembunyikan diri, RPC-nya yang
+# harus menolak — ia bisa dipanggil langsung dari devtools.
+run supabase/migrations/0068_atur_fase_live.sql
+run tests/sql/34_atur_fase_live.sql
 
 echo "SEMUA TES LULUS"

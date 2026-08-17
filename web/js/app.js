@@ -23,6 +23,7 @@ import {
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
   statusAcara, bolehLihat, lengkapiHakSesi,
+  aturFaseLive,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak,
 } from "./api.js";
@@ -4157,12 +4158,6 @@ async function layarLiveScore() {
   if (location.hash !== layarIni) return;
 
   const fase = (status && status.fase_live) || "pra";
-  const FASE_KATA = {
-    pra: "peserta belum melihat apa pun",
-    progres: "peserta melihat kemajuan input, belum melihat nilai",
-    penuh: "peserta sudah melihat klasemen ini",
-  };
-
   // Persen dihitung di sini, bukan di view. `v_kelengkapan_pos` sudah membawa
   // `lengkap` dan `regu_total`, dan menambah view yang menghitung pembagian
   // itu adalah tempat kedua yang harus ikut benar setiap kali definisi
@@ -4332,21 +4327,60 @@ async function layarLiveScore() {
     : GOL.map(g => `<div class="panel-gol" data-gol="${esc(g)}"${
         g === golAktif ? "" : " hidden"}>${kartuGolongan(g)}</div>`).join("");
 
+  /* Kartu pemberitahuan DIHAPUS (CLAUDE.md 9.1 dan 9.3). Judul layarnya
+     sudah "Live Score" di kepala halaman; mengulanginya di dalam badan,
+     ditambah dua paragraf yang mengajarkan arti fase, adalah tiga baris yang
+     dibaca ratusan kali per shift untuk satu hal yang dipelajari sekali.
+     Fase yang sedang berlaku sekarang dibawa TOMBOLNYA — di situ ia fakta
+     yang tidak bisa dibaca dari layar, bukan pelajaran.
+
+     Tombolnya hanya untuk yang memegang `pengaturan` — bawaannya admin. Yang
+     lain tidak melihat apa pun di tempat ini, bukan tombol mati: tombol mati
+     di pojok tidak memberi tahu apa pun selain ada sesuatu yang tidak boleh
+     disentuh. */
+  const bisaPublish = bolehLihat("pengaturan");
+  const terbit = fase === "penuh";
   LAYAR.replaceChildren(h(`
-    <div class="card" style="border-color:var(--utama)">
-      <!-- Dulu "hanya admin". Sejak 0058 setiap peran memegang live_score,
-           dan sejak 0067 papannya memang terisi untuk mereka — jadi kalimat
-           itu tidak benar lagi. Yang tetap perlu disebut: ini BELUM yang
-           dilihat peserta. -->
-      <h2>Live Score — belum terlihat peserta</h2>
-      <p class="description">Fase
-        sekarang <strong>${esc(fase)}</strong> — ${esc(FASE_KATA[fase] || "")}.</p>
-      <p class="description">Jangan dibagikan sebelum
-        diumumkan.</p>
-    </div>
+    ${bisaPublish ? `
+    <div class="card">
+      <div class="table-toolbar">
+        <div>
+          <strong>Publish Live Score</strong>
+          <p class="description" style="margin:.15rem 0 0">${terbit
+            ? "Peserta melihat klasemen."
+            : "Peserta belum melihat nilai."}</p>
+        </div>
+        <button class="button ${terbit ? "" : "button-primary"}" id="btn-publish"
+                type="button">${terbit ? "Tutup" : "Publish"}</button>
+      </div>
+      <!-- Fakta yang TIDAK bisa dibaca dari layar mana pun, dan mahal kalau
+           tidak diketahui: halaman peserta membaca berkas statis. Tombol ini
+           membuka gerbangnya, bukan menerbitkan isinya. -->
+      <p class="description" id="publish-catatan"${terbit ? "" : " hidden"}>Halaman
+        peserta baru berubah setelah <strong>Publish rekap live</strong>
+        dijalankan di GitHub Actions.</p>
+    </div>` : ""}
     ${kemajuan}
     ${tab}
     ${papan}`));
+
+  const tombolPublish = document.getElementById("btn-publish");
+  if (tombolPublish) {
+    tombolPublish.addEventListener("click", async () => {
+      const ke = terbit ? "progres" : "penuh";
+      tombolPublish.disabled = true;
+      try {
+        await aturFaseLive(ke);
+        notif(ke === "penuh"
+          ? "Klasemen dibuka. Jalankan Publish rekap live di GitHub Actions."
+          : "Klasemen ditutup lagi.");
+        layarLiveScore();
+      } catch (e) {
+        tombolPublish.disabled = false;
+        notif(e.message, true);
+      }
+    });
+  }
 
   const bilah = LAYAR.querySelector(".tab-golongan");
   if (bilah) {
