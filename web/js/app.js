@@ -4406,13 +4406,12 @@ async function layarAkun() {
         <h2 style="margin:0">Akun</h2>
         <span class="hint">${akun.length} akun</span>
       </div>
-      <!-- Ini BUKAN penjelasan cara pakai (CLAUDE.md 9.1) — ia memuat satu
-           akibat yang tidak bisa dibaca dari layar: melepas centang selain
-           Akun belum menghentikan siapa pun. Baris ini dihapus begitu 42
-           policy dan 21 RPC pindah ke boleh(). -->
-      <p>Peran hanya mengisi centang awal. Untuk sekarang baru kolom
-         <strong>Akun</strong> yang benar-benar mengunci — kolom lain masih
-         mengikuti peran.</p>
+      <!-- Peringatan "baru kolom Akun yang mengunci" dihapus di migrasi 0064:
+           seluruh policy dan RPC sudah pindah ke boleh(), jadi kalimat itu
+           tidak benar lagi. Yang tersisa satu baris, dan ia bertahan karena
+           memuat akibat yang tidak bisa dibaca dari layar (CLAUDE.md 9.4):
+           mengubah peran MENIMPA centang yang sudah diatur tangan. -->
+      <p>Mengganti peran mengisi ulang centangnya.</p>
       <!-- Gaya yang sama dengan lembar Input Nilai Pos: di HP ini TETAP
            tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
            tabel menempel di atas. Semua itu sudah ada di .table-pos —
