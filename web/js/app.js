@@ -2234,7 +2234,23 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
  *       menyediakan 180mm; karena itu lembar ini landscape.
  *
  *  Sisa ruang setelah semuanya: 10-21mm per halaman, tergantung pos. */
-const REGU_PER_LEMBAR = 30;
+// 35, naik dari 30. Diukur — bukan ditaksir — pada A4 melintang margin 10mm:
+//
+//   tinggi tersedia                     190,00mm
+//   judul + kepala + thead + catatan     19,33mm
+//   sisa untuk baris                    170,67mm
+//   tinggi satu baris (padding 0,25pt)     4,81mm  -> 35 baris, sisa 2,3mm
+//
+// 30 bukan hasil hitungan; ia angka bulat yang tidak pernah diperiksa ulang,
+// dan empat baris terbuang di setiap lembar karenanya. Lembar cadangan
+// dicetak untuk SELURUH nomor dada termasuk yang belum terdaftar, jadi
+// 510 baris turun dari 17 lembar ke 15 — dua lembar per pos, dikali jumlah
+// pos, dikali berapa kali stok cadangan dicetak ulang.
+//
+// 36 adalah batas atasnya selama nomor dada tetap 12pt: 36 baris butuh
+// 173,2mm. Lebih dari itu berarti mengecilkan nomor dadanya, dan itu angka
+// yang dibaca ulang dari FOTO lembar.
+const REGU_PER_LEMBAR = 35;
 
 function siapkanCetakLembarPos(pos, kolomLayar, baris) {
   document.getElementById("cetakan")?.remove();
