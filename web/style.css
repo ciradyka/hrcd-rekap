@@ -861,11 +861,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      barisnya 21px sementara sel 12pt lainnya cuma butuh 18px, dan selisih
      3px dikali 30 baris persis yang membuat halaman tumpah. Tebalnya sudah
      cukup membuatnya menonjol, dan di Excel pun semua kolom seukuran. */
-  /* 10mm, bukan 13mm: "001" di 12pt tebal butuh ~7mm ditambah padding —
-     yang meminta 13mm adalah JUDULNYA, dan judul boleh membungkus dua
-     baris karena ia dicetak sekali di kepala tabel. Dilaporkan dari
-     lembar yang benar-benar tercetak: kolomnya terlalu lebar. */
-  .lembar-pos .print-table .dada { font-size: 12pt; width: 10mm; }
+  /* SUDAH SEMPIT-SEMPITNYA, dan angkanya diukur bukan ditaksir. Diukur di
+     Inter pada ukuran yang benar-benar dipakai:
+
+       isi "888"   12pt tebal 800   8,43mm   <- yang mengikat
+       judul "DADA" 8pt tebal 700   8,05mm   (membungkus dua baris)
+       garis tabel                  0,53mm
+
+     8,43 + 0,53 = 8,96mm, jadi 10mm hanya menyisakan ~1mm untuk padding
+     kiri-kanan. Padding umum 3pt (2,12mm dua sisi) TIDAK muat — karena itu
+     kolom ini memakai 1pt, dan itulah satu-satunya yang masih bisa
+     dipangkas setelah 13mm -> 10mm.
+
+     Lebih sempit dari ini berarti mengecilkan angkanya, dan itu ditolak:
+     nomor dada adalah kunci yang dibaca ulang dari FOTO lembar, dan 12pt
+     dipilih justru untuk ujian itu. */
+  .lembar-pos .print-table .dada {
+    font-size: 12pt; width: 10mm; padding-left: 1pt; padding-right: 1pt;
+  }
   /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
      ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
      tinggi hanya akan mengurangi jumlah baris per lembar. */
