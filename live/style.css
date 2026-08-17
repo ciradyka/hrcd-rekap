@@ -876,9 +876,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      Lebih sempit dari ini berarti mengecilkan angkanya, dan itu ditolak:
      nomor dada adalah kunci yang dibaca ulang dari FOTO lembar, dan 12pt
      dipilih justru untuk ujian itu. */
-  .lembar-pos .print-table .dada {
-    font-size: 12pt; width: 10mm; padding-left: 1pt; padding-right: 1pt;
+  /* Lebarnya dipasang di TH JUGA, dan itu bukan kerapian.
+     `table-layout: fixed` mengambil lebar kolom dari BARIS PERTAMA — yaitu
+     <thead><tr><th>. Aturan yang cuma menyebut `.dada` (kelas di <td>) tidak
+     pernah berlaku: kolomnya diam-diam melebar mengikuti judul "NO DADA"
+     yang 13,04mm satu baris. Terlihat di lembar tercetak — judulnya tidak
+     pernah membungkus, padahal 10mm mestinya memaksanya. */
+  .lembar-pos .print-table td.dada,
+  .lembar-pos .print-table th:nth-child(1) {
+    width: 10mm; max-width: 10mm; padding-left: 1pt; padding-right: 1pt;
   }
+  .lembar-pos .print-table td.dada { font-size: 12pt; }
   /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
      ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
      tinggi hanya akan mengurangi jumlah baris per lembar. */
@@ -955,10 +963,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      tercetak: "SMK Bangkit Indonesia…", "SMA Terpadu Riyadlul …". */
   .lembar-pos .print-table td:nth-child(3),
   .lembar-pos .print-table th:nth-child(3) { width: 48mm; max-width: 48mm; }
-  /* 13mm cukup untuk "Pgl Pi" di 10pt; judulnya sudah dipendekkan jadi
-     "Gol." di app.js supaya ia tidak lagi yang menentukan lebar. */
+  /* Golongan terpanjang BUKAN "Pgl Pi" (9,35mm) melainkan "Pgk Pa" —
+     11,56mm di 10pt, karena k dan a lebih lebar dari l dan i. Dengan padding
+     umum 3pt (2,12mm) ia butuh 14,2mm dan terpotong jadi "Pgk …" di lembar
+     tercetak. Padding 1pt membuatnya 12,8mm, jadi 13mm cukup — lebarnya
+     tetap hemat, yang mengalah paddingnya. */
   .lembar-pos .print-table td:nth-child(4),
-  .lembar-pos .print-table th:nth-child(4) { width: 13mm; max-width: 13mm; }
+  .lembar-pos .print-table th:nth-child(4) {
+    width: 13mm; max-width: 13mm; padding-left: 1pt; padding-right: 1pt;
+  }
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
