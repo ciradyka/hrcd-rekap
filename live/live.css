@@ -188,13 +188,29 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 /* Nomor dada dipatok di tepi kiri: tabelnya digeser ke samping untuk melihat
    kolom pos, dan tanpa ini orang kehilangan jejak baris siapa yang sedang
    dilihatnya persis saat ia menemukan centangnya. */
-.tabel td.dada, .tabel th:first-child {
-  position: sticky; left: 0; z-index: 2;
+/* DUA kolom dipatok, bukan satu: peringkat dan nomor dada. Keduanya dulu
+   memakai kelas `dada` yang sama, jadi keduanya menempel di left:0 dan saling
+   MENIMPA — yang terlihat cuma satu, dan kolom pertama yang ikut tergeser
+   waktu tabel digulir ke samping.
+
+   Lebarnya dipatok supaya offset kolom kedua bisa dihitung. Saat fase belum
+   `penuh` kolom peringkat memang tidak ada, jadi nomor dada kembali ke
+   left:0 — itu yang dijaga kelas `ada-rank` di tabelnya. */
+.tabel td.rank-sel, .tabel th.rank-th,
+.tabel td.dada, .tabel th.dada-th {
+  position: sticky; z-index: 2;
   background: var(--kartu); font-weight: 800; font-variant-numeric: tabular-nums;
-  box-shadow: 1px 0 0 var(--garis);
 }
-.tabel tbody tr:nth-child(even) td.dada { background: #fafaf8; }
-.tabel th:first-child { z-index: 3; }
+.tabel td.rank-sel, .tabel th.rank-th {
+  left: 0; width: 46px; min-width: 46px;
+}
+.tabel td.dada, .tabel th.dada-th {
+  left: 0; box-shadow: 1px 0 0 var(--garis);
+}
+.tabel.ada-rank td.dada, .tabel.ada-rank th.dada-th { left: 46px; }
+.tabel tbody tr:nth-child(even) td.dada,
+.tabel tbody tr:nth-child(even) td.rank-sel { background: #fafaf8; }
+.tabel th.rank-th, .tabel th.dada-th { z-index: 3; }
 
 .tabel .regu { white-space: normal; min-width: 11rem; font-weight: 600; }
 .tabel .regu .sekolah {
@@ -252,7 +268,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 }
 .tabel td.total { font-weight: 800; font-variant-numeric: tabular-nums; }
 .tabel tr.atas { background: #fdf6e3; }
-.tabel tr.atas td.dada { background: #fdf6e3; }
+.tabel tr.atas td.dada, .tabel tr.atas td.rank-sel { background: #fdf6e3; }
 
 .kaki {
   max-width: 1200px; margin: 0 auto; padding: 0 .7rem 2rem;

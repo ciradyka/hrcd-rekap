@@ -356,11 +356,11 @@ function gambarPapan() {
           <button type="button" class="tombol-kecil tombol-semua">Hapus Filter</button>
         </div>
         <div class="gulir">
-          <table class="tabel">
+          <table class="tabel ${penuh ? "ada-rank" : ""}">
             <thead>
               <tr>
-                ${penuh ? `<th rowspan="2">#</th>` : ""}
-                <th rowspan="2">No<br>Dada</th>
+                ${penuh ? `<th rowspan="2" class="rank-th">#</th>` : ""}
+                <th rowspan="2" class="dada-th">No<br>Dada</th>
                 <th rowspan="2">Regu</th>
                 <th rowspan="2" class="th-saring" tabindex="0" role="button"
                     aria-expanded="false"
@@ -401,7 +401,7 @@ function gambarPapan() {
                 return `
                 <tr data-sekolah="${esc(b.nama_sekolah || "")}"
                     class="${b.peringkat && b.peringkat <= 3 ? "atas" : ""}">
-                  ${penuh ? `<td class="dada">${MEDALI[b.peringkat] || ""}${
+                  ${penuh ? `<td class="rank-sel">${MEDALI[b.peringkat] || ""}${
                       esc(String(b.peringkat ?? ""))}</td>` : ""}
                   <td class="dada">${esc(dada(b.nomor_dada))}</td>
                   <td class="regu">${esc(b.nama_regu)}</td>
