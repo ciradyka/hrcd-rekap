@@ -249,5 +249,10 @@ run tests/sql/34_atur_fase_live.sql
 # gagal di produksi) dan membuka rincian Live Score untuk semua panitia.
 run supabase/migrations/0069_publish_dan_detail_panitia.sql
 run tests/sql/35_detail_live_score_panitia.sql
+# 0070 membuka SATU kolom fase ke anon supaya saklar di layar panitia berlaku
+# seketika di halaman peserta. Tesnya menjaga yang paling mudah bocor: view
+# itu tidak boleh membawa kolom lain dari status_acara.
+run supabase/migrations/0070_fase_live_publik.sql
+run tests/sql/36_fase_live_publik.sql
 
 echo "SEMUA TES LULUS"
