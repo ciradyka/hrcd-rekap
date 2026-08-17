@@ -399,3 +399,74 @@ Guidance for Claude Code when working in this repository.
     jinak untuk mencocokkan ke daftar kurasi meloloskan enam sekolah tanpa
     dibakukan; memakai yang agresif sebagai kunci database akan melebur dua
     sekolah yang berbeda. Rinciannya di `docs/runbook-sekolah.md` bagian 12.
+
+## 13. Hak akses
+
+1. **Yang menjaga pintu adalah `boleh(fitur)`, bukan `peran()`.** Matriks
+   centang di layar Akun (`akun_hak`) adalah satu-satunya sumbernya; `peran`
+   cuma mengisi centang awal lewat `paket_peran()`. Sejak migrasi 0064 seluruh
+   policy dan RPC memakai `boleh()`, dan menambahkan perbandingan `peran() =
+   '...'` yang baru berarti mengembalikan dua mekanisme untuk satu pertanyaan
+   — yang satu bisa diubah panitia, yang satu tidak.
+2. **Empat peran: `admin`, `registrasi`, `gerbang`, `juri_pos`.** Nama lama
+   `meja` dan `operator_pos` sudah tidak ada sejak 0058. Kalau menemukan
+   keduanya di kode, itu bukan gaya lama — itu **kode mati yang tidak cocok
+   dengan siapa pun**, dan setiap satu di antaranya adalah satu layar yang
+   lumpuh.
+3. **Pemeriksaan yang cakupannya lebih sempit daripada masalahnya lebih
+   berbahaya daripada tidak ada pemeriksaan.** 0064 memindai `pg_policies` dan
+   `pg_proc` lalu melapor bersih — dan enam VIEW lolos karena view bukan
+   keduanya. 0065 menambahkan `pg_views`, lalu melapor bersih — dan
+   `v_klasemen_live_score` lolos lagi karena ia menyaring `peran() = 'admin'`,
+   yang tidak mengandung nama peran lama yang dicari. Dua laporan hijau, dua
+   layar kosong di lapangan.
+4. **Yang dulu hanya admin dipetakan ke `pengaturan`, bukan ke fitur ubin yang
+   namanya mirip.** Membatalkan keberangkatan bukan pekerjaan yang tiba-tiba
+   boleh dilakukan petugas gerbang karena kolomnya kebetulan bernama
+   "Keberangkatan".
+5. **Membaca data operasional = jadi panitia; melakukan sesuatu = per fitur.**
+   Dua puluh policy `sel_*` sengaja tetap berbunyi `peran() is not null`:
+   `regu`, `kloter`, dan `edisi` dibaca hampir setiap layar, dan mengikatnya ke
+   satu fitur akan mematikan layar lain yang kebetulan juga membacanya.
+6. **Isolasi pos berlaku pada MENULIS, tidak lagi pada membaca.** `v_lembar_pos`
+   dan `simpan_nilai_massal` tetap mengunci juri pos ke posnya sendiri. Sejak
+   0069 rincian Live Score dibuka untuk semua pemegang `live_score` — keputusan
+   pemilik acara, dan konsekuensinya juri Pos 3 bisa melihat angka Pos 1
+   sebelum diumumkan.
+7. **Rantai view Live Score `security_invoker`, dan itu yang membuat papan
+   panitia perlu fungsi `security definer` sebagai alasnya.** Membukanya lewat
+   RLS akan menuntut juri pos boleh membaca `nilai_mentah` seluruh pos dan
+   `pendaftaran` beserta nomor WA pembina. `klasemen_live_score()` mengeluarkan
+   AGREGAT saja dan menjaga haknya sendiri. Membuang `security_invoker` dari
+   view terluar TIDAK cukup — yang di dalamnya tetap berlaku.
+8. **Tes yang benar menempati kursi, bukan memindai nama.** Jalankan panggilan
+   yang sama dua kali dan ubah satu baris `akun_hak` di antaranya; kalau pesan
+   galatnya tidak berubah, pagarnya tidak ada. Tes 30-36 semuanya berbentuk
+   begitu.
+
+---
+
+## 14. Fase live
+
+1. **Tiga fase, dan artinya di layar peserta:**
+   - `pra` — peserta tidak melihat apa pun selain ajakan mendaftar
+   - `progres` — peserta melihat CENTANG per komponen, bukan nilainya
+   - `penuh` — peserta melihat yang sama dengan panitia
+2. **Saklarnya di layar Live Score panitia**, hanya untuk pemegang
+   `pengaturan`, lewat RPC `atur_fase_live`.
+3. **Mematikan seketika, menyalakan tetap lewat penerbitan.** Halaman peserta
+   membaca fase langsung dari database tiap 15 detik (dan seketika begitu HP
+   dibuka lagi), tapi ia hanya boleh MEMPERKETAT — tidak pernah menampilkan
+   lebih dari isi berkas yang sudah terbit.
+4. **Sebabnya bukan kemalasan.** `rekap.json` duduk di CDN dan bisa diminta
+   siapa pun yang tahu alamatnya. Satu-satunya jaminan bahwa nilai belum bocor
+   adalah nilainya MEMANG TIDAK ADA di berkas itu — bukan ada tapi tidak
+   digambar. `publish-live.yml` punya empat pagar "BOCOR" yang menegakkan itu,
+   dan tidak satu pun boleh dilonggarkan demi kenyamanan tampilan.
+5. **`komponen_terisi` boleh terbit sejak `progres`; `nilai` hanya di
+   `penuh`** (migrasi 0072). Centang tidak menyebut satu angka pun, jadi ia
+   aman terbit lebih awal — dan itulah yang membuat "masking" di halaman
+   peserta bukan sekadar tirai.
+6. **`UPDATE` tanpa `WHERE` ditolak Supabase.** Ekstensi `safeupdate` aktif di
+   produksi tapi TIDAK ada di database uji, jadi tes lokal bisa hijau
+   sementara RPC-nya gagal di layar. Tulis `WHERE` yang memang berarti.
