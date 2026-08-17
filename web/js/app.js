@@ -875,7 +875,12 @@ async function layarDaftarUlang() {
                    kolom sendiri hanya untuk mengulanginya adalah lebar yang
                    terbuang — di jendela sempit lebar itulah yang membuat
                    tombolnya terdorong keluar layar. -->
-              <th>Kode Bayar</th><th>Sekolah</th><th></th>
+              <!-- Empat kolom, dua terakhir tanpa judul: nomor dada, lalu
+                   tombol tukar. Dulu keduanya berbagi satu kolom, dan
+                   tombolnya jatuh ke baris kedua tiap kali nomornya lebih
+                   dari dua — tinggi baris jadi dua kali lipat untuk
+                   sebagian sekolah saja, dan tabelnya bergerigi. -->
+              <th>Kode Bayar</th><th>Sekolah</th><th></th><th></th>
             </tr>
           </thead>
           <tbody id="isi-tabel"></tbody>
@@ -898,7 +903,7 @@ async function layarDaftarUlang() {
     const tbody = document.getElementById("isi-tabel");
 
     if (!baris.length) {
-      tbody.replaceChildren(h(`<tr><td colspan="3" class="table-empty">
+      tbody.replaceChildren(h(`<tr><td colspan="4" class="table-empty">
         Tidak ada yang cocok.</td></tr>`));
       return;
     }
@@ -926,8 +931,8 @@ async function layarDaftarUlang() {
                    data-isi="${kode}" data-jumlah="${menunggu.length}"
                    aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
-           </button>${nomorHtml ? `<div class="sub">${nomorHtml} ${tombolTukar}</div>` : ""}`
-        : `<div class="pill-row">${nomorHtml} ${tombolTukar}</div>`;
+           </button>${nomorHtml ? `<div class="sub">${nomorHtml}</div>` : ""}`
+        : `<div class="pill-row">${nomorHtml}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `
@@ -943,11 +948,12 @@ async function layarDaftarUlang() {
           <td data-label="Sekolah">
             <strong>${esc(b.sekolah?.name || "—")}</strong>
           </td>
-          <td data-label="">${aksi}</td>
+          <td data-label="" class="kol-dada">${aksi}</td>
+          <td data-label="" class="kol-tukar">${tombolTukar}</td>
         </tr>
         ${!menunggu.length ? "" : `
         <tr class="detail-row" data-nomor-untuk="${kode}" ${terbuka ? "" : "hidden"}>
-          <td colspan="3" class="detail-cell-flush">
+          <td colspan="4" class="detail-cell-flush">
             <table class="detail-table detail-table-dada">
               <thead>
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th></tr>

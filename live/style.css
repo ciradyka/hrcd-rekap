@@ -622,6 +622,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Penyaring sekolah di papan Live Score. <details> bawaan, dirapikan.
    Daftarnya bisa panjang — 23 sekolah hari ini, ratusan tahun depan — jadi ia
    digulung sendiri dan tidak pernah mendorong tabel keluar layar. */
+/* Meja Daftar Ulang: nomor dada RATA KIRI dan selebar isinya saja.
+   Sebelumnya nomor dan tombol tukar berbagi satu kolom yang mengambil seluruh
+   sisa lebar, jadi pilnya terdorong jauh ke kanan — mata harus menyeberangi
+   ruang kosong dari nama sekolah ke nomornya. */
+.table-daftar-ulang .kol-dada { width: 1%; white-space: nowrap; text-align: left; }
+.table-daftar-ulang .kol-dada .pill-row,
+.table-daftar-ulang .kol-dada .sub { justify-content: flex-start; }
+/* Tombol tukar mengambil sisanya, rata kiri juga — ia mengikuti nomornya,
+   bukan menempel di tepi kanan layar. */
+.table-daftar-ulang .kol-tukar { text-align: left; }
+
 .th-saring { cursor: pointer; user-select: none; }
 .th-saring:hover { background: var(--garis); }
 .th-saring.menyaring { color: var(--utama); }
