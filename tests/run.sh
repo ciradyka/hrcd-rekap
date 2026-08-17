@@ -244,5 +244,10 @@ run tests/sql/33_live_score_semua_peran.sql
 # harus menolak — ia bisa dipanggil langsung dari devtools.
 run supabase/migrations/0068_atur_fase_live.sql
 run tests/sql/34_atur_fase_live.sql
+# 0069 memperbaiki "UPDATE requires a WHERE clause" (pengaman safeupdate
+# Supabase, tidak ada di database uji — jadi tes 34 lulus sementara tombolnya
+# gagal di produksi) dan membuka rincian Live Score untuk semua panitia.
+run supabase/migrations/0069_publish_dan_detail_panitia.sql
+run tests/sql/35_detail_live_score_panitia.sql
 
 echo "SEMUA TES LULUS"

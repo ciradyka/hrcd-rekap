@@ -4229,13 +4229,6 @@ async function layarLiveScore() {
         </div>`;
         return `
         <div class="card">
-          <!-- "sementara", dan kata itu yang membawa faktanya. Papan ini
-               memeringkat dari poin yang sudah terkumpul SEKARANG — regu yang
-               baru melewati dua pos berdiri di sebelah regu yang sudah lima,
-               jadi urutan di atas bisa berubah sampai pos terakhir terisi.
-               Tanpa kata itu, tiga medali di layar besar terbaca seperti
-               hasil, dan itu yang diumumkan orang. -->
-          <h2 style="margin:0 0 .6rem">Klasemen sementara</h2>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
@@ -4345,49 +4338,58 @@ async function layarLiveScore() {
      lain tidak melihat apa pun di tempat ini, bukan tombol mati: tombol mati
      di pojok tidak memberi tahu apa pun selain ada sesuatu yang tidak boleh
      disentuh. */
+  /* Judul di TENGAH, saklar tiga keadaan di KANAN, satu baris.
+     Tombol besar sebelumnya memakan tinggi layar untuk sesuatu yang ditekan
+     dua kali sepanjang acara. Tiga keadaan ditampilkan sekaligus, bukan satu
+     tombol yang berganti tulisan: dengan begitu fase yang SEDANG berlaku
+     terbaca tanpa harus tahu apa arti tulisan tombolnya.
+
+     "sementara" di judulnya membawa fakta yang tidak bisa dibaca dari layar:
+     papan ini memeringkat dari poin yang terkumpul SEKARANG, jadi urutannya
+     bisa berubah sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+     layar besar terbaca seperti hasil — dan itu yang diumumkan orang. */
   const bisaPublish = bolehLihat("pengaturan");
-  const terbit = fase === "penuh";
+  const FASE = [
+    ["pra", "Pra"], ["progres", "Progres"], ["penuh", "Live"],
+  ];
+  const saklar = !bisaPublish ? "" : `
+    <div class="segmen-fase" role="group" aria-label="Fase Live Score">
+      ${FASE.map(([kode, teks]) => `
+        <button type="button" class="button ${kode === fase ? "button-primary" : ""}"
+                data-fase="${esc(kode)}" ${kode === fase ? "aria-current=\"true\"" : ""}
+                style="padding:.3rem .7rem;font-size:.85rem">${esc(teks)}</button>`).join("")}
+    </div>`;
+
   LAYAR.replaceChildren(h(`
-    ${bisaPublish ? `
-    <div class="card">
-      <div class="table-toolbar">
-        <div>
-          <strong>Publish Live Score</strong>
-          <p class="description" style="margin:.15rem 0 0">${terbit
-            ? "Peserta melihat klasemen."
-            : "Peserta belum melihat nilai."}</p>
-        </div>
-        <button class="button ${terbit ? "" : "button-primary"}" id="btn-publish"
-                type="button">${terbit ? "Tutup" : "Publish"}</button>
-      </div>
-      <!-- Fakta yang TIDAK bisa dibaca dari layar mana pun, dan mahal kalau
-           tidak diketahui: halaman peserta membaca berkas statis. Tombol ini
-           membuka gerbangnya, bukan menerbitkan isinya. -->
-      <p class="description" id="publish-catatan"${terbit ? "" : " hidden"}>Halaman
-        peserta baru berubah setelah <strong>Publish rekap live</strong>
-        dijalankan di GitHub Actions.</p>
-    </div>` : ""}
     ${kemajuan}
     ${tab}
+    <div style="display:flex;align-items:center;gap:.5rem;margin:.8rem 0 .4rem">
+      <div style="flex:1"></div>
+      <h2 style="margin:0;text-align:center">Klasemen sementara</h2>
+      <div style="flex:1;display:flex;justify-content:flex-end">${saklar}</div>
+    </div>
     ${papan}`));
 
-  const tombolPublish = document.getElementById("btn-publish");
-  if (tombolPublish) {
-    tombolPublish.addEventListener("click", async () => {
-      const ke = terbit ? "progres" : "penuh";
-      tombolPublish.disabled = true;
+  LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
+    tb.addEventListener("click", async () => {
+      const ke = tb.dataset.fase;
+      if (ke === fase) return;
+      LAYAR.querySelectorAll("[data-fase]").forEach(x => { x.disabled = true; });
       try {
         await aturFaseLive(ke);
-        notif(ke === "penuh"
-          ? "Klasemen dibuka. Jalankan Publish rekap live di GitHub Actions."
-          : "Klasemen ditutup lagi.");
+        // Fakta yang TIDAK bisa dibaca dari layar mana pun, dan mahal kalau
+        // tidak diketahui: halaman peserta membaca berkas statis. Saklar ini
+        // membuka gerbangnya, bukan menerbitkan isinya.
+        notif(ke === "pra"
+          ? "Peserta tidak melihat apa pun."
+          : "Tersimpan. Halaman peserta berubah setelah Publish rekap live dijalankan.");
         layarLiveScore();
       } catch (e) {
-        tombolPublish.disabled = false;
+        LAYAR.querySelectorAll("[data-fase]").forEach(x => { x.disabled = false; });
         notif(e.message, true);
       }
     });
-  }
+  });
 
   const bilah = LAYAR.querySelector(".tab-golongan");
   if (bilah) {
