@@ -634,7 +634,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table-daftar-ulang th:nth-child(2),
 .table-daftar-ulang td:nth-child(2) { width: 1%; white-space: nowrap; }
 .table-daftar-ulang .kol-dada { width: 1%; white-space: nowrap; text-align: left; }
-.table-daftar-ulang .kol-tukar { width: 100%; }
+/* Kolom terakhir sengaja TANPA `width`. Dengan table-layout auto, sisa lebar
+   jatuh ke kolom yang tidak dipatok — dan `width: 100%` justru meminta lebar
+   penuh untuk SATU sel, yang melebarkan tabelnya melewati wadahnya: pil nomor
+   dada terdorong ke kanan lagi dan penggulir mendatar muncul kembali.
+   Yang dibutuhkan bukan "seluas mungkin", melainkan "sisanya". */
+.table-daftar-ulang .kol-tukar { width: auto; }
 .table-daftar-ulang .kol-dada .pill-row,
 .table-daftar-ulang .kol-dada .sub { justify-content: flex-start; }
 /* Tombol tukar mengambil sisanya, rata kiri juga — ia mengikuti nomornya,
