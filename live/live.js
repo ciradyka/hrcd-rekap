@@ -361,7 +361,7 @@ function gambarPapan() {
               <tr>
                 ${penuh ? `<th rowspan="2" class="rank-th">#</th>` : ""}
                 <th rowspan="2" class="dada-th">No<br>Dada</th>
-                <th rowspan="2">Regu</th>
+                <th rowspan="2" class="regu-th">Regu</th>
                 <th rowspan="2" class="th-saring" tabindex="0" role="button"
                     aria-expanded="false"
                     title="Klik untuk menyaring per sekolah">Organisasi
