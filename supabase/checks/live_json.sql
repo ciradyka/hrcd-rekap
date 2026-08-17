@@ -43,6 +43,17 @@ select jsonb_pretty(jsonb_build_object(
                          '[]'::jsonb)
                   from v_kelengkapan_publik kl),
 
+  -- Daftar komponen. Tanpa ini halaman peserta tidak bisa menggambar kepala
+  -- tabel yang sama dengan layar panitia — ia tahu ada Pos 1, tapi tidak tahu
+  -- Pos 1 berisi Semaphore, Tebak Simpul, dan Menaksir. Isinya nama dan
+  -- golongan saja; tidak ada satu pun angka nilai di sini.
+  'komponen', (select coalesce(jsonb_agg(jsonb_build_object(
+                        'kode', w.kode, 'name', w.name, 'pos', w.pos,
+                        'golongan', w.golongan, 'lomba', w.lomba,
+                        'sort_order', w.sort_order)
+                      order by w.pos, w.sort_order, w.kode), '[]'::jsonb)
+               from wahana w where w.edisi = edisi_aktif()),
+
   'progres', (select coalesce(jsonb_agg(to_jsonb(p) order by p.nomor_dada),
                      '[]'::jsonb)
               from v_progres_publik p),
