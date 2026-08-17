@@ -631,8 +631,14 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    kanan layar — mata harus menyeberangi ruang kosong selebar setengah tabel
    untuk sampai ke angka yang justru dicari. Sekarang keempatnya rapat ke
    kiri, dan tabelnya tidak lagi perlu digulir ke samping. */
+/* `width: 1%` menyusutkan kolomnya sesempit isinya SELAMA masih muat — itu
+   yang membuat nomor dada duduk rapat di sebelah nama sekolah. Tapi TANPA
+   `nowrap`: nama seperti "MA Al-Azhar Citangkolo Kota Banjar" yang dilarang
+   patah memaksa tabelnya melebar melewati kartu, dan penggulir mendatar
+   muncul lagi. Kalau ruangnya sempit, yang mengalah namanya — bukan
+   tabelnya. */
 .table-daftar-ulang th:nth-child(2),
-.table-daftar-ulang td:nth-child(2) { width: 1%; white-space: nowrap; }
+.table-daftar-ulang td:nth-child(2) { width: 1%; }
 .table-daftar-ulang .kol-dada { width: 1%; white-space: nowrap; text-align: left; }
 /* Kolom terakhir sengaja TANPA `width`. Dengan table-layout auto, sisa lebar
    jatuh ke kolom yang tidak dipatok — dan `width: 100%` justru meminta lebar
