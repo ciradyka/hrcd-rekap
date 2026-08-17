@@ -217,5 +217,10 @@ run tests/sql/28_sekolah_satu_baris.sql
 # baris, dan id sekolah yang berpindah saat migrasinya dijalankan dua kali.
 run supabase/migrations/0063_sekolah_daftar_kurasi.sql
 run tests/sql/29_sekolah_daftar_kurasi.sql
+# 0064 memindahkan SELURUH penjaga dari peran() ke boleh(). Tesnya menjalankan
+# panggilan yang sama persis dua kali dan hanya mengubah satu baris akun_hak —
+# kalau pesan galatnya tidak berubah, centang di layar Akun bukan pagar.
+run supabase/migrations/0064_hak_akses_mengikat.sql
+run tests/sql/30_hak_akses_mengikat.sql
 
 echo "SEMUA TES LULUS"
