@@ -1945,6 +1945,11 @@ input.small-input { text-align: center; }
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada,
   .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar {
     grid-column: 1 / -1; margin-top: .35rem;
+    /* `width: 1%` dipasang untuk tabel di layar lebar — di sana ia membuat
+       kolomnya sesempit isinya. Di kartu HP sel itu jadi kotak grid, dan 1%
+       menyempitkannya sampai pil nomor dada terpaksa turun satu per baris.
+       Dilepas di sini, bukan dihapus di sana. */
+    width: auto; white-space: normal;
   }
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .pill-row,
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .sub {
