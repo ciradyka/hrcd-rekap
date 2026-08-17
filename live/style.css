@@ -631,6 +631,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    kanan layar — mata harus menyeberangi ruang kosong selebar setengah tabel
    untuk sampai ke angka yang justru dicari. Sekarang keempatnya rapat ke
    kiri, dan tabelnya tidak lagi perlu digulir ke samping. */
+/* TABLE-LAYOUT AUTO, dan ini yang membatalkan tiga tebakan sebelumnya.
+   Tabel ini mewarisi `table-layout: fixed`, dan di bawah fixed `width: 1%`
+   BUKAN "sesempit isinya" melainkan harfiah 1% — kolom yang tidak disebut
+   lebarnya kebagian sisa yang dibagi rata, dan kolom terakhir di sini
+   kebagian NOL. Diukur: 173 / 559 / 284 / 0 px. Tombol Tukar karena itu
+   meluap keluar tabel (penggulir mendatar), dan kolom sekolah yang menyerap
+   559px mendorong nomor dada ke tepi kanan.
+
+   Di bawah auto, `width: 1%` kembali berarti "sesempit isinya selama masih
+   muat", dan sisa lebar jatuh ke satu-satunya kolom yang tidak dipatok.
+   Itu perilaku yang diandaikan seluruh aturan di bawah ini. */
+.table-daftar-ulang { table-layout: auto; }
+
 /* `width: 1%` menyusutkan kolomnya sesempit isinya SELAMA masih muat — itu
    yang membuat nomor dada duduk rapat di sebelah nama sekolah. Tapi TANPA
    `nowrap`: nama seperti "MA Al-Azhar Citangkolo Kota Banjar" yang dilarang
