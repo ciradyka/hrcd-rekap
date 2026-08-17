@@ -1939,8 +1939,19 @@ input.small-input { text-align: center; }
      Petugas membaca dua hal untuk menemukan barisnya — kode dan sekolah —
      jadi keduanya duduk berdampingan di baris pertama. Sisanya menyusul. */
   .table-daftar-ulang tbody tr[data-baris] {
-    display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem;
-    align-items: baseline;
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    gap: .1rem .6rem; align-items: baseline;
+    /* minmax(0,1fr), bukan 1fr: kolom 1fr punya lebar minimum SEISI kontennya,
+       jadi "MA Al-Azhar Citangkolo Kota Banjar" yang tidak boleh dipatahkan
+       mendorong kartunya melebihi lebar layar — kode bayarnya terpotong di
+       tepi kiri. minmax(0,…) mengizinkannya menyusut, dan nama panjang
+       membungkus ke bawah alih-alih menembus. */
+  }
+  /* Lebar untuk TABEL layar lebar dilepas di sini. `width: 100%` pada sel
+     terakhir membuat kartunya sendiri melebar melewati layar. */
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar { width: auto; }
+  .table-daftar-ulang tbody tr[data-baris] > td[data-label="Sekolah"] {
+    white-space: normal;
   }
   /* Kekhususannya harus MENANDINGI aturan label umum di atas, yang berbunyi
      `.data-table … td[data-label]:not([data-label=""])::before` — 0,4,2.
@@ -1956,6 +1967,12 @@ input.small-input { text-align: center; }
     grid-column: 2; text-align: right; font-size: .95rem;
   }
   /* Nomor dada dan tombol tukar mengambil kedua kolom, di bawahnya. */
+  /* Urutan dipatok EKSPLISIT lewat grid-row, tidak diserahkan ke penempatan
+     otomatis: tombol Tukar harus di BAWAH daftar nomor dada — ia tindakan
+     atas nomor-nomor itu, dan tindakan yang berdiri di atas objeknya
+     terbaca seperti tindakan atas nama sekolahnya. */
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-dada { grid-row: 2; }
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar { grid-row: 3; }
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada,
   .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar {
     grid-column: 1 / -1; margin-top: .35rem;
