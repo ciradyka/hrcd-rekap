@@ -4229,6 +4229,15 @@ async function layarLiveScore() {
         </div>`;
         return `
         <div class="card">
+          <!-- Judulnya DI DALAM kartu, di atas medali. Di luar kartu ia
+               melayang tanpa induk; di sini ia jelas menerangkan tiga medali
+               di bawahnya.
+               "sementara" yang membawa faktanya: papan ini memeringkat dari
+               poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
+               sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+               layar besar terbaca seperti hasil — dan itu yang diumumkan
+               orang. -->
+          <h2 style="margin:0 0 .8rem;text-align:center">Klasemen sementara</h2>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
@@ -4363,11 +4372,10 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(`
     ${kemajuan}
     ${tab}
-    <div style="display:flex;align-items:center;gap:.5rem;margin:.8rem 0 .4rem">
-      <div style="flex:1"></div>
-      <h2 style="margin:0;text-align:center">Klasemen sementara</h2>
-      <div style="flex:1;display:flex;justify-content:flex-end">${saklar}</div>
-    </div>
+    ${saklar ? `
+    <div style="display:flex;justify-content:flex-end;margin:.8rem 0 .4rem">
+      ${saklar}
+    </div>` : ""}
     ${papan}`));
 
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
