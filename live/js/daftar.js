@@ -249,6 +249,18 @@ function gambarSekolah() {
     }));
     gambarManual();
   });
+  /* Klik pada saran TIDAK BOLEH melepas fokus dari kotak ketik.
+   *
+   *  Dulu daftarnya disembunyikan 200 ms sesudah `blur`, dengan harapan klik
+   *  sempat mendarat lebih dulu. Itu perlombaan, dan yang kalah orangnya:
+   *  sekali klik sedikit lebih lambat — jari menekan lalu berhenti sejenak,
+   *  atau HP yang sibuk — tombolnya sudah hilang waktu `click` tiba, dan
+   *  sekolahnya tidak terpilih tanpa satu pun tanda bahwa ada yang salah.
+   *  Dilaporkan persis begitu: "muncul, tapi ketika diklik, hilang".
+   *
+   *  `preventDefault` pada mousedown menahan perpindahan fokusnya sejak awal,
+   *  jadi `blur` tidak pernah terjadi dan tidak ada lomba untuk dimenangkan. */
+  saran.addEventListener("mousedown", (e) => e.preventDefault());
   cari.addEventListener("blur", () => setTimeout(() => { saran.hidden = true; }, 200));
 
   // s DATANG DARI DUA ARAH: hasil autocomplete (baris database — kolomnya
