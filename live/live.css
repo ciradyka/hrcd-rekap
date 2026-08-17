@@ -205,14 +205,33 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
   left: 0; width: 46px; min-width: 46px;
 }
 .tabel td.dada, .tabel th.dada-th {
-  left: 0; box-shadow: 1px 0 0 var(--garis);
+  left: 0; width: 56px; min-width: 56px;
 }
 .tabel.ada-rank td.dada, .tabel.ada-rank th.dada-th { left: 46px; }
+
+/* Nama regu ikut dipatok — diminta setelah dua kolom pertama terpaku:
+   nomor dada saja tidak cukup untuk mengenali baris, karena yang diucapkan
+   orang saat menunjuk layar adalah NAMA REGUNYA.
+
+   Ia yang paling kanan di antara yang dipatok, jadi garis pemisahnya pindah
+   ke sini. Lebarnya dipatok 8rem dan dipotong elipsis: tanpa itu satu nama
+   panjang memakan setengah layar HP, dan yang tersisa untuk kolom nilai —
+   satu-satunya alasan tabel ini digulir — tinggal sejengkal. */
+.tabel td.regu, .tabel th.regu-th {
+  position: sticky; z-index: 2; background: var(--kartu);
+  left: 56px; width: 8rem; min-width: 8rem; max-width: 8rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  box-shadow: 1px 0 0 var(--garis);
+}
+.tabel.ada-rank td.regu, .tabel.ada-rank th.regu-th { left: 102px; }
+.tabel tbody tr:nth-child(even) td.regu { background: #fafaf8; }
+.tabel tr.atas td.regu { background: #fdf6e3; }
+.tabel th.regu-th { z-index: 3; }
 .tabel tbody tr:nth-child(even) td.dada,
 .tabel tbody tr:nth-child(even) td.rank-sel { background: #fafaf8; }
 .tabel th.rank-th, .tabel th.dada-th { z-index: 3; }
 
-.tabel .regu { white-space: normal; min-width: 11rem; font-weight: 600; }
+.tabel .regu { font-weight: 600; }
 .tabel .regu .sekolah {
   display: block; font-weight: 400; font-size: .78rem; color: var(--tinta-lembut);
 }
@@ -280,7 +299,9 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
   .kepala h1 { font-size: 1rem; }
   .kartu { padding: .7rem .5rem; }
   .tabel { font-size: .85rem; }
-  .tabel .regu { min-width: 9rem; }
+  /* Di layar sempit blok yang dipatok dipersempit, kalau tidak yang
+     tersisa untuk kolom nilai tinggal sejengkal. */
+  .tabel td.regu, .tabel th.regu-th { width: 6.5rem; min-width: 6.5rem; max-width: 6.5rem; }
 }
 
 /* Tombol tunggal — satu-satunya di halaman ini, dipakai fase 'pra' untuk
