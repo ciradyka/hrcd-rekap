@@ -619,6 +619,28 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    tetap di tengah kartu — bukan di tengah sisa ruang. Dua sisi berlebar sama
    yang menjepitnya yang memastikan itu, jadi judul tidak bergeser waktu
    saklarnya tidak digambar (akun tanpa `pengaturan`). */
+/* Penyaring sekolah di papan Live Score. <details> bawaan, dirapikan.
+   Daftarnya bisa panjang — 23 sekolah hari ini, ratusan tahun depan — jadi ia
+   digulung sendiri dan tidak pernah mendorong tabel keluar layar. */
+.filter-sekolah { margin: 0 0 .6rem; }
+.filter-sekolah > summary {
+  cursor: pointer; display: inline-block; padding: .3rem .7rem;
+  border: 1px solid var(--garis); border-radius: 6px; font-size: .85rem;
+  font-weight: 600;
+}
+.filter-sekolah > summary:hover { background: var(--garis); }
+.filter-sekolah.menyaring > summary { border-color: var(--utama); color: var(--utama); }
+.filter-sekolah .isi-filter {
+  margin-top: .4rem; max-height: 40vh; overflow-y: auto;
+  border: 1px solid var(--garis); border-radius: 6px; padding: .5rem;
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.filter-sekolah .isi-filter label {
+  display: flex; align-items: center; gap: .5rem; font-size: .9rem;
+  font-weight: 400; cursor: pointer;
+}
+.filter-sekolah .isi-filter input { width: 1rem; height: 1rem; }
+
 .kepala-klasemen { display: flex; align-items: center; gap: .5rem; margin: 0 0 .8rem; }
 .kepala-klasemen h2 { margin: 0; text-align: center; }
 .kepala-klasemen .sisi { flex: 1; display: flex; }

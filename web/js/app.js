@@ -4235,6 +4235,8 @@ async function layarLiveScore() {
   const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
         const juara = baris.filter(k => k.peringkat <= 3);
+        const sekolahAda = [...new Set(baris.map(k => k.nama_sekolah).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b, "id"));
         if (!baris.length) return `
         <div class="card">
           <div class="kepala-klasemen">
@@ -4275,6 +4277,23 @@ async function layarLiveScore() {
                 <div class="total">${esc(angkaRapi(k.total))}</div>
               </div>`).join("")}
           </div>
+          <!-- Penyaring sekolah. Daftarnya dibangun dari baris golongan INI,
+               bukan dari seluruh sekolah: memilih sekolah yang tidak punya
+               regu di golongan yang sedang dibuka menghasilkan tabel kosong
+               tanpa satu pun petunjuk kenapa.
+
+               <details> biasa, bukan dropdown buatan sendiri — ia sudah bisa
+               dibuka dengan sentuhan, ditutup dengan Esc, dan dibacakan
+               pembaca layar tanpa satu baris JS pun. -->
+          <details class="filter-sekolah">
+            <summary>Organisasi <span class="hitung-filter"></span></summary>
+            <div class="isi-filter">
+              <button type="button" class="button tombol-semua"
+                      style="padding:.25rem .6rem;font-size:.8rem">Semua</button>
+              ${sekolahAda.map(nm => `
+                <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
+            </div>
+          </details>
           <div class="table-wrapper table-wrapper-tetap">
             <table class="table data-table table-tetap table-rekap table-live">
               <thead>
@@ -4300,7 +4319,7 @@ async function layarLiveScore() {
                   const nilai = rk.nilai || {};
                   const poin = k.poin_per_pos || {};
                   return `
-                  <tr>
+                  <tr data-sekolah="${esc(k.nama_sekolah || "")}">
                     <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat))}</span></td>
                     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
                     <td>${esc(k.nama_regu)}</td>
@@ -4420,6 +4439,40 @@ async function layarLiveScore() {
       } finally {
         semua.forEach(x => { x.disabled = false; });
       }
+    });
+  });
+
+  /* Penyaring sekolah, satu per panel golongan.
+   *
+   *  Menyaring BARIS TABEL saja — podium juara dibiarkan utuh. Tiga medali
+   *  itu menjawab "siapa juara golongan ini"; menyaringnya per sekolah akan
+   *  menjadikan regu peringkat sembilan tampil sebagai Juara 1, dan itu
+   *  gambar yang difoto lalu disebarkan.
+   *
+   *  Peringkat di kolom pertama juga TIDAK dihitung ulang: ia peringkat di
+   *  golongannya, bukan nomor urut baris yang sedang tampil. Menyaring
+   *  sekolah lalu melihat "1, 4, 7" adalah jawaban yang benar. */
+  LAYAR.querySelectorAll(".panel-gol").forEach(panel => {
+    const kotak = [...panel.querySelectorAll(".isi-filter input[type=checkbox]")];
+    const hitung = panel.querySelector(".hitung-filter");
+    const semua = panel.querySelector(".tombol-semua");
+    if (!kotak.length) return;
+
+    const terapkan = () => {
+      const pilih = new Set(kotak.filter(c => c.checked).map(c => c.value));
+      panel.querySelectorAll("tbody tr[data-sekolah]").forEach(tr => {
+        tr.hidden = pilih.size > 0 && !pilih.has(tr.dataset.sekolah);
+      });
+      // Angkanya, bukan kata "aktif": panitia perlu tahu BERAPA yang sedang
+      // menyaring tanpa membuka daftarnya.
+      hitung.textContent = pilih.size ? `· ${pilih.size} dipilih` : "";
+      panel.querySelector(".filter-sekolah").classList.toggle("menyaring", pilih.size > 0);
+    };
+
+    kotak.forEach(c => c.addEventListener("change", terapkan));
+    if (semua) semua.addEventListener("click", () => {
+      kotak.forEach(c => { c.checked = false; });
+      terapkan();
     });
   });
 
