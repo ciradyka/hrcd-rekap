@@ -4313,7 +4313,7 @@ async function layarLiveScore() {
                 <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
             </div>
             <button type="button" class="button tombol-semua"
-                    style="padding:.25rem .6rem;font-size:.8rem">Hapus saringan</button>
+                    style="padding:.25rem .6rem;font-size:.8rem">Hapus Filter</button>
           </div>
           <div class="table-wrapper table-wrapper-tetap">
             <table class="table data-table table-tetap table-rekap table-live">
@@ -4500,6 +4500,12 @@ async function layarLiveScore() {
     const kepala = panel.querySelector(".th-saring");
     const isi = panel.querySelector(".isi-filter");
     const cariKotak = panel.querySelector(".cari-filter");
+    // Panelnya DIPINDAH ke <body> saat dibuka. `position: fixed` hanya
+    // relatif ke viewport selama tidak ada leluhur yang punya transform,
+    // filter, atau will-change — begitu ada satu saja, ia jadi relatif ke
+    // leluhur itu dan panelnya mendarat di tempat yang sama sekali lain.
+    // Memindahkannya ke body menghapus seluruh pertanyaan itu.
+    if (isi.parentElement !== document.body) document.body.appendChild(isi);
     const tempel = () => {
       // Ditempel ke kepala kolomnya tiap kali dibuka, bukan sekali saat
       // digambar: tabelnya bisa digulir ke samping, dan panel yang koordinatnya

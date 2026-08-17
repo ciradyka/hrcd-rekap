@@ -649,9 +649,20 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    halaman dimuat. */
 .isi-filter[hidden] { display: none; }
 .isi-filter .cari-filter {
-  padding: .35rem .5rem; border: 1px solid var(--garis); border-radius: 6px;
-  font-size: .85rem; font-family: inherit;
+  padding: .45rem .6rem; border: 2px solid #9aa3ad; border-radius: 6px;
+  font-size: .9rem; font-family: inherit; background: #fff; color: #1c2430;
 }
+.isi-filter .cari-filter::placeholder { color: #6b7480; }
+.isi-filter .cari-filter:focus {
+  outline: none; border-color: #00695c; box-shadow: 0 0 0 3px rgba(0,105,92,.18);
+}
+.isi-filter .tombol-semua,
+.isi-filter .tombol-kecil {
+  background: #00695c; color: #fff; border: 1px solid #00695c;
+  font-weight: 600; padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
+}
+.isi-filter .tombol-semua:hover,
+.isi-filter .tombol-kecil:hover { background: #004d43; border-color: #004d43; }
 .isi-filter .daftar-filter {
   overflow-y: auto; display: flex; flex-direction: column; gap: .3rem;
   max-height: 30vh;

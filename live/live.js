@@ -353,7 +353,7 @@ function gambarPapan() {
             ${sekolahAda.map(nm => `
               <label><input type="checkbox" value="${esc(nm)}"> ${esc(nm)}</label>`).join("")}
           </div>
-          <button type="button" class="tombol-kecil tombol-semua">Hapus saringan</button>
+          <button type="button" class="tombol-kecil tombol-semua">Hapus Filter</button>
         </div>
         <div class="gulir">
           <table class="tabel">
@@ -449,6 +449,12 @@ function pasangPapan() {
     // bergulir, dan panel yang koordinatnya dihitung sekali akan tertinggal
     // di tempat lamanya begitu tabel digulir ke samping.
     const cariKotak = panel.querySelector(".cari-filter");
+    // Panelnya DIPINDAH ke <body> saat dibuka. `position: fixed` hanya
+    // relatif ke viewport selama tidak ada leluhur yang punya transform,
+    // filter, atau will-change — begitu ada satu saja, ia jadi relatif ke
+    // leluhur itu dan panelnya mendarat di tempat yang sama sekali lain.
+    // Memindahkannya ke body menghapus seluruh pertanyaan itu.
+    if (isi.parentElement !== document.body) document.body.appendChild(isi);
     const tempel = () => {
       const r = kepala.getBoundingClientRect();
       isi.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 300)) + "px";
