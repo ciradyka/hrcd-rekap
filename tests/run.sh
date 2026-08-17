@@ -233,5 +233,11 @@ run tests/sql/31_view_hak.sql
 # KAPASITAS tidak ikut terbuka.
 run supabase/migrations/0066_kloter_boleh_ditambah.sql
 run tests/sql/32_kloter_boleh_ditambah.sql
+# 0067 membuka Live Score untuk semua peran yang mencentangnya. Tesnya
+# memeriksa dari kursi masing-masing — bukan memindai nama peran seperti tes
+# 31, yang justru meloloskan `peran() = 'admin'` — dan sekaligus menahan
+# isolasi pos supaya tidak ikut terbuka demi mengisi papan skor.
+run supabase/migrations/0067_live_score_semua_peran.sql
+run tests/sql/33_live_score_semua_peran.sql
 
 echo "SEMUA TES LULUS"
