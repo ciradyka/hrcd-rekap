@@ -768,10 +768,18 @@ async function layarPembayaran() {
 
 /** Menyalin hasil verifikasi ke data lokal + daftar "baris terakhir", supaya
  *  jalur satuan dan jalur massal menulis fakta yang sama persis. */
-function tandaiLunasLokal(b, nominal, metode, nomorKwitansi) {
+/* Namanya `method`, bukan `metode` — migrasi 0014 mengganti nama kolomnya
+   dan SELURUH pembaca ikut, kecuali baris ini.
+   Akibatnya tidak terlihat sampai kwitansi dicetak TEPAT SETELAH verifikasi,
+   sebelum halaman dimuat ulang: sampai saat itu yang dibaca layar adalah
+   objek buatan sini, bukan baris dari database. Kwitansinya berbunyi "Cara
+   bayar: —" — dan kertas itu dipegang pembina sampai hari lomba.
+   Muat ulang halaman menyembuhkannya sendiri, yang justru membuat cacat ini
+   nyaris mustahil ditemukan dengan mencoba-coba. */
+function tandaiLunasLokal(b, nominal, method, nomorKwitansi) {
   b.status = "lunas";
   b.pembayaran = {
-    nominal, metode, nomor_kwitansi: nomorKwitansi,
+    nominal, method, nomor_kwitansi: nomorKwitansi,
     verified_at: new Date().toISOString(),
   };
   catatTerakhir("pembayaran", b.kode_pembayaran,
