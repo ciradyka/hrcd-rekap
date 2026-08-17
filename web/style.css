@@ -904,7 +904,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .lembar-pos .print-table th:nth-child(1) {
     width: 10mm; max-width: 10mm; padding-left: 1pt; padding-right: 1pt;
   }
-  .lembar-pos .print-table td.dada { font-size: 12pt; }
+  /* 11pt, turun dari 12pt — SATU-SATUNYA huruf yang dikecilkan di lembar ini,
+     dan ia yang menentukan tinggi seluruh baris.
+     Sel isian kosong tidak punya line box, jadi tingginya cuma padding +
+     garis; yang mengangkat baris adalah sel berisi yang paling besar, dan itu
+     nomor dada. 12pt -> 11pt memangkas baris dari 4,80mm ke 4,45mm, dan itu
+     persis yang membeli baris ke-38 sampai ke-40.
+     Diminta pemilik acara setelah melihat lembar 37 baris. Dikembalikan ke
+     12pt kalau ternyata terlalu kecil dibaca dari foto — cukup ubah angka di
+     sini dan REGU_PER_LEMBAR di app.js kembali ke 37. */
+  .lembar-pos .print-table td.dada { font-size: 11pt; }
   /* Kotak tulisnya tidak lagi dipatok tingginya — tinggi baris sudah
      ditentukan huruf 12pt di line-height 1 (~5mm), dan mematoknya lebih
      tinggi hanya akan mengurangi jumlah baris per lembar. */
