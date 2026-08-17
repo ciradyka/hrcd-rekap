@@ -109,6 +109,15 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
    sini deretan centang per pos — bentuk baris itulah isinya, dan menumpuknya
    membuat satu regu memakan satu layar penuh. */
 .gulir { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Kolom komponen: sempit, rata tengah, dan judulnya boleh membungkus.
+   Bentuknya mengikuti tabel panitia — satu kolom per komponen, bukan per
+   pos. */
+.tabel th.kol-komponen { font-size: .72rem; font-weight: 600; white-space: normal;
+  line-height: 1.15; }
+.tabel td.pos { text-align: center; }
+.tabel td.pos.ada { font-weight: 700; }
+.tabel td.pos.belum { color: #9aa3ad; }
+
 .tabel { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
 .tabel th {
   text-align: left; font-size: .7rem; text-transform: uppercase;

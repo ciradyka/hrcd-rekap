@@ -265,14 +265,32 @@ function gambarHasil() {
     sekolah.get(k).push(b);
   }
 
-  const kepalaPos = pos.map(p =>
-    `<th class="pos">${esc(p.bayangan ? p.name : `Pos ${p.nomor}`)}</th>`).join("");
+  /* Kepala tabel DUA BARIS, bentuknya sama dengan layar panitia: baris atas
+     nama posnya, baris bawah nama tiap komponennya. Sebelumnya satu kolom
+     per POS — dan dengan itu peserta tidak pernah tahu Pos 1 berisi tiga hal
+     yang dinilai terpisah.
+
+     Komponen yang khusus satu golongan (Tebak Simpul punya empat versi)
+     digabung jadi SATU kolom bernama sama, persis seperti kolomPos() di layar
+     panitia. Yang membedakan barisnya: tiap regu hanya punya versi
+     golongannya sendiri. */
+  const komponen = (META && META.komponen) || [];
+  const perPos = pos.map(p => {
+    const milik = komponen.filter(w => w.pos === p.nomor);
+    const nama = [];
+    for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
+    return { pos: p, nama, milik };
+  }).filter(x => x.nama.length);
+
+  const kepalaPos = perPos.map(x =>
+    `<th class="pos" colspan="${x.nama.length}">${
+      esc(x.pos.bayangan ? x.pos.name : `Pos ${x.pos.nomor}`)}</th>`).join("");
+  const kepalaKomponen = perPos.map(x => x.nama.map(nm =>
+    `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("");
 
   return [...sekolah.entries()].sort((a, b) => a[0].localeCompare(b[0], "id"))
     .map(([nama, isi]) => {
       isi.sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
-      const kolomEkstra = penuh
-        ? `<th>Kloter</th><th>Kontrak</th><th>Berangkat</th><th>Datang</th>` : "";
       return `
         <div class="kartu">
           <h2>${esc(nama)}</h2>
@@ -281,17 +299,46 @@ function gambarHasil() {
             <table class="tabel">
               <thead>
                 <tr>
-                  <th>No<br>Dada</th><th>Regu</th><th>Golongan</th>
-                  ${kolomEkstra}${kepalaPos}
+                  <th rowspan="2">No<br>Dada</th><th rowspan="2">Regu</th>
+                  <th rowspan="2">Golongan</th>
+                  ${penuh ? `<th rowspan="2">Kloter</th><th rowspan="2">Kontrak</th>
+                     <th rowspan="2">Berangkat</th><th rowspan="2">Datang</th>` : ""}
+                  ${kepalaPos}
                 </tr>
+                <tr>${kepalaKomponen}</tr>
               </thead>
               <tbody>
                 ${isi.map(b => {
-                  const lewat = b.pos_terlewati || {};
-                  const sel = pos.map(p => {
-                    const ada = lewat[String(p.nomor)];
-                    return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : "–"}</td>`;
-                  }).join("");
+                  /* Inilah "masking"-nya. Bentuk tabelnya sama persis dengan
+                     layar panitia; yang berbeda hanya ISI SELNYA:
+
+                       progres  ✓ kalau nilainya sudah masuk, kosong kalau
+                                belum. Tidak ada satu angka pun.
+                       penuh    angka yang sebenarnya.
+
+                     Dan itu bukan sekadar tampilan: di fase progres,
+                     `nilai` memang objek kosong di rekap.json (0072). Yang
+                     disembunyikan tidak ada di berkasnya. */
+                  const terisi = b.komponen_terisi || {};
+                  const angka = b.nilai || {};
+                  const sel = perPos.map(x => x.nama.map(nm => {
+                    // Versi komponen yang berlaku untuk golongan regu INI.
+                    const w = x.milik.find(k =>
+                      k.name === nm && (!k.golongan || k.golongan === b.golongan));
+                    if (!w) return `<td class="pos belum">–</td>`;
+                    const kunci = `${x.pos.nomor}.${w.kode}`;
+                    if (!penuh) {
+                      const ada = terisi[kunci];
+                      return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : ""}</td>`;
+                    }
+                    const v = angka[kunci];
+                    if (!v || v.nilai_1 === null || v.nilai_1 === undefined) {
+                      return `<td class="pos belum">–</td>`;
+                    }
+                    return `<td class="pos ada">${esc(String(v.nilai_1))}${
+                      v.nilai_2 === null || v.nilai_2 === undefined
+                        ? "" : ` / ${esc(String(v.nilai_2))}`}</td>`;
+                  }).join("")).join("");
                   const ekstra = penuh ? `
                     <td>${b.kloter ? esc(String(b.kloter)) : "—"}</td>
                     <td>${esc(kontrak(b.kontrak_menit))}</td>
