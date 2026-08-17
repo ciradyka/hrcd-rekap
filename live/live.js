@@ -104,7 +104,47 @@ let versiRekap = null;  // versi milik REKAP yang sedang dipegang
 let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
 let cari = "";
 
-const fase = () => (META && META.fase) || "pra";
+/* Fase yang BERLAKU = yang paling ketat antara berkas dan database.
+ *
+ *  `live.json` hanya berubah kalau publish-live.yml dijalankan, jadi
+ *  mematikan papan berarti membuka GitHub Actions — bukan yang dilakukan
+ *  orang saat kerumunan sedang panas. `FASE_DB` diambil langsung dari
+ *  Supabase tiap poll, jadi saklar di layar panitia berlaku dalam hitungan
+ *  detik.
+ *
+ *  Hanya MEMPERKETAT, tidak pernah membuka. Berkas yang terbit saat fase
+ *  `progres` memang TIDAK MEMUAT satu angka pun — bukan memuat angka yang
+ *  disembunyikan tampilan. Kalau saklar ini bisa membuka lebih dari isi
+ *  berkasnya, jaminan itu berubah jadi "angkanya ada di CDN, cuma tidak
+ *  digambar", dan siapa pun yang membuka rekap.json langsung melihatnya.
+ *
+ *  Jadi: mematikan seketika, menyalakan tetap lewat penerbitan. */
+const URUT_FASE = { pra: 0, progres: 1, penuh: 2 };
+let FASE_DB = null;
+
+const fase = () => {
+  const berkas = (META && META.fase) || "pra";
+  if (!FASE_DB) return berkas;
+  return URUT_FASE[FASE_DB] < URUT_FASE[berkas] ? FASE_DB : berkas;
+};
+
+async function ambilFaseDb() {
+  const K = window.HRCD || {};
+  if (!K.supabaseUrl || !K.anonKey) return;
+  try {
+    const r = await fetch(`${K.supabaseUrl}/rest/v1/v_fase_live?select=fase_live`,
+      { headers: { apikey: K.anonKey, Authorization: `Bearer ${K.anonKey}` },
+        cache: "no-store" });
+    if (!r.ok) return;                       // diamkan: berkas tetap dipakai
+    const d = await r.json();
+    if (Array.isArray(d) && d[0] && URUT_FASE[d[0].fase_live] !== undefined) {
+      FASE_DB = d[0].fase_live;
+    }
+  } catch {
+    // Sambungan ke Supabase mati bukan alasan mengosongkan papan: tanpa
+    // FASE_DB, yang berlaku fase di berkas — keadaan sebelum berkas ini ada.
+  }
+}
 const mulai = () => fase() !== "pra";
 
 /* ---------------------------------------------------------------------------
@@ -459,6 +499,9 @@ async function muatRekap() {
 
 async function muat() {
   try {
+    // Diambil bersamaan, bukan berurutan: keduanya kecil dan salah satunya
+    // boleh gagal tanpa menjatuhkan yang lain.
+    await ambilFaseDb();
     const r = await fetch(`live.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(String(r.status));
     const baru = await r.json();
