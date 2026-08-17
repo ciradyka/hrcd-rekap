@@ -849,7 +849,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .lembar-pos .print-note { text-align: center; line-height: 1.1; }
   .lembar-pos .lembar-kepala { font-size: 8pt; margin: 0 0 0.5pt; }
   .lembar-pos .insert-note { font-size: 7.5pt; margin: 0 0 0.5pt; }
-  .lembar-pos .print-note { font-size: 7pt; margin-top: 1pt; }
+  /* margin DIRINGKAS EMPAT ARAH, bukan cuma atasnya.
+     `.printout p { margin: .45rem 0 }` di atas berlaku untuk paragraf ini
+     juga, dan menimpa hanya `margin-top` meninggalkan 0,45rem = 1,9mm
+     menganggur DI BAWAH catatan — persis ruang kosong di kaki halaman yang
+     dilaporkan, dan ia tidak kelihatan dari aturan .lembar-pos mana pun. */
+  .lembar-pos .print-note { font-size: 7pt; margin: 1pt 0 0; }
   .lembar-pos .print-table { margin-top: 0; }
   /* 12pt untuk ISI — ukuran yang sama dengan cetakan Excel yang selama ini
      dipakai panitia, dan memang seharusnya: yang tertulis di sini dibaca
