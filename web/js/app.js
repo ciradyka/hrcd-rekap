@@ -4337,7 +4337,9 @@ async function layarLiveScore() {
                 </tr>
                 <tr>
                   ${posKolom.map(p => p.kolom.map(kol =>
-                      `<th class="pos-kol">${esc(kol.nama)}</th>`).join("")
+                      `<th class="pos-kol">${esc(kol.nama)}${kol.petunjuk
+                        ? `<span class="kolom-petunjuk">${esc(kol.petunjuk)}</span>`
+                        : ""}</th>`).join("")
                     + `<th class="pos-kol rekap-batas">Nilai</th>`).join("")}
                 </tr>
               </thead>

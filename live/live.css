@@ -169,6 +169,13 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 /* Kolom komponen: sempit, rata tengah, dan judulnya boleh membungkus.
    Bentuknya mengikuti tabel panitia — satu kolom per komponen, bukan per
    pos. */
+/* Rentang di bawah nama kolom: kecil, tidak tebal, tidak berteriak. Ia
+   keterangan, bukan judul — dan kalau setebal judulnya, mata membaca dua
+   judul untuk satu kolom. */
+.tabel .kolom-petunjuk {
+  display: block; font-size: .62rem; font-weight: 400; opacity: .75;
+  white-space: nowrap; letter-spacing: normal;
+}
 .tabel th.kol-komponen { font-size: .72rem; font-weight: 600; white-space: normal;
   line-height: 1.15; }
 .tabel td.pos { text-align: center; }
