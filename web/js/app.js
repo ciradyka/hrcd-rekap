@@ -4229,6 +4229,13 @@ async function layarLiveScore() {
         </div>`;
         return `
         <div class="card">
+          <!-- "sementara", dan kata itu yang membawa faktanya. Papan ini
+               memeringkat dari poin yang sudah terkumpul SEKARANG — regu yang
+               baru melewati dua pos berdiri di sebelah regu yang sudah lima,
+               jadi urutan di atas bisa berubah sampai pos terakhir terisi.
+               Tanpa kata itu, tiga medali di layar besar terbaca seperti
+               hasil, dan itu yang diumumkan orang. -->
+          <h2 style="margin:0 0 .6rem">Klasemen sementara</h2>
           <div class="podium">
             ${juara.map(k => `
               <div class="juara j${esc(String(k.peringkat))}">
