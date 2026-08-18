@@ -414,6 +414,32 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    Dialog kamera per regu di meja IT **tidak diganti** dan tetap jalur utama:
    di sana fotonya tertaut sendiri, tanpa pekerjaan tambahan.
 
+   **FOTONYA BUKTI, BUKAN SUMBER NILAI — dan itu batas yang keras.** Angka
+   yang berlaku adalah yang DIKETIK petugas di layar Input Pos. Foto ada untuk
+   satu hal: kalau angka yang tersimpan dipertanyakan, ada yang bisa diadu
+   dengannya. Ia tidak pernah menjadi jalan masuk nilai, tidak otomatis dan
+   tidak manual.
+
+   Karena itu **kalau isi foto berbeda dari yang terinput, penyelesaiannya
+   MANUAL** — dibuka, dibaca, lalu diputuskan orang. Bukan karena mesin tidak
+   sanggup membacanya, melainkan karena yang sedang diperdebatkan justru angka
+   final seorang regu: keputusan seperti itu milik panitia, bukan milik
+   pembacaan gambar yang bisa keliru satu digit.
+
+   Yang boleh dikerjakan mesin cuma **PENAUTAN** — menghubungkan selembar foto
+   ke nomor dada pemiliknya supaya ia bisa ditemukan lagi. Itulah arti
+   `cara_taut = 'mesin'` (migrasi `0074`), dan skemanya menegakkan batas itu
+   sendiri: `catat_foto_masuk` hanya `insert` ke `foto_lembar`,
+   `tautkan_foto` hanya `update` `foto_lembar`, dan kata `nilai_mentah` tidak
+   muncul satu kali pun di seluruh migrasi itu. Tidak ada jalur dari foto ke
+   nilai, bahkan kalau suatu hari ada yang menginginkannya.
+
+   Penautan otomatis pun berhenti kalau ragu: slip menyebut nomor dada DAN
+   nama regu, dan kalau keduanya tidak menunjuk regu yang sama, fotonya
+   ditinggal belum tertaut untuk diputuskan orang. Foto yang tertaut ke regu
+   yang salah bukan sekadar tidak berguna — ia bukti yang membantah nilai yang
+   benar.
+
    Tombolnya kamera di tiap baris lembar Input Pos; gambarnya masuk bucket
    privat `lembar` sesudah dikecilkan jadi abu-abu 1400px di HP, ~70 KB
    per foto.
