@@ -194,9 +194,16 @@ function layarLogin(pesan) {
            muncul seketika. Dengan tombol dan kelas biasa, kedua blok tetap
            ada di DOM dan tingginya bisa dijalankan pelan.
 
-           Harganya: keadaannya sekarang disimpan di kelas `.mode-daftar` pada
+           Harganya: keadaannya sekarang disimpan di kelas "mode-daftar" pada
            kartunya, bukan di atribut bawaan browser. Satu tempat, dan tombol
-           di bawah ini satu-satunya yang mengubahnya. -->
+           di bawah ini satu-satunya yang mengubahnya.
+
+           TANPA BACKTICK DI KOMENTAR INI. Seluruh markup layar login duduk di
+           dalam sebuah template literal, jadi satu backtick di sini menutup
+           string itu dan sisa kalimatnya dibaca sebagai KODE. Itu persis yang
+           terjadi sekali: layar login berhenti di "Memuat..." dengan
+           "ReferenceError: daftar is not defined", dan pemeriksaan sintaks
+           tetap hijau karena hasilnya kebetulan JavaScript yang sah. -->
       <button type="button" class="ganti-mode" id="ganti-mode"
               aria-expanded="false" aria-controls="panel-daftar">
         <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
