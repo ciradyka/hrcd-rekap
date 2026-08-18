@@ -116,6 +116,85 @@ async function pastikanAdmin(req, env) {
 /** Buat akun panitia: user di auth.users, lalu barisnya di akun_panitia.
  *  Password digenerate dan DIKEMBALIKAN — ini satu-satunya kesempatan
  *  membacanya, persis seperti CSV hasil provision_accounts.py. */
+/** Pendaftaran mandiri seorang panitia.
+ *
+ *  Bedanya dengan buatAkun() ada tiga, dan ketiganya disengaja:
+ *
+ *  1. TIDAK ADA PEMERIKSAAN ADMIN. Siapa pun yang membuka layar login boleh
+ *     mendaftar — itu permintaannya.
+ *  2. AKUNNYA LAHIR NONAKTIF, selalu, tanpa cara mengubahnya dari sini.
+ *     Inilah yang membuat butir 1 boleh ada: yang didapat pendaftar adalah
+ *     antrean, bukan akses. Admin yang menyalakannya di layar Akun.
+ *  3. PERAN `admin` DITOLAK. Yang bisa menyalakan akun tidak boleh lahir dari
+ *     pintu yang tidak dijaga siapa pun.
+ *
+ *  Passwordnya datang dari pendaftar, tidak diacak seperti buatAkun() — ia
+ *  yang akan memakainya, dan tidak ada admin yang akan membacakannya.
+ */
+async function daftarPanitia(req, env, b) {
+  const username = String(b.username || "").trim().toLowerCase();
+  const password = String(b.password || "");
+  const peran = String(b.peran || "").trim();
+  const pos = b.pos === null || b.pos === undefined || b.pos === "" ? null : Number(b.pos);
+
+  if (!/^[a-z0-9._-]{3,40}$/.test(username))
+    return jawab(400, { message: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." }, req);
+  if (password.length < 8)
+    return jawab(400, { message: "Password minimal 8 huruf." }, req);
+
+  // `admin` sengaja TIDAK ada di daftar ini. Kalau suatu hari peran baru
+  // ditambahkan, ia harus ditulis di sini juga — dan kalau lupa, yang terjadi
+  // adalah penolakan, bukan kebocoran.
+  if (!["registrasi", "gerbang", "juri_pos", "koordinator_pos"].includes(peran))
+    return jawab(400, { message: "Peran harus registrasi, gerbang, juri_pos, atau koordinator_pos." }, req);
+  if ((peran === "juri_pos") !== (pos !== null))
+    return jawab(400, { message: "Juri pos wajib menyebut posnya; peran lain tanpa pos." }, req);
+  if (pos !== null && !(Number.isInteger(pos) && pos >= 1 && pos <= 20))
+    return jawab(400, { message: "Pos harus 1–20." }, req);
+
+  const email = `${username}@${DOMAIN_AKUN}`;
+  const cu = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: kepalaLayanan(env),
+    body: JSON.stringify({ email, password, email_confirm: true }),
+  });
+  const user = await cu.json();
+  if (!cu.ok)
+    return jawab(400, { message: "Nama akun sudah dipakai." }, req);
+
+  const ins = await fetch(`${env.SUPABASE_URL}/rest/v1/akun_panitia`, {
+    method: "POST",
+    headers: { ...kepalaLayanan(env), Prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: user.id, username, peran, pos, is_active: false }),
+  });
+  if (!ins.ok) {
+    // Sama seperti buatAkun(): user auth tanpa baris akun_panitia tidak bisa
+    // login dan tidak terlihat di layar mana pun — jadi ia dibatalkan.
+    await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${user.id}`,
+      { method: "DELETE", headers: kepalaLayanan(env) });
+    return jawab(400, { message: "Nama akun sudah dipakai." }, req);
+  }
+
+  // Centangnya diisi sekarang, bukan nanti saat diaktifkan: admin cukup
+  // menekan satu tombol, dan akun yang menyala langsung bisa bekerja. Selama
+  // is_active masih false, centang ini tidak membuka apa pun — boleh()
+  // menuntut keduanya.
+  const paket = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/paket_peran`, {
+    method: "POST", headers: kepalaLayanan(env),
+    body: JSON.stringify({ p_peran: peran }),
+  });
+  const fitur = paket.ok ? await paket.json() : [];
+  if (fitur.length) {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/akun_hak`, {
+      method: "POST",
+      headers: { ...kepalaLayanan(env), Prefer: "return=minimal" },
+      body: JSON.stringify(fitur.map(f => ({ user_id: user.id, fitur: f }))),
+    });
+  }
+
+  return jawab(200, { ok: true, username }, req);
+}
+
 async function buatAkun(req, env, b) {
   const daftar = Array.isArray(b.akun) ? b.akun : [];
   if (!daftar.length) return jawab(400, { message: "Tidak ada akun untuk dibuat." }, req);
@@ -261,6 +340,23 @@ export default {
   async fetch(req, env) {
     if (req.method === "OPTIONS") return new Response(null, { headers: cors(req) });
     const url = new URL(req.url);
+
+    /* Pendaftaran mandiri panitia. PUBLIK — itu memang gunanya — dan karena
+       itu satu-satunya rute /akun yang berdiri SEBELUM pastikanAdmin().
+       Urutannya penting: `startsWith("/akun")` di bawah akan menelannya dan
+       menuntut token admin, yang berarti tidak ada satu orang pun yang bisa
+       memakainya.
+
+       Yang membuatnya boleh publik: akun yang lahir dari sini SELALU
+       nonaktif. Ia bisa dibuat, tidak bisa dipakai. Setiap pagar di database
+       menuntut `is_active` — boleh() (0057) dan peran() (0014) dua-duanya —
+       jadi akun menunggu tidak memegang satu fitur pun, dan layar login pun
+       menolaknya sebelum sesi terbentuk. */
+    if (req.method === "POST" && url.pathname === "/akun/daftar") {
+      let b;
+      try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }, req); }
+      return daftarPanitia(req, env, b);
+    }
 
     // Rute akun: admin yang sedang login, bukan publik. Tidak kena rate limit
     // per IP — beberapa panitia menyiapkan satu edisi dari satu WiFi, dan
