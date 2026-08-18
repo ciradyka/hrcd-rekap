@@ -3035,13 +3035,19 @@ input.small-input { text-align: center; }
    layar, dan petugas menggulir sepanjang antrean untuk membandingkan dua
    kertas yang mirip.
 
-   Jadi 12rem di layar yang sanggup, 8rem di layar yang tidak. Angka 8rem
-   diukur: 2 x 128 + 12,8 celah = 268,8px, muat di 284px. */
+   Jadi 12rem di layar yang sanggup, 8rem di layar yang tidak. KEDUA angkanya
+   diukur, termasuk ambangnya.
+
+   Ambangnya 480px, bukan 460px. Isi kartu kira-kira selebar layar dikurangi
+   75px (padding halaman + padding kartu), dan dua kolom 12rem menuntut
+   2 x 192 + 12,8 = 396,8px — jadi 12rem baru muat dua kolom mulai ~472px.
+   Dipasang di 460px, rentang 461-479px jatuh ke SATU petak selebar 385px:
+   terukur, dan persis cacat yang ambang ini dipasang untuk mencegah. */
 .grid-foto {
   display: grid; gap: .8rem;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
 }
-@media (max-width: 460px) {
+@media (max-width: 480px) {
   .grid-foto { grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); }
 }
 .ubin-foto {
