@@ -137,18 +137,20 @@ async function daftarPanitia(req, env, b) {
   const peran = String(b.peran || "").trim();
   const pos = b.pos === null || b.pos === undefined || b.pos === "" ? null : Number(b.pos);
 
-  /* HURUF DAN ANGKA SAJA, minimal lima. Nama sependek "aji" tidak menyebut
-     siapa pun di daftar berisi belasan akun, dan nama akun tidak bisa diganti
-     sendiri oleh pemiliknya — hanya admin yang bisa.
+  /* HURUF, ANGKA, DAN TITIK — minimal lima. Bentuk yang dipakai panitia
+     sendiri: `aji.furqon`, `admin.ciradyka`.
 
-     Titik dan strip TIDAK diterima di pintu ini, sementara akun yang dibuat
-     admin (buatAkun di bawah) masih boleh memakainya — `admin.ciradyka` dan
-     `meja1hrcd37` lahir dari sana. Dua aturan untuk dua pintu memang tidak
-     rapi, tapi menyeragamkannya berarti salah satu dari dua: menolak nama
-     yang sudah dipakai orang, atau melonggarkan pintu yang tidak dijaga
-     siapa pun. */
-  if (!/^[a-z0-9]{5,40}$/.test(username))
-    return jawab(400, { message: "Nama akun minimal 5, huruf dan angka saja." }, req);
+     Titiknya hanya boleh MEMISAHKAN, tidak di ujung dan tidak dua kali
+     berturut-turut. Nama yang berbunyi "....." lolos pola yang lebih longgar,
+     lalu dipakai membentuk alamat surel akun dan ditolak penyedia auth dengan
+     pesan yang tidak menyebut titik sama sekali.
+
+     Minimal LIMA: nama sependek "aji" tidak menyebut siapa pun di daftar
+     berisi belasan akun, dan nama akun tidak bisa diganti sendiri oleh
+     pemiliknya — hanya admin yang bisa. */
+  if (username.length < 5 || username.length > 40 ||
+      !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username))
+    return jawab(400, { message: "Nama akun minimal 5: huruf, angka, dan titik." }, req);
   // Password BEBAS simbol; yang dibatasi cuma panjangnya.
   if (password.length < 8)
     return jawab(400, { message: "Password minimal 8 karakter." }, req);
