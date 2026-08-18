@@ -274,5 +274,10 @@ run tests/sql/37_foto_jawaban.sql
 # namanya diterima, posnya DITOLAK, dan juri pos biasa tetap terkunci.
 run supabase/migrations/0075_koordinator_pos.sql
 run tests/sql/38_koordinator_pos.sql
+# 0076 mengubah bobot Pembidaian dan menambah lima lomba soal. Di database
+# uji Pembidaian tidak ada (seed-nya generik), jadi bagian A melewati diri
+# sendiri; bagian B tetap berjalan dan itulah yang diuji tes 39.
+run supabase/migrations/0076_bidai_dan_lomba_soal.sql
+run tests/sql/39_lomba_soal.sql
 
 echo "SEMUA TES LULUS"
