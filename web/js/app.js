@@ -4970,7 +4970,7 @@ async function layarFoto() {
       <div class="baris-pilih">
         <div class="field">
           <label for="foto-pos">Pos</label>
-          <select id="foto-pos" class="select" ${terkunci ? "disabled" : ""}>
+          <select id="foto-pos" class="select-small" ${terkunci ? "disabled" : ""}>
             ${posDinilai.map(p => `<option value="${esc(p.nomor)}"
               ${Number(p.nomor) === nomorPos ? "selected" : ""}
               >${esc(judulPos(p))}</option>`).join("")}
@@ -4978,7 +4978,7 @@ async function layarFoto() {
         </div>
         <div class="field">
           <label for="foto-lomba">Lomba</label>
-          <select id="foto-lomba" class="select"></select>
+          <select id="foto-lomba" class="select-small"></select>
         </div>
       </div>
       <div class="action-row" id="foto-aksi" hidden>
