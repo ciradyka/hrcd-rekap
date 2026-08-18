@@ -192,7 +192,7 @@ function layarLogin(pesan) {
         <div class="field">
           <label for="d-u">Nama akun</label>
           <input type="text" id="d-u" autocomplete="username" autocapitalize="none"
-                 spellcheck="false" placeholder="pos6hrcd37">
+                 spellcheck="false" placeholder="aji.furqon">
         </div>
         <div class="field">
           <label for="d-p">Password</label>
@@ -4839,7 +4839,7 @@ async function layarAkun() {
       <div class="form-akun">
         <div class="field"><label for="ak-nama">Nama akun</label>
           <input id="ak-nama" type="text" class="small-input" autocomplete="off"
-            placeholder="pos1hrcd37"></div>
+            placeholder="aji.furqon"></div>
         <div class="field"><label for="ak-peran">Peran</label>
           <select id="ak-peran" class="select-small">${opsiPeran("registrasi")}</select></div>
         <div class="field" id="ak-pos-kotak" hidden><label for="ak-pos">Pos</label>
