@@ -237,7 +237,7 @@ function layarLogin(pesan) {
         <!-- Satu kalimat, dan ia membawa fakta yang TIDAK bisa dibaca dari
              layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba
              masuk, gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). -->
-        <p class="keterangan">Akun baru dinyalakan admin dulu sebelum bisa dipakai.</p>
+        <p class="keterangan">Setelah daftar, harus diaktivasi manual oleh admin.</p>
         <button class="button button-primary" id="d-kirim" type="button">Daftar</button>
       </div>
     </div>

@@ -306,7 +306,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "       coalesce(array_agg(h.fitur) filter (where h.fitur is not null),"
                     "                '{}') as hak "
                     "from akun_panitia a left join akun_hak h on h.user_id = a.user_id "
-                    "where a.username = %s and a.is_active "
+                    "where kunci_akun(a.username) = kunci_akun(%s) and a.is_active "
                     "group by a.user_id, a.username, a.peran, a.pos",
                     (b.get("username", ""),), role="service_role", fetch="one")
                 # Dev server: password apa pun diterima — auth sungguhan milik
