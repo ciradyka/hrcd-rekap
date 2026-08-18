@@ -129,7 +129,7 @@ function pasangKepala(judul, lebar = false) {
     document.getElementById("nav-setting")
       .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
     document.getElementById("nav-akun")
-      .setAttribute("aria-current", location.hash === "#/akun" ? "page" : "false");
+      .setAttribute("aria-current", location.hash === "#/account" ? "page" : "false");
   }
   // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
   // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
@@ -5703,7 +5703,7 @@ const RUTE = {
   "#/rekap": layarRekap,
   "#/live-score": layarLiveScore,
   "#/ganti-password": layarGantiPassword,
-  "#/akun": layarAkun,
+  "#/account": layarAkun,
 };
 
 async function arahkan() {
@@ -5717,6 +5717,14 @@ async function arahkan() {
     try { EDISI = await infoEdisi(); }
     catch (e) { layarButuhEdisi("Sistem Panitia"); return; }
   }
+  // Alamat lamanya `#/akun`, dan itu masih duduk di riwayat browser dan
+  // bookmark panitia. Dialihkan, bukan didiamkan: rute yang tidak dikenal
+  // jatuh ke layar Home, jadi tautan lama akan membuka layar yang SALAH
+  // tanpa satu pun pesan — kegagalan yang paling sulit dilaporkan orang,
+  // karena layarnya terlihat baik-baik saja. Mengganti hash memicu
+  // hashchange, jadi fungsi ini berjalan sekali lagi; `return` menahannya
+  // supaya layarnya tidak digambar dua kali.
+  if (location.hash === "#/akun") { location.hash = "#/account"; return; }
   (RUTE[location.hash] || layarHome)();
 }
 
@@ -5731,7 +5739,7 @@ const keSetelan = () => {
   else location.hash = "#/ganti-password";
 };
 const keAkun = () => {
-  if (location.hash === "#/akun") arahkan(); else location.hash = "#/akun";
+  if (location.hash === "#/account") arahkan(); else location.hash = "#/account";
 };
 const keluarSekarang = () => { keluar(); EDISI = null; location.hash = ""; arahkan(); };
 
