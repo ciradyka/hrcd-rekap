@@ -3126,44 +3126,69 @@ input.small-input { text-align: center; }
    "sudah dinonaktifkan" dan "belum pernah ada" tidak terlihat sama. */
 .matriks-hak tr.mati { opacity: .55; }
 
-/* Pendaftaran mandiri di layar login. Digulung, dan ringkasannya dibuat
-   terbaca sebagai tautan — ia satu-satunya jalan keluar dari layar ini bagi
-   orang yang belum punya akun, dan ringkasan <details> bawaan terbaca seperti
-   judul yang tidak bisa ditekan. */
-.daftar-panitia {
-  margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--garis);
+/* Masuk dan Daftar BERGANTIAN, dan pergantiannya dijalankan pelan.
+
+   `display: none` tidak bisa dianimasikan — itu sebabnya versi pertama
+   berganti dengan kedip. Yang bisa: tinggi dan kepekatan. Jadi kedua blok
+   selalu ada di DOM, dan yang sedang tidak dipakai disusutkan ke nol.
+
+   `max-height` dipakai, bukan `height`, karena tinggi isinya tidak diketahui
+   sampai digambar. 40rem cukup untuk formulir terpanjang di sini dan cukup
+   ketat supaya gerakannya tidak terasa menggantung menjelang akhir. */
+.blok-masuk, .panel-daftar { overflow: hidden; }
+.blok-masuk {
+  max-height: 40rem; opacity: 1;
+  transition: max-height .3s ease, opacity .22s ease;
 }
+/* Tertutup dari awal — dan `visibility` yang menjaganya tidak ikut ditekan
+   Tab. Isian setinggi nol tetap bisa difokus tanpa itu, dan kursor lompat ke
+   kotak yang tidak terlihat siapa pun. Transisinya 0 detik dengan JEDA,
+   supaya ia baru hilang sesudah menyusutnya selesai. */
+.panel-daftar {
+  max-height: 0; opacity: 0; visibility: hidden;
+  transition: max-height .3s ease, opacity .22s ease, visibility 0s .3s;
+}
+.card.mode-daftar .blok-masuk {
+  max-height: 0; opacity: 0; visibility: hidden;
+  transition: max-height .3s ease, opacity .22s ease, visibility 0s .3s;
+}
+.card.mode-daftar .panel-daftar {
+  max-height: 40rem; opacity: 1; visibility: visible;
+  transition: max-height .3s ease, opacity .22s ease .08s, visibility 0s;
+}
+
 /* Yang HIJAU cuma kata yang bisa ditekan. Seluruh baris berwarna membuat
    "Belum punya akun?" — sebuah pertanyaan, bukan tombol — ikut terbaca
    seperti tautan, dan mata kehilangan petunjuk mana yang sebenarnya diklik. */
-.daftar-panitia > summary {
-  cursor: pointer; color: var(--tinta); font-weight: 400; list-style: none;
+.ganti-mode {
+  display: block; width: 100%; text-align: left;
+  margin-top: 1.2rem; padding: 1rem 0 0;
+  border: 0; border-top: 1px solid var(--garis); background: none;
+  font: inherit; color: var(--tinta); cursor: pointer;
+  transition: margin .3s ease, padding .3s ease;
 }
-.daftar-panitia > summary b,
-.daftar-panitia > summary .d-buka { color: var(--utama); font-weight: 700; }
+.ganti-mode b, .ganti-mode .d-buka { color: var(--utama); font-weight: 700; }
+.ganti-mode .d-buka { display: none; }
+.ganti-mode .d-tutup::after { content: " ▾"; color: var(--utama); }
+.ganti-mode .d-buka::after { content: " ▴"; }
+.card.mode-daftar .ganti-mode .d-tutup { display: none; }
+.card.mode-daftar .ganti-mode .d-buka { display: inline; }
+/* Waktu formulir masuk sudah hilang, garis pemisahnya tidak memisahkan apa
+   pun — ia cuma garis menggantung di atas judul. */
+.card.mode-daftar .ganti-mode { margin-top: 0; border-top: 0; padding-top: 0; }
 
-/* Tertutup: ajakan. Terbuka: jalan kembali ke formulir masuk. */
-.daftar-panitia .d-buka { display: none; }
-.daftar-panitia[open] .d-tutup { display: none; }
-.daftar-panitia[open] .d-buka { display: inline; }
+.panel-daftar .field { margin-top: .8rem; }
+.panel-daftar select, .panel-daftar input { width: 100%; }
+.panel-daftar .button { width: 100%; margin-top: .4rem; }
 
-/* Formulir masuk MENGHILANG selama pendaftaran terbuka. Dua formulir
-   bertumpuk di satu kartu — dua kotak Password, dua tombol hijau — adalah cara
-   orang mengisi yang bawah lalu menekan yang atas.
-
-   `:has()` dipakai sebagai peningkatan yang boleh gagal: browser yang tidak
-   mendukungnya membuang aturan ini dan kembali ke tampilan sebelumnya, yang
-   juga bisa dipakai. */
-.card:has(.daftar-panitia[open]) .blok-masuk { display: none; }
-.card:has(.daftar-panitia[open]) .daftar-panitia {
-  margin-top: 0; padding-top: 0; border-top: 0;
+/* Yang meminta gerakan dikurangi memang meminta itu, bukan gerakan yang lebih
+   pelan. Perpindahannya jadi seketika, dan tidak ada yang hilang. */
+@media (prefers-reduced-motion: reduce) {
+  .blok-masuk, .panel-daftar, .ganti-mode,
+  .card.mode-daftar .blok-masuk, .card.mode-daftar .panel-daftar {
+    transition: none;
+  }
 }
-.daftar-panitia > summary::-webkit-details-marker { display: none; }
-.daftar-panitia > summary::after { content: " ▾"; }
-.daftar-panitia[open] > summary::after { content: " ▴"; }
-.daftar-panitia .field { margin-top: .8rem; }
-.daftar-panitia select, .daftar-panitia input { width: 100%; }
-.daftar-panitia .button { width: 100%; margin-top: .4rem; }
 
 /* Nama akun adalah tombol, tapi harus terbaca sebagai nama. */
 .tautan {

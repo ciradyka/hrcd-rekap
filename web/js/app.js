@@ -188,21 +188,21 @@ function layarLogin(pesan) {
         <button class="button button-primary" id="masuk" type="button">Masuk</button>
       </div>
 
-      <!-- Pendaftaran DIGULUNG. Yang membuka layar ini ratusan kali adalah
-           panitia yang sudah punya akun; formulir yang terbuka terus menaruh
-           enam isian di antara mereka dan tombol Masuk. Yang mendaftar
-           melakukannya sekali seumur edisi. -->
-      <details class="daftar-panitia">
-        <!-- Dua teks, satu ringkasan. Tertutup ia ajakan; terbuka ia
-             SATU-SATUNYA jalan kembali ke formulir masuk, jadi bunyinya
-             berubah jadi "Login". Ditulis di markup, bukan diganti
-             JavaScript: <details> sudah menyimpan keadaannya sendiri, dan
-             menyalinnya ke variabel lain berarti dua sumber untuk satu
-             pertanyaan. -->
-        <summary>
-          <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
-          <span class="d-buka">Login</span>
-        </summary>
+      <!-- BUKAN <details>, dan itu keputusan yang dibayar sekali.
+           <details> menyembunyikan isinya sendiri sebelum CSS sempat ikut
+           campur, jadi tidak ada yang bisa dianimasikan: isinya lenyap dan
+           muncul seketika. Dengan tombol dan kelas biasa, kedua blok tetap
+           ada di DOM dan tingginya bisa dijalankan pelan.
+
+           Harganya: keadaannya sekarang disimpan di kelas `.mode-daftar` pada
+           kartunya, bukan di atribut bawaan browser. Satu tempat, dan tombol
+           di bawah ini satu-satunya yang mengubahnya. -->
+      <button type="button" class="ganti-mode" id="ganti-mode"
+              aria-expanded="false" aria-controls="panel-daftar">
+        <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
+        <span class="d-buka">Login</span>
+      </button>
+      <div class="panel-daftar" id="panel-daftar">
         <div class="field">
           <label for="d-u">Nama akun</label>
           <input type="text" id="d-u" autocomplete="username" autocapitalize="none"
@@ -211,7 +211,7 @@ function layarLogin(pesan) {
         <div class="field">
           <label for="d-p">Password</label>
           <input type="password" id="d-p" autocomplete="new-password"
-                 placeholder="minimal 8 huruf">
+                 placeholder="minimal 8 karakter">
         </div>
         <div class="field">
           <label for="d-peran">Tugas</label>
@@ -225,18 +225,56 @@ function layarLogin(pesan) {
         <div class="field" id="d-pos-kotak">
           <label for="d-pos">Pos</label>
           <input type="number" id="d-pos" class="small-input" inputmode="numeric"
-                 min="1" max="20" placeholder="3">
+                 min="1" max="20" placeholder="misal: 3">
         </div>
         <!-- Satu kalimat, dan ia membawa fakta yang TIDAK bisa dibaca dari
              layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba
              masuk, gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). -->
         <p class="keterangan">Akun baru dinyalakan admin dulu sebelum bisa dipakai.</p>
         <button class="button button-primary" id="d-kirim" type="button">Daftar</button>
-      </details>
+      </div>
     </div>
   `));
   const u = document.getElementById("u");
   u.focus();
+
+  /* Berganti antara Masuk dan Daftar. Kelasnya di KARTU, bukan di panelnya:
+     yang berubah dua blok sekaligus — satu menyusut, satu tumbuh — dan dua
+     kelas untuk satu keadaan adalah dua kelas yang suatu hari tidak sepakat. */
+  const kartu = LAYAR.querySelector(".card");
+  const tombolGanti = document.getElementById("ganti-mode");
+  tombolGanti.addEventListener("click", () => {
+    const daftar = kartu.classList.toggle("mode-daftar");
+    tombolGanti.setAttribute("aria-expanded", String(daftar));
+    // Fokus dipindahkan ke isian pertama yang baru terlihat. Tanpa ini, di HP
+    // panelnya terbuka di bawah jempol sementara kursor masih di kotak yang
+    // sudah tidak ada.
+    setTimeout(() => (daftar ? document.getElementById("d-u") : u).focus(), 260);
+  });
+
+  /* PERIKSA SAAT DIKETIK, bukan saat dikirim. Nama akun dan password punya
+     syarat yang tidak bisa ditebak dari kotaknya, dan menahannya sampai tombol
+     ditekan berarti orang mengetik seluruh formulir dulu baru diberi tahu
+     yang pertama salah.
+
+     `aria-invalid` yang dipakai, bukan kelas sendiri: aturan merahnya sudah
+     ada di style.css untuk seluruh isian, dan pembaca layar ikut
+     mengumumkannya tanpa tambahan apa pun. */
+  const SAH_NAMA = /^[a-z0-9]{5,40}$/;
+  // Password BEBAS simbol — yang dibatasi cuma panjangnya. Membatasi
+  // hurufnya cuma memperkecil kemungkinan yang harus ditebak orang lain,
+  // dan tidak menolong siapa pun di sini.
+  const SAH_SANDI = /^.{8,}$/;
+  const periksa = (el, sah) => {
+    const isi = el.value.trim();
+    // Kotak KOSONG bukan kotak salah. Memerahkannya sebelum satu huruf pun
+    // diketik membuat formulir terlihat rusak saat baru dibuka.
+    el.setAttribute("aria-invalid", isi === "" ? "false" : String(!sah(isi)));
+  };
+  const dU = document.getElementById("d-u");
+  const dP = document.getElementById("d-p");
+  dU.addEventListener("input", () => periksa(dU, v => SAH_NAMA.test(v.toLowerCase())));
+  dP.addEventListener("input", () => periksa(dP, v => SAH_SANDI.test(v)));
 
   /* Kotak Pos hanya untuk Juri Pos — itu check constraint di database
      (0058), bukan selera: peran lain WAJIB berpos kosong, dan Koordinator Pos
@@ -257,11 +295,14 @@ function layarLogin(pesan) {
     // Diperiksa di sini SEKALIPUN gateway juga memeriksanya — bukan sebagai
     // pagar, melainkan supaya salah ketik dijawab seketika alih-alih sesudah
     // satu perjalanan jaringan di sinyal lapangan.
-    if (!/^[a-z0-9._-]{5,40}$/.test(nama)) {
-      notif("Nama akun minimal 5 huruf: huruf kecil, angka, titik, dan strip.", true);
-      return;
+    if (!SAH_NAMA.test(nama)) {
+      notif("Nama akun minimal 5, huruf dan angka saja.", true);
+      dU.focus(); return;
     }
-    if (sandi.length < 8) { notif("Password minimal 8 huruf.", true); return; }
+    if (!SAH_SANDI.test(sandi)) {
+      notif("Password minimal 8 karakter.", true);
+      dP.focus(); return;
+    }
     if (perluPos() && !pos) { notif("Juri pos harus menyebut posnya.", true); return; }
 
     btn.disabled = true; btn.textContent = "Mengirim…";
