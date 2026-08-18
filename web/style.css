@@ -295,22 +295,21 @@ input.jam-ketik {
   border-color: var(--bahaya);
   background: var(--bahaya-muda);
 }
-/* CONTOH ISIAN JAUH LEBIH PUCAT DARIPADA ISI SUNGGUHAN.
+/* CONTOH ISIAN HITAM, DAN YANG MEMBEDAKANNYA KATA "misal:".
 
-   Tanpa aturan ini yang berlaku warna bawaan browser — di sebagian Android ia
-   nyaris sepekat teks biasa, dan "aji.furqon" di kotak Nama akun terbaca
-   seperti nama yang SUDAH terisi. Petugas lalu menekan Buat Akun tanpa
-   mengetik apa pun, atau mengira akun itu sudah ada.
+   Sempat dipucatkan sampai #adb3bb dengan alasan yang masuk akal di meja:
+   contoh yang pekat terbaca seperti isian yang sudah terisi. Di lapangan
+   alasan itu kalah oleh yang lebih mendasar — abu-abu muda di layar HP di
+   bawah matahari nyaris tidak terbaca sama sekali, dan contoh yang tidak
+   terbaca tidak mencegah kesalahan apa pun.
 
-   `opacity: 1` wajib ikut: Firefox memberi contoh isian opasitasnya sendiri,
-   dan tanpa ini warnanya dipudarkan dua kali sampai hampir tak terbaca.
+   Yang menutup risiko awalnya bukan warna melainkan KATA: tiap contoh
+   berbunyi "misal: aji.furqon", dan itu tidak bisa disalahbaca oleh layar
+   mana pun, di cahaya apa pun (bagian 9.5).
 
-   Warnanya #adb3bb, bukan #5c5c5c (--tinta-lembut) yang dipakai keterangan.
-   Keterangan MEMANG untuk dibaca; contoh isian justru harus kalah menonjol
-   dari apa pun yang diketik di atasnya, karena satu-satunya kesalahan yang
-   bisa ia sebabkan adalah disangka sudah terisi. Awalan "misal:" di tiap
-   contoh menutup sisanya — warna saja bisa berbeda-beda antar layar HP. */
-::placeholder { color: #adb3bb; opacity: 1; }
+   `opacity: 1` tetap wajib: Firefox memberi contoh isian opasitasnya sendiri,
+   dan tanpa ini ia tetap pudar meski warnanya sudah pekat. */
+::placeholder { color: var(--tinta); opacity: 1; }
 
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
