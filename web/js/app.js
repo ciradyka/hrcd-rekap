@@ -5117,6 +5117,19 @@ async function layarAkun() {
   // Klik NAMA membuka aksi akunnya. Ditaruh di balik nama, bukan sebagai tiga
   // tombol per baris, karena barisnya sudah punya sebelas kotak centang —
   // tombol tambahan di situ akan mendorong matriksnya keluar layar HP.
+  /* Rupa baris "nonaktif": kelas peredup di <tr> dan pil kecil di sebelah
+     namanya. Ditulis sekali di sini supaya ia tidak berbeda pendapat dengan
+     template di atas — dua tempat yang menggambar keadaan yang sama adalah
+     dua tempat yang suatu hari tidak sepakat. */
+  const tandaiBarisAktif = (tr, hidup) => {
+    tr.classList.toggle("mati", !hidup);
+    const sel = tr.querySelector("td");
+    sel.querySelector(".badge")?.remove();
+    if (!hidup)
+      sel.insertAdjacentHTML("beforeend",
+        ' <span class="badge badge-gray">nonaktif</span>');
+  };
+
   tabel.addEventListener("click", async (ev) => {
     const tombol = ev.target.closest("[data-aksi]");
     if (!tombol) return;
@@ -5169,6 +5182,14 @@ async function layarAkun() {
           if (ya === null) return;
         }
         await setAktifAkun(uid, !aktif);
+        // SATU BARIS yang berubah, jadi satu baris itu yang digambar ulang.
+        // layarAkun() menarik ulang ketiga daftarnya, mengganti seluruh isi
+        // layar, lalu memindahkan fokus ke kotak "Nama akun" di atas — di
+        // tabel 13 akun yang digeser ke samping, posisi gulir mendatar dan
+        // baris yang sedang dilihat ikut hilang. Yang berubah dari
+        // mengaktifkan cuma dua hal, dan dua-duanya ada di baris ini.
+        tandaiBarisAktif(tr, !aktif);
+        return;
       }
       layarAkun();
     } catch (e) { lapor(e.message); }
