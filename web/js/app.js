@@ -3626,7 +3626,7 @@ function pilihPosHtml(s, semuaPos) {
   if (s.peran !== "admin") return "";
   const dinilai = semuaPos.filter(p => Number(p.jumlah_komponen) > 0);
   return `
-    <div class="field" style="margin:0;min-width:210px">
+    <div class="field pilih-pos-field">
       <label for="pilih-pos" class="visually-hidden">Pos yang diinput</label>
       <select id="pilih-pos" class="select-small">
         ${dinilai.map(p => `<option value="${esc(p.nomor)}"

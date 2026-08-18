@@ -1209,6 +1209,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    sendiri alih-alih menggencet dropdown-nya. */
 .baris-pos { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .baris-pos .pos-simpan { margin: 0; }
+/* Lebarnya dulu ditulis INLINE di app.js (`min-width:210px`). Diangkat ke sini
+   karena gaya inline tidak bisa dikalahkan aturan mana pun tanpa `!important`
+   — dan justru itu yang dibutuhkan sebaris di bawah: di dalam `.baris-pos`
+   pemilih pos harus boleh MENGALAH supaya pita di sebelahnya tidak terlempar
+   ke baris berikutnya. Terukur di 390px: 225 + 10 + 84 = 319px, tepat satu
+   piksel di atas ruang yang ada, dan pitanya membungkus. */
+.pilih-pos-field { margin: 0; min-width: 210px; }
+.baris-pos .pilih-pos-field { flex: 1 1 8rem; min-width: 0; }
+/* Selectnya sendiri berhenti menyusut di 8rem (lihat .select-small), jadi
+   "Pos 1 — Kepramukaan" tidak pernah tergencet sampai tak terbaca. */
+.baris-pos .pilih-pos-field select { width: 100%; }
 .filter-row { display: flex; gap: .4rem; flex-wrap: wrap; }
 .option-small {
   min-height: 40px; padding: .3rem .75rem; font-size: .88rem; width: auto;
