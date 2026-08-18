@@ -267,7 +267,13 @@ function layarLogin(pesan) {
      `aria-invalid` yang dipakai, bukan kelas sendiri: aturan merahnya sudah
      ada di style.css untuk seluruh isian, dan pembaca layar ikut
      mengumumkannya tanpa tambahan apa pun. */
-  const SAH_NAMA = /^[a-z0-9]{5,40}$/;
+  /* Huruf, angka, dan TITIK — `aji.furqon`. Titiknya hanya boleh MEMISAHKAN,
+     tidak di ujung dan tidak dua kali berturut-turut: nama yang berbunyi
+     "....." lolos pola yang lebih longgar, lalu dipakai membentuk alamat
+     surel akun dan ditolak penyedia auth dengan pesan yang tidak menyebut
+     titik sama sekali. */
+  const SAH_NAMA = /^[a-z0-9]+(?:\.[a-z0-9]+)*$/;
+  const namaSah = (v) => v.length >= 5 && v.length <= 40 && SAH_NAMA.test(v);
   // Password BEBAS simbol — yang dibatasi cuma panjangnya. Membatasi
   // hurufnya cuma memperkecil kemungkinan yang harus ditebak orang lain,
   // dan tidak menolong siapa pun di sini.
@@ -280,7 +286,7 @@ function layarLogin(pesan) {
   };
   const dU = document.getElementById("d-u");
   const dP = document.getElementById("d-p");
-  dU.addEventListener("input", () => periksa(dU, v => SAH_NAMA.test(v.toLowerCase())));
+  dU.addEventListener("input", () => periksa(dU, v => namaSah(v.toLowerCase())));
   dP.addEventListener("input", () => periksa(dP, v => SAH_SANDI.test(v)));
 
   /* Kotak Pos hanya untuk Juri Pos — itu check constraint di database
@@ -302,8 +308,8 @@ function layarLogin(pesan) {
     // Diperiksa di sini SEKALIPUN gateway juga memeriksanya — bukan sebagai
     // pagar, melainkan supaya salah ketik dijawab seketika alih-alih sesudah
     // satu perjalanan jaringan di sinyal lapangan.
-    if (!SAH_NAMA.test(nama)) {
-      notif("Nama akun minimal 5, huruf dan angka saja.", true);
+    if (!namaSah(nama)) {
+      notif("Nama akun minimal 5: huruf, angka, dan titik.", true);
       dU.focus(); return;
     }
     if (!SAH_SANDI.test(sandi)) {
