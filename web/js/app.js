@@ -5083,10 +5083,21 @@ async function layarFoto() {
    *  Kotak nomor dada di ubin lain — beserta angka dan kursor di dalamnya —
    *  tidak boleh ikut tersentuh hanya karena satu unggahan selesai. */
   function perbarui(u) {
-    let el = elGrid.querySelector(`[data-kunci="${CSS.escape(u.kunci)}"]`);
+    const pilih = `[data-kunci="${CSS.escape(u.kunci)}"]`;
+    let el = elGrid.querySelector(pilih);
     if (!el) {
-      el = h(`<figure class="ubin-foto" data-kunci="${esc(u.kunci)}"></figure>`);
-      elGrid.append(el);
+      /* Elemennya DICARI LAGI dari DOM sesudah append, tidak dipegang dari
+         hasil h().
+
+         h() mengembalikan DocumentFragment (util.js). Begitu di-append,
+         seluruh isinya PINDAH ke DOM dan fragmennya tinggal cangkang kosong —
+         dan menulis `innerHTML` ke DocumentFragment tidak melempar galat apa
+         pun, ia cuma memasang properti yang tidak dibaca siapa-siapa. Yang
+         terlihat di layar: ubin kosong selamanya, tanpa satu baris pun di
+         konsol. */
+      elGrid.append(h(`<figure class="ubin-foto" data-kunci="${esc(u.kunci)}"></figure>`));
+      el = elGrid.querySelector(pilih);
+      if (!el) return;
       pengamat.observe(el);
     }
     el.dataset.keadaan = u.keadaan;
