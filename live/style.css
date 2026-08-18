@@ -3204,6 +3204,25 @@ input.small-input { text-align: center; }
   transition: margin .3s ease, padding .3s ease;
 }
 .ganti-mode b, .ganti-mode .d-buka { color: var(--utama); font-weight: 700; }
+/* Hijau dan tebal saja belum menjawab "apakah ini bisa ditekan?" — di layar
+   ini keduanya juga dipakai judul dan angka yang cuma dibaca. Garis bawah
+   saat disentuh kursor menjawabnya, dan menjawabnya PERSIS di kata yang
+   diklik, bukan di seluruh barisnya.
+
+   Pemicunya `.ganti-mode:hover`, BUKAN `b:hover`: yang bisa diklik memang
+   seluruh tombolnya, jadi garis bawah yang hanya muncul kalau kursor tepat
+   mengenai lima huruf itu akan membuat sisa barisnya terasa mati padahal
+   ia menerima klik yang sama.
+
+   `:focus-visible` ikut, supaya yang berpindah dengan Tab mendapat petunjuk
+   yang sama dengan yang memakai kursor.
+
+   Yang digarisbawahi `b`, bukan `.d-buka` — tanda panah ▾ dan ▴ dipasang
+   lewat ::after pada span-nya, dan garis bawah pada span akan ikut menarik
+   garis di bawah panahnya. Karena itu "Login" dibungkus <b> juga, supaya
+   kedua keadaannya berperilaku sama persis. */
+.ganti-mode:hover b,
+.ganti-mode:focus-visible b { text-decoration: underline; text-underline-offset: .2em; }
 .ganti-mode .d-buka { display: none; }
 .ganti-mode .d-tutup::after { content: " ▾"; color: var(--utama); }
 .ganti-mode .d-buka::after { content: " ▴"; }
