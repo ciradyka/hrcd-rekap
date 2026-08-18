@@ -1868,6 +1868,21 @@ input.small-input { text-align: center; }
 @media (max-width: 560px) {
   .table-toolbar { flex-direction: column; align-items: stretch; }
   .table-count { text-align: right; }
+
+  /* Mencetak dari HP tidak pernah terjadi — kertasnya keluar dari mesin
+     fotokopi di sekretariat (bagian 8.10). Dua tombol selebar layar di antara
+     penyaring dan tabel cuma jarak yang harus digulir ratusan kali per
+     shift. */
+  .alat-cetak { display: none; }
+
+  /* Kotak cari TEPAT DI ATAS TABEL, di bawah penyaring.
+     Di HP kotak cari adalah alat yang paling sering dipakai di layar ini —
+     nomor dada dibacakan, diketik, lalu barisnya dicari — dan tiap benda yang
+     berdiri antara kotak itu dan barisnya adalah jarak yang ditempuh mata
+     bolak-balik. Penyaring dipilih sekali di awal shift; kotak cari dipakai
+     terus. Yang jarang dipakai naik ke atas. */
+  .table-toolbar .filter-baris { order: 2; }
+  .table-toolbar .kotak-cari   { order: 3; }
   .departure-bar .button { width: 100%; min-width: 0; }
 }
 
@@ -2375,7 +2390,16 @@ input.small-input { text-align: center; }
   border-radius: 8px; font-size: .87rem; font-weight: 600;
   border: 1px solid transparent;
 }
-.pos-simpan.aman     { background: var(--hijau-muda);  color: var(--hijau);  border-color: var(--hijau); }
+/* Yang AMAN memeluk isinya, tidak melintang penuh. Isinya sekarang cuma ikon
+   dan jam; kotak hijau selebar layar untuk dua benda sekecil itu terbaca
+   seperti pengumuman, padahal ia sekadar tanda bahwa semuanya beres. Tiga
+   keadaan lain tetap melintang penuh — mereka memang pengumuman. */
+.pos-simpan.aman {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--hijau-muda); color: var(--hijau); border-color: var(--hijau);
+  font-variant-numeric: tabular-nums;
+}
+.pos-simpan.aman .ikon { width: 1.1em; height: 1.1em; }
 .pos-simpan.menunggu { background: var(--kuning-muda); color: var(--kuning); border-color: var(--kuning); }
 /* Merah TIDAK dipudarkan seperti dua keadaan di atas. Ini satu-satunya
    keadaan yang berarti "ada nilai yang bisa hilang", dan ia harus tertangkap
