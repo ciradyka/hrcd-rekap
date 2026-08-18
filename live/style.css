@@ -175,7 +175,8 @@ button { font: inherit; cursor: pointer; }
   border-radius: var(--radius-kecil);
   border: 2px solid transparent;
   width: 100%;
-  transition: background .15s ease, box-shadow .15s ease;
+  transition: background .15s ease, box-shadow .15s ease,
+              color .15s ease, border-color .15s ease;
 }
 .button-primary {
   background: var(--utama);
@@ -192,8 +193,38 @@ button { font: inherit; cursor: pointer; }
   border-color: var(--garis);
   font-weight: 600;
 }
+/* Tombol putih dulu SATU-SATUNYA yang tidak menjawab saat disentuh kursor —
+   .button-primary dan .icon-button dua-duanya punya :hover sejak awal. Di
+   layar sebesar ini bedanya bukan selera: kursor di atas tombol yang diam
+   terbaca sebagai tombol MATI, dan yang dilakukan orang berikutnya adalah
+   mengkliknya dua kali. */
+.button-secondary:hover:not(:disabled) {
+  /* --garis, bukan --kertas. Tombol putih berdiri di dua alas: kartu putih dan
+     kertas abu halaman. Warna sehalus --kertas memang terlihat di atas kartu,
+     tapi di atas kertas ia MENJADI alasnya — tombolnya lenyap, persis
+     kebalikan dari yang diminta. Yang lebih tua satu tingkat terlihat di
+     dua-duanya, dan tepinya ikut menua supaya perubahannya tidak bergantung
+     pada satu isyarat saja. */
+  background: var(--garis);
+  border-color: #d3d5dc;
+}
 .button-danger {
   background: #fff;
+  color: var(--bahaya);
+  border-color: var(--bahaya);
+}
+.button-danger:hover:not(:disabled) { background: var(--bahaya-muda); }
+
+/* KELUAR MEMERAH, dan itu bukan aturan kedua — itu aturan yang sama dengan
+   `#nav-keluar .ikon` di bar bawah HP, yang sudah merah sejak dulu dengan
+   alasan yang ditulis di sana: ia satu-satunya tombol yang mengakhiri sesi,
+   dan warna yang menahan sedetak sebelum diketuk memang yang diinginkan.
+
+   Di layar lebar tombol itu berdiri di header hijau bersama Akun dan
+   Pengaturan; kalau ia memerah hanya di HP, tombol yang sama punya dua arti
+   tergantung layarnya. */
+#btn-keluar:hover:not(:disabled) {
+  background: var(--bahaya-muda);
   color: var(--bahaya);
   border-color: var(--bahaya);
 }
