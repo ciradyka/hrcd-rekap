@@ -5111,12 +5111,37 @@ async function layarAkun() {
     try {
       await ubahPeranAkun(tr.dataset.uid, peran, pos);
       notif(`${tr.dataset.nama} sekarang ${PERAN_LABEL[peran]}${pos ? ` pos ${pos}` : ""}.`);
+      // Kalimat "Mengganti peran mengisi ulang centangnya" di atas tabel itu
+      // BENAR — tapi yang mengisinya database (trigger 0077), bukan layar ini,
+      // jadi centang yang sedang tergambar sudah basi begitu perannya berganti.
+      // Dulu ia baru betul sesudah halamannya dimuat ulang, dan sampai itu
+      // terjadi layar memperlihatkan hak peran LAMA untuk peran BARU.
+      await segarkanCentangBaris(tr);
     } catch (e) { lapor(e.message); layarAkun(); }
   });
 
   // Klik NAMA membuka aksi akunnya. Ditaruh di balik nama, bukan sebagai tiga
   // tombol per baris, karena barisnya sudah punya sebelas kotak centang —
   // tombol tambahan di situ akan mendorong matriksnya keluar layar HP.
+  /* Centang satu baris dibaca ULANG dari server, bukan ditebak di sini.
+
+     Menyalin isi paket_peran() ke browser akan membuat centangnya muncul
+     tanpa satu permintaan pun — dan membuat dua tempat memutuskan hak yang
+     sama, yang persis dilarang CLAUDE.md 13.1. Peta itu tinggal di database,
+     dipakai trigger 0077 dan paket_peran(); salinan di layar akan benar hari
+     ini dan diam-diam salah pada edisi yang menambah satu fitur.
+
+     Harganya satu GET — jauh lebih murah daripada layarAkun(), yang menarik
+     ketiga daftarnya sekaligus lalu menggambar ulang seluruh layar. */
+  const segarkanCentangBaris = async (tr) => {
+    const hak = await daftarHak();
+    const punya = new Set(hak.filter(x => x.user_id === tr.dataset.uid)
+                             .map(x => x.fitur));
+    tr.querySelectorAll("[data-fitur]").forEach(kotak => {
+      kotak.checked = punya.has(kotak.dataset.fitur);
+    });
+  };
+
   /* Rupa baris "nonaktif": kelas peredup di <tr> dan pil kecil di sebelah
      namanya. Ditulis sekali di sini supaya ia tidak berbeda pendapat dengan
      template di atas — dua tempat yang menggambar keadaan yang sama adalah
