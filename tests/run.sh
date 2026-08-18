@@ -279,5 +279,11 @@ run tests/sql/38_koordinator_pos.sql
 # sendiri; bagian B tetap berjalan dan itulah yang diuji tes 39.
 run supabase/migrations/0076_bidai_dan_lomba_soal.sql
 run tests/sql/39_lomba_soal.sql
+# 0077 membuat 'mengganti peran mengisi ulang centangnya' benar-benar
+# terjadi - selama ini kalimat itu cuma ada di layar. Tes 40 menjaga
+# akibatnya: sesudah turun dari admin, akunnya TIDAK lagi memegang akun
+# dan pengaturan.
+run supabase/migrations/0077_peran_mengisi_ulang_centang.sql
+run tests/sql/40_peran_mengisi_ulang_centang.sql
 
 echo "SEMUA TES LULUS"
