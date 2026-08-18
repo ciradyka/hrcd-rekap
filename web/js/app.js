@@ -170,25 +170,39 @@ function layarLogin(pesan) {
   pasangKepala("Sistem Panitia");
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:2rem auto">
-      <h2>Masuk Panitia</h2>
-      ${pesan ? `<div class="error" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
-      <div class="field" style="margin-top:1rem">
-        <label for="u">Username</label>
-        <input type="text" id="u" autocomplete="username" autocapitalize="none"
-               spellcheck="false">
+      <!-- Dibungkus supaya HILANG saat pendaftaran dibuka. Dua formulir
+           bertumpuk di satu kartu — dua kotak Password, dua tombol hijau —
+           adalah cara orang mengisi yang bawah lalu menekan yang atas. -->
+      <div class="blok-masuk">
+        <h2>Masuk Panitia</h2>
+        ${pesan ? `<div class="error" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
+        <div class="field" style="margin-top:1rem">
+          <label for="u">Username</label>
+          <input type="text" id="u" autocomplete="username" autocapitalize="none"
+                 spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="p">Password</label>
+          <input type="password" id="p" autocomplete="current-password">
+        </div>
+        <button class="button button-primary" id="masuk" type="button">Masuk</button>
       </div>
-      <div class="field">
-        <label for="p">Password</label>
-        <input type="password" id="p" autocomplete="current-password">
-      </div>
-      <button class="button button-primary" id="masuk" type="button">Masuk</button>
 
       <!-- Pendaftaran DIGULUNG. Yang membuka layar ini ratusan kali adalah
            panitia yang sudah punya akun; formulir yang terbuka terus menaruh
            enam isian di antara mereka dan tombol Masuk. Yang mendaftar
            melakukannya sekali seumur edisi. -->
       <details class="daftar-panitia">
-        <summary>Belum punya akun? Daftar</summary>
+        <!-- Dua teks, satu ringkasan. Tertutup ia ajakan; terbuka ia
+             SATU-SATUNYA jalan kembali ke formulir masuk, jadi bunyinya
+             berubah jadi "Login". Ditulis di markup, bukan diganti
+             JavaScript: <details> sudah menyimpan keadaannya sendiri, dan
+             menyalinnya ke variabel lain berarti dua sumber untuk satu
+             pertanyaan. -->
+        <summary>
+          <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
+          <span class="d-buka">Login</span>
+        </summary>
         <div class="field">
           <label for="d-u">Nama akun</label>
           <input type="text" id="d-u" autocomplete="username" autocapitalize="none"
@@ -217,7 +231,7 @@ function layarLogin(pesan) {
              layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba
              masuk, gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). -->
         <p class="keterangan">Akun baru dinyalakan admin dulu sebelum bisa dipakai.</p>
-        <button class="button" id="d-kirim" type="button">Daftar</button>
+        <button class="button button-primary" id="d-kirim" type="button">Daftar</button>
       </details>
     </div>
   `));
@@ -243,8 +257,8 @@ function layarLogin(pesan) {
     // Diperiksa di sini SEKALIPUN gateway juga memeriksanya — bukan sebagai
     // pagar, melainkan supaya salah ketik dijawab seketika alih-alih sesudah
     // satu perjalanan jaringan di sinyal lapangan.
-    if (!/^[a-z0-9._-]{3,40}$/.test(nama)) {
-      notif("Nama akun hanya huruf kecil, angka, titik, dan strip (3–40).", true);
+    if (!/^[a-z0-9._-]{5,40}$/.test(nama)) {
+      notif("Nama akun minimal 5 huruf: huruf kecil, angka, titik, dan strip.", true);
       return;
     }
     if (sandi.length < 8) { notif("Password minimal 8 huruf.", true); return; }

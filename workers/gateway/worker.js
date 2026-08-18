@@ -137,8 +137,11 @@ async function daftarPanitia(req, env, b) {
   const peran = String(b.peran || "").trim();
   const pos = b.pos === null || b.pos === undefined || b.pos === "" ? null : Number(b.pos);
 
-  if (!/^[a-z0-9._-]{3,40}$/.test(username))
-    return jawab(400, { message: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." }, req);
+  // Minimal LIMA, bukan tiga. Nama sependek "aji" tidak menyebut siapa pun di
+  // daftar berisi belasan akun, dan nama akun tidak bisa diganti sendiri oleh
+  // pemiliknya — hanya admin yang bisa.
+  if (!/^[a-z0-9._-]{5,40}$/.test(username))
+    return jawab(400, { message: "Nama akun minimal 5 huruf: huruf kecil, angka, titik, dan strip." }, req);
   if (password.length < 8)
     return jawab(400, { message: "Password minimal 8 huruf." }, req);
 

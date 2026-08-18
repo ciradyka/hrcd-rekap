@@ -3133,8 +3133,30 @@ input.small-input { text-align: center; }
 .daftar-panitia {
   margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--garis);
 }
+/* Yang HIJAU cuma kata yang bisa ditekan. Seluruh baris berwarna membuat
+   "Belum punya akun?" — sebuah pertanyaan, bukan tombol — ikut terbaca
+   seperti tautan, dan mata kehilangan petunjuk mana yang sebenarnya diklik. */
 .daftar-panitia > summary {
-  cursor: pointer; color: var(--utama); font-weight: 700; list-style: none;
+  cursor: pointer; color: var(--tinta); font-weight: 400; list-style: none;
+}
+.daftar-panitia > summary b,
+.daftar-panitia > summary .d-buka { color: var(--utama); font-weight: 700; }
+
+/* Tertutup: ajakan. Terbuka: jalan kembali ke formulir masuk. */
+.daftar-panitia .d-buka { display: none; }
+.daftar-panitia[open] .d-tutup { display: none; }
+.daftar-panitia[open] .d-buka { display: inline; }
+
+/* Formulir masuk MENGHILANG selama pendaftaran terbuka. Dua formulir
+   bertumpuk di satu kartu — dua kotak Password, dua tombol hijau — adalah cara
+   orang mengisi yang bawah lalu menekan yang atas.
+
+   `:has()` dipakai sebagai peningkatan yang boleh gagal: browser yang tidak
+   mendukungnya membuang aturan ini dan kembali ke tampilan sebelumnya, yang
+   juga bisa dipakai. */
+.card:has(.daftar-panitia[open]) .blok-masuk { display: none; }
+.card:has(.daftar-panitia[open]) .daftar-panitia {
+  margin-top: 0; padding-top: 0; border-top: 0;
 }
 .daftar-panitia > summary::-webkit-details-marker { display: none; }
 .daftar-panitia > summary::after { content: " ▾"; }
