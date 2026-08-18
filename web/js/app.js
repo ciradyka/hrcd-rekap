@@ -192,7 +192,7 @@ function layarLogin(pesan) {
         <div class="field">
           <label for="d-u">Nama akun</label>
           <input type="text" id="d-u" autocomplete="username" autocapitalize="none"
-                 spellcheck="false" placeholder="aji.furqon">
+                 spellcheck="false" placeholder="misal: aji.furqon">
         </div>
         <div class="field">
           <label for="d-p">Password</label>
@@ -798,7 +798,7 @@ async function layarPembayaran() {
             <div class="nama">${b.sekolah?.name || kode}</div>
             <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
           </div>`,
-          medan: [{ label: "Alasan pembatalan", contoh: "salah nominal" }],
+          medan: [{ label: "Alasan pembatalan", contoh: "misal: salah nominal" }],
           labelAksi: "Batalkan",
         });
         if (!jawab) return;
@@ -1101,7 +1101,7 @@ async function layarDaftarUlang() {
           medan: [
             { label: "Nomor lama (yang rusak)", tipe: "number" },
             { label: "Nomor pengganti (dari stok)", tipe: "number" },
-            { label: "Alasan", contoh: "kain sobek" },
+            { label: "Alasan", contoh: "misal: kain sobek" },
           ],
           labelAksi: "Tukar nomor",
         });
@@ -1523,7 +1523,7 @@ async function layarKeberangkatan() {
               : ""}</div>
           </div>`,
           medan: [{ label: "Alasan pemindahan",
-                   contoh: "terlambat, menyusul kloter berikutnya" }],
+                   contoh: "misal: terlambat, menyusul kloter berikutnya" }],
           labelAksi: "Pindahkan",
         });
         // Batal (atau gagal) mengembalikan select ke "—", kalau tidak ia
@@ -1582,7 +1582,7 @@ async function layarKeberangkatan() {
         medan: [
           { label: "Jam berangkat yang benar", tipe: "jam",
             nilai: jamMenit(info.jam_berangkat) },
-          { label: "Alasan koreksi", contoh: "salah input" },
+          { label: "Alasan koreksi", contoh: "misal: salah input" },
         ],
         labelAksi: "Simpan Koreksi",
       });
@@ -2923,7 +2923,7 @@ async function layarInputPos() {
     // sekali, sedangkan kalimatnya dibaca ulang setiap kali gembok dibuka.
     const jawab = await dialog({
       judul: `Buka Gembok No. Dada ${tiga}?`,
-      medan: [{ label: "Alasan membuka", contoh: "nilai semaphore salah ketik" }],
+      medan: [{ label: "Alasan membuka", contoh: "misal: nilai semaphore salah ketik" }],
       labelAksi: "Buka",
     });
     if (!jawab) return;
@@ -4839,7 +4839,7 @@ async function layarAkun() {
       <div class="form-akun">
         <div class="field"><label for="ak-nama">Nama akun</label>
           <input id="ak-nama" type="text" class="small-input" autocomplete="off"
-            placeholder="aji.furqon"></div>
+            placeholder="misal: aji.furqon"></div>
         <div class="field"><label for="ak-peran">Peran</label>
           <select id="ak-peran" class="select-small">${opsiPeran("registrasi")}</select></div>
         <div class="field" id="ak-pos-kotak" hidden><label for="ak-pos">Pos</label>
