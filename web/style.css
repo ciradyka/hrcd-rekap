@@ -310,7 +310,24 @@ input.jam-ketik {
    dari apa pun yang diketik di atasnya, karena satu-satunya kesalahan yang
    bisa ia sebabkan adalah disangka sudah terisi. Awalan "misal:" di tiap
    contoh menutup sisanya — warna saja bisa berbeda-beda antar layar HP. */
-::placeholder { color: #adb3bb; opacity: 1; }
+::placeholder {
+  color: #adb3bb;
+  /* `-webkit-text-fill-color` WAJIB ikut, dan inilah sebabnya contoh isian
+     tetap terlihat HITAM selama tiga kali perbaikan warna berturut-turut.
+
+     `.select-small, .small-input` menyetel `-webkit-text-fill-color:
+     var(--tinta)` (dipasang untuk melawan warna aksen biru iOS di dropdown),
+     dan di Chrome properti itu MENGALAHKAN `color` saat menggambar teks —
+     termasuk teks contoh isian. Jadi `color` di sini benar sejak awal dan
+     tidak pernah dipakai.
+
+     Yang menemukannya bukan membaca berkas ini, melainkan mengukur:
+     getComputedStyle(kotak, '::placeholder') menjawab color #adb3bb dan
+     webkitTextFillColor #1a1a1a pada satu elemen yang sama. Bagian 15 butir 9
+     berlaku persis di sini, cuma propertinya bukan lebar. */
+  -webkit-text-fill-color: #adb3bb;
+  opacity: 1;
+}
 
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
