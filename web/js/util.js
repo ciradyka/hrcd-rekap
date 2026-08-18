@@ -582,7 +582,16 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
     if (pasang) pasang(el, tutup);
     el.querySelector("[data-batal]")?.addEventListener("click", () => tutup(null));
     el.addEventListener("click", e => { if (e.target === el) tutup(null); });
-    el.querySelector("[data-ok]").addEventListener("click", () => {
+    // `?.` DAN BUKAN PEMANGGILAN LANGSUNG, sama seperti [data-batal] di atas:
+    // `silangSaja` tidak menggambar .option-row, jadi [data-ok] TIDAK ADA. Tanpa
+    // tanda tanya ini querySelector mengembalikan null, barisnya melempar, dan
+    // lemparannya terjadi DI DALAM `new Promise` — jadi promise-nya DITOLAK.
+    // Yang memanggil menunggunya di luar `try`, sehingga penolakan itu tidak
+    // muncul di mana pun: dialognya tetap tergambar, tombol di dalamnya tetap
+    // menutup lewat `pasang`, dan yang hilang cuma JAWABANNYA. Itulah yang
+    // membuat ketiga tombol di menu akun — Reset Password, Ubah Nama Akun,
+    // Aktifkan — diam tanpa satu pun pesan galat.
+    el.querySelector("[data-ok]")?.addEventListener("click", () => {
       const nilai = medan.map((m, i) => m.tipe === "jam"
         ? (jamPasang[i]?.nilai() ?? "")
         : el.querySelector(`#dlg-${i}`).value.trim());
@@ -616,7 +625,9 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
     if (p) p.focus();
     el.addEventListener("keydown", e => {
       if (e.key === "Escape") tutup(null);
-      if (e.key === "Enter") el.querySelector("[data-ok]").click();
+      // Sama sebabnya dengan di atas: pada dialog bersilang tidak ada [data-ok],
+      // dan Enter yang tidak menemukannya akan melempar ke dalam handler.
+      if (e.key === "Enter") el.querySelector("[data-ok]")?.click();
     });
   });
 }
