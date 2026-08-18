@@ -418,6 +418,11 @@ function layarGantiPassword() {
  *  Menyaring di browser (data sudah dimuat semua) supaya hasilnya berubah
  *  seketika sambil mengetik — di meja, menunggu server tiap huruf terasa
  *  seperti aplikasi macet. */
+/* `saringan[].pendek` — label versi HP. Ketiga chip harus muat satu baris di
+   layar 360px; "Belum lengkap / Sudah lengkap / Semua" butuh dua. Yang
+   dipendekkan hanya kata yang bisa ditebak dari konteksnya ("lengkap",
+   "bayar", "Nomor Dada"), dan chip yang sedang menyala tetap menyebut
+   keadaannya. Kalau `pendek` tidak diisi, labelnya dipakai apa adanya. */
 function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan = "" }) {
   return `
     <div class="table-toolbar">
@@ -431,7 +436,9 @@ function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan
         <div class="filter-row">
           ${saringan.map(s => `
             <button type="button" class="option option-small" data-saring="${esc(s.kode)}"
-                    aria-pressed="${s.kode === saringAktif}">${esc(s.label)}</button>`).join("")}
+                    aria-pressed="${s.kode === saringAktif}"
+            ><span class="saring-panjang">${esc(s.label)}</span
+            ><span class="saring-pendek">${esc(s.pendek || s.label)}</span></button>`).join("")}
         </div>
         <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
       </div>
@@ -500,7 +507,7 @@ async function layarPembayaran() {
     <div class="card">
       ${alatTabel({
         saringan: [
-          { kode: "belum", label: "Belum bayar" },
+          { kode: "belum", label: "Belum bayar", pendek: "Belum" },
           { kode: "lunas", label: "Lunas" },
           { kode: "semua", label: "Semua" },
         ],
@@ -875,7 +882,7 @@ async function layarDaftarUlang() {
     <div class="card">
       ${alatTabel({
         saringan: [
-          { kode: "belum", label: "Perlu Nomor Dada" },
+          { kode: "belum", label: "Perlu Nomor Dada", pendek: "Belum" },
           { kode: "sudah", label: "Selesai" },
           { kode: "semua", label: "Semua" },
         ],
@@ -2652,8 +2659,8 @@ async function layarInputPos() {
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
         cariContoh: "Cari nomor dada / regu / organisasi…",
         saringan: [
-          { kode: "belum", label: "Belum lengkap" },
-          { kode: "sudah", label: "Sudah lengkap" },
+          { kode: "belum", label: "Belum lengkap", pendek: "Belum" },
+          { kode: "sudah", label: "Sudah lengkap", pendek: "Sudah" },
           { kode: "semua", label: "Semua" },
         ],
         saringAktif: "semua",

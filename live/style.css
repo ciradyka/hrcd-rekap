@@ -1221,6 +1221,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    "Pos 1 — Kepramukaan" tidak pernah tergencet sampai tak terbaca. */
 .baris-pos .pilih-pos-field select { width: 100%; }
 .filter-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+/* Label pendek hanya hidup di HP; di layar lebar yang panjang yang dipakai. */
+.saring-pendek { display: none; }
 .option-small {
   min-height: 40px; padding: .3rem .75rem; font-size: .88rem; width: auto;
 }
@@ -1886,6 +1888,19 @@ input.small-input { text-align: center; }
 @media (max-width: 560px) {
   .table-toolbar { flex-direction: column; align-items: stretch; }
   .table-count { text-align: right; }
+
+  /* KETIGA CHIP SATU BARIS. Dengan label panjang mereka membungkus jadi dua
+     baris — dan baris kedua yang cuma berisi "Semua" terbaca seperti tombol
+     yang berdiri sendiri, bukan seperti pilihan ketiga dari tiga.
+
+     `nowrap` saja tidak cukup: chipnya akan meluap keluar kartu. Yang
+     memuatkannya label pendek — "Belum lengkap" jadi "Belum". Kata yang
+     dibuang bisa ditebak dari kolom yang sedang disaring, dan chip yang
+     menyala tetap menyebut keadaannya. */
+  .filter-row { flex-wrap: nowrap; }
+  .filter-row .option-small { flex: 1 1 auto; min-width: 0; padding-left: .5rem; padding-right: .5rem; }
+  .saring-panjang { display: none; }
+  .saring-pendek  { display: inline; }
 
   /* Mencetak dari HP tidak pernah terjadi — kertasnya keluar dari mesin
      fotokopi di sekretariat (bagian 8.10). Dua tombol selebar layar di antara
