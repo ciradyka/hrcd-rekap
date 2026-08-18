@@ -5143,16 +5143,29 @@ async function layarFoto() {
   }
 
   async function isiLomba() {
-    elLomba.innerHTML = `<option>memuat…</option>`;
+    /* Pilihan lomba TIDAK diganti jadi "memuat…". Mengganti isi <select>
+       berarti pilihan yang sedang terbaca hilang sekejap lalu muncul lagi,
+       dan di HP itu terlihat seperti dropdown yang salah tekan sendiri.
+       Selagi dimuat ia cuma dimatikan; yang berputar ada di petak di
+       bawahnya, tempat isinya memang sedang berubah. */
+    elLomba.disabled = true;
+    elPos.disabled = true;
+    elGrid.replaceChildren(h(pemuat()));
     let komponen;
     try { komponen = await komponenPos(EDISI.nomor, nomorPos); }
-    catch (e) { notif(`Lomba pos ${nomorPos} tidak terbaca: ${e.message}`, true); return; }
+    catch (e) {
+      elLomba.disabled = false; elPos.disabled = terkunci;
+      notif(`Lomba pos ${nomorPos} tidak terbaca: ${e.message}`, true);
+      return;
+    }
     const lomba = kelompokLomba(kolomPos(komponen));
     elLomba.innerHTML = lomba.map(l =>
       `<option value="${esc(slug(l.nama))}">${esc(l.nama)}</option>`).join("");
     kodeLomba = lomba.length ? slug(lomba[0].nama) : null;
     namaLomba = lomba.length ? lomba[0].nama : null;
     elAksi.hidden = !kodeLomba;
+    elLomba.disabled = false;
+    elPos.disabled = terkunci;
     await muatBelum({ bersihkan: true });
   }
 
@@ -5169,7 +5182,10 @@ async function layarFoto() {
       for (const u of ubin.values()) if (u.url && u.lokal) URL.revokeObjectURL(u.url);
       ubin.clear();
       dadaDiketik.clear();
-      elGrid.replaceChildren(h(`<p class="keterangan">Memuat…</p>`));
+      // Pemutar, bukan tulisan. Yang sedang terjadi selalu sama — sedang
+      // dimuat — jadi kata yang mengatakannya tidak menambah apa pun, dan di
+      // layar yang dipakai ratusan kali per shift ia terbaca berulang-ulang.
+      elGrid.replaceChildren(h(pemuat()));
     }
     let daftar;
     try { daftar = await daftarFotoBelumTaut(nomorPos, kodeLomba); }
@@ -5179,6 +5195,9 @@ async function layarFoto() {
       return;
     }
 
+    // Pemutar dibuang begitu daftarnya sampai.
+    const pemutar = elGrid.querySelector(".pemuat");
+    if (pemutar) pemutar.remove();
     const kosong = elGrid.querySelector(".keterangan");
     if (kosong) kosong.remove();
 
