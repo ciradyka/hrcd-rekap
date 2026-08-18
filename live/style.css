@@ -1202,6 +1202,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   margin-bottom: .8rem;
 }
 .table-toolbar .field { margin-bottom: 0; }
+/* Pemilih pos dan pita keadaan berdampingan. Keduanya menjawab pertanyaan yang
+   sama — "saya di pos mana, dan apakah ketikan saya sudah aman" — jadi mereka
+   satu lirikan, bukan dua tempat yang harus dicari bergantian.
+   `wrap` supaya keadaan MERAH, yang kalimatnya panjang, turun ke barisnya
+   sendiri alih-alih menggencet dropdown-nya. */
+.baris-pos { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.baris-pos .pos-simpan { margin: 0; }
 .filter-row { display: flex; gap: .4rem; flex-wrap: wrap; }
 .option-small {
   min-height: 40px; padding: .3rem .75rem; font-size: .88rem; width: auto;
@@ -1884,16 +1891,6 @@ input.small-input { text-align: center; }
   .table-toolbar .filter-baris { order: 2; }
   .table-toolbar .kotak-cari   { order: 3; }
 
-  /* Pita keadaan naik ke ATAS kartu, supaya yang benar-benar menempel di
-     tabel adalah kotak cari. Ia sekarang cuma centang dan jam — status yang
-     dilirik, bukan alat yang dipakai — jadi tempatnya di kepala kartu.
-
-     `:has()` dipakai dengan sengaja sebagai peningkatan yang boleh gagal:
-     browser lama membuang seluruh aturannya dan tata letaknya kembali seperti
-     sebelum perubahan ini, yang juga benar. Tidak ada yang rusak kalau ia
-     tidak didukung. */
-  .card:has(> .pos-simpan) { display: flex; flex-direction: column; }
-  .card > .pos-simpan { order: -1; }
   .departure-bar .button { width: 100%; min-width: 0; }
 }
 
@@ -2406,7 +2403,10 @@ input.small-input { text-align: center; }
    seperti pengumuman, padahal ia sekadar tanda bahwa semuanya beres. Tiga
    keadaan lain tetap melintang penuh — mereka memang pengumuman. */
 .pos-simpan.aman {
-  display: inline-flex; align-items: center; gap: .35rem;
+  /* `align-self` WAJIB ikut. Ia duduk di dalam `.baris-pos` yang flex, dan
+     `align-items` bawaan akan meregangkannya mengikuti tinggi dropdown di
+     sebelahnya — `display: inline-flex` saja tidak menahan itu. */
+  display: inline-flex; align-self: center; align-items: center; gap: .35rem;
   background: var(--hijau-muda); color: var(--hijau); border-color: var(--hijau);
   font-variant-numeric: tabular-nums;
 }
@@ -2692,6 +2692,37 @@ input.small-input { text-align: center; }
   display: flex; flex-wrap: wrap; gap: 1rem .6rem;
 }
 .kemajuan li { flex: 1 1 7rem; min-width: 6.5rem; text-align: center; }
+
+/* Batang ringkas — hanya ada di HP. Di layar lebar kelima cincin muat
+   berjajar dan tidak ada yang perlu diringkas. */
+.kemajuan-ringkas { display: none; }
+@media (max-width: 560px) {
+  /* Judulnya ikut disembunyikan: batang di bawahnya sudah berbunyi
+     "69% · 186 / 270 regu", dan kata "Status" di atasnya cuma mengulang apa
+     yang sudah jelas dari bentuknya (bagian 9.3). */
+  .judul-status { display: none; }
+
+  .kemajuan-ringkas {
+    display: flex; align-items: center; gap: .6rem; width: 100%;
+    padding: .5rem .2rem; border: 0; background: none; cursor: pointer;
+    font: inherit; color: var(--tinta); text-align: left;
+  }
+  .kr-batang {
+    flex: 1 1 auto; min-width: 0; height: 10px; border-radius: 5px;
+    background: var(--garis); overflow: hidden;
+  }
+  .kr-batang > span { display: block; height: 100%; border-radius: 5px; }
+  .kr-teks { flex: 0 0 auto; font-size: .9rem; color: var(--tinta-lembut); }
+  .kr-teks strong { color: var(--tinta); font-size: 1rem; }
+  .kr-panah { flex: 0 0 auto; color: var(--tinta-lembut); transition: transform .15s; }
+  .kemajuan-ringkas.terbuka .kr-panah { transform: rotate(180deg); }
+
+  /* Rinciannya tertutup sampai batangnya ditekan. Itulah yang membuat yang
+     tampil pertama di HP adalah klasemen, bukan lima cincin setinggi satu
+     layar penuh. */
+  .kemajuan { display: none; }
+  .kemajuan.terbuka { display: flex; margin-top: .6rem; }
+}
 
 /* Cincin dibuat dengan conic-gradient — bukan SVG, bukan library. Satu
    properti CSS, nol berkas tambahan, dan tebalnya diubah dengan mengganti
