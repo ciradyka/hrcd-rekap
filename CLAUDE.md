@@ -287,31 +287,46 @@ Guidance for Claude Code when working in this repository.
    more penilaian. Most of the system only ever modelled two — `pos` and
    `wahana` — and every place that treats a wahana as a lomba is wrong in the
    same way.
-2. **Pos 3 has two lomba, not seven.**
-   - **Pembidaian** — Diagnosis dan Penanganan Awal `0–20`, Posisi Bidai
-     `0–20`, Teknik Bidai `0–20`, Kerapihan dan Kebersihan `0–20`, Kecepatan
-     dan Kerja Sama `0–20`
+2. **Pos 3 has three lomba, not seven.**
+   - **Pembidaian** — Diagnosis dan Penanganan Awal `0–25`, Teknik Bidai
+     `0–25`, Kecepatan dan Kerja Sama `0–20`, Posisi Bidai `0–15`, Kerapihan
+     dan Kebersihan `0–15`. They sum to 100, and **that sum is what must be
+     preserved** if the weights are rebalanced again — it is what sets
+     Pembidaian's weight against every other lomba (migration `0076`).
    - **KIM** — KIM Lihat `0–10`, KIM Cium `0–10`
-3. **Pos 4 is one lomba, PBB** — Sikap Sempurna `0–20`, Gerakan Dasar `0–30`,
+   - **Logika** — 20 soal, enter the number correct `0–20`, 5 points each
+3. **A soal lomba takes ONE number: how many answers were correct.** The form
+   is `benar_per_total` and the points are `poin_maks × benar / total_soal` —
+   so "5 points per correct answer" is written as `poin_maks` 50 over 10 soal,
+   never as a literal 5 in any column. Three values must move together:
+   `total_soal`, the top of the raw range, and `poin_maks`. A raw range looser
+   than the number of soal lets an officer type 12 out of 10 (migration
+   `0076`, test 39).
+
+   Today: Pos 1 **Keagamaan** and **Kepramukaan** (10 soal, max 50), Pos 2
+   **Kesehatan** and **Pengetahuan Umum** (10 soal, max 50), Pos 3 **Logika**
+   (20 soal, max 100). Each is its own lomba — `lomba` NULL — so each prints
+   its own blangko and gets its own photo column.
+4. **Pos 4 is one lomba, PBB** — Sikap Sempurna `0–20`, Gerakan Dasar `0–30`,
    Kekompakan `0–30`, Kerapihan `0–20`.
-4. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
+5. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
    Semangat `0–20`, Penampilan `0–20`.
-5. **One lomba is one form per lomba.** Pos 3 prints two blangko masters, not
-   seven; Pos 4 prints one, not four. A regu is judged once at a lomba and the
+6. **One lomba is one form per lomba.** Pos 3 prints three blangko masters,
+   not seven; Pos 4 prints one, not four. A regu is judged once at a lomba and the
    judge writes every criterion on the sheet in front of them — a sheet per
    criterion would have the same regu handed five pieces of paper at one
    station.
-6. **The screen is the other way round: one column per penilaian.** Bidai is
+7. **The screen is the other way round: one column per penilaian.** Bidai is
    five columns on the pos sheet and one sheet on paper, and both are correct.
    Do not "fix" one to match the other.
-7. **The lomba level is `wahana.lomba`** (migration `0054`). `NULL` means the
+8. **The lomba level is `wahana.lomba`** (migration `0054`). `NULL` means the
    component is its own lomba, which is right for most rows — Semaphore,
    Menaksir, Bakiak — so only grouped components carry a value. Read it as
    `coalesce(lomba, name)`; `kelompokLomba()` in `app.js` does exactly that.
    Do **not** go back to splitting the `kode` prefix: `bidai_`, `kim_`, `pbb_`,
    `yel_` are a naming habit that nothing enforces, and it works right up until
    an edition names two unrelated components with the same first word.
-8. **`wahana.golongan` is a different axis and must not be confused with
+9. **`wahana.golongan` is a different axis and must not be confused with
    this.** Several wahana rows can be one penilaian offered to different
    golongan — that is what `kolomPos()` merges by name. Grouping by lomba is a
    third thing on top, and doing both with one mechanism is how Tebak Simpul
