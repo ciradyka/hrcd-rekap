@@ -5051,7 +5051,7 @@ async function layarFoto() {
                  placeholder="No dada" data-dada aria-label="Nomor dada"
                  value="${esc(String(nilai))}">
           <button type="button" class="button button-mini button-primary"
-                  data-taut>Tautkan</button>
+                  data-taut>Simpan</button>
         </figcaption>
       </figure>`;
   }
@@ -5210,18 +5210,44 @@ async function layarFoto() {
         <span class="a-status">${esc(t.pesan)}</span>
         ${t.keadaan === "gagal"
           ? `<button type="button" class="button button-mini" data-ulang>Ulangi</button>` : ""}
+        <button type="button" class="a-batal" data-batal
+          aria-label="${t.keadaan === "antre" ? "Batalkan" : "Buang dari daftar"}"
+          title="${t.keadaan === "antre" ? "Batalkan" : "Buang dari daftar"}">×</button>
       </li>`).join("")));
   }
 
+  /** Ukuran ASLI -> ukuran terkirim, ditulis di layar.
+   *
+   *  Bukan hiasan. Pengecilan di HP adalah satu-satunya yang menjaga kuota
+   *  1 GB tetap cukup untuk ~5.500 foto (migrasi 0047), dan kalau ia gagal
+   *  diam-diam di satu merek HP, yang ketahuan cuma "kuota habis di tengah
+   *  acara". Angka sebelum-sesudah di tiap baris membuat kegagalan itu
+   *  terlihat pada foto PERTAMA, bukan pada foto ke-tiga ribu. */
+  const hemat = (asli, jadi) =>
+    `${ukuranRapi(asli)} → ${ukuranRapi(jadi)}`;
+
   async function kerjakan(t) {
+    if (t.keadaan === "batal") return;
     t.keadaan = "jalan";
     try {
       t.pesan = "mengecilkan…"; gambarAntrean();
       const blob = await kecilkanFoto(t.berkas);
-      t.pesan = `mengirim ${ukuranRapi(blob.size)}…`; gambarAntrean();
+      if (t.keadaan === "batal") return;          // dibatalkan selagi mengecilkan
+
+      /* Pagar terakhir sebelum jaringan dipakai. Bucket `lembar` menolak apa
+         pun di atas 1 MB, dan penolakan itu datang sebagai galat HTTP yang
+         tidak menjelaskan apa-apa ke petugas. Diperiksa di sini, pesannya
+         menyebut angkanya. */
+      if (blob.size > 1024 * 1024) {
+        throw new Error(
+          `hasil pengecilan masih ${ukuranRapi(blob.size)}, di atas batas 1 MB`);
+      }
+
+      t.pesan = `mengirim ${hemat(t.berkas.size, blob.size)}…`; gambarAntrean();
       await unggahFotoMasuk(t.pos, t.kode, t.nama_lomba, blob);
+      if (t.keadaan === "batal") return;
       t.keadaan = "selesai";
-      t.pesan = ukuranRapi(blob.size);
+      t.pesan = hemat(t.berkas.size, blob.size);
     } catch (err) {
       t.keadaan = "gagal";
       t.pesan = err.message;
@@ -5230,12 +5256,29 @@ async function layarFoto() {
   }
 
   elAntre.addEventListener("click", async (e) => {
-    const b = e.target.closest("[data-ulang]");
-    if (!b) return;
-    const t = antrean[Number(b.closest("li").dataset.i)];
+    const li = e.target.closest("li");
+    if (!li) return;
+    const t = antrean[Number(li.dataset.i)];
     if (!t) return;
-    await kerjakan(t);
-    await muatBelum();
+
+    /* Batal hanya berarti sesuatu SEBELUM gambarnya naik. Yang sedang atau
+       sudah terkirim tidak bisa ditarik pulang — bucket `lembar` tidak punya
+       policy hapus sama sekali, dan itu disengaja sejak 0047 ("tombol hapus
+       pada backup adalah cara backup itu hilang"). Jadi untuk baris yang
+       sudah selesai, silang ini membuang BARISNYA dari daftar, bukan
+       fotonya; fotonya sudah ada di petak di bawah. */
+    if (e.target.closest("[data-batal]")) {
+      if (t.keadaan === "antre" || t.keadaan === "jalan") t.keadaan = "batal";
+      const i = antrean.indexOf(t);
+      if (i >= 0) antrean.splice(i, 1);
+      gambarAntrean();
+      return;
+    }
+
+    if (e.target.closest("[data-ulang]")) {
+      await kerjakan(t);
+      await muatBelum();
+    }
   });
 
   elAmbil.addEventListener("change", async () => {
@@ -5254,7 +5297,11 @@ async function layarFoto() {
 
     // Satu per satu, bukan serentak. Unggahan paralel dari HP di sinyal
     // lapangan saling menggerus dan menabrak batas waktu bersama-sama.
-    for (const t of antrean) if (t.keadaan === "antre") await kerjakan(t);
+    //
+    // Disalin dulu: silang "batal" membuang barisnya dari `antrean` selagi
+    // gelung ini berjalan, dan menggulung array yang sedang disunting
+    // melompati satu berkas tiap kali satu dibuang.
+    for (const t of [...antrean]) if (t.keadaan === "antre") await kerjakan(t);
 
     await muatBelum();
     try {
