@@ -2630,10 +2630,17 @@ async function layarInputPos() {
         // Namanya memakai kosakata panitia persis — "form per lomba" dan
         // "form tabel" adalah kata yang mereka ucapkan sendiri, dan tombol
         // bernama lain memaksa penerjemahan di kepala setiap kali dipakai.
-        kanan: `<button class="button button-secondary button-small" type="button"
+        //
+        // Dibungkus `.alat-cetak` supaya bisa disembunyikan di HP: mencetak
+        // dari HP tidak pernah terjadi — kertasnya keluar dari mesin fotokopi
+        // di sekretariat — dan dua tombol selebar layar di antara penyaring
+        // dan tabel memaksa petugas menggulir melewatinya ratusan kali per
+        // shift untuk sampai ke pekerjaannya.
+        kanan: `<span class="alat-cetak">
+                <button class="button button-secondary button-small" type="button"
                         id="cetak-per-lomba">🖨️ Form per Lomba</button>
                 <button class="button button-secondary button-small" type="button"
-                        id="cetak-lembar">🖨️ Form Tabel (cadangan)</button>`,
+                        id="cetak-lembar">🖨️ Form Tabel (cadangan)</button></span>`,
         // Pendek dengan sengaja: kartunya kini selebar tabel, dan petunjuk
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
@@ -3108,8 +3115,16 @@ async function layarInputPos() {
     }
     if (sibuk)  { pita.className = "pos-simpan menunggu"; pita.textContent = `Menyimpan… ${cap}`; return; }
     if (belum)  { pita.className = "pos-simpan menunggu"; pita.textContent = `${belum} baris belum tersimpan. ${cap}`; return; }
+    /* Keadaan AMAN diringkas jadi ikon + jam. Yang tiga di atas tetap
+       panjang, dan itu bukan ketidakkonsistenan: masing-masing menuntut
+       tindakan dan menyebut berapa baris yang bisa hilang (bagian 9.4).
+       Keadaan aman tidak menuntut apa pun — satu-satunya fakta yang tidak
+       bisa dibaca dari layar adalah KAPAN, dan itulah yang tersisa.
+
+       "Data Tersimpan" mengulang apa yang sudah dikatakan warna hijau dan
+       centangnya, dan pita ini dibaca ratusan kali per shift (bagian 9.1). */
     pita.className = "pos-simpan aman";
-    pita.textContent = `✓ Data Tersimpan · ${cap}`;
+    pita.innerHTML = `${ikon("circle-check-big")}<span>${esc(jamMenit(jamSinkron))}</span>`;
   }
 
   function ulangYangGagal() {
