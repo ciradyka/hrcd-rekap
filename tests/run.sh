@@ -269,5 +269,10 @@ run supabase/migrations/0073_nama_al_azhar_citangkolo.sql
 # v_foto_lembar tanpa satu pun galat.
 run supabase/migrations/0074_foto_jawaban.sql
 run tests/sql/37_foto_jawaban.sql
+# 0075 menambah peran kelima `koordinator_pos` - juri pos TANPA pos, jadi
+# pos_saya() NULL dan kelima pos terbuka. Tes 38 menjaga rantai itu:
+# namanya diterima, posnya DITOLAK, dan juri pos biasa tetap terkunci.
+run supabase/migrations/0075_koordinator_pos.sql
+run tests/sql/38_koordinator_pos.sql
 
 echo "SEMUA TES LULUS"

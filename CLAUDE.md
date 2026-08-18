@@ -408,11 +408,19 @@ Guidance for Claude Code when working in this repository.
    policy dan RPC memakai `boleh()`, dan menambahkan perbandingan `peran() =
    '...'` yang baru berarti mengembalikan dua mekanisme untuk satu pertanyaan
    — yang satu bisa diubah panitia, yang satu tidak.
-2. **Empat peran: `admin`, `registrasi`, `gerbang`, `juri_pos`.** Nama lama
-   `meja` dan `operator_pos` sudah tidak ada sejak 0058. Kalau menemukan
-   keduanya di kode, itu bukan gaya lama — itu **kode mati yang tidak cocok
-   dengan siapa pun**, dan setiap satu di antaranya adalah satu layar yang
-   lumpuh.
+2. **Lima peran: `admin`, `registrasi`, `gerbang`, `juri_pos`,
+   `koordinator_pos`.** Nama lama `meja` dan `operator_pos` sudah tidak ada
+   sejak 0058. Kalau menemukan keduanya di kode, itu bukan gaya lama — itu
+   **kode mati yang tidak cocok dengan siapa pun**, dan setiap satu di
+   antaranya adalah satu layar yang lumpuh.
+
+   `koordinator_pos` (0075) adalah juri pos yang **kolom `pos`-nya kosong**,
+   dan seluruh gunanya bertumpu pada itu: `pos_saya()` NULL, jadi pagar
+   `pos_saya() is null or pos = pos_saya()` membuka kelima pos. Ia tidak
+   menambah satu policy pun. Check dua arah dari 0058 —
+   `(peran = 'juri_pos') = (pos is not null)` — yang menjaganya tetap kosong;
+   membolehkannya punya "pos utama" mengubahnya diam-diam jadi juri pos biasa
+   bernama lain.
 3. **Pemeriksaan yang cakupannya lebih sempit daripada masalahnya lebih
    berbahaya daripada tidak ada pemeriksaan.** 0064 memindai `pg_policies` dan
    `pg_proc` lalu melapor bersih — dan enam VIEW lolos karena view bukan

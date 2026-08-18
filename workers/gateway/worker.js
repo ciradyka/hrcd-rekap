@@ -135,9 +135,10 @@ async function buatAkun(req, env, b) {
       hasil.push({ username, ok: false, pesan: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." });
       continue;
     }
-    if (!["admin", "registrasi", "gerbang", "juri_pos"].includes(peran)) {
+    if (!["admin", "registrasi", "gerbang", "juri_pos", "koordinator_pos"]
+          .includes(peran)) {
       hasil.push({ username, ok: false,
-        pesan: "Peran harus admin, registrasi, gerbang, atau juri_pos." });
+        pesan: "Peran harus admin, registrasi, gerbang, juri_pos, atau koordinator_pos." });
       continue;
     }
     if ((peran === "juri_pos") !== (pos !== null)) {
