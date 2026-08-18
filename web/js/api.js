@@ -216,12 +216,40 @@ export async function masuk(username, password) {
       body: JSON.stringify({ username, password }),
     });
   } else {
-    const email = username.includes("@") ? username : `${username}@${K.domainAkun}`;
-    const j = await kirim(`${K.supabaseUrl}/auth/v1/token?grant_type=password`, {
+    /* TITIK TIDAK MENJADIKANNYA AKUN LAIN — `aji.furqon` dan `ajifurqon`
+       masuk ke akun yang sama, seperti Gmail.
+
+       Yang mencocokkan akun di sini adalah `auth.users.email`, bukan
+       `akun_panitia.username`: barisnya baru dibaca sesudah token didapat.
+       Jadi penyamaannya harus terjadi SEBELUM surelnya dikirim, dan akun baru
+       memang dibuat dengan surel berkunci (gateway kunciAkun()).
+
+       DUA PERCOBAAN, dan yang kedua bukan kemalasan. Akun yang lahir sebelum
+       aturan ini — `admin.ciradyka` salah satunya — surelnya masih mengandung
+       titik di GoTrue. Mengganti surel mereka menuntut service_role, dan
+       kalau berhenti di tengah yang terkunci justru satu-satunya admin yang
+       bisa membetulkannya. Percobaan kedua menanggung mereka tanpa menyentuh
+       satu baris data pun, dan hanya berjalan kalau yang pertama gagal DAN
+       namanya memang bertitik. */
+    const kunciAkun = (n) => n.toLowerCase().replace(/\./g, "");
+    const surel = (n) => n.includes("@")
+      ? `${kunciAkun(n.slice(0, n.lastIndexOf("@")))}${n.slice(n.lastIndexOf("@"))}`
+      : `${kunciAkun(n)}@${K.domainAkun}`;
+    const apaAdanya = username.includes("@") ? username : `${username}@${K.domainAkun}`;
+
+    const minta = (email) => kirim(`${K.supabaseUrl}/auth/v1/token?grant_type=password`, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: K.anonKey },
       body: JSON.stringify({ email, password }),
     });
+
+    let j;
+    try {
+      j = await minta(surel(username));
+    } catch (e) {
+      if (surel(username) === apaAdanya) throw e;
+      j = await minta(apaAdanya);
+    }
     const kepala = { apikey: K.anonKey, Authorization: `Bearer ${j.access_token}` };
     const akun = await kirim(
       `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,is_active`,

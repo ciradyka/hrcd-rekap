@@ -285,5 +285,10 @@ run tests/sql/39_lomba_soal.sql
 # dan pengaturan.
 run supabase/migrations/0077_peran_mengisi_ulang_centang.sql
 run tests/sql/40_peran_mengisi_ulang_centang.sql
+# 0078 menyamakan nama akun seperti Gmail: titik tidak menjadikannya akun
+# lain. Tes 41 menjaga BATASNYA — hanya titik dan besar-kecil huruf; `-`
+# dan `_` tetap membedakan dua orang.
+run supabase/migrations/0078_kunci_akun.sql
+run tests/sql/41_kunci_akun.sql
 
 echo "SEMUA TES LULUS"

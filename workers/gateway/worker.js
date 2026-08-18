@@ -36,6 +36,19 @@ const ASAL_BOLEH = [ASAL_PESERTA, ASAL_PANITIA];
 // akun yang dibuat di sini harus bisa login lewat kotak login yang sama.
 const DOMAIN_AKUN = "ciradyka.com";
 
+/** Kunci penyamaan nama akun — cermin kunci_akun() di migrasi 0078.
+ *
+ *  Titik tidak menjadikan nama jadi akun lain: `aji.furqon` dan `ajifurqon`
+ *  orang yang sama, seperti Gmail. HANYA titik dan besar-kecil huruf; `-` dan
+ *  `_` TIDAK ikut, karena meleburnya berarti melebur dua ORANG dan yang
+ *  terlebur tidak pernah diberi tahu — ia cuma tidak bisa login.
+ *
+ *  Dipakai membentuk ALAMAT SUREL, bukan menggantikan nama yang disimpan.
+ *  Nama disimpan seperti diketik; yang dibakukan cuma alamat yang dipakai
+ *  GoTrue mencocokkan akun. Dengan begitu satu orang punya satu surel, apa
+ *  pun bentuk titik yang ia ketik. */
+const kunciAkun = (nama) => String(nama || "").toLowerCase().replace(/\./g, "");
+
 // Tanpa karakter yang gampang tertukar saat diketik ulang di lapangan —
 // sama dengan SAFE_ALPHABET di scripts/provision_accounts.py. Panitia
 // mengetik password ini dari layar HP koordinator ke HP-nya sendiri, dan
@@ -165,7 +178,7 @@ async function daftarPanitia(req, env, b) {
   if (pos !== null && !(Number.isInteger(pos) && pos >= 1 && pos <= 20))
     return jawab(400, { message: "Pos harus 1–20." }, req);
 
-  const email = `${username}@${DOMAIN_AKUN}`;
+  const email = `${kunciAkun(username)}@${DOMAIN_AKUN}`;
   const cu = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
     method: "POST",
     headers: kepalaLayanan(env),
@@ -223,8 +236,13 @@ async function buatAkun(req, env, b) {
     // yang salah tidak sempat melahirkan user auth yatim: auth.users sudah
     // terbuat, lalu insert akun_panitia gagal, dan usernamenya jadi tidak
     // bisa dipakai lagi tanpa dibersihkan lewat dashboard.
-    if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
-      hasil.push({ username, ok: false, pesan: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." });
+    // Pola yang SAMA dengan pendaftaran mandiri. Dulu pintu ini lebih longgar
+    // (menerima `-`, `_`, titik ganda, titik di ujung, minimal 3), dan itu
+    // berarti "akun ini sudah ada atau belum" dijawab berbeda tergantung pintu
+    // mana yang dipakai.
+    if (username.length < 5 || username.length > 40 ||
+        !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username)) {
+      hasil.push({ username, ok: false, pesan: "Nama akun minimal 5: huruf, angka, dan titik." });
       continue;
     }
     if (!["admin", "registrasi", "gerbang", "juri_pos", "koordinator_pos"]
@@ -244,7 +262,7 @@ async function buatAkun(req, env, b) {
     }
 
     const password = passwordAcak();
-    const email = `${username}@${DOMAIN_AKUN}`;
+    const email = `${kunciAkun(username)}@${DOMAIN_AKUN}`;
     const cu = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
       method: "POST",
       headers: kepalaLayanan(env),
@@ -319,7 +337,8 @@ async function ubahUsername(req, env, b) {
   const uid = String(b.user_id || "");
   const username = String(b.username || "").trim().toLowerCase();
   if (!uid) return jawab(400, { message: "Akun tidak disebut." }, req);
-  if (!/^[a-z0-9._-]{3,40}$/.test(username))
+  if (username.length < 5 || username.length > 40 ||
+      !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username))
     return jawab(400, { message: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." }, req);
 
   // Barisnya dulu: kalau usernamenya sudah dipakai orang lain, UNIQUE
@@ -337,7 +356,7 @@ async function ubahUsername(req, env, b) {
   const em = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${uid}`, {
     method: "PUT",
     headers: kepalaLayanan(env),
-    body: JSON.stringify({ email: `${username}@${DOMAIN_AKUN}`, email_confirm: true }),
+    body: JSON.stringify({ email: `${kunciAkun(username)}@${DOMAIN_AKUN}`, email_confirm: true }),
   });
   if (!em.ok) {
     const e = await em.json().catch(() => ({}));
