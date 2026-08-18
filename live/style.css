@@ -1883,6 +1883,17 @@ input.small-input { text-align: center; }
      terus. Yang jarang dipakai naik ke atas. */
   .table-toolbar .filter-baris { order: 2; }
   .table-toolbar .kotak-cari   { order: 3; }
+
+  /* Pita keadaan naik ke ATAS kartu, supaya yang benar-benar menempel di
+     tabel adalah kotak cari. Ia sekarang cuma centang dan jam — status yang
+     dilirik, bukan alat yang dipakai — jadi tempatnya di kepala kartu.
+
+     `:has()` dipakai dengan sengaja sebagai peningkatan yang boleh gagal:
+     browser lama membuang seluruh aturannya dan tata letaknya kembali seperti
+     sebelum perubahan ini, yang juga benar. Tidak ada yang rusak kalau ia
+     tidak didukung. */
+  .card:has(> .pos-simpan) { display: flex; flex-direction: column; }
+  .card > .pos-simpan { order: -1; }
   .departure-bar .button { width: 100%; min-width: 0; }
 }
 
