@@ -125,5 +125,18 @@ run tests/sql/01_seed_uji.sql
 # langkah pengisi terpisah di sini.
 run supabase/migrations/0058_peran_per_pekerjaan.sql
 
+# 0075 IKUT DIJALANKAN ULANG, karena 0058 di atas MEMBATALKANNYA. 0058 memasang
+# ulang `akun_panitia_peran_check` dan `paket_peran()` dalam versi SEBELUM peran
+# kelima ada, jadi menjalankannya paling akhir mengembalikan database ke keadaan
+# pra-0075: `koordinator_pos` ditolak constraint, dan
+# `paket_peran('koordinator_pos')` mengembalikan array KOSONG — akunnya tidak
+# punya satu centang pun dan `boleh()` menutup semua layar (CLAUDE.md 13.1-13.2).
+# tests/run.sh tidak kena: di sana 0058 berjalan sebelum 0075, urut nomor.
+#
+# 0075 aman diulang: `drop constraint if exists` lalu pasang lagi,
+# `create or replace`, dan blok penutupnya hanya membaca. Pagar dua arah yang
+# ia periksa — `(peran = 'juri_pos') = (pos is not null)` — baru saja dipasang
+# kembali oleh 0058 satu baris di atas.
+run supabase/migrations/0075_koordinator_pos.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
