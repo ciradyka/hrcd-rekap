@@ -2982,6 +2982,17 @@ input.small-input { text-align: center; }
    begitu wadahnya menyempit (bagian 15). */
 .baris-pilih { display: flex; flex-wrap: wrap; gap: .8rem; }
 .baris-pilih .field { flex: 1 1 12rem; min-width: 0; margin-bottom: .6rem; }
+/* Dropdown-nya `.select-small`, kelas yang sama dengan pemilih pos di layar
+   Input Nilai Pos — dua layar bersebelahan yang menanyakan hal yang sama tidak
+   boleh terlihat berbeda. Versi pertama menulis `class="select"`, kelas yang
+   TIDAK ADA di berkas ini sama sekali: tampilannya jatuh ke gaya bawaan
+   browser, lengkap dengan panah bawaan yang menempel ke tulisannya.
+
+   Yang ditambahkan cuma lebarnya. `.select-small` sengaja `width: auto`
+   supaya "Transfer" tidak terpotong di dalam tabel; di sini ia mengisi kolom
+   yang sudah punya labelnya sendiri, jadi lebar isi tidak ada gunanya —
+   spesifisitas (0,2,1) mengalahkan `select.select-small` (0,1,1). */
+.baris-pilih select.select-small { width: 100%; min-width: 0; }
 
 /* Antrean unggah. Namanya boleh terpotong, statusnya TIDAK — status itulah
    satu-satunya alasan barisnya ada. */
@@ -3002,11 +3013,17 @@ input.small-input { text-align: center; }
 .antrean-foto li.gagal { background: var(--bahaya-muda); }
 .antrean-foto li.gagal .a-status { color: var(--bahaya); }
 
-/* Petak foto. `auto-fill` dengan lantai 9rem: di HP muat dua kolom, di laptop
-   enam sampai delapan — jumlahnya mengikuti layar, bukan dipatok per ambang. */
+/* Petak foto. `auto-fill` dengan lantai 8rem: jumlah kolomnya mengikuti layar,
+   bukan dipatok per ambang.
+
+   8rem (128px), bukan 9rem. Terukur: dengan lantai 9rem, layar 360px jatuh ke
+   SATU kolom — 2 x 144 + 12,8 celah = 300,8px sementara isi kartunya cuma
+   284px. Satu petak selebar layar berarti petugas melihat satu foto per layar
+   dan menggulir sepanjang antrean untuk membandingkan dua kertas yang mirip.
+   Dengan 8rem: 2 x 128 + 12,8 = 268,8px, muat, dan 360px dapat dua kolom. */
 .grid-foto {
   display: grid; gap: .8rem;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
 }
 .ubin-foto {
   margin: 0; border: 1px solid var(--garis); border-radius: var(--radius-kecil);
@@ -3023,11 +3040,22 @@ input.small-input { text-align: center; }
   background: var(--kertas) center / cover no-repeat;
   cursor: pointer;
 }
+/* Kotak nomor dada MENUMPUK di atas tombolnya, tidak bersebelahan.
+
+   Bersebelahan terukur 52-76px untuk kotak angkanya — placeholder "No dada"
+   terpotong, dan sasaran ketik selebar dua jari kelingking untuk isian yang
+   merupakan SATU-SATUNYA pekerjaan di layar ini. Ditumpuk, kotaknya selebar
+   petak (~130px di HP) dan tombolnya jadi sasaran sentuh selebar itu juga.
+   Yang dibayar tinggi petak ~34px, dan itu murah. */
 .ubin-foto figcaption {
-  display: flex; align-items: center; gap: .4rem; padding: .45rem;
+  display: flex; flex-direction: column; gap: .35rem; padding: .45rem;
 }
-/* Kotak nomor dada mengambil sisa lebar; tombolnya seukuran isinya. Kalau
-   dibalik, tombol "Tautkan" melar selebar petak dan kotak angkanya menyusut
-   jadi dua digit — dan yang diketik di sini justru tiga digit. */
-.ubin-foto figcaption .small-input { flex: 1 1 auto; min-width: 0; width: auto; }
-.ubin-foto figcaption .button { flex: 0 0 auto; }
+/* Kotak angkanya disamakan dengan kotak nomor dada di Meja Daftar Ulang versi
+   HP: lebih tinggi, hurufnya besar dan tebal. Alasannya sama di kedua layar —
+   angka ini DIBACAKAN dari kain fisik lalu diketik sambil berdiri, dan kotak
+   setinggi 40px dengan huruf 16px adalah sasaran jempol yang meleset. */
+.ubin-foto figcaption .small-input {
+  width: 100%; min-width: 0;
+  min-height: 52px; font-size: 1.25rem; font-weight: 700;
+}
+.ubin-foto figcaption .button { width: 100%; }
