@@ -4988,7 +4988,6 @@ async function layarFoto() {
         </label>
         <span class="sub" id="foto-kuota"></span>
       </div>
-      <ul class="antrean-foto" id="foto-antrean"></ul>
     </div>
     <div class="card">
       <h2>Belum tertaut <span class="badge" id="foto-belum">0</span></h2>
@@ -4996,23 +4995,142 @@ async function layarFoto() {
     </div>
   `));
 
-  const elPos    = document.getElementById("foto-pos");
-  const elLomba  = document.getElementById("foto-lomba");
-  const elAksi   = document.getElementById("foto-aksi");
-  const elAmbil  = document.getElementById("foto-ambil");
-  const elAntre  = document.getElementById("foto-antrean");
-  const elGrid   = document.getElementById("foto-grid");
-  const elBelum  = document.getElementById("foto-belum");
-  const elKuota  = document.getElementById("foto-kuota");
+  const elPos   = document.getElementById("foto-pos");
+  const elLomba = document.getElementById("foto-lomba");
+  const elAksi  = document.getElementById("foto-aksi");
+  const elAmbil = document.getElementById("foto-ambil");
+  const elGrid  = document.getElementById("foto-grid");
+  const elBelum = document.getElementById("foto-belum");
+  const elKuota = document.getElementById("foto-kuota");
 
   const slug = (nama) => String(nama).toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
 
-  /* Daftar lomba, BUKAN daftar penilaian. Satu slip adalah satu lomba
-     (CLAUDE.md 11.5): Pembidaian punya lima kriteria di satu kertas, dan
-     menawarkan lima pilihan di sini berarti satu kertas yang sama bisa
-     mendarat di lima kode yang berbeda. kelompokLomba() yang membedakannya,
-     lewat wahana.lomba — jangan memenggal awalan kodenya (11.7). */
+  /* ------------------------------------------------------------------------
+     SATU PETAK, BUKAN DUA DAFTAR.
+
+     Versi sebelumnya memisahkan antrean unggah (nama berkas + status) dari
+     petak foto (gambar + kotak nomor dada). Dua daftar berarti petugas harus
+     mencocokkan "IMG_20260221_084512.jpg" dengan salah satu gambar abu-abu di
+     bawahnya sendiri — pekerjaan yang tidak pernah diminta siapa pun, di layar
+     yang tugasnya justru mencocokkan gambar dengan nomor.
+
+     Sekarang satu ubin per foto, dari detik berkasnya dipilih sampai nomor
+     dadanya tersimpan. Namanya tertulis DI BAWAH gambarnya sendiri.
+
+     Ubinnya juga tampil SEBELUM unggahannya selesai, memakai gambar dari
+     berkas di HP (object URL). Di sinyal lapangan satu unggahan bisa memakan
+     belasan detik, dan petak yang kosong selama itu terbaca seperti "tidak
+     terjadi apa-apa".
+     --------------------------------------------------------------------- */
+
+  /* Kunci ubin: id foto dari server kalau sudah ada, kunci lokal kalau belum.
+     Satu ubin memakai kunci lokal seumur hidupnya supaya kotak nomor dada dan
+     kursor yang ada di dalamnya tidak pernah tergambar ulang saat unggahannya
+     selesai — itu inti dari perbaikan sebelumnya, dan penyatuan ini tidak
+     boleh membatalkannya. */
+  let nomorLokal = 0;
+  const ubin = new Map();          // kunci -> keadaan ubin
+  const dadaDiketik = new Map();   // kunci -> angka yang sudah diketik
+
+  const jam = (iso) => {
+    try { return new Date(iso).toTimeString().slice(0, 5); } catch { return ""; }
+  };
+
+  function hitungUbin() {
+    elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
+  }
+
+  /* Nama berkas dipendekkan DI TENGAH, bukan di ujung. "IMG_20260221_084512"
+     dan "IMG_20260221_084530" berbeda di enam huruf TERAKHIR, dan potongan
+     yang membuang ekornya membuat dua berkas berbeda terbaca sama persis. */
+  function namaRingkas(nama) {
+    const t = String(nama || "");
+    if (t.length <= 22) return t;
+    return `${t.slice(0, 11)}…${t.slice(-10)}`;
+  }
+
+  function isiUbin(u) {
+    const bisaSimpan = u.keadaan === "siap";
+    const bisaBatal = u.keadaan === "antre" || u.keadaan === "jalan" || u.keadaan === "gagal";
+    const nilai = dadaDiketik.get(u.kunci) ?? "";
+    return `
+      <div class="ubin-atas">
+        <button type="button" class="ubin-gambar" data-lihat
+          ${u.url ? `style="background-image:url(&quot;${esc(u.url)}&quot;)"` : ""}
+          title="Buka foto">${u.url ? "" : `<span class="keterangan">Lihat</span>`}</button>
+        ${bisaBatal ? `
+        <button type="button" class="ubin-silang" data-batal
+          aria-label="Batalkan ${esc(u.nama || "unggahan")}"
+          title="Batalkan">${ikon("x")}</button>` : ""}
+      </div>
+      <figcaption>
+        <span class="f-berkas" title="${esc(u.nama || "")}">${esc(namaRingkas(u.nama))}</span>
+        <span class="f-status ${esc(u.keadaan)}">${esc(u.status || "")}</span>
+        ${bisaSimpan ? `
+          <input type="number" class="small-input" inputmode="numeric" min="1"
+                 placeholder="No dada" data-dada aria-label="Nomor dada"
+                 value="${esc(String(nilai))}">
+          <button type="button" class="button button-mini button-primary"
+                  data-taut>Simpan</button>` : ""}
+        ${u.keadaan === "gagal" ? `
+          <button type="button" class="button button-mini" data-ulang>Ulangi</button>` : ""}
+      </figcaption>`;
+  }
+
+  /** Gambar ulang SATU ubin, bukan seluruh petak.
+   *
+   *  Kotak nomor dada di ubin lain — beserta angka dan kursor di dalamnya —
+   *  tidak boleh ikut tersentuh hanya karena satu unggahan selesai. */
+  function perbarui(u) {
+    let el = elGrid.querySelector(`[data-kunci="${CSS.escape(u.kunci)}"]`);
+    if (!el) {
+      el = h(`<figure class="ubin-foto" data-kunci="${esc(u.kunci)}"></figure>`);
+      elGrid.append(el);
+      pengamat.observe(el);
+    }
+    el.dataset.keadaan = u.keadaan;
+    if (u.path) el.dataset.path = u.path;
+    if (u.fotoId) el.dataset.id = u.fotoId;
+
+    // Kotak yang sedang diketik JANGAN dibongkar: menggantinya di tengah
+    // ketikan memindahkan kursor ke ujung dan menutup papan ketik di HP.
+    const sedangDiketik = el.contains(document.activeElement)
+      && document.activeElement.matches("[data-dada]");
+    if (sedangDiketik) {
+      const st = el.querySelector(".f-status");
+      if (st) { st.textContent = u.status || ""; st.className = `f-status ${u.keadaan}`; }
+      return;
+    }
+    el.innerHTML = isiUbin(u);
+  }
+
+  /* Thumbnail dari server diambil saat ubinnya masuk layar, bukan dua ratus
+     link bertanda tangan sekaligus di awal. Satu pengamat untuk seumur
+     layar. */
+  const pengamat = new IntersectionObserver((masuk) => {
+    for (const e of masuk) {
+      if (!e.isIntersecting) continue;
+      pengamat.unobserve(e.target);
+      const u = ubin.get(e.target.dataset.kunci);
+      if (u && !u.url && u.path) gambarUbin(u);
+    }
+  }, { rootMargin: "200px" });
+
+  async function gambarUbin(u) {
+    try {
+      const url = await tautanFoto(u.path);
+      if (!url) return;
+      u.url = url;
+      const tombol = elGrid.querySelector(`[data-kunci="${CSS.escape(u.kunci)}"] .ubin-gambar`);
+      if (tombol) {
+        tombol.style.backgroundImage = `url("${url}")`;
+        const ket = tombol.querySelector(".keterangan");
+        if (ket) ket.remove();
+      }
+    } catch { /* Ubin tanpa gambar tetap bisa diberi nomor — itu yang penting. */ }
+  }
+
   async function isiLomba() {
     elLomba.innerHTML = `<option>memuat…</option>`;
     let komponen;
@@ -5023,75 +5141,22 @@ async function layarFoto() {
       `<option value="${esc(slug(l.nama))}">${esc(l.nama)}</option>`).join("");
     kodeLomba = lomba.length ? slug(lomba[0].nama) : null;
     namaLomba = lomba.length ? lomba[0].nama : null;
-    elLomba.dataset.nama = namaLomba || "";
     elAksi.hidden = !kodeLomba;
     await muatBelum({ bersihkan: true });
   }
 
-  /* Nomor dada yang SUDAH DIKETIK tapi belum ditekan Tautkan (id foto ->
-     angka). Hidup di luar muatBelum(), dan itulah inti dari petak ini.
-
-     Petugas mengetik beberapa nomor dari kertas yang ada di tangannya, lalu
-     memotret setumpuk berikutnya sebelum menekan Tautkan satu per satu — itu
-     urutan yang wajar di lapangan, dan menggambar ulang petaknya di tengah
-     situ menghapus angka yang sudah dibacakan dari kain fisik. Kejadian yang
-     sama persis sudah dibayar sekali di Meja Daftar Ulang (lihat `nilaiDada`
-     dan catatan di atasnya), dan layar ini mengulanginya. */
-  const dadaDiketik = new Map();
-
-  /** Ubin baru untuk satu foto. Angka yang pernah diketik dipasang kembali. */
-  function ubinFoto(f) {
-    const nilai = dadaDiketik.get(f.id) ?? "";
-    return `
-      <figure class="ubin-foto" data-id="${esc(f.id)}" data-path="${esc(f.path)}">
-        <button type="button" class="ubin-gambar" data-lihat
-          title="Buka foto"><span class="keterangan">Lihat</span></button>
-        <figcaption>
-          <input type="number" class="small-input" inputmode="numeric" min="1"
-                 placeholder="No dada" data-dada aria-label="Nomor dada"
-                 value="${esc(String(nilai))}">
-          <button type="button" class="button button-mini button-primary"
-                  data-taut>Simpan</button>
-        </figcaption>
-      </figure>`;
-  }
-
-  /* Thumbnail TIDAK diambil sekaligus. Satu link bertanda tangan per foto
-     adalah satu permintaan jaringan, dan di sinyal lapangan dua ratus
-     permintaan sekaligus membekukan layar sebelum satu gambar pun tampil.
-     Diambil saat ubinnya benar-benar masuk layar.
-
-     Pengamatnya SATU untuk seumur layar, bukan satu tiap kali daftar dimuat.
-     Versi sebelumnya membuat pengamat baru di dalam muatBelum() dan tidak
-     pernah melepas yang lama — tiap unggahan menumpuk satu pengamat lagi di
-     atas ubin yang sama. */
-  const pengamat = new IntersectionObserver((masuk) => {
-    for (const e of masuk) {
-      if (!e.isIntersecting) continue;
-      pengamat.unobserve(e.target);
-      gambarUbin(e.target);
-    }
-  }, { rootMargin: "200px" });
-
-  function hitungUbin() {
-    elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
-  }
-
-  /** Antrean foto yang belum bernomor dada, untuk pos + lomba yang dipilih.
+  /** Foto yang sudah di server tapi belum bernomor dada.
    *
-   *  MENAMBAH, bukan menggambar ulang. Ubin yang sudah ada dibiarkan apa
-   *  adanya — beserta angka yang sedang diketik di dalamnya dan kursor yang
-   *  sedang berada di situ. Yang baru menyusul di belakang, seperti berkas
-   *  yang bertambah di daftar unggahan.
-   *
-   *  Yang hilang dari daftar server TIDAK dibuang dari layar. Satu-satunya
-   *  cara sebuah foto keluar dari petak ini adalah kita sendiri yang berhasil
-   *  menautkannya; ubin yang lenyap sendiri di tengah pekerjaan orang lebih
-   *  membingungkan daripada ubin yang tinggal sebentar lebih lama. */
+   *  MENAMBAH, tidak menggambar ulang: ubin yang sudah ada dibiarkan apa
+   *  adanya, beserta angka yang sedang diketik di dalamnya. Yang hilang dari
+   *  daftar server juga tidak dibuang dari layar — satu-satunya cara sebuah
+   *  ubin pergi adalah kita sendiri berhasil menyimpannya. */
   async function muatBelum({ bersihkan = false } = {}) {
     if (!kodeLomba) return;
     if (bersihkan) {
       // Ganti pos atau lomba: isinya memang himpunan yang berbeda.
+      for (const u of ubin.values()) if (u.url && u.lokal) URL.revokeObjectURL(u.url);
+      ubin.clear();
       dadaDiketik.clear();
       elGrid.replaceChildren(h(`<p class="keterangan">Memuat…</p>`));
     }
@@ -5106,28 +5171,22 @@ async function layarFoto() {
     const kosong = elGrid.querySelector(".keterangan");
     if (kosong) kosong.remove();
 
-    const sudah = new Set([...elGrid.querySelectorAll(".ubin-foto")].map(u => u.dataset.id));
-    const baru = daftar.filter(f => !sudah.has(f.id));
-    for (const f of baru) elGrid.append(h(ubinFoto(f)));
-    if (baru.length) {
-      elGrid.querySelectorAll(".ubin-foto").forEach(u => pengamat.observe(u));
+    const sudahDiUbin = new Set([...ubin.values()].map(u => u.fotoId).filter(Boolean));
+    for (const f of daftar) {
+      if (sudahDiUbin.has(f.id)) continue;
+      const u = {
+        kunci: f.id, fotoId: f.id, path: f.path, url: null, lokal: false,
+        nama: `Pukul ${jam(f.diunggah_pada)}`,
+        status: ukuranRapi(f.ukuran_bytes || 0), keadaan: "siap",
+      };
+      ubin.set(u.kunci, u);
+      perbarui(u);
     }
 
     hitungUbin();
     if (!elGrid.querySelector(".ubin-foto")) {
       elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
     }
-  }
-
-  async function gambarUbin(ubin) {
-    const tombol = ubin.querySelector(".ubin-gambar");
-    try {
-      const url = await tautanFoto(ubin.dataset.path);
-      if (url) tombol.style.backgroundImage = `url("${url}")`;
-      tombol.dataset.url = url || "";
-      const ket = tombol.querySelector(".keterangan");
-      if (ket && url) ket.remove();
-    } catch { /* Ubin tanpa gambar tetap bisa ditautkan — itu yang penting. */ }
   }
 
   elPos.addEventListener("change", async () => {
@@ -5140,26 +5199,49 @@ async function layarFoto() {
     await muatBelum({ bersihkan: true });
   });
 
-  /* Membuka gambar: jendelanya dibuka SEBELUM await. Dibuka sesudahnya,
-     browser HP menganggapnya popup yang tidak diminta pengguna dan
-     memblokirnya — pelajaran yang sudah dibayar di dialog foto per regu. */
-  /* Tiap ketukan disimpan. Bukan saat blur: petugas berpindah dari kotak ke
-     kamera, dan blur yang tidak pernah terjadi berarti angka yang tidak
-     pernah tersimpan. */
+  // Tiap ketukan disimpan. Bukan saat kotaknya ditinggalkan: petugas berpindah
+  // dari kotak ke kamera, dan `blur` yang tidak pernah terjadi berarti angka
+  // yang tidak pernah tersimpan.
   elGrid.addEventListener("input", (e) => {
     const inp = e.target.closest("[data-dada]");
     if (!inp) return;
-    const id = inp.closest(".ubin-foto").dataset.id;
-    if (inp.value === "") dadaDiketik.delete(id); else dadaDiketik.set(id, inp.value);
+    const kunci = inp.closest(".ubin-foto").dataset.kunci;
+    if (inp.value === "") dadaDiketik.delete(kunci); else dadaDiketik.set(kunci, inp.value);
   });
 
   elGrid.addEventListener("click", async (e) => {
-    const lihat = e.target.closest("[data-lihat]");
-    if (lihat) {
+    const el = e.target.closest(".ubin-foto");
+    if (!el) return;
+    const u = ubin.get(el.dataset.kunci);
+    if (!u) return;
+
+    /* Silang. Ia hanya ADA selagi fotonya belum sampai di server — sesudah
+       itu tidak ada yang bisa dibatalkan: bucket `lembar` tidak punya policy
+       hapus sama sekali, dan itu disengaja sejak 0047 ("tombol hapus pada
+       backup adalah cara backup itu hilang"). */
+    if (e.target.closest("[data-batal]")) {
+      u.keadaan = "batal";
+      if (u.url && u.lokal) URL.revokeObjectURL(u.url);
+      ubin.delete(u.kunci);
+      el.remove();
+      hitungUbin();
+      if (!elGrid.querySelector(".ubin-foto")) {
+        elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+      }
+      return;
+    }
+
+    if (e.target.closest("[data-ulang]")) {
+      await kerjakan(u);
+      return;
+    }
+
+    if (e.target.closest("[data-lihat]")) {
+      // Jendelanya dibuka SEBELUM await. Dibuka sesudahnya, browser HP
+      // menganggapnya popup yang tidak diminta pengguna dan memblokirnya.
       const jendela = window.open("", "_blank");
       try {
-        const url = lihat.dataset.url
-          || await tautanFoto(lihat.closest(".ubin-foto").dataset.path);
+        const url = u.url || (u.path ? await tautanFoto(u.path) : null);
         if (jendela && url) jendela.location = url; else if (jendela) jendela.close();
       } catch (err) {
         if (jendela) jendela.close();
@@ -5170,8 +5252,7 @@ async function layarFoto() {
 
     const taut = e.target.closest("[data-taut]");
     if (!taut) return;
-    const ubin = taut.closest(".ubin-foto");
-    const isian = ubin.querySelector("[data-dada]");
+    const isian = el.querySelector("[data-dada]");
     const dada = Number(isian.value);
     if (!Number.isInteger(dada) || dada <= 0) {
       notif("Nomor dada harus angka.", true);
@@ -5180,106 +5261,61 @@ async function layarFoto() {
     }
     taut.disabled = true;
     try {
-      await tautkanFoto(ubin.dataset.id, dada, "tangan");
-      notif(`Foto tertaut ke ${dada3(dada)}.`);
-      dadaDiketik.delete(ubin.dataset.id);
-      ubin.remove();
+      await tautkanFoto(u.fotoId, dada, "tangan");
+      notif(`Foto tersimpan untuk ${dada3(dada)}.`);
+      dadaDiketik.delete(u.kunci);
+      if (u.url && u.lokal) URL.revokeObjectURL(u.url);
+      ubin.delete(u.kunci);
+      el.remove();
       hitungUbin();
       if (!elGrid.querySelector(".ubin-foto")) {
         elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
       }
     } catch (err) {
       taut.disabled = false;
-      notif(`Gagal menautkan: ${err.message}`, true);
+      notif(`Gagal menyimpan: ${err.message}`, true);
     }
   });
 
-  /* ---- Antrean unggah ----
-
-     Berkasnya DIPEGANG di sini, tidak dilepas setelah gagal. Gelung di dialog
-     foto per regu menuntut petugas memilih ulang berkas dari galeri setiap
-     kali jaringan putus; dengan lima puluh foto sekaligus itu bukan lagi
-     ketidaknyamanan melainkan pekerjaan yang tidak akan diselesaikan siapa
-     pun. Di sini yang gagal tetap di antrean dengan tombol "Ulangi". */
-  const antrean = [];
-
-  function gambarAntrean() {
-    elAntre.replaceChildren(h(antrean.map((t, i) => `
-      <li data-i="${i}" class="${esc(t.keadaan)}">
-        <span class="a-nama">${esc(t.nama)}</span>
-        <span class="a-status">${esc(t.pesan)}</span>
-        ${t.keadaan === "gagal"
-          ? `<button type="button" class="button button-mini" data-ulang>Ulangi</button>` : ""}
-        <button type="button" class="a-batal" data-batal
-          aria-label="${t.keadaan === "antre" ? "Batalkan" : "Buang dari daftar"}"
-          title="${t.keadaan === "antre" ? "Batalkan" : "Buang dari daftar"}">×</button>
-      </li>`).join("")));
-  }
-
-  /** Ukuran ASLI -> ukuran terkirim, ditulis di layar.
+  /** Ukuran ASLI -> ukuran terkirim, ditulis di ubinnya.
    *
    *  Bukan hiasan. Pengecilan di HP adalah satu-satunya yang menjaga kuota
    *  1 GB tetap cukup untuk ~5.500 foto (migrasi 0047), dan kalau ia gagal
    *  diam-diam di satu merek HP, yang ketahuan cuma "kuota habis di tengah
-   *  acara". Angka sebelum-sesudah di tiap baris membuat kegagalan itu
-   *  terlihat pada foto PERTAMA, bukan pada foto ke-tiga ribu. */
-  const hemat = (asli, jadi) =>
-    `${ukuranRapi(asli)} → ${ukuranRapi(jadi)}`;
+   *  acara". Angka sebelum-sesudah membuat kegagalan itu terlihat pada foto
+   *  PERTAMA. */
+  const hemat = (asli, jadi) => `${ukuranRapi(asli)} → ${ukuranRapi(jadi)}`;
 
-  async function kerjakan(t) {
-    if (t.keadaan === "batal") return;
-    t.keadaan = "jalan";
+  async function kerjakan(u) {
+    if (!ubin.has(u.kunci)) return;          // sudah dibatalkan
+    u.keadaan = "jalan";
     try {
-      t.pesan = "mengecilkan…"; gambarAntrean();
-      const blob = await kecilkanFoto(t.berkas);
-      if (t.keadaan === "batal") return;          // dibatalkan selagi mengecilkan
+      u.status = "mengecilkan…"; perbarui(u);
+      const blob = await kecilkanFoto(u.berkas);
+      if (!ubin.has(u.kunci)) return;
 
-      /* Pagar terakhir sebelum jaringan dipakai. Bucket `lembar` menolak apa
-         pun di atas 1 MB, dan penolakan itu datang sebagai galat HTTP yang
-         tidak menjelaskan apa-apa ke petugas. Diperiksa di sini, pesannya
-         menyebut angkanya. */
+      /* Pagar terakhir sebelum jaringan dipakai. Bucket menolak apa pun di
+         atas 1 MB, dan penolakan itu datang sebagai galat HTTP yang tidak
+         menjelaskan apa-apa ke petugas. */
       if (blob.size > 1024 * 1024) {
-        throw new Error(
-          `hasil pengecilan masih ${ukuranRapi(blob.size)}, di atas batas 1 MB`);
+        throw new Error(`masih ${ukuranRapi(blob.size)}, di atas batas 1 MB`);
       }
 
-      t.pesan = `mengirim ${hemat(t.berkas.size, blob.size)}…`; gambarAntrean();
-      await unggahFotoMasuk(t.pos, t.kode, t.nama_lomba, blob);
-      if (t.keadaan === "batal") return;
-      t.keadaan = "selesai";
-      t.pesan = hemat(t.berkas.size, blob.size);
+      u.status = `mengirim ${hemat(u.berkas.size, blob.size)}…`; perbarui(u);
+      const hasil = await unggahFotoMasuk(u.pos, u.kode, u.nama_lomba, blob);
+      if (!ubin.has(u.kunci)) return;
+
+      u.fotoId = hasil.id;
+      u.path = hasil.path;
+      u.keadaan = "siap";
+      u.status = hemat(u.berkas.size, blob.size);
     } catch (err) {
-      t.keadaan = "gagal";
-      t.pesan = err.message;
+      u.keadaan = "gagal";
+      u.status = err.message;
     }
-    gambarAntrean();
+    perbarui(u);
+    hitungUbin();
   }
-
-  elAntre.addEventListener("click", async (e) => {
-    const li = e.target.closest("li");
-    if (!li) return;
-    const t = antrean[Number(li.dataset.i)];
-    if (!t) return;
-
-    /* Batal hanya berarti sesuatu SEBELUM gambarnya naik. Yang sedang atau
-       sudah terkirim tidak bisa ditarik pulang — bucket `lembar` tidak punya
-       policy hapus sama sekali, dan itu disengaja sejak 0047 ("tombol hapus
-       pada backup adalah cara backup itu hilang"). Jadi untuk baris yang
-       sudah selesai, silang ini membuang BARISNYA dari daftar, bukan
-       fotonya; fotonya sudah ada di petak di bawah. */
-    if (e.target.closest("[data-batal]")) {
-      if (t.keadaan === "antre" || t.keadaan === "jalan") t.keadaan = "batal";
-      const i = antrean.indexOf(t);
-      if (i >= 0) antrean.splice(i, 1);
-      gambarAntrean();
-      return;
-    }
-
-    if (e.target.closest("[data-ulang]")) {
-      await kerjakan(t);
-      await muatBelum();
-    }
-  });
 
   elAmbil.addEventListener("change", async () => {
     const berkas = [...(elAmbil.files || [])];
@@ -5287,21 +5323,26 @@ async function layarFoto() {
     elAmbil.value = "";
     if (!berkas.length || !kodeLomba) return;
 
+    const kosong = elGrid.querySelector(".keterangan");
+    if (kosong) kosong.remove();
+
+    const baru = [];
     for (const f of berkas) {
-      antrean.push({
-        berkas: f, nama: f.name || "foto", pesan: "menunggu…", keadaan: "antre",
+      const u = {
+        kunci: `lokal-${++nomorLokal}`, fotoId: null, path: null, lokal: true,
+        url: URL.createObjectURL(f), berkas: f, nama: f.name || "foto",
+        status: "menunggu…", keadaan: "antre",
         pos: nomorPos, kode: kodeLomba, nama_lomba: namaLomba,
-      });
+      };
+      ubin.set(u.kunci, u);
+      baru.push(u);
+      perbarui(u);
     }
-    gambarAntrean();
+    hitungUbin();
 
     // Satu per satu, bukan serentak. Unggahan paralel dari HP di sinyal
     // lapangan saling menggerus dan menabrak batas waktu bersama-sama.
-    //
-    // Disalin dulu: silang "batal" membuang barisnya dari `antrean` selagi
-    // gelung ini berjalan, dan menggulung array yang sedang disunting
-    // melompati satu berkas tiap kali satu dibuang.
-    for (const t of [...antrean]) if (t.keadaan === "antre") await kerjakan(t);
+    for (const u of baru) if (ubin.has(u.kunci)) await kerjakan(u);
 
     await muatBelum();
     try {
