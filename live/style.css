@@ -3135,7 +3135,12 @@ input.small-input { text-align: center; }
    `max-height` dipakai, bukan `height`, karena tinggi isinya tidak diketahui
    sampai digambar. 40rem cukup untuk formulir terpanjang di sini dan cukup
    ketat supaya gerakannya tidak terasa menggantung menjelang akhir. */
-.blok-masuk, .panel-daftar { overflow: hidden; }
+/* `overflow` DIATUR JavaScript, bukan di sini — lihat bergerak() di app.js.
+   Ia hanya boleh `hidden` selama gerakannya berlangsung: kalau ia menempel
+   sesudahnya, cincin fokus kotak isian di dalamnya terpotong di tepi, dan
+   browser HP terasa tersendat tiap kali kotaknya disentuh. Yang tertulis di
+   sini cuma keadaan awal untuk panel yang memang tertutup. */
+.panel-daftar { overflow: hidden; }
 .blok-masuk {
   max-height: 40rem; opacity: 1;
   transition: max-height .3s ease, opacity .22s ease;
