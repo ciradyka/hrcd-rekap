@@ -725,7 +725,7 @@ async function layarPembayaran() {
             <div class="nama">${b.sekolah?.name || kode}</div>
             <div class="detail">${kode} · kwitansi ${b.pembayaran?.nomor_kwitansi || "—"}</div>
           </div>`,
-          medan: [{ label: "Alasan pembatalan" }],
+          medan: [{ label: "Alasan pembatalan", contoh: "salah nominal" }],
           labelAksi: "Batalkan",
         });
         if (!jawab) return;
@@ -1028,7 +1028,7 @@ async function layarDaftarUlang() {
           medan: [
             { label: "Nomor lama (yang rusak)", tipe: "number" },
             { label: "Nomor pengganti (dari stok)", tipe: "number" },
-            { label: "Alasan" },
+            { label: "Alasan", contoh: "kain sobek" },
           ],
           labelAksi: "Tukar nomor",
         });
@@ -1449,7 +1449,8 @@ async function layarKeberangkatan() {
               ? `Kloter ${tujuan} sudah berangkat — regu ini akan dinilai dari jam berangkat kloter itu.`
               : ""}</div>
           </div>`,
-          medan: [{ label: "Alasan pemindahan" }],
+          medan: [{ label: "Alasan pemindahan",
+                   contoh: "terlambat, menyusul kloter berikutnya" }],
           labelAksi: "Pindahkan",
         });
         // Batal (atau gagal) mengembalikan select ke "—", kalau tidak ia
@@ -2848,8 +2849,8 @@ async function layarInputPos() {
     // seluruhnya — bahwa alasannya dicatat adalah hal yang petugas pelajari
     // sekali, sedangkan kalimatnya dibaca ulang setiap kali gembok dibuka.
     const jawab = await dialog({
-      judul: `Buka gembok ${tiga}?`,
-      medan: [{ label: "Alasan membuka" }],
+      judul: `Buka Gembok No. Dada ${tiga}?`,
+      medan: [{ label: "Alasan membuka", contoh: "nilai semaphore salah ketik" }],
       labelAksi: "Buka",
     });
     if (!jawab) return;
