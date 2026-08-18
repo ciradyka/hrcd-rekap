@@ -307,6 +307,18 @@ Guidance for Claude Code when working in this repository.
    **Kesehatan** and **Pengetahuan Umum** (10 soal, max 50), Pos 3 **Logika**
    (20 soal, max 100). Each is its own lomba — `lomba` NULL — so each prints
    its own blangko and gets its own photo column.
+
+   **The half weight is deliberate — confirmed by the event owner, not an
+   oversight.** Every other lomba maxes at 100 and the klasemen sums points as
+   they are, so a 10-soal quiz is worth half a Semaphore. It looks like a bug
+   to anyone reading the numbers cold, and it was raised and settled: leave it.
+   Raising `poin_maks` to 100 would keep "5 points per correct answer" true —
+   the formula divides by `total_soal` — so the temptation to "fix" it is real.
+   Don't, unless the owner says so.
+
+   **`Kepramukaan` naming the Pos 1 lomba while Pos 1 itself is called
+   Kepramukaan is also settled.** It reads as "Pos 1 — Kepramukaan → lomba
+   Kepramukaan" on screen, it was raised, and the panitia say it that way.
 4. **Pos 4 is one lomba, PBB** — Sikap Sempurna `0–20`, Gerakan Dasar `0–30`,
    Kekompakan `0–30`, Kerapihan `0–20`.
 5. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
