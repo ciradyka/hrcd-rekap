@@ -3082,6 +3082,23 @@ input.small-input { text-align: center; }
    "sudah dinonaktifkan" dan "belum pernah ada" tidak terlihat sama. */
 .matriks-hak tr.mati { opacity: .55; }
 
+/* Pendaftaran mandiri di layar login. Digulung, dan ringkasannya dibuat
+   terbaca sebagai tautan — ia satu-satunya jalan keluar dari layar ini bagi
+   orang yang belum punya akun, dan ringkasan <details> bawaan terbaca seperti
+   judul yang tidak bisa ditekan. */
+.daftar-panitia {
+  margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--garis);
+}
+.daftar-panitia > summary {
+  cursor: pointer; color: var(--utama); font-weight: 700; list-style: none;
+}
+.daftar-panitia > summary::-webkit-details-marker { display: none; }
+.daftar-panitia > summary::after { content: " ▾"; }
+.daftar-panitia[open] > summary::after { content: " ▴"; }
+.daftar-panitia .field { margin-top: .8rem; }
+.daftar-panitia select, .daftar-panitia input { width: 100%; }
+.daftar-panitia .button { width: 100%; margin-top: .4rem; }
+
 /* Nama akun adalah tombol, tapi harus terbaca sebagai nama. */
 .tautan {
   background: none; border: 0; padding: 0; font: inherit; cursor: pointer;

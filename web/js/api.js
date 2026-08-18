@@ -227,7 +227,7 @@ export async function masuk(username, password) {
       `${K.supabaseUrl}/rest/v1/akun_panitia?user_id=eq.${j.user.id}&select=username,peran,pos,is_active`,
       { headers: kepala });
     if (!akun.length || !akun[0].is_active)
-      throw new ErrorApi("Akun ini tidak aktif di edisi sekarang. Hubungi koordinator.");
+      throw new ErrorApi("Akun ini belum diaktifkan. Minta admin menyalakannya di layar Akun.");
     // Hak dibawa ke dalam sesi supaya papan Home bisa memilih ubinnya tanpa
     // satu permintaan lagi tiap kali dibuka. Ini HANYA untuk menggambar —
     // yang menegakkan tetap RLS, dan sesi yang diutak-atik di devtools tidak
@@ -842,6 +842,20 @@ export async function daftarFotoBelumTaut(pos, kodeLomba) {
  *  yang menjaganya trigger audit, bukan larangan. */
 export const tautkanFoto = (id, nomorDada, cara = "tangan") =>
   rpc("tautkan_foto", { p_foto_id: id, p_nomor_dada: nomorDada, p_cara: cara });
+
+/** Pendaftaran mandiri panitia dari layar login.
+ *
+ *  Lewat gateway, bukan langsung ke Supabase: membuat user auth menuntut
+ *  service_role, dan kunci itu hidup HANYA di Worker. Yang kembali dari sini
+ *  cuma "ok" — akunnya belum bisa dipakai sampai admin menyalakannya, dan
+ *  itulah yang membuat rute ini boleh publik. */
+export async function daftarPanitia({ username, password, peran, pos }) {
+  return kirim(`${K.gatewayUrl}/akun/daftar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, peran, pos }),
+  });
+}
 
 /* ============================ AKUN PANITIA ==============================
    Dua jalur, dan yang menentukan bukan kerapian melainkan siapa pemegang

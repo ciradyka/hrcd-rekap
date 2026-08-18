@@ -25,7 +25,7 @@ import {
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
-  daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun,
+  daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
@@ -182,10 +182,83 @@ function layarLogin(pesan) {
         <input type="password" id="p" autocomplete="current-password">
       </div>
       <button class="button button-primary" id="masuk" type="button">Masuk</button>
+
+      <!-- Pendaftaran DIGULUNG. Yang membuka layar ini ratusan kali adalah
+           panitia yang sudah punya akun; formulir yang terbuka terus menaruh
+           enam isian di antara mereka dan tombol Masuk. Yang mendaftar
+           melakukannya sekali seumur edisi. -->
+      <details class="daftar-panitia">
+        <summary>Belum punya akun? Daftar</summary>
+        <div class="field">
+          <label for="d-u">Nama akun</label>
+          <input type="text" id="d-u" autocomplete="username" autocapitalize="none"
+                 spellcheck="false" placeholder="pos6hrcd37">
+        </div>
+        <div class="field">
+          <label for="d-p">Password</label>
+          <input type="password" id="d-p" autocomplete="new-password"
+                 placeholder="minimal 8 huruf">
+        </div>
+        <div class="field">
+          <label for="d-peran">Tugas</label>
+          <select id="d-peran" class="select-small">
+            <option value="juri_pos">Juri Pos</option>
+            <option value="koordinator_pos">Koordinator Pos</option>
+            <option value="registrasi">Registrasi</option>
+            <option value="gerbang">Gerbang</option>
+          </select>
+        </div>
+        <div class="field" id="d-pos-kotak">
+          <label for="d-pos">Pos</label>
+          <input type="number" id="d-pos" class="small-input" inputmode="numeric"
+                 min="1" max="20" placeholder="3">
+        </div>
+        <!-- Satu kalimat, dan ia membawa fakta yang TIDAK bisa dibaca dari
+             layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba
+             masuk, gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). -->
+        <p class="keterangan">Akun baru dinyalakan admin dulu sebelum bisa dipakai.</p>
+        <button class="button" id="d-kirim" type="button">Daftar</button>
+      </details>
     </div>
   `));
   const u = document.getElementById("u");
   u.focus();
+
+  /* Kotak Pos hanya untuk Juri Pos — itu check constraint di database
+     (0058), bukan selera: peran lain WAJIB berpos kosong, dan Koordinator Pos
+     justru dikenali dari posnya yang kosong. */
+  const dPeran = document.getElementById("d-peran");
+  const dPosKotak = document.getElementById("d-pos-kotak");
+  const perluPos = () => dPeran.value === "juri_pos";
+  const setelPos = () => { dPosKotak.hidden = !perluPos(); };
+  setelPos();
+  dPeran.addEventListener("change", setelPos);
+
+  document.getElementById("d-kirim").addEventListener("click", async () => {
+    const btn = document.getElementById("d-kirim");
+    const nama = document.getElementById("d-u").value.trim().toLowerCase();
+    const sandi = document.getElementById("d-p").value;
+    const pos = perluPos() ? Number(document.getElementById("d-pos").value) || null : null;
+
+    // Diperiksa di sini SEKALIPUN gateway juga memeriksanya — bukan sebagai
+    // pagar, melainkan supaya salah ketik dijawab seketika alih-alih sesudah
+    // satu perjalanan jaringan di sinyal lapangan.
+    if (!/^[a-z0-9._-]{3,40}$/.test(nama)) {
+      notif("Nama akun hanya huruf kecil, angka, titik, dan strip (3–40).", true);
+      return;
+    }
+    if (sandi.length < 8) { notif("Password minimal 8 huruf.", true); return; }
+    if (perluPos() && !pos) { notif("Juri pos harus menyebut posnya.", true); return; }
+
+    btn.disabled = true; btn.textContent = "Mengirim…";
+    try {
+      await daftarPanitia({ username: nama, password: sandi, peran: dPeran.value, pos });
+      layarLogin(`Akun ${nama} terdaftar. Minta admin menyalakannya, lalu masuk.`);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = "Daftar";
+      notif(e instanceof ErrorApi ? e.message : "Pendaftaran gagal.", true);
+    }
+  });
   const aksi = async () => {
     const btn = document.getElementById("masuk");
     btn.disabled = true; btn.textContent = "Memeriksa…";
