@@ -2990,7 +2990,18 @@ async function layarInputPos() {
       if (!terbaru[f.kode_lomba]) terbaru[f.kode_lomba] = f.path;   // sudah urut terbaru dulu
     });
 
-    const lomba = [...new Map(kolom.map(k => [slugLomba(k.nama), k.nama]))];
+    /* Daftarnya per LOMBA, bukan per penilaian. Satu slip adalah satu lomba
+       (bagian 11.5): Pembidaian punya lima kriteria di SATU kertas, dan
+       menawarkan lima baris foto di sini berarti satu kertas yang sama bisa
+       mendarat di lima kode berbeda.
+
+       Ini juga yang membuat dua pintu bertemu. Layar Foto Jawaban menulis
+       `kode_lomba` dari kelompokLomba() dan RPC `catat_foto_masuk` menolak
+       kode yang bukan lomba pos itu (migrasi 0074). Selama dialog ini masih
+       memakai slug PENILAIAN, foto yang diunggah borongan tidak akan pernah
+       muncul di sini — dan justru dialog inilah yang dipakai memeriksa hasil
+       penautan. */
+    const lomba = kelompokLomba(kolom).map(l => [slugLomba(l.nama), l.nama]);
 
     /* Template BIASA, bukan tag html`` — sama alasannya dengan notif(): tag
        html`` meng-escape SETIAP sisipan, dan ikon("camera") adalah HTML yang
