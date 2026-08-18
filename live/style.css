@@ -1903,8 +1903,18 @@ input.small-input { text-align: center; }
   #nav-setting[aria-current="page"] .bottom-nav-icon { background: #f0eafe; }
   #nav-akun[aria-current="page"]    .bottom-nav-icon { background: #eef0f3; }
 
-  /* Ruang supaya baris terakhir isi halaman tidak tertutup bar. */
-  .isi { padding-bottom: 6rem; }
+  /* Ruang supaya baris terakhir isi halaman tidak tertutup bar.
+
+     ANGKANYA HARUS IKUT `env(safe-area-inset-bottom)`, dan itu bukan
+     kehati-hatian berlebihan. Bar-nya sendiri sudah menambahkan inset itu ke
+     tingginya (lihat .bottom-nav di atas), jadi di HP bergaris beranda ia
+     ~99px sementara ruang yang disediakan di sini cuma 96px — baris terakhir
+     berakhir 3px DI BAWAH tepi atas bar. Di browser desktop insetnya nol dan
+     jaraknya 31px, jadi cacat ini tidak pernah muncul waktu diukur di laptop.
+
+     6rem itu sendiri: tinggi bar 65px + jarak baca. Kalau tinggi bar diubah,
+     angka ini ikut. */
+  .isi { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
 }
 
 /* ============================================================================
