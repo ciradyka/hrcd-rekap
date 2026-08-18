@@ -248,7 +248,8 @@ async function layarHome() {
     LAYAR.replaceChildren(h(`
       <div class="function-menu">
         <a href="#/pos">
-          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos ${esc(sesi().pos)}</div>
+          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos${
+            sesi().pos != null && sesi().pos !== "" ? ` ${esc(sesi().pos)}` : ""}</div>
         </a>
         <a href="#/foto">
           <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
@@ -2566,7 +2567,9 @@ async function layarInputPos() {
 
   // Operator pos tidak memilih apa pun — posnya sudah melekat di akunnya, dan
   // RLS akan menolak pos lain seandainya layar ini mencoba.
-  const nomorPos = s.peran === "juri_pos"
+  // Terkunci = punya kolom `pos`, bukan = berperan juri_pos. Koordinator Pos
+  // tidak punya pos, jadi ia ikut jalur pemilih di bawah.
+  const nomorPos = (s.pos != null && s.pos !== "")
     ? Number(s.pos)
     : (posDipilih.nomor
        ?? (posDinilai.length ? posDinilai[0].nomor
@@ -3641,7 +3644,15 @@ async function layarInputPos() {
  *  daftar yang memuat pilihan tanpa isi mengajari orang bahwa daftar itu
  *  tidak bisa dipercaya. */
 function pilihPosHtml(s, semuaPos) {
-  if (s.peran !== "admin") return "";
+  /* Yang menentukan pemilih ini muncul BUKAN nama peran, melainkan apakah
+     akunnya terkunci ke satu pos — dan itu kolom `pos`, bukan `peran`.
+
+     Sebelumnya berbunyi `peran !== "admin"`, dan itu diam-diam mengunci
+     Koordinator Pos ke pos pertama: ia tidak punya pos (justru itu gunanya),
+     jadi layarnya jatuh ke posDinilai[0] tanpa satu pun cara berpindah.
+     Pola yang sama juga akan menjerat akun mana pun yang diberi centang `pos`
+     lewat matriks Akun tanpa berperan admin (bagian 13.1). */
+  if (s.pos != null && s.pos !== "") return "";
   const dinilai = semuaPos.filter(p => Number(p.jumlah_komponen) > 0);
   return `
     <div class="field pilih-pos-field">
@@ -3655,7 +3666,14 @@ function pilihPosHtml(s, semuaPos) {
 }
 
 function pasangPilihPos(s) {
-  if (s.peran !== "admin") return;
+  /* Syaratnya HARUS sama persis dengan pilihPosHtml() di atas. Kalau yang satu
+     menggambar pemilihnya dan yang satu menolak memasang pendengarnya,
+     hasilnya dropdown yang bisa diklik, berubah pilihannya, dan tidak
+     melakukan apa pun — bentuk kegagalan yang paling sulit dilaporkan orang,
+     karena layarnya terlihat baik-baik saja.
+
+     Karena itu keduanya tidak memeriksa apa pun sendiri: `sel` hanya ada
+     kalau pilihPosHtml() memang menggambarnya. */
   const sel = document.getElementById("pilih-pos");
   if (!sel) return;
   sel.addEventListener("change", () => {
@@ -4675,7 +4693,8 @@ async function layarLiveScore() {
 /* ============================ AKUN ======================================= */
 
 const PERAN_LABEL = { admin: "Admin", registrasi: "Registrasi",
-                      gerbang: "Gerbang", juri_pos: "Juri Pos" };
+                      gerbang: "Gerbang", juri_pos: "Juri Pos",
+                      koordinator_pos: "Koordinator Pos" };
 
 /** Kartu password. Ditampilkan SEKALI — tidak disimpan di mana pun dan tidak
  *  bisa dibaca lagi setelah dialognya ditutup, persis seperti CSV hasil
