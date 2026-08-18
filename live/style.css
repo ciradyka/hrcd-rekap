@@ -2994,37 +2994,6 @@ input.small-input { text-align: center; }
    spesifisitas (0,2,1) mengalahkan `select.select-small` (0,1,1). */
 .baris-pilih select.select-small { width: 100%; min-width: 0; }
 
-/* Antrean unggah. Namanya boleh terpotong, statusnya TIDAK — status itulah
-   satu-satunya alasan barisnya ada. */
-.antrean-foto { list-style: none; margin: .6rem 0 0; padding: 0; }
-.antrean-foto li {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .35rem 0; border-top: 1px solid var(--garis); font-size: .9rem;
-}
-.antrean-foto .a-nama {
-  flex: 1 1 auto; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.antrean-foto .a-status { flex: 0 0 auto; color: var(--tinta-lembut); }
-/* Silang pembatal. Abu-abu sampai disentuh, lalu merah — ia membuang
-   pekerjaan, dan tombol yang membuang pekerjaan tidak boleh sewarna teks
-   biasa saat jari sudah di atasnya. Sasaran sentuhnya 32px meski gambarnya
-   kecil: baris antrean rapat, dan yang di sebelahnya "Ulangi". */
-.antrean-foto .a-batal {
-  flex: 0 0 auto; width: 32px; height: 32px; padding: 0;
-  border: 0; background: none; cursor: pointer;
-  font-size: 1.3rem; line-height: 1; color: var(--tinta-lembut);
-}
-.antrean-foto .a-batal:hover, .antrean-foto .a-batal:focus-visible {
-  color: var(--bahaya);
-}
-.antrean-foto li.selesai .a-status { color: var(--hijau); font-weight: 700; }
-/* Gagal TIDAK menghilang dan tidak sekadar berubah warna: barisnya membawa
-   tombol Ulangi, dan berkasnya masih dipegang layar. Petugas dengan lima
-   puluh foto tidak akan memilih ulang dari galeri satu per satu. */
-.antrean-foto li.gagal { background: var(--bahaya-muda); }
-.antrean-foto li.gagal .a-status { color: var(--bahaya); }
-
 /* Petak foto. `auto-fill`: jumlah kolomnya mengikuti layar, bukan dipatok per
    ambang.
 
@@ -3054,6 +3023,26 @@ input.small-input { text-align: center; }
   margin: 0; border: 1px solid var(--garis); border-radius: var(--radius-kecil);
   overflow: hidden; background: var(--kartu);
 }
+/* Silang duduk DI ATAS gambarnya, bukan di baris terpisah. Petak ini bisa
+   berisi dua puluh ubin yang mirip semua; silang yang berbaris di kolom
+   sendiri menuntut mata menghitung baris ke bawah untuk memastikan yang
+   ditekan memang milik gambar yang dimaksud. */
+.ubin-atas { position: relative; }
+.ubin-silang {
+  position: absolute; top: .3rem; right: .3rem;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: 50%; cursor: pointer;
+  /* Bulatan putih pekat, bukan transparan: silangnya duduk di atas FOTO, dan
+     tanda tanpa alas hilang begitu yang di belakangnya kebetulan terang. */
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+  color: var(--tinta);
+}
+.ubin-silang:hover, .ubin-silang:focus-visible {
+  background: var(--bahaya); color: #fff;
+}
+.ubin-silang .ikon { width: 18px; height: 18px; }
 /* Gambarnya jadi latar tombol, bukan <img>: satu elemen, dan `cover` memotong
    sisi panjang sendiri tanpa menghitung apa pun. Rasionya dipatok 3:4 —
    kertas lembar jawaban selalu lebih tinggi daripada lebar, dan petak yang
@@ -3075,6 +3064,24 @@ input.small-input { text-align: center; }
 .ubin-foto figcaption {
   display: flex; flex-direction: column; gap: .35rem; padding: .45rem;
 }
+/* Nama berkas TEPAT di bawah gambarnya — itu seluruh gunanya. Dipotong di
+   TENGAH oleh namaRingkas() di app.js, bukan di sini: "IMG_20260221_084512"
+   dan "IMG_20260221_084530" berbeda di enam huruf terakhir, dan potongan CSS
+   yang membuang ekornya membuat dua berkas berbeda terbaca sama persis. */
+.ubin-foto .f-berkas {
+  font-size: .8rem; font-weight: 700; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ubin-foto .f-status {
+  font-size: .78rem; color: var(--tinta-lembut); line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.ubin-foto .f-status.jalan { color: var(--utama); }
+.ubin-foto .f-status.gagal { color: var(--bahaya); font-weight: 700; }
+/* Ubin yang gagal diberi alas merah muda — di petak berisi dua puluh gambar
+   abu-abu, satu baris teks merah di dalam salah satunya tidak cukup terlihat
+   untuk sesuatu yang menuntut tindakan. */
+.ubin-foto[data-keadaan="gagal"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
 /* Kotak angkanya disamakan dengan kotak nomor dada di Meja Daftar Ulang versi
    HP: lebih tinggi, hurufnya besar dan tebal. Alasannya sama di kedua layar —
    angka ini DIBACAKAN dari kain fisik lalu diketik sambil berdiri, dan kotak
