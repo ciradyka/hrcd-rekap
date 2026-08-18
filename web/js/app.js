@@ -5025,47 +5025,98 @@ async function layarFoto() {
     namaLomba = lomba.length ? lomba[0].nama : null;
     elLomba.dataset.nama = namaLomba || "";
     elAksi.hidden = !kodeLomba;
-    await muatBelum();
+    await muatBelum({ bersihkan: true });
   }
 
-  /** Antrean foto yang belum bernomor dada, untuk pos + lomba yang dipilih. */
-  async function muatBelum() {
-    if (!kodeLomba) return;
-    elGrid.replaceChildren(h(`<p class="keterangan">Memuat…</p>`));
-    let daftar;
-    try { daftar = await daftarFotoBelumTaut(nomorPos, kodeLomba); }
-    catch (e) { elGrid.replaceChildren(h(`<p class="keterangan">${esc(e.message)}</p>`)); return; }
+  /* Nomor dada yang SUDAH DIKETIK tapi belum ditekan Tautkan (id foto ->
+     angka). Hidup di luar muatBelum(), dan itulah inti dari petak ini.
 
-    elBelum.textContent = String(daftar.length);
-    if (!daftar.length) {
-      elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
-      return;
-    }
+     Petugas mengetik beberapa nomor dari kertas yang ada di tangannya, lalu
+     memotret setumpuk berikutnya sebelum menekan Tautkan satu per satu — itu
+     urutan yang wajar di lapangan, dan menggambar ulang petaknya di tengah
+     situ menghapus angka yang sudah dibacakan dari kain fisik. Kejadian yang
+     sama persis sudah dibayar sekali di Meja Daftar Ulang (lihat `nilaiDada`
+     dan catatan di atasnya), dan layar ini mengulanginya. */
+  const dadaDiketik = new Map();
 
-    elGrid.replaceChildren(h(daftar.map(f => `
+  /** Ubin baru untuk satu foto. Angka yang pernah diketik dipasang kembali. */
+  function ubinFoto(f) {
+    const nilai = dadaDiketik.get(f.id) ?? "";
+    return `
       <figure class="ubin-foto" data-id="${esc(f.id)}" data-path="${esc(f.path)}">
         <button type="button" class="ubin-gambar" data-lihat
           title="Buka foto"><span class="keterangan">Lihat</span></button>
         <figcaption>
           <input type="number" class="small-input" inputmode="numeric" min="1"
-                 placeholder="No dada" data-dada aria-label="Nomor dada">
+                 placeholder="No dada" data-dada aria-label="Nomor dada"
+                 value="${esc(String(nilai))}">
           <button type="button" class="button button-mini button-primary"
                   data-taut>Tautkan</button>
         </figcaption>
-      </figure>`).join("")));
+      </figure>`;
+  }
 
-    /* Thumbnail-nya TIDAK diambil sekaligus. Satu link bertanda tangan per
-       foto adalah satu permintaan jaringan, dan di sinyal lapangan dua ratus
-       permintaan sekaligus membekukan layar sebelum satu gambar pun tampil.
-       Diambil saat ubinnya benar-benar masuk layar. */
-    const pengamat = new IntersectionObserver((masuk) => {
-      for (const e of masuk) {
-        if (!e.isIntersecting) continue;
-        pengamat.unobserve(e.target);
-        gambarUbin(e.target);
-      }
-    }, { rootMargin: "200px" });
-    elGrid.querySelectorAll(".ubin-foto").forEach(u => pengamat.observe(u));
+  /* Thumbnail TIDAK diambil sekaligus. Satu link bertanda tangan per foto
+     adalah satu permintaan jaringan, dan di sinyal lapangan dua ratus
+     permintaan sekaligus membekukan layar sebelum satu gambar pun tampil.
+     Diambil saat ubinnya benar-benar masuk layar.
+
+     Pengamatnya SATU untuk seumur layar, bukan satu tiap kali daftar dimuat.
+     Versi sebelumnya membuat pengamat baru di dalam muatBelum() dan tidak
+     pernah melepas yang lama — tiap unggahan menumpuk satu pengamat lagi di
+     atas ubin yang sama. */
+  const pengamat = new IntersectionObserver((masuk) => {
+    for (const e of masuk) {
+      if (!e.isIntersecting) continue;
+      pengamat.unobserve(e.target);
+      gambarUbin(e.target);
+    }
+  }, { rootMargin: "200px" });
+
+  function hitungUbin() {
+    elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
+  }
+
+  /** Antrean foto yang belum bernomor dada, untuk pos + lomba yang dipilih.
+   *
+   *  MENAMBAH, bukan menggambar ulang. Ubin yang sudah ada dibiarkan apa
+   *  adanya — beserta angka yang sedang diketik di dalamnya dan kursor yang
+   *  sedang berada di situ. Yang baru menyusul di belakang, seperti berkas
+   *  yang bertambah di daftar unggahan.
+   *
+   *  Yang hilang dari daftar server TIDAK dibuang dari layar. Satu-satunya
+   *  cara sebuah foto keluar dari petak ini adalah kita sendiri yang berhasil
+   *  menautkannya; ubin yang lenyap sendiri di tengah pekerjaan orang lebih
+   *  membingungkan daripada ubin yang tinggal sebentar lebih lama. */
+  async function muatBelum({ bersihkan = false } = {}) {
+    if (!kodeLomba) return;
+    if (bersihkan) {
+      // Ganti pos atau lomba: isinya memang himpunan yang berbeda.
+      dadaDiketik.clear();
+      elGrid.replaceChildren(h(`<p class="keterangan">Memuat…</p>`));
+    }
+    let daftar;
+    try { daftar = await daftarFotoBelumTaut(nomorPos, kodeLomba); }
+    catch (e) {
+      if (bersihkan) elGrid.replaceChildren(h(`<p class="keterangan">${esc(e.message)}</p>`));
+      else notif(`Daftar foto tidak terbaca: ${e.message}`, true);
+      return;
+    }
+
+    const kosong = elGrid.querySelector(".keterangan");
+    if (kosong) kosong.remove();
+
+    const sudah = new Set([...elGrid.querySelectorAll(".ubin-foto")].map(u => u.dataset.id));
+    const baru = daftar.filter(f => !sudah.has(f.id));
+    for (const f of baru) elGrid.append(h(ubinFoto(f)));
+    if (baru.length) {
+      elGrid.querySelectorAll(".ubin-foto").forEach(u => pengamat.observe(u));
+    }
+
+    hitungUbin();
+    if (!elGrid.querySelector(".ubin-foto")) {
+      elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+    }
   }
 
   async function gambarUbin(ubin) {
@@ -5086,12 +5137,22 @@ async function layarFoto() {
   elLomba.addEventListener("change", async () => {
     kodeLomba = elLomba.value;
     namaLomba = elLomba.options[elLomba.selectedIndex].textContent.trim();
-    await muatBelum();
+    await muatBelum({ bersihkan: true });
   });
 
   /* Membuka gambar: jendelanya dibuka SEBELUM await. Dibuka sesudahnya,
      browser HP menganggapnya popup yang tidak diminta pengguna dan
      memblokirnya — pelajaran yang sudah dibayar di dialog foto per regu. */
+  /* Tiap ketukan disimpan. Bukan saat blur: petugas berpindah dari kotak ke
+     kamera, dan blur yang tidak pernah terjadi berarti angka yang tidak
+     pernah tersimpan. */
+  elGrid.addEventListener("input", (e) => {
+    const inp = e.target.closest("[data-dada]");
+    if (!inp) return;
+    const id = inp.closest(".ubin-foto").dataset.id;
+    if (inp.value === "") dadaDiketik.delete(id); else dadaDiketik.set(id, inp.value);
+  });
+
   elGrid.addEventListener("click", async (e) => {
     const lihat = e.target.closest("[data-lihat]");
     if (lihat) {
@@ -5121,8 +5182,9 @@ async function layarFoto() {
     try {
       await tautkanFoto(ubin.dataset.id, dada, "tangan");
       notif(`Foto tertaut ke ${dada3(dada)}.`);
+      dadaDiketik.delete(ubin.dataset.id);
       ubin.remove();
-      elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
+      hitungUbin();
       if (!elGrid.querySelector(".ubin-foto")) {
         elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
       }
