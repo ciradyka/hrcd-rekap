@@ -227,13 +227,16 @@ Guidance for Claude Code when working in this repository.
    itself**: the figure currently in force, the state of the data right now, a
    consequence that cannot be undone, a warning that something is already
    printed or has already departed.
-5. **Contoh isian ditulis "misal: …" dan dibiarkan pucat.** Kotak kosong yang
-   berisi `aji.furqon` atau `salah nominal` terbaca seperti isian yang SUDAH
-   terisi — petugas menekan tombolnya tanpa mengetik apa pun. Warnanya sudah
-   dijaga satu aturan `::placeholder` global, jadi yang tersisa jadi kebiasaan
-   cuma awalannya. Yang BUKAN contoh tidak diberi awalan itu: "minimal 8
-   huruf" adalah aturan, dan "Cari nomor dada / regu / organisasi…" adalah
-   perintah.
+5. **Contoh isian ditulis "misal: …", dan yang membedakannya KATA itu, bukan
+   warnanya.** Kotak kosong berisi `aji.furqon` terbaca seperti isian yang
+   sudah terisi — petugas menekan tombolnya tanpa mengetik apa pun. Jalan
+   pertama yang dicoba adalah memucatkannya, dan itu gagal di lapangan: abu-abu
+   muda di layar HP di bawah matahari nyaris tidak terbaca, dan contoh yang
+   tidak terbaca tidak mencegah kesalahan apa pun. Contohnya sekarang HITAM
+   seperti teks lain, dan "misal:" yang bekerja.
+
+   Yang BUKAN contoh tidak diberi awalan itu: "minimal 8 huruf" adalah aturan,
+   dan "Cari nomor dada / regu / organisasi…" adalah perintah.
 6. **The test when unsure** — if this sentence disappeared, could the officer
    make a mistake that costs something? If not, cut it. "They might not know
    how it works" is not a cost; they will after the first time.
