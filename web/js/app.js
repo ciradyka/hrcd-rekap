@@ -250,9 +250,34 @@ function layarLogin(pesan) {
      kelas untuk satu keadaan adalah dua kelas yang suatu hari tidak sepakat. */
   const kartu = LAYAR.querySelector(".card");
   const tombolGanti = document.getElementById("ganti-mode");
+  const blokMasuk = LAYAR.querySelector(".blok-masuk");
+  const panelDaftar = document.getElementById("panel-daftar");
+
+  /* `overflow: hidden` HANYA selama bergerak, tidak sesudahnya.
+
+     Ia wajib ada saat menyusut dan tumbuh — tanpa itu isinya tumpah keluar
+     kotak setinggi nol dan animasinya tidak menyembunyikan apa pun. Tapi
+     kalau ia tetap menempel sesudah gerakannya selesai, dua hal rusak di
+     kotak isian di dalamnya: cincin fokus birunya TERPOTONG di tepi, dan
+     browser HP yang menggeser isian ke dalam wadah terpotong terasa
+     tersendat sepersekian detik tiap kali kotak disentuh.
+
+     Jadi ia dipasang saat pergantian dimulai dan dilepas begitu selesai. */
+  const bergerak = (ms = 340) => {
+    blokMasuk.style.overflow = "hidden";
+    panelDaftar.style.overflow = "hidden";
+    setTimeout(() => {
+      const terbuka = kartu.classList.contains("mode-daftar") ? panelDaftar : blokMasuk;
+      terbuka.style.overflow = "visible";
+    }, ms);
+  };
+  // Keadaan awal: yang terbuka sudah diam, jadi ia tidak perlu menunggu.
+  blokMasuk.style.overflow = "visible";
+
   tombolGanti.addEventListener("click", () => {
     const daftar = kartu.classList.toggle("mode-daftar");
     tombolGanti.setAttribute("aria-expanded", String(daftar));
+    bergerak();
     // Fokus dipindahkan ke isian pertama yang baru terlihat. Tanpa ini, di HP
     // panelnya terbuka di bawah jempol sementara kursor masih di kotak yang
     // sudah tidak ada.
