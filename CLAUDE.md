@@ -227,21 +227,28 @@ Guidance for Claude Code when working in this repository.
    itself**: the figure currently in force, the state of the data right now, a
    consequence that cannot be undone, a warning that something is already
    printed or has already departed.
-5. **The test when unsure** — if this sentence disappeared, could the officer
+5. **Contoh isian ditulis "misal: …" dan dibiarkan pucat.** Kotak kosong yang
+   berisi `aji.furqon` atau `salah nominal` terbaca seperti isian yang SUDAH
+   terisi — petugas menekan tombolnya tanpa mengetik apa pun. Warnanya sudah
+   dijaga satu aturan `::placeholder` global, jadi yang tersisa jadi kebiasaan
+   cuma awalannya. Yang BUKAN contoh tidak diberi awalan itu: "minimal 8
+   huruf" adalah aturan, dan "Cari nomor dada / regu / organisasi…" adalah
+   perintah.
+6. **The test when unsure** — if this sentence disappeared, could the officer
    make a mistake that costs something? If not, cut it. "They might not know
    how it works" is not a cost; they will after the first time.
-6. **Explain in code comments and migration headers, not on screen.** Those are
+7. **Explain in code comments and migration headers, not on screen.** Those are
    read by whoever maintains the thing, which is exactly the audience an
    explanation is for. Section 6.3 asks for generous documentation — it means
    there, not in the interface.
-7. **Weight explanation by how often a screen is used, not by a fixed budget
+8. **Weight explanation by how often a screen is used, not by a fixed budget
    per screen.** The registration form is the exception that proves the rule: a
    pembina fills it once, has had no training, and has nobody to ask.
-8. **A name that already says what the thing is needs no gloss.** "Pendaftaran"
+9. **A name that already says what the thing is needs no gloss.** "Pendaftaran"
    does not need "buka form pendaftaran" beneath it, and "Keberangkatan" does
    not need a list of what happens there. If the term is clear, the interface
    is finished.
-9. **This applies hardest to domain vocabulary.** Section 5.3 keeps `regu`,
+10. **This applies hardest to domain vocabulary.** Section 5.3 keeps `regu`,
    `kloter`, `nomor dada`, `Penggalang` and `Penegak` untranslated precisely
    because panitia and pembina say those words every day. Explaining them back
    to the people who use them is the same mistake as translating them —
