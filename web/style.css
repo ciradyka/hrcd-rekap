@@ -3006,6 +3006,18 @@ input.small-input { text-align: center; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .antrean-foto .a-status { flex: 0 0 auto; color: var(--tinta-lembut); }
+/* Silang pembatal. Abu-abu sampai disentuh, lalu merah — ia membuang
+   pekerjaan, dan tombol yang membuang pekerjaan tidak boleh sewarna teks
+   biasa saat jari sudah di atasnya. Sasaran sentuhnya 32px meski gambarnya
+   kecil: baris antrean rapat, dan yang di sebelahnya "Ulangi". */
+.antrean-foto .a-batal {
+  flex: 0 0 auto; width: 32px; height: 32px; padding: 0;
+  border: 0; background: none; cursor: pointer;
+  font-size: 1.3rem; line-height: 1; color: var(--tinta-lembut);
+}
+.antrean-foto .a-batal:hover, .antrean-foto .a-batal:focus-visible {
+  color: var(--bahaya);
+}
 .antrean-foto li.selesai .a-status { color: var(--hijau); font-weight: 700; }
 /* Gagal TIDAK menghilang dan tidak sekadar berubah warna: barisnya membawa
    tombol Ulangi, dan berkasnya masih dipegang layar. Petugas dengan lima
@@ -3013,17 +3025,24 @@ input.small-input { text-align: center; }
 .antrean-foto li.gagal { background: var(--bahaya-muda); }
 .antrean-foto li.gagal .a-status { color: var(--bahaya); }
 
-/* Petak foto. `auto-fill` dengan lantai 8rem: jumlah kolomnya mengikuti layar,
-   bukan dipatok per ambang.
+/* Petak foto. `auto-fill`: jumlah kolomnya mengikuti layar, bukan dipatok per
+   ambang.
 
-   8rem (128px), bukan 9rem. Terukur: dengan lantai 9rem, layar 360px jatuh ke
-   SATU kolom — 2 x 144 + 12,8 celah = 300,8px sementara isi kartunya cuma
-   284px. Satu petak selebar layar berarti petugas melihat satu foto per layar
-   dan menggulir sepanjang antrean untuk membandingkan dua kertas yang mirip.
-   Dengan 8rem: 2 x 128 + 12,8 = 268,8px, muat, dan 360px dapat dua kolom. */
+   DUA LANTAI, dan itu terpaksa. Yang dilihat di petak ini adalah tulisan
+   tangan di kertas, jadi makin besar makin berguna — 12rem cukup untuk
+   mengenali kertasnya tanpa membukanya. Tapi di HP 360px isi kartunya cuma
+   284px, dan lantai 12rem menjatuhkannya ke SATU kolom: satu petak selebar
+   layar, dan petugas menggulir sepanjang antrean untuk membandingkan dua
+   kertas yang mirip.
+
+   Jadi 12rem di layar yang sanggup, 8rem di layar yang tidak. Angka 8rem
+   diukur: 2 x 128 + 12,8 celah = 268,8px, muat di 284px. */
 .grid-foto {
   display: grid; gap: .8rem;
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}
+@media (max-width: 460px) {
+  .grid-foto { grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); }
 }
 .ubin-foto {
   margin: 0; border: 1px solid var(--garis); border-radius: var(--radius-kecil);
