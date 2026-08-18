@@ -2621,7 +2621,13 @@ async function layarInputPos() {
   LAYAR.replaceChildren(h(`
     <div class="card">
       ${alatTabel({
-        kiri: pilihPosHtml(s, semuaPos),
+        /* Pita keadaan duduk DI SEBELAH pemilih pos, bukan di baris sendiri.
+           Keduanya menjawab pertanyaan yang sama — "saya sedang di pos mana,
+           dan apakah yang saya ketik sudah aman" — dan itu satu lirikan, bukan
+           dua. Di HP baris sendiri berarti satu baris lagi yang harus digulir
+           sebelum sampai ke tabelnya. */
+        kiri: `<div class="baris-pos">${pilihPosHtml(s, semuaPos)}
+                 <div id="pos-simpan" class="pos-simpan aman"></div></div>`,
         // Dua bentuk kertas, dan URUTANNYA menyatakan mana yang utama.
         // Form per lomba dipakai setiap hari lomba di setiap pos; form tabel
         // hanya kalau slipnya habis atau sinyal mati. Tombol cadangan yang
@@ -2657,11 +2663,11 @@ async function layarInputPos() {
            tabelnya bergulir sendiri (max-height), jadi apa pun yang ditaruh
            di bawah bisa berada di luar layar justru saat petugas sedang
            mengetik di baris ke-80. -->
-      <!-- SELALU terlihat, tidak pernah hidden. Pita yang hanya muncul saat
-           ada masalah tidak bisa dipercaya: petugas tidak punya cara
+      <!-- Pita keadaannya ada DI DALAM toolbar, di sebelah pemilih pos.
+           SELALU terlihat, tidak pernah hidden: pita yang hanya muncul saat
+           ada masalah tidak bisa dipercaya, karena petugas tidak punya cara
            membedakan "semuanya aman" dari "pitanya sedang rusak". Google
            Sheets menampilkan capnya terus-menerus untuk alasan yang sama. -->
-      <div id="pos-simpan" class="pos-simpan aman"></div>
       <!-- table-tetap: di HP lembar ini TETAP tabel dan digeser ke samping,
            tidak ditumpuk jadi kartu seperti layar meja. Alasannya di
            style.css, bagian LEMBAR INPUT POS. -->
@@ -4227,10 +4233,32 @@ async function layarLiveScore() {
     return `hsl(${Math.round(rona)}, 72%, 40%)`;
   };
 
+  /* SATU BARIS DI HP, LIMA CINCIN DI LAYAR LEBAR.
+     Kelima cincin memakan hampir satu layar penuh di HP, dan yang dibuka
+     orang di layar ini adalah KLASEMEN — cincinnya dilirik sekali lalu
+     dilewati. Di HP mereka diringkas jadi satu batang: persen seluruh acara,
+     bisa ditekan untuk membuka rinciannya per pos.
+
+     Angkanya jumlah, bukan rata-rata dari lima persen. Rata-rata persen
+     memberi bobot sama pada pos yang jumlah regunya berbeda, dan di edisi
+     yang posnya tidak sama besar itu menghasilkan angka yang tidak berarti
+     apa-apa. */
+  const totalLengkap = pos.reduce((n, p) => n + Number(p.lengkap || 0), 0);
+  const totalRegu    = pos.reduce((n, p) => n + Number(p.regu_total || 0), 0);
+  const persenSemua  = totalRegu ? Math.round(totalLengkap / totalRegu * 100) : 0;
+
   const kemajuan = `
     <div class="card">
-      <h2 class="judul-tengah">Status</h2>
-      <ul class="kemajuan">
+      <h2 class="judul-tengah judul-status">Status</h2>
+      <button type="button" class="kemajuan-ringkas" id="kemajuan-buka"
+              aria-expanded="false" aria-controls="kemajuan-rinci">
+        <span class="kr-batang" aria-hidden="true"><span
+          style="width:${persenSemua}%;background:${warnaPersen(persenSemua)}"></span></span>
+        <span class="kr-teks"><strong>${esc(String(persenSemua))}%</strong>
+          · ${esc(String(totalLengkap))} / ${esc(String(totalRegu))} regu</span>
+        <span class="kr-panah" aria-hidden="true">▾</span>
+      </button>
+      <ul class="kemajuan" id="kemajuan-rinci">
         ${pos.map(p => {
           const s = persenPos(p);
           return `
@@ -4480,6 +4508,19 @@ async function layarLiveScore() {
      Untuk satu kolom yang berpindah itu mahal, dan yang paling terasa: papan
      berkedip dan tab golongan yang sedang dibuka kembali ke awal. Yang
      berubah di layar cuma tombol mana yang menyala. */
+  /* Rincian per pos dibuka/ditutup dengan menekan batangnya. Hanya berlaku di
+     HP: di layar lebar kelima cincin memang selalu tampil dan tombolnya
+     disembunyikan CSS, jadi tidak ada yang bisa ditekan. */
+  const tombolKemajuan = document.getElementById("kemajuan-buka");
+  const rinciKemajuan = document.getElementById("kemajuan-rinci");
+  if (tombolKemajuan && rinciKemajuan) {
+    tombolKemajuan.addEventListener("click", () => {
+      const buka = rinciKemajuan.classList.toggle("terbuka");
+      tombolKemajuan.setAttribute("aria-expanded", String(buka));
+      tombolKemajuan.classList.toggle("terbuka", buka);
+    });
+  }
+
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
     tb.addEventListener("click", async () => {
       const ke = tb.dataset.fase;

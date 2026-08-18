@@ -237,10 +237,31 @@ function gambarKelengkapan() {
   const daftar = (META && META.kelengkapan) || [];
   if (!daftar.length) return "";
 
+  /* SATU BATANG DI HP, LIMA CINCIN DI LAYAR LEBAR — sama persis dengan layar
+     panitia. Kelima cincin memakan hampir satu layar penuh di HP, dan yang
+     dibuka orang di halaman ini adalah KLASEMEN; cincinnya dilirik sekali
+     lalu dilewati.
+
+     Angkanya JUMLAH, bukan rata-rata dari lima persen. Rata-rata persen
+     memberi bobot sama pada pos yang jumlah regunya berbeda, dan di edisi
+     yang posnya tidak sama besar itu menghasilkan angka yang tidak berarti
+     apa-apa. */
+  const totalLengkap = daftar.reduce((n, p) => n + Number(p.lengkap || 0), 0);
+  const totalRegu    = daftar.reduce((n, p) => n + Number(p.regu_total || 0), 0);
+  const persenSemua  = totalRegu ? Math.round(totalLengkap / totalRegu * 100) : 0;
+
   return `
     <div class="kartu">
-      <h2>Status</h2>
-      <ul class="kemajuan">
+      <h2 class="judul-status">Status</h2>
+      <button type="button" class="kemajuan-ringkas" id="kemajuan-buka"
+              aria-expanded="false" aria-controls="kemajuan-rinci">
+        <span class="kr-batang" aria-hidden="true"><span
+          style="width:${persenSemua}%;background:${warnaPersen(persenSemua)}"></span></span>
+        <span class="kr-teks"><strong>${esc(String(persenSemua))}%</strong>
+          · ${esc(String(totalLengkap))} / ${esc(String(totalRegu))} regu</span>
+        <span class="kr-panah" aria-hidden="true">▾</span>
+      </button>
+      <ul class="kemajuan" id="kemajuan-rinci">
         ${daftar.map(p => {
           const persen = Number(p.persen) || 0;
           return `
@@ -256,6 +277,20 @@ function gambarKelengkapan() {
         }).join("")}
       </ul>
     </div>`;
+}
+
+/* Rincian per pos dibuka/ditutup dengan menekan batangnya. Hanya berlaku di
+   HP: di layar lebar kelima cincin memang selalu tampil dan tombolnya
+   disembunyikan CSS, jadi tidak ada yang bisa ditekan. */
+function pasangKemajuan() {
+  const tombol = document.getElementById("kemajuan-buka");
+  const rinci = document.getElementById("kemajuan-rinci");
+  if (!tombol || !rinci) return;
+  tombol.addEventListener("click", () => {
+    const buka = rinci.classList.toggle("terbuka");
+    tombol.setAttribute("aria-expanded", String(buka));
+    tombol.classList.toggle("terbuka", buka);
+  });
 }
 
 /* Emas, perak, perunggu. Angka peringkat tetap ada di bawahnya untuk yang
@@ -549,6 +584,7 @@ function gambar() {
     : gambarKelengkapan() + gambarPapan();
 
   if (mulai()) pasangPapan();
+  pasangKemajuan();
   gambarSinkron();
 }
 
