@@ -1755,6 +1755,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      karena appearance: none sudah membuang panah bawaan browser. */
   border: 1px solid var(--garis); border-radius: 8px; background-color: #fff;
   font-family: inherit;
+  /* Hitam, dan `-webkit-text-fill-color` WAJIB ikut ditulis. iOS Safari
+     mewarnai teks <select> dengan warna aksen sistem — biru — dan mengabaikan
+     `color` saja. Di layar Foto Jawaban itu membuat "Pos 1 — Kepramukaan"
+     terbaca seperti tautan yang bisa ditekan, padahal ia isian.
+
+     Dropdown di layar lain terkena hal yang sama sejak dulu; ini
+     memperbaikinya sekalian, karena kelas ini yang dipakai semuanya. */
+  color: var(--tinta);
+  -webkit-text-fill-color: var(--tinta);
+}
+/* Yang dimatikan tetap terbaca, cuma redup. Tanpa ini iOS menambahkan
+   opasitasnya sendiri dan pemilih pos milik juri pos — yang memang terkunci ke
+   posnya — tampak seperti isian yang gagal dimuat. */
+.select-small:disabled {
+  color: var(--tinta-lembut);
+  -webkit-text-fill-color: var(--tinta-lembut);
+  opacity: 1;
+  background-color: var(--kertas);
 }
 
 /* Panah dropdown digambar sendiri, bukan dibiarkan bawaan browser.
