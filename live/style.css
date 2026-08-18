@@ -303,8 +303,14 @@ input.jam-ketik {
    mengetik apa pun, atau mengira akun itu sudah ada.
 
    `opacity: 1` wajib ikut: Firefox memberi contoh isian opasitasnya sendiri,
-   dan tanpa ini warnanya dipudarkan dua kali sampai hampir tak terbaca. */
-::placeholder { color: #9aa0a8; opacity: 1; }
+   dan tanpa ini warnanya dipudarkan dua kali sampai hampir tak terbaca.
+
+   Warnanya #adb3bb, bukan #5c5c5c (--tinta-lembut) yang dipakai keterangan.
+   Keterangan MEMANG untuk dibaca; contoh isian justru harus kalah menonjol
+   dari apa pun yang diketik di atasnya, karena satu-satunya kesalahan yang
+   bisa ia sebabkan adalah disangka sudah terisi. Awalan "misal:" di tiap
+   contoh menutup sisanya — warna saja bisa berbeda-beda antar layar HP. */
+::placeholder { color: #adb3bb; opacity: 1; }
 
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
