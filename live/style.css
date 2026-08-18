@@ -295,6 +295,17 @@ input.jam-ketik {
   border-color: var(--bahaya);
   background: var(--bahaya-muda);
 }
+/* CONTOH ISIAN JAUH LEBIH PUCAT DARIPADA ISI SUNGGUHAN.
+
+   Tanpa aturan ini yang berlaku warna bawaan browser — di sebagian Android ia
+   nyaris sepekat teks biasa, dan "aji.furqon" di kotak Nama akun terbaca
+   seperti nama yang SUDAH terisi. Petugas lalu menekan Buat Akun tanpa
+   mengetik apa pun, atau mengira akun itu sudah ada.
+
+   `opacity: 1` wajib ikut: Firefox memberi contoh isian opasitasnya sendiri,
+   dan tanpa ini warnanya dipudarkan dua kali sampai hampir tak terbaca. */
+::placeholder { color: #9aa0a8; opacity: 1; }
+
 input:focus { border-color: var(--utama); }
 input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--bahaya-muda); }
 
@@ -1834,6 +1845,11 @@ input.small-input { width: 4.5rem; }
    Kalau menambah properti pada dropdown lagi, periksa `.select-small` dulu. */
 select.select-small { width: auto; min-width: 8rem; padding-right: 2rem; }
 input.small-input { text-align: center; }
+/* KECUALI yang isinya NAMA. `.small-input` ditengahkan karena isinya angka —
+   nomor dada, jumlah benar — dan angka yang ditengahkan lebih mudah
+   dibandingkan antar baris. Nama akun bukan angka: ditengahkan, ia terbaca
+   seperti judul, dan contoh isiannya makin terlihat seperti nilai sungguhan. */
+.form-akun input.small-input { text-align: left; }
 /* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
    tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
 .input-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
