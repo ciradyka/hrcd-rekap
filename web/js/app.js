@@ -207,7 +207,7 @@ function layarLogin(pesan) {
       <button type="button" class="ganti-mode" id="ganti-mode"
               aria-expanded="false" aria-controls="panel-daftar">
         <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
-        <span class="d-buka">Login</span>
+        <span class="d-buka"><b>Login</b></span>
       </button>
       <div class="panel-daftar" id="panel-daftar">
         <div class="field">
