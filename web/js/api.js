@@ -802,6 +802,38 @@ export async function tautanFotoBanyak(paths) {
   return peta;
 }
 
+/** Hapus satu foto slip: barisnya lewat RPC (yang mencatat alasannya), lalu
+ *  objeknya di bucket.
+ *
+ *  Urutannya begitu dan bukan sebaliknya. Objek dulu lalu barisnya gagal
+ *  menyisakan baris yang menunjuk gambar yang tidak ada — dialognya menggambar
+ *  kotak rusak dan tidak ada yang bisa membetulkannya dari layar. Kebalikannya
+ *  cuma menyisakan berkas yatim: tidak terlihat siapa pun, bisa disapu nanti.
+ *
+ *  Karena itu gagalnya menghapus objek TIDAK dilempar. Barisnya sudah hilang,
+ *  fotonya sudah lenyap dari layar, dan memberi tahu petugas bahwa "hapus
+ *  gagal" padahal fotonya memang sudah hilang cuma membuatnya menekan lagi. */
+export async function hapusFotoLembar(id, alasan) {
+  if (K.mode === "dev") {
+    return kirim(`${K.devUrl}/rpc/hapus_foto_lembar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: sesi() ? sesi().uid : null,
+                             args: { p_id: id, p_alasan: alasan } }),
+    });
+  }
+  const path = await rpc("hapus_foto_lembar", { p_id: id, p_alasan: alasan });
+  if (path) {
+    try {
+      await pastikanSesiSegar();
+      await kirim(`${K.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`, {
+        method: "DELETE", headers: kepalaSupabase(),
+      });
+    } catch { /* berkas yatim, bukan kegagalan yang perlu dilihat petugas */ }
+  }
+  return path;
+}
+
 /** Pemakaian kuota. Dibaca layar supaya kehabisan ruang tidak jadi kejutan di
  *  tengah acara — dan supaya rata-rata yang membengkak (tanda pengecilan
  *  gambar gagal di sebagian HP) terlihat sebagai angka, bukan sebagai
