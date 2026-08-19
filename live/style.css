@@ -2675,6 +2675,12 @@ input.small-input { text-align: center; }
 /* Batas kanan tiap kelompok pos, dan sebelum Nilai Total. */
 .table-rekap .rekap-batas { border-right: 2px solid var(--garis); }
 
+/* Baris kedua kepala Live Score menempel DI BAWAH baris pertama, bukan di
+   tempat yang sama. Nilainya dipasang app.js sesudah tabelnya digambar;
+   angka cadangan di sini cuma supaya tidak ada tumpang tindih pada kedipan
+   pertama sebelum pengukurannya sempat jalan. */
+.table-live thead tr:nth-child(2) th { top: var(--kepala-baris1, 2.6rem); }
+
 /* Peringkat: angka yang dicari mata saat menyapu dari atas. Yang belum
    berperingkat sengaja dipudarkan, bukan disembunyikan — barisnya tetap
    dibaca, hanya tidak menuntut perhatian. */

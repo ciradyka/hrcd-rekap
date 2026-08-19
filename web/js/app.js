@@ -4743,6 +4743,26 @@ async function layarLiveScore() {
     });
   }
 
+  /* Kepala tabel Live Score ada DUA baris, dan keduanya menempel di atas.
+     Aturan umum `.data-table thead th` memaku semuanya di `top: 0`, jadi baris
+     kedua — nama lomba — mendarat tepat di atas baris pertama dan MENUTUPI
+     nama posnya. Dari layar itu terbaca seperti "Pos 1 · Kepramukaan hilang
+     waktu digulir", padahal ia masih ada di bawah tumpukan.
+
+     Tingginya diukur, tidak ditebak: "Pos 1 · Kepramukaan" membungkus jadi dua
+     baris di layar sempit dan satu baris di layar lebar, jadi angka tetap
+     apa pun akan benar di satu ukuran dan meninggalkan celah atau tumpang
+     tindih di ukuran lain. Diukur ulang saat lebarnya berubah, karena di situ
+     pula pembungkusannya berubah. */
+  LAYAR.querySelectorAll(".table-live").forEach(tabel => {
+    const baris1 = tabel.tHead && tabel.tHead.rows[0];
+    if (!baris1) return;
+    const ukur = () => tabel.style.setProperty(
+      "--kepala-baris1", `${Math.round(baris1.getBoundingClientRect().height)}px`);
+    ukur();
+    new ResizeObserver(ukur).observe(baris1);
+  });
+
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
     tb.addEventListener("click", async () => {
       const ke = tb.dataset.fase;
