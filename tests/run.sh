@@ -297,5 +297,12 @@ run tests/sql/41_kunci_akun.sql
 # kuncinya harus DIAM.
 run supabase/migrations/0079_kode_lomba_stabil.sql
 run tests/sql/42_kode_lomba_stabil.sql
+# 0080 menyalakan kembali unggah foto PER REGU. 0074 menambah constraint
+# foto_lembar_taut_utuh tapi tidak memberi tahu penulis lamanya, jadi
+# catat_foto_lembar menyisipkan regu_id tanpa cara_taut dan SETIAP unggahan
+# per regu ditolak — sementara tes 37 tetap hijau karena ia cuma memanggil
+# dua fungsi yang 0074 tulis sendiri. Tes 43 memanggil penulis lama itu.
+run supabase/migrations/0080_catat_foto_lembar_taut.sql
+run tests/sql/43_catat_foto_lembar_taut.sql
 
 echo "SEMUA TES LULUS"
