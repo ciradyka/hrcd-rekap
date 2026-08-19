@@ -2290,13 +2290,21 @@ function petunjukKolom(k) {
   // menyesatkan; kolom `petunjuk` (0037) ada untuk kasus seperti itu.
   if (k.petunjuk) return k.petunjuk;
   if (k.form === "biner") return "centang bila benar";
-  // "detik" saja. Sebelumnya "detik, atau m:dd" — dan bentuk kedua itu tidak
-  // pernah diminta siapa pun, cuma ditawarkan. Menawarkan dua format untuk
-  // satu angka pada kertas yang diisi tergesa di pos adalah cara sebagian
-  // petugas menulis 1:45 dan sebagian menulis 105 untuk waktu yang sama.
-  // detikSah() memang masih menerima m:dd bagi yang terlanjur hafal; yang
-  // dibuang cuma tawarannya.
-  if (k.satuan === "detik") return "detik";
+  // SATU bentuk, dan sekarang bentuk itu "menit:detik".
+  //
+  // Keterangan ini pernah berbunyi "detik, atau m:dd", lalu dipersempit jadi
+  // "detik" saja — bukan karena m:dd buruk, melainkan karena MENAWARKAN DUA
+  // bentuk untuk satu angka pada kertas yang diisi tergesa di pos adalah cara
+  // sebagian petugas menulis 1:45 dan sebagian menulis 105 untuk waktu yang
+  // sama. Keberatan itu masih berlaku dan tetap dihormati: yang disebut di
+  // sini tetap satu bentuk, cuma bentuknya yang berganti.
+  //
+  // Berganti karena layar sekarang MENULISKAN waktu dalam menit:detik
+  // (detikTeks), jadi keterangan "detik" di atas kolom berisi "01:14" akan
+  // menyebut sesuatu yang tidak terlihat di kolomnya. detikSah() tetap
+  // menerima detik polos, jadi yang terlanjur hafal mengetik 74 tidak
+  // kehilangan apa pun — ia cuma terbaca kembali sebagai 01:14.
+  if (k.satuan === "detik") return "menit:detik";
   if (k.form === "benar_kurang_salah") return "benar / salah";
   if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
@@ -3556,7 +3564,7 @@ async function layarInputPos() {
     if (kosong) el.removeAttribute("aria-invalid");
     else if (detik === null) el.setAttribute("aria-invalid", "true");
     else {
-      // "0:32" jadi "32", "95" jadi "1:35" — bentuk yang sama dengan yang
+      // "32" jadi "00:32", "95" jadi "01:35" — bentuk yang sama dengan yang
       // digambar ulang dari database, supaya menyimpan baris yang tidak
       // disentuh tidak pernah terlihat sebagai perubahan.
       el.value = detikTeks(detik);
@@ -3957,8 +3965,8 @@ function selRekap(w, isi) {
       ? esc(angkaRapi(a))
       : `${esc(angkaRapi(a))}<span class="pos-pemisah"> / </span>${esc(angkaRapi(b))}`;
   }
-  // Bentuk yang sama dengan yang diketik di Input Pos — 32 detik tampil "32",
-  // bukan "0:32". Dua layar yang menampilkan angka sama dengan bentuk berbeda
+  // Bentuk yang sama dengan Input Pos — 32 detik tampil "00:32" di kedua
+  // layar. Dua layar yang menampilkan angka sama dengan bentuk berbeda
   // membuat orang mengira datanya yang berbeda.
   if (w.satuan === "detik") return esc(detikTeks(a));
   return esc(angkaRapi(a));
