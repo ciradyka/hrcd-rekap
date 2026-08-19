@@ -4440,29 +4440,18 @@ async function layarLiveScore() {
     return `hsl(${Math.round(rona)}, 72%, 40%)`;
   };
 
-  /* SATU BARIS DI HP, LIMA CINCIN DI LAYAR LEBAR.
-     Kelima cincin memakan hampir satu layar penuh di HP, dan yang dibuka
-     orang di layar ini adalah KLASEMEN — cincinnya dilirik sekali lalu
-     dilewati. Di HP mereka diringkas jadi satu batang: persen seluruh acara,
-     bisa ditekan untuk membuka rinciannya per pos.
-
-     Angkanya jumlah, bukan rata-rata dari lima persen. Rata-rata persen
-     memberi bobot sama pada pos yang jumlah regunya berbeda, dan di edisi
-     yang posnya tidak sama besar itu menghasilkan angka yang tidak berarti
-     apa-apa. */
   const totalLengkap = pos.reduce((n, p) => n + Number(p.lengkap || 0), 0);
   const totalRegu    = pos.reduce((n, p) => n + Number(p.regu_total || 0), 0);
   const persenSemua  = totalRegu ? Math.round(totalLengkap / totalRegu * 100) : 0;
 
   const kemajuan = `
     <div class="card">
-      <h2 class="judul-tengah judul-status">Status</h2>
-      <button type="button" class="kemajuan-ringkas" id="kemajuan-buka"
+      <button type="button" class="judul-status" id="kemajuan-buka"
               aria-expanded="false" aria-controls="kemajuan-rinci">
-        <span class="kr-batang" aria-hidden="true"><span
+        <span class="js-teks">Status</span>
+        <span class="js-batang" aria-hidden="true"><span
           style="width:${persenSemua}%;background:${warnaPersen(persenSemua)}"></span></span>
-        <span class="kr-teks"><strong>${esc(String(persenSemua))}%</strong>
-          · ${esc(String(totalLengkap))} / ${esc(String(totalRegu))} regu</span>
+        <span class="js-persen">${esc(String(persenSemua))}%</span>
         <span class="kr-panah" aria-hidden="true">▾</span>
       </button>
       <ul class="kemajuan" id="kemajuan-rinci">
@@ -4715,9 +4704,10 @@ async function layarLiveScore() {
      Untuk satu kolom yang berpindah itu mahal, dan yang paling terasa: papan
      berkedip dan tab golongan yang sedang dibuka kembali ke awal. Yang
      berubah di layar cuma tombol mana yang menyala. */
-  /* Rincian per pos dibuka/ditutup dengan menekan batangnya. Hanya berlaku di
-     HP: di layar lebar kelima cincin memang selalu tampil dan tombolnya
-     disembunyikan CSS, jadi tidak ada yang bisa ditekan. */
+  /* Rincian per pos dibuka/ditutup dengan menekan JUDULNYA, di lebar mana pun.
+     Dulu yang ditekan batang ringkas yang cuma ada di HP, dan di layar lebar
+     kelima cincin selalu tampil tanpa bisa ditutup — dua perilaku untuk satu
+     kartu, jadi apa yang dilihat orang bergantung pada lebar layarnya. */
   const tombolKemajuan = document.getElementById("kemajuan-buka");
   const rinciKemajuan = document.getElementById("kemajuan-rinci");
   if (tombolKemajuan && rinciKemajuan) {
