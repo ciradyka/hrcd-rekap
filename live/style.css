@@ -1669,8 +1669,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 .saring-riwayat { margin-bottom: .6rem; flex-wrap: wrap; gap: .35rem; }
 .riwayat { list-style: none; margin: 0; padding: 0; }
+/* SATU BARIS, SELALU. `flex-wrap: wrap` dulu menurunkan kolom "oleh" ke baris
+   kedua begitu isinya tidak muat — dan di dialog ini itu terjadi pada SETIAP
+   baris, bukan sesekali. Kartunya `max-width: 480px` dengan padding 1.3rem,
+   jadi isinya ±438px, sementara barisnya minta ±442px: 8.5rem nama + dua gap
+   .8rem + angka + "admin.ciradyka · 19 Agustus 2026 23:48" pada .82rem.
+   Meleset empat piksel, dan seluruh daftar jadi dua kali lebih tinggi dengan
+   tanggal menggantung sendirian di bawah nilainya.
+
+   Yang diperbaiki bukan cuma wrap-nya. Kalau hanya `nowrap` yang dipasang,
+   selisih empat piksel itu berubah jadi potongan elipsis di setiap baris —
+   dan yang terpotong adalah ujung kanan, yaitu JAM-nya, justru bagian yang
+   paling sering dicari di layar riwayat. Karena itu ruangnya dilonggarkan
+   dulu (gap, lebar nama, ukuran huruf "oleh") sampai muat utuh; elipsis di
+   `.r-oleh` tinggal jadi jaring pengaman untuk layar yang lebih sempit. */
 .riwayat li {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem;
+  display: flex; flex-wrap: nowrap; align-items: baseline; gap: .2rem .5rem;
   padding: .5rem 0; border-bottom: 1px solid var(--garis);
 }
 .riwayat li:last-child { border-bottom: 0; }
@@ -1687,13 +1701,28 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    Dengan lebar dipatok, kolom nilainya mulai di tempat yang sama di semua
    baris; sisa ruangnya jatuh ke `margin-left: auto` milik "oleh", yang memang
    dimaksudkan menempel ke kanan. */
+/* 7.5rem, bukan 8.5rem: nama terpanjang yang benar-benar muncul di kolom ini
+   ("Tebak Simpul", "Kepramukaan") berhenti di ±90px, jadi satu rem yang
+   dilepas tidak memotong satu nama pun — dan itulah rem yang membuat barisnya
+   muat. `flex-shrink: 0` sekarang WAJIB, bukan pilihan: di baris yang tidak
+   membungkus, nama yang boleh menyusut akan menyusut sebanyak kelebihan baris
+   ITU, dan tiap baris kelebihannya berbeda — persis kembali ke panah menurun
+   yang dijelaskan di atas. Yang mengalah adalah "oleh", satu-satunya kolom
+   yang boleh. */
 .r-lomba {
-  font-weight: 600; flex: 0 1 8.5rem; min-width: 0;
+  font-weight: 600; flex: 0 0 7.5rem; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.r-nilai { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Angka tidak pernah menyusut: "1250 → 0" yang terpotong jadi "1250 → " adalah
+   riwayat yang berbohong, bukan riwayat yang rapi. */
+.r-nilai {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
 .r-oleh  {
-  color: var(--tinta-lembut); font-size: .82rem;
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis;
+  color: var(--tinta-lembut); font-size: .78rem;
   white-space: nowrap; margin-left: auto;
 }
 
