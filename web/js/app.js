@@ -1471,7 +1471,7 @@ async function layarKeberangkatan() {
           <h2>Kloter ${kloterAktif}</h2>
           ${sudahBerangkat
             ? html`<span class="badge badge-green">BERANGKAT ${jamMenit(info.jam_berangkat)}</span>
-                   <button class="icon-button icon-button-inline" id="koreksi-jam" type="button"
+                   <button class="icon-button icon-button-inline ikon-pensil" id="koreksi-jam" type="button"
                            title="Betulkan jam berangkat"
                            aria-label="Betulkan jam berangkat Kloter ${kloterAktif}">&#9998;</button>`
             : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}
@@ -4742,6 +4742,26 @@ async function layarLiveScore() {
       tombolKemajuan.classList.toggle("terbuka", buka);
     });
   }
+
+  /* Kepala tabel Live Score ada DUA baris, dan keduanya menempel di atas.
+     Aturan umum `.data-table thead th` memaku semuanya di `top: 0`, jadi baris
+     kedua — nama lomba — mendarat tepat di atas baris pertama dan MENUTUPI
+     nama posnya. Dari layar itu terbaca seperti "Pos 1 · Kepramukaan hilang
+     waktu digulir", padahal ia masih ada di bawah tumpukan.
+
+     Tingginya diukur, tidak ditebak: "Pos 1 · Kepramukaan" membungkus jadi dua
+     baris di layar sempit dan satu baris di layar lebar, jadi angka tetap
+     apa pun akan benar di satu ukuran dan meninggalkan celah atau tumpang
+     tindih di ukuran lain. Diukur ulang saat lebarnya berubah, karena di situ
+     pula pembungkusannya berubah. */
+  LAYAR.querySelectorAll(".table-live").forEach(tabel => {
+    const baris1 = tabel.tHead && tabel.tHead.rows[0];
+    if (!baris1) return;
+    const ukur = () => tabel.style.setProperty(
+      "--kepala-baris1", `${Math.round(baris1.getBoundingClientRect().height)}px`);
+    ukur();
+    new ResizeObserver(ukur).observe(baris1);
+  });
 
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
     tb.addEventListener("click", async () => {
