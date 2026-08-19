@@ -181,8 +181,16 @@ begin
   join pendaftaran p on p.sekolah_id = s.id;
 
   -- Kloter berangkat mulai 07.00 WIB, berjarak 15 menit.
+  --
+  -- Tanggalnya dibaca dari `edisi`, tidak ditulis di sini. Ia sempat dipatok
+  -- 2027-02-21 — tanggal contoh dari masa perancangan — dan bertahan di sini
+  -- sesudah tanggal sungguhannya ditetapkan (migrasi 0083), sehingga data uji
+  -- lahir pada hari yang tidak ada hubungannya dengan perkiraan yang dihitung
+  -- view mana pun.
   update kloter set jam_berangkat =
-    timestamptz '2027-02-21 07:00+07' + make_interval(mins => (nomor - 1) * 15)
+    ((select tanggal_lomba + time '07:00' from edisi where is_active)
+       at time zone 'Asia/Jakarta')
+    + make_interval(mins => (nomor - 1) * 15)
   where nomor between 1 and 5;
 
   -- -------------------------------------------------------------------------
