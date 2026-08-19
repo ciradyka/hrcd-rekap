@@ -555,7 +555,7 @@ export async function komponenPos(edisi, pos) {
     // beberapa baris wahana (Tebak Simpul, 0030), lalu menawarkan semuanya ke
     // setiap regu — dan server menolak yang salah dengan pesan yang benar tapi
     // terlambat.
-    `poin_salah,total_soal,tingkat,satuan,golongan,petunjuk,judul_isian,lomba,` +
+    `poin_salah,total_soal,tingkat,satuan,golongan,petunjuk,judul_isian,lomba,kode_lomba,kode_lomba,` +
     `rentang_mentah_min,rentang_mentah_maks,sort_order` +
     `&order=sort_order.asc`);
 }
@@ -569,7 +569,7 @@ export async function komponenSemua(edisi) {
   return baca(null,
     `wahana?edisi=eq.${encodeURIComponent(edisi)}` +
     `&select=pos,kode,name,type,form,poin_maks,satuan,total_soal,` +
-    `golongan,petunjuk,judul_isian,lomba,` +
+    `golongan,petunjuk,judul_isian,lomba,kode_lomba,` +
     `rentang_mentah_min,rentang_mentah_maks,sort_order` +
     `&order=pos.asc,sort_order.asc`);
 }

@@ -163,7 +163,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     # lembar bukan tiga — persis yang dilarang CLAUDE.md 11.6.
                     # Setiap uji lokal atas pengelompokan lomba menguji dunia
                     # yang salah, dan hasilnya terlihat masuk akal.
-                    "       lomba, "
+                    "       lomba, kode_lomba, "
                     "       rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() and pos = %s "
@@ -174,7 +174,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 # Rekapitulasi (#/rekap).
                 self._kirim(200, q(
                     "select pos, kode, name, type, form, poin_maks, satuan, "
-                    "       golongan, petunjuk, judul_isian, lomba, "
+                    "       golongan, petunjuk, judul_isian, lomba, kode_lomba, "
                     "       total_soal, rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() "
