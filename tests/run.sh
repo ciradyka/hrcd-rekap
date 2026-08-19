@@ -290,5 +290,12 @@ run tests/sql/40_peran_mengisi_ulang_centang.sql
 # dan `_` tetap membedakan dua orang.
 run supabase/migrations/0078_kunci_akun.sql
 run tests/sql/41_kunci_akun.sql
+# 0079 membekukan kunci lomba yang dipakai foto. Sebelumnya kunci itu
+# DITURUNKAN dari nama tiap kali dibaca, jadi mengganti nama lomba memutus
+# seluruh foto yang sudah diunggah untuknya — tanpa galat dan tanpa satu pun
+# layar merah. Tes 42 menjaga yang tidak bersuara itu: namanya diganti, dan
+# kuncinya harus DIAM.
+run supabase/migrations/0079_kode_lomba_stabil.sql
+run tests/sql/42_kode_lomba_stabil.sql
 
 echo "SEMUA TES LULUS"

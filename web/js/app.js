@@ -2352,9 +2352,15 @@ function kolomPos(komponen) {
 function kelompokLomba(kolom) {
   const urut = [], peta = new Map();
   for (const kol of kolom) {
-    const nama = kol.varian[0].lomba || kol.nama;
+    const k = kol.varian[0];
+    const nama = k.lomba || kol.nama;
     if (!peta.has(nama)) {
-      peta.set(nama, { nama, kolom: [] });
+      // `kode` adalah kunci TETAP lomba ini (0079), dan ia dibaca dari
+      // database — bukan diturunkan dari namanya. Foto slip disimpan dengan
+      // kunci itu, jadi menurunkannya dari nama berarti mengganti nama lomba
+      // menghilangkan seluruh fotonya tanpa satu pun galat. Cadangan slug
+      // dipakai hanya untuk baris yang kolomnya belum terisi.
+      peta.set(nama, { nama, kode: k.kode_lomba || slugLomba(nama), kolom: [] });
       urut.push(peta.get(nama));
     }
     peta.get(nama).kolom.push(kol);
@@ -3152,7 +3158,7 @@ async function layarInputPos() {
        memakai slug PENILAIAN, foto yang diunggah borongan tidak akan pernah
        muncul di sini — dan justru dialog inilah yang dipakai memeriksa hasil
        penautan. */
-    const lomba = kelompokLomba(kolom).map(l => [slugLomba(l.nama), l.nama]);
+    const lomba = kelompokLomba(kolom).map(l => [l.kode, l.nama]);
 
     /* Template BIASA, bukan tag html`` — sama alasannya dengan notif(): tag
        html`` meng-escape SETIAP sisipan, dan ikon("camera") adalah HTML yang
