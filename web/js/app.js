@@ -3284,6 +3284,7 @@ async function layarInputPos() {
 
     if (gagal || putus) {
       pita.className = "pos-simpan bahaya";
+      pita.removeAttribute("title");
       pita.textContent = putus
         ? `Internet putus — ${belum + gagal} baris belum tersimpan. Jangan tutup halaman ini. ${cap}.`
         // Kedua-duanya disebut. Pita yang hanya menghitung baris GAGAL sempat
@@ -3294,17 +3295,36 @@ async function layarInputPos() {
       if (gagal) jadwalkanUlang();
       return;
     }
-    if (sibuk)  { pita.className = "pos-simpan menunggu"; pita.textContent = `Menyimpan… ${cap}`; return; }
-    if (belum)  { pita.className = "pos-simpan menunggu"; pita.textContent = `${belum} baris belum tersimpan. ${cap}`; return; }
-    /* Keadaan AMAN diringkas jadi ikon + jam. Yang tiga di atas tetap
-       panjang, dan itu bukan ketidakkonsistenan: masing-masing menuntut
-       tindakan dan menyebut berapa baris yang bisa hilang (bagian 9.4).
-       Keadaan aman tidak menuntut apa pun — satu-satunya fakta yang tidak
-       bisa dibaca dari layar adalah KAPAN, dan itulah yang tersisa.
+    /* MENUNGGU diringkas seperti AMAN — ikon + jam, cuma warnanya kuning.
+       Bentuknya sengaja SAMA PERSIS supaya lebarnya tidak bergerak: pitanya
+       duduk di `.baris-pos` yang membungkus, jadi kalimat "1 baris belum
+       tersimpan. Sinkronisasi Terakhir: 23:38 (barusan)" melebarkannya sampai
+       tombol di sebelahnya terlempar ke baris berikutnya — dan seluruh tabel
+       ikut turun, tepat saat petugas sedang mengetik di dalamnya. Layar yang
+       bergeser sendiri di bawah jari lebih mahal daripada kalimat yang
+       dijelaskannya.
+
+       Kalimatnya tidak hilang tanpa ganti: baris yang bersangkutan SUDAH
+       menyandang penanda "belum" di kolom statusnya sendiri, jadi jumlahnya
+       terbaca dari tabel — pita ini cuma mengulanginya (bagian 9.3).
+
+       MERAH TETAP PANJANG, dan itu bukan ketidakkonsistenan. Hanya ia yang
+       berarti "ada nilai yang bisa hilang": ia menuntut tindakan, menyebut
+       berapa baris yang terancam, dan melarang menutup halaman (bagian 9.4).
+       Pergeseran layar sepadan untuk yang satu itu. */
+    if (sibuk || belum) {
+      pita.className = "pos-simpan menunggu ringkas";
+      pita.title = sibuk ? `Menyimpan… ${cap}` : `${belum} baris belum tersimpan. ${cap}`;
+      pita.innerHTML = `${ikon("circle-alert")}<span>${esc(jamMenit(jamSinkron))}</span>`;
+      return;
+    }
+    /* Keadaan AMAN: ikon + jam. Ia tidak menuntut apa pun — satu-satunya fakta
+       yang tidak bisa dibaca dari layar adalah KAPAN, dan itulah yang tersisa.
 
        "Data Tersimpan" mengulang apa yang sudah dikatakan warna hijau dan
        centangnya, dan pita ini dibaca ratusan kali per shift (bagian 9.1). */
-    pita.className = "pos-simpan aman";
+    pita.className = "pos-simpan aman ringkas";
+    pita.title = cap;
     pita.innerHTML = `${ikon("circle-check-big")}<span>${esc(jamMenit(jamSinkron))}</span>`;
   }
 
