@@ -889,6 +889,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .print-table th .kolom-petunjuk {
     display: block; max-width: none; font-size: 7pt; font-weight: 400;
     text-transform: none; margin-top: 1pt;
+    /* Di layar petunjuk sengaja tidak dipatahkan, di kertas ia BOLEH:
+       lebar kolom di sini dibagi habis oleh lebar kertas, dan satu keterangan
+       yang menolak membungkus akan mendorong kolom sebelahnya keluar halaman. */
+    white-space: normal;
   }
   /* ---- Form tabel per pos: A4 MELINTANG, NAMA UTUH, BARIS RATA ----
      Tiga hal yang harus benar bersamaan, dan dua di antaranya sempat saling
@@ -1670,7 +1674,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Nama lomba yang mengalah, bukan barisnya yang patah. Menaksir bisa bernilai
    empat digit, dan sebelumnya angka selebar itu mendorong kolom "oleh" turun ke
    baris kedua — hanya untuk sebagian baris, sehingga daftarnya jadi bergerigi
-   dan justru lebih sulit disapu mata daripada nama yang terpotong. */
+   dan justru lebih sulit disapu mata daripada nama yang terpotong.
+
+ */
 .r-lomba {
   font-weight: 600; flex: 1 1 6rem; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -2399,7 +2405,13 @@ input.small-input { text-align: center; }
 .table-pos th, .table-pos td { padding: .4rem .45rem; }
 /* Isi sel tidak membungkus; JUDUL kolom justru harus. */
 .table-pos td { white-space: nowrap; }
-.table-pos thead th { white-space: normal; }
+/* RATA BAWAH, dan itu yang membuat rentang nilainya sejajar. Judul kolom
+   panjangnya tidak sama — "Tebak Simpul" memakan dua baris sementara
+   "Menaksir" satu — jadi dengan rata tengah (bawaan th) rentang di bawahnya
+   berhenti di ketinggian yang berbeda-beda dan barisnya terlihat bergerigi.
+   Rata bawah menyamakan baris TERAKHIR tiap sel, dan baris terakhir itu
+   memang selalu rentangnya. */
+.table-pos thead th { white-space: normal; vertical-align: bottom; }
 /* Nama regu dan organisasi TIDAK membungkus. Sempat boleh, dan begitu kolom
    terakhir jadi serakah merekalah yang membayar: keduanya menyusut sampai
    batas bawahnya dan "KALAKI RACING" pecah jadi dua baris, sementara 695px
@@ -2430,9 +2442,18 @@ input.small-input { text-align: center; }
 
 /* Rentang yang boleh diketik, di bawah nama kolomnya — sama seperti "(0 - 20)"
    yang tercetak di judul kolom lembar kertas. */
+/* Petunjuk TIDAK dipatahkan di tengah. "(selisih meter)" terbaca sebagai satu
+   keterangan, dan memecahnya jadi "(selisih" + "meter)" membuat baris keduanya
+   terbaca seperti kolom lain. Rentang seperti "0 - 10 / 0 - 5" juga: yang
+   dipisah garis miring itu dua golongan, bukan dua baris.
+
+   Aman dipakai di sini karena .table-pos memakai `table-layout: auto` — kolomnya
+   melebar mengikuti isi, bukan dipatok persen (CLAUDE.md 15.3). Di cetakan
+   aturannya dikembalikan normal; lebar kertas tidak bisa melar. */
 .kolom-petunjuk {
   display: block; font-weight: 500; font-size: .72rem;
   color: var(--tinta-lembut); text-transform: none; letter-spacing: 0;
+  white-space: nowrap;
 }
 
 /* Nomor dada dipatok di tepi kiri. z-index 2 supaya ia lewat DI ATAS sel
