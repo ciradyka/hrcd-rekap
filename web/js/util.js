@@ -245,15 +245,24 @@ export function detikSah(teks) {
   return Number(a) * 60 + d;
 }
 
-/** Kebalikan detikSah: bentuk yang akan diketik petugas untuk waktu ini.
- *  Di bawah semenit ditulis polos ("32"), semenit ke atas pakai titik dua
- *  ("1:10") — supaya angka yang tergambar ulang ke kotak persis angka yang
- *  tadi diketik, dan menyimpan ulang baris tidak pernah mengubah apa pun. */
+/** Kebalikan detikSah: SELALU menit:detik berpadding — 50 jadi "00:50", 80
+ *  jadi "01:20". Yang diketik boleh bentuk apa saja yang diterima detikSah
+ *  ("50", "1:20", "01:20"); yang TERGAMBAR selalu satu bentuk.
+ *
+ *  Dulu di bawah semenit ditulis polos ("32") dan semenit ke atas pakai titik
+ *  dua ("1:10"), supaya teksnya persis seperti yang tadi diketik. Harganya:
+ *  satu kolom waktu memuat "44" dan "1:03" bersebelahan, dan dua bentuk untuk
+ *  satu besaran membuat mata harus menerjemahkan tiap baris sebelum bisa
+ *  membandingkannya — padahal membandingkan waktu antar regu justru satu-
+ *  satunya alasan kolom itu dibaca berurutan.
+ *
+ *  Angka yang tersimpan TIDAK berubah: yang masuk database tetap detik bulat,
+ *  dan ini cuma cara menuliskannya kembali. */
 export function detikTeks(total) {
   if (total === null || total === undefined || total === "") return "";
   const d = Math.round(Number(total));
   if (!Number.isFinite(d)) return "";
-  return d < 60 ? String(d) : `${Math.floor(d / 60)}:${dua(d % 60)}`;
+  return `${dua(Math.floor(d / 60))}:${dua(d % 60)}`;
 }
 
 /** Kotak jam 24 orang-ketik. Dipasang di setiap `<input>` yang menerima jam:
