@@ -304,35 +304,64 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    tempat yang berbeda**:
    - **Wahana** — tantangan fisik seperti merangkak, berlari, atau memanjat,
      berbeda-beda tergantung pos. Dikerjakan **dan** dinilai di pos itu juga.
-   - **Soal kertas** — dibagikan di **pos sebelumnya**, dikerjakan regu sambil
-     berjalan, lalu dikumpulkan dan dinilai di pos ini.
-4. Soal karena itu berjalan **satu pos ke depan**, seperti estafet:
+   - **Soal kertas** — diambil regu di **pos bayangan tepat sebelum pos ini**,
+     dikerjakan sambil berjalan, lalu diserahkan dan dinilai di pos ini.
+4. Soal karena itu **berpindah satu langkah**, dan yang membagikannya adalah
+   pos bayangan, bukan pos utama sebelumnya:
 
-   | Soal dibagikan di | Dikerjakan | Dikumpulkan & dinilai di | Masuk nilai |
+   | Soal diambil di | Dikerjakan | Diserahkan & dinilai di | Masuk nilai |
    | --- | --- | --- | --- |
-   | Pos 1 | perjalanan Pos 1 → Pos 2 | Pos 2 | **Pos 2** |
-   | Pos 2 | perjalanan Pos 2 → Pos 3 | Pos 3 | **Pos 3** |
-   | Pos 3 | perjalanan Pos 3 → Pos 4 | Pos 4 | **Pos 4** |
+   | Pos Bayangan 1 | perjalanan menuju Pos 1 | Pos 1 | **Pos 1** |
+   | Pos Bayangan 2 — di ujung Pos 1 | perjalanan Pos 1 → Pos 2 | Pos 2 | **Pos 2** |
 
-   **Tidak ada soal terakhir.** Rantainya berhenti di Pos 4: Pos 4 tidak
-   membagikan soal, karena sesudahnya regu langsung menuju garis finish dan
-   di sana tidak ada yang mengoreksi.
+   Polanya: **Pos Bayangan N berdiri tepat sebelum Pos N**, dan karena "tepat
+   sebelum Pos N" secara fisik berarti "di ujung Pos N−1", regu mengambil
+   kertas soal berikutnya sesaat setelah selesai di pos yang baru saja
+   dilaluinya. Dua baris di atas yang sudah dipastikan panitia; pos bayangan
+   selanjutnya mengikuti bentuk yang sama sejauh edisinya memakainya.
+
+   > **Diperbarui 19 Agustus 2026.** Sampai hari ini bagian ini menulis soal
+   > "dibagikan di pos sebelumnya" dengan tabel estafet Pos 1→2, 2→3, 3→4, dan
+   > rumus yang menyatakan **Pos 1 tidak menerima soal sama sekali**. Yang
+   > membagikan soal ternyata pos bayangan, dan pos bayangan pertama berdiri
+   > sebelum Pos 1 — jadi Pos 1 justru pos yang paling awal menerima soal.
+   >
+   > Database sudah lebih dulu benar dan dokumen ini yang tertinggal: migrasi
+   > `0076` memasang **Keagamaan** dan **Kepramukaan** sebagai komponen
+   > **Pos 1**, bukan Pos 2. Selama dokumen ini masih berbunyi "Nilai Pos 1 =
+   > Wahana Pos 1 (tidak ada soal masuk)", siapa pun yang mencocokkan keduanya
+   > akan menyimpulkan migrasinya yang salah pos.
+   >
+   > **Dua tempat masih menyimpan model lama, dan keduanya sengaja dibiarkan.**
+   > Komentar di migrasi `0024` ("soalnya dibagikan di Pos 1 dan dikoreksi di
+   > sini") dan `0025` menulis rantai estafet yang lama — migrasi yang sudah
+   > diterapkan tidak pernah diedit (`final-architecture.md` bagian 2), jadi
+   > keduanya dibaca sebagai catatan sejarah, bukan sebagai aturan yang
+   > berlaku. Yang **belum** dibetulkan dan memang perlu digambar ulang adalah
+   > `docs/arsitektur-hrcd.svg` beserta pasangan `.png`-nya: di sana masih
+   > tertulis "soal berjalan satu pos ke depan" dengan empat kotak "Soal dari
+   > Pos N". Bagian ini yang berlaku kalau keduanya berbeda.
 
 5. Rumusnya karena itu:
 
    ```
-   Nilai Pos 1 = Wahana Pos 1                       (tidak ada soal masuk)
-   Nilai Pos N = Wahana Pos N + Soal dari Pos N−1   (N = 2..4)
+   Nilai Pos N = lomba yang dikerjakan DI Pos N
+               + soal yang DISERAHKAN di Pos N
    ```
 
-6. **Skor soal masuk ke pos tempat soal itu dikumpulkan, bukan tempat soal itu
-   dibagikan.** Soal yang dibagikan di Pos 1 menambah nilai **Pos 2**. Panah
-   antar pos hanyalah perpindahan kertas soal — bukan perpindahan nilai.
-7. Konsekuensinya untuk operator: operator Pos 2 memasukkan **dua** hal — hasil
-   wahana Pos 2 dan hasil koreksi soal yang dibagikan di Pos 1. Keduanya
-   tercatat sebagai nilai Pos 2, sehingga pembatasan "satu operator hanya boleh
-   satu pos" tetap utuh. Di layar, kolomnya wajib diberi label **"Soal dari
-   Pos 1"** supaya operator tidak mengira sedang menyentuh milik pos lain.
+   Pos 1 edisi XXXVII, sebagai contoh lengkap: Semaphore + Tebak Simpul +
+   Menaksir (dikerjakan di pos) + Keagamaan + Kepramukaan (soal yang dibawa
+   masuk).
+
+6. **Skor soal masuk ke pos tempat soal itu DISERAHKAN, bukan tempat ia
+   diambil.** Kertas yang diambil di Pos Bayangan 2 menambah nilai **Pos 2**.
+   Perpindahan antar pos hanyalah perpindahan kertas — bukan perpindahan
+   nilai.
+7. Konsekuensinya untuk operator: operator satu pos memasukkan **dua jenis**
+   angka — hasil lomba yang dikerjakan di posnya, dan hasil koreksi soal yang
+   dibawa masuk regu. Keduanya tercatat sebagai nilai pos itu juga, sehingga
+   pembatasan "satu operator hanya boleh satu pos" tetap utuh: tidak ada
+   angka yang harus diserahkan ke operator pos lain.
 8. Setiap pos dijaga **minimal 5 orang tim lapangan** dan **2 operator IT**
    dengan laptop.
 9. Setiap pos dipastikan memiliki **sinyal, internet, dan sumber pengisian
@@ -349,6 +378,69 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
     - **Beberapa wahana paralel** dalam satu pos.
 13. Penentuan skema wahana tiap pos adalah **analisis tersendiri** dan belum
     dilakukan. Lihat bagian 13.
+
+### Alur peserta di satu pos
+
+Bagian ini menelusuri satu regu sejak ia mengambil kertas soal sampai ia keluar
+dari pos, beserta apa yang dikerjakan panitia pada saat yang sama. Contohnya
+Pos 1 edisi XXXVII; pos lain berbentuk sama dan yang berganti hanya nama
+lombanya.
+
+**Jalur peserta.**
+
+```
+Pos Bayangan 1   ambil kertas soal Kepramukaan + Keagamaan
+      |          dikerjakan sambil berjalan
+      v
+Pos 1            serahkan kedua kertas soal ke panitia
+      |          lalu MENYEBAR ke tiga lomba yang berjalan serentak:
+      |          Semaphore  .  Tebak Simpul  .  Menaksir
+      v
+Pos Bayangan 2   ambil kertas soal untuk Pos 2      (di ujung Pos 1)
+      |          dikerjakan sambil berjalan
+      v
+Pos 2            dan seterusnya
+```
+
+**Jalur panitia — dua jalur yang berjalan bersamaan di pos yang sama.**
+
+```
+Jalur soal     terima kertas soal dari regu
+               -> dikumpulkan dulu
+               -> dinilai
+               -> difoto + diinput ke sistem
+
+Jalur lomba    tiap lomba punya jurinya sendiri
+               -> nilai ditulis di kertas lomba
+               -> kertas masuk kotak penilaian
+               -> difoto + diinput ke sistem
+```
+
+1. **Regu menyebar, tidak mengantre satu per satu.** Begitu kertas soal
+   diserahkan, satu regu langsung terbagi ke tiga lomba yang berjalan di titik
+   berbeda. Itulah sebabnya kertas penilaian dibuat **per lomba per regu** dan
+   bukan satu lembar berisi banyak regu — tiga juri tidak bisa berebut satu
+   kertas yang sama. Alasan lengkapnya di bagian 8.3.
+2. **Soal dikumpulkan dulu, baru dinilai.** Kertas soal tidak dikoreksi satu
+   per satu saat regunya berdiri di depan meja; ia ditumpuk lebih dulu lalu
+   dinilai berkelompok. Akibat yang perlu diketahui panitia: **nilai satu regu
+   di satu pos terisi dalam dua gelombang** — angka lomba lebih dulu, angka
+   soal menyusul. Layar kelengkapan pos karena itu wajar terlihat belum penuh
+   padahal regunya sudah lama berjalan, dan itu bukan tanda ada yang
+   terlewat.
+3. **Dua jalur itu bertemu lagi di meja IT.** Keduanya berakhir dengan langkah
+   yang sama persis — difoto lalu diinput — dan fotonya diambil **di meja saat
+   nilainya diketik**, bukan diborong di pos, supaya gambarnya tertaut sendiri
+   ke nomor dada dan lomba yang tepat. Alasannya di bagian 8.5.
+4. **Pos bayangan tidak menahan regu.** Yang terjadi di sana cuma pengambilan
+   kertas; regu tidak dinilai wahana apa pun dan langsung melanjutkan
+   perjalanan. Penilaian yang melekat pada pos bayangan — kostum, kekompakan,
+   kesopanan — berjalan dengan mengamati regu yang lewat, bukan dengan
+   menghentikannya (butir 2 di atas).
+5. **Yang dibawa regu keluar dari Pos 1 adalah kertas soal Pos 2.** Regu yang
+   berjalan tanpa kertas soal berarti ada yang terlewat di Pos Bayangan 2, dan
+   itu baru ketahuan di pos berikutnya ketika ia tidak punya apa-apa untuk
+   diserahkan.
 
 ## 8. Pencatatan dan input nilai
 
