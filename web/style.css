@@ -574,7 +574,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   background: var(--utama-muda); color: var(--utama);
 }
 .notif-ikon .ikon { width: 1.15rem; height: 1.15rem; }
-.notif-teks { flex: 1 1 auto; min-width: 0; }
+/* `pre-line` supaya "
+" di dalam pesan benar-benar mematahkan baris.
+   Notifikasi galat lembar pos berbunyi dua kalimat — "Nomor Dada 007." lalu
+   "Input Semaphore harus antara 0 - 5." — dan keduanya menjawab pertanyaan
+   yang berbeda: baris MANA, dan kotak mana di baris itu. Digandeng jadi satu
+   kalimat panjang, yang kedua terbaca sebagai anak kalimat yang pertama dan
+   nomor dadanya justru yang paling sering terlewat. Spasi berlebih tetap
+   diringkas (`pre-line`, bukan `pre`), jadi lekukan di dalam template
+   literal tidak ikut tercetak. */
+.notif-teks { flex: 1 1 auto; min-width: 0; white-space: pre-line; }
 .notification.error { border-color: #f3c6c6; }
 .notification.error .notif-ikon { background: var(--bahaya-muda); color: var(--bahaya); }
 /* Memudar sebelum dibuang (lihat notif() di util.js). Transisinya dipatok di
@@ -1667,8 +1676,29 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   color: var(--tinta-lembut); cursor: not-allowed;
 }
 
-.saring-riwayat { margin-bottom: .6rem; flex-wrap: wrap; gap: .35rem; }
-.riwayat { list-style: none; margin: 0; padding: 0; }
+/* CHIP PENYARING MENGALIR, dan `display: flex` di sini BUKAN hiasan.
+   `.option-row` adalah grid dua kolom yang di bawah 560px jatuh jadi SATU
+   kolom — patokan yang benar untuk pasangan tombol Batal/Simpan, dan salah
+   untuk enam chip kecil: keenamnya jadi selebar layar dan mendorong daftar
+   riwayatnya keluar layar sebelum satu baris pun terbaca. `flex-wrap: wrap`
+   sudah tertulis di sini sejak awal, tapi tidak pernah berlaku sedetik pun —
+   ia sifat flexbox yang dipasang pada elemen grid (CLAUDE.md 15.9). */
+.saring-riwayat {
+  display: flex; flex-wrap: wrap; gap: .35rem;
+  margin-bottom: .6rem;
+}
+/* TINGGINYA TETAP, dan itulah seluruh gunanya. Menyaring "Semua" (16 baris)
+   jadi "Kepramukaan" (1 baris) dulu memendekkan kartunya, dan kartu yang
+   dipusatkan tegak lurus akan BERGESER setengah selisihnya — judul dan chip
+   penyaringnya pindah tempat tepat pada saat orang hendak menekan chip
+   berikutnya. Yang berubah sekarang cuma isi kotak ini; yang di atasnya diam.
+
+   Mendatarnya ikut bergulir supaya nama petugas dan JAM-nya bisa dibaca utuh
+   di layar sempit — lihat .r-oleh di bawah. */
+.riwayat {
+  list-style: none; margin: 0; padding: 0;
+  height: min(24rem, 45vh); overflow: auto;
+}
 /* SATU BARIS, SELALU. `flex-wrap: wrap` dulu menurunkan kolom "oleh" ke baris
    kedua begitu isinya tidak muat — dan di dialog ini itu terjadi pada SETIAP
    baris, bukan sesekali. Kartunya `max-width: 480px` dengan padding 1.3rem,
@@ -1686,6 +1716,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .riwayat li {
   display: flex; flex-wrap: nowrap; align-items: baseline; gap: .2rem .5rem;
   padding: .5rem 0; border-bottom: 1px solid var(--garis);
+  /* `max-content` supaya baris yang tidak muat MELEBAR keluar kotaknya, bukan
+     memampatkan isinya — itu yang membuat kotaknya bisa digulir mendatar. Di
+     layar lebar isinya lebih sempit dari 100%, jadi barisnya tetap selebar
+     kartu dan garis bawahnya tetap penuh. */
+  min-width: max-content;
 }
 .riwayat li:last-child { border-bottom: 0; }
 /* Nama lomba yang mengalah, bukan barisnya yang patah. Menaksir bisa bernilai
@@ -1715,13 +1750,32 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 /* Angka tidak pernah menyusut: "1250 → 0" yang terpotong jadi "1250 → " adalah
    riwayat yang berbohong, bukan riwayat yang rapi. */
+/* LEBARNYA DIPATOK, sekarang wajib. Sebelumnya kolom "oleh" didorong ke
+   kanan oleh `margin-left: auto`, jadi ia rata kanan dan awalnya boleh
+   berbeda-beda. Di kotak yang bergulir mendatar tidak ada lagi sisa ruang
+   untuk didorong: "oleh" mulai persis sesudah angkanya, dan angka selebar
+   "1250 → 1250" akan mendorong nama petugas jauh ke kanan sementara "1 → 0"
+   tidak — satu daftar dengan dua titik mulai yang berbeda jauh lebih sulit
+   disapu mata daripada satu yang lurus. Diukur di browser: "1250 → 1250" pada
+   angka tabular 1rem selebar 92px, jadi 6.5rem (104px) memuatnya.
+
+   `min-width`, BUKAN lebar mati. Angka yang lebih lebar dari patokannya akan
+   MELUAP menembus nama petugas di sebelahnya kalau kotaknya dipatok mati —
+   dua tulisan bertumpuk, dan yang di bawah tidak terbaca sama sekali. Dengan
+   min-width ia mendorong, bukan menembus: satu baris jadi tidak selurus yang
+   lain, dan itu harga yang jauh lebih murah. */
 .r-nilai {
-  flex: 0 0 auto;
+  flex: 0 0 auto; min-width: 6.5rem;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+/* TIDAK LAGI DIPOTONG. Elipsis di sini memakan JAM-nya — ujung kanan tulisan
+   "admin.ciradyka · 19 Agustus 2026 23:48" — dan jam itulah yang dicari orang
+   yang membuka riwayat: bukan "siapa yang mengubah", melainkan "kapan". Di
+   layar sempit barisnya sekarang melebar keluar kotaknya dan seluruh daftar
+   digeser mendatar SEKALIGUS, jadi satu geseran membuka jam SEMUA baris —
+   kolomnya tetap lurus karena ketiga lebarnya sudah dipatok di atas. */
 .r-oleh  {
-  flex: 0 1 auto; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis;
+  flex: 0 0 auto;
   color: var(--tinta-lembut); font-size: .78rem;
   white-space: nowrap; margin-left: auto;
 }

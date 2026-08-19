@@ -29,7 +29,7 @@ import {
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
   hapusFotoLembar,
 } from "./api.js";
-import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
+import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
@@ -3268,6 +3268,7 @@ async function layarInputPos() {
           silangSaja: true,
           pasang: (el, tutup) => {
             const ul = el.querySelector(".foto-galeri");
+            const judulEl = el.querySelector("h2");
             ul.addEventListener("click", async (ev) => {
               const x = ev.target.closest("[data-hapus]");
               if (!x) return;
@@ -3310,6 +3311,13 @@ async function layarInputPos() {
               }
 
               petakLi.remove();
+              /* Judulnya ikut turun. "9 foto" yang bertahan di atas galeri
+                 berisi lima petak terbaca sebagai empat petak yang gagal
+                 digambar — dan orang yang baru saja menghapus bukti akan
+                 menghapus lagi untuk mengejar angka yang tidak akan bergerak. */
+              if (judulEl) {
+                judulEl.textContent = `${namaLomba} · ${ul.children.length} foto`;
+              }
               notif("Foto dihapus.");
               if (!ul.children.length) tutup(null);
             });
@@ -3365,6 +3373,20 @@ async function layarInputPos() {
 
     await janji;
   }
+
+  /** "Nomor Dada 007." lalu pesannya, DUA BARIS.
+   *
+   *  Notifikasi ini muncul di bawah layar, terlepas dari baris yang gagal —
+   *  angka telanjang di depan kalimat tidak memberi tahu angka APA, dan di
+   *  lembar yang penuh angka itu justru yang paling perlu disebut namanya.
+   *
+   *  Dipatahkan, bukan digandeng dengan titik dua. Keduanya menjawab
+   *  pertanyaan yang berbeda — baris MANA, lalu kotak mana di baris itu — dan
+   *  sebagai satu kalimat panjang bagian pertamanya terbaca seperti awalan
+   *  yang boleh dilewati. Yang mematahkannya `white-space: pre-line` di
+   *  .notif-teks; tanpa aturan itu ganti barisnya cuma jadi spasi.  */
+  const pesanBaris = (dada, pesan) =>
+    `Nomor Dada ${dada3(dada)}.\n${kapital(pesan)}`;
 
   /* ---------- pita keadaan + kirim ulang sendiri ----------
 
@@ -3535,7 +3557,7 @@ async function layarInputPos() {
 
     if (pesanTakTerbaca && !baris.length && !dihapus.length) {
       statusBaris(tr, "gagal", pesanTakTerbaca);
-      notif(`Nomor Dada ${dada3(dada)}: ${pesanTakTerbaca}`, true);
+      notif(pesanBaris(dada, pesanTakTerbaca), true);
       return;
     }
 
@@ -3572,18 +3594,14 @@ async function layarInputPos() {
       jamSinkron = new Date();
       if (pesanTakTerbaca) {
         statusBaris(tr, "gagal", pesanTakTerbaca);
-        notif(`Nomor Dada ${dada3(dada)}: ${pesanTakTerbaca}`, true);
+        notif(pesanBaris(dada, pesanTakTerbaca), true);
       } else {
         statusBaris(tr, Number(tr.dataset.terisi) > 0 ? "tersimpan" : "");
       }
       hitungUlangJumlah();
     } catch (err) {
       statusBaris(tr, "gagal", err.message);
-      // "Nomor Dada 005: ...", bukan "005: ...". Notifikasi ini muncul di
-      // bawah layar, terlepas dari baris yang gagal — angka telanjang di
-      // depan kalimat tidak memberi tahu angka APA, dan di lembar yang penuh
-      // angka itu justru yang paling perlu disebut namanya.
-      notif(`Nomor Dada ${dada3(dada)}: ${err.message}`, true);
+      notif(pesanBaris(dada, err.message), true);
     } finally {
       tr.dataset.jalan = "";
       // Ketukan yang menumpuk selagi baris ini sibuk. Dijalankan juga setelah
