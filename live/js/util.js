@@ -832,3 +832,73 @@ export function dada3(n) {
   return Number.isInteger(a) && a >= 0 && a <= 999
     ? String(a).padStart(3, "0") : String(n);
 }
+
+/* ==========================================================================
+   CARA MENULIS SATU KOMPONEN PENILAIAN — SATU SUMBER UNTUK SEMUA LAYAR
+
+   Nama dan rentang sebuah lomba tinggal di baris `wahana`, dan itu sudah
+   benar: mengganti "Semaphore 0 – 5" jadi "Bendera 0 – 10" cukup satu UPDATE.
+   Yang TIDAK ikut satu tempat adalah ATURAN MENULISKANNYA — keterangan apa
+   yang muncul di kepala kolom, dan bagaimana angkanya dieja. Aturan itu
+   pernah ditulis dua kali: sekali di layar panitia, sekali disalin tangan ke
+   halaman peserta. Salinannya menyimpang, dan yang menyimpang tidak
+   menggagalkan apa pun — ia cuma membuat dua papan saling membantah di depan
+   pembina yang sedang membandingkan keduanya.
+
+   Berkas ini disalin byte-identik ke `live/js/util.js` dan ditegakkan
+   `shared-files.yml`, jadi aturan yang tinggal DI SINI tidak bisa menyimpang
+   antar aplikasi tanpa CI menolak.
+
+   Yang boleh masuk ke sini cuma aturan MURNI: hanya bergantung pada baris
+   `wahana` dan angkanya, tidak menyentuh DOM. Markup-nya tetap urusan
+   masing-masing layar — kepala tabel panitia dan kepala tabel peserta memang
+   berbeda bentuk, dan menyatukannya akan memaksa dua layar berbeda kebutuhan
+   memakai satu HTML.
+   ========================================================================== */
+
+/** Angka dari database datang sebagai teks ("6.00"). Yang muncul di layar
+ *  harus persis seperti yang diketik petugas: 6, bukan 6.00. */
+export const angkaRapi = (v) =>
+  v === null || v === undefined || v === "" ? "" : String(Number(v));
+
+/** Keterangan kecil di bawah nama kolom: rentang yang boleh ditulis, atau
+ *  bentuk isiannya kalau rentang saja menyesatkan. */
+export function petunjukKolom(k) {
+  // Keterangan dari konfigurasi selalu menang. Untuk sebagian besar komponen
+  // rentangnya sudah menjelaskan segalanya — "0 – 5 kata benar" tidak butuh
+  // kalimat. Tapi Menaksir menulis SELISIH, bukan nilai, dan rentangnya justru
+  // menyesatkan; kolom `petunjuk` (0037) ada untuk kasus seperti itu.
+  if (k.petunjuk) return k.petunjuk;
+  if (k.form === "biner") return "centang bila benar";
+  // SATU bentuk, dan bentuk itu "menit:detik". Keterangan ini pernah berbunyi
+  // "detik, atau m:dd", lalu dipersempit — bukan karena m:dd buruk, melainkan
+  // karena MENAWARKAN DUA bentuk untuk satu angka pada kertas yang diisi
+  // tergesa di pos adalah cara sebagian petugas menulis 1:45 dan sebagian
+  // menulis 105 untuk waktu yang sama. Keberatan itu tetap dihormati: yang
+  // disebut tetap satu bentuk. detikSah() masih menerima detik polos, jadi
+  // yang mengetik 74 tidak kehilangan apa pun — ia terbaca kembali 01:14.
+  if (k.satuan === "detik") return "menit:detik";
+  if (k.form === "benar_kurang_salah") return "benar / salah";
+  if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
+  return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
+}
+
+/** Angka nilai sebagai TEKS, satu bagian atau dua.
+ *
+ *  Mengembalikan bagian-bagiannya, bukan HTML jadi, dan itu yang membuatnya
+ *  bisa dipakai dua aplikasi: layar panitia menyisipkan pemisah "/" berkelas
+ *  sendiri di antara dua bagian, halaman peserta cukup merangkainya. Yang
+ *  dibagi cuma CARA MENULIS angkanya — 74 detik dieja "01:14" di mana pun.
+ *
+ *  Larik kosong berarti belum dinilai. Bentuk `biner` sengaja TIDAK diurus di
+ *  sini: yang tergambar untuknya centang atau strip, sebuah lambang, bukan
+ *  angka — dan lambang itu beserta label pembaca layarnya milik layar. */
+export function nilaiBagian(w, a, b) {
+  if (a === null || a === undefined) return [];
+  if (w.form === "benar_kurang_salah") {
+    return b === null || b === undefined
+      ? [angkaRapi(a)] : [angkaRapi(a), angkaRapi(b)];
+  }
+  if (w.satuan === "detik") return [detikTeks(a)];
+  return [angkaRapi(a)];
+}
