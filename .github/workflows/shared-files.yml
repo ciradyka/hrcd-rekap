@@ -76,11 +76,13 @@ jobs:
       - name: Setiap fungsi api.js yang dipanggil app.js benar-benar diimpor
         run: python tools/periksa_impor.py
 
-      # URUT_GOLONGAN ada dua kali dengan sengaja — app.js dan live.js
-      # di-deploy sebagai Worker terpisah. Layar Live Score menjanjikan
-      # tampilan yang identik dengan halaman peserta, dan urutan yang
-      # menyimpang membatalkan janji itu tanpa menggagalkan apa pun.
-      - name: Urutan golongan sama di layar panitia dan halaman peserta
+      # Golongan kini tinggal di web/js/util.js — berkas yang sudah dibandingkan
+      # di atas, jadi ia tidak bisa menyimpang antar situs. Yang masih perlu
+      # mesin adalah mencegah salinan BARU lahir: dulu ada TIGA, dan yang
+      # ketiga bernama URUTAN_GOLONGAN sehingga penjaga lamanya — yang mencari
+      # `const URUT_GOLONGAN` — tidak pernah melihatnya. Salinan itu justru
+      # yang dipakai layar Live Score.
+      - name: Golongan hanya didefinisikan di berkas bersama
         run: python tools/periksa_urutan_golongan.py
 
       # sekolah_nama.json dan sekolah_alamat.json dirawat terpisah dan tidak

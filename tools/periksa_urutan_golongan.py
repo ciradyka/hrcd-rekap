@@ -1,69 +1,84 @@
 #!/usr/bin/env python3
-"""Pastikan URUT_GOLONGAN sama persis di layar panitia dan halaman peserta.
+"""Pastikan golongan tidak dituliskan ulang di luar berkas bersama.
 
-KENAPA PERLU DIPERIKSA MESIN
+KENAPA SKRIP INI BERUBAH ARAH
 
-Konstanta ini ada DUA KALI dengan sengaja: `web/js/app.js` melayani situs
-panitia, `live/live.js` melayani situs peserta, dan keduanya di-deploy sebagai
-Worker terpisah tanpa satu pun berkas bersama. Tidak ada cara satu konstanta
-hidup di dua akar tanpa disalin (lihat kepala shared-files.yml) — dan
-`live.js` bukan salah satu berkas yang disalin utuh, karena isinya memang
-berbeda; hanya baris inilah yang harus sama.
+Dulu konstanta ini ada DUA KALI dengan sengaja — `web/js/app.js` untuk situs
+panitia, `live/live.js` untuk situs peserta — dan skrip ini membandingkan
+keduanya. Ternyata salinannya ADA TIGA: `app.js` menulisnya dua kali, sekali
+sebagai `URUT_GOLONGAN` dan sekali lagi sebagai `URUTAN_GOLONGAN` di dekat
+layar Live Score. Skrip lama mencari pola `const URUT_GOLONGAN`, jadi salinan
+ketiga itu tidak pernah ia lihat — dan justru salinan ketiga itulah yang
+dipakai Live Score menggambar tab golongan.
 
-Layar Live Score menjanjikan satu hal: "ini persis yang akan dilihat peserta".
-Kalau urutan golongannya berbeda, janji itu bohong dengan cara yang tidak
-menggagalkan apa pun — tidak ada galat, tidak ada tes merah, cuma admin yang
-menghafal urutan salah lalu membacakan juara dengan urutan itu di depan
-lapangan.
+Sekarang definisinya tinggal di `web/js/util.js`, yang disalin byte-identik ke
+`live/js/util.js` dan sudah dijaga `shared-files.yml`. Perbandingan tidak
+diperlukan lagi: satu berkas, dijaga CI.
 
-Repo ini sudah pernah kehilangan 21 baris karena sepasang berkas yang
-"seharusnya sama" tidak ada yang memeriksanya (CLAUDE.md 7.5). Komentar yang
-menyuruh dua tempat tetap sama bukan penjaga; skrip ini yang jadi penjaganya.
+Yang tersisa dan tetap perlu mesin adalah mencegah salinan BARU lahir. Menulis
+ulang daftar golongan itu murah dan terasa wajar — empat baris, terbaca benar,
+tidak menggagalkan apa pun — dan itu persis bagaimana salinan ketiga dulu
+muncul tanpa ada yang menyadarinya. Komentar yang menyuruh orang mengimpor
+bukan penjaga; skrip ini yang jadi penjaganya.
 """
 
 import pathlib
 import re
 import sys
 
-POLA = re.compile(r"const URUT_GOLONGAN\s*=\s*\[(.*?)\]", re.S)
-BERKAS = ["web/js/app.js", "live/live.js"]
+# Dicari BENTUK PERSISNYA, bukan sekadar kata "golongan", dan itu penting.
+# Pola yang lebih longgar ikut menangkap dua daftar yang memang BOLEH berdiri
+# sendiri karena isinya fakta lain: label pendek untuk kolom cetak sempit
+# ("Pgl Pa"), dan pilihan golongan di formulir pendaftaran yang memakai kata
+# lain beserta keterangannya ("Penegak Putra — SMA / SMK / MA"). Penjaga yang
+# menuduh keduanya akan dimatikan orang, bukan dipatuhi.
+POLA_LABEL = re.compile(r"""["'](?:Penggalang PA|Penegak PA)["']""")
+POLA_URUT = re.compile(
+    r"""\[\s*["']penegak_pa["']\s*,\s*["']penegak_pi["']\s*,"""
+    r"""\s*["']penggalang_pa["']\s*,\s*["']penggalang_pi["']\s*\]""")
+
+# Komentar dibuang lebih dulu. Tanpa ini penjaga menuduh kalimat yang justru
+# MENJELASKAN kenapa label pendek ada — "Penggalang PA 13 huruf jadi Pgl Pa" —
+# dan penjaga yang menuduh komentarnya sendiri akan dimatikan orang.
+TANPA_KOMENTAR = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+
+# util.js memang tempatnya; berkas lain harus mengimpor dari sana.
+SUMBER = "web/js/util.js"
+DIPERIKSA = ["web/js/app.js", "live/live.js", "live/js/daftar.js"]
+
+
+def kode_saja(teks):
+    return TANPA_KOMENTAR.sub("", teks)
+
 
 akar = pathlib.Path(__file__).resolve().parent.parent
-temuan = {}
 gagal = False
 
-for nama in BERKAS:
+sumber = akar / SUMBER
+if not sumber.exists():
+    print(f"GAGAL: {SUMBER} tidak ada.")
+    sys.exit(1)
+
+teks_sumber = kode_saja(sumber.read_text(encoding="utf-8"))
+if not POLA_URUT.search(teks_sumber) or not POLA_LABEL.search(teks_sumber):
+    print(f"GAGAL: {SUMBER} tidak lagi memuat definisi golongan.")
+    print("       Kalau ia sengaja dipindah, perbarui skrip ini bersamanya.")
+    sys.exit(1)
+
+for nama in DIPERIKSA:
     berkas = akar / nama
     if not berkas.exists():
-        print(f"GAGAL: {nama} tidak ada.")
-        gagal = True
         continue
-    cocok = POLA.search(berkas.read_text(encoding="utf-8"))
-    if not cocok:
-        print(f"GAGAL: {nama} tidak memuat `const URUT_GOLONGAN = [...]`.")
-        gagal = True
-        continue
-    temuan[nama] = re.findall(r'"([^"]+)"', cocok.group(1))
+    teks = kode_saja(berkas.read_text(encoding="utf-8"))
+    for pola, apa in ((POLA_LABEL, "label golongan"), (POLA_URUT, "urutan golongan")):
+        if pola.search(teks):
+            print(f"GAGAL: {nama} menuliskan {apa} sendiri.")
+            print(f"       Impor dari {SUMBER} — di sana ia dijaga")
+            print("       shared-files.yml, dan salinan yang menyimpang tidak")
+            print("       menggagalkan apa pun sampai ada yang membandingkannya.")
+            gagal = True
 
 if gagal:
     sys.exit(1)
 
-urutan = list(temuan.values())
-if urutan[0] != urutan[1]:
-    print("GAGAL: urutan golongan berbeda antara kedua berkas.")
-    for nama, isi in temuan.items():
-        print(f"  {nama:<16} {isi}")
-    print("\nSamakan keduanya — layar Live Score menjanjikan tampilan yang")
-    print("identik dengan halaman peserta.")
-    sys.exit(1)
-
-# Keempatnya harus ada. Daftar yang kebetulan sama tapi kehilangan satu
-# golongan lolos perbandingan di atas, dan golongan yang hilang tidak pernah
-# digambar sama sekali.
-WAJIB = {"penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"}
-kurang = WAJIB - set(urutan[0])
-if kurang:
-    print(f"GAGAL: golongan hilang dari URUT_GOLONGAN: {sorted(kurang)}")
-    sys.exit(1)
-
-print(f"Urutan golongan sama di kedua berkas: {urutan[0]}")
+print(f"OK — golongan hanya didefinisikan di {SUMBER}.")
