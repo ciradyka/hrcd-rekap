@@ -1676,9 +1676,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    baris kedua — hanya untuk sebagian baris, sehingga daftarnya jadi bergerigi
    dan justru lebih sulit disapu mata daripada nama yang terpotong.
 
- */
+   LEBARNYA DIPATOK, TIDAK IKUT MELAR (`flex-grow: 0`). Tiap baris adalah wadah
+   flex-nya SENDIRI, jadi selama nama lomba boleh melar ia menyerap sisa ruang
+   sebanyak yang tersisa di baris itu — dan sisa ruang tiap baris berbeda,
+   karena panjang "oleh" dan panjang angkanya berbeda. Akibatnya "2 -> 5" dan
+   "— -> 10" mulai di titik yang tidak sama dan panahnya berantakan menurun.
+   Dengan lebar dipatok, kolom nilainya mulai di tempat yang sama di semua
+   baris; sisa ruangnya jatuh ke `margin-left: auto` milik "oleh", yang memang
+   dimaksudkan menempel ke kanan. */
 .r-lomba {
-  font-weight: 600; flex: 1 1 6rem; min-width: 0;
+  font-weight: 600; flex: 0 1 8.5rem; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .r-nilai { font-variant-numeric: tabular-nums; white-space: nowrap; }
