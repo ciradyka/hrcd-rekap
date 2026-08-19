@@ -1471,7 +1471,7 @@ async function layarKeberangkatan() {
           <h2>Kloter ${kloterAktif}</h2>
           ${sudahBerangkat
             ? html`<span class="badge badge-green">BERANGKAT ${jamMenit(info.jam_berangkat)}</span>
-                   <button class="icon-button icon-button-inline" id="koreksi-jam" type="button"
+                   <button class="icon-button icon-button-inline ikon-pensil" id="koreksi-jam" type="button"
                            title="Betulkan jam berangkat"
                            aria-label="Betulkan jam berangkat Kloter ${kloterAktif}">&#9998;</button>`
             : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}

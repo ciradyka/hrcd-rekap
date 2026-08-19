@@ -1966,7 +1966,21 @@ input.small-input { text-align: center; }
 .kloter-chip[aria-pressed="true"] { border-color: var(--utama); background: var(--utama-muda); }
 .kloter-chip.berangkat .chip-nomor { color: var(--hijau); }
 .kloter-chip.siap { border-color: var(--kuning); }
+/* `align-items: center` saja belum menengahkan apa pun di sini, dan itu bukan
+   karena flexbox-nya. Yang ditengahkan flexbox adalah KOTAK MARGIN, sedangkan
+   `.card h2` membawa `margin-bottom: .5rem` — jadi kotak judulnya setengah rem
+   lebih tinggi di bawah, dan tulisannya duduk seperempat rem DI ATAS titik
+   tengah pil "BERANGKAT" di sebelahnya. Marginnya dinolkan di sini saja; jarak
+   ke tabel di bawahnya sudah diurus `margin-top` milik pembungkus tabelnya. */
 .kloter-header { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.kloter-header h2 { margin-bottom: 0; }
+
+/* Pensilnya dicerminkan mendatar supaya ujungnya menghadap KIRI BAWAH.
+   Lambangnya U+270E "lower right pencil" — ujungnya menunjuk kanan bawah, dan
+   di sebelah kanan pil jam ia jadi menunjuk menjauh dari angka yang justru
+   diubahnya. `scaleX(-1)` membalik sumbu mendatarnya; latar tombolnya bundar
+   dan setangkup, jadi tidak ada yang lain yang ikut terlihat berubah. */
+.ikon-pensil { transform: scaleX(-1); }
 .departure-bar {
   display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap;
   margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--garis);
