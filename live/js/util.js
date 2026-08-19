@@ -485,6 +485,18 @@ export function pasangKotakJam(id) {
 const DETIK_NOTIF      = 4000;
 const DETIK_NOTIF_GALAT = 8000;
 
+/** Huruf pertama dibesarkan. Pesan galat dari database lahir huruf kecil —
+ *  itu konvensi SQL — dan di layar panitia ia terbaca seperti potongan log,
+ *  bukan kalimat.
+ *
+ *  DIEKSPOR, karena notif() bukan lagi satu-satunya yang membutuhkannya:
+ *  pesan yang digandeng di belakang kalimat lain ("Nomor Dada 007.
+" + ...)
+ *  tidak lagi berada di awal teks, jadi pembesaran di dalam notif() tidak
+ *  menjangkaunya. */
+export const kapital = (t) =>
+  String(t).charAt(0).toUpperCase() + String(t).slice(1);
+
 export function notif(pesan, galat = false) {
   document.querySelectorAll(".notification").forEach(n => n.remove());
   // Template BIASA, bukan tag html`` — tombol tutupnya HTML yang memang
@@ -497,7 +509,7 @@ export function notif(pesan, galat = false) {
   // panitia ia terbaca seperti potongan log, bukan kalimat. Huruf pertama
   // dibesarkan DI SINI, satu tempat, supaya pesan dari mana pun ikut rapi
   // tanpa perlu menyentuh belasan `raise exception` di migrasi.
-  const kalimat = String(pesan).charAt(0).toUpperCase() + String(pesan).slice(1);
+  const kalimat = kapital(pesan);
   const n = h(`<div class="notification ${galat ? "error" : ""}" role="alert">
       <span class="notif-ikon">${ikon(galat ? "circle-alert" : "circle-check-big")}</span>
       <span class="notif-teks">${esc(kalimat)}</span>

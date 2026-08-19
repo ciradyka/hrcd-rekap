@@ -310,5 +310,13 @@ run tests/sql/43_catat_foto_lembar_taut.sql
 # sebelum barisnya hilang, dan juri pos tidak menjangkau pos lain.
 run supabase/migrations/0081_hapus_foto_lembar.sql
 run tests/sql/44_hapus_foto_lembar.sql
+# 0082 membuat pesan "di luar rentang" menyebut KOMPONEN mana yang ditolak.
+# Satu baris lembar pos punya tiga sampai lima kotak berdampingan dengan
+# rentang berbeda-beda; kalimat tanpa nama kolom membuat petugas menebak, dan
+# tebakan yang salah menimpa angka yang sudah benar. Tes 12 dan 03 tetap
+# menjaga bentuk lamanya di titik sejarahnya masing-masing — mereka berjalan
+# jauh di atas sini, saat fungsinya masih versi 0031.
+run supabase/migrations/0082_pesan_rentang_menyebut_komponen.sql
+run tests/sql/45_pesan_rentang_komponen.sql
 
 echo "SEMUA TES LULUS"
