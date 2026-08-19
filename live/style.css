@@ -2545,15 +2545,23 @@ input.small-input { text-align: center; }
    dan jam; kotak hijau selebar layar untuk dua benda sekecil itu terbaca
    seperti pengumuman, padahal ia sekadar tanda bahwa semuanya beres. Tiga
    keadaan lain tetap melintang penuh — mereka memang pengumuman. */
-.pos-simpan.aman {
+/* BENTUK RINGKAS, dipakai keadaan aman DAN menunggu. Keduanya memakai bentuk
+   yang sama persis — ikon + jam — jadi berpindah antar keduanya hanya
+   mengganti warna dan TIDAK menggerakkan satu piksel pun. Itu yang penting:
+   pitanya duduk di `.baris-pos` yang membungkus, dan pita yang melebar
+   melempar tombol di sebelahnya ke baris berikutnya, menurunkan seluruh tabel
+   di bawah jari yang sedang mengetik. */
+.pos-simpan.ringkas {
   /* `align-self` WAJIB ikut. Ia duduk di dalam `.baris-pos` yang flex, dan
      `align-items` bawaan akan meregangkannya mengikuti tinggi dropdown di
      sebelahnya — `display: inline-flex` saja tidak menahan itu. */
   display: inline-flex; align-self: center; align-items: center; gap: .35rem;
-  background: var(--hijau-muda); color: var(--hijau); border-color: var(--hijau);
   font-variant-numeric: tabular-nums;
 }
-.pos-simpan.aman .ikon { width: 1.1em; height: 1.1em; }
+.pos-simpan.ringkas .ikon { width: 1.1em; height: 1.1em; }
+.pos-simpan.aman {
+  background: var(--hijau-muda); color: var(--hijau); border-color: var(--hijau);
+}
 .pos-simpan.menunggu { background: var(--kuning-muda); color: var(--kuning); border-color: var(--kuning); }
 /* Merah TIDAK dipudarkan seperti dua keadaan di atas. Ini satu-satunya
    keadaan yang berarti "ada nilai yang bisa hilang", dan ia harus tertangkap
