@@ -902,3 +902,27 @@ export function nilaiBagian(w, a, b) {
   if (w.satuan === "detik") return [detikTeks(a)];
   return [angkaRapi(a)];
 }
+
+/** Label keempat golongan, dan URUTAN BAKU saat keempatnya dijejer.
+ *
+ *  Penegak lebih dulu, lalu Penggalang; PA sebelum PI. Ini urutan yang dipakai
+ *  panitia saat mengumumkan juara, dan layar yang berbeda urutan dari corong
+ *  memaksa pembaca acara mencocokkan sendiri di depan lapangan.
+ *
+ *  Urutannya ditulis eksplisit, bukan disandarkan pada urutan kunci LABEL:
+ *  urutan kunci objek memang terjaga di JavaScript, tapi ia tidak terlihat
+ *  sebagai keputusan — orang berikutnya yang merapikan daftar label itu secara
+ *  alfabetis akan mengubah urutan tampil tanpa pernah tahu ia melakukannya.
+ *
+ *  DULU DITULIS TIGA KALI: dua kali di app.js (GOLONGAN_LABEL/URUT_GOLONGAN
+ *  dan NAMA_GOLONGAN/URUTAN_GOLONGAN) dan sekali di live.js. Penjaganya,
+ *  tools/periksa_urutan_golongan.py, mencari pola `const URUT_GOLONGAN` — jadi
+ *  salinan KETIGA yang bernama URUTAN_GOLONGAN tidak pernah ia lihat, dan
+ *  salinan itulah yang dipakai layar Live Score. Sekarang satu tempat, dan
+ *  shared-files.yml yang menjaganya. */
+export const GOLONGAN_LABEL = {
+  penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
+  penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
+};
+export const URUT_GOLONGAN =
+  ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];

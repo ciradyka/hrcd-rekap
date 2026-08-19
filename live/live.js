@@ -61,13 +61,10 @@
 import {
   esc, dada3, jamMenit, tanggalJam, berapaLalu,
   angkaRapi, petunjukKolom, nilaiBagian,
+  GOLONGAN_LABEL, URUT_GOLONGAN,
 } from "./js/util.js";
 
-const GOLONGAN = {
-  penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
-  penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
-};
-const URUT_GOLONGAN = ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
+const GOLONGAN = GOLONGAN_LABEL;
 
 /** dada3() mengembalikan teks kosong untuk nomor yang tidak ada; di tabel ini
  *  yang dibutuhkan tanda pisah supaya barisnya tidak terlihat bolong. */

@@ -156,6 +156,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select kode, name, type, form, poin_maks, raw_terbaik, "
                     "       raw_terburuk, poin_benar, poin_salah, total_soal, "
                     "       tingkat, satuan, golongan, petunjuk, judul_isian, "
+                    # `lomba` (0054) sempat TIDAK ada di sini padahal
+                    # web/js/api.js memilihnya. Akibatnya di mode dev
+                    # kelompokLomba() menerima undefined di tiap baris: Pos 3
+                    # tampil tujuh lomba bukan tiga, dan blangko mencetak tujuh
+                    # lembar bukan tiga — persis yang dilarang CLAUDE.md 11.6.
+                    # Setiap uji lokal atas pengelompokan lomba menguji dunia
+                    # yang salah, dan hasilnya terlihat masuk akal.
+                    "       lomba, "
                     "       rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() and pos = %s "
@@ -166,7 +174,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 # Rekapitulasi (#/rekap).
                 self._kirim(200, q(
                     "select pos, kode, name, type, form, poin_maks, satuan, "
-                    "       golongan, petunjuk, judul_isian, "
+                    "       golongan, petunjuk, judul_isian, lomba, "
                     "       total_soal, rentang_mentah_min, "
                     "       rentang_mentah_maks, sort_order "
                     "from wahana where edisi = edisi_aktif() "
