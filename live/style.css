@@ -2970,6 +2970,20 @@ input.small-input { text-align: center; }
   font-variant-numeric: tabular-nums;
 }
 
+/* RANTAI `th.pos-kol`, BUKAN `.pos-kol` SAJA — dan itu bukan kerapian.
+   `.pos-kol` sendirian berkekhususan (0,1,0), kalah dari `.table th` (0,1,1)
+   yang menyetel `text-align: left` untuk semua kepala tabel. Aturan tengah di
+   sini karena itu TIDAK PERNAH berlaku: terukur, kepala kolomnya rata kiri dan
+   titik tengah namanya meleset ~7px dari titik tengah selnya. Yang paling
+   terlihat bukan namanya — ia hampir selebar selnya sehingga meleset sedikit
+   tidak kentara — melainkan rentang di bawahnya, yang jauh lebih pendek dan
+   karena itu berdiri jelas di tepi kiri sementara angka-angka di bawahnya
+   ditengahkan.
+
+   Kedua situs disebut. Halaman peserta memakai `.tabel`, bukan `.table`, dan
+   `.tabel th` juga menyetel rata kiri — jadi bug yang sama ada di sana. */
+.table th.pos-kol,
+.tabel th.pos-kol,
 .pos-kol {
   text-align: center; font-variant-numeric: tabular-nums;
   white-space: nowrap; padding-left: .3rem; padding-right: .3rem;
