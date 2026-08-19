@@ -45,57 +45,38 @@
    Tanpa framework, tanpa build step, tanpa kunci apa pun.
    ========================================================================== */
 
+/* Aturan bersama diimpor, tidak lagi disalin tangan.
+   `js/util.js` di sini SALINAN BYTE-IDENTIK dari `web/js/util.js`, dan
+   `shared-files.yml` menegakkannya di CI — jadi mengubah cara menulis angka di
+   satu aplikasi tidak bisa lagi meninggalkan aplikasi satunya. Sebelum ini
+   `petunjukKolom()` ditulis dua kali dan yang di sini SUDAH menyimpang: papan
+   panitia menulis "menit:detik", papan ini masih "detik", untuk kolom sama.
+
+   Waktu juga: salinan di sini memakai zona ALAT, sementara util.js memaksa
+   Asia/Jakarta. Peserta di WITA/WIT membaca "Update terakhir" satu jam meleset
+   dan menyimpulkan datanya basi padahal baru.
+
+   Halaman ini karena itu dimuat sebagai MODUL (live/index.html). Modul juga
+   ditunda sampai DOM siap, yang justru lebih aman daripada sebelumnya. */
+import {
+  esc, dada3, jamMenit, tanggalJam, berapaLalu,
+  angkaRapi, petunjukKolom, nilaiBagian,
+} from "./js/util.js";
+
 const GOLONGAN = {
   penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
 };
 const URUT_GOLONGAN = ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
 
-/** Peserta menyalin nama regu dan nama sekolah dari formulir yang mereka isi
- *  sendiri — teks dari luar, dan halaman ini dibaca ratusan orang. */
-const esc = (v) => v === null || v === undefined ? "" : String(v)
-  .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-  .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-
-const dada = (n) => n === null || n === undefined
-  ? "—" : String(n).padStart(3, "0");
-
-/* Bentuk waktu baku. Sengaja DISALIN dari web/js/util.js dan bukan diimpor:
-   halaman ini di-deploy sebagai Worker terpisah dan tidak boleh bergantung
-   pada berkas di proyek lain. Kalau bentuknya diubah di sana, ubah juga di
-   sini — hanya ada tiga fungsi, dan salinan yang jujur lebih baik daripada
-   ketergantungan yang diam-diam putus saat deploy. */
-const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
-               "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const dua = (n) => String(n).padStart(2, "0");
-
-/** "15:30" — titik dua, bukan titik: "07.04" mudah terbaca sebagai desimal. */
-const jam = (t) => {
-  if (!t) return "—";
-  const d = new Date(t);
-  return `${dua(d.getHours())}:${dua(d.getMinutes())}`;
-};
-
-/** "17 Agustus 2026 15:30" — dipakai cap update, yang bisa menunjuk hari
- *  lain: peserta membuka halaman ini kapan saja, termasuk besok paginya, dan
- *  "17:30" telanjang akan terbaca sebagai setengah jam lalu. */
-const tanggalJam = (t) => {
-  if (!t) return "—";
-  const d = new Date(t);
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam(t)}`;
-};
+/** dada3() mengembalikan teks kosong untuk nomor yang tidak ada; di tabel ini
+ *  yang dibutuhkan tanda pisah supaya barisnya tidak terlihat bolong. */
+const dada = (n) => n === null || n === undefined ? "—" : dada3(n);
 
 const kontrak = (menit) => {
   if (!menit) return "—";
   const j = Math.floor(menit / 60), m = menit % 60;
   return m ? `${j},${m === 30 ? "5" : m} jam` : `${j} jam`;
-};
-
-const berapaLalu = (t) => {
-  const menit = Math.floor((Date.now() - new Date(t).getTime()) / 60000);
-  if (menit < 1) return "barusan";
-  if (menit < 60) return `${menit} menit lalu`;
-  return `${Math.floor(menit / 60)} jam lalu`;
 };
 
 let META = null;        // isi live.json
@@ -322,21 +303,6 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
    ------------------------------------------------------------------------- */
 let golAktif = URUT_GOLONGAN[0];
 
-/* Rentang nilai di kepala kolom — aturannya DISALIN dari petunjukKolom() di
-   layar panitia, dan memang harus sama persis: dua papan yang menulis
-   rentang berbeda untuk komponen yang sama adalah dua papan yang saling
-   membantah di depan orang yang sedang membandingkannya.
-   Yang keluar cuma batas dan satuan, tidak pernah nilai siapa pun. */
-function petunjukKolom(k) {
-  if (k.petunjuk) return k.petunjuk;
-  if (k.form === "biner") return "centang bila benar";
-  if (k.satuan === "detik") return "detik";
-  if (k.form === "benar_kurang_salah") return "benar / salah";
-  if (k.form === "benar_per_total") return `0 – ${k.total_soal}`;
-  if (k.rentang_mentah_min === null || k.rentang_mentah_min === undefined) return "";
-  return `${k.rentang_mentah_min} – ${k.rentang_mentah_maks}`;
-}
-
 function barisPapan() {
   const progres = (REKAP && REKAP.progres) || [];
   const klasemen = (REKAP && REKAP.klasemen) || [];
@@ -401,7 +367,7 @@ function gambarPapan() {
               <div class="nama">${esc(k.nama_regu)}</div>
               <div class="sekolah">${esc(k.nama_sekolah)}</div>
             </div>
-            <div class="total">${esc(String(k.total))}</div>
+            <div class="total">${esc(angkaRapi(k.total))}</div>
           </div>`).join("")}</div>`}
 
         <div class="isi-filter" hidden>
@@ -425,7 +391,8 @@ function gambarPapan() {
                     title="Klik untuk menyaring per sekolah">Organisasi
                   <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
                 ${perPos.map(x => `<th class="pos" colspan="${x.nama.length}"
-                  >${esc(x.pos.bayangan ? x.pos.name : `Pos ${x.pos.nomor}`)}</th>`).join("")}
+                  >${esc(x.pos.bayangan ? x.pos.name
+                        : `Pos ${x.pos.nomor} · ${x.pos.name}`)}</th>`).join("")}
                 ${penuh ? `<th rowspan="2">Penalti</th><th rowspan="2">Total</th>` : ""}
               </tr>
               <tr>${perPos.map(x => x.nama.map(nm =>
@@ -450,9 +417,12 @@ function gambarPapan() {
                   if (!v || v.nilai_1 === null || v.nilai_1 === undefined) {
                     return `<td class="pos belum">–</td>`;
                   }
-                  return `<td class="pos ada">${esc(String(v.nilai_1))}${
-                    v.nilai_2 === null || v.nilai_2 === undefined
-                      ? "" : ` / ${esc(String(v.nilai_2))}`}</td>`;
+                  // Dieja nilaiBagian() — fungsi yang sama dengan papan
+                  // panitia. Sebelumnya String() mentah: 74 detik tergambar
+                  // "74" di sini dan "01:14" di sana, untuk angka yang sama,
+                  // di fase `penuh` yang justru pengumuman juaranya.
+                  const bagian = nilaiBagian(w, v.nilai_1, v.nilai_2);
+                  return `<td class="pos ada">${bagian.map(esc).join(" / ")}</td>`;
                 }).join("")).join("");
                 const penalti = penuh
                   ? Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)
@@ -468,7 +438,8 @@ function gambarPapan() {
                   <td class="sekolah-sel">${esc(b.nama_sekolah || "—")}</td>
                   ${sel}
                   ${penuh ? `<td>${esc(String(penalti))}</td>
-                     <td class="total">${esc(String(b.total ?? "—"))}</td>` : ""}
+                     <td class="total">${b.total === null || b.total === undefined
+                       ? "—" : esc(angkaRapi(b.total))}</td>` : ""}
                 </tr>`;
               }).join("")}
             </tbody>
