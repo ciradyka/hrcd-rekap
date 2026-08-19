@@ -1,4 +1,9 @@
 /* Tab golongan, podium, dan penyaring — bentuknya mengikuti layar panitia. */
+/* tab-golongan: di sini tabnya MEMBUNGKUS, di panitia ia menggulir mendatar.
+   Peserta membuka halaman ini di HP dan mencari golongannya sekali; tab yang
+   menggulir menyembunyikan dua di antaranya di luar layar dan tidak ada yang
+   memberi tahu bahwa mereka ada. Panitia memakai layar lebar dan menggulir
+   tabel sepanjang hari, jadi baris tab yang ikut menggulir tidak asing. */
 .tab-golongan { display: flex; gap: .4rem; margin: 0 0 .8rem; flex-wrap: wrap; }
 .tab-golongan .tab {
   flex: 1 1 auto; padding: .55rem .8rem; border: 1px solid #d7dbe0;
@@ -13,78 +18,10 @@
 .tab-golongan .tab.aktif .jml { background: rgba(255,255,255,.25); }
 
 .tengah { text-align: center; }
-.th-saring { cursor: pointer; user-select: none; }
-.th-saring.menyaring { color: #00695c; }
-.isi-filter {
-  position: fixed; z-index: 50; width: 280px; max-height: 46vh;
-  background: #fff; border: 1px solid #d7dbe0; border-radius: 8px;
-  padding: .5rem; display: flex; flex-direction: column; gap: .4rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,.16);
-}
-/* `hidden` HARUS disebut ulang. Atribut hidden bawaan browser cuma
-   `display: none` dengan kekhususan terendah, dan `.isi-filter { display:
-   flex }` di atas mengalahkannya — panelnya lalu terbuka sendiri begitu
-   halaman dimuat. */
-.isi-filter[hidden] { display: none; }
-.isi-filter .cari-filter {
-  padding: .45rem .6rem; border: 2px solid #9aa3ad; border-radius: 6px;
-  font-size: .9rem; font-family: inherit; background: #fff; color: #1c2430;
-}
 .isi-filter .cari-filter::placeholder { color: #6b7480; }
-.isi-filter .cari-filter:focus {
-  outline: none; border-color: #00695c; box-shadow: 0 0 0 3px rgba(0,105,92,.18);
-}
-.isi-filter .tombol-semua,
-.isi-filter .tombol-kecil {
-  background: #00695c; color: #fff; border: 1px solid #00695c;
-  font-weight: 600; padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
-}
-.isi-filter .tombol-semua:hover,
-.isi-filter .tombol-kecil:hover { background: #004d43; border-color: #004d43; }
-.isi-filter .daftar-filter { overflow-y: auto; display: flex;
-  flex-direction: column; gap: .3rem; max-height: 30vh; }
-/* `label[hidden]` HARUS disebut ulang — sebab yang sama dengan
-   `.isi-filter[hidden]` di atas: `display: flex` di baris berikutnya
-   mengalahkan `[hidden] { display: none }` bawaan browser, jadi baris yang
-   disaring tetap terlihat. Ini kedua kalinya jebakan yang sama menggigit di
-   berkas ini. */
-.isi-filter label[hidden] { display: none; }
-.isi-filter label { display: flex; align-items: center; gap: .5rem;
-  font-size: .9rem; cursor: pointer; }
 .tombol-kecil { padding: .25rem .6rem; font-size: .8rem; border-radius: 6px;
   border: 1px solid #d7dbe0; background: #fff; cursor: pointer; }
 .tabel td.sekolah-sel { white-space: nowrap; }
-
-/* ============================================================================
-   hrcd-rekap : live.css — gaya halaman rekap peserta.
-
-   SENGAJA berdiri sendiri, tidak berbagi berkas dengan style.css layar
-   panitia. Dua alasan: halaman ini di-deploy sebagai Worker terpisah (tidak
-   boleh bergantung pada berkas di proyek lain), dan pembacanya berbeda —
-   peserta dan pembina, hampir semuanya di HP, sambil berdiri, kadang di bawah
-   matahari. Yang dikejar di sini keterbacaan, bukan kerapatan.
-   ========================================================================== */
-
-:root {
-  --tinta:        #1a1a1a;
-  --tinta-lembut: #5c5c5c;
-  --kertas:       #f0f1f4;
-  --kartu:        #ffffff;
-  --garis:        #e7e8ec;
-  --utama:        #00695c;   /* hijau tua HRCD */
-  --hijau:        #2e7d32;
-  --hijau-muda:   #e8f5e9;
-  --kuning:       #b26a00;
-  --bahaya:       #c62828;
-  --kuning-muda:  #fff3e0;
-  --emas:         #b8860b;
-  --radius:       18px;
-  /* Sama persis dengan style.css layar panitia: dua situs, satu tampilan. */
-  --bayang:       0 1px 2px rgba(16,24,40,.04), 0 6px 20px rgba(16,24,40,.07);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
 
 /* ---------- huruf ----------
 
@@ -113,6 +50,11 @@
   src: url("fonts/inter-latin.woff2") format("woff2");
 }
 
+/* DUA OVERRIDE YANG DISENGAJA, dan hanya dua.
+   Sisanya datang dari style.css yang dimuat lebih dulu (lihat index.html).
+
+   body: susunan font-stack halaman ini menyebut Roboto sebelum sans-serif
+   bawaan — HP Android peserta jauh lebih beragam daripada laptop panitia. */
 body {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   letter-spacing: -.011em;
@@ -254,44 +196,6 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 .tabel tbody tr:nth-child(even) td.pos.ada { background: #dfeee0; }
 
 /* ---- klasemen (fase penuh) ---- */
-/* Podium: SATU juara satu baris, bertumpuk ke bawah.
-
-   Tiga kartu berdampingan membungkus jadi 2 + 1 di layar HP, dan baris kedua
-   yang cuma berisi satu kartu terbaca seperti tampilan yang rusak, bukan
-   seperti podium. Bertumpuk, ketiganya selalu sejajar, urutannya tidak pernah
-   ambigu, dan nama regu punya selebar layar untuk dirinya sendiri — nama
-   juara adalah satu-satunya hal di baris itu yang benar-benar dicari orang. */
-.podium {
-  display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0 1rem;
-}
-.juara {
-  display: flex; align-items: center; gap: .75rem;
-  padding: .6rem .75rem; border: 1px solid var(--garis); border-radius: 12px;
-}
-.juara.j1 { border-color: var(--emas); border-width: 2px; }
-.medali { font-size: 2rem; line-height: 1; flex: 0 0 auto; }
-.j-teks { flex: 1 1 auto; min-width: 0; }
-/* Angka peringkat tetap tertulis walau medalinya sudah ada: sebagian HP lama
-   menggambar kotak kosong sebagai ganti emoji, dan podium tanpa penanda juara
-   sama sekali lebih buruk daripada podium tanpa medali. */
-.juara .peringkat {
-  font-size: .72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--tinta-lembut);
-}
-.dada-juara {
-  font-variant-numeric: tabular-nums; font-weight: 700;
-  color: var(--utama); letter-spacing: 0;
-}
-.juara .nama { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
-.juara .sekolah {
-  font-size: .78rem; line-height: 1.25; color: var(--tinta-lembut);
-  overflow-wrap: anywhere;
-}
-.juara .total {
-  flex: 0 0 auto; margin-left: auto;
-  font-size: 1.45rem; font-weight: 800; color: var(--utama);
-  font-variant-numeric: tabular-nums;
-}
 .tabel td.total { font-weight: 800; font-variant-numeric: tabular-nums; }
 .tabel tr.atas { background: #fdf6e3; }
 .tabel tr.atas td.dada, .tabel tr.atas td.rank-sel { background: #fdf6e3; }
@@ -321,59 +225,3 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 }
 .tombol:hover { background: #004d43; }
 
-/* ============================================================================
-   Kemajuan input per pos (0048).
-
-   Batang, bukan angka saja: yang dicari mata di sini perbandingan antar pos —
-   "pos mana yang tertinggal" — dan itu terbaca dari panjang dalam sekali
-   lihat, sedangkan lima angka persen harus dibaca satu per satu lalu
-   dibandingkan di kepala.
-   ========================================================================== */
-.kemajuan {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; flex-wrap: wrap; gap: 1rem .6rem;
-}
-.kemajuan li { flex: 1 1 7rem; min-width: 6.5rem; text-align: center; }
-
-/* Cincin dibuat dengan conic-gradient — bukan SVG, bukan library. Satu
-   properti CSS, nol berkas tambahan, dan tebalnya diubah dengan mengganti
-   satu angka (ukuran ::before). Merah/kuning/hijau ditentukan JavaScript dan
-   masuk lewat --warna, supaya ambangnya tertulis SEKALI di satu tempat. */
-.cincin {
-  width: 84px; height: 84px; margin: 0 auto .4rem;
-  border-radius: 50%;
-  background: conic-gradient(var(--warna) calc(var(--persen) * 3.6deg),
-                             var(--garis) 0);
-  display: grid; place-items: center;
-}
-.cincin::before {
-  content: ""; grid-area: 1 / 1;
-  width: 64px; height: 64px; border-radius: 50%; background: var(--kartu);
-}
-/* Angkanya di TENGAH cincin, selalu. Warna sendirian tidak boleh jadi
-   satu-satunya kabar: sekitar satu dari dua belas laki-laki sulit
-   membedakan merah dari hijau, dan bagi mereka lima cincin tanpa angka
-   adalah lima lingkaran yang sama. */
-.cincin > span {
-  grid-area: 1 / 1;
-  font-weight: 800; font-size: 1.2rem; line-height: 1;
-  font-variant-numeric: tabular-nums; color: var(--warna);
-}
-.cincin i { font-style: normal; font-size: .62em; }
-.c-nama {
-  font-weight: 600; font-size: .84rem; line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-.c-angka {
-  font-size: .78rem; color: var(--tinta-lembut); line-height: 1.35;
-  margin-top: .15rem;
-}
-.c-alarm { color: var(--bahaya); }
-
-
-/* Kolom poin per pos di tabel rincian. Sempit dan rata tengah supaya lima
-   kolom angka tetap muat sebelum tabelnya perlu digeser. */
-.pos-kol {
-  text-align: center; font-variant-numeric: tabular-nums;
-  white-space: nowrap; padding-left: .3rem; padding-right: .3rem;
-}

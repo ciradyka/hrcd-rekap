@@ -11,7 +11,21 @@
        dan rekap.json (besar, diambil sekali per versi). Itu sebabnya ia
        berdiri di Worker sendiri, terpisah dari layar panitia — lihat
        live/wrangler.toml dan kepala live.js. -->
-  <link rel="stylesheet" href="live.css?v=1">
+  <!-- SATU SUMBER TAMPILAN untuk dua situs. style.css inilah yang dipakai layar
+       panitia, dan berkas ini disalin byte-identik ke live/ serta ditegakkan
+       shared-files.yml — jadi komponen yang sama tampil sama di kedua papan
+       tanpa ada yang perlu menyalin aturan dengan tangan.
+
+       Sebelumnya live.css memuat SALINANNYA SENDIRI atas 37 selektor yang sama
+       (cincin, podium, juara, kemajuan, saringan organisasi), dan salinan itu
+       sudah tertinggal: kartu Status di halaman ini tidak pernah mendapat gaya
+       tombolnya karena aturannya cuma ada di style.css.
+
+       live.css tinggal sesudahnya, dan isinya hanya yang memang milik halaman
+       peserta: kepala hijau, kartu, tabel klasemen, dan dua override yang
+       disengaja. Urutannya penting — yang belakangan menang. -->
+  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="live.css?v=2">
 </head>
 <body>
   <header class="kepala">

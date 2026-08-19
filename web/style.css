@@ -27,6 +27,9 @@
   --utama:        #00695c;   /* hijau tua HRCD */
   --utama-gelap:  #004d43;
   --utama-muda:   #e0f2f1;
+  /* Emas podium. Dulu hanya ada di live.css dan ditulis mati sebagai
+     #b8860b di sini — dua tempat, satu warna. */
+  --emas:         #b8860b;
   --bahaya:       #c62828;
   --bahaya-muda:  #ffebee;
   --kuning:       #b26a00;
@@ -2942,7 +2945,7 @@ input.small-input { text-align: center; }
   display: flex; align-items: center; gap: .75rem;
   padding: .6rem .75rem; border: 1px solid var(--garis); border-radius: 12px;
 }
-.juara.j1 { border-color: #b8860b; border-width: 2px; }
+.juara.j1 { border-color: var(--emas); border-width: 2px; }
 .medali { font-size: 2rem; line-height: 1; flex: 0 0 auto; }
 .j-teks { flex: 1 1 auto; min-width: 0; }
 /* Angka peringkat tetap tertulis walau medalinya sudah ada: sebagian HP lama
