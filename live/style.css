@@ -2850,36 +2850,48 @@ input.small-input { text-align: center; }
 }
 .kemajuan li { flex: 1 1 7rem; min-width: 6.5rem; text-align: center; }
 
-/* Batang ringkas — hanya ada di HP. Di layar lebar kelima cincin muat
-   berjajar dan tidak ada yang perlu diringkas. */
-.kemajuan-ringkas { display: none; }
-@media (max-width: 560px) {
-  /* Judulnya ikut disembunyikan: batang di bawahnya sudah berbunyi
-     "69% · 186 / 270 regu", dan kata "Status" di atasnya cuma mengulang apa
-     yang sudah jelas dari bentuknya (bagian 9.3). */
-  .judul-status { display: none; }
+/* SATU BARIS TIPIS MELINTANG, dan baris itu sendiri yang ditekan.
+   Tertutup ia sudah menjawab pertanyaan yang paling sering: "sudah berapa
+   persen". Ditekan, ia membuka rinciannya — persen per pos, yang menjawab
+   pertanyaan berikutnya: "pos mana yang tertinggal".
 
-  .kemajuan-ringkas {
-    display: flex; align-items: center; gap: .6rem; width: 100%;
-    padding: .5rem .2rem; border: 0; background: none; cursor: pointer;
-    font: inherit; color: var(--tinta); text-align: left;
-  }
-  .kr-batang {
-    flex: 1 1 auto; min-width: 0; height: 10px; border-radius: 5px;
-    background: var(--garis); overflow: hidden;
-  }
-  .kr-batang > span { display: block; height: 100%; border-radius: 5px; }
-  .kr-teks { flex: 0 0 auto; font-size: .9rem; color: var(--tinta-lembut); }
-  .kr-teks strong { color: var(--tinta); font-size: 1rem; }
-  .kr-panah { flex: 0 0 auto; color: var(--tinta-lembut); transition: transform .15s; }
-  .kemajuan-ringkas.terbuka .kr-panah { transform: rotate(180deg); }
+   Dulu bentuknya kotak kecil berbunyi "23% · 61 / 270 regu" dengan panah, dan
+   ia terbaca seperti dropdown yang salah tempat: sempit, berbingkai, duduk di
+   bawah judul yang tidak melakukan apa-apa. Sekarang judul, batang, dan
+   persennya SATU tombol selebar kartu.
 
-  /* Rinciannya tertutup sampai batangnya ditekan. Itulah yang membuat yang
-     tampil pertama di HP adalah klasemen, bukan lima cincin setinggi satu
-     layar penuh. */
-  .kemajuan { display: none; }
-  .kemajuan.terbuka { display: flex; margin-top: .6rem; }
+   Dan satu perilaku di semua lebar, bukan dua. Sebelumnya kelima cincin SELALU
+   tampil di layar lebar dan hanya bisa ditutup di HP, karena batangnya
+   disembunyikan CSS di atas 560px. Dua aturan untuk satu kartu berarti apa
+   yang dilihat orang bergantung pada lebar layarnya, dan yang menjelaskannya
+   ke panitia harus bertanya dulu "kamu buka di mana". */
+.judul-status {
+  display: flex; align-items: center; gap: .7rem; width: 100%;
+  margin: 0; padding: .3rem 0; border: 0; background: none; cursor: pointer;
+  font: inherit; color: var(--tinta); text-align: left;
 }
+.js-teks { flex: 0 0 auto; font-size: 1.1rem; font-weight: 700; }
+/* Batangnya yang melar, bukan teksnya — itu yang membuatnya melintang penuh
+   di layar selebar apa pun tanpa satu ukuran pun dipatok tangan. */
+.js-batang {
+  flex: 1 1 auto; min-width: 2rem; height: 8px; border-radius: 4px;
+  background: var(--garis); overflow: hidden;
+}
+.js-batang > span { display: block; height: 100%; border-radius: 4px; }
+.js-persen {
+  flex: 0 0 auto; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.kr-panah {
+  flex: 0 0 auto; font-size: .8em; color: var(--tinta-lembut);
+  transition: transform .15s;
+}
+.judul-status[aria-expanded="true"] .kr-panah { transform: rotate(180deg); }
+
+/* Rinciannya tertutup sampai batangnya ditekan — di lebar mana pun. Itulah
+   yang membuat yang tampil pertama adalah klasemen, bukan lima cincin
+   setinggi satu layar penuh di HP. */
+.kemajuan { display: none; }
+.kemajuan.terbuka { display: flex; margin-top: .8rem; }
 
 /* Cincin dibuat dengan conic-gradient — bukan SVG, bukan library. Satu
    properti CSS, nol berkas tambahan, dan tebalnya diubah dengan mengganti

@@ -230,13 +230,12 @@ function gambarKelengkapan() {
 
   return `
     <div class="kartu">
-      <h2 class="judul-status">Status</h2>
-      <button type="button" class="kemajuan-ringkas" id="kemajuan-buka"
+      <button type="button" class="judul-status" id="kemajuan-buka"
               aria-expanded="false" aria-controls="kemajuan-rinci">
-        <span class="kr-batang" aria-hidden="true"><span
+        <span class="js-teks">Status</span>
+        <span class="js-batang" aria-hidden="true"><span
           style="width:${persenSemua}%;background:${warnaPersen(persenSemua)}"></span></span>
-        <span class="kr-teks"><strong>${esc(String(persenSemua))}%</strong>
-          · ${esc(String(totalLengkap))} / ${esc(String(totalRegu))} regu</span>
+        <span class="js-persen">${esc(String(persenSemua))}%</span>
         <span class="kr-panah" aria-hidden="true">▾</span>
       </button>
       <ul class="kemajuan" id="kemajuan-rinci">
@@ -257,9 +256,10 @@ function gambarKelengkapan() {
     </div>`;
 }
 
-/* Rincian per pos dibuka/ditutup dengan menekan batangnya. Hanya berlaku di
-   HP: di layar lebar kelima cincin memang selalu tampil dan tombolnya
-   disembunyikan CSS, jadi tidak ada yang bisa ditekan. */
+/* Rincian per pos dibuka/ditutup dengan menekan JUDULNYA, di lebar mana pun.
+   Dulu yang ditekan batang ringkas yang cuma ada di HP, dan di layar lebar
+   kelima cincin selalu tampil tanpa bisa ditutup — dua perilaku untuk satu
+   kartu, jadi apa yang dilihat orang bergantung pada lebar layarnya. */
 function pasangKemajuan() {
   const tombol = document.getElementById("kemajuan-buka");
   const rinci = document.getElementById("kemajuan-rinci");
