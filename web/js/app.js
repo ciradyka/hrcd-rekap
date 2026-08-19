@@ -32,6 +32,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
+         angkaRapi, petunjukKolom, nilaiBagian,
          jamPadaHari } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
@@ -2202,11 +2203,6 @@ const judulPos = (p) => p
   ? (p.bayangan ? `Pos Bayangan — ${p.name}` : `Pos ${p.nomor} — ${p.name}`)
   : "Pos";
 
-/** Angka dari database datang sebagai teks ("6.00"). Yang muncul di kotak
- *  isian harus persis seperti yang diketik petugas: 6, bukan 6.00. */
-const angkaRapi = (v) =>
-  v === null || v === undefined || v === "" ? "" : String(Number(v));
-
 /** Kotak isian satu komponen. BENTUKNYA DITENTUKAN KONFIGURASI, bukan ditulis
  *  per pos di sini — itu sebabnya tabel ini bisa mengikuti lembar mana pun
  *  tanpa menyentuh JavaScript:
@@ -2283,33 +2279,6 @@ function selKomponen(k, nilai) {
 /** Keterangan kecil di bawah judul kolom — rentang yang boleh diketik,
  *  diambil dari konfigurasi supaya tidak pernah berbeda dengan yang divalidasi
  *  server. Persis angka yang tercetak di judul kolom lembar kertas. */
-function petunjukKolom(k) {
-  // Keterangan dari konfigurasi selalu menang. Untuk sebagian besar komponen
-  // rentangnya sudah menjelaskan segalanya — "0 – 5 kata benar" tidak butuh
-  // kalimat. Tapi Menaksir menulis SELISIH, bukan nilai, dan rentangnya justru
-  // menyesatkan; kolom `petunjuk` (0037) ada untuk kasus seperti itu.
-  if (k.petunjuk) return k.petunjuk;
-  if (k.form === "biner") return "centang bila benar";
-  // SATU bentuk, dan sekarang bentuk itu "menit:detik".
-  //
-  // Keterangan ini pernah berbunyi "detik, atau m:dd", lalu dipersempit jadi
-  // "detik" saja — bukan karena m:dd buruk, melainkan karena MENAWARKAN DUA
-  // bentuk untuk satu angka pada kertas yang diisi tergesa di pos adalah cara
-  // sebagian petugas menulis 1:45 dan sebagian menulis 105 untuk waktu yang
-  // sama. Keberatan itu masih berlaku dan tetap dihormati: yang disebut di
-  // sini tetap satu bentuk, cuma bentuknya yang berganti.
-  //
-  // Berganti karena layar sekarang MENULISKAN waktu dalam menit:detik
-  // (detikTeks), jadi keterangan "detik" di atas kolom berisi "01:14" akan
-  // menyebut sesuatu yang tidak terlihat di kolomnya. detikSah() tetap
-  // menerima detik polos, jadi yang terlanjur hafal mengetik 74 tidak
-  // kehilangan apa pun — ia cuma terbaca kembali sebagai 01:14.
-  if (k.satuan === "detik") return "menit:detik";
-  if (k.form === "benar_kurang_salah") return "benar / salah";
-  if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
-  return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
-}
-
 /** Isi kotak yang tidak bisa dibaca sebagai angka/waktu. Sengaja BUKAN null:
  *  null berarti "kotak kosong", dan jalur simpan menerjemahkan itu jadi
  *  perintah MENGHAPUS nilai yang sudah tersimpan. */
@@ -2610,11 +2579,17 @@ function judulIsian(k) {
  *  benar, tergantung golongan, dan petugas lomba itu tahu yang mana. */
 function contohIsian(kol) {
   const k = kol.varian[0];
-  if (k.satuan === "detik") return "dalam DETIK · contoh: 47";
-  if (k.form === "biner") return "centang bila kena";
+  // KERTAS MENGIKUTI LAYAR, tidak menulis kalimatnya sendiri. Sebelumnya baris
+  // ini berbunyi "dalam DETIK · contoh: 47" sementara kepala kolom di layar
+  // sudah berbunyi "menit:detik" dan kotaknya sudah menulis "00:47" — juri
+  // yang mengikuti kertas dan juri yang mengikuti layar menulis dua hal
+  // berbeda untuk waktu yang sama, dan blangko sudah difotokopi sebelum ada
+  // yang menyadarinya. Contohnya tetap ada, karena contoh nyata mencegah
+  // sekelas kesalahan yang tidak bisa dicegah kalimat mana pun.
+  if (k.satuan === "detik") return `${kol.petunjuk} · contoh: 00:47`;
   // Keterangan yang ditulis panitia sendiri dipakai apa adanya — ia sudah
   // berupa kalimat, bukan rentang yang perlu diberi kata "angka".
-  if (k.petunjuk) return kol.petunjuk;
+  if (k.petunjuk || k.form === "biner") return kol.petunjuk;
   return `angka ${kol.petunjuk}`;
 }
 
@@ -3960,16 +3935,13 @@ function selRekap(w, isi) {
       ? `<span class="rekap-ya" aria-label="ya">✓</span>`
       : `<span class="rekap-tidak" aria-label="tidak">–</span>`;
   }
-  if (w.form === "benar_kurang_salah") {
-    return b === null || b === undefined
-      ? esc(angkaRapi(a))
-      : `${esc(angkaRapi(a))}<span class="pos-pemisah"> / </span>${esc(angkaRapi(b))}`;
-  }
-  // Bentuk yang sama dengan Input Pos — 32 detik tampil "00:32" di kedua
-  // layar. Dua layar yang menampilkan angka sama dengan bentuk berbeda
-  // membuat orang mengira datanya yang berbeda.
-  if (w.satuan === "detik") return esc(detikTeks(a));
-  return esc(angkaRapi(a));
+  // Cara menulis angkanya milik nilaiBagian() di util.js — berkas yang sama
+  // yang dipakai halaman peserta, supaya 74 detik dieja "01:14" di kedua
+  // papan. Yang tinggal di sini cuma markup pemisahnya.
+  const bagian = nilaiBagian(w, a, b);
+  return bagian.length === 2
+    ? `${esc(bagian[0])}<span class="pos-pemisah"> / </span>${esc(bagian[1])}`
+    : esc(bagian[0]);
 }
 
 const angka = (n) => n === null || n === undefined ? "—"
