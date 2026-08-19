@@ -35,6 +35,14 @@
        halaman yang SUDAH TERBUKA: ia menjalankan kode yang dimuat waktu
        dibuka sampai di-reload. Menaikkan versinya membuat HP yang
        memuat ulang pasti mendapat berkas baru, bukan yang tersimpan. -->
-  <script src="live.js?v=11"></script>
+  <!-- config.js DULU, dan ia memang belum pernah ada di sini. Tanpanya
+       `window.HRCD` kosong, `ambilFaseDb()` pulang di baris pertamanya, dan
+       saklar fase di layar panitia TIDAK berlaku seketika di halaman ini —
+       ia baru terasa setelah penerbitan berikutnya. CLAUDE.md 14.3 menjanjikan
+       sebaliknya, dan janji itu yang dipakai kalau nilai harus disembunyikan
+       mendadak. Skrip biasa, bukan modul: ia cuma menaruh satu objek global.
+  -->
+  <script src="config.js"></script>
+  <script type="module" src="live.js?v=12"></script>
 </body>
 </html>
