@@ -33,7 +33,15 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 1. HRCD adalah lomba gerak jalan alam terbuka untuk pelajar SMP dan SMA.
 2. Penyelenggara: Ambalan Ciung Wanara – Dyah Pitaloka, SMA Negeri 1 Ciamis,
    Jawa Barat.
-3. Diadakan rutin setiap tahun, biasanya Februari atau Maret.
+3. Diadakan rutin setiap tahun, biasanya Februari atau Maret. **Edisi
+   XXXVII (2026) adalah pengecualian: 29 Agustus 2026**; edisi berikutnya
+   diperkirakan kembali ke Februari/Maret. Tanggalnya **data, bukan
+   tetapan** — `edisi.tanggal_lomba`, dan seluruh perkiraan jam berangkat
+   dihitung darinya, jadi jangan menuliskannya di kode atau di skrip.
+   Migrasi `0083` ada karena tanggal contoh dari masa perancangan sempat
+   bertahan di produksi sampai sepuluh hari sebelum lomba, dan tidak ada
+   satu pun galat yang menyebutnya — jamnya tetap benar, cuma harinya
+   yang salah.
 4. Skala peserta konsisten di kisaran 300 regu, dengan batas atas sekitar 500.
 5. Sistem terbagi menjadi **dua wajah yang terpisah**:
    - **Aplikasi panitia** — satu link yang sama untuk semua panitia, dengan
