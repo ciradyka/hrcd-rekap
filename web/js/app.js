@@ -27,6 +27,7 @@ import {
   aturFaseLive,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
+  hapusFotoLembar,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
@@ -3202,12 +3203,24 @@ async function layarInputPos() {
         if (!b) return;
         const li = b.closest("li");
         const kode = li.dataset.kode, namaLomba = li.dataset.nama;
-        const daftar = perLomba[kode] || [];
-        if (!daftar.length) return;
+        if (!(perLomba[kode] || []).length) return;
 
         b.disabled = true;
-        let peta = {};
+        let daftar = [], peta = {};
         try {
+          /* DIBACA ULANG dari server, bukan dari daftar yang dipegang layar.
+             Dua sebabnya, dan keduanya soal `id`: baris yang baru diunggah di
+             dialog ini belum punya id (catat_foto_lembar mengembalikan void),
+             dan tombol silang butuh id. Sekalian daftarnya jadi mutakhir —
+             foto yang dihapus petugas lain tidak muncul sebagai petak yang
+             hilang begitu ditekan. */
+          const semua = await daftarFotoLembar(pos.nomor, dada);
+          daftar = semua.filter(f => f.kode_lomba === kode);
+          perLomba[kode] = daftar;
+          hitung[kode] = daftar.length;
+          const jml = li.querySelector("[data-jumlah]");
+          if (jml) jml.textContent = hitung[kode] ? `${hitung[kode]} foto` : "belum ada";
+          if (!daftar.length) { b.hidden = true; b.disabled = false; return; }
           peta = await tautanFotoBanyak(daftar.map(f => f.path));
         } catch (err) {
           b.disabled = false;
@@ -3224,29 +3237,85 @@ async function layarInputPos() {
            tangan sudah di tangan sebelum dialog ini digambar, membukanya tidak
            perlu await — jadi tidak ada window.open() sesudah await yang akan
            diblokir browser HP sebagai popup. */
-        const galeri = daftar.map((f, i) => {
+        /* THUMBNAIL, bukan gambar penuh. Sembilan slip ukuran penuh adalah
+           sembilan layar yang harus digulir sebelum yang dicari terlihat;
+           petak kecil memperlihatkan kesembilannya sekaligus, dan yang perlu
+           dibaca angkanya tinggal ditekan. */
+        const petak = (f, i) => {
           const url = peta[f.path];
           const ke = daftar.length - i;            // terbaru dulu, jadi dihitung mundur
           const kapan = f.diunggah_pada ? tanggalJam(f.diunggah_pada) : "";
-          return `<li>
-            <div class="fg-kepala">
-              <strong>Foto ${esc(String(ke))}</strong>
-              <span>${esc(kapan)}</span>
-            </div>
+          const judul = `Foto ${ke} ${namaLomba}${kapan ? ` · ${kapan}` : ""}`;
+          return `<li data-id="${esc(f.id)}" data-ke="${esc(String(ke))}">
             ${url
-              ? `<a href="${esc(url)}" target="_blank" rel="noopener">
-                   <img src="${esc(url)}" alt="Foto ${esc(String(ke))} ${esc(namaLomba)}"
-                        loading="lazy"></a>`
-              : `<p class="keterangan">Tautan fotonya tidak bisa dibuat.</p>`}
+              ? `<a class="fg-petak" href="${esc(url)}" target="_blank" rel="noopener"
+                    title="${esc(judul)}">
+                   <img src="${esc(url)}" alt="${esc(judul)}" loading="lazy"></a>`
+              : `<span class="fg-petak fg-kosong">tautan gagal</span>`}
+            <button type="button" class="fg-hapus" data-hapus
+                    title="Hapus foto ${esc(String(ke))}"
+                    aria-label="Hapus foto ${esc(String(ke))} ${esc(namaLomba)}"
+              >&times;</button>
+            <span class="fg-kapan">${esc(kapan)}</span>
           </li>`;
-        }).join("");
+        };
+        const galeri = daftar.map(petak).join("");
 
-        await dialog({
+        const janjiGaleri = dialog({
           judul: `${namaLomba} · ${daftar.length} foto`,
           kartuHtml: `<ul class="foto-galeri">${galeri}</ul>`,
           bacaSaja: true,
           silangSaja: true,
+          pasang: (el, tutup) => {
+            const ul = el.querySelector(".foto-galeri");
+            ul.addEventListener("click", async (ev) => {
+              const x = ev.target.closest("[data-hapus]");
+              if (!x) return;
+              const petakLi = x.closest("li");
+              const id = petakLi.dataset.id;
+
+              /* ALASANNYA WAJIB, dan itu bukan formalitas: foto slip adalah
+                 bukti, dipanggil justru ketika sebuah nilai dipertanyakan.
+                 Menghapusnya menghapus kemampuan menjawab pertanyaan itu, dan
+                 tidak ada satu pun galat yang muncul saat bukti hilang. RPC
+                 0081 menolak alasan kosong; kotak ini cuma menanyakannya
+                 sebelum perjalanan jaringan. */
+              const jawab = await dialog({
+                judul: `Hapus foto ${petakLi.dataset.ke} ${namaLomba}?`,
+                kartuHtml: "<p>Fotonya hilang dari daftar dan dari penyimpanan.</p>",
+                medan: [{ label: "Alasan menghapus", contoh: "misal: buram, difoto ulang" }],
+                labelAksi: "Hapus Foto",
+              });
+              if (jawab === null) return;
+
+              x.disabled = true;
+              try {
+                await hapusFotoLembar(id, jawab[0]);
+              } catch (err) {
+                x.disabled = false;
+                notif(`Foto tidak bisa dihapus: ${err.message}`, true);
+                return;
+              }
+
+              // Daftar di belakang dialog ini ikut disesuaikan, supaya
+              // hitungannya tidak menyebut foto yang sudah tidak ada.
+              perLomba[kode] = (perLomba[kode] || []).filter(f => f.id !== id);
+              hitung[kode] = perLomba[kode].length;
+              const barisAsal = kartu.querySelector(`li[data-kode="${CSS.escape(kode)}"]`);
+              if (barisAsal) {
+                const jml = barisAsal.querySelector("[data-jumlah]");
+                if (jml) jml.textContent = hitung[kode] ? `${hitung[kode]} foto` : "belum ada";
+                const lihat = barisAsal.querySelector("[data-lihat]");
+                if (lihat) lihat.hidden = !hitung[kode];
+              }
+
+              petakLi.remove();
+              notif("Foto dihapus.");
+              if (!ul.children.length) tutup(null);
+            });
+          },
         });
+        await janjiGaleri;
       });
 
       kartu.addEventListener("change", async (e) => {

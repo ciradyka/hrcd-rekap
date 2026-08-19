@@ -304,5 +304,11 @@ run tests/sql/42_kode_lomba_stabil.sql
 # dua fungsi yang 0074 tulis sendiri. Tes 43 memanggil penulis lama itu.
 run supabase/migrations/0080_catat_foto_lembar_taut.sql
 run tests/sql/43_catat_foto_lembar_taut.sql
+# 0081 memberi jalan MENGHAPUS satu foto slip. Foto adalah bukti, dan bukti
+# yang hilang tidak menimbulkan galat apa pun — jadi yang dijaga tes 44 bukan
+# "bisa dihapus", melainkan alasannya wajib, alasannya benar-benar tercatat
+# sebelum barisnya hilang, dan juri pos tidak menjangkau pos lain.
+run supabase/migrations/0081_hapus_foto_lembar.sql
+run tests/sql/44_hapus_foto_lembar.sql
 
 echo "SEMUA TES LULUS"
