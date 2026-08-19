@@ -774,6 +774,34 @@ export async function tautanFoto(path) {
   return `${K.supabaseUrl}/storage/v1${j.signedURL || j.signedUrl}`;
 }
 
+/** Tautan bertanda tangan untuk BANYAK berkas sekaligus.
+ *
+ *  Satu permintaan, bukan satu per foto. Di sinyal pos, sembilan permintaan
+ *  berurutan adalah sembilan kesempatan gagal dan sembilan kali menunggu.
+ *
+ *  Yang lebih penting: dengan seluruh tautan sudah di tangan, membuka foto
+ *  ukuran penuh tidak perlu `await` lagi — dan window.open() yang dipanggil
+ *  SESUDAH await diblokir browser HP sebagai popup yang tidak diminta. Itulah
+ *  sebabnya pemanggil lama harus membuka jendela kosong lebih dulu lalu
+ *  mengisinya belakangan. */
+export async function tautanFotoBanyak(paths) {
+  if (K.mode === "dev" || !paths.length) return {};
+  await pastikanSesiSegar();
+  const j = await kirim(`${K.supabaseUrl}/storage/v1/object/sign/${BUCKET}`, {
+    method: "POST",
+    headers: kepalaSupabase(),
+    body: JSON.stringify({ expiresIn: 3600, paths }),
+  });
+  const peta = {};
+  for (const b of j || []) {
+    const tanda = b.signedURL || b.signedUrl;
+    // `path` yang dikembalikan Supabase tidak berawalan bucket, sama dengan
+    // yang dikirim — dipetakan balik supaya pemanggil tidak perlu menebak.
+    if (tanda) peta[b.path] = `${K.supabaseUrl}/storage/v1${tanda}`;
+  }
+  return peta;
+}
+
 /** Pemakaian kuota. Dibaca layar supaya kehabisan ruang tidak jadi kejutan di
  *  tengah acara — dan supaya rata-rata yang membengkak (tanda pengecilan
  *  gambar gagal di sebagian HP) terlihat sebagai angka, bukan sebagai

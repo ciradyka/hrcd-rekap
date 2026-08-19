@@ -26,7 +26,7 @@ import {
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
-  ubahUsernameAkun, daftarFitur, daftarHak, setHak,
+  ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
@@ -3140,11 +3140,19 @@ async function layarInputPos() {
       notif(`Daftar foto tidak bisa dibaca: ${err.message}`, true);
     }
 
+    /* SELURUH barisnya disimpan per lomba, bukan cuma yang terbaru.
+       Dulu hanya path pertama yang dipegang, jadi "Lihat" pada baris berbunyi
+       "9 foto" tetap membuka SATU gambar — dan yang delapan lagi tidak punya
+       satu pun jalan untuk dilihat. Angkanya benar, tombolnya yang berbohong.
+
+       Urutannya sudah terbaru dulu (order diunggah_pada.desc di api.js), dan
+       itu urutan yang benar: slip yang baru difoto adalah yang sedang
+       dipertanyakan orang. */
     const hitung = {};
-    const terbaru = {};
+    const perLomba = {};
     sudah.forEach(f => {
       hitung[f.kode_lomba] = (hitung[f.kode_lomba] || 0) + 1;
-      if (!terbaru[f.kode_lomba]) terbaru[f.kode_lomba] = f.path;   // sudah urut terbaru dulu
+      (perLomba[f.kode_lomba] ||= []).push(f);
     });
 
     /* Daftarnya per LOMBA, bukan per penilaian. Satu slip adalah satu lomba
@@ -3192,19 +3200,53 @@ async function layarInputPos() {
       kartu.addEventListener("click", async (e) => {
         const b = e.target.closest("[data-lihat]");
         if (!b) return;
-        const kode = b.closest("li").dataset.kode;
-        if (!terbaru[kode]) return;
-        // Jendelanya dibuka SEBELUM await. Dibuka sesudahnya, browser HP
-        // menganggapnya popup yang tidak diminta pengguna dan memblokirnya.
-        const jendela = window.open("", "_blank");
+        const li = b.closest("li");
+        const kode = li.dataset.kode, namaLomba = li.dataset.nama;
+        const daftar = perLomba[kode] || [];
+        if (!daftar.length) return;
+
+        b.disabled = true;
+        let peta = {};
         try {
-          const url = await tautanFoto(terbaru[kode]);
-          if (jendela && url) jendela.location = url;
-          else if (jendela) jendela.close();
+          peta = await tautanFotoBanyak(daftar.map(f => f.path));
         } catch (err) {
-          if (jendela) jendela.close();
+          b.disabled = false;
           notif(`Foto tidak bisa dibuka: ${err.message}`, true);
+          return;
         }
+        b.disabled = false;
+
+        /* Gambarnya dipasang langsung, tidak dibuka di tab baru satu per satu.
+           Sembilan tab adalah sembilan kali menekan "kembali" di HP, dan
+           urutannya hilang di antaranya.
+
+           Tautan penuhnya TETAP ada di tiap gambar, dan karena seluruh tanda
+           tangan sudah di tangan sebelum dialog ini digambar, membukanya tidak
+           perlu await — jadi tidak ada window.open() sesudah await yang akan
+           diblokir browser HP sebagai popup. */
+        const galeri = daftar.map((f, i) => {
+          const url = peta[f.path];
+          const ke = daftar.length - i;            // terbaru dulu, jadi dihitung mundur
+          const kapan = f.diunggah_pada ? tanggalJam(f.diunggah_pada) : "";
+          return `<li>
+            <div class="fg-kepala">
+              <strong>Foto ${esc(String(ke))}</strong>
+              <span>${esc(kapan)}</span>
+            </div>
+            ${url
+              ? `<a href="${esc(url)}" target="_blank" rel="noopener">
+                   <img src="${esc(url)}" alt="Foto ${esc(String(ke))} ${esc(namaLomba)}"
+                        loading="lazy"></a>`
+              : `<p class="keterangan">Tautan fotonya tidak bisa dibuat.</p>`}
+          </li>`;
+        }).join("");
+
+        await dialog({
+          judul: `${namaLomba} · ${daftar.length} foto`,
+          kartuHtml: `<ul class="foto-galeri">${galeri}</ul>`,
+          bacaSaja: true,
+          silangSaja: true,
+        });
       });
 
       kartu.addEventListener("change", async (e) => {
@@ -3232,7 +3274,11 @@ async function layarInputPos() {
             const hasil = await unggahFotoLembar(
               pos.nomor, kode, li.dataset.nama, dada, blob);
             hitung[kode] = (hitung[kode] || 0) + 1;
-            terbaru[kode] = hasil.path;
+            // Disisipkan DI DEPAN: daftarnya terbaru dulu, dan yang barusan
+            // difoto adalah yang paling baru. Tanpa ini "Lihat" sesudah
+            // mengunggah tidak memperlihatkan foto yang baru saja dikirim.
+            (perLomba[kode] ||= []).unshift(
+              { path: hasil.path, diunggah_pada: new Date().toISOString() });
             status.textContent = `${hitung[kode]} foto · ${ukuranRapi(blob.size)}`;
             const lihat = li.querySelector("[data-lihat]");
             if (lihat) lihat.hidden = false;

@@ -1726,6 +1726,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   white-space: nowrap; margin-left: auto;
 }
 
+/* Galeri seluruh foto satu lomba. Gambarnya ditumpuk ke bawah, bukan dibuka
+   satu per satu di tab baru: sembilan tab adalah sembilan kali menekan
+   "kembali" di HP, dan urutannya hilang di antaranya.
+
+   Tingginya dibatasi supaya slip yang dipotret tegak tidak memakan satu layar
+   penuh sendirian — yang dicari orang di sini "fotonya ada dan terbaca", dan
+   untuk membaca angkanya ada tautan ukuran penuh di tiap gambar. */
+.foto-galeri { list-style: none; margin: 0; padding: 0; }
+.foto-galeri li { margin-bottom: .9rem; }
+.foto-galeri li:last-child { margin-bottom: 0; }
+.fg-kepala {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: .6rem; margin-bottom: .3rem; font-size: .85rem;
+}
+.fg-kepala span { color: var(--tinta-lembut); }
+.foto-galeri img {
+  display: block; width: 100%; max-height: 60vh; object-fit: contain;
+  border: 1px solid var(--garis); border-radius: 8px; background: var(--kertas);
+}
+
 /* Foto slip per lomba (0047). Bentuknya sengaja sama dengan .riwayat — dua
    dialog yang dibuka dari baris yang sama tidak boleh terasa seperti dua
    aplikasi berbeda. */
