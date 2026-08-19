@@ -318,5 +318,12 @@ run tests/sql/44_hapus_foto_lembar.sql
 # jauh di atas sini, saat fungsinya masih versi 0031.
 run supabase/migrations/0082_pesan_rentang_menyebut_komponen.sql
 run tests/sql/45_pesan_rentang_komponen.sql
+# 0083 menyetel tanggal lomba yang sebenarnya: 29 Agustus 2026. Sampai sini
+# database uji masih memakai tanggal contoh dari seed (2027-02-21), dan itu
+# memang benar — tes 03-05 mematok jam berangkat pada hari itu, dan run.sh
+# memutar ulang sejarahnya. Karena itu berkas ini di UJUNG, bukan di dekat
+# seed. Tes 46 menjaga hasilnya, termasuk yang keluar dari v_keberangkatan.
+run supabase/migrations/0083_tanggal_lomba_29_agustus_2026.sql
+run tests/sql/46_tanggal_lomba.sql
 
 echo "SEMUA TES LULUS"

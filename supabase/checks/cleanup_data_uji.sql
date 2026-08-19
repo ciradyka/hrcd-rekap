@@ -7,8 +7,8 @@
 -- membuktikan bahwa seluruh 16 sekolah di produksi memang sisa pengetesan:
 -- nama bergenerator ("SMA Tabel 054155", "SMK Uji Produksi", "SMP Uji
 -- Deploy") dan alamat isian asal ("ABC", "HEHe", "Jl"), semuanya terdaftar
--- 12-13 Agustus 2026 — jendela pengetesan, sementara lombanya Februari 2027
--- dan pendaftaran belum dibuka.
+-- 12-13 Agustus 2026 — jendela pengetesan, sementara lombanya masih dua
+-- minggu lagi (29 Agustus 2026) dan pendaftaran belum dibuka.
 --
 -- JANGAN dijalankan lagi setelah pendaftaran sungguhan dibuka. Berkas ini
 -- tidak bisa membedakan sekolah uji dari sekolah asli; ia menghapus
