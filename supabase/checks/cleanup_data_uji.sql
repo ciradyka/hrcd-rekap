@@ -37,6 +37,31 @@
 -- terpisah lewat dashboard Supabase.
 --
 -- ---------------------------------------------------------------------------
+-- JALAN KETIGA: 20 AGUSTUS 2026
+--
+-- Diminta pemilik menjelang HRCD XXXVII (29 Agustus 2026). Data yang ada saat
+-- ini seluruhnya dummy: 54 regu bernama "Alah Siah Boy", "Reconnect Afk",
+-- "Disconnect Ngelag" dan sejenisnya, 799 nilai, 24 pendaftaran.
+--
+-- SATU BARIS DITAMBAHKAN: `kloter.dicetak_pada` dikosongkan. Dua jalan pertama
+-- melewatkannya, dan CLAUDE.md 12.4 menyimpan akibatnya — produksi sempat
+-- membagi regu mulai dari kloter 17 karena 24 kloter pertama masih bertanda
+-- tercetak.
+--
+-- Sejak 0066 tanda itu TIDAK lagi ikut memilih kloter, jadi pembagian tidak
+-- akan meleset seperti dulu. Yang tersisa tetap perlu dibersihkan: layar Cetak
+-- Kloter menandai kloter itu "sudah dicetak", jadi panitia bisa melewatinya
+-- pada hari yang sebenarnya — dan `pindah_kloter` (0018) ikut melaporkan
+-- tujuannya sebagai kloter yang kertasnya sudah beredar.
+--
+-- BUCKET FOTO KINI BENAR-BENAR BERISI, tidak lagi nol seperti catatan di atas.
+-- Selain slip yang sengaja diunggah, ada berkas YATIM dari tiap percobaan
+-- unggah per regu yang gagal sebelum migrasi 0080: gambarnya naik ke bucket
+-- lebih dulu, barisnya ditolak constraint sesudahnya. SQL tidak bisa
+-- menjangkau satu pun di antaranya. Bersihkan bucket `lembar` lewat dashboard
+-- Supabase SESUDAH berkas ini dijalankan.
+--
+-- ---------------------------------------------------------------------------
 -- KENAPA HARUS BERSIH SEBELUM KONFIGURASI DIGANTI
 --
 -- `0033` menolak memasang format XXXVII selama edisi aktif masih memuat satu
@@ -72,6 +97,7 @@ union all select 'nomor_dada_pensiun', count(*) from nomor_dada_pensiun
 union all select 'nilai_terkunci',     count(*) from nilai_terkunci
 union all select 'foto_lembar',        count(*) from foto_lembar
 union all select 'kloter berangkat',   count(*) from kloter where jam_berangkat is not null
+union all select 'kloter tercetak',   count(*) from kloter where dicetak_pada is not null
 order by 1;
 
 -- ---------------------------------------------------------------------------
@@ -100,6 +126,11 @@ delete from nomor_dada_pensiun;
 -- akan menganggap seluruh kloter sudah berangkat sebelum ada yang datang.
 update kloter set jam_berangkat = null where jam_berangkat is not null;
 
+-- Tanda cetak juga. Layar Cetak Kloter membacanya sebagai "kertasnya sudah
+-- beredar", dan kloter yang bertanda dari pengetesan bisa dilewati panitia
+-- pada hari yang sebenarnya (CLAUDE.md 12.4).
+update kloter set dicetak_pada = null where dicetak_pada is not null;
+
 -- Saklar hari-H dikembalikan ke keadaan sebelum lomba.
 update status_acara set
   daftar_ulang_ditutup = false,
@@ -120,4 +151,5 @@ union all select 'nomor_dada_pensiun', count(*) from nomor_dada_pensiun
 union all select 'nilai_terkunci',     count(*) from nilai_terkunci
 union all select 'foto_lembar',        count(*) from foto_lembar
 union all select 'kloter berangkat',   count(*) from kloter where jam_berangkat is not null
+union all select 'kloter tercetak',   count(*) from kloter where dicetak_pada is not null
 order by 1;
