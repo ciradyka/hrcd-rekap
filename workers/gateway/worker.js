@@ -168,11 +168,24 @@ async function daftarPanitia(req, env, b) {
   if (password.length < 8)
     return jawab(400, { message: "Password minimal 8 karakter." }, req);
 
-  // `admin` sengaja TIDAK ada di daftar ini. Kalau suatu hari peran baru
-  // ditambahkan, ia harus ditulis di sini juga — dan kalau lupa, yang terjadi
-  // adalah penolakan, bukan kebocoran.
-  if (!["registrasi", "gerbang", "juri_pos", "koordinator_pos"].includes(peran))
-    return jawab(400, { message: "Peran harus registrasi, gerbang, juri_pos, atau koordinator_pos." }, req);
+  // `admin` DAN `koordinator_pos` sengaja TIDAK ada di daftar ini, dan
+  // alasannya satu: keduanya peran yang berlaku di lebih dari satu meja, jadi
+  // keduanya harus DIBERIKAN, bukan diminta sendiri lewat pintu yang tidak
+  // dijaga siapa pun.
+  //
+  // Untuk koordinator_pos yang membukanya justru kolom `pos` yang kosong:
+  // `pos_saya()` NULL, dan pagar `pos_saya() is null or pos = pos_saya()`
+  // membuka KELIMA pos sekaligus (CLAUDE.md 13.2). Dari luar ia terlihat
+  // sesederhana "juri pos tanpa pos", dan itulah yang membuatnya mudah lolos.
+  //
+  // Akun baru memang lahir `is_active: false`, tapi itu bukan pengganti pagar
+  // ini: admin yang menekan Aktifkan sedang menjawab "orang ini benar", bukan
+  // "peran yang ia pilihkan untuk dirinya sendiri benar".
+  //
+  // Kalau suatu hari peran baru ditambahkan, ia harus ditulis di sini juga —
+  // dan kalau lupa, yang terjadi adalah penolakan, bukan kebocoran.
+  if (!["registrasi", "gerbang", "juri_pos"].includes(peran))
+    return jawab(400, { message: "Peran harus registrasi, gerbang, atau juri_pos." }, req);
   if ((peran === "juri_pos") !== (pos !== null))
     return jawab(400, { message: "Juri pos wajib menyebut posnya; peran lain tanpa pos." }, req);
   if (pos !== null && !(Number.isInteger(pos) && pos >= 1 && pos <= 20))

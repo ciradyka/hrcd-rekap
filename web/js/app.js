@@ -222,9 +222,28 @@ function layarLogin(pesan) {
         </div>
         <div class="field">
           <label for="d-peran">Tugas</label>
+          <!-- KOORDINATOR POS TIDAK ADA DI SINI, seperti admin. Keduanya
+               peran yang membuka lebih dari satu meja: koordinator pos punya
+               kolom pos KOSONG, dan justru itu yang membuka KELIMA pos
+               (CLAUDE.md 13.2). Pintu ini tidak dijaga siapa pun -- siapa saja
+               yang membuka layar login boleh memakainya -- jadi peran yang
+               melintasi pos hanya boleh DIBERIKAN admin di layar Akun, bukan
+               dipilih sendiri oleh yang mendaftar.
+
+               Lahir nonaktif tidak cukup sebagai pengganti: admin yang menekan
+               Aktifkan sedang menjawab "orang ini benar", dan belum tentu
+               memperhatikan peran apa yang dipilihkan orang itu untuk dirinya
+               sendiri.
+
+               Gateway menolaknya juga. Daftar di sini cuma menyembunyikan;
+               yang menegakkan workers/gateway/worker.js, karena kotak ini bisa
+               diubah dari devtools dalam sepuluh detik.
+
+               TANPA BACKTICK DI KOMENTAR INI -- lihat catatan panjang di atas
+               tombol ganti-mode. Komentar ini duduk di dalam template literal,
+               dan satu backtick menutupnya. -->
           <select id="d-peran" class="select-small">
             <option value="juri_pos">Juri Pos</option>
-            <option value="koordinator_pos">Koordinator Pos</option>
             <option value="registrasi">Registrasi</option>
             <option value="gerbang">Gerbang</option>
           </select>
