@@ -4490,8 +4490,17 @@ async function layarLiveScore() {
      menggeser semuanya — dan yang lebih buruk, golongan yang belum satu pun
      regunya masuk terlihat seperti golongan yang tidak ada. */
   const bisaPublish = bolehLihat("pengaturan");
+  /* Label menyebut SIAPA YANG MELIHAT, bukan nama fase di database.
+     "Pra" tidak mengatakan apa-apa kepada orang yang menekannya — ia nama
+     tahapan, bukan akibat. "Internal" langsung menjawab pertanyaan yang
+     sebenarnya ditanyakan: apakah peserta sudah bisa melihat ini.
+
+     Kodenya TETAP pra/progres/penuh. Nilai itu duduk di status_acara, dipakai
+     v_progres_publik, keempat pagar "BOCOR" di publish-live.yml, dan migrasi
+     0068/0070/0072 — menggantinya menuntut migrasi beserta seluruh policy,
+     demi tiga kata di layar. */
   const FASE = [
-    ["pra", "Pra"], ["progres", "Progres"], ["penuh", "Live"],
+    ["pra", "Internal"], ["progres", "Progress"], ["penuh", "Live"],
   ];
   const saklar = !bisaPublish ? "" : `
     <div class="segmen-fase" role="group" aria-label="Fase Live Score">
@@ -4753,14 +4762,23 @@ async function layarLiveScore() {
           if (aktif) x.setAttribute("aria-current", "true");
           else x.removeAttribute("aria-current");
         });
-        // Halaman peserta ikut dalam hitungan detik: ia membaca fase langsung
-        // dari database tiap poll (0070). Yang masih perlu diterbitkan hanya
-        // ISINYA — saklar cuma bisa memperketat, tidak membuka lebih dari
-        // yang sudah terbit.
+        /* Pesannya menyebut AKIBATNYA bagi peserta, bukan nama fasenya.
+           Halaman peserta ikut dalam hitungan detik: ia membaca fase langsung
+           dari database tiap poll (0070).
+
+           Kalimat kedua pada Live sengaja ditahan. Saklar ini cuma bisa
+           MEMPERKETAT — ia tidak pernah menampilkan lebih dari isi berkas yang
+           sudah terbit (CLAUDE.md 14.3), dan publish-live.yml menghapus
+           klasemen dari berkas itu selama fasenya belum penuh. Jadi urutannya
+           mengikat: nyalakan Live DULU, terbitkan SESUDAHNYA. Tanpa kalimat
+           ini, admin menekan Live, membaca "peserta dapat melihat", dan
+           peserta tetap melihat papan kosong tanpa satu pun tanda kenapa —
+           cron penerbitan berkala masih dimatikan di luar minggu lomba. */
         notif(ke === "penuh"
-          ? "Live. Kalau klasemennya belum pernah diterbitkan, jalankan Publish rekap live."
-          : ke === "progres" ? "Peserta melihat kemajuan, bukan nilai."
-          : "Peserta tidak melihat apa pun.");
+          ? "Live Score aktif. Peserta dapat melihat rekapitulasi penuh — "
+            + "jalankan Publish rekap live supaya angkanya ikut terbit."
+          : ke === "progres" ? "Peserta dapat melihat progress live score."
+          : "Live Score hanya dapat dilihat panitia.");
       } catch (e) {
         notif(e.message, true);
       } finally {
