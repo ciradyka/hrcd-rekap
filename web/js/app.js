@@ -2633,25 +2633,159 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
   const judulPos = pos.bayangan ? pos.name : `Pos ${pos.nomor} · ${pos.name}`;
 
+  /* IDENTITAS REGU — sama di semua lomba.
+
+     Nomor dada dibuat besar karena ia dibaca dua kali dalam keadaan
+     sama-sama tergesa: saat ditulis di tengah antrean, dan saat tim IT
+     mengurutkan ratusan lembar lepas dengan hanya melihat sudut kertas.
+
+     KATEGORI DILINGKARI, bukan ditulis. Empat golongan sudah pasti, jadi
+     menuliskannya berarti menyalin dua kata yang sudah ada di kertas —
+     sementara satu lingkaran tidak bisa salah eja dan terbaca dari jarak
+     satu meja. */
+  const identitas = `
+      <table class="bl-identitas"><tbody>
+        <tr>
+          <td class="bl-dada"><span class="bl-label">No Dada</span></td>
+          <td class="bl-regu"><span class="bl-label">Nama Regu</span></td>
+          <td class="bl-sekolah"><span class="bl-label">Pangkalan / Sekolah</span></td>
+        </tr>
+        <tr>
+          <td class="bl-kategori" colspan="3">
+            <span class="bl-label">Kategori &mdash; lingkari salah satu</span>
+            <span class="bl-pilihan">
+              <span>Penggalang PA</span><span>Penggalang PI</span>
+              <span>Penegak PA</span><span>Penegak PI</span>
+            </span>
+          </td>
+        </tr>
+      </tbody></table>`;
+
+  /* BAGIAN PANITIA BERBENTUK PITA, bukan kotak setinggi kotak nilai.
+
+     Satu lembar kini dipegang DUA tangan — peserta menulis jawabannya,
+     panitia menulis angkanya — jadi label "diisi panitia" harus menempel
+     pada kotaknya, bukan melayang sebagai judul di atasnya. Menempel juga
+     yang membuatnya muat: A5 melintang tidak punya ruang untuk dua judul
+     berdiri sendiri ditambah dua kotak setinggi 30mm, dan diukur memang
+     meluap 15 sampai 28mm sebelum bentuk ini dipakai.
+
+     Angkanya paling banyak dua digit, jadi 21mm sudah tinggi untuk ditulis
+     besar — yang butuh ruang di lembar ini isian peserta, bukan isian
+     panitia.
+
+     LABEL DI ATAS KOTAKNYA, bukan di sebelahnya. Bentuk pertama menaruh
+     label lalu kotak berjajar mendatar, dan pada Menaksir yang punya DUA
+     kotak hasilnya berbunyi "Jawaban Taksir [kotak] Selisih Taksir [kotak]"
+     — deretan yang sama-sama benar dibaca sebagai pasangan maju atau
+     pasangan mundur. Angka yang tertukar di sini bukan salah ketik yang
+     ketahuan: keduanya angka meter yang masuk akal. */
+  const pitaPanitia = (sel) => `
+      <div class="bl-panitia">
+        <span class="bl-panitia-siapa">Diisi panitia</span>
+        ${sel.map(([judul, petunjuk]) => `
+        <span class="bl-panitia-sel">
+          <span class="bl-panitia-kepala">
+            <span class="bl-panitia-judul">${esc(judul)}</span>
+            <span class="bl-panitia-contoh">${esc(petunjuk)}</span>
+          </span>
+          <span class="bl-panitia-kotak"></span>
+        </span>`).join("")}
+      </div>`;
+
+  const penanda = (siapa) => `<p class="bl-siapa">${esc(siapa)}</p>`;
+
+  /* ---------------------------------------------------------------------
+     BENTUK KHUSUS PER LOMBA.
+
+     Tiga lomba mengisi lembarnya berdua: peserta menulis jawaban, panitia
+     menulis angkanya. Bentuk itu TIDAK bisa diturunkan dari konfigurasi —
+     `wahana` tahu rentang dan satuan, tidak tahu bahwa Semaphore punya lima
+     amplop atau bahwa Tebak Simpul bernomor sampai sepuluh.
+
+     Kuncinya `kode_lomba` — kunci BEKU dari migrasi 0079, yang sama dengan
+     yang dipakai foto slip. Bukan `kode` wahana (Tebak Simpul punya empat,
+     satu per golongan) dan bukan namanya (mengganti nama lomba akan
+     mengembalikan lembarnya ke bentuk generik tanpa satu pun galat).
+
+     Lomba yang tidak ada di sini memakai bentuk generik di bawah, dan itu
+     keadaan yang sah — bukan kekurangan yang menunggu dilengkapi. */
+  const bentukKhusus = {
+    /* SEMAPHORE. Peserta mengambil satu dari lima amplop, tiap amplop berisi
+       lima huruf. Yang ditulis peserta: nomor amplopnya dan kelima hurufnya.
+       Panitia mencocokkan dengan kunci amplop itu lalu menghitung berapa
+       huruf yang benar — 0 sampai 5, sama dengan rentang di konfigurasi.
+
+       Lima kotak huruf, bukan satu garis panjang: satu kotak per huruf
+       membuat huruf yang tertinggal terlihat sebagai kotak kosong, dan
+       tulisan tangan yang berdempetan tidak bisa dibaca dua cara. */
+    "semaphore": () => `
+      ${penanda("Diisi peserta")}
+      <div class="bl-amplop">
+        <div class="bl-amplop-nomor">
+          <span class="bl-nilai-judul">Nomor Amplop</span>
+          <div class="bl-kotak-huruf bl-kotak-tunggal"></div>
+        </div>
+        <div class="bl-amplop-jawab">
+          <span class="bl-nilai-judul">Jawaban Semaphore</span>
+          <div class="bl-huruf-baris">
+            ${[1, 2, 3, 4, 5].map(() => `<div class="bl-kotak-huruf"></div>`).join("")}
+          </div>
+        </div>
+      </div>
+      ${pitaPanitia([["Jumlah Huruf yang Benar", "angka 0 – 5"]])}`,
+
+    /* TEBAK SIMPUL. SEPULUH nomor pada satu master, bukan dua master 5 dan
+       10: Penggalang mengisi 1-5 dan membiarkan sisanya kosong. Dua tumpukan
+       yang berbeda bentuknya adalah dua tumpukan yang bisa tertukar di
+       lapangan, dan nomor kosong tidak pernah salah dibaca sebagai jawaban.
+
+       Dua lajur lima baris, bukan satu lajur sepuluh: A5 melintang lebar dan
+       pendek, dan sepuluh baris berurutan ke bawah tidak muat tanpa
+       mengecilkan barisnya sampai tidak bisa ditulisi. */
+    "tebak-simpul": () => `
+      ${penanda("Diisi peserta — nama simpulnya")}
+      <div class="bl-nomor-grid">
+        ${Array.from({ length: 10 }, (_, i) => `
+        <div class="bl-nomor-baris">
+          <span class="bl-nomor">${i + 1}.</span>
+          <span class="bl-nomor-garis"></span>
+        </div>`).join("")}
+      </div>
+      ${pitaPanitia([["Jumlah Simpul yang Benar", "angka 0 – 10 / 0 – 5"]])}`,
+
+    /* MENAKSIR — SATU-SATUNYA lembar tanpa bagian panitia.
+
+       Yang diketik ke sistem adalah TAKSIRAN PESERTA apa adanya, bukan
+       selisihnya: jawaban sebenarnya tersimpan di konfigurasi, dan mesin
+       skor yang menghitung selisihnya. Jadi tidak ada yang perlu dinilai
+       tangan di kertas ini — panitia cuma membaca angka yang sudah ditulis
+       peserta lalu mengetiknya.
+
+       Kotak jawaban sebenarnya SENGAJA tidak dicetak. Ia sama untuk semua
+       regu, dan angka yang tercetak di 300 lembar adalah 300 kesempatan
+       peserta membacanya sebelum menaksir.
+
+       "contoh: 7.34" memakai TITIK, dan contohnya ada justru karena itu:
+       peserta menulis koma seperti kebiasaan menulis angka di Indonesia,
+       sementara yang diterima kotak isian di layar adalah titik. Satu contoh
+       nyata mencegah seluruh kelas kesalahan itu tanpa satu kalimat pun. */
+    "menaksir": () => `
+      ${penanda("Diisi peserta")}
+      <div class="bl-taksir">
+        <span class="bl-nilai-judul">Hasil Taksir</span>
+        <span class="bl-nilai-contoh">meter, dua angka di belakang koma — contoh: 7.34</span>
+        <div class="bl-taksir-kotak"></div>
+      </div>`,
+  };
+
   const satuBlangko = (lomba) => {
     const kols = lomba.kolom;
     // Varian mana pun boleh dipakai untuk menurunkan bentuknya: yang berbeda
     // antar golongan hanya skalanya, dan skala tidak dicetak di blangko —
     // justru itu gunanya. Petugas menulis jumlah benar apa adanya, dan sistem
     // yang tahu 5 simpul untuk Penggalang, 10 untuk Penegak.
-    return `
-    <article class="blangko">
-      <p class="bl-pos">${esc(judulPos)}</p>
-      <h2 class="bl-lomba">${esc(lomba.nama)}</h2>
-      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")}</p>
-
-      <table class="bl-identitas"><tbody>
-        <tr>
-          <td class="bl-dada"><span class="bl-label">No Dada</span></td>
-          <td class="bl-catat"><span class="bl-label">Regu / sekolah</span></td>
-        </tr>
-      </tbody></table>
-
+    const generik = () => `
       <div class="bl-nilai${kols.length > 1 ? " bl-nilai-banyak" : ""}">
         ${kols.map(kol => `
         <div class="bl-nilai-sel">
@@ -2662,10 +2796,31 @@ function siapkanCetakBlangko(pos, kolomLayar) {
           </div>
           <div class="bl-nilai-kotak"></div>
         </div>`).join("")}
-      </div>
+      </div>`;
 
+    const khusus = bentukKhusus[lomba.kode];
+    const badan = (khusus || generik)();
+
+    /* Catatan "tulis angkanya saja" hanya di bentuk generik. Di lembar
+       khusus ia sudah dijawab dua kali — pita panitia menyebut satuan dan
+       rentangnya, dan kotaknya sendiri bernama "Jumlah ... yang Benar" —
+       sementara satu baris di A5 yang sudah penuh adalah 6mm yang dipakai
+       kotak tulis (CLAUDE.md 9.3). */
+    const catatan = khusus ? "" : `
       <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
-         poin.</strong></p>
+         poin.</strong></p>`;
+
+    return `
+    <article class="blangko">
+      <p class="bl-pos">${esc(judulPos)}</p>
+      <h2 class="bl-lomba">${esc(lomba.nama)}</h2>
+      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")}</p>
+
+      ${identitas}
+
+      ${badan}
+
+      ${catatan}
 
       <!-- TIGA JURI, bukan satu petugas. Satu lomba dinilai bersama, dan
            tanda tangan yang cuma satu membuat dua juri lain tidak punya
