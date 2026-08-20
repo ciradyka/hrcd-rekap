@@ -245,6 +245,40 @@ export function detikSah(teks) {
   return Number(a) * 60 + d;
 }
 
+/** METER, DISIMPAN SEBAGAI SENTIMETER BULAT.
+ *
+ *  Alasannya ditulis di kepala migrasi 0059, dan berlaku persis seperti untuk
+ *  `detik`: nilai mentah tidak punya koma. Pecahan yang masuk ke satu kolom
+ *  menyebar ke setiap tempat yang membacanya — jadi yang disimpan satuan
+ *  terkecil yang bulat, dan yang dilihat orang satuan yang ia ucapkan.
+ *
+ *    "8"     -> 800 cm       "8.1"  -> 810 cm
+ *    "8.55"  -> 855 cm       "8,55" -> 855 cm
+ *
+ *  KOMA IKUT DITERIMA, dan itu bukan kelonggaran. Peserta menulis "8,55" di
+ *  blangko karena begitulah angka ditulis dalam bahasa Indonesia; petugas
+ *  yang menyalinnya mengetik apa yang ia baca. Menolaknya berarti menolak
+ *  angka yang benar karena tanda bacanya, di tengah antrean.
+ *
+ *  Lebih dari dua angka di belakang koma dibulatkan, bukan ditolak: yang
+ *  mengetik "8.555" bermaksud 8,55 atau 8,56 — keduanya jauh lebih dekat ke
+ *  kebenaran daripada kotak yang dikosongkan karena ditolak. */
+export function meterSah(teks) {
+  const t = String(teks ?? "").trim().replace(",", ".");
+  if (!t || !/^\d+(\.\d+)?$/.test(t)) return null;
+  return Math.round(Number(t) * 100);
+}
+
+/** Kebalikan meterSah: SELALU dua angka di belakang koma — 800 jadi "8.00",
+ *  810 jadi "8.10". Bentuk yang tetap membuat kolom angka bisa dibandingkan
+ *  sekilas dari atas ke bawah, dan membuat "8" yang diketik terbaca kembali
+ *  sebagai 8,00 meter alih-alih 8 sesuatu. */
+export function meterTeks(cm) {
+  if (cm === null || cm === undefined || cm === "") return "";
+  const n = Number(cm);
+  return Number.isFinite(n) ? (n / 100).toFixed(2) : "";
+}
+
 /** Kebalikan detikSah: SELALU menit:detik berpadding — 50 jadi "00:50", 80
  *  jadi "01:20". Yang diketik boleh bentuk apa saja yang diterima detikSah
  *  ("50", "1:20", "01:20"); yang TERGAMBAR selalu satu bentuk.
@@ -890,6 +924,10 @@ export function petunjukKolom(k) {
   // disebut tetap satu bentuk. detikSah() masih menerima detik polos, jadi
   // yang mengetik 74 tidak kehilangan apa pun — ia terbaca kembali 01:14.
   if (k.satuan === "detik") return "menit:detik";
+  // Rentangnya TIDAK disebut untuk meter. Ia disimpan dalam sentimeter, jadi
+  // "0 – 10000" di kepala kolom adalah angka yang tidak pernah diketik
+  // siapa pun — satuannya sendiri yang jadi keterangan.
+  if (k.satuan === "meter") return "meter";
   if (k.form === "benar_kurang_salah") return "benar / salah";
   if (k.form === "benar_per_total") return `0 – ${angkaRapi(k.total_soal)}`;
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
@@ -912,6 +950,7 @@ export function nilaiBagian(w, a, b) {
       ? [angkaRapi(a)] : [angkaRapi(a), angkaRapi(b)];
   }
   if (w.satuan === "detik") return [detikTeks(a)];
+  if (w.satuan === "meter") return [meterTeks(a)];
   return [angkaRapi(a)];
 }
 
