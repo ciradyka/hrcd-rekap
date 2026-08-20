@@ -2642,7 +2642,13 @@ function siapkanCetakBlangko(pos, kolomLayar) {
      KATEGORI DILINGKARI, bukan ditulis. Empat golongan sudah pasti, jadi
      menuliskannya berarti menyalin dua kata yang sudah ada di kertas —
      sementara satu lingkaran tidak bisa salah eja dan terbaca dari jarak
-     satu meja. */
+     satu meja.
+
+     URUTANNYA DIBACA DARI URUT_GOLONGAN, tidak ditulis ulang di sini. Kertas
+     dan layar harus menyebut keempatnya dalam urutan yang sama — petugas yang
+     menyalin dari satu ke yang lain menghitung posisi, bukan membaca nama —
+     dan salinan kelima dari daftar ini persis yang sudah dibersihkan sekali
+     (lihat kepala URUT_GOLONGAN di util.js). */
   const identitas = `
       <table class="bl-identitas"><tbody>
         <tr>
@@ -2653,10 +2659,8 @@ function siapkanCetakBlangko(pos, kolomLayar) {
         <tr>
           <td class="bl-kategori" colspan="3">
             <span class="bl-label">Kategori &mdash; lingkari salah satu</span>
-            <span class="bl-pilihan">
-              <span>Penggalang PA</span><span>Penggalang PI</span>
-              <span>Penegak PA</span><span>Penegak PI</span>
-            </span>
+            <span class="bl-pilihan">${URUT_GOLONGAN.map(g =>
+              `<span>${esc(GOLONGAN_LABEL[g])}</span>`).join("")}</span>
           </td>
         </tr>
       </tbody></table>`;
@@ -2674,23 +2678,21 @@ function siapkanCetakBlangko(pos, kolomLayar) {
      besar — yang butuh ruang di lembar ini isian peserta, bukan isian
      panitia.
 
-     LABEL DI ATAS KOTAKNYA, bukan di sebelahnya. Bentuk pertama menaruh
-     label lalu kotak berjajar mendatar, dan pada Menaksir yang punya DUA
-     kotak hasilnya berbunyi "Jawaban Taksir [kotak] Selisih Taksir [kotak]"
-     — deretan yang sama-sama benar dibaca sebagai pasangan maju atau
-     pasangan mundur. Angka yang tertukar di sini bukan salah ketik yang
-     ketahuan: keduanya angka meter yang masuk akal. */
+     LABEL DI KIRI, kotaknya mengisi sisa lebar. Bentuk bertumpuk sempat
+     dipakai waktu Menaksir masih punya dua kotak — di sana label yang
+     berjajar mendatar terbaca sebagai pasangan maju atau pasangan mundur.
+     Sejak Menaksir tidak lagi dinilai tangan, tiap pita cuma punya SATU
+     kotak dan kekaburan itu hilang; yang tersisa keuntungannya, yaitu kotak
+     selebar sisa halaman untuk menulis angka besar-besar. */
   const pitaPanitia = (sel) => `
       <div class="bl-panitia">
         <span class="bl-panitia-siapa">Diisi panitia</span>
         ${sel.map(([judul, petunjuk]) => `
         <span class="bl-panitia-sel">
-          <span class="bl-panitia-kepala">
-            <span class="bl-panitia-judul">${esc(judul)}</span>
-            <span class="bl-panitia-contoh">${esc(petunjuk)}</span>
-          </span>
-          <span class="bl-panitia-kotak"></span>
-        </span>`).join("")}
+          <span class="bl-panitia-judul">${esc(judul)}</span>
+          <span class="bl-panitia-contoh">${esc(petunjuk)}</span>
+        </span>
+        <span class="bl-panitia-kotak"></span>`).join("")}
       </div>`;
 
   const penanda = (siapa) => `<p class="bl-siapa">${esc(siapa)}</p>`;
@@ -2716,24 +2718,25 @@ function siapkanCetakBlangko(pos, kolomLayar) {
        Panitia mencocokkan dengan kunci amplop itu lalu menghitung berapa
        huruf yang benar — 0 sampai 5, sama dengan rentang di konfigurasi.
 
-       Lima kotak huruf, bukan satu garis panjang: satu kotak per huruf
-       membuat huruf yang tertinggal terlihat sebagai kotak kosong, dan
-       tulisan tangan yang berdempetan tidak bisa dibaca dua cara. */
+       SATU kotak besar untuk kelima hurufnya, bukan lima kotak. Lima petak
+       memaksa tulisan mengikuti petaknya, dan huruf semaphore yang ditulis
+       tergesa lebih sering melebar daripada rapi — satu kotak lebar tidak
+       pernah kekurangan tempat. Kotak nomor amplopnya selebar tulisan
+       "Nomor Amplop" di atasnya, jadi lebarnya sendiri sudah memberi tahu
+       bahwa yang ditulis di sana cuma satu angka. */
     "semaphore": () => `
       ${penanda("Diisi peserta")}
       <div class="bl-amplop">
         <div class="bl-amplop-nomor">
           <span class="bl-nilai-judul">Nomor Amplop</span>
-          <div class="bl-kotak-huruf bl-kotak-tunggal"></div>
+          <div class="bl-kotak-huruf"></div>
         </div>
         <div class="bl-amplop-jawab">
           <span class="bl-nilai-judul">Jawaban Semaphore</span>
-          <div class="bl-huruf-baris">
-            ${[1, 2, 3, 4, 5].map(() => `<div class="bl-kotak-huruf"></div>`).join("")}
-          </div>
+          <div class="bl-kotak-huruf"></div>
         </div>
       </div>
-      ${pitaPanitia([["Jumlah Huruf yang Benar", "angka 0 – 5"]])}`,
+      ${pitaPanitia([["Jumlah huruf yang benar", "( 0 – 5 )"]])}`,
 
     /* TEBAK SIMPUL. SEPULUH nomor pada satu master, bukan dua master 5 dan
        10: Penggalang mengisi 1-5 dan membiarkan sisanya kosong. Dua tumpukan
@@ -2742,17 +2745,22 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
        Dua lajur lima baris, bukan satu lajur sepuluh: A5 melintang lebar dan
        pendek, dan sepuluh baris berurutan ke bawah tidak muat tanpa
-       mengecilkan barisnya sampai tidak bisa ditulisi. */
+       mengecilkan barisnya sampai tidak bisa ditulisi.
+
+       Nomornya menurun PER LAJUR — 1-5 di kiri, 6-10 di kanan — bukan
+       berselang-seling kiri-kanan. Penggalang mengisi lima yang pertama, dan
+       hanya urutan ini yang membuat kelimanya berkumpul di satu lajur alih-
+       alih tersebar di sepuluh baris. */
     "tebak-simpul": () => `
       ${penanda("Diisi peserta — nama simpulnya")}
       <div class="bl-nomor-grid">
-        ${Array.from({ length: 10 }, (_, i) => `
+        ${[0, 1, 2, 3, 4].flatMap(r => [r + 1, r + 6]).map(n => `
         <div class="bl-nomor-baris">
-          <span class="bl-nomor">${i + 1}.</span>
+          <span class="bl-nomor">${n}.</span>
           <span class="bl-nomor-garis"></span>
         </div>`).join("")}
       </div>
-      ${pitaPanitia([["Jumlah Simpul yang Benar", "angka 0 – 10 / 0 – 5"]])}`,
+      ${pitaPanitia([["Jumlah simpul yang benar", "( 0 – 5 / 0 – 10 )"]])}`,
 
     /* MENAKSIR — SATU-SATUNYA lembar tanpa bagian panitia.
 
@@ -2786,6 +2794,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
     // justru itu gunanya. Petugas menulis jumlah benar apa adanya, dan sistem
     // yang tahu 5 simpul untuk Penggalang, 10 untuk Penegak.
     const generik = () => `
+      ${penanda("Diisi panitia")}
       <div class="bl-nilai${kols.length > 1 ? " bl-nilai-banyak" : ""}">
         ${kols.map(kol => `
         <div class="bl-nilai-sel">
