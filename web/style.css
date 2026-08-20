@@ -986,12 +986,12 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     letter-spacing: 1.6pt; text-transform: uppercase;
   }
   .bl-lomba {
-    margin: 1mm 0 0; text-align: center; font-size: 24pt; font-weight: 800;
+    margin: 1mm 0 0; text-align: center; font-size: 21pt; font-weight: 800;
     letter-spacing: .8pt; text-transform: uppercase; line-height: 1;
   }
   .bl-acara {
-    margin: 2mm 0 0; text-align: center; font-size: 9pt;
-    border-top: 1.5pt solid #000; padding-top: 2mm;
+    margin: 1.2mm 0 0; text-align: center; font-size: 9pt;
+    border-top: 1.5pt solid #000; padding-top: 1.4mm;
   }
 
   /* Identitas: SATU kotak besar untuk nomor dada, dan satu kotak catatan di
@@ -1005,7 +1005,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      lembar lepas dengan hanya melihat sudut kertas. */
   .bl-identitas { width: 100%; border-collapse: collapse; margin-top: 3mm; }
   .bl-identitas td {
-    border: 1pt solid #000; padding: 1mm 2mm; height: 15mm;
+    border: 1pt solid #000; padding: 1mm 2mm; height: 13mm;
     vertical-align: top;
   }
   .bl-dada { width: 34mm; }
@@ -1014,10 +1014,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* KATEGORI DILINGKARI. Barisnya rendah — yang ditulis cuma satu lingkaran,
      bukan huruf — dan keempat pilihannya disebar rata supaya lingkaran yang
      dibuat tergesa tidak mengenai dua sekaligus. */
-  .bl-kategori { height: auto !important; padding: 1.2mm 2mm 1.8mm !important; }
+  /* Label dan pilihannya SEBARIS, bukan bertumpuk. Barisnya cuma dilingkari
+     — tidak ada yang ditulis di sini — jadi tinggi yang ia pakai adalah
+     tinggi yang tidak dipakai lembar jawaban di bawahnya. */
+  .bl-kategori {
+    height: auto !important; padding: 1.2mm 2mm !important;
+  }
+  .bl-kategori .bl-label { display: inline; }
   .bl-pilihan {
-    display: flex; justify-content: space-between;
-    margin-top: 1.2mm; padding: 0 4mm;
+    display: inline-flex; justify-content: space-between;
+    margin-left: 4mm; gap: 6mm;
     font-size: 11pt; font-weight: 700;
   }
 
@@ -1046,7 +1052,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     text-transform: uppercase; letter-spacing: .8pt;
   }
   .bl-nilai-contoh { display: block; font-size: 9pt; margin-top: .8mm; }
-  .bl-nilai-kotak { height: 30mm; }
+  .bl-nilai-kotak { height: 36mm; }
 
   /* LOMBA BERKRITERIA BANYAK: satu kotak per kriteria, berjajar.
 
@@ -1075,7 +1081,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      Penanganan Awal" salah satunya — dan tinggi itulah yang dipinjam. Diukur
      pada Pembidaian, lembar terpadat: sisa di kaki halaman 1mm sebelum, 5mm
      sesudah. */
-  .bl-nilai-banyak .bl-nilai-kotak { height: 26mm; min-height: 14mm; }
+  .bl-nilai-banyak .bl-nilai-kotak { height: 38mm; min-height: 14mm; }
   /* Judul kriteria boleh dua baris — "Diagnosis dan Penanganan Awal" tidak
      muat satu baris pada seperlima lebar A5, dan memotongnya menghilangkan
      kata yang membedakannya dari kriteria sebelahnya. */
@@ -1086,7 +1092,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      keduanya menulis di kotak yang sama. Garis tebal di bawahnya, bukan blok
      abu-abu: blok penuh keluar belang di mesin fotokopi (bagian 8.2). */
   .bl-siapa {
-    margin: 2mm 0 1mm; font-size: 8.5pt; font-weight: 700;
+    margin: 1.5mm 0 .8mm; font-size: 8.5pt; font-weight: 700;
     letter-spacing: 1pt; text-transform: uppercase;
     border-bottom: 1.2pt solid #000; padding-bottom: .6mm;
   }
@@ -1096,7 +1102,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      sendiri terbaca sebagai judul bagian, bukan sebagai pemilik kotak. */
   .bl-panitia {
     display: flex; align-items: stretch; margin-top: 2.5mm;
-    border: 1.2pt solid #000; border-radius: 1mm; min-height: 20mm;
+    border: 1.2pt solid #000; border-radius: 1mm; min-height: 18mm;
   }
   .bl-panitia-siapa {
     display: flex; align-items: center; flex: 0 0 17mm;
@@ -1123,7 +1129,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     /* Lembar Menaksir tidak punya bagian panitia, jadi seluruh sisa halaman
        jatuh ke satu kotak ini — dan memang itu yang dipakai: angka yang
        ditulis peserta di lapangan, sering sambil berdiri. */
-    margin-top: 1mm; height: 46mm;
+    margin-top: 1mm; height: 58mm;
     border: 1.2pt solid #000; border-radius: 1mm;
   }
 
@@ -1140,18 +1146,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      tulis adalah gunanya kertas ini. Disisakan ~3mm di kaki supaya beda
      pembulatan antar printer tidak mendorong tanda tangan keluar halaman. */
   .bl-kotak-huruf {
-    display: block; width: 100%; height: 27mm; margin-top: 1.2mm;
+    display: block; width: 100%; height: 40mm; margin-top: 1.2mm;
     border: 1.2pt solid #000; border-radius: 1mm;
   }
 
   /* Tebak Simpul: sepuluh nomor, dua lajur lima baris. */
   .bl-nomor-grid {
     display: grid; grid-template-columns: 1fr 1fr;
-    column-gap: 8mm; row-gap: 1.1mm;
+    column-gap: 8mm; row-gap: 1mm;
   }
   .bl-nomor-baris { display: flex; align-items: flex-end; gap: 2mm; }
   .bl-nomor { font-size: 10pt; font-weight: 700; width: 7mm; }
-  .bl-nomor-garis { flex: 1 1 auto; border-bottom: .75pt solid #000; height: 6mm; }
+  /* 9mm, bukan 6mm. Sepuluh baris jawaban yang berdempetan memaksa tulisan
+     tangan mengecil, dan yang mengecil di lapangan jadi tidak terbaca waktu
+     dinilai — sementara ruang kosong di kaki halaman tidak menolong siapa
+     pun. Tambahan 3mm per baris ini dipinjam dari bagian yang tidak ditulisi
+     tangan: judul lomba, kepala acara, tinggi kotak identitas, baris
+     kategori, dan pita panitia. */
+  .bl-nomor-garis { flex: 1 1 auto; border-bottom: .75pt solid #000; height: 9mm; }
 
   /* Kotak nilai yang berdampingan dengan isian peserta tidak perlu setinggi
      kotak nilai yang berdiri sendirian — yang ditulis di dalamnya paling
@@ -1183,7 +1195,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* 9mm ruang membubuhkan tanda tangan di antara nama dan garisnya. Lebih
      rapat dari itu, tanda tangannya menabrak tulisan "Juri 1" di atasnya. */
   .bl-ttd-garis {
-    display: block; margin-top: 7mm; border-bottom: .75pt solid #000;
+    display: block; margin-top: 6mm; border-bottom: .75pt solid #000;
   }
 
   /* ---- kerapatan baris ----
