@@ -1651,6 +1651,17 @@ async function layarKeberangkatan() {
     // SELURUH regu di kloter ini, dan salah ketik tidak menimbulkan galat apa
     // pun — ia hanya muncul sebagai nilai yang salah saat klasemen keluar.
     // Karena itu koreksinya minta alasan dan tercatat di history.
+    // Cetak daftar sisipan. Dipasang di sini, bukan lewat onclick di dalam
+    // kartunya, supaya ia punya akses ke `sisipan` yang utuh — kartunya cuma
+    // menampilkan kloter yang sedang dibuka, sedangkan yang dicetak semuanya.
+    kotak.querySelector("[data-cetak-sisipan]")?.addEventListener("click", () => {
+      const aktif = sisipan.filter(s => !s.sudah_berangkat);
+      if (!aktif.length) { notif("Tidak ada regu sisipan yang belum berangkat.", true); return; }
+      const n = siapkanCetakSisipan(aktif);
+      notif(`${n} lembar sisipan — satu per kloter.`);
+      window.print();
+    });
+
     const tombolKoreksi = document.getElementById("koreksi-jam");
     if (tombolKoreksi) tombolKoreksi.addEventListener("click", async () => {
       // Jam kloter tetangga ditampilkan, BUKAN dipaksakan. Fungsi database
@@ -4040,9 +4051,65 @@ function kartuSisipan(sisipan) {
       <p class="description">Nomor-nomor ini disisipkan setelah daftar kloter dicetak.
          Bacakan ke petugas staging kloter terkait, atau tulis tangan di kertasnya.</p>
       <table class="table" style="background:#fff;border-radius:8px;margin-top:.6rem">${baris}</table>
-      <button class="button button-secondary" onclick="window.print()" type="button"
+      <button class="button button-secondary" type="button" data-cetak-sisipan
               style="margin-top:.6rem">🖨️ Cetak daftar sisipan</button>
     </div>`;
+}
+
+/** LEMBAR SISIPAN — nomor-nomor yang tidak ada di kertas kloter.
+ *
+ *  KENAPA PERLU LEMBAR SENDIRI, dan kenapa `window.print()` telanjang tidak
+ *  cukup: seluruh layar panitia disembunyikan waktu mencetak
+ *  (`.header, .isi { display: none }` di @media print), dan yang tampil hanya
+ *  `.printout`. Tombol yang cuma memanggil window.print() karena itu membuka
+ *  dialog cetak berisi HALAMAN KOSONG — tanpa galat, tanpa tanda apa pun.
+ *  Itulah yang dilaporkan sebagai "tombolnya tidak jalan".
+ *
+ *  SATU HALAMAN PER KLOTER, seperti daftar kloter, karena tiap lembar
+ *  diserahkan ke petugas staging yang berbeda. Yang dicetak SELURUH kloter
+ *  yang punya sisipan, bukan cuma kloter yang sedang dibuka: kertas ini
+ *  dibawa berkeliling sekali jalan, dan menyuruh orang membuka kloter satu
+ *  per satu lalu mencetak lagi adalah cara kloter terakhir terlewat.
+ *
+ *  Kolom Hadir ikut dicetak supaya lembar ini bisa dipakai persis seperti
+ *  kertas kloter yang ia tambal — petugas mencentang di tempat yang sama.
+ */
+function siapkanCetakSisipan(aktif) {
+  document.getElementById("cetakan")?.remove();
+
+  const perKloter = new Map();
+  for (const s of aktif) {
+    if (!perKloter.has(s.kloter)) perKloter.set(s.kloter, []);
+    perKloter.get(s.kloter).push(s);
+  }
+
+  const dicetak = tanggalJam(new Date().toISOString());
+  const halaman = [...perKloter.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([nomor, daftar]) => `
+      <section class="print-page">
+        <h1>SISIPAN KLOTER ${esc(String(nomor))} — ${esc(EDISI ? EDISI.name : "")}</h1>
+        <p><strong>Nomor-nomor ini TIDAK ADA di daftar Kloter ${esc(String(nomor))}
+           yang sudah dicetak.</strong> Tulis tangan di kertas kloternya, atau
+           bacakan ke petugas staging.</p>
+        <table class="print-table">
+          <thead><tr>
+            <th class="kotak">Hadir</th><th>No Dada</th><th>Nama Regu</th>
+            <th>Sekolah</th><th>Alasan disisipkan</th>
+          </tr></thead>
+          <tbody>${daftar.map(s => html`
+            <tr><td class="kotak"></td>
+                <td class="dada">${dada3(s.nomor_dada)}</td>
+                <td>${s.nama_regu}</td>
+                <td>${s.nama_sekolah}</td>
+                <td>${s.alasan_sisip}</td></tr>`).join("")}</tbody>
+        </table>
+        <p class="insert-note">Dicetak ${esc(dicetak)}. Regu yang disisipkan
+           sesudah jam itu tidak ada di kertas ini juga.</p>
+      </section>`).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));
+  return perKloter.size;
 }
 
 /* ---------------- layar "edisi belum termuat" ---------------- */
