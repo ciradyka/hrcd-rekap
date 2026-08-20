@@ -331,5 +331,14 @@ run tests/sql/46_tanggal_lomba.sql
 # dengan galat yang menyebut kedua angkanya. Alasan lengkapnya di kepala
 # berkasnya. Dijalankan di sini supaya pemeriksaan di dalamnya ikut terbukti.
 run supabase/migrations/0084_biaya_175_ribu.sql
+# 0085 membuat Menaksir dinilai dari TAKSIRAN peserta: yang diketik angka
+# yang ditulis peserta, dan mesin skor yang menghitung selisihnya terhadap
+# jawaban benar. Poin tidak pernah disimpan — ia diturunkan saat dibaca —
+# jadi hitungan yang salah tidak menimbulkan galat apa pun, cuma angka
+# yang masuk akal di kolom yang memang berisi angka. Tes 47 menjaga
+# keempat sisinya, termasuk bahwa Pos 2 yang memakai `bertingkat` tanpa
+# jawaban benar tidak ikut berubah.
+run supabase/migrations/0085_menaksir_dari_taksiran.sql
+run tests/sql/47_menaksir_dari_taksiran.sql
 
 echo "SEMUA TES LULUS"
