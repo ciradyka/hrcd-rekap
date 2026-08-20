@@ -842,7 +842,20 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      huruf yang lebih rapat membuat serbuk toner menutup celah antar huruf —
      persis kegagalan yang dilarang CLAUDE.md 8.6. */
   body, .isian, .kolom-petunjuk { letter-spacing: normal; }
-  .header, .isi, .notification, .overlay { display: none !important; }
+  /* `.bottom-nav` WAJIB ikut, dan ketinggalannya merusak SETIAP cetakan dari
+     HP — bukan cuma blangko.
+
+     Ia `position: fixed; bottom: 0` di bawah 560px, dan `position: fixed` di
+     media cetak berarti ia digambar ulang DI TIAP HALAMAN, menimpa sekitar
+     20mm terbawah. Yang tertimpa di blangko justru tanda tangan juri; di
+     daftar kloter, baris regu terakhir. Tidak ada galat, tidak ada tanda —
+     yang terlihat cuma kertas yang "terpotong", dan yang mencetaknya
+     menyimpulkan tata letaknya yang salah.
+
+     Bukan cuma disembunyikan lewat `hidden`: layar yang sedang menampilkan
+     menu itu tetap menampilkannya saat dialog cetak terbuka. */
+  .header, .isi, .notification, .overlay,
+  .bottom-nav { display: none !important; }
   .printout {
     display: block !important;
     font-size: 12pt;
