@@ -345,5 +345,12 @@ run supabase/migrations/0085_menaksir_dari_taksiran.sql
 # Dijalankan SEBELUM tes 47 supaya yang diperiksa keadaan akhirnya.
 run supabase/migrations/0086_menaksir_sentimeter.sql
 run tests/sql/47_menaksir_dari_taksiran.sql
+# 0087 memisahkan Kim Lihat dan Kim Cium jadi DUA lomba. `lomba` cuma satu
+# kolom teks, dan mengisinya kembali tidak menimbulkan galat apa pun — ia
+# hanya menggabungkan keduanya lagi di blangko, kolom foto, dan Live Score
+# sekaligus. Tes 48 menjaga ketiganya, termasuk bahwa poinnya tidak ikut
+# bergeser.
+run supabase/migrations/0087_kim_dua_lomba.sql
+run tests/sql/48_kim_dua_lomba.sql
 
 echo "SEMUA TES LULUS"
