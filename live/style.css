@@ -2055,6 +2055,18 @@ select {
 /* Lebar ringkas HANYA untuk kotak ANGKA. Dropdown cara bayar harus selebar
    isinya — dipaksa 4.5rem, "Transfer" terpotong jadi "Tuna". */
 input.small-input { width: 4.5rem; }
+/* KOTAK WAKTU LEBIH LEBAR, dan ini bukan selera.
+   `00:30` butuh ~48px isi pada Inter, sementara 4.5rem menyisakan 44px
+   sesudah padding dan garis — jadi digit terakhirnya terpotong di SETIAP
+   baris Pos 2. Terukur di browser: scrollWidth 73 lawan clientWidth 68.
+
+   Kenapa selisih sekecil itu bisa lolos sampai lapangan: lebarnya dipatok
+   `rem` (ikut 16px), tapi UKURAN HURUFNYA bisa lebih besar dari itu — Chrome
+   punya setelan "ukuran font minimum", dan pada mesin yang menyetelnya 17px
+   teksnya membesar sementara kotaknya tidak. Karena itu lebarnya diberi
+   kelonggaran, bukan dipaskan: 5.6rem memuat `59:59` bahkan saat huruf
+   minimumnya dinaikkan sampai 20px. */
+input.small-input.input-waktu { width: 5.6rem; }
 /* min-width naik dari 6.5rem: panah yang digambar sendiri memakan 2rem
    padding kanan, dan tanpa tambahan itu "Transfer" terpotong demi memberi
    ruang bagi panah yang baru saja ditambahkan. */
@@ -2672,6 +2684,10 @@ input.small-input { text-align: center; }
      di sini hanya jaraknya. */
   .table-pos th, .table-pos td { padding: .3rem .3rem; }
   .table-pos input.small-input { width: 3.6rem; }
+  /* Di HP pun waktu tidak boleh terpotong. Tabelnya memang jadi lebih lebar,
+     dan itu tidak apa-apa: .table-wrapper sudah menggulir mendatar, sedangkan
+     angka yang terpotong tidak bisa diperbaiki dengan menggulir apa pun. */
+  .table-pos input.small-input.input-waktu { width: 5rem; }
   .table-pos .pos-pasangan input.small-input { width: 2.9rem; }
   .table-pos td:nth-child(2), .table-pos td:nth-child(3) { min-width: 7.5rem; }
 }
