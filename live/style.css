@@ -1049,8 +1049,32 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .bl-nilai-banyak .bl-nilai-kepala { min-height: 9mm; }
 
   .bl-catatan { margin: 2.5mm 0 0; font-size: 8pt; line-height: 1.3; }
-  .bl-ttd { margin: auto 0 0; text-align: center; font-size: 8pt; }
-  .bl-garis { margin: 7mm auto 0; width: 70mm; border-bottom: .75pt solid #000; }
+
+  /* TIGA TANDA TANGAN, berjajar di kaki halaman.
+
+     `margin: auto 0 0` yang mendorongnya ke bawah: .blangko adalah kolom flex
+     setinggi satu halaman, jadi berapa pun tinggi kotak nilainya, tanda
+     tangan berhenti di tempat yang sama pada setiap lembar. Petugas yang
+     menandatangani ratusan lembar tidak mencari-cari letaknya.
+
+     Namanya TIDAK dicetak. Siapa yang berjaga di sebuah pos berganti
+     sepanjang pagi, dan blangko sudah difotokopi jauh sebelum itu diputuskan
+     — nama tercetak yang salah lebih buruk daripada garis kosong.
+
+     Garisnya .75pt, batas bawah aturan fotokopi (CLAUDE.md 8.5): di bawah itu
+     ia hilang sama sekali pada gandaan kedua, dan tanda tangan yang melayang
+     tanpa garis terbaca seperti coretan. */
+  /* 3mm menahan garisnya dari tepi bawah. Tanpa itu ia berhenti tepat di
+     batas cetak, dan ekor tanda tangan yang turun sedikit saja jatuh di luar
+     kertas — tepat pada gandaan yang paling pinggir. */
+  .bl-ttd { margin: auto 0 3mm; display: flex; gap: 6mm; font-size: 8pt; }
+  .bl-ttd-sel { flex: 1 1 0; min-width: 0; text-align: center; }
+  .bl-ttd-nama { display: block; }
+  /* 9mm ruang membubuhkan tanda tangan di antara nama dan garisnya. Lebih
+     rapat dari itu, tanda tangannya menabrak tulisan "Juri 1" di atasnya. */
+  .bl-ttd-garis {
+    display: block; margin-top: 9mm; border-bottom: .75pt solid #000;
+  }
 
   /* ---- kerapatan baris ----
      Yang harus muat dalam satu A4 potret: kepala halaman + 30 baris + catatan

@@ -2632,7 +2632,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
     <article class="blangko">
       <p class="bl-pos">${esc(judulPos)}</p>
       <h2 class="bl-lomba">${esc(lomba.nama)}</h2>
-      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")} · Petugas: ____________</p>
+      <p class="bl-acara">${esc(EDISI ? EDISI.name : "")}</p>
 
       <table class="bl-identitas"><tbody>
         <tr>
@@ -2655,8 +2655,19 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
       <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
          poin.</strong></p>
-      <p class="bl-ttd">Petugas ${esc(lomba.nama)}</p>
-      <p class="bl-garis"></p>
+
+      <!-- TIGA JURI, bukan satu petugas. Satu lomba dinilai bersama, dan
+           tanda tangan yang cuma satu membuat dua juri lain tidak punya
+           tempat menyatakan bahwa angka itu juga angka mereka. Namanya
+           ditulis tangan: yang bertugas di sebuah pos berganti sepanjang
+           pagi, dan blangko sudah difotokopi jauh sebelum itu diputuskan. -->
+      <div class="bl-ttd">
+        ${[1, 2, 3].map(i => `
+        <div class="bl-ttd-sel">
+          <span class="bl-ttd-nama">Juri ${i}</span>
+          <span class="bl-ttd-garis"></span>
+        </div>`).join("")}
+      </div>
     </article>`;
   };
 
@@ -2671,7 +2682,18 @@ function siapkanCetakBlangko(pos, kolomLayar) {
   // Jadi keluarannya tiga halaman untuk Pos 1: Semaphore, Tebak Simpul,
   // Menaksir. Panitia menggandakan tiap halaman sebanyak yang dibutuhkan, dan
   // tiap tumpukan otomatis berisi satu lomba saja.
-  const daftarLomba = kelompokLomba(kolomLayar);
+  /* LOMBA SOAL TIDAK PUNYA BLANGKO, dan itu bukan penghematan kertas.
+     Kepramukaan, Keagamaan, Kesehatan, Pengetahuan Umum, dan Logika dijawab
+     peserta di LEMBAR SOALNYA SENDIRI — lembar itulah bukti dan lembar itu
+     pula yang dikumpulkan. Blangko kosong di sampingnya cuma kertas kedua
+     untuk satu angka yang sudah tertulis di kertas pertama, dan kertas kedua
+     yang tidak dipakai tetap difotokopi 1.500 kali.
+
+     Dikenali dari `type`, bukan dari namanya: `soal` adalah kolom di database
+     dan panitia yang menentukan isinya (0076). Menyaring dengan daftar nama
+     berarti lomba soal tahun depan tercetak lagi tanpa ada yang tahu kenapa. */
+  const lombaSoal = (l) => l.kolom.every(kol => kol.varian[0].type === "soal");
+  const daftarLomba = kelompokLomba(kolomLayar).filter(l => !lombaSoal(l));
   const cetakan = daftarLomba.map(l => `
     <section class="print-page blangko-halaman">${satuBlangko(l)}</section>`).join("");
 
@@ -3798,6 +3820,15 @@ async function layarInputPos() {
       // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
       // di mesin fotokopi, bukan di layar ini.
       const n = siapkanCetakBlangko(pos, kolom);
+      // Nol berarti pos ini seluruhnya lomba soal — dijawab di lembar soalnya
+      // sendiri, jadi tidak ada blangko yang perlu dicetak. Tanpa cabang ini
+      // browser membuka dialog cetak untuk halaman kosong, dan yang menekan
+      // tombolnya menyimpulkan bahwa pencetakannya rusak.
+      if (!n) {
+        notif("Pos ini seluruhnya lomba soal — dijawab di lembar soalnya "
+              + "sendiri, jadi tidak ada blangko yang perlu dicetak.", true);
+        return;
+      }
       notif(`${n} master A5 melintang, satu per lomba.`);
     } else {
       siapkanCetakLembarPos(pos, kolom, semua);
