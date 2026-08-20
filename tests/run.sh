@@ -339,6 +339,11 @@ run supabase/migrations/0084_biaya_175_ribu.sql
 # keempat sisinya, termasuk bahwa Pos 2 yang memakai `bertingkat` tanpa
 # jawaban benar tidak ikut berubah.
 run supabase/migrations/0085_menaksir_dari_taksiran.sql
+# 0086 memindahkan taksiran ke SENTIMETER bulat. `nilai_mentah_bulat` (0059)
+# menolak semua pecahan, dan kepalanya sendiri sudah menuliskan jalan
+# keluarnya: simpan satuan terkecil yang bulat, persis seperti `detik`.
+# Dijalankan SEBELUM tes 47 supaya yang diperiksa keadaan akhirnya.
+run supabase/migrations/0086_menaksir_sentimeter.sql
 run tests/sql/47_menaksir_dari_taksiran.sql
 
 echo "SEMUA TES LULUS"

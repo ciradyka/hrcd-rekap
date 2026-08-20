@@ -30,6 +30,7 @@ import {
   hapusFotoLembar,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
+         meterSah, meterTeks,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
@@ -2241,6 +2242,15 @@ function selKomponen(k, nilai) {
                    data-kode="${kode}" value="${esc(detikTeks(n1))}"${kosongTampak}
                    aria-label="${esc(k.name)} — detik, atau menit:detik">`;
   }
+  if (k.satuan === "meter") {
+    // Bertipe text, bukan number, karena isinya boleh memuat KOMA — peserta
+    // menulis "8,55" di blangko dan petugas mengetik apa yang ia baca.
+    // input[type=number] menolak koma diam-diam: kotaknya jadi kosong tanpa
+    // sepatah kata, dan yang mengetiknya mengira angkanya sudah masuk.
+    return `<input type="text" class="small-input input-meter" inputmode="decimal"
+                   data-kode="${kode}" value="${esc(meterTeks(n1))}"${kosongTampak}
+                   aria-label="${esc(k.name)} — meter, dua angka di belakang koma">`;
+  }
   if (k.form === "benar_kurang_salah") {
     return `<span class="pos-pasangan">
       <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
@@ -2299,6 +2309,15 @@ function bacaSel(tr, k) {
     if (!kotak[0].value.trim()) return null;
     const detik = detikSah(kotak[0].value);
     return detik === null ? TIDAK_SAH : { nilai_1: detik, nilai_2: null };
+  }
+  if (k.satuan === "meter") {
+    // TIGA keadaan, sama seperti detik: kosong berarti "hapus nilainya",
+    // tidak terbaca berarti "jangan kirim apa pun". Menyamakan keduanya
+    // membuat salah ketik satu huruf MENGHAPUS angka yang sudah benar,
+    // lalu barisnya tetap mendapat centang hijau.
+    if (!kotak[0].value.trim()) return null;
+    const cm = meterSah(kotak[0].value);
+    return cm === null ? TIDAK_SAH : { nilai_1: cm, nilai_2: null };
   }
   if (k.form === "benar_kurang_salah") {
     const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
@@ -2395,6 +2414,7 @@ const kolomCetakPos = (kolom) => kolom.flatMap(kol => {
   // petugas memecah angka stopwatch sebelum menuliskannya; satu petak
   // menerima "32" maupun "1:10" apa adanya, persis seperti kotak di layar.
   if (k.satuan === "detik") return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
+  if (k.satuan === "meter") return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
   if (k.form === "benar_kurang_salah") return [
     { nama: kol.nama, petunjuk: "benar" }, { nama: "", petunjuk: "salah" }];
   return [{ nama: kol.nama, petunjuk: kol.petunjuk }];
@@ -2554,6 +2574,7 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
 function judulIsian(k) {
   if (k.judul_isian) return k.judul_isian;
   if (k.satuan === "detik") return "Waktu tempuh";
+  if (k.satuan === "meter") return "Hasil taksir";
   if (k.form === "biner") return "Kena / tidak";
   if (k.form === "benar_kurang_salah") return "Benar dan salah";
   if (k.form === "bertingkat") return "Data mentah";
@@ -2584,6 +2605,7 @@ function contohIsian(kol) {
   // yang menyadarinya. Contohnya tetap ada, karena contoh nyata mencegah
   // sekelas kesalahan yang tidak bisa dicegah kalimat mana pun.
   if (k.satuan === "detik") return `${kol.petunjuk} · contoh: 00:47`;
+  if (k.satuan === "meter") return `${kol.petunjuk} · contoh: 8.55`;
   // Keterangan yang ditulis panitia sendiri dipakai apa adanya — ia sudah
   // berupa kalimat, bukan rentang yang perlu diberi kata "angka".
   if (k.petunjuk || k.form === "biner") return kol.petunjuk;
@@ -4114,6 +4136,9 @@ async function layarInputPos() {
           if (kotak[0].checked !== centang) kotak[0].checked = centang;
         } else if (k.satuan === "detik") {
           const teks = detikTeks(nilai ? nilai.nilai_1 : null);
+          if (kotak[0].value !== teks) kotak[0].value = teks;
+        } else if (k.satuan === "meter") {
+          const teks = meterTeks(nilai ? nilai.nilai_1 : null);
           if (kotak[0].value !== teks) kotak[0].value = teks;
         } else if (k.form === "benar_kurang_salah") {
           const b = angkaRapi(nilai ? nilai.nilai_1 : null);
