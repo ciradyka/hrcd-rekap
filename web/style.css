@@ -964,10 +964,18 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
      Aturan cetak fotokopi (CLAUDE.md bagian 8) berlaku penuh di sini: tanpa
      blok, tanpa abu-abu, garis >= 0,75pt, huruf >= 7pt. */
-  @page blangko-halaman { size: A5 landscape; margin: 9mm; }
+  /* 6mm, BUKAN 9mm dan bukan pula 4mm.
+     Yang dibeli 3mm di tiap sisi: isinya jadi 198 x 136mm (dari 192 x 130),
+     dan seluruh tambahan itu jatuh ke kotak yang ditulisi tangan.
+     Batas bawahnya bukan selera: printer laser punya tepi yang memang tidak
+     bisa dicetak — umumnya 4-5mm — dan mesin fotokopi menggeser gambarnya
+     1-2mm lagi tiap kali digandakan. Di bawah 6mm, gandaan yang paling
+     pinggir mulai kehilangan garis kotaknya, dan kotak tanpa tepi bukan
+     kotak lagi (CLAUDE.md bagian 8). */
+  @page blangko-halaman { size: A5 landscape; margin: 6mm; }
   .blangko-halaman { page: blangko-halaman; }
   .blangko {
-    height: 130mm;
+    height: 136mm;
     display: flex;
     flex-direction: column;
     font-size: 10pt;
@@ -995,12 +1003,23 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dibaca dua kali dalam keadaan yang sama-sama tergesa: saat petugas
      menuliskannya di tengah antrean, dan saat tim IT mengurutkan ratusan
      lembar lepas dengan hanya melihat sudut kertas. */
-  .bl-identitas { width: 100%; border-collapse: collapse; margin-top: 3.5mm; }
+  .bl-identitas { width: 100%; border-collapse: collapse; margin-top: 3mm; }
   .bl-identitas td {
-    border: 1pt solid #000; padding: 1.2mm 2mm; height: 20mm;
+    border: 1pt solid #000; padding: 1mm 2mm; height: 15mm;
     vertical-align: top;
   }
-  .bl-dada { width: 58mm; }
+  .bl-dada { width: 34mm; }
+  .bl-regu { width: 62mm; }
+
+  /* KATEGORI DILINGKARI. Barisnya rendah — yang ditulis cuma satu lingkaran,
+     bukan huruf — dan keempat pilihannya disebar rata supaya lingkaran yang
+     dibuat tergesa tidak mengenai dua sekaligus. */
+  .bl-kategori { height: auto !important; padding: 1.2mm 2mm 1.8mm !important; }
+  .bl-pilihan {
+    display: flex; justify-content: space-between;
+    margin-top: 1.2mm; padding: 0 4mm;
+    font-size: 11pt; font-weight: 700;
+  }
 
   /* Label tidak menghalangi tulisan tangan, TAPI TIDAK BOLEH ABU-ABU.
      Abu-abu adalah yang paling buruk ditangani mesin fotokopi: diubah jadi
@@ -1048,6 +1067,84 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      kata yang membedakannya dari kriteria sebelahnya. */
   .bl-nilai-banyak .bl-nilai-kepala { min-height: 9mm; }
 
+  /* SIAPA YANG MENGISI. Satu lembar kini dipegang dua tangan — peserta
+     menulis jawabannya, panitia menulis angkanya — dan tanpa penanda ini
+     keduanya menulis di kotak yang sama. Garis tebal di bawahnya, bukan blok
+     abu-abu: blok penuh keluar belang di mesin fotokopi (bagian 8.2). */
+  .bl-siapa {
+    margin: 2mm 0 1mm; font-size: 8.5pt; font-weight: 700;
+    letter-spacing: 1pt; text-transform: uppercase;
+    border-bottom: 1.2pt solid #000; padding-bottom: .6mm;
+  }
+
+  /* PITA PANITIA: label menempel pada kotaknya, bukan melayang di atasnya.
+     Alasannya di pitaPanitia() — ruang A5 melintang, dan label yang berdiri
+     sendiri terbaca sebagai judul bagian, bukan sebagai pemilik kotak. */
+  .bl-panitia {
+    display: flex; align-items: stretch; margin-top: 2.5mm;
+    border: 1.2pt solid #000; border-radius: 1mm; min-height: 20mm;
+  }
+  .bl-panitia-siapa {
+    display: flex; align-items: center; flex: 0 0 17mm;
+    padding: 0 2mm; border-right: 1.2pt solid #000;
+    font-size: 8pt; font-weight: 700; letter-spacing: .6pt;
+    text-transform: uppercase; line-height: 1.15;
+  }
+  /* Tiap kotak berdiri di bawah labelnya sendiri, dan lajur-lajurnya dibagi
+     rata — dua kotak Menaksir jadi selebar sama tanpa dipatok mm. */
+  .bl-panitia-sel {
+    display: flex; flex-direction: column;
+    flex: 1 1 0; min-width: 0;
+    border-left: 1.2pt solid #000;
+  }
+  .bl-panitia-sel:first-of-type { border-left: 0; }
+  .bl-panitia-kepala { padding: 1mm 2.5mm; border-bottom: 1.2pt solid #000; }
+  .bl-panitia-judul {
+    display: block;
+    font-size: 11pt; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .4pt; line-height: 1.15;
+  }
+  .bl-panitia-contoh { display: block; font-size: 8.5pt; margin-top: .4mm; }
+  .bl-panitia-kotak { flex: 1 1 auto; min-height: 10mm; }
+
+  /* Menaksir: satu kotak isian peserta, judulnya di atas. */
+  .bl-taksir { margin-top: 1mm; }
+  .bl-taksir-kotak {
+    /* Lembar Menaksir tidak punya bagian panitia, jadi seluruh sisa halaman
+       jatuh ke satu kotak ini — dan memang itu yang dipakai: angka yang
+       ditulis peserta di lapangan, sering sambil berdiri. */
+    margin-top: 1mm; height: 46mm;
+    border: 1.2pt solid #000; border-radius: 1mm;
+  }
+
+  /* Semaphore: nomor amplop di kiri, lima kotak huruf di kanan. */
+  .bl-amplop { display: flex; gap: 6mm; align-items: flex-end; }
+  .bl-amplop-jawab { flex: 1 1 auto; }
+  .bl-huruf-baris { display: flex; gap: 3mm; margin-top: 1.2mm; }
+  /* 30mm, bukan 20mm. Sisa ruang di kaki halaman diukur 13,6mm dan
+     diberikan ke kotak tulis — di lembar yang diisi peserta, ruang tulis
+     adalah gunanya kertas ini. Disisakan ~3mm supaya beda pembulatan antar
+     printer tidak mendorong tanda tangan keluar halaman. */
+  .bl-kotak-huruf {
+    flex: 1 1 0; height: 27mm; border: 1.2pt solid #000; border-radius: 1mm;
+  }
+  /* Kotak nomor amplop TIDAK ikut melar — isinya satu angka. */
+  .bl-kotak-tunggal { flex: 0 0 auto; width: 20mm; margin-top: 1.2mm; }
+
+  /* Tebak Simpul: sepuluh nomor, dua lajur lima baris. */
+  .bl-nomor-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    column-gap: 8mm; row-gap: 1.1mm;
+  }
+  .bl-nomor-baris { display: flex; align-items: flex-end; gap: 2mm; }
+  .bl-nomor { font-size: 10pt; font-weight: 700; width: 7mm; }
+  .bl-nomor-garis { flex: 1 1 auto; border-bottom: .75pt solid #000; height: 6mm; }
+
+  /* Kotak nilai yang berdampingan dengan isian peserta tidak perlu setinggi
+     kotak nilai yang berdiri sendirian — yang ditulis di dalamnya paling
+     banyak dua digit, dan tingginya diambil dari ruang tulis peserta. */
+  .bl-nilai-rendah .bl-nilai-kotak { height: 16mm; }
+
   .bl-catatan { margin: 2.5mm 0 0; font-size: 8pt; line-height: 1.3; }
 
   /* TIGA TANDA TANGAN, berjajar di kaki halaman.
@@ -1073,7 +1170,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* 9mm ruang membubuhkan tanda tangan di antara nama dan garisnya. Lebih
      rapat dari itu, tanda tangannya menabrak tulisan "Juri 1" di atasnya. */
   .bl-ttd-garis {
-    display: block; margin-top: 9mm; border-bottom: .75pt solid #000;
+    display: block; margin-top: 7mm; border-bottom: .75pt solid #000;
   }
 
   /* ---- kerapatan baris ----
