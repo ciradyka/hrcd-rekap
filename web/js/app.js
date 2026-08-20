@@ -2719,6 +2719,34 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
   const penanda = (siapa) => `<p class="bl-siapa">${esc(siapa)}</p>`;
 
+  /* LEMBAR BERNOMOR — sepuluh jawaban peserta, satu angka dari panitia.
+
+     Dipakai tiga lomba yang bentuknya sama persis: Tebak Simpul, KIM Lihat,
+     KIM Cium. Yang berbeda cuma apa yang ditulis peserta dan nama hitungan
+     panitianya, jadi ketiganya memanggil bentuk ini alih-alih menyalinnya —
+     tiga salinan berarti perbaikan berikutnya harus diketik tiga kali dan
+     dua di antaranya akan terlewat.
+
+     SEPULUH nomor pada satu master. Penggalang mengisi 1-5 di Tebak Simpul
+     dan membiarkan sisanya kosong; dua tumpukan yang berbeda bentuknya adalah
+     dua tumpukan yang bisa tertukar di lapangan, dan nomor kosong tidak
+     pernah salah dibaca sebagai jawaban.
+
+     Nomornya menurun PER LAJUR — 1-5 di kiri, 6-10 di kanan — bukan
+     berselang-seling kiri-kanan. Dua lajur lima baris, bukan satu lajur
+     sepuluh: A5 melintang lebar dan pendek, dan sepuluh baris berurutan ke
+     bawah tidak muat tanpa mengecilkan barisnya sampai tidak bisa ditulisi. */
+  const lembarBernomor = (yangDitulis, judulPanitia, petunjuk) => `
+      ${penanda(`Diisi peserta — ${yangDitulis}`)}
+      <div class="bl-nomor-grid">
+        ${[0, 1, 2, 3, 4].flatMap(r => [r + 1, r + 6]).map(n => `
+        <div class="bl-nomor-baris">
+          <span class="bl-nomor">${n}.</span>
+          <span class="bl-nomor-garis"></span>
+        </div>`).join("")}
+      </div>
+      ${pitaPanitia([[judulPanitia, petunjuk]])}`;
+
   /* ---------------------------------------------------------------------
      BENTUK KHUSUS PER LOMBA.
 
@@ -2760,29 +2788,18 @@ function siapkanCetakBlangko(pos, kolomLayar) {
       </div>
       ${pitaPanitia([["Jumlah huruf yang benar", "( 0 – 5 )"]])}`,
 
-    /* TEBAK SIMPUL. SEPULUH nomor pada satu master, bukan dua master 5 dan
-       10: Penggalang mengisi 1-5 dan membiarkan sisanya kosong. Dua tumpukan
-       yang berbeda bentuknya adalah dua tumpukan yang bisa tertukar di
-       lapangan, dan nomor kosong tidak pernah salah dibaca sebagai jawaban.
+    /* Tiga lomba di bawah ini memakai bentuk yang sama; alasannya di
+       lembarBernomor(). */
+    "tebak-simpul": () => lembarBernomor(
+      "nama simpulnya", "Jumlah simpul yang benar", "( 0 – 5 / 0 – 10 )"),
 
-       Dua lajur lima baris, bukan satu lajur sepuluh: A5 melintang lebar dan
-       pendek, dan sepuluh baris berurutan ke bawah tidak muat tanpa
-       mengecilkan barisnya sampai tidak bisa ditulisi.
-
-       Nomornya menurun PER LAJUR — 1-5 di kiri, 6-10 di kanan — bukan
-       berselang-seling kiri-kanan. Penggalang mengisi lima yang pertama, dan
-       hanya urutan ini yang membuat kelimanya berkumpul di satu lajur alih-
-       alih tersebar di sepuluh baris. */
-    "tebak-simpul": () => `
-      ${penanda("Diisi peserta — nama simpulnya")}
-      <div class="bl-nomor-grid">
-        ${[0, 1, 2, 3, 4].flatMap(r => [r + 1, r + 6]).map(n => `
-        <div class="bl-nomor-baris">
-          <span class="bl-nomor">${n}.</span>
-          <span class="bl-nomor-garis"></span>
-        </div>`).join("")}
-      </div>
-      ${pitaPanitia([["Jumlah simpul yang benar", "( 0 – 5 / 0 – 10 )"]])}`,
+    /* KIM LIHAT dan KIM CIUM: dua lomba, dua lembar, bentuk yang sama dengan
+       Tebak Simpul. Peserta menuliskan sepuluh jawabannya, panitia menghitung
+       berapa yang benar. */
+    "kim-lihat": () => lembarBernomor(
+      "benda yang dilihat", "Jumlah benar", "( 0 – 10 )"),
+    "kim-cium": () => lembarBernomor(
+      "benda yang dicium", "Jumlah benar", "( 0 – 10 )"),
 
     /* MENAKSIR — SATU-SATUNYA lembar tanpa bagian panitia.
 

@@ -1058,10 +1058,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      di dalamnya paling banyak dua digit. Yang TIDAK boleh menyusut adalah
      nomor dada dan identitasnya di atas — itu yang dibaca saat menyortir
      tumpukan. */
-  .bl-nilai-banyak { display: flex; gap: 2.5mm; align-items: stretch; }
-  .bl-nilai-banyak .bl-nilai-sel { flex: 1 1 0; min-width: 0; }
+  /* TABEL, bukan kotak-kotak yang dijejer. Sebelumnya sel-selnya dipisah
+     `gap` — celah putih tanpa garis — sehingga area tulisnya SATU kotak lebar
+     tanpa pembatas apa pun. Juri menulis lima angka ke dalam satu ruang, dan
+     yang menentukan angka mana masuk kolom mana cuma perkiraan jaraknya.
+     Garis tegak menurunkan kepala kolom sampai ke dasar kotak, jadi tiap
+     angka duduk di kolomnya sendiri. */
+  .bl-nilai-banyak { display: flex; align-items: stretch; }
+  .bl-nilai-banyak .bl-nilai-sel {
+    flex: 1 1 0; min-width: 0; border-left: 1.2pt solid #000;
+  }
+  .bl-nilai-banyak .bl-nilai-sel:first-child { border-left: 0; }
   .bl-nilai-banyak .bl-nilai-judul { font-size: 9pt; }
-  .bl-nilai-banyak .bl-nilai-kotak { min-height: 14mm; }
+  /* Kotaknya sedikit lebih rendah daripada lembar berkotak tunggal: judul
+     kriteria yang panjang membungkus jadi dua baris — "Diagnosis dan
+     Penanganan Awal" salah satunya — dan tinggi itulah yang dipinjam. Diukur
+     pada Pembidaian, lembar terpadat: sisa di kaki halaman 1mm sebelum, 5mm
+     sesudah. */
+  .bl-nilai-banyak .bl-nilai-kotak { height: 26mm; min-height: 14mm; }
   /* Judul kriteria boleh dua baris — "Diagnosis dan Penanganan Awal" tidak
      muat satu baris pada seperlima lebar A5, dan memotongnya menghilangkan
      kata yang membedakannya dari kriteria sebelahnya. */
