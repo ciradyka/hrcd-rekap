@@ -325,5 +325,11 @@ run tests/sql/45_pesan_rentang_komponen.sql
 # seed. Tes 46 menjaga hasilnya, termasuk yang keluar dari v_keberangkatan.
 run supabase/migrations/0083_tanggal_lomba_29_agustus_2026.sql
 run tests/sql/46_tanggal_lomba.sql
+# 0084 menurunkan biaya pendaftaran jadi Rp 175.000 per regu. Tanpa tes
+# sendiri, dan itu disengaja: harga yang salah tidak diam — ia tercetak di
+# form pendaftaran dan verifikasi_pembayaran menolak nominal yang tidak pas
+# dengan galat yang menyebut kedua angkanya. Alasan lengkapnya di kepala
+# berkasnya. Dijalankan di sini supaya pemeriksaan di dalamnya ikut terbukti.
+run supabase/migrations/0084_biaya_175_ribu.sql
 
 echo "SEMUA TES LULUS"
