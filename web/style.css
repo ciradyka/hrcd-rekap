@@ -2172,8 +2172,24 @@ input.small-input { text-align: center; }
   /* Mencetak dari HP tidak pernah terjadi — kertasnya keluar dari mesin
      fotokopi di sekretariat (bagian 8.10). Dua tombol selebar layar di antara
      penyaring dan tabel cuma jarak yang harus digulir ratusan kali per
-     shift. */
+     shift.
+
+     KECUALI bagi yang tidak terkunci ke satu pos: koordinator pos dan admin.
+     Merekalah yang menyiapkan kertas untuk pos lain, sering dari HP di jalan
+     antar pos, dan bagi mereka dua tombol itu bukan jarak melainkan
+     pekerjaannya. Yang menentukan bukan nama peran melainkan kolom `pos` yang
+     kosong — patokan yang sama dengan pemilih pos di layar ini (bagian
+     13.2). */
   .alat-cetak { display: none; }
+  /* `order: 1` menaruhnya tepat di bawah pemilih pos, BUKAN di antara kotak
+     cari dan tabel. Tanpa itu ia jatuh paling akhir — .table-toolbar jadi
+     kolom di sini, dan `kanan` memang anak terakhir — persis di tempat yang
+     dikeluhkan: satu blok yang harus dilewati tiap kali turun ke tabel.
+
+     Berdampingan, bukan bertumpuk: dua tombol selebar layar adalah dua baris
+     gulir, dan keduanya cukup pendek untuk berbagi satu baris. */
+  .alat-cetak.alat-cetak-hp { display: flex; gap: .4rem; order: 1; }
+  .alat-cetak.alat-cetak-hp .button { flex: 1 1 0; min-width: 0; }
 
   /* Kotak cari TEPAT DI ATAS TABEL, di bawah penyaring.
      Di HP kotak cari adalah alat yang paling sering dipakai di layar ini —

@@ -2757,7 +2757,12 @@ async function layarInputPos() {
   // RLS akan menolak pos lain seandainya layar ini mencoba.
   // Terkunci = punya kolom `pos`, bukan = berperan juri_pos. Koordinator Pos
   // tidak punya pos, jadi ia ikut jalur pemilih di bawah.
-  const nomorPos = (s.pos != null && s.pos !== "")
+  // SATU patokan untuk dua keputusan: pos mana yang dibuka, dan apakah tombol
+  // cetak ikut tampil di HP. Keduanya bertanya hal yang sama — "akun ini
+  // melayani satu pos, atau seluruh pos?" — dan menjawabnya dua kali dengan
+  // cara berbeda adalah cara keduanya berselisih diam-diam.
+  const terkunciPos = s.pos != null && s.pos !== "";
+  const nomorPos = terkunciPos
     ? Number(s.pos)
     : (posDipilih.nomor
        ?? (posDinilai.length ? posDinilai[0].nomor
@@ -2840,7 +2845,12 @@ async function layarInputPos() {
         // di sekretariat — dan dua tombol selebar layar di antara penyaring
         // dan tabel memaksa petugas menggulir melewatinya ratusan kali per
         // shift untuk sampai ke pekerjaannya.
-        kanan: `<span class="alat-cetak">
+        //
+        // Di HP ia tetap tampil untuk akun yang TIDAK terkunci ke satu pos —
+        // koordinator pos dan admin. Merekalah yang menyiapkan kertas untuk
+        // pos lain, dan patokannya kolom `pos` yang kosong, bukan nama
+        // perannya (patokan yang sama dengan pemilih pos di bawah).
+        kanan: `<span class="alat-cetak${terkunciPos ? "" : " alat-cetak-hp"}">
                 <button class="button button-secondary button-small" type="button"
                         id="cetak-per-lomba">🖨️ Form per Lomba</button>
                 <button class="button button-secondary button-small" type="button"
