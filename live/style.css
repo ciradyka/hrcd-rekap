@@ -1090,22 +1090,18 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     font-size: 8pt; font-weight: 700; letter-spacing: .6pt;
     text-transform: uppercase; line-height: 1.15;
   }
-  /* Tiap kotak berdiri di bawah labelnya sendiri, dan lajur-lajurnya dibagi
-     rata — dua kotak Menaksir jadi selebar sama tanpa dipatok mm. */
+  /* Label di kiri selebar tulisannya; kotaknya mengambil sisa lebar. */
   .bl-panitia-sel {
-    display: flex; flex-direction: column;
-    flex: 1 1 0; min-width: 0;
-    border-left: 1.2pt solid #000;
+    display: flex; flex-direction: column; justify-content: center;
+    flex: 0 1 auto; max-width: 76mm; padding: 1.5mm 3mm;
   }
-  .bl-panitia-sel:first-of-type { border-left: 0; }
-  .bl-panitia-kepala { padding: 1mm 2.5mm; border-bottom: 1.2pt solid #000; }
   .bl-panitia-judul {
     display: block;
     font-size: 11pt; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .4pt; line-height: 1.15;
+    letter-spacing: .4pt; line-height: 1.2;
   }
-  .bl-panitia-contoh { display: block; font-size: 8.5pt; margin-top: .4mm; }
-  .bl-panitia-kotak { flex: 1 1 auto; min-height: 10mm; }
+  .bl-panitia-contoh { display: block; font-size: 9pt; margin-top: .6mm; }
+  .bl-panitia-kotak { flex: 1 1 auto; border-left: 1.2pt solid #000; }
 
   /* Menaksir: satu kotak isian peserta, judulnya di atas. */
   .bl-taksir { margin-top: 1mm; }
@@ -1117,19 +1113,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     border: 1.2pt solid #000; border-radius: 1mm;
   }
 
-  /* Semaphore: nomor amplop di kiri, lima kotak huruf di kanan. */
+  /* Semaphore: nomor amplop di kiri, jawabannya satu kotak lebar di kanan.
+
+     Kotak nomor amplop SELEBAR LABELNYA — `flex: 0 0 auto` pada pembungkus
+     membuatnya menyusut ke isi terlebar di dalamnya, yaitu tulisan "Nomor
+     Amplop". Lebarnya sendiri karena itu sudah memberi tahu bahwa yang
+     ditulis di sana cuma satu angka, tanpa satu kata petunjuk pun. */
   .bl-amplop { display: flex; gap: 6mm; align-items: flex-end; }
-  .bl-amplop-jawab { flex: 1 1 auto; }
-  .bl-huruf-baris { display: flex; gap: 3mm; margin-top: 1.2mm; }
-  /* 30mm, bukan 20mm. Sisa ruang di kaki halaman diukur 13,6mm dan
-     diberikan ke kotak tulis — di lembar yang diisi peserta, ruang tulis
-     adalah gunanya kertas ini. Disisakan ~3mm supaya beda pembulatan antar
-     printer tidak mendorong tanda tangan keluar halaman. */
+  .bl-amplop-nomor { flex: 0 0 auto; }
+  .bl-amplop-jawab { flex: 1 1 auto; min-width: 0; }
+  /* Tingginya diambil dari sisa halaman: di lembar yang diisi peserta, ruang
+     tulis adalah gunanya kertas ini. Disisakan ~3mm di kaki supaya beda
+     pembulatan antar printer tidak mendorong tanda tangan keluar halaman. */
   .bl-kotak-huruf {
-    flex: 1 1 0; height: 27mm; border: 1.2pt solid #000; border-radius: 1mm;
+    display: block; width: 100%; height: 27mm; margin-top: 1.2mm;
+    border: 1.2pt solid #000; border-radius: 1mm;
   }
-  /* Kotak nomor amplop TIDAK ikut melar — isinya satu angka. */
-  .bl-kotak-tunggal { flex: 0 0 auto; width: 20mm; margin-top: 1.2mm; }
 
   /* Tebak Simpul: sepuluh nomor, dua lajur lima baris. */
   .bl-nomor-grid {
