@@ -368,5 +368,9 @@ run tests/sql/50_penalti_waktu_per_menit.sql
 # tes alur sebelumnya memang membutuhkan data waktu.
 run supabase/migrations/0090_reset_event_times.sql
 run tests/sql/51_reset_event_times.sql
+# 0091 menambah Intern PA/PI sebagai klasemen tersendiri. Keduanya hanya
+# dinilai dari lima Soal Tulis dan ketepatan waktu, bukan lomba lapangan.
+run supabase/migrations/0091_intern_golongan.sql
+run tests/sql/52_intern_golongan.sql
 
 echo "SEMUA TES LULUS"

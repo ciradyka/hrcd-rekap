@@ -26,9 +26,17 @@ const GOLONGAN = [
   { kode: "penegak_pa",    label: "Penegak Putra",    ket: "SMA / SMK / MA — putra" },
   { kode: "penegak_pi",    label: "Penegak Putri",    ket: "SMA / SMK / MA — putri" },
 ];
+const GOLONGAN_INTERNAL = [
+  { kode: "intern_pa", label: "Intern Putra", ket: "" },
+  { kode: "intern_pi", label: "Intern Putri", ket: "" },
+];
 const KUNCI_DRAF = "hrcd_draf";
 const KUNCI_HASIL = "hrcd_hasil";
 const MAKS_REGU = 30;
+const SEKOLAH_INTERNAL = {
+  nama: "SMAN 1 Ciamis",
+  alamat: "Jl. Gunung Galuh No. 37, Ciamis, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46211, Indonesia",
+};
 
 // Format nomor Indonesia, HANYA 08xx (bukan +62 8xx — disederhanakan sengaja
 // supaya panitia tidak perlu mikir dua format): 08, lalu kode operator
@@ -37,10 +45,15 @@ const MAKS_REGU = 30;
 const POLA_WA = /^08[1-9][0-9]{6,10}$/;
 
 const kosong = () => ({
+  jenis_peserta: null,           // "eksternal" atau "internal"
   sekolah: null,                 // {id?, nama, alamat}
   butuh_barak: null,
   jumlah_pendamping: 0,
-  rincian: { penggalang_pa: 0, penggalang_pi: 0, penegak_pa: 0, penegak_pi: 0 },
+  rincian: {
+    penggalang_pa: 0, penggalang_pi: 0,
+    penegak_pa: 0, penegak_pi: 0,
+    intern_pa: 0, intern_pi: 0,
+  },
   regu: [],                      // [{golongan, nama_regu, nama_ketua}]
   kontak_wa: "",
   nama_kontak: "",
@@ -69,6 +82,9 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 const totalRincian = () => Object.values(jawab.rincian).reduce((a, b) => a + b, 0);
+const internal = () => jawab.jenis_peserta === "internal";
+
+const golonganForm = () => internal() ? GOLONGAN_INTERNAL : GOLONGAN;
 /* Penyamaan untuk PENCARIAN sekolah, bukan untuk menyimpan.
  *
  *  Pembina mengetik nama yang dia ucapkan, bukan nama yang tertulis di
@@ -91,7 +107,8 @@ const normal = s => String(s || "").toLowerCase()
   // Huruf status Dapodik di awal nama: MAS, SMKS, SMAS, SMPS, MTsS, MIS.
   .replace(/^\s*(sd|smp|sma|smk|mi|mts|ma)s\b/, "$1")
   .replace(/[^a-z0-9]/g, "");
-const labelGolongan = k => GOLONGAN.find(g => g.kode === k).label;
+const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
+  ?? [...GOLONGAN, ...GOLONGAN_INTERNAL].find(g => g.kode === k).label;
 
 /* ---------- nama regu: 20 karakter, dan tidak boleh kembar (0051) ----------
 
@@ -127,16 +144,30 @@ let jamPeriksaNama = null;
 /* ============================ RANGKA HALAMAN ============================= */
 
 function halaman() {
+  const jenisDipilih = jawab.jenis_peserta !== null;
+  const nomorJumlah = internal() ? 3 : 4;
+  const nomorRegu = nomorJumlah + 1;
+  const nomorKontak = nomorRegu + 1;
   LAYAR.replaceChildren(h(`
-    <!-- 1. Sekolah -->
+    <section class="card" id="bagian-jenis">
+      <h2><span class="section-number">1</span> Peserta</h2>
+      <div class="option-row" style="margin-top:.8rem">
+        <button class="option" id="p-eksternal" aria-pressed="${jawab.jenis_peserta === "eksternal"}" type="button">Eksternal</button>
+        <button class="option" id="p-internal" aria-pressed="${jawab.jenis_peserta === "internal"}" type="button">Internal</button>
+      </div>
+    </section>
+
+    ${!jenisDipilih ? "" : `
+    <!-- 2. Sekolah -->
     <section class="card" id="bagian-sekolah">
-      <h2><span class="section-number">1</span> Asal sekolah</h2>
+      <h2><span class="section-number">2</span> Asal sekolah</h2>
       <div id="isi-sekolah"></div>
     </section>
 
-    <!-- 2. Menginap -->
+    ${internal() ? "" : `
+    <!-- 3. Menginap -->
     <section class="card" id="bagian-barak">
-      <h2><span class="section-number">2</span> Perlu tempat menginap?</h2>
+      <h2><span class="section-number">3</span> Perlu tempat menginap?</h2>
       <p class="description">Panitia menyediakan ruang kelas untuk menginap malam
          sebelum lomba, gratis.</p>
       <div class="option-row" style="margin-top:.8rem">
@@ -146,25 +177,26 @@ function halaman() {
       <div id="isi-pendamping" style="margin-top:.9rem"></div>
       <div class="error" id="g-barak" hidden>Pilih salah satu.</div>
     </section>
+    `}
 
-    <!-- 3. Jumlah regu -->
+    <!-- Jumlah regu -->
     <section class="card" id="bagian-jumlah">
-      <h2><span class="section-number">3</span> Mendaftarkan berapa regu?</h2>
+      <h2><span class="section-number">${nomorJumlah}</span> Mendaftarkan berapa regu?</h2>
       <p class="description">1 regu = 5 orang.</p>
       <div id="isi-stepper" style="margin-top:.9rem"></div>
       <div class="total-box" id="kotak-total"></div>
       <div class="error" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
     </section>
 
-    <!-- 4. Nama regu -->
+    <!-- Nama regu -->
     <section class="card" id="bagian-regu">
-      <h2><span class="section-number">4</span> Nama tiap regu</h2>
+      <h2><span class="section-number">${nomorRegu}</span> Nama tiap regu</h2>
       <div id="isi-regu"></div>
     </section>
 
-    <!-- 5. Kontak -->
+    <!-- Kontak -->
     <section class="card" id="bagian-kontak">
-      <h2><span class="section-number">5</span> Contact Person</h2>
+      <h2><span class="section-number">${nomorKontak}</span> Contact Person</h2>
       <p class="description">Satu orang untuk semua regu.</p>
       <div class="field" style="margin-top:.7rem">
         <label for="nama-kontak">Nama</label>
@@ -188,10 +220,30 @@ function halaman() {
         <button class="button button-primary" id="kirim" type="button">Kirim Pendaftaran</button>
       </div>
     </div>
+    `}
   `));
 
+  const pilihJenis = (jenis) => {
+    if (jawab.jenis_peserta === jenis) return;
+    jawab.jenis_peserta = jenis;
+    jawab.sekolah = jenis === "internal" ? sekolahInternal() : null;
+    jawab.butuh_barak = jenis === "internal" ? false : null;
+    jawab.jumlah_pendamping = 0;
+    jawab.rincian = {
+      penggalang_pa: 0, penggalang_pi: 0,
+      penegak_pa: 0, penegak_pi: 0,
+      intern_pa: 0, intern_pi: 0,
+    };
+    jawab.regu = [];
+    simpanDraf();
+    halaman();
+  };
+  document.getElementById("p-eksternal").addEventListener("click", () => pilihJenis("eksternal"));
+  document.getElementById("p-internal").addEventListener("click", () => pilihJenis("internal"));
+  if (!jenisDipilih) return;
+
   gambarSekolah();
-  gambarBarak();
+  if (!internal()) gambarBarak();
   gambarStepper();
   gambarRegu();
   document.getElementById("nama-kontak").value = jawab.nama_kontak;
@@ -229,6 +281,7 @@ function gambarSekolah() {
         <div class="nama">${jawab.sekolah.nama}</div>
         <div class="detail">📍 ${jawab.sekolah.alamat}</div>
       </div>`));
+    if (internal()) return;
     kotak.appendChild(h(`
       <button class="button button-secondary button-small" id="ganti-sekolah" type="button"
               style="margin-top:.6rem">Ganti sekolah</button>`));
@@ -342,6 +395,13 @@ function gambarSekolah() {
   }
 }
 
+function sekolahInternal() {
+  const tersimpan = SEKOLAH.find(s => normal(s.name) === normal(SEKOLAH_INTERNAL.nama));
+  return tersimpan
+    ? { id: tersimpan.id, nama: tersimpan.name, alamat: tersimpan.address }
+    : { ...SEKOLAH_INTERNAL };
+}
+
 /* ---------------- 2. barak ---------------- */
 
 function gambarBarak() {
@@ -377,11 +437,11 @@ function gambarBarak() {
 
 function gambarStepper() {
   document.getElementById("isi-stepper").replaceChildren(h(
-    GOLONGAN.map(g => `
+    golonganForm().map(g => `
       <div class="stepper-row">
         <div>
           <strong style="font-size:1.05rem">${g.label}</strong>
-          <div class="hint">${g.ket}</div>
+          ${g.ket ? `<div class="hint">${g.ket}</div>` : ""}
         </div>
         <div class="stepper">
           <button type="button" aria-label="kurangi ${g.label}" data-kurang="${g.kode}">−</button>
@@ -410,7 +470,7 @@ function gambarStepper() {
 function sinkronRegu() {
   const lama = jawab.regu;
   jawab.regu = [];
-  for (const g of GOLONGAN) {
+  for (const g of golonganForm()) {
     const bekas = lama.filter(r => r.golongan === g.kode);
     for (let i = 0; i < jawab.rincian[g.kode]; i++)
       jawab.regu.push(bekas[i] ?? { golongan: g.kode, nama_regu: "", nama_ketua: "" });
@@ -558,10 +618,12 @@ function periksa(gulir = true) {
 
   const tandai = (id, ada) => { const e = document.getElementById(id); if (e) e.hidden = !ada; };
 
+  if (!jawab.jenis_peserta) { galat.push({ ke: "bagian-jenis", teks: "Jenis peserta belum dipilih" }); }
+
   if (!jawab.sekolah) { galat.push({ ke: "bagian-sekolah", teks: "Sekolah belum dipilih" }); }
   tandai("g-sekolah", !jawab.sekolah);
 
-  if (jawab.butuh_barak === null) { galat.push({ ke: "bagian-barak", teks: "Belum menjawab soal menginap" }); }
+  if (!internal() && jawab.butuh_barak === null) { galat.push({ ke: "bagian-barak", teks: "Belum menjawab soal menginap" }); }
   tandai("g-barak", jawab.butuh_barak === null);
 
   if (!jawab.regu.length) { galat.push({ ke: "bagian-jumlah", teks: "Belum ada regu" }); }
@@ -778,7 +840,22 @@ async function mulai() {
     return;
   }
 
-  if (draf && (draf.sekolah || draf.regu?.length)) jawab = { ...kosong(), ...draf };
+  if (draf && (draf.sekolah || draf.regu?.length)) {
+    // Draf dari versi sebelum pilihan jenis peserta adalah jalur form lama,
+    // yaitu Eksternal. Tetapkan otomatis agar ketikan yang sudah ada tidak
+    // hilang hanya karena form mendapat satu pertanyaan baru.
+    jawab = { ...kosong(), ...draf, jenis_peserta: draf.jenis_peserta ?? "eksternal" };
+    if (jawab.jenis_peserta === "internal") {
+      jawab.sekolah = sekolahInternal();
+      jawab.butuh_barak = false;
+      jawab.jumlah_pendamping = 0;
+      jawab.rincian.penggalang_pa = 0;
+      jawab.rincian.penggalang_pi = 0;
+      jawab.rincian.penegak_pa = 0;
+      jawab.rincian.penegak_pi = 0;
+      sinkronRegu();
+    }
+  }
   halaman();
 }
 

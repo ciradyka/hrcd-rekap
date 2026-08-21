@@ -974,6 +974,8 @@ export function nilaiBagian(w, a, b) {
 export const GOLONGAN_LABEL = {
   penegak_pa: "Penegak PA", penegak_pi: "Penegak PI",
   penggalang_pa: "Penggalang PA", penggalang_pi: "Penggalang PI",
+  intern_pa: "Intern PA", intern_pi: "Intern PI",
 };
 export const URUT_GOLONGAN =
-  ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi"];
+  ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi",
+   "intern_pa", "intern_pi"];

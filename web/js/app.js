@@ -59,6 +59,7 @@ const LAYAR = document.getElementById("layar");
 const GOLONGAN_SINGKAT = {
   penegak_pa: "Pgk Pa", penegak_pi: "Pgk Pi",
   penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
+  intern_pa: "Int Pa", intern_pi: "Int Pi",
 };
 let EDISI = null;
 
@@ -2399,8 +2400,11 @@ function kelompokLomba(kolom) {
   return urut;
 }
 
-const varianUntuk = (kol, golongan) =>
-  kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
+const varianUntuk = (kol, golongan) => {
+  if (golongan === "intern_pa" || golongan === "intern_pi")
+    return kol.varian.find(k => k.golongan === golongan || k.golongan === "intern") || null;
+  return kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
+};
 
 /** Kolom KERTAS untuk satu kolom layar. Sebagian memakan dua kolom, dan
  *  pembagiannya sama persis dengan kotak di layar — supaya petugas yang
@@ -2681,7 +2685,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
         <tr>
           <td class="bl-kategori" colspan="3">
             <span class="bl-label">Kategori &mdash; lingkari salah satu</span>
-            <span class="bl-pilihan">${URUT_GOLONGAN.map(g =>
+            <span class="bl-pilihan">${URUT_GOLONGAN.filter(g => !g.startsWith("intern_")).map(g =>
               `<span>${esc(GOLONGAN_LABEL[g])}</span>`).join("")}</span>
           </td>
         </tr>
