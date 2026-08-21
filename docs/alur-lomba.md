@@ -713,10 +713,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    > mengubah kode, cukup mengubah angkanya.
 3. Total skor = **jumlah skor seluruh pos − seluruh penalti** (bagian 10).
 4. **Penentu peringkat saat skor seri: ketepatan waktu.** Regu dengan selisih
-   waktu lebih kecil terhadap targetnya menempati peringkat lebih tinggi. Ini
-   bekerja karena penalti waktu dibulatkan per 10 menit, sedangkan selisih
-   sebenarnya tercatat sampai satuan menit — dua regu berpenalti −10 tetap
-   dapat dibedakan antara yang meleset 11 menit dan yang meleset 18 menit.
+   waktu lebih kecil terhadap targetnya menempati peringkat lebih tinggi.
+   Selisih sebenarnya tetap dicatat bertanda sampai satuan menit supaya layar
+   dapat menjelaskan apakah regu datang terlalu cepat atau terlambat.
 5. Peringkat dihitung **terpisah untuk keempat golongan** (bagian 2.3).
 6. Yang wajib dapat dikonfigurasi ulang setiap tahun:
    - Daftar pos dan bobotnya
@@ -737,10 +736,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    - **Jam datang diisi tombol**: panitia mengetik nomor dada, detail regu
      muncul untuk dipastikan, lalu menekan satu tombol "Sampai di Finish".
      Di meja finish juga ada penulisan manual di kertas, **tetapi hanya untuk
-     verifikasi** — tombol laptop tetap pencatat utamanya. Selisih semenit dua
-     menit antara kertas dan tombol adalah hal wajar (menekan tombol bisa
-     terlambat sedikit) dan hampir tidak pernah mengubah penalti, karena
-     penalti dibulatkan per 10 menit.
+     verifikasi** — tombol laptop tetap pencatat utamanya. Karena satu menit
+     selisih berarti satu poin, tombol harus ditekan segera ketika regu tiba;
+     catatan kertas dipakai untuk membetulkan keterlambatan pencatatan.
      Targetnya ±3 detik per regu, sehingga 20 regu yang datang bersamaan pun
      tidak menumpuk. Jam yang tersimpan adalah **jam saat tombol ditekan di
      laptop panitia**, bukan timestamp server saat data sampai — dan tetap
@@ -748,20 +746,20 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 3. Penalti dihitung dari selisih mutlak antara jam datang dan target:
 
    ```
-   penalti = floor(|selisih dalam menit| / 10) * 10
+   penalti = floor(|selisih dalam menit| / 1) * 1
    ```
 
 4. Penalti bersifat **simetris**. Datang terlalu cepat dihukum sama beratnya
    dengan datang terlambat.
-5. Tidak ada aturan toleransi tersendiri. Selisih 0–9 menit tidak dikenai
-   penalti semata-mata sebagai akibat pembulatan ke bawah pada rumus di atas.
+5. Tidak ada toleransi menit. Setiap satu menit terlalu cepat maupun terlambat
+   mengurangi satu poin.
 
    | Selisih dari target | Penalti |
    | --- | --- |
-   | 0–9 menit | 0 |
-   | 10–19 menit | −10 |
-   | 20–29 menit | −20 |
-   | 30–39 menit | −30 |
+   | 0 menit (tepat target) | 0 |
+   | 1 menit terlalu cepat/lambat | −1 |
+   | 10 menit terlalu cepat/lambat | −10 |
+   | 30 menit terlalu cepat/lambat | −30 |
 
 6. Tidak ada batas bawah. Total skor boleh menjadi negatif.
 

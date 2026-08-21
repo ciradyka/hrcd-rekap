@@ -357,5 +357,10 @@ run tests/sql/48_kim_dua_lomba.sql
 # persis keadaan produksi: kloter 1-10 sudah jalan dan kloter 11 masih menunggu.
 run supabase/migrations/0088_daftar_ulang_lewati_kloter_berangkat.sql
 run tests/sql/49_daftar_ulang_lewati_kloter_berangkat.sql
+# 0089 mengganti blok lama 10 menit -> 10 poin menjadi setiap satu menit
+# selisih mutlak -> satu poin. Tes 50 menekan target tepat serta kedua arah:
+# terlalu cepat dan terlambat harus dihukum sama.
+run supabase/migrations/0089_penalti_waktu_per_menit.sql
+run tests/sql/50_penalti_waktu_per_menit.sql
 
 echo "SEMUA TES LULUS"
