@@ -87,7 +87,7 @@ penyelesaiannya dicatat di bagian 11.
 | `pos` | Daftar pos dinilai + bobot | 5 baris, `bobot=1.00` semua (aturan 9.2) |
 | `wahana` | Satu baris per komponen nilai (wahana **atau** soal, kolom `jenis`): bentuk konversi + parameter + rentang wajar | `kode='lari_zigzag', bentuk='kecil_baik', poin_maks=100, raw_terbaik=20, raw_terburuk=90` → raw 40 detik = 71,4 poin |
 | `kontrak_opsi` | Pilihan kontrak waktu | `('3,5 jam',210), ('4 jam',240), ('4,5 jam',270)` |
-| `konfig_penalti` | Semua angka penalti, **kolom bernama** — pelajar baca satu baris, paham semua aturan | `blok_menit=10, penalti_per_blok=10, penalti_tanpa_checkout=100, penalti_per_anggota_hilang=20, nilai_pos_terlewat=0` |
+| `konfig_penalti` | Semua angka penalti, **kolom bernama** — pelajar baca satu baris, paham semua aturan | `blok_menit=1, penalti_per_blok=1, penalti_tanpa_checkout=100, penalti_per_anggota_hilang=20, nilai_pos_terlewat=0` |
 
 1. `wahana.kode` dibatasi `CHECK` huruf-kecil/angka/underscore — kode ini
    dipakai sebagai **header kolom lembar cetak sekaligus header import**,
@@ -259,7 +259,7 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
    4. `v_penalti_waktu` — `target = jam_berangkat kloter + kontrak`;
       `selisih_menit` bertanda, presisi menit;
       `penalti = floor(|selisih|/blok_menit) × penalti_per_blok` — simetris;
-      toleransi 0–9 menit **lahir dari floor**, bukan aturan tersendiri.
+      konfigurasi sekarang `1 menit → 1 poin`, jadi tidak ada toleransi menit.
    5. `v_total_skor` — Σ pos − penalti waktu − `penalti_tanpa_checkout` (bila
       tidak ada baris closing; penalti waktu saat itu 0 karena tak
       terhitung) − `(5 − anggota_hadir) × penalti_per_anggota_hilang`.
@@ -474,13 +474,12 @@ sengaja **tidak** disejajarkan dengan tombol: keduanya dipakai saat
 memperbaiki hasil cek silang, bukan pada tiap regu. Menaikkannya ke jalur
 utama akan merusak target dua-aksi.
 
-**Selisih semenit dua menit antara kertas dan tombol itu wajar** — menekan
-tombol bisa terlambat sedikit. Yang perlu diketahui panitia bukan "beda berapa
-menit", melainkan **apakah bedanya mengubah penalti**; karena penalti
-dibulatkan per 10 menit, biasanya tidak. Layar finish menjawab itu langsung:
-mengisi kolom jam memunculkan lencana **hijau** ("1 menit lebih awal — penalti
-tetap −10") atau **kuning** ("15 menit lebih awal — penalti berubah −10 → 0").
-Hanya yang kuning yang perlu diperdebatkan.
+**Selisih semenit dua menit antara kertas dan tombol tetap mungkin terjadi** —
+menekan tombol bisa terlambat sedikit — tetapi sekarang setiap menit mengubah
+penalti. Tombol karena itu ditekan segera ketika regu tiba. Bila cek silang
+menunjukkan pencatatannya terlambat, kolom jam dipakai untuk menyalin waktu
+yang benar dari kertas; lencana dampaknya memperlihatkan perubahan poin sebelum
+disimpan.
 
 Karena itu layar keberangkatan harus enak dipakai untuk **menyalin** dari
 kertas — jam wajib bisa diketik, dan urutan di layar mengikuti urutan di

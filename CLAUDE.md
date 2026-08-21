@@ -350,6 +350,12 @@ Guidance for Claude Code when working in this repository.
    golongan — that is what `kolomPos()` merges by name. Grouping by lomba is a
    third thing on top, and doing both with one mechanism is how Tebak Simpul
    ends up as four columns again.
+10. **Penalti waktu menilai KETEPATAN, bukan kecepatan.** Target kedatangan =
+    `kloter.jam_berangkat + regu.kontrak_menit`: berangkat 07:00 dengan
+    kontrak 4 jam berarti harus tiba tepat 11:00. Setiap satu menit terlalu
+    cepat maupun terlambat mengurangi satu poin; keduanya simetris. Sejak 0089
+    konfigurasinya `blok_menit=1` dan `penalti_per_blok=1` — jangan hidupkan
+    kembali toleransi 0–9 menit dari aturan lama.
 
 ## 12. Kloter
 
