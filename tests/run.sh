@@ -352,5 +352,10 @@ run tests/sql/47_menaksir_dari_taksiran.sql
 # bergeser.
 run supabase/migrations/0087_kim_dua_lomba.sql
 run tests/sql/48_kim_dua_lomba.sql
+# 0088 mencegah pengacakan nomor dada terlambat mengisi slot kosong di kloter
+# yang sudah berangkat. Kloter tercetak tetap boleh dipilih; tes 49 membuat
+# persis keadaan produksi: kloter 1-10 sudah jalan dan kloter 11 masih menunggu.
+run supabase/migrations/0088_daftar_ulang_lewati_kloter_berangkat.sql
+run tests/sql/49_daftar_ulang_lewati_kloter_berangkat.sql
 
 echo "SEMUA TES LULUS"
