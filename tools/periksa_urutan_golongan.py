@@ -35,7 +35,8 @@ import sys
 POLA_LABEL = re.compile(r"""["'](?:Penggalang PA|Penegak PA)["']""")
 POLA_URUT = re.compile(
     r"""\[\s*["']penegak_pa["']\s*,\s*["']penegak_pi["']\s*,"""
-    r"""\s*["']penggalang_pa["']\s*,\s*["']penggalang_pi["']\s*\]""")
+    r"""\s*["']penggalang_pa["']\s*,\s*["']penggalang_pi["']\s*,"""
+    r"""\s*["']intern_pa["']\s*,\s*["']intern_pi["']\s*\]""")
 
 # Komentar dibuang lebih dulu. Tanpa ini penjaga menuduh kalimat yang justru
 # MENJELASKAN kenapa label pendek ada — "Penggalang PA 13 huruf jadi Pgl Pa" —
