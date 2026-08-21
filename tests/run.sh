@@ -362,5 +362,11 @@ run tests/sql/49_daftar_ulang_lewati_kloter_berangkat.sql
 # terlalu cepat dan terlambat harus dihukum sama.
 run supabase/migrations/0089_penalti_waktu_per_menit.sql
 run tests/sql/50_penalti_waktu_per_menit.sql
+# 0090 adalah reset data production yang disengaja sebelum lomba sebenarnya:
+# hapus seluruh jam berangkat, ceklis, dan baris closing, tetapi pertahankan
+# kontrak, nomor dada, kloter, dan nilai. Ditaruh paling akhir karena seluruh
+# tes alur sebelumnya memang membutuhkan data waktu.
+run supabase/migrations/0090_reset_event_times.sql
+run tests/sql/51_reset_event_times.sql
 
 echo "SEMUA TES LULUS"
