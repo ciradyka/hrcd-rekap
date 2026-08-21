@@ -355,22 +355,22 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 
 ## 12. Kloter
 
-1. **Kloter tidak pernah tertutup untuk penambahan regu.** Bukan tanda
-   cetaknya, bukan juga jam berangkatnya — tidak ada keadaan yang membuat
-   sebuah kloter menolak regu baru. Yang membatasi cuma kapasitas. Mencetak
+1. **Tanda cetak tidak pernah menutup kloter untuk penambahan regu.** Mencetak
    ulang selembar daftar itu murah; memberangkatkan kloter dengan empat tempat
-   kosong tidak bisa diulang, dan jendela 07:00-10:00 di bagian 10 tidak punya
-   kelonggaran untuk itu.
-2. **Selalu isi kloter paling awal dulu sampai penuh**, bukan menyebar rata.
-   Kloter 1 penuh sebelum kloter 2 dipakai. Yang berangkat pagi harus berangkat
-   penuh; tempat kosong yang tertinggal di kloter awal berarti kloter terakhir
-   berangkat lebih siang dari yang perlu, dan jendela 07:00–10:00 di bagian 10
-   tidak punya kelonggaran untuk itu.
-3. **Di lapangan semua dinamis, dan itu yang membuat butir 1 sekeras itu.**
-   Peserta yang terlambat bisa memaksa berangkat, dan panitia menambahkannya di
-   depan — "mereka seakan-akan berangkat di jam tersebut". Sistem yang menolak
-   tidak menghentikan penambahan itu; ia cuma memindahkannya ke jalan yang
-   tidak tercatat.
+   kosong tidak bisa diulang. Jam berangkat punya arti berbeda: pengacakan
+   otomatis `daftar_ulang_batch` HARUS melewati kloter yang sudah berangkat,
+   tetapi penyisipan manual ke sana tetap boleh bila memang itu yang terjadi
+   di lapangan. Kapasitas tetap membatasi kedua jalur.
+2. **Pengacakan otomatis selalu mengisi kloter paling awal yang BELUM
+   BERANGKAT dulu sampai penuh**, bukan menyebar rata dan bukan kembali ke slot
+   kosong di kloter lama. Kalau kloter 1-10 sudah jalan, peserta yang baru
+   menerima nomor dada mulai dari kloter 11. Sebelum lomba dimulai, akibatnya
+   tetap sama seperti aturan lama: kloter 1 penuh sebelum kloter 2 dipakai.
+3. **Di lapangan semua dinamis, jadi penyisipan manual tetap diperlukan.**
+   Peserta yang terlambat bisa memaksa berangkat, dan panitia dapat
+   menambahkannya ke kloter lama — "mereka seakan-akan berangkat di jam
+   tersebut". Itu keputusan petugas, bukan keputusan yang boleh dibuat diam-
+   diam oleh pengacakan otomatis saat nomor dada diberikan.
 
    Konsekuensi yang perlu diketahui panitia yang menyisipkan: penalti waktu
    dihitung dari `kloter.jam_berangkat`, jadi regu yang masuk ke kloter yang
@@ -378,12 +378,13 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    benar-benar jalan. Kalau maksudnya regu itu berangkat sekarang, tempatnya di
    kloter yang belum jalan.
 
-   Riwayatnya, karena mudah dipasang kembali: migrasi 0008 menambahkan
-   `dicetak_pada is null` ke pemilihan kloter beserta trigger
-   `jaga_kloter_tercetak`; 0040 mengembalikannya setelah sempat hilang;
-   **0066 membuang keduanya beserta `jam_berangkat is null`**. Ketiganya
-   ditulis dengan niat melindungi kertas yang sudah dibagikan — niat yang
-   masuk akal di meja, dan salah di lapangan. Jangan dipasang lagi.
+   Riwayatnya, karena mudah tertukar: migrasi 0008 menambahkan
+   `dicetak_pada is null` dan `jam_berangkat is null` ke pemilihan kloter
+   beserta trigger `jaga_kloter_tercetak`; 0040 mengembalikannya setelah sempat
+   hilang; 0066 membuang seluruhnya supaya sisipan lapangan tidak ditolak;
+   **0088 mengembalikan HANYA `jam_berangkat is null` di empat putaran
+   pengacakan `daftar_ulang_batch`**. Jangan kembalikan pagar tanda cetak atau
+   trigger lamanya, dan jangan membuang lagi pagar jam dari pengacakan.
 4. **"Bersihkan data" termasuk mengembalikan penomoran kloter ke 1**, bukan
    hanya menghapus regu dan nilai. Kloter yang masih menyandang tanda cetak atau
    jam berangkat dari percobaan sebelumnya membuat pembagian berikutnya mulai
