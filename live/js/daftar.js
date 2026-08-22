@@ -21,10 +21,10 @@ import { esc, h, html, rupiah, notif, kartuGagalMuat,
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN = [
-  { kode: "penggalang_pa", label: "Penggalang Putra", ket: "SMP / MTs — putra" },
-  { kode: "penggalang_pi", label: "Penggalang Putri", ket: "SMP / MTs — putri" },
-  { kode: "penegak_pa",    label: "Penegak Putra",    ket: "SMA / SMK / MA — putra" },
-  { kode: "penegak_pi",    label: "Penegak Putri",    ket: "SMA / SMK / MA — putri" },
+  { kode: "penggalang_pa", label: "Penggalang Putra", ket: "SMP / MTs" },
+  { kode: "penggalang_pi", label: "Penggalang Putri", ket: "SMP / MTs" },
+  { kode: "penegak_pa",    label: "Penegak Putra",    ket: "SMA / SMK / MA" },
+  { kode: "penegak_pi",    label: "Penegak Putri",    ket: "SMA / SMK / MA" },
 ];
 const GOLONGAN_INTERNAL = [
   { kode: "intern_pa", label: "Intern Putra", ket: "" },
