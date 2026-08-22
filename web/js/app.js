@@ -550,7 +550,10 @@ async function layarPengaturanKloter() {
   };
   const pertamaAwal = jamPendek(cfg.jam_mulai_berangkat);
   const terakhirAwal = jamPendek(cfg.jam_batas_berangkat);
-  const jumlahAwal = Number(cfg.jumlah_regu) > 0 ? Number(cfg.jumlah_regu) : "";
+  const eksternalAwal = Number(cfg.jumlah_eksternal) > 0
+    ? Number(cfg.jumlah_eksternal) : Number(cfg.perkiraan_regu_eksternal);
+  const internAwal = Number(cfg.jumlah_intern) > 0
+    ? Number(cfg.jumlah_intern) : Number(cfg.perkiraan_regu_intern);
 
   LAYAR.replaceChildren(h(`
     <div class="card">
@@ -564,11 +567,17 @@ async function layarPengaturanKloter() {
           ${kotakJamHtml("kloter-terakhir", terakhirAwal)}
         </div>
       </div>
-      <div class="field">
-        <label for="kloter-jumlah-regu">Jumlah Regu</label>
-        <input type="number" id="kloter-jumlah-regu" inputmode="numeric"
-               min="1" max="${Number(cfg.maks_regu_per_kloter) * Number(cfg.kloter_maks)}"
-               value="${jumlahAwal}">
+      <div class="two-column">
+        <div class="field">
+          <label for="kloter-jumlah-eksternal">Regu Eksternal</label>
+          <input type="number" id="kloter-jumlah-eksternal" inputmode="numeric"
+                 min="0" value="${eksternalAwal}">
+        </div>
+        <div class="field">
+          <label for="kloter-jumlah-intern">Regu Intern</label>
+          <input type="number" id="kloter-jumlah-intern" inputmode="numeric"
+                 min="0" value="${internAwal}">
+        </div>
       </div>
       <div class="error" id="kloter-galat" hidden></div>
     </div>
@@ -579,7 +588,8 @@ async function layarPengaturanKloter() {
         <table class="table data-table table-tetap table-kloter-rekomendasi">
           <thead><tr>
             <th>Kloter</th>
-            <th>Jumlah Regu Per Kloter</th>
+            <th>Eksternal</th>
+            <th>Intern</th>
             <th>Waktu Berangkat</th>
           </tr></thead>
           <tbody id="kloter-rekomendasi-baris"></tbody>
@@ -590,7 +600,8 @@ async function layarPengaturanKloter() {
 
   const waktuPertama = pasangKotakJam("kloter-pertama");
   const waktuTerakhir = pasangKotakJam("kloter-terakhir");
-  const jumlah = document.getElementById("kloter-jumlah-regu");
+  const jumlahEksternal = document.getElementById("kloter-jumlah-eksternal");
+  const jumlahIntern = document.getElementById("kloter-jumlah-intern");
   const galat = document.getElementById("kloter-galat");
   const rekomendasi = document.getElementById("kloter-rekomendasi");
   const tbody = document.getElementById("kloter-rekomendasi-baris");
@@ -598,32 +609,39 @@ async function layarPengaturanKloter() {
   const gambar = () => {
     const pertama = waktuPertama.nilai();
     const terakhir = waktuTerakhir.nilai();
-    const jumlahTeks = jumlah.value.trim();
+    const eksternalTeks = jumlahEksternal.value.trim();
+    const internTeks = jumlahIntern.value.trim();
 
     galat.hidden = true;
-    jumlah.setAttribute("aria-invalid", "false");
+    jumlahEksternal.setAttribute("aria-invalid", "false");
+    jumlahIntern.setAttribute("aria-invalid", "false");
     rekomendasi.hidden = true;
-    if (!pertama || !terakhir || !jumlahTeks) return;
+    if (!pertama || !terakhir || !eksternalTeks || !internTeks) return;
 
     try {
       const baris = hitungRekomendasiKloter({
         waktuPertama: pertama,
         waktuTerakhir: terakhir,
-        jumlahRegu: Number(jumlahTeks),
-        maksReguPerKloter: Number(cfg.maks_regu_per_kloter),
+        jumlahEksternal: Number(eksternalTeks),
+        jumlahIntern: Number(internTeks),
+        maksEksternalPerKloter: Number(cfg.maks_eksternal_per_kloter),
+        maksInternPerKloter: Number(cfg.maks_intern_per_kloter),
         kloterMaks: Number(cfg.kloter_maks),
       });
       waktuTerakhir.salah(false);
       tbody.replaceChildren(h(baris.map(x => html`
         <tr>
           <td><strong>K${x.kloter}</strong></td>
-          <td>${x.jumlahRegu}</td>
+          <td>${x.jumlahEksternal}</td>
+          <td>${x.jumlahIntern}</td>
           <td>${x.waktuBerangkat}</td>
         </tr>`).join("")));
       rekomendasi.hidden = false;
     } catch (e) {
-      const jumlahSalah = !Number.isInteger(Number(jumlahTeks)) || Number(jumlahTeks) < 1;
-      jumlah.setAttribute("aria-invalid", String(jumlahSalah));
+      const eksternalSalah = !Number.isInteger(Number(eksternalTeks)) || Number(eksternalTeks) < 0;
+      const internSalah = !Number.isInteger(Number(internTeks)) || Number(internTeks) < 0;
+      jumlahEksternal.setAttribute("aria-invalid", String(eksternalSalah));
+      jumlahIntern.setAttribute("aria-invalid", String(internSalah));
       if (/waktu berangkat terakhir/i.test(e.message)) waktuTerakhir.salah(true);
       galat.textContent = e.message;
       galat.hidden = false;
@@ -632,7 +650,8 @@ async function layarPengaturanKloter() {
 
   waktuPertama.dengar(gambar);
   waktuTerakhir.dengar(gambar);
-  jumlah.addEventListener("input", gambar);
+  jumlahEksternal.addEventListener("input", gambar);
+  jumlahIntern.addEventListener("input", gambar);
   gambar();
 }
 
@@ -1928,7 +1947,7 @@ async function layarCetakKloter() {
       }).join("")));
   };
 
-  /** Cetak SEMUA kloter dalam satu bentuk kertas.
+  /** Cetak kloter yang BELUM pernah dicetak dalam satu bentuk kertas.
    *  Datanya diambil ulang tepat sebelum mencetak: layar ini sering dibiarkan
    *  terbuka sementara meja daftar ulang terus jalan, dan kertas yang keluar
    *  tanpa regu yang baru masuk adalah kertas yang salah — petugas garis start
@@ -1940,7 +1959,12 @@ async function layarCetakKloter() {
 
     perKloter = kelompokkan(segar);
     gambarPratayang(perKloter);
-    siapkanCetakKloter([...perKloter.entries()], bentuk);
+    const belumDicetak = [...perKloter.entries()].filter(([, v]) => !v.dicetak);
+    if (!belumDicetak.length) {
+      notif("Semua kloter sudah dicetak.");
+      return;
+    }
+    siapkanCetakKloter(belumDicetak, bentuk);
     window.print();
 
     // Ditandai SETELAH dialog cetak ditutup — kalau operator membatalkan,
@@ -1948,13 +1972,14 @@ async function layarCetakKloter() {
     const lanjut = confirm([
       "Kertasnya sudah keluar dengan benar?",
       "",
-      "OK  = tandai kloter ini sudah dicetak (isinya dibekukan)",
+      "OK  = tandai kloter ini sudah dicetak",
       "Batal = belum, biarkan bisa dicetak lagi",
     ].join("\n"));
     if (!lanjut) return;
     try {
-      const n = await tandaiKloterDicetak(null);
-      notif(`${n} kloter ditandai sudah dicetak dan dibekukan.`);
+      const nomor = belumDicetak.map(([n]) => Number(n));
+      const n = await tandaiKloterDicetak(nomor);
+      notif(`${n} kloter ditandai sudah dicetak.`);
       layarCetakKloter();
     } catch (err) { notif(err.message, true); }
   }
@@ -1978,7 +2003,6 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
     const perkiraan = jamMenit(contoh.perkiraan_berangkat);
-    const nyata = contoh.sudah_berangkat;
 
     const baris = v.isi.map(r => bentuk === "staging"
       ? html`
@@ -1998,8 +2022,8 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
     return bentuk === "staging" ? `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.name : "")}</h1>
-        <p><strong>${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</strong>
-           ${nyata ? "" : " · Jam sebenarnya: ________"} · Petugas: ________________</p>
+        <p><strong>Perkiraan jam berangkat: ${esc(perkiraan)}</strong>
+           · Jam sebenarnya: ________ · Petugas: ________________</p>
         <table class="print-table">
           <!-- Hadir di kolom PALING KIRI, sejajar dengan tombol centang di
                layar Keberangkatan. Petugas memegang kertas ini di satu tangan
@@ -2012,7 +2036,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
       </section>` : `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)}</h1>
-        <p class="jam-besar">${nyata ? "Berangkat" : "Perkiraan berangkat"}: ${esc(perkiraan)}</p>
+        <p class="jam-besar">Perkiraan jam berangkat: ${esc(perkiraan)}</p>
         <table class="print-table">
           <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th></tr></thead>
           <tbody>${baris}</tbody>

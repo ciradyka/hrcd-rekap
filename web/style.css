@@ -456,9 +456,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table-kloter-rekomendasi { table-layout: fixed; }
 .table-kloter-rekomendasi th,
 .table-kloter-rekomendasi td { text-align: center; word-break: normal; }
-.table-kloter-rekomendasi th:nth-child(1) { width: 20%; }
-.table-kloter-rekomendasi th:nth-child(2) { width: 45%; }
-.table-kloter-rekomendasi th:nth-child(3) { width: 35%; }
+.table-kloter-rekomendasi th:nth-child(1) { width: 18%; }
+.table-kloter-rekomendasi th:nth-child(2),
+.table-kloter-rekomendasi th:nth-child(3) { width: 22%; }
+.table-kloter-rekomendasi th:nth-child(4) { width: 38%; }
 @media (max-width: 560px) {
   .table-kloter-rekomendasi th {
     padding: .4rem .2rem;

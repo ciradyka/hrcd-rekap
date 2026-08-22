@@ -366,12 +366,12 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    kosong tidak bisa diulang. Jam berangkat punya arti berbeda: pengacakan
    otomatis `daftar_ulang_batch` HARUS melewati kloter yang sudah berangkat,
    tetapi penyisipan manual ke sana tetap boleh bila memang itu yang terjadi
-   di lapangan. Kapasitas tetap membatasi kedua jalur.
+   di lapangan. Kuota otomatis tidak membatasi jalur manual.
 2. **Pengacakan otomatis selalu mengisi kloter paling awal yang BELUM
-   BERANGKAT dulu sampai penuh**, bukan menyebar rata dan bukan kembali ke slot
-   kosong di kloter lama. Kalau kloter 1-10 sudah jalan, peserta yang baru
-   menerima nomor dada mulai dari kloter 11. Sebelum lomba dimulai, akibatnya
-   tetap sama seperti aturan lama: kloter 1 penuh sebelum kloter 2 dipakai.
+   BERANGKAT dulu secara FIFO.** Yang lebih dahulu menyelesaikan daftar ulang
+   mendapat kloter lebih awal. Setiap kloter otomatis memuat paling banyak
+   **5 Eksternal dan 3 Intern**; kuota keduanya dihitung terpisah. Tidak ada
+   lagi pengacakan atau lompatan dua kloter berdasarkan sekolah.
 3. **Di lapangan semua dinamis, jadi penyisipan manual tetap diperlukan.**
    Peserta yang terlambat bisa memaksa berangkat, dan panitia dapat
    menambahkannya ke kloter lama — "mereka seakan-akan berangkat di jam
@@ -388,27 +388,24 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    `dicetak_pada is null` dan `jam_berangkat is null` ke pemilihan kloter
    beserta trigger `jaga_kloter_tercetak`; 0040 mengembalikannya setelah sempat
    hilang; 0066 membuang seluruhnya supaya sisipan lapangan tidak ditolak;
-   **0088 mengembalikan HANYA `jam_berangkat is null` di empat putaran
-   pengacakan `daftar_ulang_batch`**. Jangan kembalikan pagar tanda cetak atau
-   trigger lamanya, dan jangan membuang lagi pagar jam dari pengacakan.
+   **0088 mengembalikan HANYA `jam_berangkat is null` di pemilihan otomatis;
+   0092 mengganti empat putaran penyebaran dengan satu pemilihan FIFO berkuota
+   jenis.** Jangan kembalikan pagar tanda cetak atau penyebaran sekolah lama.
 4. **"Bersihkan data" termasuk mengembalikan penomoran kloter ke 1**, bukan
    hanya menghapus regu dan nilai. Kloter yang masih menyandang tanda cetak atau
    jam berangkat dari percobaan sebelumnya membuat pembagian berikutnya mulai
    dari tengah — produksi sempat mulai dari kloter 17 karena 24 kloter pertama
    masih bertanda tercetak, dan papan seperti itu membuat panitia mencari
    keenam belas kloter yang tidak pernah ada.
-5. **Satu sekolah tidak boleh berangkat bareng di kloter yang sama.** Regu
-   dari sekolah yang sama disebar — `daftar_ulang_batch` sudah menjaganya, dan
-   jarak antar kloternya ditentukan `lompatan_kloter` (2 di edisi 37, jadi tiga
-   regu satu sekolah mendarat di kloter 1, 3, 5). Aturan ini melunak, bukan
-   putus, kalau kloter benar-benar habis — "sesedikit mungkin", bukan "tidak
-   boleh".
+5. **Sekolah tidak memengaruhi penempatan kloter.** Urutan daftar ulang dan
+   kuota 5 Eksternal + 3 Intern adalah seluruh aturan otomatis. Dua regu dari
+   sekolah yang sama boleh berada dalam kloter yang sama bila FIFO menempatkan
+   mereka di sana.
 6. **Jangan menomori kloter sendiri.** Penomoran menyimpan aturan yang tidak
-   kelihatan dari nomornya: butir 5 di atas dijaga di dalam
-   `daftar_ulang_batch`, bukan oleh urutan nomor dada. Skrip contoh sempat
-   menomori ulang dengan `ceil(row_number/10)` dan mendaratkan MTs Rancah
-   bertiga di kloter 1. Kalau kloter perlu disusun ulang, bersihkan lalu
-   jalankan ulang alurnya — jangan tulis nomornya langsung.
+   kelihatan dari nomornya: FIFO dan dua kuota dijaga di dalam
+   `daftar_ulang_batch`, bukan oleh urutan nomor dada. Kalau kloter perlu
+   disusun ulang, bersihkan lalu jalankan ulang alurnya — jangan tulis nomornya
+   langsung.
 7. **Satu sekolah, satu baris `sekolah`, dan kuncinya NAMA.** Sampai migrasi
    0061 `submit_pendaftaran` mencari sekolahnya dengan pasangan
    **(nama, alamat) persis**, jadi beda satu koma, beda `Jl.` dan `Jln.`, beda
@@ -427,12 +424,10 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    membedakan: `MAN 3 Ciamis` dan `MAN 3 Tasikmalaya`, karena NPSN-nya berbeda.
    Berlaku dua arah — kalau tidak ada tabrakan, JANGAN tambahkan ekor;
    `MAN Darussalam` cuma ada satu dan tetap polos.
-9. **Kenapa ini butir kloter, bukan butir data.** Butir 5 berhenti berlaku di
-   antara baris-baris kembar: mereka terbaca sebagai sekolah berlainan, jadi
-   regunya BERANGKAT BARENG tanpa satu pun pesan galat. Itu yang benar-benar
-   terjadi di data contoh — empat baris SMPN 2 Cipaku, empat "sekolah". Kalau
-   suatu hari kunci sekolah dilonggarkan lagi, inilah yang rusak duluan dan
-   paling terakhir ketahuan.
+9. **Sekolah kembar tetap kesalahan data.** Sekolah tidak lagi menentukan
+   kloter, tetapi baris kembar masih memecah pencarian, rekap, dan identitas
+   pendaftaran. Jangan melonggarkan kuncinya hanya karena penempatan FIFO tidak
+   terlihat rusak.
 10. **Jangan tertukar antara dua kunci penyamaan nama sekolah.**
     `kunci_sekolah()` di database sengaja JINAK — ia menolak baris tanpa ada
     yang memeriksa, jadi ia hanya menyamakan yang pasti sama (besar-kecil

@@ -53,7 +53,8 @@ LEWATI_DULU="0076_bidai_dan_lomba_soal"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
-       0076_bidai_dan_lomba_soal"
+       0076_bidai_dan_lomba_soal 0091_intern_golongan
+       0093_configure_fifo_capacity"
 
 # Yang dilewati WAJIB ada di ULANG. Kalau tidak, ia tidak dijalankan sama
 # sekali — kerusakan yang sama dengan berhenti di 0011, dan sama diamnya.
@@ -102,6 +103,8 @@ run supabase/migrations/0024_komponen_pos.sql
 #     (`where lomba = 'Pembidaian'`) menemukan kelima barisnya dan jumlah 100
 #     itu benar-benar diperiksa. Tanpa 0054 ia melapor "Pembidaian tidak ada di
 #     database ini" dan penjaganya diam.
+#   * 0091 harus SESUDAH 0076 agar lima komponen Soal Tulis yang disalin untuk
+#     Intern sudah ada. 0093 lalu menyiapkan 60 kloter setelah edisi aktif lahir.
 for m in $ULANG; do
   run "supabase/migrations/$m.sql"
 done

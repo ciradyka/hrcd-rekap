@@ -113,8 +113,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/pengaturan-kloter":
                 self._kirim(200, q(
                     "select e.jam_mulai_berangkat, e.jam_batas_berangkat, "
-                    "e.maks_regu_per_kloter, e.kloter_maks, "
-                    "(select count(*) from regu where not is_cancelled) as jumlah_regu "
+                    "e.maks_eksternal_per_kloter, e.maks_intern_per_kloter, "
+                    "e.perkiraan_regu_eksternal, e.perkiraan_regu_intern, e.kloter_maks, "
+                    "(select count(*) from regu where not is_cancelled and golongan not like 'intern_%') as jumlah_eksternal, "
+                    "(select count(*) from regu where not is_cancelled and golongan like 'intern_%') as jumlah_intern "
                     "from edisi e where e.is_active",
                     uid=p.get("uid"), fetch="one"))
             elif u.path == "/penalti":

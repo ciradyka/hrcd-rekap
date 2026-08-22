@@ -120,7 +120,7 @@
     <g>
       <line x1="1380" y1="333" x2="1380" y2="345" stroke="#2E7D32" stroke-width="2"/>
       <rect x="1220" y="345" width="320" height="34" rx="17" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
-      <text x="1380" y="367" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Nomor Dada + Kloter (sekolah disebar)</text>
+      <text x="1380" y="367" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Nomor Dada + Kloter FIFO (5 Eksternal + 3 Intern)</text>
     </g>
 
     <!-- ================= TAHAP 2 ================= -->

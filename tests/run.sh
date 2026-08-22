@@ -372,5 +372,11 @@ run tests/sql/51_reset_event_times.sql
 # dinilai dari lima Soal Tulis dan ketepatan waktu, bukan lomba lapangan.
 run supabase/migrations/0091_intern_golongan.sql
 run tests/sql/52_intern_golongan.sql
+# 0092 mengganti penyebaran sekolah per dua kloter dengan FIFO berkategori:
+# otomatis 5 Eksternal + 3 Intern, manual tanpa batas, 300+50 regu dalam 60
+# kloter yang perkiraannya dibagi rata sepanjang 07:00-10:00.
+run supabase/migrations/0092_fifo_kloter_eksternal_intern.sql
+run supabase/migrations/0093_configure_fifo_capacity.sql
+run tests/sql/53_fifo_kloter_eksternal_intern.sql
 
 echo "SEMUA TES LULUS"

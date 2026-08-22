@@ -25,8 +25,13 @@ DSN = "host=127.0.0.1 port=55432 dbname=hrcd_dev user=postgres password=hrcd"
 MEJA = ("00000000-0000-0000-0000-0000000000b1",
         "00000000-0000-0000-0000-0000000000b2",
         "00000000-0000-0000-0000-00000000000a")   # 2 meja + admin
-JUMLAH_SEKOLAH = 30          # 12 sekolah berebut bersamaan
-REGU_PER_SEKOLAH = 10         # 48 regu, 48 nomor dada
+JUMLAH_SEKOLAH = 30          # 30 sekolah berebut bersamaan
+REGU_PER_SEKOLAH = 10        # 300 regu, 300 nomor dada
+
+
+def kode_huruf(n):
+    """Kode dua huruf tanpa angka; nama regu memang menolak digit."""
+    return chr(65 + n // 26) + chr(65 + n % 26)
 
 
 def jalankan(sql, args=(), uid=None, role="authenticated", fetch="all"):
@@ -58,7 +63,8 @@ def siapkan():
 
     kode = []
     for i in range(JUMLAH_SEKOLAH):
-        regu = [{"nama_regu": f"Regu {i}-{j}", "nama_ketua": f"Ketua {i}-{j}",
+        regu = [{"nama_regu": f"Regu {kode_huruf(i)} {kode_huruf(j)}",
+                 "nama_ketua": f"Ketua {kode_huruf(i)} {kode_huruf(j)}",
                  "golongan": "penegak_pa"} for j in range(REGU_PER_SEKOLAH)]
         h = jalankan(
             "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
@@ -172,9 +178,11 @@ def periksa(hasil, galat):
     penuh = jalankan("""
         select k.nomor, count(r.id) as isi
         from kloter k join regu r on r.kloter_nomor = k.nomor
-        group by k.nomor having count(r.id) > (select maks_regu_per_kloter from edisi where aktif)
+        where r.golongan not like 'intern_%'
+        group by k.nomor
+        having count(r.id) > (select maks_eksternal_per_kloter from edisi where aktif)
     """, uid=MEJA[2])
-    cek("tidak ada kloter melebihi kapasitas", not penuh, str(penuh[:3]))
+    cek("tidak ada kloter melebihi kuota Eksternal", not penuh, str(penuh[:3]))
 
     urutan = jalankan("""
         select kloter_nomor, urutan_kloter, count(*) as n
@@ -183,16 +191,15 @@ def periksa(hasil, galat):
     """, uid=MEJA[2])
     cek("tidak ada urutan kloter kembar", not urutan, str(urutan[:3]))
 
-    # Inti aturannya: satu sekolah tersebar, tidak menumpuk di satu kloter.
-    tumpuk = jalankan("""
-        select s.nama, r.kloter_nomor, count(*) as n
-        from regu r
-        join pendaftaran d on d.id = r.pendaftaran_id
-        join sekolah s on s.id = d.sekolah_id
-        where r.kloter_nomor is not null
-        group by 1,2 having count(*) > 1
-    """, uid=MEJA[2])
-    cek("tidak ada sekolah menumpuk di satu kloter", not tumpuk, str(tumpuk[:3]))
+    # FIFO mengisi 60 kloter berurutan, masing-masing 5 Eksternal.
+    fifo = jalankan("""
+        select count(distinct kloter_nomor) as jumlah_kloter,
+               min(kloter_nomor) as pertama, max(kloter_nomor) as terakhir
+        from regu where nomor_dada is not null
+    """, uid=MEJA[2], fetch="one")
+    cek("FIFO memakai tepat kloter 1-60",
+        fifo["jumlah_kloter"] == 60 and fifo["pertama"] == 1 and fifo["terakhir"] == 60,
+        str(fifo))
 
     return lolos
 
@@ -209,7 +216,7 @@ def uji_nomor_kembar():
         h = jalankan(
             "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
             (f"UJI KONKUREN KEMBAR {i}", f"Jl. Kembar {i}", False, "081200000000",
-             json.dumps([{"nama_regu": f"Kembar {i}", "nama_ketua": "Ketua",
+             json.dumps([{"nama_regu": f"Kembar {kode_huruf(i)}", "nama_ketua": "Ketua",
                           "golongan": "penegak_pa"}]), 0, str(uuid.uuid4())),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]

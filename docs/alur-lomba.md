@@ -179,33 +179,21 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 ## 5. Kloter dan kontrak waktu
 
-1. Satu kloter berisi **paling banyak 10 regu**. Jumlahnya dapat kurang dari 10
-   bila ada regu yang batal setelah membayar (bagian 3.7).
-2. **30 kloter selalu ada**, karena jumlah peserta konsisten di kisaran 300
-   regu. Kloter 31–40 dibuka hanya jika terisi, dan kloter terakhir boleh tidak
-   penuh.
-3. Kloter ditentukan **otomatis** begitu regu menerima nomor dada.
-4. **Tujuan pembagian kloter: sesedikit mungkin regu dari sekolah yang sama
-   berada dalam satu kloter.** Alasannya bukan teknis melainkan sportivitas —
-   regu satu sekolah yang berangkat bersamaan cenderung bercengkerama di
-   sepanjang rute alih-alih berlomba.
-5. **Cara pembagiannya bertumpu pada pengambilan nomor dada per sekolah**
-   (bagian 4.6). Sekolah yang mengambil 10 nomor dada langsung disebar ke 10
-   kloter berbeda; sekolah yang mengambil 5 nomor dada disebar ke 5 kloter
-   berbeda. Dengan begitu satu sekolah tidak pernah menumpuk di satu kloter
-   selama jumlah regunya tidak melebihi jumlah kloter.
-6. **Jarak antar kloter boleh dilompati, tidak harus berurutan.** Sekolah dengan
-   10 regu dapat ditempatkan di kloter 1, 3, 5, 7, 9, 11, dan seterusnya.
-   Alasannya: kloter berdampingan hanya terpaut 3–5 menit, sehingga dua regu
-   satu sekolah di kloter 1 dan 2 masih mudah saling menyusul di rute. Lompatan
-   dua kloter memberi jarak 6–10 menit.
-7. Besar lompatan ini termasuk yang **dapat diatur panitia**, karena bergantung
-   pada jumlah peserta: makin banyak sekolah besar, makin sempit ruang untuk
-   melompat.
+1. Penempatan otomatis memakai kuota **5 regu Eksternal + 3 regu Intern** per
+   kloter. Kedua kuota dihitung terpisah.
+2. Perkiraan 300 Eksternal + 50 Intern membutuhkan **60 kloter**.
+3. Kloter ditentukan otomatis begitu regu menerima nomor dada.
+4. **Urutannya FIFO:** siapa lebih dahulu menyelesaikan daftar ulang mendapat
+   kloter lebih awal. Sekolah tidak memengaruhi penempatan.
+5. Kloter yang sudah berangkat dilewati oleh otomatis. Tanda cetak tidak
+   menutup kloter untuk tambahan.
+6. Set manual tidak memiliki batas kuota atau jumlah; ini sengaja agar petugas
+   dapat mencatat keadaan lapangan apa adanya.
+7. Perkiraan waktu K1–K60 dibagi merata sepanjang 07:00–10:00, sekitar tiga
+   menit antar-kloter untuk jumlah tersebut.
 8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
-   dan putri, dapat berangkat dalam kloter yang sama; pemisahan hanya berlaku
-   pada penilaian. Komposisi peserta biasanya sekitar **70% Penegak dan 30%
-   Penggalang**.
+   dan putri, dapat berangkat dalam kloter yang sama; hanya Intern dan Eksternal
+   yang mempunyai kuota otomatis terpisah.
 9. Setiap regu memilih **kontrak waktu**: 3,5 / 4 / 4,5 jam. Kontrak dipilih per
    regu, sehingga satu kloter bisa berisi regu dengan kontrak berbeda-beda.
    Kontrak baru dikonfirmasi **di garis start**, bukan saat daftar ulang —
