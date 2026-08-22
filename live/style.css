@@ -922,6 +922,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* Kwitansi: nomornya yang dicari orang saat menyusun berkas, jadi itu yang
      dibesarkan — bukan judulnya. */
   .receipt-number { font-size: 20pt; font-weight: 800; margin: .2rem 0 .6rem; }
+  /* Tanggal sengaja di baris sendiri dan tidak boleh terbelah antara label
+     dengan nilainya, terutama saat dicetak dari preview HP. */
+  .receipt-date { white-space: nowrap; }
   .receipt-signature { margin-top: 10mm; width: 60mm; margin-left: auto; text-align: center; }
   .receipt-line { margin-top: 14mm; border-top: 1pt solid #000; padding-top: 2mm; }
 
