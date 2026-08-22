@@ -26,3 +26,23 @@ test("cetak kloter memanggil print tanpa melewati await", () => {
     "Safari iPhone memblokir print bila request ditunggu sesudah tap",
   );
 });
+
+
+test("tanggal cetak kloter hanya dirender di lembar print", () => {
+  const awalPratayang = app.indexOf("  const gambarPratayang = (peta) => {");
+  const akhirPratayang = app.indexOf("  /** Cetak semua kloter", awalPratayang);
+  const pratayang = app.slice(awalPratayang, akhirPratayang);
+
+  assert.doesNotMatch(pratayang, /Dicetak/, "tanggal cetak masih tampil di kartu layar");
+
+  const awalLembar = app.indexOf("function siapkanCetakKloter(");
+  const akhirLembar = app.indexOf("/* ============================ INPUT POS", awalLembar);
+  const lembar = app.slice(awalLembar, akhirLembar);
+
+  assert.match(
+    lembar,
+    /const dicetak = tanggalJam\(new Date\(\)\.toISOString\(\)\)/,
+    "waktu print tidak dibuat saat tombol cetak ditekan",
+  );
+  assert.match(lembar, /Dicetak \$\{esc\(dicetak\)\}/, "waktu print tidak ada di lembar");
+});
