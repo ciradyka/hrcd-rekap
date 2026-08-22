@@ -21,21 +21,24 @@ function jamDariMenit(total) {
 }
 
 /**
- * Isi kloter paling awal sampai kapasitas, lalu sebarkan jam K1 sampai kloter
- * terakhir merata di seluruh jendela. Baris terakhir selalu memakai waktu
- * terakhir persis; pembulatan hanya memengaruhi kloter di antaranya.
+ * Isi kloter FIFO dengan kuota terpisah Eksternal dan Intern, lalu sebarkan
+ * jam K1 sampai kloter terakhir merata di seluruh jendela.
  */
 export function hitungRekomendasiKloter({
   waktuPertama,
   waktuTerakhir,
-  jumlahRegu,
-  maksReguPerKloter,
+  jumlahEksternal,
+  jumlahIntern,
+  maksEksternalPerKloter,
+  maksInternPerKloter,
   kloterMaks,
 }) {
   const pertama = menitDariJam(waktuPertama);
   const terakhir = menitDariJam(waktuTerakhir);
-  const regu = Number(jumlahRegu);
-  const kapasitas = Number(maksReguPerKloter);
+  const eksternal = Number(jumlahEksternal);
+  const intern = Number(jumlahIntern);
+  const kapasitasEksternal = Number(maksEksternalPerKloter);
+  const kapasitasIntern = Number(maksInternPerKloter);
   const batasKloter = Number(kloterMaks);
 
   if (pertama === null || terakhir === null) {
@@ -44,20 +47,25 @@ export function hitungRekomendasiKloter({
   if (terakhir <= pertama) {
     throw new Error("Waktu berangkat terakhir harus setelah waktu pertama.");
   }
-  if (!Number.isInteger(regu) || regu < 1) {
+  if (!Number.isInteger(eksternal) || eksternal < 0 ||
+      !Number.isInteger(intern) || intern < 0 || eksternal + intern < 1) {
     throw new Error("Jumlah regu minimal 1.");
   }
-  if (!Number.isInteger(kapasitas) || kapasitas < 1) {
+  if (!Number.isInteger(kapasitasEksternal) || kapasitasEksternal < 1 ||
+      !Number.isInteger(kapasitasIntern) || kapasitasIntern < 1) {
     throw new Error("Kapasitas kloter belum dikonfigurasi.");
   }
   if (!Number.isInteger(batasKloter) || batasKloter < 1) {
     throw new Error("Batas jumlah kloter belum dikonfigurasi.");
   }
 
-  const jumlahKloter = Math.ceil(regu / kapasitas);
+  const jumlahKloter = Math.max(
+    Math.ceil(eksternal / kapasitasEksternal),
+    Math.ceil(intern / kapasitasIntern),
+  );
   if (jumlahKloter > batasKloter) {
     throw new Error(
-      `${regu} regu membutuhkan ${jumlahKloter} kloter, melebihi batas ${batasKloter}.`
+      `${eksternal + intern} regu membutuhkan ${jumlahKloter} kloter, melebihi batas ${batasKloter}.`
     );
   }
 
@@ -68,7 +76,10 @@ export function hitungRekomendasiKloter({
       : pertama + Math.round(rentang * indeks / (jumlahKloter - 1));
     return {
       kloter: indeks + 1,
-      jumlahRegu: Math.min(kapasitas, regu - indeks * kapasitas),
+      jumlahEksternal: Math.max(0, Math.min(kapasitasEksternal,
+        eksternal - indeks * kapasitasEksternal)),
+      jumlahIntern: Math.max(0, Math.min(kapasitasIntern,
+        intern - indeks * kapasitasIntern)),
       waktuBerangkat: jamDariMenit(waktu),
     };
   });

@@ -320,11 +320,16 @@ export async function infoPengaturanKloter() {
     baca(null,
       "edisi?is_active=eq.true" +
       "&select=jam_mulai_berangkat,jam_batas_berangkat," +
-      "maks_regu_per_kloter,kloter_maks"),
-    baca(null, "regu?is_cancelled=eq.false&select=id"),
+      "maks_eksternal_per_kloter,maks_intern_per_kloter," +
+      "perkiraan_regu_eksternal,perkiraan_regu_intern,kloter_maks"),
+    baca(null, "regu?is_cancelled=eq.false&select=golongan"),
   ]);
   if (!edisi.length) throw new ErrorApi("Belum ada edisi aktif.");
-  return { ...edisi[0], jumlah_regu: regu.length };
+  return {
+    ...edisi[0],
+    jumlah_eksternal: regu.filter(r => !String(r.golongan).startsWith("intern_")).length,
+    jumlah_intern: regu.filter(r => String(r.golongan).startsWith("intern_")).length,
+  };
 }
 
 /** Apakah nama regu itu sudah dipakai (0051)? Dipanggil SAMBIL pembina

@@ -66,10 +66,10 @@ penyelesaiannya dicatat di bagian 11.
 | --- | --- | --- |
 | `sekolah` | Master sekolah (nama + alamat), tumbuh tiap tahun; sumber autocomplete | `UNIQUE (nama, alamat)` |
 | `pendaftaran` | Satu baris per batch (per pengisian form): kode pembayaran, butuh barak, jumlah pendamping, kontak WA, status | `UNIQUE (kode_pembayaran)`; status `menunggu_pembayaran → lunas / batal` — tanpa bentuk "lunas sebagian" |
-| `regu` | Satu baris per regu: nama, ketua, golongan, nomor dada, kloter, kontrak, batal | `UNIQUE (nomor_dada)` — nomor ganda **mustahil**, bukan dihindari; `UNIQUE (kloter_nomor, urutan_kloter)` + `CHECK (urutan 1–10)` — kapasitas kloter ditegakkan database; nomor dada & kloter lahir bersama (`CHECK` berpasangan) |
+| `regu` | Satu baris per regu: nama, ketua, golongan, nomor dada, kloter, kontrak, batal | `UNIQUE (nomor_dada)` — nomor ganda **mustahil**, bukan dihindari; `UNIQUE (kloter_nomor, urutan_kloter)` menjaga urutan unik, sedangkan kuota hanya berlaku pada penempatan otomatis; nomor dada & kloter lahir bersama (`CHECK` berpasangan) |
 | `nomor_dada_stok` | Stok fisik nomor yang disiapkan admin (mis. 1–500) | Nomor tersedia = belum ada di `regu.nomor_dada`; satu sumber kebenaran, tanpa flag yang bisa basi |
 | `pembayaran` | Satu pembayaran penuh per batch + nomor kwitansi | `UNIQUE (pendaftaran_id)` — verifikasi ganda dari dua meja tertolak |
-| `kloter` | 40 baris (30 dasar + 31–40 cadangan): jam berangkat **diketik** | Tidak ada kolom status — berangkat = `jam_berangkat` terisi (11.5); **tidak ada `DEFAULT now()`** |
+| `kloter` | Sedikitnya 60 baris: jam berangkat **diketik** | Tidak ada kolom status — berangkat = `jam_berangkat` terisi (11.5); **tidak ada `DEFAULT now()`** |
 | `keberangkatan_regu` | Ceklis berangkat per regu; keberadaan baris = berangkat | `PK (regu_id)` — ceklis ganda mustahil |
 | `nilai_mentah` | Data mentah per regu per komponen: `nilai_1`, `nilai_2` (khusus benar−salah), sumber `manual/upload` | `UNIQUE (regu_id, wahana_id)`; RLS pos |
 | `closing_regu` | Checkout: `jam_datang` **diketik & bisa di-edit**, `anggota_hadir` (0–5) | `PK (regu_id)`; upsert = mekanisme edit yang sah |
@@ -83,7 +83,7 @@ penyelesaiannya dicatat di bagian 11.
 
 | Tabel | Isi | Contoh edisi 37 |
 | --- | --- | --- |
-| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | `biaya_per_regu=250000, maks_regu_per_kloter=10, kloter_dasar=30, kloter_maks=40, lompatan_kloter=2, interval_berangkat_menit=4` |
+| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | Kuota otomatis 5 Eksternal + 3 Intern, perkiraan 300 Eksternal + 50 Intern, `kloter_maks=60`, jendela 07:00–10:00 |
 | `pos` | Daftar pos dinilai + bobot | 5 baris, `bobot=1.00` semua (aturan 9.2) |
 | `wahana` | Satu baris per komponen nilai (wahana **atau** soal, kolom `jenis`): bentuk konversi + parameter + rentang wajar | `kode='lari_zigzag', bentuk='kecil_baik', poin_maks=100, raw_terbaik=20, raw_terburuk=90` → raw 40 detik = 71,4 poin |
 | `kontrak_opsi` | Pilihan kontrak waktu | `('3,5 jam',210), ('4 jam',240), ('4,5 jam',270)` |
@@ -128,7 +128,7 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | `submit_pendaftaran` | Buat sekolah (bila baru) + batch + N baris regu + kode pembayaran unik, sekali jalan; validasi ulang rincian golongan = total di server |
 | `verifikasi_pembayaran` | Cek nominal = jumlah regu × `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
 | `batalkan_verifikasi` | Jalan mundur yang sah untuk salah verifikasi (meja di hari yang sama, admin kapan pun) — dengan alasan, terekam riwayat |
-| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → sebar ke N kloter berbeda dengan `lompatan_kloter`, hindari kloter yang sudah berisi sekolah itu, buka kloter 31–40 hanya bila 1–30 penuh → tulis semuanya sekaligus. Regu `batal` dilewati. Lihat 4.1 dan alur-lomba.md 4.5 |
+| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → tempatkan FIFO ke kloter paling awal yang belum berangkat dengan kuota 5 Eksternal + 3 Intern → tulis semuanya sekaligus. Regu `batal` dilewati. |
 | `tukar_nomor_dada` | Nomor dada rusak/salah pasang: tukar dengan stok tersedia, terekam riwayat |
 | `konfirmasi_kontrak` | Validasi pilihan terhadap `kontrak_opsi` (bukan hardcode); boleh dikoreksi selama kloter belum berangkat |
 | `berangkatkan_kloter` | Jam berangkat **wajib dari argumen** (diketik) — fungsi tidak mengenal `now()`; menolak bila ada regu ter-ceklis berangkat yang belum punya kontrak (daftarnya ditampilkan layar) |
@@ -166,54 +166,45 @@ harus "simpan dulu ke database lalu query lagi supaya benar-benar cocok?"
    Postgres terpisah dilepas serentak lewat satu barrier, memperebutkan 300
    nomor dada. Hasil setelah perbaikan, lima putaran berturut-turut:
    **300/300 regu bernomor, nol error, nol duplikat, tidak ada kloter
-   kelebihan, tidak ada sekolah menumpuk** — selesai seluruhnya dalam
+   melewati kuota otomatis** — selesai seluruhnya dalam
    **1,65 detik** (rata-rata 55 ms per meja). Serialisasi total tidak terasa
    pada skala 2–3 meja yang sebenarnya.
 
-### 4.2 Kloter yang sudah dicetak dibekukan
+### 4.2 Kloter yang sudah dicetak ditandai
 
 Panitia: *"nanti kloter final akan diprint."* Itu mengubah sifat datanya.
 
-1. **Begitu dicetak, kertas menjadi kebenaran di lapangan.** Petugas garis start
-   memanggil regu dari kertas, bukan dari layar. Maka setiap perubahan isi
-   kloter setelah cetak membuat kertas berbohong tanpa ada yang menyadari.
+1. **Tanda cetak tidak membekukan isi kloter.** Daftar dapat dicetak ulang;
+   kebutuhan lapangan untuk menyisipkan regu lebih penting daripada cetakan
+   lama. Sisipan tetap harus diumumkan kepada petugas staging.
 2. **Kejadian nyatanya bukan hipotetis**: sekolah datang terlambat, daftar
    ulang setelah cetakan dibagikan, dan regunya diselipkan ke kloter yang sudah
    tercetak. Di garis start, kloter itu memanggil 10 nama padahal kertas hanya
    memuat 9 — atau regu itu tidak pernah dipanggil sama sekali.
-3. **Perlindungannya berlapis** (migrasi 0008):
-   - Kolom `kloter.dicetak_pada` menandai kloter yang kertasnya sudah keluar.
-   - `daftar_ulang_batch` hanya memilih kloter dengan `dicetak_pada is null`,
-     sehingga pendaftar susulan otomatis jatuh ke kloter cadangan (31–40) dan
-     dicetakkan **lembar tambahan** — bukan ditolak.
-   - Trigger `jaga_kloter_tercetak` menolak perubahan `kloter_nomor` yang masuk
-     ke atau keluar dari kloter tercetak, dari jalur mana pun — termasuk
-     koreksi admin lewat SQL yang lupa aturan ini.
-   - `batalkan_tanda_cetak` (admin, wajib beralasan, terekam riwayat) untuk
-     kertas macet / cetak ulang.
+3. Kolom `kloter.dicetak_pada` menandai kertas yang sudah keluar. Penempatan
+   otomatis dan manual tetap boleh menambah regu; tambahan setelah cetak diberi
+   tanda sisipan agar petugas staging diberi tahu.
 4. **Penandaan terjadi SETELAH dialog cetak ditutup**, dan operator ditanya
    "kertasnya sudah keluar dengan benar?" — kalau cetakan batal, kloternya
-   belum dianggap final.
+   belum dianggap tercetak.
 5. **Bentuk kertasnya**: satu kloter per lembar (`break-after: page`), kolom
    No Dada besar, plus kolom kosong "Hadir" untuk dicentang tangan, dan tempat
    menulis jam berangkat + nama petugas.
-6. Diuji di `tests/sql/04_cetak_kloter.sql` dan lewat aplikasi: setelah 5
-   kloter ditandai tercetak, sekolah susulan masuk kloter yang belum pernah
-   dicetak — bukan diselipkan.
+6. Cetak biasa hanya memuat kloter yang belum ditandai dan menuliskan
+   **Perkiraan jam berangkat**. Jam nyata tetap catatan terpisah.
 
 ### 4.3 Pindah kloter hari-H, dan kenapa sisipan wajib berteriak
 
-Pembekuan di 4.2 mencegah perubahan **diam-diam**, bukan melarang keputusan
+Tanda cetak di 4.2 membuat perubahan perlu diumumkan, bukan melarang keputusan
 sadar panitia. Hari-H butuh dua jalur (migrasi 0009, RPC `pindah_kloter`):
 
 1. **Telat biasa** — panggil tanpa menyebut kloter; regu mendarat di **kloter
-   terakhir** yang belum berangkat dan masih muat.
+   terakhir** yang belum berangkat.
 2. **Urgent** — sebut kloter tujuannya; regu dipaksa masuk, **termasuk kloter
    yang kertasnya sudah beredar**.
 
-Keduanya wajib beralasan dan terekam riwayat. Yang **tidak** boleh ditembus
-meski urgent: kloter yang sudah berangkat, dan kapasitas fisik 10 regu —
-kertas boleh dilanggar, kapasitas tidak.
+Keduanya wajib beralasan dan terekam riwayat. Jalur manual tidak memakai batas
+kuota atau jumlah otomatis; petugas mencatat keputusan lapangan apa adanya.
 
 **Bagian yang tidak diminta tetapi paling penting: sisipan harus berteriak.**
 Petugas staging memegang kertas yang tidak memuat nomor itu. Kalau sistem diam,
@@ -549,9 +540,8 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 1. **Bentuk formula total** (Σ pos − penalti) adalah kode (satu view);
    angka-angkanya konfigurasi. Bentuk yang benar-benar baru = pemilik
    mengedit satu view SQL. Batas yang sama berlaku di semua kandidat.
-2. **Maks 10 regu/kloter** ditegakkan `CHECK` — mengubahnya = satu migrasi
-   kecil, bukan edit konfigurasi. Dipilih karena penegakan database lebih
-   berharga daripada kelenturan angka yang 7 tahun tidak pernah berubah.
+2. **Kuota otomatis 5 Eksternal + 3 Intern** ditegakkan RPC; set manual tidak
+   dibatasi kuota maupun jumlah, dan `urutan_kloter` hanya wajib positif.
 3. **.xlsx tidak di-parse** — paste dari Excel menutup kebutuhan yang sama
    tanpa dependensi parser.
 4. **Pembayaran sebagian tidak punya bentuk data** — sesuai keputusan panitia;
@@ -613,8 +603,8 @@ dibaca dengan koreksi ini:
 9. **Barak muat-dulu**: cari ruangan kosong terkecil yang memuat seluruh
    rombongan sebelum memecah; menggabung tetap jalan terakhir. Jumlah
    pendamping bisa diisi dari form dan dikoreksi meja (`ubah_pendamping`).
-10. **Kloter cadangan 31–40 benar-benar terakhir**: sekolah yang sama boleh
-    berkumpul di 1–30 dulu sebelum kloter cadangan dibuka.
+10. **Penempatan kloter otomatis FIFO**: kloter paling awal diisi sampai kuota
+    5 Eksternal + 3 Intern; sekolah tidak menjadi faktor penempatan.
 11. **Audit menempel juga di** `akun_panitia` (peta otorisasi), `sekolah`,
     `ruangan`, `nomor_dada_pensiun`; simpan-ulang tanpa perubahan tidak
     menulis apa pun sehingga riwayat tidak banjir dan kepengarangan tidak
