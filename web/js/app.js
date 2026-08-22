@@ -2038,8 +2038,13 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
     return bentuk === "staging" ? `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.name : "")}</h1>
+        <!-- Petugas turun ke barisnya sendiri, dan tiap isian dijaga
+             nowrap. Sebaris bertiga, "Petugas:" muat di ujung kanan tapi
+             garis isiannya tidak — garisnya pindah ke baris berikutnya dan
+             kertasnya keluar dengan nama tanpa tempat menulis. -->
         <p><strong>Perkiraan jam berangkat: ${esc(perkiraan)}</strong>
-           · Jam sebenarnya: ________ · Petugas: ________________</p>
+           · <span style="white-space:nowrap">Jam sebenarnya: ________</span><br>
+           <span style="white-space:nowrap">Petugas: ________________</span></p>
         <table class="print-table">
           <!-- Hadir di kolom PALING KIRI, sejajar dengan tombol centang di
                layar Keberangkatan. Petugas memegang kertas ini di satu tangan
