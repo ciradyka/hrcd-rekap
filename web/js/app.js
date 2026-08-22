@@ -1902,7 +1902,12 @@ async function layarCetakKloter() {
   const kelompokkan = (rows) => {
     const peta = new Map();
     for (const b of rows) {
-      if (!peta.has(b.kloter)) peta.set(b.kloter, { dicetak: b.dicetak_pada, isi: [] });
+      if (!peta.has(b.kloter)) peta.set(b.kloter, {
+        dicetak: b.dicetak_pada,
+        jamBerangkat: b.jam_berangkat,
+        perkiraanBerangkat: b.perkiraan_berangkat,
+        isi: [],
+      });
       peta.get(b.kloter).isi.push(b);
     }
     return peta;
@@ -1942,6 +1947,10 @@ async function layarCetakKloter() {
         return `
           <div class="card">
             <h2>Kloter ${esc(nomor)}</h2>
+            <p><strong>${v.jamBerangkat
+              ? "Jam berangkat"
+              : "Estimasi jam berangkat"}:</strong>
+              ${esc(jamMenit(v.jamBerangkat || v.perkiraanBerangkat))}</p>
             ${v.dicetak
               ? `<p class="sub">Dicetak: ${esc(tanggalJam(v.dicetak))}</p>`
               : ""}
