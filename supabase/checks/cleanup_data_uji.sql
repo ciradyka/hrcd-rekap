@@ -31,10 +31,9 @@
 -- 7.5): daftar yang ditulis tangan tidak ikut tumbuh sendiri.
 --
 -- Yang TIDAK bisa dijangkau SQL: berkas foto di bucket Storage `lembar`.
--- Menghapus baris `foto_lembar` tidak menghapus gambarnya. Saat ini bucket
--- itu kosong (0 baris), jadi tidak ada yang tertinggal — tapi kalau berkas
--- ini dijalankan lagi setelah ada foto, buckets-nya harus dibersihkan
--- terpisah lewat dashboard Supabase.
+-- Menghapus baris `foto_lembar` tidak menghapus gambarnya. Workflow
+-- apply-migration.yml karena itu menyambung transaksi ini dengan penghapusan
+-- seluruh objek bucket lewat Storage API, lalu membuktikan hitungannya nol.
 --
 -- ---------------------------------------------------------------------------
 -- JALAN KETIGA: 20 AGUSTUS 2026
@@ -58,8 +57,9 @@
 -- Selain slip yang sengaja diunggah, ada berkas YATIM dari tiap percobaan
 -- unggah per regu yang gagal sebelum migrasi 0080: gambarnya naik ke bucket
 -- lebih dulu, barisnya ditolak constraint sesudahnya. SQL tidak bisa
--- menjangkau satu pun di antaranya. Bersihkan bucket `lembar` lewat dashboard
--- Supabase SESUDAH berkas ini dijalankan.
+-- menjangkau satu pun di antaranya. Sejak workflow cleanup diperbaiki, semua
+-- path diambil langsung dari storage.objects dan file dihapus lewat Storage
+-- API sesudah transaksi ini berhasil — termasuk gambar yatim seperti itu.
 --
 -- ---------------------------------------------------------------------------
 -- KENAPA HARUS BERSIH SEBELUM KONFIGURASI DIGANTI
@@ -80,8 +80,10 @@
 --   pos / wahana     Konfigurasi penilaian; itu urusan 0033.
 --
 -- Urutannya mengikuti foreign key dari daun ke akar. Dijalankan lewat
--- workflow "Apply migration to Supabase", yang membungkusnya dalam SATU
--- transaksi: kalau ada satu statement gagal, tidak ada yang terhapus.
+-- workflow "Apply migration to Supabase", yang membungkus SQL dalam SATU
+-- transaksi: kalau ada satu statement SQL gagal, tidak ada data database yang
+-- terhapus. Setelah commit, workflow menghapus seluruh isi bucket `lembar`
+-- lewat Storage API dan gagal merah kalau verifikasi bucket belum nol.
 -- ============================================================================
 
 \echo '=== SEBELUM ==='
