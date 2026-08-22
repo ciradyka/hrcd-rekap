@@ -1967,23 +1967,39 @@ async function layarCetakKloter() {
     const semuaKloter = [...perKloter.entries()];
     siapkanCetakKloter(semuaKloter, bentuk);
     window.print();
+    tanyaWaktuCetak(semuaKloter.map(([n]) => Number(n)));
+  }
 
-    // Timestamp diperbarui SETELAH dialog cetak ditutup. Ia adalah catatan
-    // cetak terakhir, bukan gembok: kloter yang sama selalu bisa dicetak lagi.
-    const lanjut = confirm([
-      "Kertasnya sudah keluar dengan benar?",
-      "",
-      "OK  = simpan waktu cetak sekarang",
-      "Batal = jangan ubah waktu cetak",
-    ].join("\n"));
-    if (!lanjut) return;
-    const nomor = semuaKloter.map(([n]) => Number(n));
-    tandaiKloterDicetak(nomor)
-      .then((n) => {
-        notif(`Waktu cetak ${n} kloter disimpan.`);
-        layarCetakKloter();
-      })
-      .catch((err) => notif(err.message, true));
+  /** Pertanyaan sesudah mencetak: kertasnya keluar atau tidak. Waktu cetak
+   *  adalah catatan cetak terakhir, bukan gembok — kloter yang sama selalu
+   *  bisa dicetak lagi (CLAUDE.md 12.1).
+   *
+   *  DIALOG SENDIRI, BUKAN `confirm()` BAWAAN BROWSER, dan itu bukan soal
+   *  selera. `confirm()` MEMBLOKIR utas utama halaman sampai dijawab. Di
+   *  iPhone `window.print()` tidak menahan JavaScript: lembar cetak iOS baru
+   *  mulai menggambar preview-nya sesudah baris itu lewat, jadi `confirm()`
+   *  yang menyusul mengunci utas yang sedang dipakai menggambar — lembar
+   *  cetaknya berhenti di "Loading Preview…" selamanya, dan pertanyaannya
+   *  sendiri tertutup di belakangnya. Cetak kwitansi dan blangko pos tidak
+   *  pernah kena karena keduanya berhenti tepat sesudah `window.print()`.
+   *
+   *  `dialog()` cuma menempelkan elemen di halaman lalu mengembalikan Promise,
+   *  jadi utasnya bebas. Overlay-nya sudah `display: none` di @media print,
+   *  jadi ia tidak ikut tercetak. */
+  async function tanyaWaktuCetak(nomor) {
+    const jawab = await dialog({
+      judul: "Kertasnya sudah keluar?",
+      kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
+        <div class="nama">${String(nomor.length)} kloter</div>
+      </div>`,
+      labelAksi: "Simpan waktu cetak",
+    });
+    if (!jawab) return;
+    try {
+      const n = await tandaiKloterDicetak(nomor);
+      notif(`Waktu cetak ${n} kloter disimpan.`);
+      layarCetakKloter();
+    } catch (err) { notif(err.message, true); }
   }
 
   document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
