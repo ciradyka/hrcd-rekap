@@ -110,6 +110,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/edisi":
                 self._kirim(200, q(
                     "select * from v_edisi_publik", role="anon", fetch="one"))
+            elif u.path == "/pengaturan-kloter":
+                self._kirim(200, q(
+                    "select e.jam_mulai_berangkat, e.jam_batas_berangkat, "
+                    "e.maks_regu_per_kloter, e.kloter_maks, "
+                    "(select count(*) from regu where not is_cancelled) as jumlah_regu "
+                    "from edisi e where e.is_active",
+                    uid=p.get("uid"), fetch="one"))
             elif u.path == "/penalti":
                 self._kirim(200, q(
                     "select * from konfig_penalti where edisi = edisi_aktif()",
