@@ -2,7 +2,7 @@
    Kalkulator pembagian kloter dan waktu keberangkatan.
 
    Murni perhitungan: tidak membaca DOM dan tidak menyimpan ke database. Karena
-   itu rumus yang sama bisa diuji di Node dan dipakai layar Pengaturan Kloter.
+   itu rumus yang sama bisa diuji di Node dan dipakai Kalkulator Keberangkatan.
    ========================================================================== */
 
 function menitDariJam(jam) {
