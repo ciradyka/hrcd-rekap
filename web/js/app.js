@@ -1072,8 +1072,9 @@ async function layarPembayaran() {
           judul: "Lunas — cetak kwitansi?",
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">${r.nomor_kwitansi}</div>
-            <div class="detail">${b.sekolah?.name || kode} · ${kode} ·
-              ${aktif.length} regu · ${rupiah(tagihan)}</div>
+            <div class="detail">${b.sekolah?.name || kode} · ${kode}<span
+              class="detail-separator-mobile"> · </span><span
+              class="detail-regu-mobile">${aktif.length} regu · ${rupiah(tagihan)}</span></div>
           </div>`,
           labelAksi: "Cetak Kwitansi",
         });

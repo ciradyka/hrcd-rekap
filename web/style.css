@@ -2443,6 +2443,12 @@ input.small-input { text-align: center; }
    harus ikut naik, kalau tidak tombol yang hilang itu kembali lagi.
    ========================================================================= */
 @media (max-width: 900px) {
+  /* Di dialog setelah Tandai Lunas, jumlah regu mulai di baris kedua. Nama
+     sekolah dan kode pembayaran jadi satu baris identitas yang utuh, lalu
+     jumlah dan nominal tetap berpasangan di bawahnya. */
+  .card-identity .detail-separator-mobile { display: none; }
+  .card-identity .detail-regu-mobile { display: block; }
+
   /* ---- tabel BERHENTI jadi tabel ----
      Enam kolom tidak akan pernah muat di layar sempit, dan menggeser ke
      samping menyembunyikan justru kolom aksi — panitia tidak tahu ada
