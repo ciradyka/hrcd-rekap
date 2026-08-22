@@ -520,7 +520,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("pengaturan") ? `
       <a href="#/pengaturan-kloter">
-        <div class="function-name">${ikonKotak("settings", "abu")} Pengaturan Kloter</div>
+        <div class="function-name">${ikonKotak("settings", "abu")} Kalkulator Keberangkatan</div>
       </a>` : ""}
     </div>
   `));
@@ -529,9 +529,9 @@ async function layarHome() {
 /* ============================ PENGATURAN KLOTER ========================== */
 
 async function layarPengaturanKloter() {
-  pasangKepala("Pengaturan Kloter");
+  pasangKepala("Kalkulator Keberangkatan");
   if (!bolehLihat("pengaturan")) {
-    LAYAR.replaceChildren(kartuGalat("Akun ini tidak berhak membuka Pengaturan Kloter."));
+    LAYAR.replaceChildren(kartuGalat("Akun ini tidak berhak membuka Kalkulator Keberangkatan."));
     return;
   }
   LAYAR.replaceChildren(h(pemuat()));
@@ -554,7 +554,6 @@ async function layarPengaturanKloter() {
 
   LAYAR.replaceChildren(h(`
     <div class="card">
-      <h2>Kalkulator Keberangkatan</h2>
       <div class="two-column">
         <div class="field">
           <label>Waktu Berangkat Pertama</label>
