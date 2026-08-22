@@ -1690,15 +1690,13 @@ async function layarKeberangkatan() {
       cb.addEventListener("change", () => {
         const dada = Number(cb.dataset.ceklis);
         const mau = cb.checked;
-        cb.classList.add("saving");
         antre = antre.then(async () => {
           try {
             if (mau) await ceklisBerangkat(dada);
             else await batalCeklisBerangkat(dada);
-            // Redup dilepas begitu tulisannya masuk. Papan menyusul di bawah:
-            // menunggunya membuat centang terasa lambat sedetik padahal
-            // datanya sudah tersimpan.
-            cb.classList.remove("saving");
+            // Checkbox tetap menampilkan keadaan yang baru dipilih selama
+            // request berjalan. Meredupkannya memberi kesan kliknya gagal
+            // atau tertunda, padahal perubahan layar sudah terjadi langsung.
             // Dua dropdown di baris yang sama dikunci selama regunya
             // terceklis, dan status terkunci itu ditulis saat tabel
             // digambar. Sesudah ini yang digambar ulang hanya pita kloter di
@@ -1719,7 +1717,6 @@ async function layarKeberangkatan() {
           } catch (err) {
             notif(err.message, true);
             cb.checked = !mau;
-            cb.classList.remove("saving");
           }
         });
       });
