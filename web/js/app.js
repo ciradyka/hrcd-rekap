@@ -4023,6 +4023,16 @@ async function layarInputPos() {
     if (tr) simpanBaris(tr);
   });
 
+  // Mengetik ulang angka yang sama memicu `input`, tetapi browser tidak
+  // selalu memicu `change`: nilai ketika fokus masuk dan keluar tetap sama.
+  // Selesaikan penanda kuning saat kotaknya ditinggalkan. Pagar `belum`
+  // mencegah focusout mengantrekan simpanan kedua ketika `change` sudah lebih
+  // dulu menjalankan simpanBaris().
+  tbody.addEventListener("focusout", (e) => {
+    const tr = e.target.closest("tr");
+    if (tr?.dataset.keadaan === "belum") simpanBaris(tr);
+  });
+
   /* ISI KOTAK DIPILIH SAAT DIKETUK, jadi ketukan pertama MENGGANTI.
 
      Kotak nilai tidak pernah dimaksudkan untuk DITAMBAHI — tidak ada juri yang
