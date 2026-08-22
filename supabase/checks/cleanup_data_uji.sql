@@ -71,10 +71,10 @@
 -- ---------------------------------------------------------------------------
 -- YANG TIDAK DIHAPUS, DAN KENAPA
 --
---   history          Jejak audit bersifat append-only dan tidak menunjuk
---                    baris lain lewat foreign key. Ia justru merekam
---                    penghapusan ini; membuangnya berarti membuang satu-
---                    satunya catatan bahwa pembersihan pernah terjadi.
+--   history          Jejak audit tabel lain tetap disimpan. HANYA baris
+--                    `nilai_mentah` yang dihapus: layar Riwayat Nilai harus
+--                    benar-benar kosong saat go live, termasuk data dasarnya,
+--                    bukan sekadar kosong karena regu induknya sudah hilang.
 --   nomor_dada_stok  Stok nomor fisik adalah konfigurasi, bukan data peserta.
 --   akun_panitia     Akun panitia tidak ada hubungannya dengan pendaftaran.
 --   pos / wahana     Konfigurasi penilaian; itu urusan 0033.
@@ -92,6 +92,7 @@ union all select 'pendaftaran',        count(*) from pendaftaran
 union all select 'regu',               count(*) from regu
 union all select 'pembayaran',         count(*) from pembayaran
 union all select 'nilai_mentah',       count(*) from nilai_mentah
+union all select 'history nilai',      count(*) from history where table_name = 'nilai_mentah'
 union all select 'keberangkatan_regu', count(*) from keberangkatan_regu
 union all select 'closing_regu',       count(*) from closing_regu
 union all select 'penempatan_barak',   count(*) from penempatan_barak
@@ -106,6 +107,10 @@ order by 1;
 -- Hapus, dari daun ke akar.
 -- ---------------------------------------------------------------------------
 delete from nilai_mentah;
+-- DELETE di atas sendiri dicatat trigger audit. Karena itu history nilai baru
+-- dihapus SESUDAH nilai_mentah, supaya riwayat penghapusan cleanup juga tidak
+-- tertinggal. History tabel lain tetap utuh.
+delete from history where table_name = 'nilai_mentah';
 -- Keduanya ber-`on delete cascade` dari regu, jadi baris ini tidak wajib.
 -- Ditulis tetap: penghapusan yang terlihat di berkas bisa dibaca dan
 -- dihitung; penghapusan yang tersembunyi di definisi foreign key hanya
@@ -146,6 +151,7 @@ union all select 'pendaftaran',        count(*) from pendaftaran
 union all select 'regu',               count(*) from regu
 union all select 'pembayaran',         count(*) from pembayaran
 union all select 'nilai_mentah',       count(*) from nilai_mentah
+union all select 'history nilai',      count(*) from history where table_name = 'nilai_mentah'
 union all select 'keberangkatan_regu', count(*) from keberangkatan_regu
 union all select 'closing_regu',       count(*) from closing_regu
 union all select 'penempatan_barak',   count(*) from penempatan_barak
