@@ -1072,8 +1072,9 @@ async function layarPembayaran() {
           judul: "Lunas — cetak kwitansi?",
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
             <div class="nama">${r.nomor_kwitansi}</div>
-            <div class="detail">${b.sekolah?.name || kode} · ${kode} ·
-              ${aktif.length} regu · ${rupiah(tagihan)}</div>
+            <div class="detail">${b.sekolah?.name || kode} · ${kode}<span
+              class="detail-separator-mobile"> · </span><span
+              class="detail-regu-mobile">${aktif.length} regu · ${rupiah(tagihan)}</span></div>
           </div>`,
           labelAksi: "Cetak Kwitansi",
         });
@@ -1131,8 +1132,9 @@ function cetakKwitansi(daftar) {
         <p class="receipt-number">${esc(bayar.nomor_kwitansi || "—")}</p>
         <p><strong>Diterima dari:</strong> ${esc(b.sekolah?.name || "—")}</p>
         <p><strong>Kode pembayaran:</strong> ${esc(b.kode_pembayaran)}
-           · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}
-           · <strong>Tanggal:</strong> ${esc(tanggal(bayar.verified_at))}</p>
+           · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}<br>
+           <span class="receipt-date"><strong>Tanggal:</strong>
+             ${esc(tanggal(bayar.verified_at))}</span></p>
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
            @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
         <table class="print-table">
