@@ -1,7 +1,8 @@
 -- ============================================================================
 -- hrcd-rekap : cleanup_data_uji.sql
 --
--- MENGHAPUS SELURUH DATA PESERTA EDISI AKTIF. Tidak bisa dibatalkan.
+-- MENGHAPUS SELURUH DATA OPERASIONAL PESERTA EDISI AKTIF. Tidak bisa
+-- dibatalkan. Master Asal Sekolah (`sekolah`) tetap disimpan.
 --
 -- Dijalankan sekali, atas permintaan pemilik, setelah `isi_edisi.sql`
 -- membuktikan bahwa seluruh 16 sekolah di produksi memang sisa pengetesan:
@@ -11,8 +12,9 @@
 -- minggu lagi (29 Agustus 2026) dan pendaftaran belum dibuka.
 --
 -- JANGAN dijalankan lagi setelah pendaftaran sungguhan dibuka. Berkas ini
--- tidak bisa membedakan sekolah uji dari sekolah asli; ia menghapus
--- SEMUANYA. Yang membedakan hanya orang yang menjalankannya.
+-- menghapus seluruh pendaftaran beserta regu dan catatan operasionalnya tanpa
+-- membedakan data uji dari data asli. Baris master sekolah tidak ikut dihapus,
+-- sehingga tetap tersedia sebagai Asal Sekolah untuk pendaftaran berikutnya.
 --
 -- ---------------------------------------------------------------------------
 -- JALAN KEDUA: 16 AGUSTUS 2026
@@ -78,6 +80,8 @@
 --   nomor_dada_stok  Stok nomor fisik adalah konfigurasi, bukan data peserta.
 --   akun_panitia     Akun panitia tidak ada hubungannya dengan pendaftaran.
 --   pos / wahana     Konfigurasi penilaian; itu urusan 0033.
+--   sekolah          Master Asal Sekolah dipakai kembali lintas reset. Yang
+--                    dibuang hanya pendaftaran yang merujuk kepadanya.
 --
 -- Urutannya mengikuti foreign key dari daun ke akar. Dijalankan lewat
 -- workflow "Apply migration to Supabase", yang membungkus SQL dalam SATU
@@ -123,7 +127,6 @@ delete from penempatan_barak;
 delete from pembayaran;
 delete from regu;
 delete from pendaftaran;
-delete from sekolah;
 
 -- Nomor dada yang dipensiunkan saat menguji penukaran: dikembalikan ke
 -- antrean, karena regu yang pernah memakainya sudah tidak ada.
