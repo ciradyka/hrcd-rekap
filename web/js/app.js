@@ -1941,19 +1941,19 @@ async function layarCetakKloter() {
               <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
         return `
           <div class="card">
-            <h2>Kloter ${esc(nomor)}
-              <span class="badge ${v.dicetak ? "badge-gray" : "badge-yellow"}">
-                ${v.dicetak ? "sudah dicetak" : "baru"}</span></h2>
+            <h2>Kloter ${esc(nomor)}</h2>
+            ${v.dicetak
+              ? `<p class="sub">Dicetak: ${esc(tanggalJam(v.dicetak))}</p>`
+              : ""}
             <table class="table">${baris}</table>
           </div>`;
       }).join("")));
   };
 
-  /** Cetak kloter yang BELUM pernah dicetak dalam satu bentuk kertas.
-   *  Datanya diambil ulang tepat sebelum mencetak: layar ini sering dibiarkan
-   *  terbuka sementara meja daftar ulang terus jalan, dan kertas yang keluar
-   *  tanpa regu yang baru masuk adalah kertas yang salah — petugas garis start
-   *  memanggil dari kertas itu, bukan dari layar. */
+  /** Cetak semua kloter berisi dalam satu bentuk kertas, termasuk yang sudah
+   *  pernah dicetak. Datanya diambil ulang tepat sebelum mencetak: layar ini
+   *  sering dibiarkan terbuka sementara meja daftar ulang terus jalan, dan
+   *  cetak ulang harus selalu memuat regu yang baru masuk. */
   async function cetak(bentuk) {
     let segar;
     try { segar = await daftarKloter(); }
@@ -1961,27 +1961,23 @@ async function layarCetakKloter() {
 
     perKloter = kelompokkan(segar);
     gambarPratayang(perKloter);
-    const belumDicetak = [...perKloter.entries()].filter(([, v]) => !v.dicetak);
-    if (!belumDicetak.length) {
-      notif("Semua kloter sudah dicetak.");
-      return;
-    }
-    siapkanCetakKloter(belumDicetak, bentuk);
+    const semuaKloter = [...perKloter.entries()];
+    siapkanCetakKloter(semuaKloter, bentuk);
     window.print();
 
-    // Ditandai SETELAH dialog cetak ditutup — kalau operator membatalkan,
-    // kloternya belum dianggap tercetak.
+    // Timestamp diperbarui SETELAH dialog cetak ditutup. Ia adalah catatan
+    // cetak terakhir, bukan gembok: kloter yang sama selalu bisa dicetak lagi.
     const lanjut = confirm([
       "Kertasnya sudah keluar dengan benar?",
       "",
-      "OK  = tandai kloter ini sudah dicetak",
-      "Batal = belum, biarkan bisa dicetak lagi",
+      "OK  = simpan waktu cetak sekarang",
+      "Batal = jangan ubah waktu cetak",
     ].join("\n"));
     if (!lanjut) return;
     try {
-      const nomor = belumDicetak.map(([n]) => Number(n));
+      const nomor = semuaKloter.map(([n]) => Number(n));
       const n = await tandaiKloterDicetak(nomor);
-      notif(`${n} kloter ditandai sudah dicetak.`);
+      notif(`Waktu cetak ${n} kloter disimpan.`);
       layarCetakKloter();
     } catch (err) { notif(err.message, true); }
   }
