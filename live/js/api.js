@@ -313,6 +313,20 @@ export async function infoEdisi() {
   return d[0];
 }
 
+/** Konfigurasi dan jumlah regu untuk nilai awal Kalkulator Keberangkatan. */
+export async function infoPengaturanKloter() {
+  if (K.mode === "dev") return baca("/pengaturan-kloter");
+  const [edisi, regu] = await Promise.all([
+    baca(null,
+      "edisi?is_active=eq.true" +
+      "&select=jam_mulai_berangkat,jam_batas_berangkat," +
+      "maks_regu_per_kloter,kloter_maks"),
+    baca(null, "regu?is_cancelled=eq.false&select=id"),
+  ]);
+  if (!edisi.length) throw new ErrorApi("Belum ada edisi aktif.");
+  return { ...edisi[0], jumlah_regu: regu.length };
+}
+
 /** Apakah nama regu itu sudah dipakai (0051)? Dipanggil SAMBIL pembina
  *  mengetik — menolak saat tombol Kirim ditekan sudah terlambat, karena saat
  *  itu ia baru saja mengisi lima regu.
