@@ -449,6 +449,24 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table td { padding: .45rem .5rem; border-bottom: 1px solid var(--garis); }
 .table .angka { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 
+/* Tiga kolom rekomendasi harus muat di HP tanpa menyembunyikan jam di kanan.
+   Judul tengah memang panjang, jadi lebarnya dipatok dan boleh membungkus;
+   membiarkan browser menghitung dari panjang judul membuat tabel lebih lebar
+   daripada kartunya meski isi tiap sel cuma dua sampai lima karakter. */
+.table-kloter-rekomendasi { table-layout: fixed; }
+.table-kloter-rekomendasi th,
+.table-kloter-rekomendasi td { text-align: center; word-break: normal; }
+.table-kloter-rekomendasi th:nth-child(1) { width: 20%; }
+.table-kloter-rekomendasi th:nth-child(2) { width: 45%; }
+.table-kloter-rekomendasi th:nth-child(3) { width: 35%; }
+@media (max-width: 560px) {
+  .table-kloter-rekomendasi th {
+    padding: .4rem .2rem;
+    font-size: .72rem;
+    letter-spacing: .02em;
+  }
+}
+
 /* ---------- form satu halaman (publik) ---------- */
 
 /* Nomor bagian: penanda urutan tanpa memaksa halaman terpisah. */
@@ -2448,6 +2466,9 @@ input.small-input { text-align: center; }
   .table-wrapper-tetap { overflow-x: auto; }
   .table-tetap { white-space: nowrap; }
   .table-tetap th, .table-tetap td { padding: .45rem .5rem; }
+  .table-tetap.table-kloter-rekomendasi { white-space: normal; }
+  .table-tetap.table-kloter-rekomendasi th { padding: .4rem .15rem; }
+  .table-tetap.table-kloter-rekomendasi td { padding: .4rem .2rem; }
 
   .data-table tbody tr[data-baris] {
     border: 1.5px solid var(--garis); border-radius: var(--radius);

@@ -10,7 +10,7 @@
 
 import {
   sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
-  infoEdisi, ringkasanMeja, daftarPendaftaran,
+  infoEdisi, infoPengaturanKloter, ringkasanMeja, daftarPendaftaran,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
   cariRegu, catatFinish, infoPenalti,
@@ -36,6 +36,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
          angkaRapi, petunjukKolom, nilaiBagian,
          jamPadaHari, GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
+import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -517,8 +518,123 @@ async function layarHome() {
       <a href="#/rekap">
         <div class="function-name">${ikonKotak("chart-column", "mawar")} Rekapitulasi</div>
       </a>` : ""}
+      ${bolehLihat("pengaturan") ? `
+      <a href="#/pengaturan-kloter">
+        <div class="function-name">${ikonKotak("settings", "abu")} Pengaturan Kloter</div>
+      </a>` : ""}
     </div>
   `));
+}
+
+/* ============================ PENGATURAN KLOTER ========================== */
+
+async function layarPengaturanKloter() {
+  pasangKepala("Pengaturan Kloter");
+  if (!bolehLihat("pengaturan")) {
+    LAYAR.replaceChildren(kartuGalat("Akun ini tidak berhak membuka Pengaturan Kloter."));
+    return;
+  }
+  LAYAR.replaceChildren(h(pemuat()));
+
+  let cfg;
+  try { cfg = await infoPengaturanKloter(); }
+  catch (e) {
+    LAYAR.replaceChildren(kartuGagalMuat(e.message, layarPengaturanKloter));
+    return;
+  }
+
+  // Postgres mengirim TIME sebagai HH:MM:SS. Kotak jam hanya perlu HH:MM.
+  const jamPendek = nilai => {
+    const teks = String(nilai || "");
+    return /^\d{2}:\d{2}/.test(teks) ? teks.slice(0, 5) : "";
+  };
+  const pertamaAwal = jamPendek(cfg.jam_mulai_berangkat);
+  const terakhirAwal = jamPendek(cfg.jam_batas_berangkat);
+  const jumlahAwal = Number(cfg.jumlah_regu) > 0 ? Number(cfg.jumlah_regu) : "";
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      <h2>Kalkulator Keberangkatan</h2>
+      <div class="two-column">
+        <div class="field">
+          <label>Waktu Berangkat Pertama</label>
+          ${kotakJamHtml("kloter-pertama", pertamaAwal)}
+        </div>
+        <div class="field">
+          <label>Waktu Berangkat Terakhir</label>
+          ${kotakJamHtml("kloter-terakhir", terakhirAwal)}
+        </div>
+      </div>
+      <div class="field">
+        <label for="kloter-jumlah-regu">Jumlah Regu</label>
+        <input type="number" id="kloter-jumlah-regu" inputmode="numeric"
+               min="1" max="${Number(cfg.maks_regu_per_kloter) * Number(cfg.kloter_maks)}"
+               value="${jumlahAwal}">
+      </div>
+      <div class="error" id="kloter-galat" hidden></div>
+    </div>
+
+    <div class="card" id="kloter-rekomendasi" hidden>
+      <h2>Rekomendasi</h2>
+      <div class="table-wrapper">
+        <table class="table data-table table-tetap table-kloter-rekomendasi">
+          <thead><tr>
+            <th>Kloter</th>
+            <th>Jumlah Regu Per Kloter</th>
+            <th>Waktu Berangkat</th>
+          </tr></thead>
+          <tbody id="kloter-rekomendasi-baris"></tbody>
+        </table>
+      </div>
+    </div>
+  `));
+
+  const waktuPertama = pasangKotakJam("kloter-pertama");
+  const waktuTerakhir = pasangKotakJam("kloter-terakhir");
+  const jumlah = document.getElementById("kloter-jumlah-regu");
+  const galat = document.getElementById("kloter-galat");
+  const rekomendasi = document.getElementById("kloter-rekomendasi");
+  const tbody = document.getElementById("kloter-rekomendasi-baris");
+
+  const gambar = () => {
+    const pertama = waktuPertama.nilai();
+    const terakhir = waktuTerakhir.nilai();
+    const jumlahTeks = jumlah.value.trim();
+
+    galat.hidden = true;
+    jumlah.setAttribute("aria-invalid", "false");
+    rekomendasi.hidden = true;
+    if (!pertama || !terakhir || !jumlahTeks) return;
+
+    try {
+      const baris = hitungRekomendasiKloter({
+        waktuPertama: pertama,
+        waktuTerakhir: terakhir,
+        jumlahRegu: Number(jumlahTeks),
+        maksReguPerKloter: Number(cfg.maks_regu_per_kloter),
+        kloterMaks: Number(cfg.kloter_maks),
+      });
+      waktuTerakhir.salah(false);
+      tbody.replaceChildren(h(baris.map(x => html`
+        <tr>
+          <td><strong>K${x.kloter}</strong></td>
+          <td>${x.jumlahRegu}</td>
+          <td>${x.waktuBerangkat}</td>
+        </tr>`).join("")));
+      rekomendasi.hidden = false;
+    } catch (e) {
+      const jumlahSalah = !Number.isInteger(Number(jumlahTeks)) || Number(jumlahTeks) < 1;
+      jumlah.setAttribute("aria-invalid", String(jumlahSalah));
+      if (/waktu berangkat terakhir/i.test(e.message)) waktuTerakhir.salah(true);
+      galat.textContent = e.message;
+      galat.hidden = false;
+    }
+  };
+
+  waktuPertama.dengar(gambar);
+  waktuTerakhir.dengar(gambar);
+  jumlah.addEventListener("input", gambar);
+  gambar();
 }
 
 /* ============================ GANTI PASSWORD ============================= */
@@ -6185,6 +6301,7 @@ const RUTE = {
   "#/pos": layarInputPos,
   "#/rekap": layarRekap,
   "#/live-score": layarLiveScore,
+  "#/pengaturan-kloter": layarPengaturanKloter,
   "#/ganti-password": layarGantiPassword,
   "#/account": layarAkun,
 };
