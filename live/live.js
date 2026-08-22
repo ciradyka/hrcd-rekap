@@ -66,6 +66,14 @@ import {
 
 const GOLONGAN = GOLONGAN_LABEL;
 
+/* Live Score peserta hanya mengumumkan golongan Eksternal. Intern tetap ada
+   di sumber bersama karena layar panitia memang perlu menilainya, tetapi tidak
+   mendapat tab atau baris di halaman publik. Diturunkan dari daftar bersama
+   supaya urutan dan label golongan tidak ditulis ulang di sini. */
+const URUT_GOLONGAN_PESERTA =
+  URUT_GOLONGAN.filter(g => !g.startsWith("intern_"));
+const golonganPeserta = g => URUT_GOLONGAN_PESERTA.includes(g);
+
 /** dada3() mengembalikan teks kosong untuk nomor yang tidak ada; di tabel ini
  *  yang dibutuhkan tanda pisah supaya barisnya tidak terlihat bolong. */
 const dada = (n) => n === null || n === undefined ? "—" : dada3(n);
@@ -170,7 +178,7 @@ function gambarPra() {
       <p>regu sudah mendaftar</p>
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
-        ${URUT_GOLONGAN.filter(g => per[g]).map(g =>
+        ${URUT_GOLONGAN_PESERTA.filter(g => per[g]).map(g =>
           `<span class="pil">${esc(GOLONGAN[g])}: ${esc(String(per[g]))}</span>`).join("")}
       </div>
     </div>`;
@@ -280,7 +288,8 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
 /* ---------------------------------------------------------------------------
    PAPAN — bentuknya SAMA dengan layar Live Score panitia.
 
-   Empat tab golongan, judul "Klasemen sementara", podium tiga medali, lalu
+   Empat tab golongan Eksternal, judul "Klasemen sementara", podium tiga
+   medali, lalu
    tabel: No Dada, Regu, Organisasi, satu kolom per KOMPONEN, Penalti, Total.
 
    Yang berbeda dari panitia hanya satu, dan itu bukan tata letak melainkan
@@ -298,11 +307,16 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
    dengan benar sebelum melihat apa pun; daftar centang menunjukkan seluruh
    pilihan yang ada.
    ------------------------------------------------------------------------- */
-let golAktif = URUT_GOLONGAN[0];
+let golAktif = URUT_GOLONGAN_PESERTA[0];
 
 function barisPapan() {
-  const progres = (REKAP && REKAP.progres) || [];
-  const klasemen = (REKAP && REKAP.klasemen) || [];
+  /* Penyaring ini tetap ada walau workflow penerbitan juga membuang Intern.
+     Dengan begitu berkas lama yang masih tersimpan di cache tidak sempat
+     menampilkan Intern setelah kode halaman yang baru sudah ter-deploy. */
+  const progres = ((REKAP && REKAP.progres) || [])
+    .filter(b => golonganPeserta(b.golongan));
+  const klasemen = ((REKAP && REKAP.klasemen) || [])
+    .filter(b => golonganPeserta(b.golongan));
   const perDada = new Map(progres.map(p => [p.nomor_dada, p]));
   // Klasemen yang memimpin urutannya kalau ada — ia sudah berperingkat. Di
   // fase `progres` klasemen memang kosong, jadi urutannya jatuh ke nomor dada.
@@ -313,7 +327,7 @@ function barisPapan() {
 }
 
 function gambarTab(semua) {
-  return `<div class="tab-golongan">${URUT_GOLONGAN.map(g => {
+  return `<div class="tab-golongan">${URUT_GOLONGAN_PESERTA.map(g => {
     const n = semua.filter(b => b.golongan === g).length;
     return `<button type="button" class="tab ${g === golAktif ? "aktif" : ""}"
               data-gol="${esc(g)}">${esc(GOLONGAN[g] || g)}
@@ -345,7 +359,7 @@ function gambarPapan() {
     return { pos: p, nama, milik, petunjuk };
   }).filter(x => x.nama.length);
 
-  const kartu = URUT_GOLONGAN.map(g => {
+  const kartu = URUT_GOLONGAN_PESERTA.map(g => {
     const baris = semua.filter(b => b.golongan === g);
     const sekolahAda = [...new Set(baris.map(b => b.nama_sekolah).filter(Boolean))]
       .sort((a, b) => a.localeCompare(b, "id"));

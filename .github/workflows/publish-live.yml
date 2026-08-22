@@ -111,6 +111,16 @@ jobs:
               if k not in d:
                   sys.exit(f'kunci {k} hilang dari keluaran live_json.sql')
 
+          # Live Score peserta hanya untuk Eksternal. Database dan layar
+          # panitia tetap menyimpan Intern PA/PI sebagai klasemen tersendiri;
+          # barisnya dibuang di batas penerbitan supaya bukan sekadar tab yang
+          # disembunyikan oleh JavaScript. Komponen khusus Intern juga tidak
+          # perlu ikut memperbesar berkas publik.
+          eksternal = lambda baris: not str(baris.get('golongan', '')).startswith('intern')
+          d['progres'] = [baris for baris in d['progres'] if eksternal(baris)]
+          d['klasemen'] = [baris for baris in d['klasemen'] if eksternal(baris)]
+          d['komponen'] = [baris for baris in d['komponen'] if eksternal(baris)]
+
           # Pagar kebocoran, dijaga di sini SEKALIGUS di view (0005/0026).
           if d['fase'] != 'penuh' and d['klasemen']:
               sys.exit('BOCOR: klasemen ikut tertulis padahal fase belum penuh')
