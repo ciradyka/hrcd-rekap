@@ -1950,17 +1950,15 @@ async function layarCetakKloter() {
       }).join("")));
   };
 
-  /** Cetak semua kloter berisi dalam satu bentuk kertas, termasuk yang sudah
-   *  pernah dicetak. Datanya diambil ulang tepat sebelum mencetak: layar ini
-   *  sering dibiarkan terbuka sementara meja daftar ulang terus jalan, dan
-   *  cetak ulang harus selalu memuat regu yang baru masuk. */
-  async function cetak(bentuk) {
-    let segar;
-    try { segar = await daftarKloter(); }
-    catch (err) { notif(err.message, true); return; }
-
-    perKloter = kelompokkan(segar);
-    gambarPratayang(perKloter);
+  /** Cetak semua kloter yang terlihat di pratayang, termasuk yang sudah pernah
+   *  dicetak. `window.print()` HARUS tetap berada dalam giliran event tap:
+   *  Safari iPhone memblokirnya bila ada `await` lebih dulu karena sesudah itu
+   *  panggilannya tidak lagi dianggap berasal langsung dari pengguna.
+   *
+   *  Data layar sudah diambil saat layar dibuka. Menyamakan kertas dengan
+   *  pratayang juga menghindari kertas diam-diam berbeda dari yang baru saja
+   *  diperiksa petugas. Buka ulang layar untuk mengambil perubahan terbaru. */
+  function cetak(bentuk) {
     const semuaKloter = [...perKloter.entries()];
     siapkanCetakKloter(semuaKloter, bentuk);
     window.print();
@@ -1974,12 +1972,13 @@ async function layarCetakKloter() {
       "Batal = jangan ubah waktu cetak",
     ].join("\n"));
     if (!lanjut) return;
-    try {
-      const nomor = semuaKloter.map(([n]) => Number(n));
-      const n = await tandaiKloterDicetak(nomor);
-      notif(`Waktu cetak ${n} kloter disimpan.`);
-      layarCetakKloter();
-    } catch (err) { notif(err.message, true); }
+    const nomor = semuaKloter.map(([n]) => Number(n));
+    tandaiKloterDicetak(nomor)
+      .then((n) => {
+        notif(`Waktu cetak ${n} kloter disimpan.`);
+        layarCetakKloter();
+      })
+      .catch((err) => notif(err.message, true));
   }
 
   document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
