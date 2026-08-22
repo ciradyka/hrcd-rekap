@@ -4,8 +4,8 @@
 -- DATA UJI untuk melihat layar Input Pos dan Rekapitulasi terisi. BUKAN
 -- migrasi — jangan pernah dijalankan setelah pendaftaran asli dibuka.
 --
--- Pasangannya `cleanup_data_uji.sql`, yang membuang persis apa yang berkas ini
--- pasang. Keduanya memakai kosakata yang sama supaya jelas mereka sepasang.
+-- Pasangannya `cleanup_data_uji.sql`, yang membuang data operasional yang
+-- dipasang berkas ini tetapi sengaja mempertahankan master Asal Sekolah.
 --
 -- ---------------------------------------------------------------------------
 -- ASALNYA DATA INI
@@ -22,9 +22,8 @@
 --     Dibuang atas permintaan panitia, karena XXXVII tidak punya golongan
 --     intern dan memaksakannya ke `penegak_pa` akan membuat mereka muncul di
 --     klasemen Penegak PA seolah sekolah luar. Sisa 46 regu.
---   * Alamat setiap sekolah ditulis "(data uji — HRCD XXXVI)". Ini penanda
---     yang disengaja: `cleanup_data_uji.sql` tidak bisa membedakan sekolah uji
---     dari sekolah sungguhan, jadi pembedanya harus terbaca mata manusia.
+--   * Sekolah yang belum ada diberi alamat "(data uji — HRCD XXXVI)". Bila
+--     sekolah sudah ada di master, alamat kurasinya tidak ditimpa.
 --
 -- ---------------------------------------------------------------------------
 -- SENGAJA TIDAK LENGKAP
@@ -62,17 +61,16 @@ declare
   v_nilai  int;
 begin
   -- -------------------------------------------------------------------------
-  -- Penjaga: berkas ini hanya untuk database kosong. Kalau sudah ada sekolah,
-  -- kita tidak bisa tahu mana yang uji dan mana yang sungguhan — dan menimpa
-  -- pendaftaran asli dengan data karangan bukan kesalahan yang bisa diurungkan
-  -- dengan git revert.
+  -- Penjaga: master sekolah boleh sudah terisi, tetapi data operasional harus
+  -- kosong. Menimpa pendaftaran asli dengan data karangan bukan kesalahan yang
+  -- bisa diurungkan dengan git revert.
   -- -------------------------------------------------------------------------
-  select count(*) into v_ada from sekolah;
+  select count(*) into v_ada from pendaftaran;
   if v_ada > 0 then
     raise exception
-      'Sudah ada % sekolah di database. Berkas ini hanya untuk database '
-      'kosong — jalankan cleanup_data_uji.sql dulu kalau memang isinya data '
-      'uji, dan JANGAN jalankan sama sekali kalau isinya pendaftaran asli.',
+      'Sudah ada % pendaftaran di database. Jalankan cleanup_data_uji.sql '
+      'dulu kalau memang isinya data uji, dan JANGAN jalankan sama sekali '
+      'kalau isinya pendaftaran asli.',
       v_ada;
   end if;
 
@@ -147,7 +145,8 @@ begin
   -- yang membuat layar Daftar Ulang punya sesuatu untuk dikelompokkan.
   -- -------------------------------------------------------------------------
   insert into sekolah (name, address)
-  select distinct sekolah, '(data uji — HRCD XXXVI)' from daftar_uji;
+  select distinct sekolah, '(data uji — HRCD XXXVI)' from daftar_uji
+  on conflict (kunci_sekolah(name)) do nothing;
 
   insert into pendaftaran (sekolah_id, kode_pembayaran, kontak_wa,
                            jumlah_regu, jumlah_pendamping, butuh_barak, status)
@@ -158,7 +157,8 @@ begin
          1,
          (count(d.nomor_dada) > 2),   -- sekolah besar menginap
          'lunas'
-  from sekolah s join daftar_uji d on d.sekolah = s.name
+  from sekolah s
+  join daftar_uji d on kunci_sekolah(d.sekolah) = kunci_sekolah(s.name)
   group by s.id, s.name;
 
   -- -------------------------------------------------------------------------
@@ -177,7 +177,7 @@ begin
          (array[210, 240, 270])[(d.nomor_dada % 3) + 1]
   from (select *, row_number() over (order by nomor_dada) as rn
         from daftar_uji) d
-  join sekolah s     on s.name = d.sekolah
+  join sekolah s     on kunci_sekolah(s.name) = kunci_sekolah(d.sekolah)
   join pendaftaran p on p.sekolah_id = s.id;
 
   -- Kloter berangkat mulai 07.00 WIB, berjarak 15 menit.

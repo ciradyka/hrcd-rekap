@@ -378,5 +378,9 @@ run tests/sql/52_intern_golongan.sql
 run supabase/migrations/0092_fifo_kloter_eksternal_intern.sql
 run supabase/migrations/0093_configure_fifo_capacity.sql
 run tests/sql/53_fifo_kloter_eksternal_intern.sql
+# Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
+# Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
+# nilai, dan data operasional lain yang dipakai tes sebelumnya.
+run tests/sql/54_cleanup_preserves_schools.sql
 
 echo "SEMUA TES LULUS"
