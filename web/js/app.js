@@ -2321,30 +2321,15 @@ function layarFinish() {
 }
 
 function kartuReguFinish(r) {
-  /* Regu yang SUDAH tercatat diukur dari jam datangnya, bukan dari jam
-     sekarang. Angka pada regu yang sudah pulang tidak boleh bergerak lagi —
-     versi sebelumnya membandingkan Date.now() dengan target, jadi lencana
-     yang sama menampilkan angka berbeda setiap kali layarnya dibuka, dan
-     enam bulan sebelum acara ia berbunyi "−271874 menit dari target".
-
-     Untuk regu yang belum pulang, jam sekarang memang pembandingnya: yang
-     ditanya petugas adalah "sudah lewat berapa menit dari targetnya". */
-  const acuan = r.sudah_finish && r.jam_datang
-    ? new Date(r.jam_datang).getTime() : Date.now();
-  const selisih = r.target_datang
-    ? Math.round((acuan - new Date(r.target_datang).getTime()) / 60000)
-    : null;
-  const tandaWaktu = selisih === null ? ""
-    : `<span class="badge ${Math.abs(selisih) < 10 ? "badge-green" : "badge-yellow"}">
-         ${selisih > 0 ? `+${selisih}` : selisih} menit dari target</span>`;
   return `
     <div class="card card-identity" style="margin:0">
       ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
       <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>
       <div class="detail">Kloter ${r.kloter} · berangkat ${jamMenit(r.jam_berangkat)}${
         r.target_datang ? ` · target ${jamMenit(r.target_datang)}` : ""}</div>`}
-      <div style="margin-top:.4rem">${tandaWaktu}
-        ${r.sisipan ? `<span class="badge badge-red">sisipan</span>` : ""}</div>
+      ${r.sisipan
+        ? `<div style="margin-top:.4rem"><span class="badge badge-red">sisipan</span></div>`
+        : ""}
     </div>`;
 }
 
