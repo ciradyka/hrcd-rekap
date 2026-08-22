@@ -1902,7 +1902,11 @@ async function layarCetakKloter() {
   const kelompokkan = (rows) => {
     const peta = new Map();
     for (const b of rows) {
-      if (!peta.has(b.kloter)) peta.set(b.kloter, { dicetak: b.dicetak_pada, isi: [] });
+      if (!peta.has(b.kloter)) peta.set(b.kloter, {
+        jamBerangkat: b.jam_berangkat,
+        perkiraanBerangkat: b.perkiraan_berangkat,
+        isi: [],
+      });
       peta.get(b.kloter).isi.push(b);
     }
     return peta;
@@ -1942,9 +1946,10 @@ async function layarCetakKloter() {
         return `
           <div class="card">
             <h2>Kloter ${esc(nomor)}</h2>
-            ${v.dicetak
-              ? `<p class="sub">Dicetak: ${esc(tanggalJam(v.dicetak))}</p>`
-              : ""}
+            <p><strong>${v.jamBerangkat
+              ? "Jam berangkat"
+              : "Estimasi jam berangkat"}:</strong>
+              ${esc(jamMenit(v.jamBerangkat || v.perkiraanBerangkat))}</p>
             <table class="table">${baris}</table>
           </div>`;
       }).join("")));
@@ -1996,6 +2001,7 @@ async function layarCetakKloter() {
  */
 function siapkanCetakKloter(dipakai, bentuk = "staging") {
   document.getElementById("cetakan")?.remove();
+  const dicetak = tanggalJam(new Date().toISOString());
 
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
@@ -2030,6 +2036,7 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
           <tbody>${baris}</tbody>
         </table>
         ${adaSisipan ? `<p class="insert-note">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
+        <p class="print-note">Dicetak ${esc(dicetak)}.</p>
       </section>` : `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)}</h1>
@@ -2040,7 +2047,8 @@ function siapkanCetakKloter(dipakai, bentuk = "staging") {
         </table>
         <p class="print-note">Bersiap di staging paling lambat 15 menit sebelum
            perkiraan berangkat.<br>
-           Jam sebenarnya bisa bergeser, ikuti panggilan petugas.</p>
+           Jam sebenarnya bisa bergeser, ikuti panggilan petugas.<br>
+           Dicetak ${esc(dicetak)}.</p>
       </section>`;
   }).join("");
   document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));
