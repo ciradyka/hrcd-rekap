@@ -105,6 +105,10 @@ let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
  *
  *  Jadi: mematikan seketika, menyalakan tetap lewat penerbitan. */
 const URUT_FASE = { pra: 0, progres: 1, penuh: 2 };
+// Fase database hanya memperketat isi berkas. Ia harus sempat menjawab sebelum
+// gambar pertama, tetapi tidak boleh menahan papan CDN lebih dari beberapa
+// detik ketika origin Supabase sedang sulit dijangkau.
+const BATAS_FASE_MS = 5000;
 let FASE_DB = null;
 let denyutFase = null;
 
@@ -117,10 +121,12 @@ const fase = () => {
 async function ambilFaseDb() {
   const K = window.HRCD || {};
   if (!K.supabaseUrl || !K.anonKey) return;
+  const ac = new AbortController();
+  const batas = setTimeout(() => ac.abort(), BATAS_FASE_MS);
   try {
     const r = await fetch(`${K.supabaseUrl}/rest/v1/v_fase_live?select=fase_live`,
       { headers: { apikey: K.anonKey, Authorization: `Bearer ${K.anonKey}` },
-        cache: "no-store" });
+        cache: "no-store", signal: ac.signal });
     if (!r.ok) return;                       // diamkan: berkas tetap dipakai
     const d = await r.json();
     if (Array.isArray(d) && d[0] && URUT_FASE[d[0].fase_live] !== undefined) {
@@ -129,6 +135,8 @@ async function ambilFaseDb() {
   } catch {
     // Sambungan ke Supabase mati bukan alasan mengosongkan papan: tanpa
     // FASE_DB, yang berlaku fase di berkas — keadaan sebelum berkas ini ada.
+  } finally {
+    clearTimeout(batas);
   }
 }
 const mulai = () => fase() !== "pra";
@@ -627,8 +635,9 @@ async function muatRekap() {
 
 async function muat() {
   try {
-    // Diambil bersamaan, bukan berurutan: keduanya kecil dan salah satunya
-    // boleh gagal tanpa menjatuhkan yang lain.
+    // Fase diambil lebih dulu karena ia boleh MEMPERKETAT data yang akan
+    // digambar. Batas waktu pendek di ambilFaseDb() menjaga urutan aman ini
+    // tanpa menggantungkan papan CDN pada origin Supabase.
     await ambilFaseDb();
     const r = await fetch(`live.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(String(r.status));
