@@ -174,7 +174,7 @@ begin
          d.nomor_dada,
          ((rn - 1) / 10 + 1)::smallint,
          ((rn - 1) % 10 + 1)::smallint,
-         (array[210, 240, 270])[(d.nomor_dada % 3) + 1]
+         (array[180, 210, 240])[(d.nomor_dada % 3) + 1]
   from (select *, row_number() over (order by nomor_dada) as rn
         from daftar_uji) d
   join sekolah s     on kunci_sekolah(s.name) = kunci_sekolah(d.sekolah)
