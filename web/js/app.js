@@ -2185,8 +2185,9 @@ function layarFinish() {
 
   // Angka penalti dipakai untuk menjawab pertanyaan yang sebenarnya saat
   // membandingkan catatan kertas dengan jam tombol: bukan "beda berapa menit",
-  // melainkan "apakah bedanya MENGUBAH penalti". Karena penalti dibulatkan per
-  // 10 menit, selisih semenit dua menit hampir selalu tidak berpengaruh.
+  // melainkan "apakah bedanya MENGUBAH penalti". Sejak migrasi 0089 setiap
+  // selisih satu menit mengubah penalti satu poin; badge yang ikut berubah pada
+  // tiap menit adalah perilaku yang disengaja, bukan noise.
   let PENALTI = null;
   infoPenalti().then(p => { PENALTI = p; }).catch(() => {});
 
