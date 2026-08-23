@@ -13,17 +13,17 @@ const env = {
   SUPABASE_SERVICE_KEY: "service-key",
 };
 
-const request = () => new Request("https://gateway.example/akun/tidak-ada", {
+const request = (path = "/akun/tidak-ada", body = {}) => new Request(`https://gateway.example${path}`, {
   method: "POST",
   headers: { Authorization: "Bearer token-uji", "Content-Type": "application/json" },
-  body: "{}",
+  body: JSON.stringify(body),
 });
 
-async function jalankan(jawaban) {
+async function jalankan(jawaban, path, body) {
   const asliFetch = globalThis.fetch;
   const antrean = [...jawaban];
   globalThis.fetch = async () => antrean.shift();
-  try { return await worker.fetch(request(), env); }
+  try { return await worker.fetch(request(path, body), env); }
   finally { globalThis.fetch = asliFetch; }
 }
 
@@ -46,4 +46,16 @@ test("peran non-admin dengan centang akun melewati pagar", async () => {
   // Rute sengaja tidak ada. 404 membuktikan pagar hak sudah terlewati; kalau
   // masih membandingkan peran, jawabannya 403 sebelum dispatch.
   assert.equal(r.status, 404);
+});
+
+test("rename akun menjelaskan aturan yang benar", async () => {
+  const r = await jalankan([
+    new Response(JSON.stringify({ id: "admin-uji" }), { status: 200 }),
+    new Response(JSON.stringify([{ is_active: true }]), { status: 200 }),
+    new Response(JSON.stringify([{ fitur: "akun" }]), { status: 200 }),
+  ], "/akun/username", { user_id: "petugas-uji", username: "pos-3" });
+
+  assert.equal(r.status, 400);
+  assert.equal((await r.json()).message,
+    "Nama akun minimal 5: huruf, angka, dan titik.");
 });

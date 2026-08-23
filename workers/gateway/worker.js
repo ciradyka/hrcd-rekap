@@ -50,6 +50,10 @@ const DOMAIN_AKUN = "ciradyka.com";
  *  GoTrue mencocokkan akun. Dengan begitu satu orang punya satu surel, apa
  *  pun bentuk titik yang ia ketik. */
 const kunciAkun = (nama) => String(nama || "").toLowerCase().replace(/\./g, "");
+const POLA_NAMA_AKUN = /^[a-z0-9]+(?:\.[a-z0-9]+)*$/;
+const PESAN_NAMA_AKUN = "Nama akun minimal 5: huruf, angka, dan titik.";
+const namaAkunSah = (nama) =>
+  nama.length >= 5 && nama.length <= 40 && POLA_NAMA_AKUN.test(nama);
 
 // Tanpa karakter yang gampang tertukar saat diketik ulang di lapangan —
 // sama dengan SAFE_ALPHABET di scripts/provision_accounts.py. Panitia
@@ -198,9 +202,8 @@ async function daftarPanitia(req, env, b) {
      Minimal LIMA: nama sependek "aji" tidak menyebut siapa pun di daftar
      berisi belasan akun, dan nama akun tidak bisa diganti sendiri oleh
      pemiliknya — hanya admin yang bisa. */
-  if (username.length < 5 || username.length > 40 ||
-      !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username))
-    return jawab(400, { message: "Nama akun minimal 5: huruf, angka, dan titik." }, req);
+  if (!namaAkunSah(username))
+    return jawab(400, { message: PESAN_NAMA_AKUN }, req);
   // Password BEBAS simbol; yang dibatasi cuma panjangnya.
   if (password.length < 8)
     return jawab(400, { message: "Password minimal 8 karakter." }, req);
@@ -290,9 +293,8 @@ async function buatAkun(req, env, b) {
     // (menerima `-`, `_`, titik ganda, titik di ujung, minimal 3), dan itu
     // berarti "akun ini sudah ada atau belum" dijawab berbeda tergantung pintu
     // mana yang dipakai.
-    if (username.length < 5 || username.length > 40 ||
-        !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username)) {
-      hasil.push({ username, ok: false, pesan: "Nama akun minimal 5: huruf, angka, dan titik." });
+    if (!namaAkunSah(username)) {
+      hasil.push({ username, ok: false, pesan: PESAN_NAMA_AKUN });
       continue;
     }
     if (!["admin", "registrasi", "gerbang", "juri_pos", "koordinator_pos"]
@@ -387,9 +389,8 @@ async function ubahUsername(req, env, b) {
   const uid = String(b.user_id || "");
   const username = String(b.username || "").trim().toLowerCase();
   if (!uid) return jawab(400, { message: "Akun tidak disebut." }, req);
-  if (username.length < 5 || username.length > 40 ||
-      !/^[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(username))
-    return jawab(400, { message: "Nama akun hanya huruf kecil, angka, titik, dan strip (3–40)." }, req);
+  if (!namaAkunSah(username))
+    return jawab(400, { message: PESAN_NAMA_AKUN }, req);
 
   // Barisnya dulu: kalau usernamenya sudah dipakai orang lain, UNIQUE
   // menolaknya di sini, sebelum emailnya terlanjur berubah.
