@@ -402,6 +402,7 @@ run tests/sql/57_kelengkapan_intern.sql
 # ia menuntut daftar_ulang, hak yang justru tidak dimiliki peran gerbang —
 # satu-satunya peran yang bisa membuka layar tempat RPC itu dipanggil. Tes 58
 # menduduki kursi gerbang dan mencabut centangnya di antara dua panggilan.
+run supabase/migrations/0097_kontrak_boleh_dari_gerbang.sql
 run tests/sql/58_kontrak_dari_gerbang.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
