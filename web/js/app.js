@@ -6071,9 +6071,6 @@ async function layarFoto() {
   const elBelum = document.getElementById("foto-belum");
   const elKuota = document.getElementById("foto-kuota");
 
-  const slug = (nama) => String(nama).toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
-
   /* ------------------------------------------------------------------------
      SATU PETAK, BUKAN DUA DAFTAR.
 
@@ -6228,8 +6225,8 @@ async function layarFoto() {
     }
     const lomba = kelompokLomba(kolomPos(komponen));
     elLomba.innerHTML = lomba.map(l =>
-      `<option value="${esc(slug(l.nama))}">${esc(l.nama)}</option>`).join("");
-    kodeLomba = lomba.length ? slug(lomba[0].nama) : null;
+      `<option value="${esc(l.kode)}">${esc(l.nama)}</option>`).join("");
+    kodeLomba = lomba.length ? lomba[0].kode : null;
     namaLomba = lomba.length ? lomba[0].nama : null;
     elAksi.hidden = !kodeLomba;
     elLomba.disabled = false;
