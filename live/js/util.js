@@ -385,7 +385,7 @@ export function kotakJamHtml(id, nilai = "") {
   const [hh = "", mm = ""] = String(nilai || "").split(":");
   return `<span class="jam-pasang" id="${id}">
     <input type="text" class="jam-ketik jam-hh" id="${id}-hh" value="${hh}"
-           inputmode="numeric" maxlength="2" autocomplete="off"
+           inputmode="numeric" autocomplete="off"
            spellcheck="false" placeholder="HH" aria-label="Jam">
     <span class="jam-titik" aria-hidden="true">:</span>
     <input type="text" class="jam-ketik jam-mm" id="${id}-mm" value="${mm}"
