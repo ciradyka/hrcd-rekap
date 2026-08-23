@@ -3174,10 +3174,6 @@ input.small-input { text-align: center; }
   .icon-button.berputar { animation-duration: 1.8s; }
 }
 
-/* Ikon SVG di dalam tombol: mengikuti font-size tombolnya, bukan ukuran
-   tetap, supaya satu ikon melayani tombol besar dan kecil sekaligus. */
-.icon-button .ikon { width: 1em; height: 1em; display: block; }
-
 /* Jumlah baris, cap refresh, dan tombolnya berjalan bersama. Sebagai anak
    lepas dari .table-toolbar, tombol itu jatuh sendirian ke baris baru begitu
    deretan saringan penuh — terpisah dari jam yang menerangkannya. */
@@ -3407,7 +3403,9 @@ input.small-input { text-align: center; }
    warna di papan rujukan. */
 /* Di dalam kotak bertint, ukuran dan warnanya diatur .ikon-kotak. */
 .function-name > .ikon { width: 1.35em; height: 1.35em; color: var(--utama); }
-.icon-button .ikon { width: 1.4em; height: 1.4em; }
+/* Ikon tombol mengikuti font-size tombolnya supaya satu aturan melayani
+   tombol besar dan kecil sekaligus. */
+.icon-button .ikon { width: 1.4em; height: 1.4em; display: block; }
 .bottom-nav-icon .ikon { width: 1.5em; height: 1.5em; }
 
 /* ============================================================================
