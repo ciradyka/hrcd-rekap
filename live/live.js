@@ -467,6 +467,10 @@ function gambarPapan() {
   return gambarTab(semua) + kartu;
 }
 
+/* Dibatalkan tiap kali papan digambar ulang: pendengar `document` milik panel
+   lama tidak boleh ikut hidup selamanya. */
+let pengendaliFilter = null;
+
 function pasangPapan() {
   document.querySelectorAll(".tab-golongan .tab").forEach(t => {
     t.addEventListener("click", () => {
@@ -478,6 +482,20 @@ function pasangPapan() {
       });
     });
   });
+
+  /* PANEL LAMA DIBUANG DULU, dan pendengarnya ikut.
+     Tiap panel dipindah ke <body> saat dipasang (alasannya di bawah), jadi ia
+     BUKAN anak #isi lagi — dan penggambaran ulang yang mengganti innerHTML
+     #isi tidak menyentuhnya sama sekali. Tanpa baris ini tiap penggambaran
+     menambah empat panel beserta dua pendengar `document`, dan yang lebih
+     buruk daripada tumpukannya: panel yang sedang DIBUKA peserta milik
+     penggambaran sebelumnya, sehingga mencentang sekolah di dalamnya tidak
+     menyaring apa pun — `terapkan()` menyaring baris di tabel yang sudah
+     tidak ada di layar. */
+  pengendaliFilter?.abort();
+  pengendaliFilter = new AbortController();
+  const { signal } = pengendaliFilter;
+  document.querySelectorAll("body > .isi-filter").forEach(n => n.remove());
 
   document.querySelectorAll(".panel-gol").forEach(panel => {
     const kotak = [...panel.querySelectorAll(".isi-filter input[type=checkbox]")];
@@ -513,8 +531,10 @@ function pasangPapan() {
     };
     document.addEventListener("click", e => {
       if (!isi.hidden && !isi.contains(e.target) && !kepala.contains(e.target)) tutup();
-    });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") tutup(); });
+    }, { signal });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") tutup();
+    }, { signal });
     if (cariKotak) cariKotak.addEventListener("input", () => {
       const q = cariKotak.value.trim().toLowerCase();
       // Dicari dari `isi`, BUKAN dari `panel`. Panelnya sudah dipindah ke
@@ -550,6 +570,15 @@ function pasangPapan() {
 /* ---------------------------------------------------------------------------
    Menggambar ulang seluruh badan halaman.
    ------------------------------------------------------------------------- */
+/* Apa yang SEDANG TERGAMBAR di layar, sebagai satu teks. Tiga hal menentukan
+   isi papan: versi berkas yang terbit, fase yang berlaku setelah pengetatan,
+   dan versi rekap yang sudah di tangan. Kalau ketiganya sama dengan yang
+   barusan digambar, menggambar ulang tidak mengubah satu angka pun — ia hanya
+   merusak yang sedang dipegang peserta. */
+const kunciGambar = () =>
+  [META && META.versi, fase(), REKAP && REKAP.versi].join("|");
+let kunciTergambar = null;
+
 function gambar() {
   const isi = document.getElementById("isi");
   if (!META) return;
@@ -568,6 +597,7 @@ function gambar() {
   if (mulai()) pasangPapan();
   pasangKemajuan();
   gambarSinkron();
+  kunciTergambar = kunciGambar();
 }
 
 /* ---------------------------------------------------------------------------
@@ -614,7 +644,17 @@ async function muat() {
     // tidak satu HP pun mengunduhnya dua kali.
     if (mulai() && (versiBerubah || !REKAP)) await muatRekap();
 
-    gambar();
+    /* DIGAMBAR ULANG HANYA KALAU ADA YANG BERUBAH.
+       Denyut 60 detik yang selalu menggambar ulang membuang tiga hal
+       sekaligus: panel penyaring yang sedang dibuka peserta, pilihan sekolah
+       yang sudah dicentangnya, dan posisi gulir mendatar tabel — semuanya
+       tepat ketika ia sedang membaca. Isi papan tidak berubah di antara dua
+       penerbitan, jadi menggambarnya ulang pun tidak mengubah apa pun selain
+       merusak yang sedang dipegang.
+       Cap waktu "terakhir diperbarui" tetap maju: itu yang memberi tahu
+       peserta bahwa halamannya masih hidup. */
+    if (kunciGambar() !== kunciTergambar) gambar();
+    else gambarSinkron();
   } catch {
     if (!META) {
       document.getElementById("isi").innerHTML = `

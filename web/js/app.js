@@ -5068,6 +5068,10 @@ async function layarRekap() {
  *  Jadi Live Score tinggal di situs panitia, di balik login yang sudah ada,
  *  membaca database langsung. Yang dilihat admin sama persis, yang dilihat
  *  peserta belum berubah sama sekali. */
+/* Dibatalkan tiap kali layar Live Score dibuka lagi: panel penyaring hidup di
+   <body>, jadi tidak ada yang membuangnya saat pindah layar. */
+let pengendaliFilterSekolah = null;
+
 async function layarLiveScore() {
   pasangKepala("Live Score", true);
   LAYAR.replaceChildren(h(pemuat()));
@@ -5467,6 +5471,17 @@ async function layarLiveScore() {
    *  Peringkat di kolom pertama juga TIDAK dihitung ulang: ia peringkat di
    *  golongannya, bukan nomor urut baris yang sedang tampil. Menyaring
    *  sekolah lalu melihat "1, 4, 7" adalah jawaban yang benar. */
+  /* PANEL KUNJUNGAN SEBELUMNYA DIBUANG DULU, beserta pendengarnya.
+     Tiap panel dipindah ke <body> saat dipasang (alasannya beberapa baris di
+     bawah), jadi ia bukan lagi keturunan LAYAR — dan mengganti isi LAYAR saat
+     pindah layar tidak menyentuhnya. Yang tertinggal bukan cuma sampah:
+     pendengar `document` miliknya tetap jalan di SETIAP klik di layar mana
+     pun, dan kunjungan berikutnya menambah empat panel lagi. */
+  pengendaliFilterSekolah?.abort();
+  pengendaliFilterSekolah = new AbortController();
+  const { signal } = pengendaliFilterSekolah;
+  document.querySelectorAll("body > .isi-filter").forEach(n => n.remove());
+
   LAYAR.querySelectorAll(".panel-gol").forEach(panel => {
     const kotak = [...panel.querySelectorAll(".isi-filter input[type=checkbox]")];
     const hitung = panel.querySelector(".hitung-filter");
@@ -5516,8 +5531,10 @@ async function layarLiveScore() {
     document.addEventListener("click", e => {
       if (!isi.hidden && !isi.contains(e.target) && e.target !== kepala
           && !kepala.contains(e.target)) tutup();
-    });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") tutup(); });
+    }, { signal });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") tutup();
+    }, { signal });
     if (cariKotak) cariKotak.addEventListener("input", () => {
       const q = cariKotak.value.trim().toLowerCase();
       // Dicari dari `isi`, BUKAN dari `panel`. Panelnya sudah dipindah ke
