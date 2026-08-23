@@ -40,3 +40,8 @@ $$;
 grant usage on schema auth to anon, authenticated, service_role;
 grant select on auth.users to authenticated, service_role;
 grant anon, authenticated, service_role to current_user;
+
+-- Supabase memberi relasi baru buatan role migrasi kepada anon lewat default
+-- privileges. Tiruan ini wajib melakukan hal yang sama; tanpa itu tes lokal
+-- tidak bisa melihat grant publik yang lupa dicabut oleh sebuah migrasi.
+alter default privileges in schema public grant all on tables to anon;
