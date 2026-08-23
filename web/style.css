@@ -2684,16 +2684,16 @@ input.small-input { text-align: center; }
          ▾ Isi 5 Nomor Dada
          [ Tukar nomor rusak… ]
 
-     Aturannya ADA DI ATAS, di blok flex ~160 baris sebelum ini. Di tempat
-     inilah dulu berdiri versi grid-nya, dengan SELEKTOR YANG SAMA PERSIS dan
-     di media query yang sama — jadi ia menang hanya karena ditulis
-     belakangan, dan blok flex di atas tidak pernah berlaku sedetik pun.
-     Itulah kartu yang "tembus": tombol Tukar menumpuk pil nomor dada, karena
-     grid menempatkan sendiri sel yang lupa diberi petak.
+     Aturannya ADA DI ATAS, di blok grid dengan selector
+     `.table-daftar-ulang tbody tr[data-baris]`. Di tempat ini dulu pernah
+     berdiri blok kedua dengan SELECTOR YANG SAMA PERSIS dan media query yang
+     sama — jadi blok belakangan menang tanpa suara. Itulah sumber kartu yang
+     "tembus": tombol Tukar menumpuk pil nomor dada karena aturan satu kartu
+     terbagi di dua tempat.
 
      Yang menyesatkan: kedua blok terbaca benar sendiri-sendiri, dan tidak ada
      galat apa pun. Kalau menambah aturan kartu daftar ulang, tambahkan di
-     blok flex itu — jangan membuka blok baru di sini. */
+     blok grid tersebut — jangan membuka blok baru di sini. */
 
   /* Baris rincian regu ikut jadi blok, bukan sel tabel. Ia dibuat menempel
      ke kartu invoice di atasnya — bertumpuk, rincian yang mengambang bebas
