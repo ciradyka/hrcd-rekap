@@ -31,14 +31,18 @@ test("cetak kloter memanggil print tanpa melewati await", () => {
 test("tanggal cetak kloter hanya dirender di lembar print", () => {
   const awalPratayang = app.indexOf("  const gambarPratayang = (peta) => {");
   const akhirPratayang = app.indexOf("  /** Cetak semua kloter", awalPratayang);
-  const pratayang = app.slice(awalPratayang, akhirPratayang);
+  assert.notEqual(awalPratayang, -1, "gambarPratayang tidak ditemukan");
+  assert.notEqual(akhirPratayang, -1, "akhir gambarPratayang tidak ditemukan");
 
+  const pratayang = app.slice(awalPratayang, akhirPratayang);
   assert.doesNotMatch(pratayang, /Dicetak/, "tanggal cetak masih tampil di kartu layar");
 
   const awalLembar = app.indexOf("function siapkanCetakKloter(");
   const akhirLembar = app.indexOf("/* ============================ INPUT POS", awalLembar);
-  const lembar = app.slice(awalLembar, akhirLembar);
+  assert.notEqual(awalLembar, -1, "siapkanCetakKloter tidak ditemukan");
+  assert.notEqual(akhirLembar, -1, "akhir siapkanCetakKloter tidak ditemukan");
 
+  const lembar = app.slice(awalLembar, akhirLembar);
   assert.match(
     lembar,
     /const dicetak = tanggalJam\(new Date\(\)\.toISOString\(\)\)/,
@@ -62,6 +66,6 @@ test("cetak lembar pos memanggil print tanpa melewati await", () => {
   const akhir = app.indexOf("window.print();", awal);
   assert.notEqual(akhir, -1, "window.print() tidak dipanggil di jalur cetak pos");
 
-  assert.doesNotMatch(app.slice(awal, akhir), /await/,
+  assert.doesNotMatch(app.slice(awal, akhir), /\bawait\b/,
     "Safari iPhone memblokir print bila ada request ditunggu sesudah tap");
 });
