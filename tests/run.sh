@@ -398,6 +398,11 @@ run tests/sql/56_lembar_pos_sama_dengan_klasemen.sql
 # aturannya, bukan angkanya.
 run supabase/migrations/0096_kelengkapan_mengenal_intern.sql
 run tests/sql/57_kelengkapan_intern.sql
+# 0097 membuka konfirmasi_kontrak untuk pemegang hak keberangkatan. Sebelumnya
+# ia menuntut daftar_ulang, hak yang justru tidak dimiliki peran gerbang —
+# satu-satunya peran yang bisa membuka layar tempat RPC itu dipanggil. Tes 58
+# menduduki kursi gerbang dan mencabut centangnya di antara dua panggilan.
+run tests/sql/58_kontrak_dari_gerbang.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
