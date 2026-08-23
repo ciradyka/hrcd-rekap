@@ -27,27 +27,44 @@ export function bolehLihat(fitur) {
   return !!s && Array.isArray(s.hak) && s.hak.includes(fitur);
 }
 
-/** Isi `hak` ke sesi yang belum punya.
+/** Segarkan profil operasional dan `hak` saat aplikasi dibuka.
  *
- *  Sesi disimpan di localStorage dan hanya ditulis ulang saat login. Waktu
- *  `hak` mulai dibawa ke dalamnya, SETIAP orang yang sudah login memegang
- *  sesi tanpa field itu — dan bolehLihat() menjawab false untuk semuanya:
- *  papan Home kosong, tombol Akun hilang, dan orangnya wajar mengira
- *  aksesnya dicabut. Memaksa mereka keluar-masuk bukan jawaban; di hari
- *  lomba itu berarti belasan orang mengetik password di tengah antrean.
+ *  Admin dapat mengubah peran, pos, status aktif, dan centang hak ketika
+ *  petugas masih login. Semuanya disimpan di localStorage untuk menggambar
+ *  layar, jadi tanpa refresh petugas tetap melihat penempatan lama sampai
+ *  keluar-masuk. Database tetap menjadi pagar; refresh ini menyamakan UI.
  *
- *  Jadi diisi sekali di sini, diam-diam, lalu tidak pernah dipanggil lagi. */
+ *  Kalau jaringan gagal, sesi lama dipertahankan. Mengosongkan hak hanya
+ *  karena satu request putus akan mematikan seluruh papan di tengah shift. */
+let sesiOperasionalSegar = false;
 export async function lengkapiHakSesi() {
   const s = sesi();
-  if (!s || Array.isArray(s.hak)) return;
+  if (!s || sesiOperasionalSegar) return;
   try {
-    const hak = K.mode === "dev"
-      ? await baca(`/hak-saya?uid=${s.uid}`)
-      : (await baca(null, `akun_hak?user_id=eq.${s.uid}&select=fitur`));
-    simpanSesi({ ...s, hak: (hak || []).map(x => x.fitur) });
+    let akun, hak;
+    if (K.mode === "dev") {
+      akun = await baca("/akun-saya");
+      hak = await baca("/hak-saya");
+    } else {
+      const baris = await baca(null,
+        `akun_panitia?user_id=eq.${s.uid}&select=username,peran,pos,is_active`);
+      akun = baris && baris[0];
+      hak = await baca(null, `akun_hak?user_id=eq.${s.uid}&select=fitur`);
+    }
+    if (!akun) return;
+    // baca() mungkin sekaligus menyegarkan token. Ambil sesi terbaru agar
+    // profil yang baru tidak menimpa token hasil refresh dengan salinan lama.
+    const terbaru = sesi() || s;
+    simpanSesi({ ...terbaru,
+      username: akun.username,
+      peran: akun.peran,
+      pos: akun.pos,
+      is_active: akun.is_active,
+      hak: (hak || []).map(x => x.fitur),
+    });
+    sesiOperasionalSegar = true;
   } catch {
-    // Dibiarkan gagal: panggilan berikutnya mencoba lagi, dan sampai berhasil
-    // layarnya menunjukkan papan kosong — bukan papan yang salah.
+    // Sesi lama tetap dipakai; navigasi atau boot berikutnya mencoba lagi.
   }
 }
 

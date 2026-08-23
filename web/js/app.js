@@ -6485,9 +6485,9 @@ async function arahkan() {
   hashLayar = tujuan;
   segarkanDiTempat = null;
   if (!sesi()) { layarLogin(); return; }
-  // Sesi yang dibuat sebelum `hak` dibawa ke dalamnya tidak punya field itu,
-  // dan papan Home lalu kosong untuk semua orang yang sudah login. Diisi
-  // sekali; sesudah itu panggilan ini langsung kembali.
+  // Profil operasional dan centang hak bisa diubah admin saat petugas masih
+  // login. Segarkan sekali per boot agar UI tidak memakai peran/pos lama;
+  // panggilan navigasi berikutnya langsung kembali.
   await lengkapiHakSesi();
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
