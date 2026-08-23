@@ -412,6 +412,10 @@ run tests/sql/59_pindah_kloter_dari_gerbang.sql
 # default itu dan jaga daftar putih relasi publik secara menyeluruh.
 run supabase/migrations/0099_anon_default_privileges.sql
 run tests/sql/60_anon_default_privileges.sql
+# Lookup staging/finish tidak boleh bergantung pada hak Live Score yang bisa
+# dicabut per akun, dan tidak perlu membuka nomor WA di tabel pendaftaran.
+run supabase/migrations/0100_gate_regu_lookup.sql
+run tests/sql/61_gate_regu_lookup.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
