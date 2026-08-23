@@ -14,6 +14,10 @@ declare
   v_semua           int;
   v_fase_sebelumnya text;
 begin
+  -- v_kelengkapan_pos sengaja dipagari untuk panitia aktif (0101). Duduki
+  -- akun admin fikstur supaya perbandingan menguji populasinya, bukan pagarnya.
+  perform set_config('app.uid', '00000000-0000-0000-0000-00000000000a', true);
+
   select fase_live into v_fase_sebelumnya from status_acara;
   update status_acara set fase_live = 'progres' where id = true;
 
@@ -71,4 +75,3 @@ end;
 $blok$;
 
 \echo '65 kelengkapan publik Eksternal: LULUS'
-
