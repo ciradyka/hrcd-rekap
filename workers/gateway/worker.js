@@ -18,10 +18,12 @@
    ========================================================================== */
 
 const BATAS_BYTE = 32_000;      // payload wajar: 30 regu ~ 6 KB
+const BATAS_AKUN_BYTE = 2_000;  // satu akun hanya beberapa ratus byte
 // Longgar dengan sengaja: beberapa laptop meja mengisi pendaftaran offline
 // dari WiFi venue yang sama (satu IP) bisa memicu ini kalau terlalu ketat.
 // Angka ini cuma pagar terakhir untuk banjir skrip, bukan penghalang panitia.
 const BATAS_PER_MENIT = 30;     // pengiriman per IP per menit
+const BATAS_AKUN_PER_JAM = 10;  // pendaftaran mandiri akun per IP per jam
 
 // DUA asal, dan bedanya bukan kerapian. /daftar dipanggil form pendaftaran di
 // situs PESERTA; rute /akun dipanggil layar Akun di situs PANITIA. Keduanya
@@ -76,6 +78,34 @@ function jawab(status, isi, req) {
     status,
     headers: { "Content-Type": "application/json", ...cors(req) },
   });
+}
+
+/** Baca JSON sampai batas byte sungguhan, termasuk saat Content-Length tidak
+ * dikirim. Berhenti membaca segera setelah batas terlewati. */
+async function bacaJsonTerbatas(req, batas) {
+  const panjang = Number(req.headers.get("content-length") || 0);
+  if (panjang > batas) return { terlaluBesar: true };
+  if (!req.body) return { salah: true };
+
+  const reader = req.body.getReader();
+  const potongan = [];
+  let jumlah = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    jumlah += value.byteLength;
+    if (jumlah > batas) {
+      await reader.cancel();
+      return { terlaluBesar: true };
+    }
+    potongan.push(value);
+  }
+
+  const gabung = new Uint8Array(jumlah);
+  let posisi = 0;
+  for (const p of potongan) { gabung.set(p, posisi); posisi += p.byteLength; }
+  try { return { data: JSON.parse(new TextDecoder().decode(gabung)) }; }
+  catch { return { salah: true }; }
 }
 
 /** Header service_role. Kunci ini hidup HANYA di Worker (wrangler secret). */
@@ -398,9 +428,27 @@ export default {
        jadi akun menunggu tidak memegang satu fitur pun, dan layar login pun
        menolaknya sebelum sesi terbentuk. */
     if (req.method === "POST" && url.pathname === "/akun/daftar") {
-      let b;
-      try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }, req); }
-      return daftarPanitia(req, env, b);
+      const panjang = Number(req.headers.get("content-length") || 0);
+      if (panjang > BATAS_AKUN_BYTE)
+        return jawab(413, { message: "Data terlalu besar." }, req);
+
+      const ip = req.headers.get("cf-connecting-ip") || "?";
+      const kunci = `rl:akun:${ip}`;
+      const hitung = Number((await env.RATE.get(kunci)) || 0);
+      if (hitung >= BATAS_AKUN_PER_JAM)
+        return jawab(429, {
+          message: "Terlalu sering mendaftar akun. Tunggu satu jam, lalu coba lagi.",
+        }, req);
+
+      const baca = await bacaJsonTerbatas(req, BATAS_AKUN_BYTE);
+      if (baca.terlaluBesar) return jawab(413, { message: "Data terlalu besar." }, req);
+      if (baca.salah) return jawab(400, { message: "Format data salah." }, req);
+
+      const hasil = await daftarPanitia(req, env, baca.data);
+      if (hasil.ok) {
+        await env.RATE.put(kunci, String(hitung + 1), { expirationTtl: 3600 });
+      }
+      return hasil;
     }
 
     // Rute akun: admin yang sedang login, bukan publik. Tidak kena rate limit
