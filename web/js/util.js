@@ -232,9 +232,23 @@ export function jamSah(teks) {
  *
  *  Menit tidak dibatasi — lomba yang molor sampai 90 menit tetap tercatat apa
  *  adanya. Detik dibatasi 0-59: "1:75" adalah salah ketik, bukan 135 detik,
- *  dan menerimanya diam-diam berarti mencatat waktu yang tidak pernah ada. */
+ *  dan menerimanya diam-diam berarti mencatat waktu yang tidak pernah ada.
+ *
+ *  TITIK DAN SPASI DITOLAK, bukan diperlakukan sebagai titik dua. Dua orang
+ *  mengetik tanda yang sama dan memaksudkan dua besaran yang berbeda: di layar
+ *  stopwatch "24.31" berarti 24,31 detik, sedangkan di tulisan tangan panitia
+ *  "1.30" berarti satu menit tiga puluh. Menebak salah satunya berarti
+ *  menyimpan waktu yang tidak pernah terjadi, tanpa satu pun tanda. Yang
+ *  ditolak berhenti sebagai baris merah dan diketik ulang jadi "24" atau
+ *  "1:30" — tiga ketukan, di layar, oleh orang yang memegang stopwatchnya.
+ *
+ *  Aturan penggantian itu diwarisi dari jamSah, tempat "7.45" memang 07:45.
+ *  Di sini akibatnya: "24.31" tersimpan sebagai 24*60+31 = 1471 detik, lolos
+ *  rentang 0-3600 tanpa galat, dan bernilai 20 poin alih-alih 100. Keempat
+ *  layar lalu sepakat pada angka yang salah, karena angka mentahnya sendiri
+ *  yang sudah salah. */
 export function detikSah(teks) {
-  const t = String(teks ?? "").trim().replace(/[.\s]/g, ":");
+  const t = String(teks ?? "").trim();
   if (t === "") return null;
   if (!/^\d+(:\d{1,2})?$/.test(t)) return null;
 

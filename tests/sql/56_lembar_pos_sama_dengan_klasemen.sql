@@ -56,6 +56,13 @@ declare
   v_beda     int;
   v_periksa  int;
   v_berjawab int;
+  v_dada     integer;
+  v_kloter   smallint;
+  v_jam_asli timestamptz;
+  v_fase_asli text;
+  v_ceklis   boolean := false;
+  v_b numeric; v_c numeric; v_d numeric; v_e numeric;
+  v_total_c numeric; v_total_d numeric; v_total_e numeric;
 begin
   select p.nomor, p.bobot into v_pos, v_bobot
   from pos p
@@ -197,6 +204,74 @@ begin
   raise notice '56.2 OK — % baris v_lembar_pos sama dengan klasemen, % di '
                'antaranya memuat komponen ber-jawaban benar.',
     v_periksa, v_berjawab;
+
+  -- ---------------------------------------------------------------------
+  -- 56.3 EMPAT LAYAR, SATU ANGKA.
+  --
+  --      Sampai di sini yang dibandingkan baru dua jalur. Yang dijanjikan ke
+  --      panitia lebih luas: angka yang sama harus muncul di Input Nilai Pos,
+  --      Live Score panitia, Rekapitulasi, dan Live Score peserta. Keempatnya
+  --      memang bersandar pada rantai yang sama hari ini — dan justru itu yang
+  --      perlu dijaga, karena yang merusaknya bukan perubahan besar melainkan
+  --      satu view yang dibangun ulang dari salinan lama.
+  --
+  --      Regu uji perlu dibuat "sudah berangkat" dulu: v_klasemen menolak regu
+  --      tanpa ceklis keberangkatan dan tanpa jam berangkat kloter (0005:126),
+  --      dan v_klasemen_publik hanya berisi saat fase `penuh` (0048:120).
+  --      Keduanya dikembalikan di akhir.
+  -- ---------------------------------------------------------------------
+  select r.nomor_dada, r.kloter_nomor into v_dada, v_kloter
+  from regu r where r.id = v_regu;
+  select k.jam_berangkat into v_jam_asli from kloter k where k.nomor = v_kloter;
+  update kloter set jam_berangkat = '2026-08-29 07:00:00+07'
+  where nomor = v_kloter and jam_berangkat is null;
+  if not exists (select 1 from keberangkatan_regu where regu_id = v_regu) then
+    insert into keberangkatan_regu (regu_id, recorded_by) values (v_regu, v_admin);
+    v_ceklis := true;
+  end if;
+  select fase_live into v_fase_asli from status_acara;
+  update status_acara set fase_live = 'penuh' where fase_live is distinct from 'penuh';
+
+  -- Ketiga layar panitia dibaca dari kursi panitia; berkas peserta dibaca
+  -- sebagai pemilik, karena begitulah publish-live.yml menghasilkannya
+  -- (v_klasemen_publik memang tidak diberikan ke authenticated).
+  perform set_config('app.uid', v_admin::text, true);
+  set local role authenticated;
+  select nilai_pos into v_b from v_lembar_pos
+  where regu_id = v_regu and pos = v_pos;
+  select (poin_per_pos ->> v_pos::text)::numeric, total into v_c, v_total_c
+  from klasemen_live_score() where nomor_dada = v_dada;
+  select (poin_pos ->> v_pos::text)::numeric, total into v_d, v_total_d
+  from v_rekap_penuh where regu_id = v_regu;
+  reset role;
+
+  select (poin_per_pos ->> v_pos::text)::numeric, total into v_e, v_total_e
+  from v_klasemen_publik where nomor_dada = v_dada;
+
+  assert v_b is not null and v_c is not null and v_d is not null
+         and v_e is not null,
+    format('56.3 GAGAL: regu uji tidak terbaca di keempat layar '
+           '(pos: input=%s, live panitia=%s, rekap=%s, live peserta=%s)',
+           v_b, v_c, v_d, v_e);
+
+  assert v_b = v_c and v_b = v_d and v_b = v_e,
+    format('56.3 GAGAL: Pos %s regu %s berbeda antar layar — Input Nilai Pos '
+           '%s, Live Score panitia %s, Rekapitulasi %s, Live Score peserta %s',
+           v_pos, v_dada, v_b, v_c, v_d, v_e);
+
+  assert v_total_c = v_total_d and v_total_c = v_total_e,
+    format('56.3 GAGAL: total regu %s berbeda antar layar — Live Score panitia '
+           '%s, Rekapitulasi %s, Live Score peserta %s',
+           v_dada, v_total_c, v_total_d, v_total_e);
+
+  raise notice '56.3 OK — regu %: Pos % bernilai % di keempat layar, total %.',
+    v_dada, v_pos, v_b, v_total_c;
+
+  update status_acara set fase_live = v_fase_asli
+  where fase_live is distinct from v_fase_asli;
+  if v_ceklis then delete from keberangkatan_regu where regu_id = v_regu; end if;
+  update kloter set jam_berangkat = v_jam_asli
+  where nomor = v_kloter and jam_berangkat is distinct from v_jam_asli;
 
   -- Bongkar lagi: komponen uji tidak boleh ikut terbawa ke tes sesudahnya
   -- maupun ke hitungan kelengkapan pos.

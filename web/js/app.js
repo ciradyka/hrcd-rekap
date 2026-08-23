@@ -2348,7 +2348,10 @@ const judulPos = (p) => p
  *  tanpa menyentuh JavaScript:
  *
  *    form=biner        -> satu centang        (kolom "Kompas (v)")
- *    satuan=detik      -> Menit : Detik       (kolom "Menit | Detik" di Pos 4)
+ *    satuan=detik      -> SATU kotak waktu     ("47" atau "1:10" — lihat
+ *                         detikSah di util.js; dulu dua kotak Menit dan
+ *                         Detik, dan alasan menyatukannya ada di sana)
+ *    satuan=meter      -> satu kotak meter     ("8.55", disimpan sentimeter)
  *    benar_kurang_salah-> Benar / Salah
  *    sisanya           -> satu kotak angka, batasnya dari rentang wajar
  */
@@ -2467,11 +2470,27 @@ function bacaSel(tr, k) {
     const cm = meterSah(kotak[0].value);
     return cm === null ? TIDAK_SAH : { nilai_1: cm, nilai_2: null };
   }
+  // KOTAK ANGKA BAWAAN BROWSER PUNYA KEADAAN KETIGA JUGA, dan ia tidak
+  // kelihatan. `input[type=number]` yang berisi ketikan yang tidak bisa ia
+  // urai — "2 5", "25e", koma di sebagian locale — melaporkan `value` KOSONG
+  // sambil tetap MENAMPILKAN teksnya. Tanpa memeriksa `validity.badInput`,
+  // baris di bawah membacanya sebagai "kotak dikosongkan", dan jalur simpan
+  // menerjemahkan itu jadi perintah menghapus nilai yang sudah tersimpan —
+  // lalu barisnya tetap mendapat centang hijau selama komponen lain terisi.
+  // Persis kegagalan yang sudah dijaga di kotak detik dan meter di atas; yang
+  // ini ketinggalan karena kotaknya bertipe number, bukan text.
+  const takTerbaca = (el) => !!(el && el.validity && el.validity.badInput);
+
   if (k.form === "benar_kurang_salah") {
+    // Kotak SALAH ikut dijaga: kalau ia tidak terbaca, mengirim nilai_2 null
+    // berarti mencatat "tidak ada yang salah" — angka yang berbeda dari yang
+    // diketik, bukan angka yang hilang.
+    if (takTerbaca(kotak[0]) || takTerbaca(kotak[1])) return TIDAK_SAH;
     const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
     if (b === "") return null;
     return { nilai_1: Number(b), nilai_2: sa === "" ? null : Number(sa) };
   }
+  if (takTerbaca(kotak[0])) return TIDAK_SAH;
   const v = kotak[0].value.trim();
   return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
 }
