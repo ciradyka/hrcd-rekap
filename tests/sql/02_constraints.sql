@@ -102,13 +102,20 @@ $$;
 -- 2.6 Kunci konfigurasi hari-H menolak SEMUA tulisan ke tabel konfigurasi —
 --     termasuk superuser konteks tes — sampai dibuka lagi.
 do $$
+declare
+  v_tolak boolean := false;
 begin
+  assert exists (select 1 from wahana where kode = 'lari_zigzag'),
+         'fixture lari_zigzag tidak ada; tes kunci konfigurasi akan kosong';
   update status_acara set konfigurasi_terkunci = true;
   begin
     update wahana set poin_maks = 999 where kode = 'lari_zigzag';
     raise exception 'GAGAL: edit konfigurasi tembus saat terkunci';
-  exception when raise_exception then null;
+  exception when others then
+    if sqlerrm like 'GAGAL:%' then raise; end if;
+    v_tolak := true;
   end;
+  assert v_tolak, 'kunci konfigurasi hari-H tidak menolak edit wahana';
   update status_acara set konfigurasi_terkunci = false;
   -- setelah dibuka, edit jalan lagi
   update wahana set poin_maks = poin_maks where kode = 'lari_zigzag';
