@@ -420,6 +420,10 @@ run tests/sql/61_gate_regu_lookup.sql
 # badan view dan harus menolak akun yang belum aktif atau sudah dinonaktifkan.
 run supabase/migrations/0101_guard_pos_completeness.sql
 run tests/sql/62_guard_pos_completeness.sql
+# Daftar ulang otomatis boleh mengisi kloter yang sudah dicetak tetapi belum
+# berangkat; tandai regunya agar petugas tahu kertas staging perlu diperbarui.
+run supabase/migrations/0102_mark_printed_kloter_insertion.sql
+run tests/sql/63_daftar_ulang_after_print.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
