@@ -5,12 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Score — Hiking Rally Ciradyka</title>
   <meta name="description" content="Rekap live Hiking Rally Ciradyka — periksa nilai regu sudah masuk atau belum.">
-  <!-- Halaman ini TIDAK memuat kunci apa pun: tidak ada anon key, tidak ada
-       alamat Supabase, tidak ada kotak login. Seluruh isinya datang dari dua
-       berkas statis yang ditulis GitHub Actions — live.json (kecil, di-poll)
-       dan rekap.json (besar, diambil sekali per versi). Itu sebabnya ia
-       berdiri di Worker sendiri, terpisah dari layar panitia — lihat
-       live/wrangler.toml dan kepala live.js. -->
+  <!-- Isi papannya datang dari dua berkas statis yang ditulis GitHub Actions
+       — live.json (kecil, di-poll) dan rekap.json (besar, diambil sekali per
+       versi). Itu sebabnya ia berdiri di Worker sendiri, terpisah dari layar
+       panitia — lihat live/wrangler.toml dan kepala live.js.
+
+       Halaman ini MEMUAT anon key, lewat config.js di kaki berkas. Kalimat di
+       sini dulu berbunyi "tidak memuat kunci apa pun", dan itu berhenti benar
+       sejak 0070: dua hal dibaca langsung dari Supabase — fase live, supaya
+       saklar panitia berlaku dalam hitungan detik alih-alih menunggu
+       penerbitan, dan jumlah pendaftar selama fase `pra`. Keduanya view
+       publik yang memang di-grant ke `anon` dan tidak memuat satu pun nama,
+       nomor, atau nilai. Kotak login tetap tidak ada di sini. -->
   <!-- SATU SUMBER TAMPILAN untuk dua situs. style.css inilah yang dipakai layar
        panitia, dan berkas ini disalin byte-identik ke live/ serta ditegakkan
        shared-files.yml — jadi komponen yang sama tampil sama di kedua papan
@@ -57,6 +63,6 @@
        mendadak. Skrip biasa, bukan modul: ia cuma menaruh satu objek global.
   -->
   <script src="config.js"></script>
-  <script type="module" src="live.js?v=12"></script>
+  <script type="module" src="live.js?v=13"></script>
 </body>
 </html>
