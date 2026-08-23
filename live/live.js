@@ -172,6 +172,13 @@ function gambarSinkron() {
 function gambarPra() {
   const r = META.ringkas || {};
   const per = r.per_golongan || {};
+  // Headline dan pill harus menghitung populasi yang sama. Ringkasan sumber
+  // juga memuat Intern untuk kebutuhan panitia, tetapi halaman ini sengaja
+  // hanya mengumumkan Eksternal. Fallback menjaga live.json lama yang belum
+  // memiliki per_golongan tetap bisa digambar sampai penerbitan berikutnya.
+  const jumlahPeserta = r.per_golongan && typeof r.per_golongan === "object"
+    ? URUT_GOLONGAN_PESERTA.reduce((n, g) => n + Number(per[g] || 0), 0)
+    : (r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0);
   const t = META.edisi && META.edisi.tanggal_lomba
     ? new Date(META.edisi.tanggal_lomba) : null;
   return `
@@ -182,7 +189,7 @@ function gambarPra() {
            yang mereka punya. Tanggal lombanya ikut hilang: ia ada di
            halaman pendaftaran, dan di sini cuma memberi alasan menunda. -->
       <h2>Segera daftarkan dirimu di<br>Hiking Rally Ciradyka XXXVII</h2>
-      <p class="angka-besar">${esc(String(r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0))}</p>
+      <p class="angka-besar">${esc(String(jumlahPeserta))}</p>
       <p>regu sudah mendaftar</p>
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
