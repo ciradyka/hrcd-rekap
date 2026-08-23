@@ -24,7 +24,8 @@ from pathlib import Path
 
 AKAR = Path(__file__).resolve().parent.parent
 # Satu-satunya aturan yang memang tidak boleh ikut: penyembunyi layar.
-SEMBUNYI = ".header, .isi, .notification, .overlay { display: none !important; }"
+SEMBUNYI = (".header, .isi, .notification, .overlay,\n"
+            "  .bottom-nav { display: none !important; }")
 
 
 def css_cetak() -> str:
