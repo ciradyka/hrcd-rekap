@@ -465,6 +465,12 @@ run tests/sql/69_poin_per_komponen.sql
 # kolom perjalanan terbit sejak progres.
 run supabase/migrations/0108_anggota_hadir_publik.sql
 run tests/sql/70_anggota_hadir_publik.sql
+# 0109 menurunkan seluruh tangga kontrak setengah jam: 3 / 3,5 / 4 jam. Tes 71
+# memanggil berkas migrasinya dua kali lewat \ir — sekali dalam keadaan yang
+# harus ditolaknya (ada regu memegang kontrak yang akan hilang), sekali dalam
+# keadaan yang harus dikerjakannya.
+run supabase/migrations/0109_kontrak_waktu_tiga_pilihan.sql
+run tests/sql/71_kontrak_waktu_tiga_pilihan.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql

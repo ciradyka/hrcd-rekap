@@ -46,9 +46,9 @@ values
    null, null, 10, -5, null, 0, 20, 1);
 
 insert into kontrak_opsi (edisi, label, menit, sort_order) values
-  (37, '3,5 jam', 210, 1),
-  (37, '4 jam',   240, 2),
-  (37, '4,5 jam', 270, 3);
+  (37, '3 jam',   180, 1),
+  (37, '3,5 jam', 210, 2),
+  (37, '4 jam',   240, 3);
 
 insert into konfig_penalti (edisi, blok_menit, penalti_per_blok,
                             penalti_tanpa_checkout, penalti_per_anggota_hilang,

@@ -196,7 +196,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
    dan putri, dapat berangkat dalam kloter yang sama; hanya Intern dan Eksternal
    yang mempunyai kuota otomatis terpisah.
-9. Setiap regu memilih **kontrak waktu**: 3,5 / 4 / 4,5 jam. Kontrak dipilih per
+9. Setiap regu memilih **kontrak waktu**: 3 / 3,5 / 4 jam. Kontrak dipilih per
    regu, sehingga satu kloter bisa berisi regu dengan kontrak berbeda-beda.
    Kontrak baru dikonfirmasi **di garis start**, bukan saat daftar ulang —
    lihat bagian 6.
