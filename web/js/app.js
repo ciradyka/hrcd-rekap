@@ -3151,10 +3151,19 @@ async function layarInputPos() {
   pasangKepala(`Input ${judulPos(pos)}`, "lembar");
 
   let komponen, lembar;
+  // Batas stok nomor dada diambil DI SINI, bukan saat tombol cetak ditekan.
+  // Alasannya bukan kecepatan: `window.print()` harus tetap berada di giliran
+  // event tap, dan Safari iPhone memblokirnya begitu ada satu `await` lebih
+  // dulu (lihat catatan yang sama di layarCetakKloter). Stok nomor dada juga
+  // tidak berubah di tengah lomba — ia dicetak di kain, bukan di database.
+  // Gagal membacanya tidak boleh menghalangi apa pun: nol berarti lembar
+  // dicetak apa adanya, tanpa baris kosong penambal.
+  let batasStok = 0;
   try {
-    [komponen, lembar] = await Promise.all([
+    [komponen, lembar, batasStok] = await Promise.all([
       komponenPos(EDISI.nomor, pos.nomor),
       lembarPos(pos.nomor),
+      batasNomorDada().catch(() => 0),
     ]);
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return;
@@ -4182,7 +4191,12 @@ async function layarInputPos() {
   // Dua kebutuhan berbeda terlayani satu tombol: sebelum lomba cetak "Semua"
   // untuk lembar kosong, dan di tengah lomba saring "Belum lengkap" dulu
   // supaya kertas susulan hanya memuat regu yang memang belum dinilai.
-  const cetak = async (slip) => {
+  /* TIDAK async, dan itu disengaja. `window.print()` di bawah harus tetap
+     berada dalam giliran event tap — Safari iPhone memblokirnya kalau ada
+     `await` lebih dulu, dan yang terlihat cuma tombol yang tidak melakukan
+     apa-apa. Fungsi biasa membuat pelanggarannya jadi galat sintaks, bukan
+     bug yang cuma muncul di iPhone orang lain. */
+  const cetak = (slip) => {
     const tampil = [...tbody.children].filter(tr => !tr.hidden)
       .map(tr => lembar.find(r => Number(r.nomor_dada) === Number(tr.dataset.dada)))
       .filter(Boolean);
@@ -4211,22 +4225,11 @@ async function layarInputPos() {
        sebagian regu — menyisipkan seluruh nomor kosong ke dalamnya
        mengembalikan tumpukan kertas yang tadi sengaja dipersempit. */
     let semua = tampil;
-    if (!slip && [...tbody.children].every(tr => !tr.hidden)) {
-      let batas = 0;
-      try { batas = await batasNomorDada(); } catch { /* jatuh ke daftar apa adanya */ }
-      if (batas > 0) {
-        const peta = new Map(tampil.map(r => [Number(r.nomor_dada), r]));
-        semua = Array.from({ length: batas }, (_, i) =>
-          peta.get(i + 1) || { nomor_dada: i + 1, kosong: true });
-      }
+    if (!slip && batasStok > 0 && [...tbody.children].every(tr => !tr.hidden)) {
+      const peta = new Map(tampil.map(r => [Number(r.nomor_dada), r]));
+      semua = Array.from({ length: batasStok }, (_, i) =>
+        peta.get(i + 1) || { nomor_dada: i + 1, kosong: true });
     }
-
-    // Dibaca saat menekan, bukan saat layar dimuat: layar pos sering
-    // dibiarkan terbuka berjam-jam, dan status daftar ulang berubah di
-    // tengahnya. Gagal membacanya tidak boleh menghalangi cetak — paling
-    // buruk peringatannya ikut tercetak padahal sudah tidak berlaku.
-    let ditutup = false;
-    try { ditutup = !!(await statusAcara()).daftar_ulang_ditutup; } catch { /* cetak tetap jalan */ }
 
     if (slip) {
       // Yang dicetak MASTER, bukan tumpukannya — jadi daftar ulang yang belum
