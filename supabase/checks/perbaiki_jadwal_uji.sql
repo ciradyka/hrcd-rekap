@@ -74,7 +74,7 @@
 -- jaring itu.
 
 -- ---------------------------------------------------------------------------
--- 0. Pagar. Kalau edisi aktifnya sudah lewat, berhenti.
+-- 0. Pagar. Begitu hari-H dimulai di WIB, berhenti.
 -- ---------------------------------------------------------------------------
 do $$
 declare v_tanggal date;
@@ -83,9 +83,9 @@ begin
   if v_tanggal is null then
     raise exception 'tidak ada edisi aktif';
   end if;
-  if v_tanggal < current_date then
-    raise exception 'edisi aktif (%) sudah lewat — skrip ini menimpa jam '
-      'yang diketik petugas dan tidak boleh dijalankan sesudah hari-H',
+  if v_tanggal <= (now() at time zone 'Asia/Jakarta')::date then
+    raise exception 'edisi aktif (%) sudah dimulai atau lewat — skrip ini menimpa jam '
+      'yang diketik petugas dan tidak boleh dijalankan sejak hari-H',
       v_tanggal;
   end if;
   raise notice 'edisi aktif: %', v_tanggal;
@@ -122,6 +122,7 @@ set jam_berangkat =
                               + (k.nomor * 3) % 7)
 from edisi e
 where e.is_active
+  and k.jam_berangkat is null
   and exists (select 1 from regu r
               where r.kloter_nomor = k.nomor and not r.is_cancelled);
 
