@@ -13,7 +13,7 @@
 </head>
 <body>
   <header class="header" id="kepala" hidden>
-    <button class="icon-button" id="btn-home" type="button" aria-label="Home" title="Home"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg></button>
+    <button class="icon-button" id="btn-home" type="button" aria-label="Home" title="Home"><span data-ikon="house"></span></button>
     <span class="title" id="judul-layar">Sistem Panitia</span>
     <span class="spacer"></span>
     <span class="user-info" id="siapa"></span>
@@ -22,8 +22,8 @@
          Home: papan Home dipakai sepanjang hari lomba, dan layar yang
          dibuka sekali di awal edisi tidak boleh ikut bersaing di sana. -->
     <button class="icon-button" id="btn-akun" type="button" hidden
-            aria-label="Akun" title="Akun"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 15H6a4 4 0 0 0-4 4v2" /> <path d="m14.305 16.53.923-.382" /> <path d="m15.228 13.852-.923-.383" /> <path d="m16.852 12.228-.383-.923" /> <path d="m16.852 19.772-.383.924" /> <path d="m19.148 12.228.383-.923" /> <path d="m19.53 20.696-.382-.924" /> <path d="m20.772 13.852.924-.383" /> <path d="m20.772 18.148.924.383" /> <circle cx="18" cy="16" r="2" /> <circle cx="9" cy="7" r="4" /></svg></button>
-    <button class="icon-button" id="ganti-password" type="button" aria-label="Ganti Password" title="Ganti Password"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /></svg></button>
+            aria-label="Akun" title="Akun"><span data-ikon="user-cog"></span></button>
+    <button class="icon-button" id="ganti-password" type="button" aria-label="Ganti Password" title="Ganti Password"><span data-ikon="settings"></span></button>
     <button class="button button-small button-secondary" id="btn-keluar" type="button">Keluar</button>
   </header>
 
@@ -37,18 +37,18 @@
        karena header sudah cukup. -->
   <nav class="bottom-nav" id="bottom-nav" hidden aria-label="Menu utama">
     <button class="bottom-nav-item" id="nav-home" type="button">
-      <span class="bottom-nav-icon"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg></span><span>Home</span>
+      <span class="bottom-nav-icon" data-ikon="house"></span><span>Home</span>
     </button>
     <button class="bottom-nav-item" id="nav-setting" type="button">
-      <span class="bottom-nav-icon"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /></svg></span><span>Setelan</span>
+      <span class="bottom-nav-icon" data-ikon="settings"></span><span>Setelan</span>
     </button>
     <!-- Di HP tombol header disembunyikan (style.css, 560px), jadi tanpa
          item ini admin kehilangan jalan ke layar Akun sama sekali. -->
     <button class="bottom-nav-item" id="nav-akun" type="button" hidden>
-      <span class="bottom-nav-icon"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 15H6a4 4 0 0 0-4 4v2" /> <path d="m14.305 16.53.923-.382" /> <path d="m15.228 13.852-.923-.383" /> <path d="m16.852 12.228-.383-.923" /> <path d="m16.852 19.772-.383.924" /> <path d="m19.148 12.228.383-.923" /> <path d="m19.53 20.696-.382-.924" /> <path d="m20.772 13.852.924-.383" /> <path d="m20.772 18.148.924.383" /> <circle cx="18" cy="16" r="2" /> <circle cx="9" cy="7" r="4" /></svg></span><span>Akun</span>
+      <span class="bottom-nav-icon" data-ikon="user-cog"></span><span>Akun</span>
     </button>
     <button class="bottom-nav-item" id="nav-keluar" type="button">
-      <span class="bottom-nav-icon"><svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 17 5-5-5-5" /> <path d="M21 12H9" /> <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /></svg></span><span>Keluar</span>
+      <span class="bottom-nav-icon" data-ikon="log-out"></span><span>Keluar</span>
     </button>
   </nav>
 

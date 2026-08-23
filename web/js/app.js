@@ -41,6 +41,13 @@ import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
 
+// Header dan menu bawah masih berupa HTML statis agar label dan tujuan
+// navigasinya tersedia sejak awal. Jalur SVG-nya tetap punya satu sumber di
+// util.js; keduanya tersembunyi sampai ikon ini terpasang.
+document.querySelectorAll("[data-ikon]").forEach((tempat) => {
+  tempat.replaceChildren(h(ikon(tempat.dataset.ikon)));
+});
+
 /** Golongan versi pendek, HANYA untuk kertas. Di layar tetap panjang — di sana
  *  lebar tidak diperebutkan siapa pun, dan dua nama untuk satu hal cuma
  *  sepadan kalau ada yang dibeli dengannya.
