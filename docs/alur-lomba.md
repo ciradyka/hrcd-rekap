@@ -640,14 +640,18 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    | `pos2hrcd37` | Hanya input nilai Pos 2 |
    | `admin.ciradyka` | Semua bagian sistem |
 
-   Ada tiga peran: `admin`, `meja` (petugas pembayaran / daftar ulang /
-   keberangkatan), dan `operator_pos`. Akun hanya diberikan kepada admin tiap
-   pos, petugas meja, dan tim IT. Operator sebuah pos tidak dapat menyentuh
-   nilai pos lain, dan akun meja ditolak masuk ke layar input pos dengan pesan
-   "Akun meja, bukan akun pos" — ditegakkan oleh sistem, bukan sekadar
-   disembunyikan dari layar. Sebaliknya akun pos tidak diberi jalan ke layar
-   meja: Home-nya hanya memuat satu kartu, "Input Nilai Pos N", dan RLS
-   mengosongkan data meja seandainya alamatnya diketik langsung.
+   Ada lima preset peran: `admin`, `registrasi`, `gerbang`, `juri_pos`, dan
+   `koordinator_pos`. Peran memilih centang awal melalui `paket_peran()`;
+   keputusan boleh-tidaknya datang dari matriks `akun_hak` melalui
+   `boleh(fitur)`. Koordinator dapat menambah atau mencabut centang per akun
+   tanpa menciptakan peran baru.
+
+   `juri_pos` membawa satu nomor pos dan hanya boleh menulis nilai pos itu.
+   `koordinator_pos` membawa hak penilaian yang sama tetapi kolom posnya
+   kosong, sehingga dapat menangani seluruh pos. Paket `registrasi` memuat
+   pekerjaan pendaftaran sampai cetak kloter; paket `gerbang` memuat
+   keberangkatan dan kedatangan. Seluruhnya tetap ditegakkan database, bukan
+   sekadar disembunyikan dari Home.
 11. Pola nama akun mengikuti edisi (`hrcd37` = edisi ke-37), sehingga akun dan
    password dapat diganti bersih setiap tahun tanpa membongkar sistem.
 12. Panitia bekerja atas dasar saling percaya, tetapi **riwayat perubahan tetap
