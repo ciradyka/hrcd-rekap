@@ -3115,6 +3115,8 @@ function siapkanCetakBlangko(pos, kolomLayar) {
      berarti lomba soal tahun depan tercetak lagi tanpa ada yang tahu kenapa. */
   const lombaSoal = (l) => l.kolom.every(kol => kol.varian[0].type === "soal");
   const daftarLomba = kelompokLomba(kolomLayar).filter(l => !lombaSoal(l));
+  if (!daftarLomba.length) return 0;
+
   const cetakan = daftarLomba.map(l => `
     <section class="print-page blangko-halaman">${satuBlangko(l)}</section>`).join("");
 
@@ -6473,6 +6475,7 @@ async function arahkan() {
     history.replaceState(null, "", hashLayar || "#/home");
     return;
   }
+  document.getElementById("cetakan")?.remove();
   hashLayar = tujuan;
   segarkanDiTempat = null;
   if (!sesi()) { layarLogin(); return; }
@@ -6525,6 +6528,9 @@ document.getElementById("nav-akun").addEventListener("click", keAkun);
 document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);
+window.addEventListener("afterprint", () => {
+  document.getElementById("cetakan")?.remove();
+});
 
 /* TIDAK ADA yang menyegarkan sendiri saat tab kembali terlihat.
 
