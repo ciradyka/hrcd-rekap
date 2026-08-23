@@ -55,3 +55,26 @@ test("papan peserta tidak digambar ulang kalau tidak ada yang berubah", () => {
   assert.match(live, /const kunciGambar = \(\) =>[\s\S]{0,120}META && META\.versi[\s\S]{0,80}fase\(\)[\s\S]{0,80}REKAP && REKAP\.versi/,
     "kunci penggambaran tidak memuat ketiga hal yang menentukan isi papan");
 });
+
+test("rekap yang gagal diambil dicoba lagi pada poll berikutnya", () => {
+  // Syarat di luar harus SAMA dengan penjaga di dalam muatRekap(). Dulu di
+  // luar berbunyi `versiBerubah || !REKAP` — perbandingan META lama dengan
+  // live.json baru — sehingga ia benar hanya pada satu poll. Satu kegagalan
+  // unduh tepat pada poll itu membekukan papan di penerbitan sebelumnya
+  // sampai halamannya dimuat ulang dengan tangan.
+  assert.match(live,
+    /if \(mulai\(\) && \(!REKAP \|\| versiRekap !== META\.versi\)\) await muatRekap\(\);/,
+    "syarat pengambilan rekap tidak sama dengan penjaga di dalam muatRekap()");
+  // Bentuk lamanya masih DIKUTIP di komentar sebagai catatan sejarah, jadi
+  // yang dicari pernyataannya, bukan teksnya.
+  assert.doesNotMatch(live, /if \(mulai\(\) && \(versiBerubah \|\| !REKAP\)\)/,
+    "syarat lama yang hanya benar satu kali masih terpasang");
+});
+
+test("cap waktu tidak maju mendahului tabel yang ditampilkannya", () => {
+  // "Update terakhir" dibaca dari META. Membiarkannya maju sementara tabelnya
+  // masih terbitan sebelumnya membuat baris itu berbohong dengan meyakinkan.
+  assert.match(live,
+    /if \(mulai\(\) && metaLama && versiRekap !== META\.versi\) META = metaLama;/,
+    "META tetap maju walau rekap terbitan itu tidak sampai");
+});

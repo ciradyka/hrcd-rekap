@@ -633,16 +633,34 @@ async function muat() {
     const r = await fetch(`live.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(String(r.status));
     const baru = await r.json();
-    const versiBerubah = !META || META.versi !== baru.versi;
+    const metaLama = META;
     META = baru;
 
-    // Rekap diambil ulang hanya kalau memang sudah dipegang (peserta sedang
-    // melihatnya) atau memang harus tampil tanpa dicari (fase 'penuh').
-    // Papan sekarang menggambar SELURUH regu begitu lomba mulai, bukan hanya
-    // hasil pencarian — jadi rekap.json memang harus ada di tangan. Yang
-    // menahan bebannya tetap alamat ber-versi: selama isinya tidak berubah,
-    // tidak satu HP pun mengunduhnya dua kali.
-    if (mulai() && (versiBerubah || !REKAP)) await muatRekap();
+    /* Rekap diambil selama yang dipegang belum sesuai versi live.json.
+       Syaratnya SAMA PERSIS dengan penjaga di dalam muatRekap() — dan itu
+       yang dulu salah. Dulu di sini berbunyi `versiBerubah || !REKAP`, yaitu
+       perbandingan META LAMA dengan live.json BARU, jadi ia benar hanya pada
+       satu poll: poll pertama sesudah versi berganti. Kalau justru pada poll
+       itu unduhannya gagal — jaringan seluler padat di lapangan —
+       `muatRekap()` mendiamkan galatnya, REKAP tetap memegang versi lama, dan
+       poll-poll berikutnya melihat `META.versi === baru.versi` sehingga tidak
+       pernah mencoba lagi. Papan berhenti di penerbitan sebelumnya sampai
+       halamannya dimuat ulang dengan tangan.
+
+       Papan menggambar SELURUH regu begitu lomba mulai, jadi rekap.json memang
+       harus ada di tangan. Bebannya tetap ditahan alamat ber-versi: selama
+       isinya tidak berubah, tidak satu HP pun mengunduhnya dua kali. */
+    if (mulai() && (!REKAP || versiRekap !== META.versi)) await muatRekap();
+
+    /* DAN KALAU REKAPNYA TIDAK SAMPAI, META-nya DIKEMBALIKAN.
+       Cap waktu "Update terakhir" dibaca dari META. Membiarkan META maju
+       sementara tabelnya masih terbitan sebelumnya membuat baris itu berbohong
+       dengan meyakinkan: podium pukul 14:00 di bawah tulisan "baru saja".
+       Lebih baik halaman menyebut terbitan yang memang sedang ia tampilkan —
+       dan poll berikutnya otomatis mencoba lagi karena versinya kembali
+       berbeda. Fase tetap bisa MENGETAT seketika: pengetatan datang dari
+       denyut database (FASE_DB), bukan dari berkas ini. */
+    if (mulai() && metaLama && versiRekap !== META.versi) META = metaLama;
 
     /* DIGAMBAR ULANG HANYA KALAU ADA YANG BERUBAH.
        Denyut 60 detik yang selalu menggambar ulang membuang tiga hal
