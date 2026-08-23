@@ -151,10 +151,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    golongan, dan nomor dada tiap regu.
 
    Ini bukan formalitas, melainkan pintu terakhir yang masih murah. Sesudah
-   lembar kloter dicetak, isinya dibekukan: menambah regu ke kloter tercetak
-   ditolak sistem, dan menukar nomor dada hanya boleh lewat admin — nomor
-   lamanya pun dipensiunkan permanen, karena kertas yang sudah beredar masih
-   menuliskannya (bagian 8.8).
+   lembar kloter dicetak, isinya belum dibekukan: regu tetap boleh ditambahkan
+   dan lembar itu dicetak ulang (bagian 5.5). Namun menukar nomor dada yang
+   sudah beredar hanya boleh lewat admin — nomor lamanya dipensiunkan permanen
+   karena salinan kertas lama masih menuliskannya (bagian 8.8).
 
    Harganya naik lagi sesudah lomba mulai. Slip penilaian per lomba hanya
    memuat NOMOR DADA tanpa nama regu, jadi nomor dada yang salah bukan
