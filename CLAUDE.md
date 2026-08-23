@@ -601,3 +601,18 @@ Guidance for Claude Code when working in this repository.
     melainkan kekhususan, urutan, atau rentangnya. Cari aturan yang menang
     lebih dulu — di browser, lewat `el.matches(r.selectorText)` atas seluruh
     `document.styleSheets`.
+
+## 16. Local-first execution
+
+1. **Run locally whenever the work can run locally.** Tests, linters, source
+   checks, builds, and database migrations use the developer machine first.
+   A green GitHub Actions run is not a substitute for local verification.
+2. **Use GitHub Actions only for work that is not applicable locally.** This
+   includes deployment, GitHub event integration, and operations that require
+   repository or environment secrets unavailable on the developer machine.
+3. **Do not manually dispatch or rerun a local-capable workflow merely for
+   confirmation.** Pull requests may still start workflows configured with
+   automatic triggers; do not add extra runs when the same evidence can be
+   produced locally. This preserves the repository owner's Actions billing.
+4. **Report the local command and result.** If local execution is genuinely
+   unavailable, say what is missing before falling back to GitHub Actions.
