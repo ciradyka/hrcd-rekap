@@ -30,7 +30,8 @@ yang mengira nama-nama itu asli.
 
 Baris yang dibuang, dengan aturan yang sama seperti normalize_sekolah.py:
 nama kelas, organisasi, dan lelucon (`SMA 7 MARS`, `SMKN 1 Hogwarts`).
-Golongan `Intern PA/PI` juga dibuang — golongan itu tidak ada di edisi 37.
+Golongan `Intern PA/PI` tetap dimuat karena edisi 37 menerima keduanya dan
+memberi kuota kloter tersendiri (migrasi 0091–0093).
 
 PAKAI (database dev, JANGAN produksi):
 
@@ -57,6 +58,7 @@ DSN = " ".join([
 GOLONGAN = {
     "Penegak PA": "penegak_pa", "Penegak PI": "penegak_pi",
     "Penggalang PA": "penggalang_pa", "Penggalang PI": "penggalang_pi",
+    "Intern PA": "intern_pa", "Intern PI": "intern_pi",
 }
 # Sama dengan bukan_sekolah() di normalize_sekolah.py — dijaga tetap sama
 # supaya "sekolah" di sini berarti hal yang sama dengan di daftar sekolah.
