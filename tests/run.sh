@@ -391,6 +391,12 @@ run tests/sql/54_kloter_bisa_dicetak_ulang.sql
 # mengosongkan nilai yang justru dibandingkannya.
 run supabase/migrations/0095_lembar_pos_jawaban_benar.sql
 run tests/sql/56_lembar_pos_sama_dengan_klasemen.sql
+# 0096 membuat penyebut kelengkapan memakai komponen_berlaku(), aturan golongan
+# yang sama dengan penilaian — 0091 mengubah aturannya dan melewatkan salinan
+# di komponen_pos_golongan(), jadi regu Intern tidak pernah bisa terhitung
+# lengkap dan di Pos 4/5 dihitung kosong selamanya. Tes 57 menguji kesamaan
+# aturannya, bukan angkanya.
+run tests/sql/57_kelengkapan_intern.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
