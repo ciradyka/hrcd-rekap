@@ -416,6 +416,10 @@ run tests/sql/60_anon_default_privileges.sql
 # dicabut per akun, dan tidak perlu membuka nomor WA di tabel pendaftaran.
 run supabase/migrations/0100_gate_regu_lookup.sql
 run tests/sql/61_gate_regu_lookup.sql
+# View agregat kelengkapan bersifat definer, jadi pagarnya harus tinggal di
+# badan view dan harus menolak akun yang belum aktif atau sudah dinonaktifkan.
+run supabase/migrations/0101_guard_pos_completeness.sql
+run tests/sql/62_guard_pos_completeness.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
