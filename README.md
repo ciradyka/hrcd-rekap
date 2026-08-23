@@ -109,10 +109,9 @@ bash tests/dev_database.sh        # siapkan database hrcd_dev
 python tests/concurrency_test.py  # 30 meja serentak, 300 nomor diperebutkan
 ```
 
-**Catatan:** `tests/concurrency_test.py` belum diperbarui sejak migrasi `0014`
-mengganti nama kolom (`sekolah.nama` → `name`, `edisi.aktif` → `is_active`,
-`regu.batal` → `is_cancelled`), jadi saat ini ia berhenti di langkah
-`siapkan()`. Perbaiki nama kolomnya dulu sebelum menjalankan.
+Uji ini memakai 270 regu Eksternal dan 30 regu Intern supaya kedua kuota
+kloter diuji bersamaan. Workflow **SQL Tests** juga menjalankannya terhadap
+database `hrcd_test` setelah seluruh migrasi dan tes SQL selesai.
 
 ## Menerapkan migrasi ke produksi
 
