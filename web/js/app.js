@@ -2581,6 +2581,9 @@ function bacaSel(tr, k) {
  *
  *  `lomba` kosong berarti komponen itu lomba tersendiri, keadaan yang benar
  *  untuk sebagian besar baris. */
+const slugLomba = (nama) => String(nama).toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
+
 function kelompokLomba(kolom) {
   const urut = [], peta = new Map();
   for (const kol of kolom) {
@@ -3586,15 +3589,6 @@ async function layarInputPos() {
 
     await janji;
   }
-
-  /** Slug lomba dari NAMANYA, bukan dari kode wahana.
-   *
-   *  Satu slip = satu lomba, tapi satu lomba bisa punya beberapa baris wahana:
-   *  Bidai lima kriteria di satu kertas, Tebak Simpul satu baris per golongan.
-   *  Kode wahana karena itu bukan penanda selembar kertas — namanya yang
-   *  justru satu, dan itulah yang sudah dipakai kolomPos() mengelompokkan. */
-  const slugLomba = (nama) => String(nama).toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
 
   /** Foto slip penilaian satu regu — satu foto per lomba (migrasi 0047).
    *
