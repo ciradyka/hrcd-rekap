@@ -408,6 +408,10 @@ run tests/sql/58_kontrak_dari_gerbang.sql
 # `keberangkatan` harus bisa memakainya tanpa diam-diam menuntut cetak_kloter.
 run supabase/migrations/0098_pindah_kloter_dari_gerbang.sql
 run tests/sql/59_pindah_kloter_dari_gerbang.sql
+# Supabase memberi relasi baru kepada anon lewat default privileges. Tutup
+# default itu dan jaga daftar putih relasi publik secara menyeluruh.
+run supabase/migrations/0099_anon_default_privileges.sql
+run tests/sql/60_anon_default_privileges.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
