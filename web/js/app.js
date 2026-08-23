@@ -35,7 +35,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
          angkaRapi, nilaiTeks, petunjukKolom, nilaiBagian,
-         jamPadaHari, GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
+         jamPadaHari, kotakBerikutnyaDalamKolom,
+         GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -4204,11 +4205,7 @@ async function layarInputPos() {
     if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
     e.preventDefault();
     const tr = e.target.closest("tr");
-    const kotak = [...tr.querySelectorAll("input")];
-    const kolom = kotak.indexOf(e.target);
-    let lanjut = tr.nextElementSibling;
-    while (lanjut && lanjut.hidden) lanjut = lanjut.nextElementSibling;
-    const tujuan = lanjut && lanjut.querySelectorAll("input")[kolom];
+    const tujuan = kotakBerikutnyaDalamKolom(tr, e.target);
     if (tujuan) { tujuan.focus(); if (tujuan.select) tujuan.select(); }
     else e.target.blur();
   });

@@ -32,6 +32,30 @@ export function html(potongan, ...nilai) {
 
 export const rupiah = n => "Rp " + Number(n || 0).toLocaleString("id-ID");
 
+/** Cari kotak pada kolom tabel dan slot yang sama di baris berikutnya.
+ *
+ * Baris Input Pos tidak selalu punya kotak yang sama: komponen Eksternal
+ * digambar sebagai tanda mati pada baris Intern, dan sebaliknya. Karena itu
+ * indeks di antara seluruh input satu baris tidak menunjukkan kolom tabel.
+ * `data-slot` membedakan pasangan Benar/Salah di dalam satu sel. */
+export function kotakBerikutnyaDalamKolom(baris, kotak) {
+  const selAsal = kotak?.closest?.("td");
+  const kolom = selAsal?.cellIndex;
+  if (!Number.isInteger(kolom) || kolom < 0) return null;
+
+  const slot = kotak.dataset?.slot || "";
+  for (let lanjut = baris?.nextElementSibling; lanjut;
+       lanjut = lanjut.nextElementSibling) {
+    if (lanjut.hidden) continue;
+    const selTujuan = lanjut.cells?.[kolom];
+    if (!selTujuan) continue;
+    const tujuan = [...selTujuan.querySelectorAll("input")]
+      .find(el => (el.dataset?.slot || "") === slot);
+    if (tujuan) return tujuan;
+  }
+  return null;
+}
+
 /* ---------------------------------------------------------------------------
    WAKTU — tiga bentuk, dan hanya tiga. Semua layar memakai yang ini.
 
