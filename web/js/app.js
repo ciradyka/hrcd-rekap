@@ -5386,8 +5386,15 @@ async function layarLiveScore() {
     </div>`;
 
   const papan = !klasemen.length
-    ? `<div class="card"><p class="description">Belum ada regu yang bisa
-         diperingkat di golongan mana pun.</p></div>`
+    ? `<div class="card">
+         <div class="kepala-klasemen">
+           <div class="sisi"></div>
+           <h2>Klasemen sementara</h2>
+           <div class="sisi kanan">${saklar}</div>
+         </div>
+         <p class="description">Belum ada regu yang bisa diperingkat di
+           golongan mana pun.</p>
+       </div>`
     : GOL.map(g => `<div class="panel-gol" data-gol="${esc(g)}"${
         g === golAktif ? "" : " hidden"}>${kartuGolongan(g)}</div>`).join("");
 
