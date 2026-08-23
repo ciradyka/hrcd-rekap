@@ -324,7 +324,7 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
    ------------------------------------------------------------------------- */
 let golAktif = URUT_GOLONGAN_PESERTA[0];
 
-function barisPapan() {
+function barisPapan(penuh) {
   /* Penyaring ini tetap ada walau workflow penerbitan juga membuang Intern.
      Dengan begitu berkas lama yang masih tersimpan di cache tidak sempat
      menampilkan Intern setelah kode halaman yang baru sudah ter-deploy. */
@@ -335,7 +335,7 @@ function barisPapan() {
   const perDada = new Map(progres.map(p => [p.nomor_dada, p]));
   // Klasemen yang memimpin urutannya kalau ada — ia sudah berperingkat. Di
   // fase `progres` klasemen memang kosong, jadi urutannya jatuh ke nomor dada.
-  if (klasemen.length) {
+  if (penuh && klasemen.length) {
     return klasemen.map(k => ({ ...perDada.get(k.nomor_dada), ...k }));
   }
   return [...progres].sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
@@ -352,8 +352,8 @@ function gambarTab(semua) {
 
 function gambarPapan() {
   if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
-  const semua = barisPapan();
   const penuh = fase() === "penuh";
+  const semua = barisPapan(penuh);
   const pos = (META && META.pos) || [];
   const komponen = (META && META.komponen) || [];
 
@@ -378,7 +378,9 @@ function gambarPapan() {
     const baris = semua.filter(b => b.golongan === g);
     const sekolahAda = [...new Set(baris.map(b => b.nama_sekolah).filter(Boolean))]
       .sort((a, b) => a.localeCompare(b, "id"));
-    const juara = baris.filter(b => b.peringkat && b.peringkat <= 3);
+    const juara = penuh
+      ? baris.filter(b => b.peringkat && b.peringkat <= 3)
+      : [];
 
     const isi = !baris.length
       ? `<p class="keterangan tengah">Belum ada regu golongan ini yang bisa
@@ -456,7 +458,7 @@ function gambarPapan() {
                   : null;
                 return `
                 <tr data-sekolah="${esc(b.nama_sekolah || "")}"
-                    class="${b.peringkat && b.peringkat <= 3 ? "atas" : ""}">
+                    class="${penuh && b.peringkat && b.peringkat <= 3 ? "atas" : ""}">
                   ${penuh ? `<td class="rank-sel">${MEDALI[b.peringkat] || ""}${
                       esc(String(b.peringkat ?? ""))}</td>` : ""}
                   <td class="dada">${esc(dada(b.nomor_dada))}</td>
