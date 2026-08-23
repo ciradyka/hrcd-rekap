@@ -42,7 +42,11 @@
    dibaca di layar HP, ini juga yang membuat pengambilan `rekap.json` bisa
    ditunda sampai orangnya benar-benar mencari sesuatu.
 
-   Tanpa framework, tanpa build step, tanpa kunci apa pun.
+   Tanpa framework dan tanpa build step. Kuncinya ada satu — anon key lewat
+   config.js — dan ia dipakai untuk DUA bacaan kecil yang sengaja tidak
+   menunggu penerbitan: fase live (0070) dan jumlah pendaftar selama fase
+   `pra`. Keduanya view publik yang memang di-grant ke `anon`, dan tidak satu
+   pun memuat nama, nomor, atau nilai.
    ========================================================================== */
 
 /* Aturan bersama diimpor, tidak lagi disalin tangan.
@@ -112,27 +116,78 @@ const fase = () => {
   return URUT_FASE[FASE_DB] < URUT_FASE[berkas] ? FASE_DB : berkas;
 };
 
-async function ambilFaseDb() {
+/** Satu baris dari sebuah view publik Supabase, atau null.
+ *
+ *  Dipakai dua tempat, dan keduanya punya sifat yang sama: kecil, boleh
+ *  gagal, dan tidak boleh menahan papan CDN lebih dari beberapa detik ketika
+ *  origin Supabase sedang sulit dijangkau. Gagalnya SELALU diam — yang
+ *  memanggil sudah punya jawaban cadangan dari berkas statis. */
+async function bacaViewPublik(jalur) {
   const K = window.HRCD || {};
-  if (!K.supabaseUrl || !K.anonKey) return;
+  if (!K.supabaseUrl || !K.anonKey) return null;
   const ac = new AbortController();
   const batas = setTimeout(() => ac.abort(), BATAS_FASE_MS);
   try {
-    const r = await fetch(`${K.supabaseUrl}/rest/v1/v_fase_live?select=fase_live`,
+    const r = await fetch(`${K.supabaseUrl}/rest/v1/${jalur}`,
       { headers: { apikey: K.anonKey, Authorization: `Bearer ${K.anonKey}` },
         cache: "no-store", signal: ac.signal });
-    if (!r.ok) return;                       // diamkan: berkas tetap dipakai
+    if (!r.ok) return null;
     const d = await r.json();
-    if (Array.isArray(d) && d[0] && URUT_FASE[d[0].fase_live] !== undefined) {
-      FASE_DB = d[0].fase_live;
-    }
+    return Array.isArray(d) && d[0] ? d[0] : null;
   } catch {
-    // Sambungan ke Supabase mati bukan alasan mengosongkan papan: tanpa
-    // FASE_DB, yang berlaku fase di berkas — keadaan sebelum berkas ini ada.
+    return null;
   } finally {
     clearTimeout(batas);
   }
 }
+
+async function ambilFaseDb() {
+  const d = await bacaViewPublik("v_fase_live?select=fase_live");
+  // Sambungan ke Supabase mati bukan alasan mengosongkan papan: tanpa
+  // FASE_DB, yang berlaku fase di berkas — keadaan sebelum berkas ini ada.
+  if (d && URUT_FASE[d.fase_live] !== undefined) FASE_DB = d.fase_live;
+}
+
+/* JUMLAH PENDAFTAR DIBACA LANGSUNG DARI DATABASE, dan hanya selama fase `pra`.
+ *
+ * Angka "N regu sudah mendaftar" adalah satu-satunya angka di halaman ini yang
+ * berubah karena perbuatan PEMBACANYA sendiri: ia mendaftar lewat daftar.html
+ * di situs yang sama, lalu kembali ke sini dan melihat angka yang belum
+ * bergerak. Sampai sekarang ia hanya ikut `live.json`, dan berkas itu cuma
+ * ditulis ulang kalau ada yang menjalankan publish-live.yml — cron-nya sengaja
+ * dimatikan di luar minggu lomba. Akibatnya angkanya berhenti di penerbitan
+ * terakhir: empat regu terdaftar, papan tetap menyebut nol, dan yang membaca
+ * menyimpulkan pendaftarannya tidak masuk.
+ *
+ * `v_publik_ringkas` memang sudah di-grant ke `anon` (migrasi 0099) dan isinya
+ * cuma hitungan — tidak satu pun nama, nomor, atau nilai. Membacanya di sini
+ * mengikuti pola yang SUDAH ada untuk fase (0070), termasuk batas waktunya.
+ *
+ * HANYA di fase `pra`: sesudah lomba mulai, yang tergambar papan klasemen dan
+ * angka ini tidak muncul di mana pun. Beban tambahannya karena itu nol persis
+ * pada jam ketika 3.000 HP membuka halaman ini bersamaan. */
+let RINGKAS_DB = null;
+
+async function ambilRingkasDb() {
+  const d = await bacaViewPublik("v_publik_ringkas?select=*");
+  if (d) RINGKAS_DB = d;
+}
+
+/** Ringkasan yang berlaku: database kalau terbaca, berkas kalau tidak. */
+const ringkasBerlaku = () => RINGKAS_DB || (META && META.ringkas) || {};
+
+/** Regu yang sudah mendaftar, EKSTERNAL saja — sama dengan yang diumumkan
+ *  pil golongan di bawahnya. Ringkasan sumber juga memuat Intern untuk
+ *  kebutuhan panitia; halaman ini sengaja tidak. Cadangan `jumlah_regu_daftar`
+ *  menjaga live.json lama yang belum punya `per_golongan` tetap tergambar. */
+const jumlahPesertaPra = () => {
+  const r = ringkasBerlaku();
+  const per = r.per_golongan || {};
+  return r.per_golongan && typeof r.per_golongan === "object"
+    ? URUT_GOLONGAN_PESERTA.reduce((n, g) => n + Number(per[g] || 0), 0)
+    : Number(r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0);
+};
+
 const mulai = () => fase() !== "pra";
 
 /* ---------------------------------------------------------------------------
@@ -164,15 +219,10 @@ function gambarSinkron() {
    paling banyak datang saat itu.
    ------------------------------------------------------------------------- */
 function gambarPra() {
-  const r = META.ringkas || {};
-  const per = r.per_golongan || {};
-  // Headline dan pill harus menghitung populasi yang sama. Ringkasan sumber
-  // juga memuat Intern untuk kebutuhan panitia, tetapi halaman ini sengaja
-  // hanya mengumumkan Eksternal. Fallback menjaga live.json lama yang belum
-  // memiliki per_golongan tetap bisa digambar sampai penerbitan berikutnya.
-  const jumlahPeserta = r.per_golongan && typeof r.per_golongan === "object"
-    ? URUT_GOLONGAN_PESERTA.reduce((n, g) => n + Number(per[g] || 0), 0)
-    : (r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0);
+  // Headline dan pil menghitung populasi yang SAMA, dari sumber yang sama —
+  // database kalau terbaca, live.json kalau tidak (lihat ringkasBerlaku).
+  const per = ringkasBerlaku().per_golongan || {};
+  const jumlahPeserta = jumlahPesertaPra();
   const t = META.edisi && META.edisi.tanggal_lomba
     ? new Date(META.edisi.tanggal_lomba) : null;
   return `
@@ -603,7 +653,11 @@ function pasangPapan() {
    barusan digambar, menggambar ulang tidak mengubah satu angka pun — ia hanya
    merusak yang sedang dipegang peserta. */
 const kunciGambar = () =>
-  [META && META.versi, fase(), REKAP && REKAP.versi].join("|");
+  [META && META.versi, fase(), REKAP && REKAP.versi,
+   // Angka pendaftar ikut, kalau tidak papan `pra` tidak pernah digambar ulang
+   // ketika satu-satunya yang berubah justru angka itu — dan itulah yang
+   // berubah paling sering sebelum lomba.
+   jumlahPesertaPra()].join("|");
 let kunciTergambar = null;
 
 function gambar() {
@@ -689,6 +743,13 @@ async function muat() {
        berbeda. Fase tetap bisa MENGETAT seketika: pengetatan datang dari
        denyut database (FASE_DB), bukan dari berkas ini. */
     if (mulai() && metaLama && versiRekap !== META.versi) META = metaLama;
+
+    /* Jumlah pendaftar disegarkan dari database SELAMA FASE `pra` saja — di
+       fase lain angka ini tidak tergambar di mana pun, jadi permintaannya
+       tidak dikirim sama sekali. Ditunggu, bukan dilepas: ia menentukan apa
+       yang digambar beberapa baris di bawah, dan batas waktunya sudah pendek
+       (BATAS_FASE_MS). */
+    if (!mulai()) await ambilRingkasDb();
 
     /* DIGAMBAR ULANG HANYA KALAU ADA YANG BERUBAH.
        Denyut 60 detik yang selalu menggambar ulang membuang tiga hal
