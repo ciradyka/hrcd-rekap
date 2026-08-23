@@ -29,10 +29,14 @@
 -- panitia — situs peserta tetap seperti sebelumnya sampai ada yang
 -- menerbitkannya dengan sadar.
 --
--- AMAN DIULANG. Tiap langkah melewati baris yang sudah beres, jadi
--- menjalankannya dua kali tidak melahirkan pendaftaran kedua.
+-- DESTRUKTIF DAN BUKAN AMAN DIULANG. Langkah 0 menghapus seluruh data
+-- operasional edisi aktif sebelum membuat data simulasi. Berkas ini hanya
+-- boleh berjalan ketika pendaftaran, regu, nilai, perjalanan, dan tanda
+-- kloter memang masih kosong.
 --
--- MEMBERSIHKANNYA: lihat supabase/checks/hapus_simulasi.sql.
+-- MEMBERSIHKANNYA: jalankan supabase/checks/cleanup_data_uji.sql hanya bila
+-- memang bermaksud membuang seluruh data simulasi dan kembali ke keadaan
+-- operasional kosong.
 -- ============================================================================
 
 do $$
@@ -73,6 +77,23 @@ begin
   select count(distinct pos) into v_jml_pos from wahana where edisi = (select nomor from edisi where is_active);
   select * into v_e from edisi where is_active;
   raise notice 'edisi aktif: % (%)', v_e.name, v_e.nomor;
+
+  -- Tidak ada penanda yang bisa membedakan data simulasi lama dari data
+  -- sungguhan dengan pasti. Karena itu satu-satunya pagar yang jujur adalah
+  -- menuntut keadaan kosong. Untuk mengulang simulasi, bersihkan dengan
+  -- cleanup_data_uji.sql lebih dulu sebagai tindakan terpisah dan sadar.
+  if exists (select 1 from pendaftaran)
+     or exists (select 1 from regu)
+     or exists (select 1 from pembayaran)
+     or exists (select 1 from nilai_mentah)
+     or exists (select 1 from nilai_terkunci)
+     or exists (select 1 from keberangkatan_regu)
+     or exists (select 1 from closing_regu)
+     or exists (select 1 from foto_lembar)
+     or exists (select 1 from kloter
+                where jam_berangkat is not null or dicetak_pada is not null) then
+    raise exception 'DATA OPERASIONAL TIDAK KOSONG — simulasi dibatalkan sebelum penghapusan. Jalankan cleanup_data_uji.sql lebih dulu hanya jika seluruh data itu memang boleh dibuang.';
+  end if;
 
   -- ------------------------------------------------------ 0. bersihkan SEMUA
   -- "Bersihkan data" berarti kloter ikut kembali ke 1 (CLAUDE.md 12.4), dan
