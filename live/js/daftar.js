@@ -225,6 +225,12 @@ function halaman() {
 
   const pilihJenis = (jenis) => {
     if (jawab.jenis_peserta === jenis) return;
+    const adaIsianJenis = jawab.regu.length > 0
+      || (jawab.jenis_peserta === "eksternal"
+          && (jawab.sekolah || jawab.butuh_barak !== null));
+    if (adaIsianJenis && !window.confirm(
+      "Ganti jenis peserta? Isian asal sekolah, menginap, dan regu akan dihapus.",
+    )) return;
     jawab.jenis_peserta = jenis;
     jawab.sekolah = jenis === "internal" ? sekolahInternal() : null;
     jawab.butuh_barak = jenis === "internal" ? false : null;
