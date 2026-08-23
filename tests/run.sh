@@ -100,6 +100,8 @@ run tests/sql/07_pindah_setelah_berangkat.sql
 # ditekan dua kali dari HP.
 run supabase/migrations/0024_komponen_pos.sql
 run tests/sql/08_lembar_pos.sql
+# Tes 09 menjaga bentuk historis view pada titik ini. Migrasi 0071/0072 nanti
+# mengganti kontraknya; tes 68 di bawah menjaga gerbang fase bentuk terbaru.
 run tests/sql/09_rekap_publik.sql
 # 10 dijalankan di ujung, dan itu perlu: ia membandingkan rekap panitia
 # dengan v_poin_pos, v_total_skor, dan v_klasemen, jadi ia butuh database yang
@@ -272,6 +274,7 @@ run supabase/migrations/0071_ringkas_publik_terdaftar.sql
 # v_progres_publik, supaya halaman peserta bisa menggambar tabel yang sama
 # bentuknya dengan layar panitia.
 run supabase/migrations/0072_progres_komponen_publik.sql
+run tests/sql/68_live_phase_value_gate.sql
 # 0073 mengganti nama satu sekolah. Ikut dijalankan supaya berkasnya tetap
 # teruji; di database uji ia memang tidak menemukan apa pun.
 run supabase/migrations/0073_nama_al_azhar_citangkolo.sql
