@@ -120,8 +120,9 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 9.4 Berkas yang benar-benar diterbitkan.
---     Query yang sama persis dengan yang dipakai publish-live.yml.
+-- 9.4 Bentuk terbitan historis pada titik migrasi ini.
+--     Query produksi lengkap dijalankan langsung dari live_json.sql di ujung
+--     run.sh setelah seluruh migrasi; subset ini hanya menjaga pagar fase lama.
 -- ---------------------------------------------------------------------------
 
 reset role;

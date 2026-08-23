@@ -454,6 +454,9 @@ run tests/sql/66_kloter_capacity_headroom.sql
 # harus menyebut rentang yang dilihat petugas di kotak, bukan angka penyimpanan.
 run supabase/migrations/0106_format_input_range_units.sql
 run tests/sql/67_input_range_units.sql
+# Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
+# migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
+run supabase/checks/live_json.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
