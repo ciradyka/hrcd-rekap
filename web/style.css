@@ -1705,26 +1705,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      harus ikut naik, kalau tidak tabelnya kembali menggeser ke samping dan
      kolom tombol hilang lagi dari layar. */
   .table-bayar { min-width: 820px; }
-  .table-bayar th:nth-child(1), .table-bayar td:nth-child(1) { width: 18%; }
-  .table-bayar th:nth-child(2), .table-bayar td:nth-child(2) { width: 24%; }
-  .table-bayar th:nth-child(3), .table-bayar td:nth-child(3) { width:  6%; }
-  .table-bayar th:nth-child(4), .table-bayar td:nth-child(4) { width: 12%; }
-  .table-bayar th:nth-child(5), .table-bayar td:nth-child(5) { width: 15%; }
-  .table-bayar th:nth-child(6), .table-bayar td:nth-child(6) { width: 25%; }
+  .table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
+  .table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
+  .table-bayar > thead > tr > th:nth-child(3) { width:  6%; }
+  .table-bayar > thead > tr > th:nth-child(4) { width: 12%; }
+  .table-bayar > thead > tr > th:nth-child(5) { width: 15%; }
+  .table-bayar > thead > tr > th:nth-child(6) { width: 25%; }
 
   /* Tombol aksi DITENGAHKAN di kolomnya, dan kolom Biaya di rincian memakai
      lebar yang sama (25%). Akibatnya angka rupiah tiap regu jatuh tepat di
      bawah tombol "Tandai Lunas" — itu jumlah yang sedang dihitung petugas
      saat jarinya sudah di atas tombol itu. */
-  .table-bayar td:nth-child(6) { text-align: center; }
-  .table-bayar td:nth-child(6) .action-row { justify-content: center; }
+  .table-bayar > tbody > tr > td:nth-child(6) { text-align: center; }
+  .table-bayar > tbody > tr > td:nth-child(6) .action-row { justify-content: center; }
 
   .detail-table-bayar { width: 100%; }
-  .detail-table-bayar th:nth-child(1), .detail-table-bayar td:nth-child(1) { width: 18%; }
-  .detail-table-bayar th:nth-child(2), .detail-table-bayar td:nth-child(2) { width: 24%; }
-  .detail-table-bayar th:nth-child(3), .detail-table-bayar td:nth-child(3) { width: 18%; }
-  .detail-table-bayar th:nth-child(4), .detail-table-bayar td:nth-child(4) { width: 15%; }
-  .detail-table-bayar th:nth-child(5), .detail-table-bayar td:nth-child(5) { width: 25%; }
+  .detail-table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
+  .detail-table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
+  .detail-table-bayar > thead > tr > th:nth-child(3) { width: 18%; }
+  .detail-table-bayar > thead > tr > th:nth-child(4) { width: 15%; }
+  .detail-table-bayar > thead > tr > th:nth-child(5) { width: 25%; }
 }
 
 .detail-table-bayar { margin: 0; }
