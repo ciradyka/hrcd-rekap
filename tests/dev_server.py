@@ -50,8 +50,11 @@ RPC = {
     "berangkatkan_kloter":   ["p_kloter", "p_jam"],
     "ceklis_berangkat":      ["p_nomor_dada"],
     "batal_ceklis_berangkat":["p_nomor_dada"],
+    "koreksi_jam_berangkat": ["p_kloter", "p_jam", "p_alasan"],
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
     "hapus_nilai_pos":       ["p_nomor_dada", "p_kode", "p_pos"],
+    "kunci_nilai_pos":       ["p_nomor_dada", "p_pos"],
+    "buka_kunci_nilai_pos":  ["p_nomor_dada", "p_pos", "p_alasan"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
     "atur_fase_live":        ["p_fase"],
     "susun_barak":           [],
@@ -61,6 +64,8 @@ RPC = {
     # Foto jawaban (0074). Gambarnya sendiri TIDAK lewat sini — dev server
     # tidak punya Storage — tapi barisnya tetap dicatat supaya alur layarnya
     # bisa dicoba tanpa Supabase.
+    "catat_foto_lembar":     ["p_nomor_dada", "p_pos", "p_kode_lomba", "p_nama_lomba", "p_path", "p_ukuran"],
+    "hapus_foto_lembar":     ["p_id", "p_alasan"],
     "catat_foto_masuk":      ["p_pos", "p_kode_lomba", "p_nama_lomba", "p_path", "p_ukuran"],
     "tautkan_foto":          ["p_foto_id", "p_nomor_dada", "p_cara"],
 }
@@ -433,7 +438,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         "p_menit": "::smallint", "p_kloter": "::smallint",
                         "p_anggota_hadir": "::smallint", "p_jumlah": "::smallint",
                         "p_regu": "::uuid", "p_jam": "::timestamptz",
-                        "p_jam_datang": "::timestamptz"}
+                        "p_jam_datang": "::timestamptz", "p_id": "::uuid"}
                 if nama == "tandai_kloter_dicetak":
                     CAST = {**CAST, "p_kloter": "::smallint[]"}
                 tanda = ", ".join("%s" + CAST.get(k, "") for k in urutan)
