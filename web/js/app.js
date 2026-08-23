@@ -941,7 +941,7 @@ async function layarPembayaran() {
             ${aktif.length
               ? `<button class="button-detail" type="button" data-detail="${kode}"
                          data-jumlah="${aktif.length}" aria-expanded="${terbuka}"
-                         aria-label="Lihat ${aktif.length} regu ${esc(sekolah)}">${
+                         aria-label="Lihat ${aktif.length} regu ${sekolah}">${
                    terbuka ? "▾" : "▸"} ${aktif.length}<span class="satuan-regu"> regu</span></button>`
               : aktif.length}
           </td>
