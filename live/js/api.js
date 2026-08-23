@@ -832,15 +832,8 @@ export async function tautanFotoBanyak(paths) {
  *  fotonya sudah lenyap dari layar, dan memberi tahu petugas bahwa "hapus
  *  gagal" padahal fotonya memang sudah hilang cuma membuatnya menekan lagi. */
 export async function hapusFotoLembar(id, alasan) {
-  if (K.mode === "dev") {
-    return kirim(`${K.devUrl}/rpc/hapus_foto_lembar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid: sesi() ? sesi().uid : null,
-                             args: { p_id: id, p_alasan: alasan } }),
-    });
-  }
   const path = await rpc("hapus_foto_lembar", { p_id: id, p_alasan: alasan });
+  if (K.mode === "dev") return path;
   if (path) {
     try {
       await pastikanSesiSegar();
