@@ -1513,6 +1513,20 @@ async function layarKeberangkatan() {
   // itulah yang sedang ditangani petugas garis start.
   let kloterAktif = (papan.find(k => !k.jam_berangkat) || papan[0]).nomor;
 
+  /* Peringatan pemindahan terakhir, kalau ada. Ia hidup DI SINI, bukan
+     ditempelkan ke DOM sesudah pemindahan, dan itu bukan kerapian.
+
+     gambarKloter() mengosongkan #isi-kloter lalu menunggu reguKloter().
+     Kartu yang ditempelkan sesudah pemanggilannya karena itu ditempelkan ke
+     kotak yang SEBENTAR LAGI dikosongkan lagi: peringatannya tampil beberapa
+     ratus milidetik lalu hilang sendiri — persis yang dilarang oleh
+     komentarnya sendiri, dan tanpa notif() sebagai cadangan, jadi yang
+     tersisa bukan pesan yang cepat melainkan tidak ada pesan sama sekali.
+
+     Sebagai bagian dari penggambaran, ia bertahan sampai petugas berpindah
+     kloter — perbuatan sadar, bukan jaringan yang kebetulan lebih cepat. */
+  let peringatanPindah = null;
+
   LAYAR.replaceChildren(h(`
     <div class="card">
       <div class="kloter-strip" id="pita-kloter"></div>
@@ -1561,6 +1575,7 @@ async function layarKeberangkatan() {
     document.querySelectorAll("[data-kloter]").forEach(b =>
       b.addEventListener("click", () => {
         kloterAktif = Number(b.dataset.kloter);
+        peringatanPindah = null;
         gambarPita();
         gambarKloter();
       }));
@@ -1584,6 +1599,7 @@ async function layarKeberangkatan() {
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
     kotak.replaceChildren(h(`
+      ${peringatanPindah ? kartuPeringatanPindah(peringatanPindah) : ""}
       ${kartuSisipan(sisipan.filter(s => s.kloter === kloterAktif))}
       <div class="card">
         <div class="kloter-header">
@@ -1766,20 +1782,21 @@ async function layarKeberangkatan() {
           sel.value = ""; sel.disabled = false;
           return;
         }
-        papan = await papanKeberangkatan();
-        gambarPita();
-        gambarKloter();
         // Peringatan sisipan TIDAK boleh berupa toast yang hilang sendiri:
-        // petugas staging memegang kertas yang tidak memuat nomor ini.
-        if (hasil.peringatan) {
-          kotak.prepend(h(html`
-            <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
-              <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
-              <p style="font-size:1.1rem;margin-top:.4rem">${hasil.peringatan}</p>
-            </div>`));
-        } else {
+        // petugas staging memegang kertas yang tidak memuat nomor ini. Jadi ia
+        // dititipkan ke penggambaran, bukan ditempelkan sesudahnya.
+        peringatanPindah = hasil.peringatan || null;
+        if (!hasil.peringatan) {
           notif(`Nomor ${dada3(dada)} pindah dari Kloter ${hasil.kloter_lama} ke Kloter ${hasil.kloter_baru}.`);
         }
+        papan = await papanKeberangkatan();
+        // Daftar sisipan ikut disegarkan: nomor yang barusan pindah ke kloter
+        // yang kertasnya sudah beredar BARU SAJA menjadi sisipan, dan tanpa
+        // ini ia tidak muncul di kartu merah sampai layarnya dibuka ulang —
+        // termasuk saat petugas membuka kloter tujuan untuk memeriksanya.
+        try { sisipan = await daftarSisipan(); } catch { /* daftar boleh telat */ }
+        gambarPita();
+        gambarKloter();
       }));
 
     // Membetulkan jam yang sudah tercatat. Jam berangkat menentukan penalti
@@ -4444,6 +4461,20 @@ function pasangPilihPos(s) {
 /** Daftar sisipan: nomor-nomor yang TIDAK ADA di kertas petugas staging.
  *  Ditaruh paling atas dan diberi bingkai merah — ini satu-satunya cara
  *  petugas tahu ada regu tambahan di kloternya. */
+/** Kartu merah "Bacakan ke petugas staging" — jawaban `pindah_kloter` saat
+ *  nomor dipindahkan ke kloter yang kertasnya sudah beredar.
+ *
+ *  Dipisahkan supaya bentuknya sama dengan kartuSisipan di bawahnya: keduanya
+ *  mengatakan hal yang sama kepada orang yang sama, dan dua bentuk untuk satu
+ *  pesan membuat yang kedua terbaca seperti perkara lain. */
+function kartuPeringatanPindah(teks) {
+  return html`
+    <div class="card" style="border:3px solid var(--bahaya);background:var(--bahaya-muda)">
+      <h2 style="color:var(--bahaya)">⚠️ Bacakan ke petugas staging</h2>
+      <p style="font-size:1.1rem;margin-top:.4rem">${teks}</p>
+    </div>`;
+}
+
 function kartuSisipan(sisipan) {
   const aktif = sisipan.filter(s => !s.sudah_berangkat);
   if (!aktif.length) return "";
