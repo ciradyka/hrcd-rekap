@@ -2841,31 +2841,17 @@ function contohIsian(kol) {
  *  kali satu regu masuk — pekerjaan yang lebih lama daripada lombanya sendiri,
  *  dilakukan sambil regu menunggu.
  *
- *  Jadi semua kertas identik, dan petugas menulis "005" di kotak paling kiri
- *  atas. Yang dicetak sistem bukan datanya, melainkan BENTUKNYA: nama lomba,
- *  satuan yang benar, contoh angkanya, dan tempat tanda tangan.
+ *  Jadi semua kertas identik; sistem mencetak BENTUKNYA, bukan satu lembar
+ *  yang sudah diisi untuk tiap regu. Petugas menulis nomor dada, nama regu,
+ *  dan pangkalan/sekolah, lalu melingkari satu kategori. Identitas yang tetap
+ *  menempel pada lembar lepas itu menjadi pemeriksaan kedua bila nomor dada
+ *  salah tulis atau sulit dibaca.
  *
- *  YANG DITULIS TANGAN HANYA NOMOR DADA.
- *
- *  Tidak ada kolom nama regu, sekolah, atau golongan — dan itu keputusan,
- *  bukan kelalaian. Ketiganya sudah ditentukan oleh nomor dada, jadi
- *  menuliskannya berarti menyalin ~30 huruf sebanyak 1.500 kali untuk
- *  informasi yang sudah dimiliki sistem. Di pos yang sedang mengantre, itu
- *  pekerjaan yang memakan waktu lomba itu sendiri.
- *
- *  Lebih buruk lagi: kolom yang terlalu mahal untuk diisi AKAN dikosongkan,
- *  dan kolom kosong yang bernama "konfirmasi" adalah pengaman palsu — ia
- *  membuat orang merasa ada pengecekan padahal tidak ada.
- *
- *  Pengecekannya memang ada, tapi bukan di kertas. Saat tim IT mengetik 005,
- *  baris di layar Input Pos langsung menampilkan nama regu, sekolahnya, dan
- *  golongannya. Salah ketik ketahuan di sana — tanpa satu huruf pun ditulis
- *  di lapangan.
- *
- *  Satu baris kecil tetap disediakan untuk keadaan yang benar-benar
- *  membutuhkan tulisan: nomor dadanya TIDAK TERBACA — robek, tertutup jaket,
- *  atau petugas ragu antara 6 dan 8. Tanpa tempatnya, catatan itu tetap
- *  ditulis, hanya saja di pinggir kertas tempat tidak ada yang mencarinya.
+ *  Nomor dada mendapat kotak terbesar karena itulah kunci utama saat tim IT
+ *  mengurutkan dan mengetik ratusan lembar. Kategori tidak ditulis ulang:
+ *  pilihannya sudah tercetak agar satu lingkaran cukup dan tidak bisa salah
+ *  eja. Nama lomba, satuan, tempat nilai, dan tanda tangan juga sudah menjadi
+ *  bagian bentuk yang sama pada setiap master.
  */
 function siapkanCetakBlangko(pos, kolomLayar) {
   document.getElementById("cetakan")?.remove();

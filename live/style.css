@@ -1031,10 +1031,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     border-top: 1.5pt solid #000; padding-top: 1.4mm;
   }
 
-  /* Identitas: SATU kotak besar untuk nomor dada, dan satu kotak catatan di
-     sebelahnya. Tidak ada kolom nama regu, sekolah, atau golongan — alasannya
-     di siapkanCetakBlangko(): ketiganya sudah ditentukan nomor dada, dan
-     menyalinnya ribuan kali adalah pekerjaan tanpa informasi baru.
+  /* Identitas: satu kotak besar untuk nomor dada, lalu kotak nama regu dan
+     pangkalan/sekolah, dengan baris kategori yang dilingkari. Nilainya tidak
+     dicetak per regu: seluruh blangko tetap master kosong yang sama karena
+     urutan kedatangan regu tidak bisa ditebak.
 
      Kotak nomor dada dibuat tinggi supaya angkanya bisa ditulis BESAR. Ia
      dibaca dua kali dalam keadaan yang sama-sama tergesa: saat petugas
