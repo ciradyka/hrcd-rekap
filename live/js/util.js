@@ -32,6 +32,17 @@ export function html(potongan, ...nilai) {
 
 export const rupiah = n => "Rp " + Number(n || 0).toLocaleString("id-ID");
 
+/** Baca jumlah anggota di meja Kedatangan. Kotak kosong memakai default lima,
+ * tetapi ketikan yang tidak terbaca atau angka di luar 0–5 harus ditolak. */
+export function bacaAnggotaHadir(teks, badInput = false) {
+  if (badInput) return null;
+  const isi = String(teks ?? "").trim();
+  if (isi === "") return 5;
+  if (!/^\d+$/.test(isi)) return null;
+  const jumlah = Number(isi);
+  return jumlah >= 0 && jumlah <= 5 ? jumlah : null;
+}
+
 /** Cari kotak pada kolom tabel dan slot yang sama di baris berikutnya.
  *
  * Baris Input Pos tidak selalu punya kotak yang sama: komponen Eksternal

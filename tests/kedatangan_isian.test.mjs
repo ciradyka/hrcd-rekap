@@ -20,6 +20,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { bacaAnggotaHadir } from "../web/js/util.js";
+
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 
 const layar = (() => {
@@ -45,7 +47,8 @@ test("ketikan petugas tidak pernah dibuang", () => {
   // menjelaskan kenapa.
   assert.match(app, /inpJam\.dengar\(\(\) => \{ isianDariSistem = null;/,
     "mengetik jam tidak membatalkan penanda isian sistem");
-  assert.match(app, /inpHadir\.addEventListener\("input", \(\) => \{ isianDariSistem = null;/,
+  assert.match(app,
+    /inpHadir\.addEventListener\("input", \(\) => \{\s*isianDariSistem = null;/,
     "mengetik jumlah anggota tidak membatalkan penanda isian sistem");
 });
 
@@ -56,4 +59,24 @@ test("isi yang punya akibat tidak boleh tersembunyi", () => {
     "panel koreksi tidak dikenali");
   assert.match(app, /if \(berisi\) panelKoreksi\.open = true;/,
     "panel koreksi tidak dibuka saat kotaknya berisi");
+});
+
+test("kotak anggota kosong memakai default lima, bukan nol", () => {
+  assert.equal(bacaAnggotaHadir(""), 5);
+  assert.equal(bacaAnggotaHadir("   "), 5);
+  assert.equal(bacaAnggotaHadir("0"), 0, "nol yang benar-benar diketik tetap sah");
+  assert.equal(bacaAnggotaHadir("5"), 5);
+});
+
+test("jumlah anggota yang tidak sah menghentikan penyimpanan", () => {
+  for (const isi of ["-1", "6", "1.5", "abc"]) {
+    assert.equal(bacaAnggotaHadir(isi), null, `${isi} seharusnya ditolak`);
+  }
+  assert.equal(bacaAnggotaHadir("", true), null,
+    "ketikan tak terbaca dari input number bukan kotak kosong biasa");
+  assert.match(layar,
+    /const hadir = bacaAnggotaHadir\([\s\S]{0,180}if \(hadir === null\)/,
+    "layar tidak menghentikan penyimpanan saat jumlah anggota tidak sah");
+  assert.doesNotMatch(layar, /Math\.max\(0, Math\.min\(5,/,
+    "layar kembali menjepit isian salah menjadi angka yang tampak sah");
 });

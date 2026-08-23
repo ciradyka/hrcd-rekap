@@ -35,7 +35,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
          angkaRapi, nilaiTeks, petunjukKolom, nilaiBagian,
-         jamPadaHari, kotakBerikutnyaDalamKolom,
+         jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
@@ -2233,7 +2233,13 @@ function layarFinish() {
   // Ketikan petugas membatalkan penanda: sejak itu isinya miliknya, dan
   // berpindah regu tidak boleh membuangnya.
   inpJam.dengar(() => { isianDariSistem = null; bukaKalauBerisi(); perbaruiDampak(); });
-  inpHadir.addEventListener("input", () => { isianDariSistem = null; bukaKalauBerisi(); });
+  inpHadir.addEventListener("input", () => {
+    isianDariSistem = null;
+    if (bacaAnggotaHadir(inpHadir.value, inpHadir.validity?.badInput) !== null) {
+      inpHadir.removeAttribute("aria-invalid");
+    }
+    bukaKalauBerisi();
+  });
   // Bentuknya dirapikan saat kotak ditinggalkan, jadi lencana dampaknya ikut
   // dihitung ulang sesudah itu — tanpa ini "745" yang jadi "07:45" saat blur
   // meninggalkan lencana menampilkan hitungan dari teks yang sudah tidak ada.
@@ -2339,12 +2345,18 @@ function layarFinish() {
             + "Kosongkan untuk memakai jam saat tombol ditekan.", true);
       return;
     }
+    const hadir = bacaAnggotaHadir(inpHadir.value, inpHadir.validity?.badInput);
+    if (hadir === null) {
+      inpHadir.setAttribute("aria-invalid", "true");
+      inpHadir.focus();
+      notif("Anggota hadir harus angka 0–5. Kosongkan untuk memakai 5.", true);
+      return;
+    }
     tombol.dataset.jalan = "1"; tombol.disabled = true;
 
     // Jam dikunci DI SINI — saat tombol ditekan, dari jam laptop panitia.
     // Kolom jam hanya dipakai bila memang diisi (koreksi hasil verifikasi).
     const jam = jamIsi ? jamPadaHari(jamIsi, regu.target_datang) : new Date();
-    const hadir = Math.max(0, Math.min(5, Number(inpHadir.value) || 0));
     const dada = regu.nomor_dada;
     const nama = regu.nama_regu;
     try {
