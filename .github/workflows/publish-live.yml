@@ -136,10 +136,18 @@ jobs:
           # angka pun. Pemisahan itu satu-satunya jaminan bahwa nilai yang
           # belum diumumkan memang TIDAK ADA di CDN, bukan sekadar tidak
           # digambar.
+          #
+          # `poin` ikut dijaga, dan itu bukan kehati-hatian berlebihan: ia
+          # DITURUNKAN dari nilai lewat hitung_poin(), jadi menerbitkannya
+          # lebih awal membocorkan hasil lomba sama telanjangnya. Papan Live
+          # Score sekarang menggambar poin, bukan angka mentah — kalau pagar
+          # ini cuma menyebut `nilai`, yang bocor justru kolom yang dibaca
+          # orang.
           if d['fase'] != 'penuh':
               for baris in d['progres']:
-                  if baris.get('nilai'):
-                      sys.exit('BOCOR: nilai per komponen tertulis padahal fase belum penuh')
+                  for kunci in ('nilai', 'poin'):
+                      if baris.get(kunci):
+                          sys.exit(f'BOCOR: {kunci} per komponen tertulis padahal fase belum penuh')
 
           rekap = {'progres': d['progres'], 'klasemen': d['klasemen']}
           sidik = hashlib.sha256(json.dumps(

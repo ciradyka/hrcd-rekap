@@ -4657,6 +4657,23 @@ function selRekap(w, isi) {
 const angka = (n) => n === null || n === undefined ? "—"
   : String(Math.round(Number(n) * 100) / 100);
 
+/** Satu sel Live Score: POIN AKHIR komponen itu, bukan angka mentahnya.
+ *
+ *  Angka mentah tidak bisa dibandingkan antar kolom — "4" di Semaphore, "8.55"
+ *  di Menaksir, dan "01:14" di Bakiak adalah tiga satuan yang berbeda, dan
+ *  tidak satu pun menyebut sumbangannya ke Total di ujung baris. Papan ini
+ *  dibaca justru oleh orang yang tidak memegang tangga poin tiap lomba:
+ *  pembina, peserta, dan panitia yang bukan juri lomba itu.
+ *
+ *  Angkanya datang JADI dari `v_rekap_penuh.poin` (migrasi 0107). Layar tidak
+ *  menghitungnya sendiri — alasannya sama dengan Nilai Pos di layar Input Pos:
+ *  mesin skor kedua adalah mesin skor yang suatu hari berbeda pendapat dengan
+ *  yang pertama.
+ *
+ *  Kosong berarti komponennya belum dinilai. Nol yang SUDAH dinilai tetap
+ *  tergambar "0" — itu angka, bukan ketiadaan. */
+const selPoin = (v) => esc(angkaRapi(v));
+
 async function layarRekap() {
   const s = sesi();
   if (!bolehLihat("rekap")) {
@@ -5317,17 +5334,24 @@ async function layarLiveScore() {
                   <th rowspan="2">Total</th>
                 </tr>
                 <tr>
+                  <!-- Nama lomba saja, TANPA rentang. Rentang menjelaskan apa
+                       yang boleh DIKETIK, dan di papan ini tidak ada yang
+                       mengetik apa pun — yang tergambar sudah poin akhir, dan
+                       "0 – 5" di bawah kolom berisi 80 justru membantahnya.
+                       Rentangnya tetap ada di layar Input Pos dan di
+                       Rekapitulasi, tempat ia memang menjawab pertanyaan. -->
                   ${posKolom.map(p => p.kolom.map(kol =>
-                      `<th class="pos-kol">${esc(kol.nama)}${kol.petunjuk
-                        ? `<span class="kolom-petunjuk">${esc(kol.petunjuk)}</span>`
-                        : ""}</th>`).join("")
+                      `<th class="pos-kol">${esc(kol.nama)}</th>`).join("")
                     + `<th class="pos-kol rekap-batas">Nilai</th>`).join("")}
                 </tr>
               </thead>
               <tbody>
                 ${baris.map(k => {
                   const rk = rekapDada.get(k.nomor_dada) || {};
-                  const nilai = rk.nilai || {};
+                  // Poin per KOMPONEN (0107) untuk sel lomba, poin per POS
+                  // untuk kolom Nilai di ujung tiap kelompok. Dua hal berbeda,
+                  // dua kunci berbeda — `pos.kode` lawan `pos`.
+                  const poinKomponen = rk.poin || {};
                   const poin = k.poin_per_pos || {};
                   return `
                   <tr data-sekolah="${esc(k.nama_sekolah || "")}">
@@ -5340,7 +5364,7 @@ async function layarLiveScore() {
                         // golongan; yang berlaku untuk regu INI yang dibaca.
                         const w = varianUntuk(kol, k.golongan);
                         return `<td class="text-center">${w
-                          ? selRekap(w, nilai[`${p.nomor}.${w.kode}`])
+                          ? selPoin(poinKomponen[`${p.nomor}.${w.kode}`])
                           : `<span class="sel-mati">–</span>`}</td>`;
                       }).join("")
                       + `<td class="text-center pos-nilai rekap-batas">${

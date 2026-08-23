@@ -60,7 +60,7 @@
    ditunda sampai DOM siap, yang justru lebih aman daripada sebelumnya. */
 import {
   esc, dada3, jamMenit, tanggalJam, berapaLalu,
-  angkaRapi, petunjukKolom, nilaiBagian,
+  angkaRapi,
   GOLONGAN_LABEL, URUT_GOLONGAN,
 } from "./js/util.js";
 
@@ -363,15 +363,7 @@ function gambarPapan() {
     const milik = komponen.filter(w => w.pos === p.nomor);
     const nama = [];
     for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
-    // Satu nama kolom bisa punya beberapa varian golongan dengan rentang
-    // berbeda (Tebak Simpul 0-5 untuk Penggalang, 0-10 untuk Penegak).
-    // Keduanya ditulis, dipisah garis miring — sama seperti blangko cetak.
-    const petunjuk = {};
-    for (const nm of nama) {
-      petunjuk[nm] = [...new Set(milik.filter(w => w.name === nm)
-        .map(petunjukKolom).filter(Boolean))].join(" / ");
-    }
-    return { pos: p, nama, milik, petunjuk };
+    return { pos: p, nama, milik };
   }).filter(x => x.nama.length);
 
   const kartu = URUT_GOLONGAN_PESERTA.map(g => {
@@ -423,15 +415,17 @@ function gambarPapan() {
                         : `Pos ${x.pos.nomor} · ${x.pos.name}`)}</th>`).join("")}
                 ${penuh ? `<th rowspan="2">Penalti</th><th rowspan="2">Total</th>` : ""}
               </tr>
+              <!-- Nama lomba saja, TANPA rentang. Yang tergambar di bawahnya
+                   sudah poin akhir, dan "0 – 5" di kepala kolom berisi 80
+                   membantahnya. Rentang menjelaskan apa yang boleh DIKETIK,
+                   dan di papan ini tidak ada yang mengetik apa pun. -->
               <tr>${perPos.map(x => x.nama.map(nm =>
-                `<th class="pos kol-komponen">${esc(nm)}${x.petunjuk[nm]
-                  ? `<span class="kolom-petunjuk">${esc(x.petunjuk[nm])}</span>`
-                  : ""}</th>`).join("")).join("")}</tr>
+                `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("")}</tr>
             </thead>
             <tbody>
               ${baris.map(b => {
                 const terisi = b.komponen_terisi || {};
-                const angka = b.nilai || {};
+                const poin = b.poin || {};
                 const sel = perPos.map(x => x.nama.map(nm => {
                   const w = x.milik.find(k =>
                     k.name === nm && (!k.golongan || k.golongan === b.golongan));
@@ -441,16 +435,18 @@ function gambarPapan() {
                     const ada = terisi[kunci];
                     return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : ""}</td>`;
                   }
-                  const v = angka[kunci];
-                  if (!v || v.nilai_1 === null || v.nilai_1 === undefined) {
+                  // POIN AKHIR, bukan angka mentah. "4" di Semaphore, "8.55"
+                  // di Menaksir, dan "01:14" di Bakiak adalah tiga satuan yang
+                  // berbeda dan tidak satu pun menyebut sumbangannya ke Total
+                  // di ujung baris — sementara yang membaca papan ini persis
+                  // orang yang tidak memegang tangga poin tiap lomba.
+                  // Angkanya datang JADI dari rekap.json (migrasi 0107);
+                  // halaman ini tidak menghitung apa pun.
+                  const p = poin[kunci];
+                  if (p === null || p === undefined) {
                     return `<td class="pos belum">–</td>`;
                   }
-                  // Dieja nilaiBagian() — fungsi yang sama dengan papan
-                  // panitia. Sebelumnya String() mentah: 74 detik tergambar
-                  // "74" di sini dan "01:14" di sana, untuk angka yang sama,
-                  // di fase `penuh` yang justru pengumuman juaranya.
-                  const bagian = nilaiBagian(w, v.nilai_1, v.nilai_2);
-                  return `<td class="pos ada">${bagian.map(esc).join(" / ")}</td>`;
+                  return `<td class="pos ada">${esc(angkaRapi(p))}</td>`;
                 }).join("")).join("");
                 const penalti = penuh
                   ? Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)

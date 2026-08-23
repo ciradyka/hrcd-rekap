@@ -454,6 +454,12 @@ run tests/sql/66_kloter_capacity_headroom.sql
 # harus menyebut rentang yang dilihat petugas di kotak, bukan angka penyimpanan.
 run supabase/migrations/0106_format_input_range_units.sql
 run tests/sql/67_input_range_units.sql
+# 0107 menambah poin akhir per komponen ke kedua papan Live Score, dan
+# `anggota_hadir` ke view peserta. Tes 69 membandingkan angkanya baris per
+# baris dengan hitung_poin() dan menempati kursi untuk membuktikan pagar
+# fasenya — poin diturunkan dari nilai, jadi ia bocor sama telanjangnya.
+run supabase/migrations/0107_poin_per_komponen.sql
+run tests/sql/69_poin_per_komponen.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
