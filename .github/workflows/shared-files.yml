@@ -59,6 +59,16 @@ jobs:
           banding web/js/api.js   live/js/api.js
           banding web/js/util.js  live/js/util.js
 
+          # Kedua berkas punya preamble berbeda panjang, lalu isi aturan yang
+          # wajib sama. Drift pasangan ini pernah menghilangkan 21 baris.
+          if ! diff -q <(tail -n +5 CLAUDE.md) <(tail -n +7 AGENTS.md) >/dev/null; then
+            echo "MENYIMPANG: isi AGENTS.md tidak sama dengan CLAUDE.md"
+            diff -u <(tail -n +5 CLAUDE.md) <(tail -n +7 AGENTS.md) | head -40 || true
+            gagal=1
+          else
+            echo "sama: isi CLAUDE.md dan AGENTS.md"
+          fi
+
           if [ "$gagal" -ne 0 ]; then
             echo ""
             echo "Salin ulang dari web/ (acuan), jangan sunting salinannya:"
