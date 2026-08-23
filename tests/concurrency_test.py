@@ -13,6 +13,7 @@
 # ============================================================================
 
 import json
+import os
 import sys
 import threading
 import time
@@ -21,12 +22,20 @@ import uuid
 import psycopg2
 import psycopg2.extras
 
-DSN = "host=127.0.0.1 port=55432 dbname=hrcd_dev user=postgres password=hrcd"
+DSN = " ".join([
+    f"host={os.environ.get('PGHOST', '127.0.0.1')}",
+    f"port={os.environ.get('PGPORT', '55432')}",
+    f"dbname={os.environ.get('PGDATABASE', 'hrcd_dev')}",
+    f"user={os.environ.get('PGUSER', 'postgres')}",
+    f"password={os.environ.get('PGPASSWORD', 'hrcd')}",
+])
 MEJA = ("00000000-0000-0000-0000-0000000000b1",
         "00000000-0000-0000-0000-0000000000b2",
         "00000000-0000-0000-0000-00000000000a")   # 2 meja + admin
 JUMLAH_SEKOLAH = 30          # 30 sekolah berebut bersamaan
-REGU_PER_SEKOLAH = 10        # 300 regu, 300 nomor dada
+EKSTERNAL_PER_SEKOLAH = 9
+INTERN_PER_SEKOLAH = 1
+REGU_PER_SEKOLAH = EKSTERNAL_PER_SEKOLAH + INTERN_PER_SEKOLAH
 
 
 def kode_huruf(n):
@@ -57,7 +66,7 @@ def siapkan():
         delete from pembayaran;
         delete from regu;
         delete from pendaftaran;
-        delete from sekolah where nama like 'UJI KONKUREN%';
+        delete from sekolah where name like 'UJI KONKUREN%';
         update kloter set jam_berangkat = null;
     """, role="service_role", fetch=None)
 
@@ -65,14 +74,16 @@ def siapkan():
     for i in range(JUMLAH_SEKOLAH):
         regu = [{"nama_regu": f"Regu {kode_huruf(i)} {kode_huruf(j)}",
                  "nama_ketua": f"Ketua {kode_huruf(i)} {kode_huruf(j)}",
-                 "golongan": "penegak_pa"} for j in range(REGU_PER_SEKOLAH)]
+                 "golongan": "penegak_pa" if j < EKSTERNAL_PER_SEKOLAH
+                              else "intern_pa"}
+                for j in range(REGU_PER_SEKOLAH)]
         h = jalankan(
             "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
             (f"UJI KONKUREN {i}", f"Jl. Uji {i}", False, "081200000000",
              json.dumps(regu), 0, str(uuid.uuid4())),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]
-        biaya = jalankan("select biaya_per_regu from edisi where aktif",
+        biaya = jalankan("select biaya_per_regu from edisi where is_active",
                          role="service_role", fetch="one")["biaya_per_regu"]
         jalankan("select verifikasi_pembayaran(%s,%s,%s)",
                  (k, REGU_PER_SEKOLAH * biaya, "tunai"),
@@ -97,7 +108,7 @@ def pasangan(kode, nomor):
     regu = jalankan("""
         select r.id::text as id from regu r
         join pendaftaran d on d.id = r.pendaftaran_id
-        where d.kode_pembayaran = %s and not r.batal and r.nomor_dada is null
+        where d.kode_pembayaran = %s and not r.is_cancelled and r.nomor_dada is null
         order by r.nama_regu, r.id
     """, (kode,), role="service_role")
     return json.dumps([{"regu_id": r["id"], "nomor_dada": n}
@@ -180,9 +191,19 @@ def periksa(hasil, galat):
         from kloter k join regu r on r.kloter_nomor = k.nomor
         where r.golongan not like 'intern_%'
         group by k.nomor
-        having count(r.id) > (select maks_eksternal_per_kloter from edisi where aktif)
+        having count(r.id) > (select maks_eksternal_per_kloter from edisi where is_active)
     """, uid=MEJA[2])
     cek("tidak ada kloter melebihi kuota Eksternal", not penuh, str(penuh[:3]))
+
+    penuh_intern = jalankan("""
+        select k.nomor, count(r.id) as isi
+        from kloter k join regu r on r.kloter_nomor = k.nomor
+        where r.golongan like 'intern_%'
+        group by k.nomor
+        having count(r.id) > (select maks_intern_per_kloter from edisi where is_active)
+    """, uid=MEJA[2])
+    cek("tidak ada kloter melebihi kuota Intern", not penuh_intern,
+        str(penuh_intern[:3]))
 
     urutan = jalankan("""
         select kloter_nomor, urutan_kloter, count(*) as n
@@ -191,14 +212,26 @@ def periksa(hasil, galat):
     """, uid=MEJA[2])
     cek("tidak ada urutan kloter kembar", not urutan, str(urutan[:3]))
 
-    # FIFO mengisi 60 kloter berurutan, masing-masing 5 Eksternal.
+    # Kedua jenis mulai dari kloter 1. Jumlah kloter yang dipakai ditentukan
+    # jenis yang membutuhkan kloter paling banyak menurut kuotanya sendiri.
+    cfg = jalankan("""
+        select maks_eksternal_per_kloter, maks_intern_per_kloter
+        from edisi where is_active
+    """, uid=MEJA[2], fetch="one")
+    jumlah_eksternal = JUMLAH_SEKOLAH * EKSTERNAL_PER_SEKOLAH
+    jumlah_intern = JUMLAH_SEKOLAH * INTERN_PER_SEKOLAH
+    kloter_diharapkan = max(
+        -(-jumlah_eksternal // cfg["maks_eksternal_per_kloter"]),
+        -(-jumlah_intern // cfg["maks_intern_per_kloter"]),
+    )
     fifo = jalankan("""
         select count(distinct kloter_nomor) as jumlah_kloter,
                min(kloter_nomor) as pertama, max(kloter_nomor) as terakhir
         from regu where nomor_dada is not null
     """, uid=MEJA[2], fetch="one")
-    cek("FIFO memakai tepat kloter 1-60",
-        fifo["jumlah_kloter"] == 60 and fifo["pertama"] == 1 and fifo["terakhir"] == 60,
+    cek(f"FIFO memakai tepat kloter 1-{kloter_diharapkan}",
+        fifo["jumlah_kloter"] == kloter_diharapkan
+        and fifo["pertama"] == 1 and fifo["terakhir"] == kloter_diharapkan,
         str(fifo))
 
     return lolos
@@ -209,7 +242,7 @@ def uji_nomor_kembar():
     sama untuk dua regu berbeda, pada detik yang sama. Tepat satu boleh
     menang; yang kalah harus DITOLAK dengan pesan, bukan menimpa regu lain
     atau lolos jadi nomor ganda."""
-    biaya = jalankan("select biaya_per_regu from edisi where aktif",
+    biaya = jalankan("select biaya_per_regu from edisi where is_active",
                      role="service_role", fetch="one")["biaya_per_regu"]
     kode = []
     for i in range(2):
