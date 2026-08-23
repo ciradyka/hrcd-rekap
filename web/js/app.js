@@ -34,7 +34,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
-         angkaRapi, nilaiTeks, petunjukKolom, nilaiBagian,
+         angkaRapi, nilaiTeks, nilaiBagian, kolomPos,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
@@ -2563,42 +2563,6 @@ function bacaSel(tr, k) {
   if (takTerbaca(kotak[0])) return TIDAK_SAH;
   const v = kotak[0].value.trim();
   return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
-}
-
-/** SATU LOMBA BISA PUNYA BEBERAPA BARIS `wahana`, DAN TETAP SATU KOLOM.
- *
- *  Tebak Simpul punya empat baris — satu per golongan — karena skalanya
- *  berbeda: Penggalang menebak 5 simpul, Penegak 10 (0030). Di layar itu tetap
- *  satu kolom, karena tiap regu hanya berhak mengisi variannya sendiri.
- *
- *  Sebelum ini layar menggambar satu kolom per BARIS wahana, jadi Pos 1 punya
- *  empat kolom bernama "Tebak Simpul" tanpa satu pun penanda golongan.
- *  Akibatnya dua-duanya buruk sekaligus: petugas mengetik di kolom yang salah
- *  lalu ditolak server, dan tidak ada regu yang bisa dihitung "lengkap" —
- *  siapa pun hanya bisa mengisi tiga dari enam kotak, jadi angka di atas tabel
- *  membeku di "0/46 lengkap" selamanya.
- *
- *  Aturan pengelompokannya dibuat sesederhana mungkin: komponen BERGOLONGAN
- *  dengan nama sama jadi satu kolom, komponen tanpa golongan berdiri sendiri.
- *  Tidak ada kolom penanda grup di database yang harus diisi benar — dua baris
- *  yang panitia beri nama sama memang dimaksudkan sebagai satu lomba. */
-function kolomPos(komponen) {
-  const urut = [], peta = new Map();
-  for (const k of komponen) {
-    const kunci = k.golongan ? `nama:${k.name}` : `kode:${k.kode}`;
-    if (!peta.has(kunci)) {
-      peta.set(kunci, { nama: k.name, varian: [] });
-      urut.push(peta.get(kunci));
-    }
-    peta.get(kunci).varian.push(k);
-  }
-  for (const kol of urut) {
-    // Rentang yang berbeda digabung jadi "0 – 5 / 0 – 10". Kotak di tiap baris
-    // tetap dibatasi min/max variannya sendiri, jadi baris ini keterangan —
-    // bukan aturan yang bisa berbeda pendapat dengan server.
-    kol.petunjuk = [...new Set(kol.varian.map(petunjukKolom))].join(" / ");
-  }
-  return urut;
 }
 
 /** Varian yang berhak diisi regu bergolongan ini — cerminan persis

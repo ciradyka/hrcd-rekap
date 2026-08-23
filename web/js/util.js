@@ -1008,6 +1008,31 @@ export function petunjukKolom(k) {
   return `${angkaRapi(k.rentang_mentah_min)} – ${angkaRapi(k.rentang_mentah_maks)}`;
 }
 
+/** Gabungkan varian `wahana` menjadi satu kolom penilaian di layar.
+ *
+ * Kalau minimal satu baris bernama sama dibatasi golongan, SEMUA baris dengan
+ * nama itu adalah varian satu kolom — termasuk baris asal yang golongannya
+ * null. Ini menyatukan pasangan umum + Intern tanpa menurunkan hubungan dari
+ * akhiran `kode`, yang hanya kebiasaan penamaan dan bukan kontrak data. */
+export function kolomPos(komponen) {
+  const namaBervarian = new Set(
+    komponen.filter(k => k.golongan).map(k => k.name),
+  );
+  const urut = [], peta = new Map();
+  for (const k of komponen) {
+    const kunci = namaBervarian.has(k.name) ? `nama:${k.name}` : `kode:${k.kode}`;
+    if (!peta.has(kunci)) {
+      peta.set(kunci, { nama: k.name, varian: [] });
+      urut.push(peta.get(kunci));
+    }
+    peta.get(kunci).varian.push(k);
+  }
+  for (const kol of urut) {
+    kol.petunjuk = [...new Set(kol.varian.map(petunjukKolom))].join(" / ");
+  }
+  return urut;
+}
+
 /** Angka nilai sebagai TEKS, satu bagian atau dua.
  *
  *  Mengembalikan bagian-bagiannya, bukan HTML jadi, dan itu yang membuatnya
