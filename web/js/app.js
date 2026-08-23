@@ -6462,7 +6462,20 @@ const RUTE = {
   "#/account": layarAkun,
 };
 
+// Hash yang benar-benar sedang tergambar. `location.hash` sudah berisi tujuan
+// baru ketika hashchange tiba, jadi nilai lama harus disimpan terpisah agar
+// perpindahan yang dibatalkan dapat dikembalikan tanpa membuang tabel.
+let hashLayar = location.hash;
+
 async function arahkan() {
+  const tujuan = location.hash;
+  if (tujuan !== hashLayar && !bolehMeninggalkanNilai()) {
+    // replaceState tidak memicu hashchange kedua dan tidak menambah entri Back
+    // palsu. DOM layar lama belum disentuh pada titik ini.
+    history.replaceState(null, "", hashLayar || "#/home");
+    return;
+  }
+  hashLayar = tujuan;
   segarkanDiTempat = null;
   if (!sesi()) { layarLogin(); return; }
   // Sesi yang dibuat sebelum `hak` dibawa ke dalamnya tidak punya field itu,
@@ -6497,7 +6510,13 @@ const keSetelan = () => {
 const keAkun = () => {
   if (location.hash === "#/account") arahkan(); else location.hash = "#/account";
 };
-const keluarSekarang = () => { keluar(); EDISI = null; location.hash = ""; arahkan(); };
+const keluarSekarang = () => {
+  if (!bolehMeninggalkanNilai()) return;
+  // Peringatan sudah dijawab di atas; samakan penanda agar arahkan() tidak
+  // menanyakan hal yang sama untuk kedua kali setelah sesi dibuang.
+  hashLayar = "";
+  keluar(); EDISI = null; location.hash = ""; arahkan();
+};
 
 document.getElementById("btn-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("btn-home").addEventListener("click", keHome);
@@ -6538,6 +6557,9 @@ document.addEventListener("visibilitychange", () => {
 /** Baris lembar pos yang isinya belum sampai ke database. */
 const adaYangBelumTersimpan = () => !!document.querySelector(
   '#isi-tabel tr[data-keadaan="belum"], #isi-tabel tr[data-keadaan="gagal"]');
+
+const bolehMeninggalkanNilai = () => !adaYangBelumTersimpan()
+  || window.confirm("Ada nilai yang belum tersimpan. Tetap pindah layar?");
 
 // Menutup tab dengan nilai yang belum terkirim = nilai itu hilang tanpa
 // jejak. Browser hanya mengizinkan peringatan bawaannya, dan itu sudah cukup:
