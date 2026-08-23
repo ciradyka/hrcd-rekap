@@ -396,6 +396,7 @@ run tests/sql/56_lembar_pos_sama_dengan_klasemen.sql
 # di komponen_pos_golongan(), jadi regu Intern tidak pernah bisa terhitung
 # lengkap dan di Pos 4/5 dihitung kosong selamanya. Tes 57 menguji kesamaan
 # aturannya, bukan angkanya.
+run supabase/migrations/0096_kelengkapan_mengenal_intern.sql
 run tests/sql/57_kelengkapan_intern.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,

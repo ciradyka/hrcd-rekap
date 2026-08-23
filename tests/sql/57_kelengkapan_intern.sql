@@ -37,6 +37,7 @@ declare
   v_n2      numeric;
   v_sumber  text;
   v_oleh    uuid;
+  v_tambah  uuid[];
 begin
   select r.id, r.golongan into v_regu, v_gol
   from regu r
@@ -85,6 +86,24 @@ begin
   order by p.nomor limit 1;
   assert v_pos_ada is not null,
     format('57 GAGAL: %s tidak berlomba di pos mana pun', v_gol);
+
+  -- Nilainya diisi DI SINI, bukan diwarisi dari tes sebelumnya: beberapa tes
+  -- membuat regu Intern untuk keperluan lain (tes 53 mengujinya sebagai kuota
+  -- FIFO) dan mana yang kebetulan sudah dinilai bukan sesuatu yang boleh
+  -- diandalkan. Yang ditambahkan di sini dibongkar lagi di akhir.
+  select array_agg(w.id) into v_tambah
+  from wahana w
+  where w.edisi = edisi_aktif() and w.pos = v_pos_ada
+    and komponen_berlaku(w.golongan, v_gol)
+    and not exists (select 1 from nilai_mentah n
+                    where n.regu_id = v_regu and n.wahana_id = w.id);
+
+  if v_tambah is not null then
+    insert into nilai_mentah (regu_id, wahana_id, nilai_1, source, created_by)
+    select v_regu, w.id, greatest(w.rentang_mentah_min, 0), 'manual',
+           (select id from auth.users order by id limit 1)
+    from wahana w where w.id = any(v_tambah);
+  end if;
 
   select lengkap into v_lengkap from v_kelengkapan_pos where pos = v_pos_ada;
 
@@ -142,6 +161,11 @@ begin
 
   raise notice '57.3 OK — Pos % menghitung % regu, % regu Intern dikecualikan.',
     v_pos_tak, v_total, v_intern;
+
+  -- Nilai yang ditambahkan tes ini dibongkar lagi.
+  if v_tambah is not null then
+    delete from nilai_mentah where regu_id = v_regu and wahana_id = any(v_tambah);
+  end if;
 end;
 $blok$;
 
