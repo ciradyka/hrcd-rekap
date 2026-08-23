@@ -16,6 +16,18 @@ export PGHOST="${PGHOST:-127.0.0.1}" PGPORT="${PGPORT:-55432}" PGUSER="${PGUSER:
 DB=hrcd_test
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Urutannya sengaja ditulis manual di bawah, tetapi setiap berkas WAJIB muncul
+# pada sebuah baris `run`. Tanpa pagar ini migrasi baru dapat dilewati CI
+# secara diam-diam dan baru pertama kali dijalankan di database produksi.
+for file in "$ROOT"/supabase/migrations/*.sql "$ROOT"/tests/sql/*.sql; do
+  relative="${file#"$ROOT"/}"
+  if ! awk -v target="$relative" \
+      '$1 == "run" && $2 == target { found = 1 } END { exit !found }' "$0"; then
+    echo "run.sh: $relative tidak pernah dijalankan — tambahkan baris run" >&2
+    exit 1
+  fi
+done
+
 "$PSQL" -d postgres -v ON_ERROR_STOP=1 -q \
   -c "drop database if exists $DB;" \
   -c "create database $DB;"
