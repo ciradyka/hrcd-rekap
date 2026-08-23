@@ -34,7 +34,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
-         angkaRapi, nilaiTeks, nilaiBagian, kolomPos,
+         angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
@@ -5330,6 +5330,18 @@ async function layarLiveScore() {
                     <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
                   ${posKolom.map(p => `<th colspan="${p.kolom.length + 1}"
                     class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
+                  <!-- Lima kolom perjalanan mendahului Penalti, dan urutan
+                       itu yang membuatnya berguna: Penalti selalu dibaca
+                       dengan pertanyaan "dari mana", dan jawabannya persis
+                       kelima kolom ini -- kontrak yang dijanjikan, jam
+                       berangkat, jam datang, dan berapa anggota yang tiba.
+                       Menaruhnya SESUDAH Penalti memaksa mata melompat balik
+                       melewati seluruh kolom lomba. -->
+                  <th rowspan="2">Kontrak</th>
+                  <th rowspan="2">Kloter</th>
+                  <th rowspan="2">Berangkat</th>
+                  <th rowspan="2">Datang</th>
+                  <th rowspan="2">Anggota</th>
                   <th rowspan="2">Penalti</th>
                   <th rowspan="2">Total</th>
                 </tr>
@@ -5370,6 +5382,13 @@ async function layarLiveScore() {
                       + `<td class="text-center pos-nilai rekap-batas">${
                           poin[String(p.nomor)] === undefined
                             ? "–" : esc(angkaRapi(poin[String(p.nomor)]))}</td>`).join("")}
+                    <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
+                    <td class="text-center">${esc(rk.kloter ?? "—")}</td>
+                    <td class="text-center">${esc(rk.jam_berangkat
+                      ? jamMenit(rk.jam_berangkat) : "—")}</td>
+                    <td class="text-center">${esc(rk.jam_datang
+                      ? jamMenit(rk.jam_datang) : "—")}</td>
+                    <td class="text-center">${esc(rk.anggota_hadir ?? "—")}</td>
                     <td class="text-center">${esc(angkaRapi(
                       Number(k.penalti_waktu) + Number(k.penalti_checkout)
                       + Number(k.penalti_anggota)))}</td>
