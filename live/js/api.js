@@ -469,7 +469,6 @@ export async function cariRegu(nomorDada) {
  *  padahal belum adalah cara tercepat membuat panitia mengumumkan juara yang
  *  tidak ada di layar peserta. */
 export async function aturFaseLive(fase) {
-  if (K.mode === "dev") return kirim("/atur-fase-live", { method: "POST", body: JSON.stringify({ fase }) });
   return rpc("atur_fase_live", { p_fase: fase });
 }
 
