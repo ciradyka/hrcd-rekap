@@ -768,6 +768,12 @@ function sukses(hasil) {
   LAYAR.replaceChildren(h(html`
     <div class="card" style="border-color:var(--hijau);background:var(--hijau-muda)">
       <h2>✅ Pendaftaran diterima!</h2>
+      <p ${hasil.terkirim_ulang ? "" : "hidden"}>
+        <strong>Pendaftaran ini sudah tercatat dari kiriman sebelumnya.</strong>
+        Perubahan setelah kiriman pertama tidak ikut tersimpan. Data yang
+        tercatat berisi ${hasil.jumlah_regu} regu; hubungi panitia bila perlu
+        diperbaiki.
+      </p>
       <p>Ini <strong>kode pembayaran</strong>-mu. Simpan baik-baik — kode ini dipakai
          saat membayar dan saat daftar ulang.</p>
       <div class="giant-number" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
