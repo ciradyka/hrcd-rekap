@@ -3403,7 +3403,7 @@ async function layarInputPos() {
     } else if (keadaan === "gagal") {
       sel.replaceChildren(h(html`<button class="button button-danger button-mini"
         type="button" data-ulang title="${pesan}">Ulangi</button>`));
-      sel.querySelector("[data-ulang]").addEventListener("click", () => simpanBaris(tr));
+      sel.querySelector("[data-ulang]").addEventListener("click", () => simpanBaris(tr, true));
     } else {
       sel.replaceChildren();
     }
@@ -3450,6 +3450,14 @@ async function layarInputPos() {
     // berubah sesudah gemboknya terbuka. Yang mahal memang arah itu, bukan
     // arah sebaliknya.
     if (!kunci) {
+      // Gembok hanya boleh mengesahkan angka yang SUDAH dibaca kembali dari
+      // database. Tanpa pagar ini request kunci bisa mendahului request simpan,
+      // lalu server menolak simpanan itu karena baris telanjur terkunci.
+      if (tr.dataset.keadaan !== "tersimpan"
+          || Number(tr.dataset.terisi) === 0) {
+        notif(`Nilai ${tiga} belum tersimpan. Tunggu tanda ✓, lalu kunci.`, true);
+        return;
+      }
       try { await kunciNilaiPos(dada, pos.nomor); }
       catch (err) { notif(`Gagal mengunci: ${err.message}`, true); return; }
       tr.dataset.terkunci = "1";
@@ -3969,7 +3977,7 @@ async function layarInputPos() {
   });
   perbaruiRingkasan();
 
-  async function simpanBaris(tr) {
+  async function simpanBaris(tr, beriTahu = false) {
     // Satu baris punya banyak kotak, dan tiap kotak yang ditinggalkan memicu
     // simpanan sendiri. Petugas yang mengetik cepat menghasilkan lima
     // panggilan beruntun, dan yang kedua sampai kelima datang selagi yang
@@ -3983,10 +3991,17 @@ async function layarInputPos() {
     // seluruh baris, sehingga berapa pun ketukan yang menumpuk cukup
     // diselesaikan satu kali.
     if (tr.dataset.jalan === "1") { tr.dataset.antre = "1"; return; }
-    // Baris tergembok tidak pernah dikirim. Kotaknya memang sudah mati, tapi
-    // simpanBaris juga dipanggil dari antrean dan dari tombol Ulangi.
-    if (tr.dataset.terkunci === "1") return;
     const dada = Number(tr.dataset.dada);
+    // Baris tergembok tidak pernah dikirim. Kotaknya memang sudah mati, tapi
+    // simpanBaris juga dipanggil dari antrean dan dari tombol Ulangi. Tombol
+    // itu harus menjelaskan jalan keluarnya; putaran otomatis tetap diam agar
+    // tidak menyemburkan notifikasi setiap 15 detik.
+    if (tr.dataset.terkunci === "1") {
+      const pesan = "Nilai sudah digembok. Buka gembok sebelum mengirim ulang.";
+      statusBaris(tr, "gagal", pesan);
+      if (beriTahu) notif(pesanBaris(dada, pesan), true);
+      return;
+    }
     const lama = asli.get(dada) || {};
     const baris = [], dihapus = [], takTerbaca = [];
 
