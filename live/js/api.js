@@ -117,7 +117,7 @@ export function pesanRamah(m) {
     return "Nama ketua tidak boleh memakai angka.";
   if (/nama_kontak_tanpa_angka/i.test(t))
     return "Nama contact person tidak boleh memakai angka.";
-  if (/permission denied|insufficient/i.test(t))
+  if (/permission denied|insufficient|tidak berhak:/i.test(t))
     return "Akun ini tidak berhak melakukan itu. Pakai akun yang sesuai.";
   if (/password.*(should be different|new password should be different)/i.test(t))
     return "Password baru harus beda dari password lama.";
