@@ -104,7 +104,8 @@ run supabase/migrations/0024_komponen_pos.sql
 #     itu benar-benar diperiksa. Tanpa 0054 ia melapor "Pembidaian tidak ada di
 #     database ini" dan penjaganya diam.
 #   * 0091 harus SESUDAH 0076 agar lima komponen Soal Tulis yang disalin untuk
-#     Intern sudah ada. 0093 lalu menyiapkan 60 kloter setelah edisi aktif lahir.
+#     Intern sudah ada. 0093 menyiapkan 60 kloter setelah edisi aktif lahir;
+#     0105 menambah headroom-nya menjadi 75.
 for m in $ULANG; do
   run "supabase/migrations/$m.sql"
 done

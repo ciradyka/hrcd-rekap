@@ -181,7 +181,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 1. Penempatan otomatis memakai kuota **5 regu Eksternal + 3 regu Intern** per
    kloter. Kedua kuota dihitung terpisah.
-2. Perkiraan 300 Eksternal + 50 Intern membutuhkan **60 kloter**.
+2. Perkiraan 300 Eksternal + 50 Intern membutuhkan **60 kloter**, tetapi edisi
+   menyediakan **75 kloter** agar tempat kosong pada kloter yang sudah
+   berangkat tidak menggagalkan batch daftar ulang berikutnya.
 3. Kloter ditentukan otomatis begitu regu menerima nomor dada.
 4. **Urutannya FIFO:** siapa lebih dahulu menyelesaikan daftar ulang mendapat
    kloter lebih awal. Sekolah tidak memengaruhi penempatan.
@@ -189,8 +191,8 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    menutup kloter untuk tambahan.
 6. Set manual tidak memiliki batas kuota atau jumlah; ini sengaja agar petugas
    dapat mencatat keadaan lapangan apa adanya.
-7. Perkiraan waktu K1–K60 dibagi merata sepanjang 07:00–10:00, sekitar tiga
-   menit antar-kloter untuk jumlah tersebut.
+7. Perkiraan waktu K1–K75 dibagi merata sepanjang 07:00–10:00, sekitar dua
+   setengah menit antar-kloter untuk jumlah tersebut.
 8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
    dan putri, dapat berangkat dalam kloter yang sama; hanya Intern dan Eksternal
    yang mempunyai kuota otomatis terpisah.

@@ -443,6 +443,10 @@ run tests/sql/64_pos_last_entry.sql
 # publik harus memakai populasi yang sama. Papan panitia tetap menghitung Intern.
 run supabase/migrations/0104_public_completeness_external_only.sql
 run tests/sql/65_public_completeness_external.sql
+# Enam puluh kloter hanya memberi tepat 300 tempat Eksternal. Tambahkan 15
+# kloter cadangan dan tetap bagi seluruh perkiraannya di dalam 07:00-10:00.
+run supabase/migrations/0105_expand_kloter_capacity.sql
+run tests/sql/66_kloter_capacity_headroom.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
