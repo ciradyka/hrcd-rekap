@@ -6,9 +6,12 @@ do $blok$
 declare
   v_sekolah uuid;
   v_daftar uuid;
+  v_daftar_lewat uuid;
   v_regu uuid;
+  v_regu_lewat uuid;
   v_pasangan jsonb := '[]'::jsonb;
   v_nomor int;
+  v_nomor_lewat int;
   v_i int;
   v_jumlah int;
   v_pindah int;
@@ -67,6 +70,37 @@ begin
     and r.kloter_nomor = 2;
   assert v_jumlah = 5, format('sisa FIFO di K2 berjumlah %s, seharusnya 5', v_jumlah);
 
+  -- K2 masih punya slot Eksternal, tetapi sudah berangkat. Fungsi TERBARU
+  -- harus melewatinya saat menempatkan otomatis dan tetap membolehkan petugas
+  -- memindahkan regu ke sana secara manual bila itulah kejadian lapangannya.
+  update kloter set jam_berangkat = timestamptz '2026-08-29 07:05+07'
+  where nomor = 2;
+  insert into pendaftaran
+    (sekolah_id, kode_pembayaran, jumlah_regu, kontak_wa, status)
+  values (v_sekolah, 'UJI-LEWAT-0092', 1, '081200000093', 'lunas')
+  returning id into v_daftar_lewat;
+  insert into regu (pendaftaran_id, nama_regu, nama_ketua, golongan)
+  values (v_daftar_lewat, 'C Ext Lewat', 'Ketua Uji', 'penggalang_pa')
+  returning id into v_regu_lewat;
+  select min(s.nomor) into v_nomor_lewat from nomor_dada_stok s
+  where not exists (select 1 from regu r where r.nomor_dada = s.nomor)
+    and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor);
+
+  perform * from daftar_ulang_batch(
+    'UJI-LEWAT-0092',
+    jsonb_build_array(jsonb_build_object(
+      'regu_id', v_regu_lewat, 'nomor_dada', v_nomor_lewat))
+  );
+  assert (select kloter_nomor = 3 from regu where id = v_regu_lewat),
+         'otomatis memasukkan regu ke K2 yang sudah berangkat';
+
+  perform pindah_kloter(v_nomor_lewat, 'uji manual ke kloter berangkat', 2::smallint);
+  assert (select kloter_nomor = 2 from regu where id = v_regu_lewat),
+         'pemindahan manual ke kloter berangkat ikut ditolak';
+  -- Pulihkan fixture untuk tes gerbang berikutnya; test ini hanya membutuhkan
+  -- K2 berstatus berangkat selama dua assertion di atas.
+  update kloter set jam_berangkat = null where nomor = 2;
+
   -- Set manual ke K1 boleh melewati jumlah otomatis 8.
   select nomor_dada into v_pindah from regu
   where pendaftaran_id = v_daftar and kloter_nomor = 2 limit 1;
@@ -90,7 +124,7 @@ begin
           from v_daftar_kloter where kloter = 1),
          'perkiraan di kertas berubah menjadi jam nyata';
 
-  raise notice '53: FIFO 5+3, manual tanpa batas, dan perkiraan 60 kloter teruji.';
+  raise notice '53: FIFO 5+3, lewati kloter berangkat, manual tanpa batas, dan perkiraan 60 kloter teruji.';
 end $blok$;
 
 \echo '53 FIFO kloter Eksternal/Intern: LULUS'
