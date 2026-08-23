@@ -1640,9 +1640,15 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dari nama sekolah yang baru saja dibaca. */
   .table-daftar-ulang > tbody > tr > td:nth-child(3) { text-align: left; }
   .table-daftar-ulang > tbody > tr > td:nth-child(3) .pill-row { justify-content: flex-start; }
-  /* Kotak angka melebar sedikit — sasaran klik lebih besar, dan titik
-     tengahnya jatuh persis segaris dengan tombol Simpan di bawahnya. */
+  /* Kotak angka melebar sedikit supaya sasaran kliknya lebih besar. */
   .detail-table-dada input.small-input { width: 100%; max-width: 8rem; }
+
+  /* Tombol Simpan menempati pita kolom Nomor Dada (27%), bukan kolom Tukar
+     di tepi kanan. Margin 20% menyisakan pita kolom Tukar di sebelahnya. */
+  .action-row-simpan .button-small {
+    flex: 0 0 27%;
+    margin-right: 20%;
+  }
 }
 
 .detail-table-dada { width: 100%; margin: 0; }
@@ -2079,17 +2085,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Sejajar dengan teks di dalam tabel di atasnya, bukan dengan tepi kartu.
    Sel tabel punya padding sendiri, jadi keterangan yang tidak punya padding
    apa pun mulai lebih kiri daripada seluruh kolom di atasnya dan terbaca
-   seperti jatuh keluar dari tabelnya. Hanya KIRI yang diberi jarak: tombol
-   Simpan di kanan sengaja berbaris dengan kolom Nomor Dada, dan padding
-   kanan akan menggesernya keluar dari barisan itu. */
+   seperti jatuh keluar dari tabelnya. */
 .action-row-simpan .sub { flex: 1; min-width: 12rem; padding-left: .5rem; }
-/* Tombol Simpan selebar kolom Nomor Dada (28%) supaya titik tengahnya jatuh
-   segaris dengan kotak-kotak isian di atasnya — satu pita lurus dari tombol
-   "Isi N Nomor Dada", turun ke kotak isian, turun ke tombol Simpan. Dulu
-   tombol ini menempel ke tepi kanan kartu, jauh di kanan kotak isiannya. */
-@media (min-width: 561px) {
-  .action-row-simpan .button-small { flex: 0 0 28%; }
-}
 
 /* ============================================================================
    JENDELA SEMPIT TAPI MASIH TABEL (901px - 940px)
