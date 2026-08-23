@@ -43,6 +43,27 @@ const SEKOLAH_INTERNAL = {
 // (1-9, bukan 0), lalu 6-10 digit lagi. Dipakai untuk validasi live (saat
 // mengetik) maupun pemeriksaan akhir sebelum kirim — satu pola, satu tempat.
 const POLA_WA = /^08[1-9][0-9]{6,10}$/;
+const POLA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Buat UUID v4 juga di WebView yang belum punya crypto.randomUUID(). */
+function uuidDraf(kripto = globalThis.crypto) {
+  if (kripto && typeof kripto.randomUUID === "function")
+    return kripto.randomUUID();
+
+  const byte = new Uint8Array(16);
+  if (kripto && typeof kripto.getRandomValues === "function")
+    kripto.getRandomValues(byte);
+  else
+    for (let i = 0; i < byte.length; i++)
+      byte[i] = Math.floor(Math.random() * 256);
+
+  byte[6] = (byte[6] & 0x0f) | 0x40;
+  byte[8] = (byte[8] & 0x3f) | 0x80;
+  const heks = Array.from(byte, n => n.toString(16).padStart(2, "0"));
+  return `${heks.slice(0, 4).join("")}-${heks.slice(4, 6).join("")}`
+    + `-${heks.slice(6, 8).join("")}-${heks.slice(8, 10).join("")}`
+    + `-${heks.slice(10).join("")}`;
+}
 
 const kosong = () => ({
   jenis_peserta: null,           // "eksternal" atau "internal"
@@ -57,8 +78,7 @@ const kosong = () => ({
   regu: [],                      // [{golongan, nama_regu, nama_ketua}]
   kontak_wa: "",
   nama_kontak: "",
-  kunci_kirim: (crypto.randomUUID ? crypto.randomUUID()
-                : String(Date.now()) + Math.random().toString(16).slice(2)),
+  kunci_kirim: uuidDraf(),
 });
 
 let jawab = kosong();
@@ -851,6 +871,13 @@ async function mulai() {
     // yaitu Eksternal. Tetapkan otomatis agar ketikan yang sudah ada tidak
     // hilang hanya karena form mendapat satu pertanyaan baru.
     jawab = { ...kosong(), ...draf, jenis_peserta: draf.jenis_peserta ?? "eksternal" };
+    // Versi lama pernah menyimpan fallback non-UUID. Perbaiki drafnya juga;
+    // kalau hanya generator baru yang dibetulkan, setiap reload tetap memakai
+    // kunci rusak yang sudah telanjur tersimpan.
+    if (!POLA_UUID.test(String(jawab.kunci_kirim || ""))) {
+      jawab.kunci_kirim = uuidDraf();
+      simpanDraf();
+    }
     if (jawab.jenis_peserta === "internal") {
       jawab.sekolah = sekolahInternal();
       jawab.butuh_barak = false;
