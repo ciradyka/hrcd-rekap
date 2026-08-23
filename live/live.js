@@ -699,6 +699,12 @@ muat();
    tertinggal terbuka di saku adalah beban yang tidak menghasilkan apa pun —
    dan mereka tetap mendapat data segar begitu layarnya dibuka lagi. */
 let denyut = null;
+const segarkanFase = async () => {
+  if (document.hidden) return;
+  const sebelum = FASE_DB;
+  await ambilFaseDb();
+  if (FASE_DB !== sebelum) gambar();
+};
 const nyalakan = () => {
   if (denyut === null) denyut = setInterval(muat, 60000);
   /* FASE dipantau TERPISAH dan jauh lebih sering.
@@ -713,29 +719,19 @@ const nyalakan = () => {
    *  Dan yang paling menentukan di lapangan: BEGITU HP DIBUKA LAGI. Peserta
    *  mengunci layarnya lalu membukanya menit berikutnya; tanpa baris ini ia
    *  melihat papan basi sampai denyut berikutnya tiba. */
-  if (denyutFase === null) {
-    denyutFase = setInterval(async () => {
-      const sebelum = FASE_DB;
-      await ambilFaseDb();
-      if (FASE_DB !== sebelum) gambar();
-    }, 15000);
-    const segera = async () => {
-      if (document.visibilityState !== "visible") return;
-      const sebelum = FASE_DB;
-      await ambilFaseDb();
-      if (FASE_DB !== sebelum) gambar();
-    };
-    document.addEventListener("visibilitychange", segera);
-    window.addEventListener("focus", segera);
-  }
+  if (denyutFase === null) denyutFase = setInterval(segarkanFase, 15000);
 };
 const matikan = () => {
   if (denyut !== null) { clearInterval(denyut); denyut = null; }
+  if (denyutFase !== null) { clearInterval(denyutFase); denyutFase = null; }
 };
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) matikan();
   else { nyalakan(); muat(); }
 });
+// Fokus bisa kembali tanpa visibilitychange (misalnya berpindah jendela).
+// Pendengarnya dipasang sekali; nyalakan() hanya mengelola kedua interval.
+window.addEventListener("focus", segarkanFase);
 if (!document.hidden) nyalakan();
 
 // Cap "berapa menit lalu" ikut berjalan meski datanya belum berubah.
