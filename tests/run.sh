@@ -424,6 +424,9 @@ run tests/sql/62_guard_pos_completeness.sql
 # berangkat; tandai regunya agar petugas tahu kertas staging perlu diperbarui.
 run supabase/migrations/0102_mark_printed_kloter_insertion.sql
 run tests/sql/63_daftar_ulang_after_print.sql
+# Panel kelengkapan memakai waktu nilai terakhir untuk menandai pos yang diam.
+run supabase/migrations/0103_restore_pos_last_entry.sql
+run tests/sql/64_pos_last_entry.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
