@@ -25,7 +25,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { detikSah, detikTeks, meterSah, meterTeks }
+import { detikSah, detikTeks, meterSah, meterTeks, nilaiTeks }
   from "../web/js/util.js";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
@@ -93,6 +93,53 @@ test("digambar ulang tidak mengubah angka yang tersimpan", () => {
     assert.equal(meterSah(meterTeks(cm)), cm,
       `meter ${teks} berubah setelah digambar ulang`);
   }
+});
+
+test("nilaiTeks menulis angka mentah persis seperti kotaknya", () => {
+  assert.equal(nilaiTeks({ satuan: "detik" }, 47), "00:47");
+  assert.equal(nilaiTeks({ satuan: "detik" }, 95), "01:35");
+  assert.equal(nilaiTeks({ satuan: "meter" }, 855), "8.55");
+  assert.equal(nilaiTeks({ satuan: "meter" }, 800), "8.00");
+  assert.equal(nilaiTeks({ form: "biner" }, 1), "ya");
+  assert.equal(nilaiTeks({ form: "biner" }, 0), "tidak");
+  assert.equal(nilaiTeks({ form: "besar_baik" }, 25), "25");
+  // Komponen yang sudah dihapus admin masih punya riwayat: angka polos, bukan
+  // baris yang hilang.
+  assert.equal(nilaiTeks(undefined, 25), "25");
+  assert.equal(nilaiTeks({ satuan: "meter" }, null), "");
+  assert.equal(nilaiTeks({ satuan: "detik" }, null), "");
+});
+
+test("yang ditulis nilaiTeks bisa dibaca kembali jadi angka yang sama", () => {
+  // Kotak diisi oleh nilaiTeks dan dibaca kembali oleh detikSah/meterSah.
+  // Kalau keduanya tidak saling membalik, menyimpan baris yang tidak disentuh
+  // sekalipun akan menyimpan angka yang berbeda dari yang tersimpan.
+  for (const detik of [0, 47, 95, 600, 5400]) {
+    assert.equal(detikSah(nilaiTeks({ satuan: "detik" }, detik)), detik,
+      `detik ${detik} tidak kembali utuh`);
+  }
+  for (const cm of [0, 800, 855, 1205, 10000]) {
+    assert.equal(meterSah(nilaiTeks({ satuan: "meter" }, cm)), cm,
+      `meter ${cm} tidak kembali utuh`);
+  }
+});
+
+test("riwayat nilai memakai penulis yang sama dengan kotak isian", () => {
+  // Riwayat dulu memanggil angkaRapi langsung, jadi ia berbunyi "855" untuk
+  // Menaksir yang kotaknya menuliskan "8.55". Yang membuka riwayat sedang
+  // membandingkan dengan kotak itu.
+  const awal = app.indexOf("async function bukaRiwayat(tr) {");
+  assert.notEqual(awal, -1, "fungsi bukaRiwayat tidak ditemukan");
+  const akhir = app.indexOf('<ul class="riwayat">', awal);
+  assert.notEqual(akhir, -1, "daftar riwayat tidak ditemukan");
+  const daftar = app.slice(akhir, app.indexOf("</ul>", akhir));
+
+  assert.match(daftar, /nilaiTeks\(k, b\.nilai_lama\)/,
+    "nilai lama di riwayat tidak ditulis lewat nilaiTeks");
+  assert.match(daftar, /nilaiTeks\(k, b\.nilai_baru\)/,
+    "nilai baru di riwayat tidak ditulis lewat nilaiTeks");
+  assert.doesNotMatch(daftar, /angkaRapi\(/,
+    "riwayat kembali menulis angka mentah tanpa satuannya");
 });
 
 test("bacaSel memeriksa badInput di kotak angka bawaan browser", () => {
