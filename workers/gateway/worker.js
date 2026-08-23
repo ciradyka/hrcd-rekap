@@ -68,7 +68,7 @@ function cors(req) {
   return {
     "Access-Control-Allow-Origin": ASAL_BOLEH.includes(asal) ? asal : ASAL_PESERTA,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    // Authorization dipakai rute /akun: token sesi admin yang sedang login.
+    // Authorization dipakai rute /akun: token sesi pemegang hak Akun.
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }
@@ -117,17 +117,17 @@ function kepalaLayanan(env) {
   };
 }
 
-/** Pastikan pemanggil benar-benar admin yang sedang login.
+/** Pastikan pemanggil benar-benar memegang hak Akun dan sedang login.
  *
  *  DUA langkah, dan keduanya wajib. Yang pertama membuktikan tokennya asli
  *  dan belum kedaluwarsa — itu dijawab GoTrue, bukan oleh kita. Yang kedua
- *  membuktikan pemilik token itu memang admin AKTIF, dan itu dibaca dari
- *  akun_panitia dengan service_role.
+ *  membuktikan pemilik token itu AKTIF dan memegang centang `akun`. Peran
+ *  hanya mengisi centang awal; `akun_hak` adalah sumber hak yang berlaku.
  *
  *  Memeriksa isi JWT sendiri tanpa langkah pertama akan menerima token
  *  kedaluwarsa; memercayai peran dari klaim JWT tanpa langkah kedua akan
  *  menerima peran yang sudah dicabut tapi tokennya belum habis. */
-async function pastikanAdmin(req, env) {
+async function pastikanBolehAkun(req, env) {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer /i, "");
   if (!token) return { galat: jawab(401, { message: "Belum masuk." }, req) };
 
@@ -138,11 +138,18 @@ async function pastikanAdmin(req, env) {
   const user = await u.json();
 
   const a = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/akun_panitia?user_id=eq.${user.id}&select=peran,is_active`,
+    `${env.SUPABASE_URL}/rest/v1/akun_panitia?user_id=eq.${user.id}&select=is_active`,
     { headers: kepalaLayanan(env) });
   const baris = a.ok ? await a.json() : [];
-  if (!baris.length || !baris[0].is_active || baris[0].peran !== "admin")
-    return { galat: jawab(403, { message: "Hanya admin yang bisa mengelola akun." }, req) };
+  if (!baris.length || !baris[0].is_active)
+    return { galat: jawab(403, { message: "Akun ini tidak aktif." }, req) };
+
+  const h = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/akun_hak?user_id=eq.${user.id}&fitur=eq.akun&select=fitur`,
+    { headers: kepalaLayanan(env) });
+  const hak = h.ok ? await h.json() : [];
+  if (!hak.length)
+    return { galat: jawab(403, { message: "Akun ini tidak berhak mengelola akun." }, req) };
 
   return { uid: user.id };
 }
@@ -417,7 +424,7 @@ export default {
     const url = new URL(req.url);
 
     /* Pendaftaran mandiri panitia. PUBLIK — itu memang gunanya — dan karena
-       itu satu-satunya rute /akun yang berdiri SEBELUM pastikanAdmin().
+       itu satu-satunya rute /akun yang berdiri SEBELUM pastikanBolehAkun().
        Urutannya penting: `startsWith("/akun")` di bawah akan menelannya dan
        menuntut token admin, yang berarti tidak ada satu orang pun yang bisa
        memakainya.
@@ -451,11 +458,11 @@ export default {
       return hasil;
     }
 
-    // Rute akun: admin yang sedang login, bukan publik. Tidak kena rate limit
-    // per IP — beberapa panitia menyiapkan satu edisi dari satu WiFi, dan
-    // pagar untuk banjir skrip anonim tidak berlaku di sini.
+    // Rute akun: pemegang hak `akun` yang sedang login, bukan publik. Tidak
+    // kena rate limit per IP — beberapa panitia menyiapkan satu edisi dari
+    // satu WiFi, dan pagar untuk banjir skrip anonim tidak berlaku di sini.
     if (req.method === "POST" && url.pathname.startsWith("/akun")) {
-      const { galat } = await pastikanAdmin(req, env);
+      const { galat } = await pastikanBolehAkun(req, env);
       if (galat) return galat;
       let b;
       try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }, req); }
