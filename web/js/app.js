@@ -532,7 +532,8 @@ async function layarHome() {
 async function layarPengaturanKloter() {
   pasangKepala("Kalkulator Keberangkatan");
   if (!bolehLihat("pengaturan")) {
-    LAYAR.replaceChildren(kartuGalat("Akun ini tidak berhak membuka Kalkulator Keberangkatan."));
+    LAYAR.replaceChildren(h(kartuGalat(
+      "Akun ini tidak berhak membuka Kalkulator Keberangkatan.")));
     return;
   }
   LAYAR.replaceChildren(h(pemuat()));
