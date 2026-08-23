@@ -290,31 +290,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         as regu_berangkat,
                       (select count(*) from closing_regu)::int as regu_datang
                     """, uid=p.get("uid"), fetch="one"))
-            elif u.path == "/batch":
-                b = q("""
-                    select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
-                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
-                           jsonb_build_object('name', s.name, 'address', s.address) as sekolah,
-                           (select jsonb_agg(jsonb_build_object(
-                              'id', r.id, 'nama_regu', r.nama_regu,
-                              'nama_ketua', r.nama_ketua, 'golongan', r.golongan,
-                              'nomor_dada', r.nomor_dada, 'kloter_nomor', r.kloter_nomor,
-                              'is_cancelled', r.is_cancelled)
-                              order by r.nama_regu)
-                            from regu r where r.pendaftaran_id = d.id) as regu,
-                           (select jsonb_build_object(
-                              'amount', b.amount, 'method', b.method,
-                              'nomor_kwitansi', b.nomor_kwitansi,
-                              'verified_at', b.verified_at)
-                            from pembayaran b where b.pendaftaran_id = d.id) as pembayaran
-                    from pendaftaran d join sekolah s on s.id = d.sekolah_id
-                    where d.kode_pembayaran = %s
-                    """, (p.get("kode", ""),), uid=p.get("uid"), fetch="one")
-                if b is None:
-                    self._kirim(404, {"message":
-                        f"Kode {p.get('kode')} tidak ditemukan. Periksa lagi hurufnya."})
-                else:
-                    self._kirim(200, b)
             else:
                 self._kirim(404, {"message": "tidak ada"})
         except psycopg2.Error as e:

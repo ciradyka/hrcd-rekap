@@ -383,22 +383,6 @@ export async function kirimPendaftaran(payload, tokenTurnstile) {
 
 /* ============================ MEJA ====================================== */
 
-export async function lihatBatch(kode) {
-  if (K.mode === "dev") return baca(`/batch?kode=${encodeURIComponent(kode)}`);
-  // order pada embed regu: urutan bacaan meja harus sama dengan urutan
-  // pemberian nomor oleh RPC (temuan review).
-  const d = await baca(null,
-    `pendaftaran?kode_pembayaran=eq.${encodeURIComponent(kode)}` +
-    `&select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping,butuh_barak,kontak_wa,` +
-    `sekolah(name,address),` +
-    `regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,is_cancelled),` +
-    `pembayaran(amount,method,nomor_kwitansi,verified_at)` +
-    `&regu.order=nama_regu.asc`);
-  if (!d.length)
-    throw new ErrorApi(`Kode ${kode} tidak ditemukan. Periksa lagi hurufnya.`);
-  return d[0];
-}
-
 export async function ringkasanMeja() {
   if (K.mode === "dev") return baca("/ringkasan");
   // Dihitung dari sisi regu supaya angkanya benar-benar "batch lunas yang
@@ -449,9 +433,6 @@ export const daftarUlang = (kode, pasangan) =>
 
 export const tukarNomor = (reguId, nomorBaru, alasan) =>
   rpc("tukar_nomor_dada", { p_regu: reguId, p_nomor_baru: nomorBaru, p_alasan: alasan });
-
-export const ubahPendamping = (kode, jumlah) =>
-  rpc("ubah_pendamping", { p_kode: kode, p_jumlah: jumlah });
 
 /* ============================ CETAK KLOTER ============================== */
 
