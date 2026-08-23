@@ -1439,7 +1439,7 @@ async function layarDaftarUlang() {
         }
         if (keluhan) {
           notif(keluhan, true);
-          isian.find(i => i.classList.contains("galat-isian"))?.focus();
+          isian.find(i => i.classList.contains("input-error"))?.focus();
           return;
         }
 
