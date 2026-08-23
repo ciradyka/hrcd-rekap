@@ -935,7 +935,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      layar, supaya petugas tidak perlu mengingat skalanya. */
   .print-table th .kolom-petunjuk {
     display: block; max-width: none; font-size: 7pt; font-weight: 400;
-    text-transform: none; margin-top: 1pt;
+    text-transform: none; margin-top: 1pt; color: #000;
     /* Di layar petunjuk sengaja tidak dipatahkan, di kertas ia BOLEH:
        lebar kolom di sini dibagi habis oleh lebar kertas, dan satu keterangan
        yang menolak membungkus akan mendorong kolom sebelahnya keluar halaman. */
