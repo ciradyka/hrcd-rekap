@@ -46,3 +46,22 @@ test("tanggal cetak kloter hanya dirender di lembar print", () => {
   );
   assert.match(lembar, /Dicetak \$\{esc\(dicetak\)\}/, "waktu print tidak ada di lembar");
 });
+
+test("cetak lembar pos memanggil print tanpa melewati await", () => {
+  // Jalur kedua yang memanggil window.print() dari sebuah tombol. Dulu ia
+  // menunggu batasNomorDada() dan statusAcara() lebih dulu — yang kedua
+  // bahkan tidak pernah dibaca — jadi di iPhone lembar cetaknya tidak pernah
+  // terbuka sementara tombol kloter di layar sebelah bekerja. Yang membuat
+  // laporannya terdengar seperti masalah HP, bukan masalah kode.
+  const awal = app.indexOf("  const cetak = (slip) => {");
+  assert.notEqual(awal, -1,
+    "handler cetak lembar pos tidak ditemukan — kalau ia jadi `async` lagi, "
+    + "`await` di dalamnya berhenti jadi galat sintaks dan print bisa lepas "
+    + "dari giliran tap");
+
+  const akhir = app.indexOf("window.print();", awal);
+  assert.notEqual(akhir, -1, "window.print() tidak dipanggil di jalur cetak pos");
+
+  assert.doesNotMatch(app.slice(awal, akhir), /await/,
+    "Safari iPhone memblokir print bila ada request ditunggu sesudah tap");
+});
