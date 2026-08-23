@@ -83,7 +83,7 @@ penyelesaiannya dicatat di bagian 11.
 
 | Tabel | Isi | Contoh edisi 37 |
 | --- | --- | --- |
-| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | Kuota otomatis 5 Eksternal + 3 Intern, perkiraan 300 Eksternal + 50 Intern, `kloter_maks=60`, jendela 07:00–10:00 |
+| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | Kuota otomatis 5 Eksternal + 3 Intern, perkiraan 300 Eksternal + 50 Intern, `kloter_maks=75`, jendela 07:00–10:00 |
 | `pos` | Daftar pos dinilai + bobot | 5 baris, `bobot=1.00` semua (aturan 9.2) |
 | `wahana` | Satu baris per komponen nilai (wahana **atau** soal, kolom `jenis`): bentuk konversi + parameter + rentang wajar | `kode='lari_zigzag', bentuk='kecil_baik', poin_maks=100, raw_terbaik=20, raw_terburuk=90` → raw 40 detik = 71,4 poin |
 | `kontrak_opsi` | Pilihan kontrak waktu | `('3,5 jam',210), ('4 jam',240), ('4,5 jam',270)` |
