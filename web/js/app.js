@@ -30,11 +30,11 @@ import {
   hapusFotoLembar,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
-         meterSah, meterTeks,
+         meterSah,
          dialog, kartuGagalMuat, jamSah, pasangKotakJam,
          berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
-         angkaRapi, petunjukKolom, nilaiBagian,
+         angkaRapi, nilaiTeks, petunjukKolom, nilaiBagian,
          jamPadaHari, GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
@@ -2390,7 +2390,7 @@ function selKomponen(k, nilai) {
     // jadi yang hilang cuma tombol panah naik-turun yang memang tidak pernah
     // dipakai untuk mencatat waktu.
     return `<input type="text" class="small-input input-waktu" inputmode="numeric"
-                   data-kode="${kode}" value="${esc(detikTeks(n1))}"${kosongTampak}
+                   data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
                    aria-label="${esc(k.name)} — detik, atau menit:detik">`;
   }
   if (k.satuan === "meter") {
@@ -2399,17 +2399,17 @@ function selKomponen(k, nilai) {
     // input[type=number] menolak koma diam-diam: kotaknya jadi kosong tanpa
     // sepatah kata, dan yang mengetiknya mengira angkanya sudah masuk.
     return `<input type="text" class="small-input input-meter" inputmode="decimal"
-                   data-kode="${kode}" value="${esc(meterTeks(n1))}"${kosongTampak}
+                   data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
                    aria-label="${esc(k.name)} — meter, dua angka di belakang koma">`;
   }
   if (k.form === "benar_kurang_salah") {
     return `<span class="pos-pasangan">
       <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
-             data-kode="${kode}" data-slot="benar" value="${esc(angkaRapi(n1))}"
+             data-kode="${kode}" data-slot="benar" value="${esc(nilaiTeks(k, n1))}"
              aria-label="${esc(k.name)} — jumlah benar">
       <span class="pos-pemisah" aria-hidden="true">/</span>
       <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
-             data-kode="${kode}" data-slot="salah" value="${esc(angkaRapi(n2))}"
+             data-kode="${kode}" data-slot="salah" value="${esc(nilaiTeks(k, n2))}"
              aria-label="${esc(k.name)} — jumlah salah">
     </span>`;
   }
@@ -2424,7 +2424,7 @@ function selKomponen(k, nilai) {
   // tidak lewat kotak ini sama sekali.
   return `<input type="number" class="small-input" inputmode="numeric" step="1"
                  min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
-                 data-kode="${kode}" value="${esc(angkaRapi(n1))}"${kosongTampak}
+                 data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
                  aria-label="${esc(k.name)}">`;
 }
 
@@ -3491,13 +3491,23 @@ async function layarInputPos() {
                   aria-pressed="false">${nama}</button>`).join("")}
       </div>`;
 
-    const isi = chip + `<ul class="riwayat">${baris.map(b => html`
+    /* Angkanya ditulis PERSIS seperti kotak isiannya menulisnya — "8.55",
+       bukan 855; "00:47", bukan 47. Yang membuka riwayat sedang membandingkan
+       dengan kotak yang ada di depannya, dan dua bentuk untuk satu angka
+       membuat perbandingan itu harus diterjemahkan dulu. Komponen yang sudah
+       dihapus admin tidak ada di `komponen` lagi; nilaiTeks menuliskannya
+       polos, dan itu tetap lebih baik daripada barisnya hilang. */
+    const metaKode = new Map(komponen.map(k => [k.kode, k]));
+    const isi = chip + `<ul class="riwayat">${baris.map(b => {
+      const k = metaKode.get(b.kode_lomba);
+      return html`
       <li data-lomba="${b.kode_lomba}">
         <span class="r-lomba">${b.nama_lomba}</span>
-        <span class="r-nilai">${b.nilai_lama === null ? "—" : angkaRapi(b.nilai_lama)}
-          → <strong>${b.nilai_baru === null ? "hapus" : angkaRapi(b.nilai_baru)}</strong></span>
+        <span class="r-nilai">${b.nilai_lama === null ? "—" : nilaiTeks(k, b.nilai_lama)}
+          → <strong>${b.nilai_baru === null ? "hapus" : nilaiTeks(k, b.nilai_baru)}</strong></span>
         <span class="r-oleh">${b.oleh} · ${tanggalJam(b.changed_at)}</span>
-      </li>`).join("")}</ul>`;
+      </li>`;
+    }).join("")}</ul>`;
 
     // dialog() menempelkan kartunya ke DOM secara SINKRON sebelum janjinya
     // menunggu, jadi penyaringnya boleh dipasang sebelum di-await. Menunggu
@@ -4331,19 +4341,18 @@ async function layarInputPos() {
         if (k.form === "biner") {
           const centang = !!(nilai && Number(nilai.nilai_1) > 0);
           if (kotak[0].checked !== centang) kotak[0].checked = centang;
-        } else if (k.satuan === "detik") {
-          const teks = detikTeks(nilai ? nilai.nilai_1 : null);
-          if (kotak[0].value !== teks) kotak[0].value = teks;
-        } else if (k.satuan === "meter") {
-          const teks = meterTeks(nilai ? nilai.nilai_1 : null);
-          if (kotak[0].value !== teks) kotak[0].value = teks;
         } else if (k.form === "benar_kurang_salah") {
-          const b = angkaRapi(nilai ? nilai.nilai_1 : null);
-          const sa = angkaRapi(nilai ? nilai.nilai_2 : null);
+          const b = nilaiTeks(k, nilai ? nilai.nilai_1 : null);
+          const sa = nilaiTeks(k, nilai ? nilai.nilai_2 : null);
           if (kotak[0].value !== b) kotak[0].value = b;
           if (kotak[1] && kotak[1].value !== sa) kotak[1].value = sa;
         } else {
-          const v = angkaRapi(nilai ? nilai.nilai_1 : null);
+          // detik, meter, dan kotak angka biasa memakai satu penulis yang
+          // sama dengan selKomponen — kalau tidak, penyegaran 20 detik bisa
+          // menulis ulang kotak dengan bentuk yang berbeda dari yang tadi
+          // digambar, dan kotak yang berubah sendiri terbaca seperti nilai
+          // yang berubah sendiri.
+          const v = nilaiTeks(k, nilai ? nilai.nilai_1 : null);
           if (kotak[0].value !== v) kotak[0].value = v;
         }
       }

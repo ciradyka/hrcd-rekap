@@ -921,6 +921,32 @@ export function dada3(n) {
 export const angkaRapi = (v) =>
   v === null || v === undefined || v === "" ? "" : String(Number(v));
 
+/** NILAI MENTAH -> TEKS SEPERTI YANG TERTULIS DI KOTAK ISIANNYA.
+ *
+ *  Satu tempat untuk seluruh layar: kotak isian, penyegaran 20 detik, dan
+ *  dialog Riwayat Nilai. Aturannya sendiri sederhana — yang tidak sederhana
+ *  adalah menjaganya tetap sama di tiga tempat. Riwayat sempat memakai
+ *  angkaRapi langsung, jadi ia berbunyi "855" untuk Menaksir yang kotaknya
+ *  menuliskan "8.55", dan "47" untuk waktu yang kotaknya menuliskan "00:47".
+ *  Petugas yang membuka riwayat justru sedang membandingkan dengan kotaknya,
+ *  dan dua bentuk untuk satu angka membuat perbandingan itu harus
+ *  diterjemahkan dulu di kepala.
+ *
+ *  `k` adalah baris `wahana`-nya. Boleh kosong — komponen yang sudah dihapus
+ *  admin masih punya riwayat, dan angka polos lebih baik daripada baris yang
+ *  hilang.
+ *
+ *  Kotak centang tidak punya teks di layar, tapi riwayatnya punya: "ya" dan
+ *  "tidak" dibaca lebih cepat daripada 1 dan 0, yang di kolom berisi angka
+ *  terbaca seperti nilai. */
+export function nilaiTeks(k, n) {
+  if (n === null || n === undefined || n === "") return "";
+  if (k && k.form === "biner")  return Number(n) > 0 ? "ya" : "tidak";
+  if (k && k.satuan === "detik") return detikTeks(n);
+  if (k && k.satuan === "meter") return meterTeks(n);
+  return angkaRapi(n);
+}
+
 /** Keterangan kecil di bawah nama kolom: rentang yang boleh ditulis, atau
  *  bentuk isiannya kalau rentang saja menyesatkan. */
 export function petunjukKolom(k) {
