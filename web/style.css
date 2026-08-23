@@ -900,6 +900,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     text-align: left;
     font-size: 11pt;
   }
+  .print-table th.text-center, .print-table td.text-center { text-align: center; }
+  .print-table th.text-right, .print-table td.text-right { text-align: right; }
   /* Kepala tabel TANPA raster abu-abu. #eee terlihat rapi di layar dan di
      printer laser, tapi kertas ini digandakan dengan fotokopi: raster halus
      itu keluar belang, atau menghitam sampai judul kolomnya sulit dibaca.
