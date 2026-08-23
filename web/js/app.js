@@ -2147,6 +2147,23 @@ function layarFinish() {
   let regu = null;
   let jeda = null;
 
+  /* NOMOR DADA yang isian koreksinya diisi oleh SISTEM, atau null kalau
+     isinya diketik petugas sendiri.
+
+     Dua kebutuhan bertabrakan di dua kotak yang sama. Regu yang sudah tercatat
+     ditampilkan jam lamanya supaya verifikasi terhadap kertas tinggal
+     membandingkan; sementara petugas yang menyalin sederet catatan kertas
+     sering mengetik jamnya lebih dulu lalu membetulkan nomornya — itu sebabnya
+     bersihkan() sengaja tidak mengosongkan keduanya.
+
+     Bedanya cuma SIAPA yang mengisi. Isian sistem milik satu regu tertentu dan
+     harus pergi bersama regu itu; isian petugas miliknya sendiri dan tidak
+     boleh disentuh. Tanpa pembedaan ini, mengetik 042 yang sudah tercatat
+     10:30 lalu berpindah ke 043 yang baru masuk pukul 11:05 menyimpan 043
+     sebagai datang 10:30 — di kotak yang tidak terlihat, karena panelnya
+     tertutup. */
+  let isianDariSistem = null;
+
   inp.focus();
   gambarRiwayat();
 
@@ -2201,7 +2218,21 @@ function layarFinish() {
       ? html`<span class="badge badge-green">${arah} — penalti tetap ${tulis(pIsi)}</span>`
       : html`<span class="badge badge-yellow">${arah} — penalti berubah ${tulis(pDasar)} → ${tulis(pIsi)}</span>`;
   };
-  inpJam.dengar(perbaruiDampak);
+  /* Panel koreksi DIBUKA begitu salah satu kotaknya berisi. Isi yang tidak
+     terlihat tetap ikut tersimpan saat tombol ditekan, dan lencana "penalti
+     berubah" yang seharusnya memperingatkan justru ikut tersembunyi di
+     dalamnya. Yang punya akibat harus kelihatan. */
+  const panelKoreksi = inpHadir.closest("details");
+  const bukaKalauBerisi = () => {
+    if (!panelKoreksi) return;
+    const berisi = !inpJam.kosong() || inpHadir.value.trim() !== "5";
+    if (berisi) panelKoreksi.open = true;
+  };
+
+  // Ketikan petugas membatalkan penanda: sejak itu isinya miliknya, dan
+  // berpindah regu tidak boleh membuangnya.
+  inpJam.dengar(() => { isianDariSistem = null; bukaKalauBerisi(); perbaruiDampak(); });
+  inpHadir.addEventListener("input", () => { isianDariSistem = null; bukaKalauBerisi(); });
   // Bentuknya dirapikan saat kotak ditinggalkan, jadi lencana dampaknya ikut
   // dihitung ulang sesudah itu — tanpa ini "745" yang jadi "07:45" saat blur
   // meninggalkan lencana menampilkan hitungan dari teks yang sudah tidak ada.
@@ -2274,6 +2305,14 @@ function layarFinish() {
     if (r.sudah_finish && r.jam_datang) {
       inpJam.setNilai(jamMenit(r.jam_datang));
       inpHadir.value = r.anggota_hadir ?? 5;
+      isianDariSistem = dada;
+      bukaKalauBerisi();
+    } else if (isianDariSistem !== null && isianDariSistem !== dada) {
+      // Isian tadi milik regu LAIN yang sudah tercatat. Membawanya ke regu ini
+      // berarti menyimpan jam dan jumlah anggota regu sebelumnya atas namanya.
+      inpJam.setNilai("");
+      inpHadir.value = "5";
+      isianDariSistem = null;
     }
     perbaruiDampak();
   }
@@ -2318,6 +2357,7 @@ function layarFinish() {
       `${nama} — ${jamMenit(jam)}${hadir < 5 ? ` · ${hadir} anggota` : ""}`);
     tombol.dataset.jalan = "";
     inp.value = ""; inpJam.setNilai(""); inpHadir.value = "5";
+    isianDariSistem = null;
     bersihkan(); inp.focus();
     gambarRiwayat();
     notif(`${dada3(dada)} tercatat ${jamMenit(jam)}.`);
