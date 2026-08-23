@@ -3882,6 +3882,9 @@ async function layarInputPos() {
   // Jam terakhir kali sesuatu BENAR-BENAR masuk database. Diisi saat lembar
   // dimuat, karena saat itu angka di layar memang baru dibaca dari sana.
   let jamSinkron = new Date();
+  // Setiap request penyegaran dan setiap simpanan yang terkonfirmasi memajukan
+  // versi ini. Respons hanya boleh menulis DOM bila versinya masih terbaru.
+  let versiLembar = 0;
 
   function perbaruiRingkasan() {
     const baris = [...tbody.children];
@@ -4067,6 +4070,10 @@ async function layarInputPos() {
       for (const kode of dihapus) await hapusNilaiPos(dada, kode, pos.nomor);
 
       const segar = await lembarPosSatu(pos.nomor, dada);
+      // Membatalkan snapshot lembar penuh yang mulai diambil sebelum simpanan
+      // ini selesai. Tanpa ini respons lama bisa menimpa angka yang baru saja
+      // dikonfirmasi dari database.
+      versiLembar += 1;
       if (segar) {
         asli.set(dada, segar.nilai || {});
         tr.querySelector(".pos-nilai").textContent = angkaRapi(segar.nilai_pos);
@@ -4347,10 +4354,11 @@ async function layarInputPos() {
      tertinggal basi selamanya — yang ada hanya baris yang menunggu gilirannya.
      ========================================================================== */
   const segarkanLembar = async () => {
+    const versiPermintaan = ++versiLembar;
     let baru;
     try { baru = await lembarPos(pos.nomor); }
     catch { return; }   // pos sering kehilangan sinyal; percobaan berikutnya 20 detik lagi
-    if (location.hash !== layarIni) return;
+    if (location.hash !== layarIni || versiPermintaan !== versiLembar) return;
 
     const peta = new Map(baru.map(r => [Number(r.nomor_dada), r]));
     let berubah = false;
