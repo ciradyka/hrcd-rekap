@@ -83,7 +83,7 @@ jobs:
       # itu dijalankan: `node --check` lulus, halaman terbuka normal, dan
       # galatnya baru muncul saat petugas menekan tombolnya di lapangan.
       # `kunciNilaiPos` pernah lolos sampai produksi persis begitu.
-      - name: Setiap fungsi api.js yang dipanggil app.js benar-benar diimpor
+      - name: Setiap fungsi shared module yang dipanggil benar-benar diimpor
         run: python tools/periksa_impor.py
 
       # Golongan kini tinggal di web/js/util.js — berkas yang sudah dibandingkan

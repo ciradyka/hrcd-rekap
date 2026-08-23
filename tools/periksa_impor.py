@@ -1,4 +1,4 @@
-r"""Pastikan setiap fungsi api.js yang DIPANGGIL app.js benar-benar diimpor.
+r"""Pastikan fungsi shared module yang DIPANGGIL benar-benar diimpor.
 
 KENAPA BERKAS INI ADA
 
@@ -22,15 +22,17 @@ from pathlib import Path
 AKAR = Path(__file__).resolve().parent.parent
 
 
-def periksa(app_path: Path, api_path: Path) -> list[str]:
+def periksa(app_path: Path, sumber_path: Path, modul: str) -> list[str]:
     app = app_path.read_text(encoding="utf-8")
-    api = api_path.read_text(encoding="utf-8")
+    sumber = sumber_path.read_text(encoding="utf-8")
 
     ekspor = set(re.findall(
-        r"export\s+(?:async\s+function|function|const)\s+(\w+)", api))
-    m = re.search(r'import\s*\{([^}]*)\}\s*from\s*"\./api\.js"', app, re.S)
+        r"export\s+(?:async\s+function|function|const)\s+(\w+)", sumber))
+    m = re.search(
+        r'import\s*\{([^}]*)\}\s*from\s*["\']' + re.escape(modul) + r'["\']',
+        app, re.S)
     if not m:
-        raise SystemExit(f"{app_path}: pernyataan import api.js tidak ditemukan")
+        raise SystemExit(f"{app_path}: pernyataan import {modul} tidak ditemukan")
     diimpor = {x.strip() for x in m.group(1).replace("\n", " ").split(",") if x.strip()}
 
     # Hanya badan SESUDAH importnya — kalau tidak, daftar impor itu sendiri
@@ -62,10 +64,20 @@ def tanpa_komentar(kode: str) -> str:
 
 
 if __name__ == "__main__":
-    kurang = periksa(AKAR / "web" / "js" / "app.js", AKAR / "web" / "js" / "api.js")
-    if kurang:
-        print("Dipanggil app.js tapi TIDAK diimpor dari api.js:")
-        for n in kurang:
-            print(f"  {n}")
+    pasangan = [
+        ("web/js/app.js", "web/js/api.js", "./api.js"),
+        ("web/js/app.js", "web/js/util.js", "./util.js"),
+        ("live/js/daftar.js", "live/js/api.js", "./api.js"),
+        ("live/js/daftar.js", "live/js/util.js", "./util.js"),
+        ("live/live.js", "live/js/util.js", "./js/util.js"),
+    ]
+    gagal = []
+    for pemakai, sumber, modul in pasangan:
+        for nama in periksa(AKAR / pemakai, AKAR / sumber, modul):
+            gagal.append((pemakai, modul, nama))
+    if gagal:
+        print("Dipanggil tetapi TIDAK diimpor dari shared module:")
+        for pemakai, modul, nama in gagal:
+            print(f"  {pemakai}: {nama} dari {modul}")
         sys.exit(1)
-    print("Semua fungsi api.js yang dipanggil app.js sudah diimpor.")
+    print("Semua fungsi shared module yang dipanggil sudah diimpor.")
