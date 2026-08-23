@@ -60,7 +60,7 @@
    ditunda sampai DOM siap, yang justru lebih aman daripada sebelumnya. */
 import {
   esc, dada3, jamMenit, tanggalJam, berapaLalu,
-  angkaRapi,
+  angkaRapi, kontrakTeks,
   GOLONGAN_LABEL, URUT_GOLONGAN,
 } from "./js/util.js";
 
@@ -77,12 +77,6 @@ const golonganPeserta = g => URUT_GOLONGAN_PESERTA.includes(g);
 /** dada3() mengembalikan teks kosong untuk nomor yang tidak ada; di tabel ini
  *  yang dibutuhkan tanda pisah supaya barisnya tidak terlihat bolong. */
 const dada = (n) => n === null || n === undefined ? "—" : dada3(n);
-
-const kontrak = (menit) => {
-  if (!menit) return "—";
-  const j = Math.floor(menit / 60), m = menit % 60;
-  return m ? `${j},${m === 30 ? "5" : m} jam` : `${j} jam`;
-};
 
 let META = null;        // isi live.json
 let REKAP = null;       // isi rekap.json, kalau sudah diambil
@@ -413,6 +407,21 @@ function gambarPapan() {
                 ${perPos.map(x => `<th class="pos" colspan="${x.nama.length}"
                   >${esc(x.pos.bayangan ? x.pos.name
                         : `Pos ${x.pos.nomor} · ${x.pos.name}`)}</th>`).join("")}
+                <!-- Lima kolom perjalanan berdiri SEBELUM Penalti: Penalti
+                     selalu dibaca dengan pertanyaan "dari mana", dan
+                     jawabannya persis kelima kolom ini. Keempat yang
+                     pertama sudah terbit sejak fase progres, jadi mereka
+                     ikut tergambar di fase itu juga -- yang menunggu fase
+                     penuh cuma Penalti dan Total.
+
+                     TANPA BACKTICK DI KOMENTAR INI: ia duduk di dalam
+                     template literal, dan satu backtick menutup string itu
+                     sehingga sisa kalimatnya dibaca sebagai KODE. -->
+                <th rowspan="2">Kontrak</th>
+                <th rowspan="2">Kloter</th>
+                <th rowspan="2">Berangkat</th>
+                <th rowspan="2">Datang</th>
+                <th rowspan="2">Anggota</th>
                 ${penuh ? `<th rowspan="2">Penalti</th><th rowspan="2">Total</th>` : ""}
               </tr>
               <!-- Nama lomba saja, TANPA rentang. Yang tergambar di bawahnya
@@ -461,6 +470,11 @@ function gambarPapan() {
                   <td class="regu">${esc(b.nama_regu)}</td>
                   <td class="sekolah-sel">${esc(b.nama_sekolah || "—")}</td>
                   ${sel}
+                  <td>${esc(kontrakTeks(b.kontrak_menit))}</td>
+                  <td>${esc(b.kloter ?? "—")}</td>
+                  <td>${esc(b.jam_berangkat ? jamMenit(b.jam_berangkat) : "—")}</td>
+                  <td>${esc(b.jam_datang ? jamMenit(b.jam_datang) : "—")}</td>
+                  <td>${esc(b.anggota_hadir ?? "—")}</td>
                   ${penuh ? `<td>${esc(String(penalti))}</td>
                      <td class="total">${b.total === null || b.total === undefined
                        ? "—" : esc(angkaRapi(b.total))}</td>` : ""}

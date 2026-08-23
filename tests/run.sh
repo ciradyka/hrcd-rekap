@@ -460,6 +460,11 @@ run tests/sql/67_input_range_units.sql
 # fasenya — poin diturunkan dari nilai, jadi ia bocor sama telanjangnya.
 run supabase/migrations/0107_poin_per_komponen.sql
 run tests/sql/69_poin_per_komponen.sql
+# 0108 menerbitkan `anggota_hadir` ke halaman peserta. Tes 70 menjaga
+# pembagian yang gampang tertukar: nilai dan poin menunggu fase penuh, kelima
+# kolom perjalanan terbit sejak progres.
+run supabase/migrations/0108_anggota_hadir_publik.sql
+run tests/sql/70_anggota_hadir_publik.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql

@@ -928,6 +928,34 @@ export function dada3(n) {
     ? String(a).padStart(3, "0") : String(n);
 }
 
+/** KONTRAK WAKTU sebagai kata yang diucapkan panitia: "4 jam", "3,5 jam".
+ *
+ *  Yang tersimpan menit — 180, 210, 240 — dan menit adalah satuan yang tidak
+ *  pernah disebut siapa pun di lapangan. "Kontrak 210" menuntut pembagian di
+ *  kepala sebelum ia berarti apa-apa, dan yang membacanya di papan Live Score
+ *  adalah peserta dan pembina, bukan orang yang menyusun konfigurasinya.
+ *
+ *  KOMA, bukan titik: setengah jam ditulis "3,5 jam" karena begitulah angka
+ *  pecahan ditulis dalam bahasa Indonesia (aturan yang sama dengan ukuranRapi
+ *  di atas).
+ *
+ *  Menit yang bukan kelipatan 30 ditulis apa adanya di belakang koma —
+ *  "4,15 jam" jelek, tapi ia jujur, dan ia hanya muncul kalau ada yang
+ *  memasukkan kontrak ganjil ke kontrak_opsi. Membulatkannya diam-diam akan
+ *  menyembunyikan konfigurasi yang keliru justru dari orang yang bisa
+ *  membetulkannya.
+ *
+ *  Kosong jadi "—", bukan "0 jam": regu yang belum berkontrak belum memilih,
+ *  dan "0 jam" terbaca sebagai pilihan yang sudah dibuat. */
+export function kontrakTeks(menit) {
+  const n = Number(menit);
+  if (!menit || !Number.isFinite(n) || n <= 0) return "—";
+  const jam = Math.floor(n / 60);
+  const sisa = n % 60;
+  if (!sisa) return `${jam} jam`;
+  return `${jam},${sisa === 30 ? "5" : String(sisa).padStart(2, "0")} jam`;
+}
+
 /* ==========================================================================
    CARA MENULIS SATU KOMPONEN PENILAIAN — SATU SUMBER UNTUK SEMUA LAYAR
 
