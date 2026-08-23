@@ -53,6 +53,7 @@ RPC = {
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
     "hapus_nilai_pos":       ["p_nomor_dada", "p_kode", "p_pos"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
+    "atur_fase_live":        ["p_fase"],
     "susun_barak":           [],
     "tandai_kloter_dicetak": ["p_kloter"],
     "pindah_kloter":         ["p_nomor_dada", "p_alasan", "p_kloter"],
