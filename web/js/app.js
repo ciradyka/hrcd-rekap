@@ -561,11 +561,11 @@ async function layarPengaturanKloter() {
     <div class="card">
       <div class="two-column">
         <div class="field">
-          <label>Waktu Berangkat Pertama</label>
+          <label for="kloter-pertama-hh">Waktu Berangkat Pertama</label>
           ${kotakJamHtml("kloter-pertama", pertamaAwal)}
         </div>
         <div class="field">
-          <label>Waktu Berangkat Terakhir</label>
+          <label for="kloter-terakhir-hh">Waktu Berangkat Terakhir</label>
           ${kotakJamHtml("kloter-terakhir", terakhirAwal)}
         </div>
       </div>
@@ -1674,7 +1674,7 @@ async function layarKeberangkatan() {
         ${sudahBerangkat ? "" : `
           <div class="departure-bar">
             <div class="field" style="margin:0">
-              <label for="jam-berangkat">Jam berangkat</label>
+              <label for="jam-berangkat-hh">Jam berangkat</label>
               <!-- Kotak ketik, bukan <input type="time">: pemilih bawaan
                    browser merender AM/PM kalau locale browsernya Inggris, dan
                    tidak ada atribut yang bisa memaksanya 24 jam. Lihat
@@ -2133,7 +2133,7 @@ function layarFinish() {
         </summary>
         <div class="two-column pasangan-sempit" style="margin-top:.5rem">
           <div class="field" style="margin:0">
-            <label for="jam">Jam datang</label>
+            <label for="jam-hh">Jam datang</label>
             <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
                  browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. -->
             ${kotakJamHtml("jam")}
