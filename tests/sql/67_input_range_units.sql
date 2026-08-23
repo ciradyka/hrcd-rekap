@@ -24,7 +24,9 @@ declare
   v_harapan text;
 begin
   -- Cari pasangan regu/komponen sekaligus supaya tes tidak kebetulan memilih
-  -- nilai yang sudah digembok oleh skenario sebelumnya.
+  -- nilai yang sudah digembok oleh skenario sebelumnya. Database uji memakai
+  -- master wahana contoh yang tidak selalu memuat Menaksir; satuannya diubah
+  -- di bawah agar pagar ini tetap menguji perilaku, bukan nama edisi tertentu.
   select r.id, w.id into strict v_regu_id, v_wahana_id
   from regu r
   join pendaftaran d on d.id = r.pendaftaran_id
@@ -33,14 +35,18 @@ begin
     and not r.is_cancelled
     and d.status = 'lunas'
     and w.edisi = edisi_aktif()
-    and w.satuan = 'meter'
     and komponen_berlaku(w.golongan, r.golongan)
     and not nilai_tergembok(r.id, w.pos)
   order by r.nomor_dada, w.pos, w.sort_order
   limit 1;
 
   select * into strict v_regu from regu where id = v_regu_id;
-  select * into strict v_w from wahana where id = v_wahana_id;
+  update wahana
+  set satuan = 'meter',
+      rentang_mentah_min = 0,
+      rentang_mentah_maks = 10000
+  where id = v_wahana_id
+  returning * into strict v_w;
 
   v_hasil := simpan_nilai_massal(
     jsonb_build_array(jsonb_build_object(
