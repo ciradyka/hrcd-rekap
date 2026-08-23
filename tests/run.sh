@@ -382,6 +382,15 @@ run tests/sql/53_fifo_kloter_eksternal_intern.sql
 # boleh ditandai lagi dan timestamp-nya harus maju; kloter kosong tetap lewat.
 run supabase/migrations/0094_kloter_bisa_dicetak_ulang.sql
 run tests/sql/54_kloter_bisa_dicetak_ulang.sql
+# Layar Input Nilai Pos dan klasemen menghitung poin sendiri-sendiri, jadi
+# keduanya bisa menyimpang tanpa satu galat pun — dan 0091 memang membangun
+# ulang v_lembar_pos tanpa `jawaban_benar`, jadi Menaksir bernilai 0 di layar
+# juri sementara klasemen memberi angka penuh. 0095 mengembalikannya; tes 56
+# membandingkan kedua jalur baris per baris supaya rebuild berikutnya yang lupa
+# jatuh di sini. Nomornya di atas 55 tetapi jalannya SEBELUM 55, karena cleanup
+# mengosongkan nilai yang justru dibandingkannya.
+run supabase/migrations/0095_lembar_pos_jawaban_benar.sql
+run tests/sql/56_lembar_pos_sama_dengan_klasemen.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
