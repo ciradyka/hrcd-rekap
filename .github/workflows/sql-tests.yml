@@ -55,6 +55,9 @@ jobs:
       - name: Test JavaScript
         run: node --test tests/*.test.mjs
 
+      - name: Verify print preview extractor
+        run: python tools/pratinjau_cetak.py > /dev/null
+
       - name: Jalankan seluruh tes
         env:
           PGPASSWORD: hrcd
