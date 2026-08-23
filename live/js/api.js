@@ -117,6 +117,8 @@ export function pesanRamah(m) {
     return "Nama ketua tidak boleh memakai angka.";
   if (/nama_kontak_tanpa_angka/i.test(t))
     return "Nama contact person tidak boleh memakai angka.";
+  if (/invalid input syntax for type uuid/i.test(t))
+    return "Kunci pengiriman tidak valid. Muat ulang halaman, lalu coba lagi.";
   if (/permission denied|insufficient|tidak berhak:/i.test(t))
     return "Akun ini tidak berhak melakukan itu. Pakai akun yang sesuai.";
   if (/password.*(should be different|new password should be different)/i.test(t))
