@@ -1527,6 +1527,7 @@ async function layarKeberangkatan() {
      Sebagai bagian dari penggambaran, ia bertahan sampai petugas berpindah
      kloter — perbuatan sadar, bukan jaringan yang kebetulan lebih cepat. */
   let peringatanPindah = null;
+  let generasiKloter = 0;
 
   LAYAR.replaceChildren(h(`
     <div class="card">
@@ -1583,33 +1584,40 @@ async function layarKeberangkatan() {
   };
 
   async function gambarKloter() {
+    const nomor = kloterAktif;
+    const giliran = ++generasiKloter;
     const kotak = document.getElementById("isi-kloter");
-    kotak.replaceChildren(h(`<p>Memuat kloter ${kloterAktif}…</p>`));
+    kotak.replaceChildren(h(`<p>Memuat kloter ${nomor}…</p>`));
 
     let regu;
-    try { regu = await reguKloter(kloterAktif); }
-    catch (e) { kotak.replaceChildren(kartuGagalMuat(e.message, gambarKloter)); return; }
+    try { regu = await reguKloter(nomor); }
+    catch (e) {
+      if (giliran !== generasiKloter || location.hash !== layarIni) return;
+      kotak.replaceChildren(kartuGagalMuat(e.message, gambarKloter));
+      return;
+    }
+    if (giliran !== generasiKloter || location.hash !== layarIni) return;
 
-    const info = papan.find(k => k.nomor === kloterAktif) || {};
+    const info = papan.find(k => k.nomor === nomor) || {};
     const sudahBerangkat = !!info.jam_berangkat;
     // Tujuan pindah = semua kloter lain, TERMASUK yang sudah berangkat.
     // Regu telat yang berlari menyusul kloter berikutnya memang berangkat
     // bersama kloter itu, pada jam kloter itu — menyembunyikannya memaksa
     // petugas mencatat kloter yang tidak ia jalani (migrasi 0018).
-    const tujuanPindah = papan.filter(k => k.nomor !== kloterAktif);
+    const tujuanPindah = papan.filter(k => k.nomor !== nomor);
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
     kotak.replaceChildren(h(`
       ${peringatanPindah ? kartuPeringatanPindah(peringatanPindah) : ""}
-      ${kartuSisipan(sisipan.filter(s => s.kloter === kloterAktif))}
+      ${kartuSisipan(sisipan.filter(s => s.kloter === nomor))}
       <div class="card">
         <div class="kloter-header">
-          <h2>Kloter ${kloterAktif}</h2>
+          <h2>Kloter ${nomor}</h2>
           ${sudahBerangkat
             ? html`<span class="badge badge-green">BERANGKAT ${jamMenit(info.jam_berangkat)}</span>
                    <button class="icon-button icon-button-inline ikon-pensil" id="koreksi-jam" type="button"
                            title="Betulkan jam berangkat"
-                           aria-label="Betulkan jam berangkat Kloter ${kloterAktif}">&#9998;</button>`
+                           aria-label="Betulkan jam berangkat Kloter ${nomor}">&#9998;</button>`
             : `<span class="badge badge-yellow">BELUM BERANGKAT</span>`}
         </div>
 
@@ -1673,7 +1681,7 @@ async function layarKeberangkatan() {
               ${kotakJamHtml("jam-berangkat", jamMenit(new Date()))}
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
-              🚩 Berangkatkan Kloter ${kloterAktif}
+              🚩 Berangkatkan Kloter ${nomor}
             </button>
           </div>
         `}
@@ -1762,7 +1770,7 @@ async function layarKeberangkatan() {
         const jawab = await dialog({
           judul: `Pindahkan nomor ${dada3(dada)} ke Kloter ${tujuan}?`,
           kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
-            <div class="nama">Dari Kloter ${kloterAktif} ke Kloter ${tujuan}</div>
+            <div class="nama">Dari Kloter ${nomor} ke Kloter ${tujuan}</div>
             <div class="detail">${papan.find(k => k.nomor === tujuan)?.jam_berangkat
               ? `Kloter ${tujuan} sudah berangkat — regu ini akan dinilai dari jam berangkat kloter itu.`
               : ""}</div>
@@ -1822,19 +1830,19 @@ async function layarKeberangkatan() {
       // kloter yang jamnya sama-sama salah saling mengunci). Yang menangkap
       // salah ketik di sini adalah mata pencatat, jadi angka pembandingnya
       // ditaruh di depan mata.
-      const sebelum = papan.filter(k => k.nomor < kloterAktif && k.jam_berangkat).pop();
-      const sesudah = papan.find(k => k.nomor > kloterAktif && k.jam_berangkat);
+      const sebelum = papan.filter(k => k.nomor < nomor && k.jam_berangkat).pop();
+      const sesudah = papan.find(k => k.nomor > nomor && k.jam_berangkat);
       const tetangga = [
         sebelum && `Kloter ${sebelum.nomor} berangkat ${jamMenit(sebelum.jam_berangkat)}`,
         sesudah && `Kloter ${sesudah.nomor} berangkat ${jamMenit(sesudah.jam_berangkat)}`,
       ].filter(Boolean).join(" · ");
 
       const jawab = await dialog({
-        judul: `Betulkan jam berangkat Kloter ${kloterAktif}`,
+        judul: `Betulkan jam berangkat Kloter ${nomor}`,
         kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
           <div class="nama">Sekarang tercatat ${jamMenit(info.jam_berangkat)}</div>
           <div class="detail">Mengubah jam ini menghitung ulang penalti waktu
-            seluruh regu di Kloter ${kloterAktif}.${tetangga ? ` ${tetangga}.` : ""}</div>
+            seluruh regu di Kloter ${nomor}.${tetangga ? ` ${tetangga}.` : ""}</div>
         </div>`,
         medan: [
           { label: "Jam berangkat yang benar", tipe: "jam",
@@ -1846,10 +1854,10 @@ async function layarKeberangkatan() {
       if (!jawab) return;
       const [hhmm, alasan] = jawab;
       try {
-        await koreksiJamBerangkat(kloterAktif,
+        await koreksiJamBerangkat(nomor,
           jamPadaHari(hhmm, hariLomba()).toISOString(), alasan);
       } catch (err) { notif(err.message, true); return; }
-      notif(`Jam berangkat Kloter ${kloterAktif} dibetulkan jadi ${hhmm}.`);
+      notif(`Jam berangkat Kloter ${nomor} dibetulkan jadi ${hhmm}.`);
       papan = await papanKeberangkatan();
       gambarPita();
       gambarKloter();
@@ -1876,15 +1884,15 @@ async function layarKeberangkatan() {
       kotakJamBerangkat.setNilai(hhmm);
       tombol.dataset.jalan = "1"; tombol.disabled = true; tombol.textContent = "Menyimpan…";
       try {
-        await berangkatkanKloter(kloterAktif,
+        await berangkatkanKloter(nomor,
           jamPadaHari(hhmm, hariLomba()).toISOString());
       } catch (err) {
         notif(err.message, true);
         tombol.dataset.jalan = ""; tombol.disabled = false;
-        tombol.textContent = `🚩 Berangkatkan Kloter ${kloterAktif}`;
+        tombol.textContent = `🚩 Berangkatkan Kloter ${nomor}`;
         return;
       }
-      notif(`Kloter ${kloterAktif} berangkat ${hhmm}.`);
+      notif(`Kloter ${nomor} berangkat ${hhmm}.`);
       papan = await papanKeberangkatan();
       gambarPita();
       gambarKloter();
