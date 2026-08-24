@@ -477,6 +477,11 @@ run tests/sql/71_kontrak_waktu_tiga_pilihan.sql
 # Pembayaran untuk membuktikan server menolak nominal rumus lama.
 run supabase/migrations/0110_biaya_intern_seratus_ribu.sql
 run tests/sql/72_biaya_intern.sql
+# 0111 memindahkan daftar sisipan dari hak Live Score ke hak keberangkatan.
+# Tes 73 menduduki kursi akun gerbang dan mencabut satu baris akun_hak di
+# antara dua panggilan — bentuk tes 30-36.
+run supabase/migrations/0111_sisipan_kloter_hak_gerbang.sql
+run tests/sql/73_sisipan_kloter_hak_gerbang.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
