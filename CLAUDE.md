@@ -616,20 +616,27 @@ Guidance for Claude Code when working in this repository.
    produced locally. This preserves the repository owner's Actions billing.
 4. **Report the local command and result.** If local execution is genuinely
    unavailable, say what is missing before falling back to GitHub Actions.
-5. **CI runs once, on the pull request. `main` is not checked again.** The
-   same two workflows used to run twice per change — once on the PR, once when
-   the merge landed — and they checked the identical tree, because the
-   `pull_request` event tests the MERGE RESULT and not the branch. The second
-   run never found anything the first had not, and it billed anyway. Both now
-   trigger on `pull_request` and `workflow_dispatch` only.
+5. **No check runs by itself any more — CI is dispatched deliberately.**
+   `sql-tests.yml` and `shared-files.yml` carry `workflow_dispatch` and nothing
+   else: no `push`, no `pull_request`. Every check they perform runs on a
+   laptop in well under a minute, and rule 1 already requires it there. The one
+   workflow still triggered automatically is `publish-live.yml`, and that is a
+   deploy, not a check.
 6. **What costs money is the NUMBER of runs, not their length.** GitHub rounds
    every JOB up to a whole minute, so a 7-second check and a 50-second check
-   bill exactly the same. Adding one more automatically-triggered workflow
-   costs more than adding ten steps to a workflow that already runs.
-7. **Because of rule 5, rule 1 is not advice.** There is no second net on
-   `main` any more. A change that was never run locally, and that PR review
-   did not catch, lands without any machine having executed it.
-8. **A cron trigger is a standing bill.** `*/5 * * * *` is 288 billed minutes
+   bill exactly the same. One measured day: 24 of 60 runs were a second copy of
+   a check that had already passed — once on the PR, once when the merge landed
+   on `main`, over the identical tree.
+7. **Dispatch CI when being wrong would be expensive.** Not "when there is
+   time". Concretely: there is a new migration, the change could not be run
+   locally, the machine at hand has no PostgreSQL or its result looks doubtful,
+   or the event is less than a week away. `gh workflow run "SQL Tests" --ref
+   <branch>` — or Actions -> SQL Tests -> Run workflow, which works from a
+   phone.
+8. **Because of rule 5, rule 1 is not advice.** Nothing on GitHub inspects a
+   branch on its own now. A change nobody ran locally lands with no machine
+   having executed it, and the first place it fails is a panitia's screen.
+9. **A cron trigger is a standing bill.** `*/5 * * * *` is 288 billed minutes
    a day, which empties a private repo's monthly allowance in a week. Multiply
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia

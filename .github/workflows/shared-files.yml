@@ -29,16 +29,18 @@
 
 name: Shared files
 
-# Pull request saja — alasan lengkapnya di sql-tests.yml. Singkatnya: event
-# `pull_request` sudah menguji hasil merge-nya, jadi run kedua saat merge
-# mendarat di `main` memeriksa pohon yang sama persis dan tetap menagih.
+# Saat diminta saja — alasan lengkapnya di sql-tests.yml. Keempat pemeriksaan
+# di bawah semuanya jalan di laptop dalam hitungan detik:
+#
+#   diff web/style.css live/style.css   (dan tiga pasangan lainnya)
+#   python tools/periksa_impor.py
+#   python tools/periksa_urutan_golongan.py
+#   python tools/periksa_sekolah.py
+#
+# Jalankan keempatnya sebelum membuka PR. Yang dibayar di sini bukan lamanya —
+# run tujuh detik pun ditagih satu menit penuh, sama dengan SQL Tests.
 on:
-  pull_request:
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   periksa:

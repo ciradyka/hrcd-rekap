@@ -19,27 +19,35 @@
 name: SQL Tests
 
 # ---------------------------------------------------------------------------
-# BERJALAN DI PULL REQUEST SAJA, TIDAK LAGI DI `main`.
+# DIJALANKAN SAAT DIMINTA, TIDAK OTOMATIS.
 #
-# Dulu keduanya. Untuk satu perubahan itu berarti dua run yang memeriksa POHON
-# YANG SAMA PERSIS: event `pull_request` menguji HASIL MERGE-nya — PR digabung
-# ke `main` yang sedang berlaku — bukan cabangnya sendiri. Jadi run kedua saat
-# merge-nya mendarat tidak pernah menemukan apa pun yang tidak ditemukan run
-# pertama, dan tetap menagih.
+# Tidak ada trigger `push` maupun `pull_request`. Seluruh isi berkas ini bisa
+# dijalankan di laptop dengan satu perintah — `bash tests/run.sh` — dan itulah
+# yang dituntut CLAUDE.md pasal 16.1 sebelum PR dibuka. Menjalankannya lagi di
+# jam GitHub tidak menambah bukti apa pun, tetapi menambah tagihan: pemakaian
+# dibulatkan ke atas per JOB ke menit penuh, jadi tiap run menagih satu menit
+# penuh walau isinya lima puluh detik.
 #
-# Yang hilang: push LANGSUNG ke `main` tidak lagi diperiksa mesin. Itu memang
-# sudah dilarang CLAUDE.md pasal 1.1, dan pernah terjadi sekali (5502a5a). Yang
-# menggantikannya adalah pasal 16: verifikasi lokal, bukan opsional.
+# Diukur sekali: dalam 20 jam, 24 dari 60 run adalah salinan kedua dari
+# pemeriksaan yang sudah hijau — sekali di PR, sekali lagi saat merge-nya
+# mendarat di `main`, atas pohon yang sama persis.
+#
+# KAPAN TETAP DIJALANKAN. Bukan "kalau sempat", melainkan saat salah itu mahal:
+#
+#   * ada migrasi baru — ia akan menyentuh database produksi
+#   * perubahan yang tidak bisa dijalankan lokal (butuh secret repo)
+#   * laptop yang dipakai tidak punya PostgreSQL, atau hasil lokalnya meragukan
+#   * minggu menjelang hari lomba
+#
+#   gh workflow run "SQL Tests" --ref <cabang>
+#
+# Atau dari HP: Actions -> SQL Tests -> Run workflow -> pilih cabangnya.
+#
+# YANG HILANG, dan ini disengaja: tidak ada lagi apa pun di GitHub yang
+# memeriksa satu cabang pun dengan sendirinya. Pasal 16 bukan anjuran lagi.
 # ---------------------------------------------------------------------------
 on:
-  pull_request:
   workflow_dispatch:
-
-# Dorong dua kali beruntun ke satu PR, dan run yang lama dibatalkan. Tanpa ini
-# ia berjalan sampai selesai untuk memeriksa kode yang sudah tidak ada.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   tes:
