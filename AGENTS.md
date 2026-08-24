@@ -618,3 +618,21 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    produced locally. This preserves the repository owner's Actions billing.
 4. **Report the local command and result.** If local execution is genuinely
    unavailable, say what is missing before falling back to GitHub Actions.
+5. **CI runs once, on the pull request. `main` is not checked again.** The
+   same two workflows used to run twice per change — once on the PR, once when
+   the merge landed — and they checked the identical tree, because the
+   `pull_request` event tests the MERGE RESULT and not the branch. The second
+   run never found anything the first had not, and it billed anyway. Both now
+   trigger on `pull_request` and `workflow_dispatch` only.
+6. **What costs money is the NUMBER of runs, not their length.** GitHub rounds
+   every JOB up to a whole minute, so a 7-second check and a 50-second check
+   bill exactly the same. Adding one more automatically-triggered workflow
+   costs more than adding ten steps to a workflow that already runs.
+7. **Because of rule 5, rule 1 is not advice.** There is no second net on
+   `main` any more. A change that was never run locally, and that PR review
+   did not catch, lands without any machine having executed it.
+8. **A cron trigger is a standing bill.** `*/5 * * * *` is 288 billed minutes
+   a day, which empties a private repo's monthly allowance in a week. Multiply
+   it out before enabling one, and remember that an exhausted allowance stops
+   EVERY workflow — including `apply-migration.yml` and the ones the panitia
+   run from their phones.

@@ -18,11 +18,28 @@
 
 name: SQL Tests
 
+# ---------------------------------------------------------------------------
+# BERJALAN DI PULL REQUEST SAJA, TIDAK LAGI DI `main`.
+#
+# Dulu keduanya. Untuk satu perubahan itu berarti dua run yang memeriksa POHON
+# YANG SAMA PERSIS: event `pull_request` menguji HASIL MERGE-nya — PR digabung
+# ke `main` yang sedang berlaku — bukan cabangnya sendiri. Jadi run kedua saat
+# merge-nya mendarat tidak pernah menemukan apa pun yang tidak ditemukan run
+# pertama, dan tetap menagih.
+#
+# Yang hilang: push LANGSUNG ke `main` tidak lagi diperiksa mesin. Itu memang
+# sudah dilarang CLAUDE.md pasal 1.1, dan pernah terjadi sekali (5502a5a). Yang
+# menggantikannya adalah pasal 16: verifikasi lokal, bukan opsional.
+# ---------------------------------------------------------------------------
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+
+# Dorong dua kali beruntun ke satu PR, dan run yang lama dibatalkan. Tanpa ini
+# ia berjalan sampai selesai untuk memeriksa kode yang sudah tidak ada.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tes:
