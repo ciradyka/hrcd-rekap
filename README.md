@@ -73,6 +73,27 @@ Butuh PostgreSQL 16 (lokal atau portable, tanpa Supabase):
 PSQL=/path/ke/psql PGPORT=55432 PGPASSWORD=... bash tests/run.sh
 ```
 
+`PGPORT=55432` itu port container Postgres di CI. Instalasi PostgreSQL biasa
+memakai **5432** — sesuaikan, jangan tambahkan container hanya supaya angkanya
+cocok.
+
+Tes JavaScript dan pemeriksaan sumber tidak butuh database sama sekali:
+
+```bash
+node --test tests/*.test.mjs
+python tools/periksa_impor.py
+python tools/periksa_urutan_golongan.py
+python tools/periksa_sekolah.py
+```
+
+**Tes ini TIDAK berjalan sendiri di GitHub.** Workflow `SQL Tests` dan
+`Shared files` hanya jalan kalau diminta — Actions → pilih workflow → Run
+workflow, atau `gh workflow run "SQL Tests" --ref <cabang>`. Alasannya di
+CLAUDE.md pasal 16: pemakaian Actions ditagih per job dibulatkan ke menit
+penuh, sedangkan seluruh isinya bisa dijalankan di laptop dalam hitungan
+detik. Konsekuensinya jalan satu arah: **kalau tidak dijalankan di sini, tidak
+ada yang menjalankannya di mana pun.**
+
 Untuk mencoba layarnya (butuh tiga terminal):
 
 ```bash
