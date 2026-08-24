@@ -465,8 +465,16 @@ export default {
     if (req.method === "POST" && url.pathname.startsWith("/akun")) {
       const { galat } = await pastikanBolehAkun(req, env);
       if (galat) return galat;
-      let b;
-      try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }, req); }
+      // bacaJsonTerbatas, bukan req.json(): BATAS_AKUN_BYTE tidak pernah
+      // menyentuh ketiga rute ini sebelumnya, jadi konstantanya membaca
+      // seolah ia sudah menjaga sesuatu. Ketiganya di balik
+      // pastikanBolehAkun(), jadi risikonya kecil — tapi batas yang cuma
+      // tertulis dan tidak berlaku lebih buruk daripada batas yang tidak ada,
+      // karena yang membacanya berhenti mencari.
+      const baca = await bacaJsonTerbatas(req, BATAS_AKUN_BYTE);
+      if (baca.terlaluBesar) return jawab(413, { message: "Data terlalu besar." }, req);
+      if (baca.salah) return jawab(400, { message: "Format data salah." }, req);
+      const b = baca.data;
       if (url.pathname === "/akun") return buatAkun(req, env, b);
       if (url.pathname === "/akun/password") return resetPassword(req, env, b);
       if (url.pathname === "/akun/username") return ubahUsername(req, env, b);
@@ -476,7 +484,17 @@ export default {
     if (req.method !== "POST" || url.pathname !== "/daftar")
       return jawab(404, { message: "tidak ada" }, req);
 
-    // 1. Batas ukuran — sebelum membaca isi.
+    // 1. Batas ukuran — jalan pintas murah, BUKAN pagarnya.
+    //
+    //    Kiriman `Transfer-Encoding: chunked` tidak membawa Content-Length,
+    //    jadi `panjang` bernilai 0 dan pemeriksaan ini lolos apa pun isinya.
+    //    Yang benar-benar menahan badan besar adalah bacaJsonTerbatas() di
+    //    langkah 3 — ia berhenti membaca segera setelah batasnya terlewati.
+    //    Baris ini dipertahankan karena ia menolak tanpa menyentuh badan sama
+    //    sekali untuk kiriman yang jujur menyebut ukurannya.
+    //
+    //    /daftar adalah SATU-SATUNYA pintu yang terbuka ke internet tanpa
+    //    login, dan pagar sisanya cuma rate limit 30/menit per IP.
     const panjang = Number(req.headers.get("content-length") || 0);
     if (panjang > BATAS_BYTE)
       return jawab(413, { message: "Data terlalu besar." }, req);
@@ -491,10 +509,13 @@ export default {
     if (hitung >= BATAS_PER_MENIT)
       return jawab(429, { message: "Terlalu sering mengirim. Tunggu satu menit, lalu coba lagi." }, req);
 
-    let b;
-    try { b = await req.json(); } catch { return jawab(400, { message: "Format data salah." }, req); }
+    // 3. Baca badannya, berbatas. Ini pagar ukuran yang sebenarnya.
+    const baca = await bacaJsonTerbatas(req, BATAS_BYTE);
+    if (baca.terlaluBesar) return jawab(413, { message: "Data terlalu besar." }, req);
+    if (baca.salah) return jawab(400, { message: "Format data salah." }, req);
+    const b = baca.data;
 
-    // 3. Turnstile — bukti pengirimnya manusia. Opsional: kalau secret belum
+    // 4. Turnstile — bukti pengirimnya manusia. Opsional: kalau secret belum
     //    diisi, lompati pemeriksaan ini (lihat catatan di kepala berkas).
     if (env.TURNSTILE_SECRET) {
       const cek = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -512,7 +533,7 @@ export default {
 
     await env.RATE.put(kunci, String(hitung + 1), { expirationTtl: 60 });
 
-    // 4. Teruskan ke RPC (service role — satu-satunya pemegang hak ini).
+    // 5. Teruskan ke RPC (service role — satu-satunya pemegang hak ini).
     const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/submit_pendaftaran`, {
       method: "POST",
       headers: {
