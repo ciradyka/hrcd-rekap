@@ -482,6 +482,12 @@ run tests/sql/72_biaya_intern.sql
 # antara dua panggilan — bentuk tes 30-36.
 run supabase/migrations/0111_sisipan_kloter_hak_gerbang.sql
 run tests/sql/73_sisipan_kloter_hak_gerbang.sql
+# 0112 membuang v_klasemen_pratinjau — nama yang sudah dinyatakan mati 0050
+# lalu lahir kembali di 0065 sebagai view kedua berpagar hak berbeda. Tes 74
+# menjaga nama itu tidak hidup lagi, dan tidak ada view klasemen lain yang
+# tak dikenal.
+run supabase/migrations/0112_buang_v_klasemen_pratinjau.sql
+run tests/sql/74_satu_nama_klasemen.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
