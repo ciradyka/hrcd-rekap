@@ -69,11 +69,33 @@ export function hitungRekomendasiKloter({
     );
   }
 
+  /* PEMBAGINYA `batasKloter`, BUKAN `jumlahKloter`, dan itu bukan pilihan
+     gaya — ia menyamakan kalkulator ini dengan `perkiraan_berangkat_kloter()`
+     di database (migrasi 0105).
+
+     Database menyebar seluruh kloter edisi, termasuk cadangan, supaya kloter
+     ke-61 dan seterusnya tetap punya perkiraan DI DALAM jendela 07:00-10:00
+     (CLAUDE.md 10.1: yang terakhir sudah berangkat pukul sepuluh). Membagi
+     dengan jumlah yang dibutuhkan saja membuat cadangan yang benar-benar
+     terpakai berangkat sesudah pukul sepuluh.
+
+     Angka databaselah yang tercetak di kertas kloter yang dibagikan ke peserta
+     dan yang muncul sebagai `~HH:MM` di chip layar Keberangkatan. Kalkulator
+     ini dipakai menyusun jadwal pagi. Dengan dua pembagi, keduanya menyebut
+     jam berbeda untuk kloter yang sama: pada 60 kloter dan batas 75, K60
+     terbaca 10:00 di sini dan 09:23 di sana — selisih 37 menit.
+
+     BARISNYA tetap sebanyak kloter yang dibutuhkan: yang direncanakan cuma
+     kloter yang benar-benar diisi.
+
+     `floor`, bukan `round`: database mengembalikan timestamptz berdetik dan
+     layar menampilkannya lewat jamMenit(), yang MEMOTONG detik. K10 di sana
+     07:21:53 terbaca "07:21"; membulatkan di sini akan menuliskannya 07:22. */
   const rentang = terakhir - pertama;
   return Array.from({ length: jumlahKloter }, (_, indeks) => {
-    const waktu = jumlahKloter === 1
+    const waktu = batasKloter === 1
       ? pertama
-      : pertama + Math.round(rentang * indeks / (jumlahKloter - 1));
+      : pertama + Math.floor(rentang * indeks / (batasKloter - 1));
     return {
       kloter: indeks + 1,
       jumlahEksternal: Math.max(0, Math.min(kapasitasEksternal,
