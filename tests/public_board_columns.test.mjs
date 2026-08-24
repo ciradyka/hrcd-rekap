@@ -62,9 +62,10 @@ test("varianUntuk tidak simetris: Intern tidak menerima komponen umum", () => {
 
 
 test("live.js memakai aturan bersama, bukan salinannya sendiri", () => {
-  assert.match(live, /kolomPos, varianUntuk/);
-  assert.match(live, /kolom: kolomPos\(komponen\.filter\(w => w\.pos === p\.nomor\)\)/);
-  assert.match(live, /const w = varianUntuk\(kol, b\.golongan\)/);
+  assert.match(live, /kolomPos, kelompokLomba, ringkasLomba/);
+  assert.match(live,
+    /lomba: kelompokLomba\(kolomPos\(komponen\.filter\(w => w\.pos === p\.nomor\)\)\)/);
+  assert.match(live, /const r = ringkasLomba\(l, b\.golongan, x\.pos\.nomor,/);
 
   // Bentuk salinan lamanya tidak boleh kembali.
   assert.doesNotMatch(live, /if \(!nama\.includes\(w\.name\)\) nama\.push/);

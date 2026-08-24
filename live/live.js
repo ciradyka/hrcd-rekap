@@ -64,7 +64,7 @@
    ditunda sampai DOM siap, yang justru lebih aman daripada sebelumnya. */
 import {
   esc, dada3, jamMenit, tanggalJam, berapaLalu,
-  angkaRapi, kontrakTeks, kolomPos, varianUntuk,
+  angkaRapi, kontrakTeks, kolomPos, kelompokLomba, ringkasLomba,
   GOLONGAN_LABEL, URUT_GOLONGAN,
 } from "./js/util.js";
 
@@ -411,10 +411,13 @@ function gambarPapan() {
   // dari data, tanpa menyentuh kode. Sesudah itu papan panitia menggambar dua
   // kolom, papan ini menggambar satu, dan nilai komponen kedua hilang dari
   // halaman peserta tanpa satu pun galat.
+  // Satu kolom per LOMBA, bukan per penilaian — keputusan pemilik acara, dan
+  // papan panitia memakai pengelompokan yang sama. Pembidaian lima kriteria
+  // jadi satu kolom, PBB empat jadi satu, Yel-Yel empat jadi satu.
   const perPos = pos.map(p => ({
     pos: p,
-    kolom: kolomPos(komponen.filter(w => w.pos === p.nomor)),
-  })).filter(x => x.kolom.length);
+    lomba: kelompokLomba(kolomPos(komponen.filter(w => w.pos === p.nomor))),
+  })).filter(x => x.lomba.length);
 
   const kartu = URUT_GOLONGAN_PESERTA.map(g => {
     const baris = semua.filter(b => b.golongan === g);
@@ -460,7 +463,7 @@ function gambarPapan() {
                     aria-expanded="false"
                     title="Klik untuk menyaring per sekolah">Organisasi
                   <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
-                ${perPos.map(x => `<th class="pos" colspan="${x.kolom.length}"
+                ${perPos.map(x => `<th class="pos" colspan="${x.lomba.length}"
                   >${esc(x.pos.bayangan ? x.pos.name
                         : `Pos ${x.pos.nomor} · ${x.pos.name}`)}</th>`).join("")}
                 <!-- Lima kolom perjalanan berdiri SEBELUM Penalti: Penalti
@@ -484,37 +487,50 @@ function gambarPapan() {
                    sudah poin akhir, dan "0 – 5" di kepala kolom berisi 80
                    membantahnya. Rentang menjelaskan apa yang boleh DIKETIK,
                    dan di papan ini tidak ada yang mengetik apa pun. -->
-              <tr>${perPos.map(x => x.kolom.map(kol =>
-                `<th class="pos kol-komponen">${esc(kol.nama)}</th>`).join("")).join("")}</tr>
+              <tr>${perPos.map(x => x.lomba.map(l =>
+                `<th class="pos kol-komponen">${esc(l.nama)}</th>`).join("")).join("")}</tr>
             </thead>
             <tbody>
               ${baris.map(b => {
                 const terisi = b.komponen_terisi || {};
                 const poin = b.poin || {};
-                const sel = perPos.map(x => x.kolom.map(kol => {
-                  // varianUntuk() YANG SAMA dengan layar panitia — dan ia
-                  // tidak simetris: Intern hanya menerima baris bertanda
-                  // `intern`, Eksternal menerima baris umum maupun baris
-                  // golongannya.
-                  const w = varianUntuk(kol, b.golongan);
-                  if (!w) return `<td class="pos belum">–</td>`;
-                  const kunci = `${x.pos.nomor}.${w.kode}`;
+                const sel = perPos.map(x => x.lomba.map(l => {
+                  // ringkasLomba() YANG SAMA dengan layar panitia. Yang
+                  // berbeda cuma apa yang digambar dari hasilnya: di sini
+                  // centang, di sana angka. Cara membacanya harus sama, kalau
+                  // tidak satu papan bisa menyebut Pembidaian lengkap
+                  // sementara papan sebelahnya menyebutnya baru sebagian.
+                  //
+                  // `berlaku === 0` berarti lomba ini memang bukan untuk
+                  // golongan regu itu — bukan berarti nilainya belum masuk.
+                  const r = ringkasLomba(l, b.golongan, x.pos.nomor,
+                                         penuh ? poin : terisi);
+                  if (!r.berlaku) return `<td class="pos belum">–</td>`;
+
                   if (!penuh) {
-                    const ada = terisi[kunci];
-                    return `<td class="pos ${ada ? "ada" : "belum"}">${ada ? "✓" : ""}</td>`;
+                    if (!r.terisi) return `<td class="pos belum"></td>`;
+                    // Sebagian terisi dapat centangnya sendiri, bukan centang
+                    // penuh. Pembidaian dinilai lima kriteria oleh satu juri:
+                    // "sudah dinilai" dan "baru tiga dari lima yang masuk"
+                    // adalah dua jawaban berbeda atas satu-satunya pertanyaan
+                    // yang dibawa peserta ke halaman ini.
+                    return r.terisi === r.berlaku
+                      ? `<td class="pos ada">✓</td>`
+                      : `<td class="pos sebagian" title="${
+                          esc(`${r.terisi} dari ${r.berlaku} penilaian sudah masuk`)
+                        }">✓</td>`;
                   }
+
                   // POIN AKHIR, bukan angka mentah. "4" di Semaphore, "8.55"
                   // di Menaksir, dan "01:14" di Bakiak adalah tiga satuan yang
                   // berbeda dan tidak satu pun menyebut sumbangannya ke Total
                   // di ujung baris — sementara yang membaca papan ini persis
                   // orang yang tidak memegang tangga poin tiap lomba.
                   // Angkanya datang JADI dari rekap.json (migrasi 0107);
-                  // halaman ini tidak menghitung apa pun.
-                  const p = poin[kunci];
-                  if (p === null || p === undefined) {
-                    return `<td class="pos belum">–</td>`;
-                  }
-                  return `<td class="pos ada">${esc(angkaRapi(p))}</td>`;
+                  // yang dilakukan halaman ini cuma menjumlahkan poin
+                  // komponen satu lomba, tidak menghitung poin apa pun.
+                  if (!r.terisi) return `<td class="pos belum">–</td>`;
+                  return `<td class="pos ada">${esc(angkaRapi(r.jumlah))}</td>`;
                 }).join("")).join("");
                 const penalti = penuh
                   ? Number(b.penalti_waktu || 0) + Number(b.penalti_checkout || 0)

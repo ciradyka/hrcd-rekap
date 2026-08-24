@@ -40,8 +40,12 @@ const papanPeserta = (() => {
 })();
 
 test("sel lomba panitia membaca poin per komponen, bukan nilai mentah", () => {
-  assert.match(papanPanitia, /selPoin\(poinKomponen\[/,
+  // Poin per komponen kini dijumlahkan per LOMBA sebelum digambar — sumbernya
+  // tetap `poin` dari rekap.json (0107), yang berubah cuma pengelompokannya.
+  assert.match(papanPanitia, /ringkasLomba\(l, k\.golongan, p\.nomor, poinKomponen\)/,
     "sel Live Score panitia tidak lagi membaca poin per komponen");
+  assert.match(papanPanitia, /selPoin\(r\.jumlah\)/,
+    "sel Live Score panitia tidak menggambar jumlah poin lombanya");
   assert.doesNotMatch(papanPanitia, /selRekap\(/,
     "sel Live Score panitia kembali menggambar angka mentah lewat selRekap()");
 });

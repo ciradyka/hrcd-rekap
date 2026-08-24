@@ -108,9 +108,11 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
    sini deretan centang per pos — bentuk baris itulah isinya, dan menumpuknya
    membuat satu regu memakan satu layar penuh. */
 .gulir { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-/* Kolom komponen: sempit, rata tengah, dan judulnya boleh membungkus.
-   Bentuknya mengikuti tabel panitia — satu kolom per komponen, bukan per
-   pos. */
+/* Kolom lomba: sempit, rata tengah, dan judulnya boleh membungkus.
+   Bentuknya mengikuti tabel panitia — satu kolom per LOMBA, bukan per pos dan
+   bukan per penilaian. Pembidaian lima kriteria berbagi satu kolom; nama
+   kelasnya masih `kol-komponen` karena ia dipakai di banyak tempat dan
+   mengganti nama kelas CSS tidak menambah satu keterangan pun. */
 /* Rentang di bawah nama kolom SUDAH TIDAK ADA di papan ini, dan aturannya
    ikut dibuang bersamanya: yang tergambar di bawah kepala kolom sekarang poin
    akhir, sementara rentang menjelaskan apa yang boleh DIKETIK — dan di sini
@@ -192,6 +194,20 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 .tabel td.pos.ada { color: var(--hijau); background: var(--hijau-muda); }
 .tabel td.pos.belum { color: #c7c7c2; }
 .tabel tbody tr:nth-child(even) td.pos.ada { background: #dfeee0; }
+
+/* Sebagian terisi — satu kolom lomba yang komponennya baru masuk separuh.
+   Lahir bersama kolom per lomba: Pembidaian dinilai lima kriteria oleh satu
+   juri, dan "sudah dinilai" berbeda dari "baru tiga dari lima yang masuk".
+   Sengaja BUKAN hijau muda yang lebih pudar — pucat di layar HP di bawah
+   matahari tidak terbaca sebagai keadaan tersendiri, ia terbaca sebagai
+   hijau yang layarnya jelek. Warnanya berpindah ke kuning, dan bentuknya
+   ikut berbeda lewat garis bawah putus-putus. */
+.tabel td.pos.sebagian {
+  color: #8a6100; background: #fdf3d6;
+  text-decoration: underline dotted currentColor;
+  text-underline-offset: .18em;
+}
+.tabel tbody tr:nth-child(even) td.pos.sebagian { background: #f7ead0; }
 
 /* ---- klasemen (fase penuh) ---- */
 .tabel td.total { font-weight: 800; font-variant-numeric: tabular-nums; }

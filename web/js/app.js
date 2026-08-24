@@ -37,7 +37,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
-         varianUntuk } from "./util.js";
+         varianUntuk, kelompokLomba, ringkasLomba } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -2632,44 +2632,6 @@ function bacaSel(tr, k) {
   return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
 }
 
-/** Varian yang berhak diisi regu bergolongan ini — cerminan persis
- *  `komponen_berlaku()` di database. Kalau keduanya berbeda pendapat, yang
- *  menang server, dan petugas menatap penolakan yang tidak bisa ia perbaiki.
- *
- *  null = kolom ini memang bukan untuk golongannya. Itu keadaan sah, bukan
- *  konfigurasi rusak: Tebak Simpul Penegak tidak ada urusannya dengan regu
- *  Penggalang. */
-/** Kolom layar dikelompokkan jadi LOMBA — tingkat ketiga yang tidak dimiliki
- *  `wahana` sampai migrasi 0054 (CLAUDE.md bagian 11).
- *
- *  Kolom di layar tetap satu per PENILAIAN: Pembidaian lima kolom. Blangko
- *  tetap satu per LOMBA: Pembidaian selembar dengan lima kotak. Keduanya
- *  benar, dan yang satu tidak boleh "diperbaiki" mengikuti yang lain — 11.6.
- *
- *  `lomba` kosong berarti komponen itu lomba tersendiri, keadaan yang benar
- *  untuk sebagian besar baris. */
-const slugLomba = (nama) => String(nama).toLowerCase()
-  .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
-
-function kelompokLomba(kolom) {
-  const urut = [], peta = new Map();
-  for (const kol of kolom) {
-    const k = kol.varian[0];
-    const nama = k.lomba || kol.nama;
-    if (!peta.has(nama)) {
-      // `kode` adalah kunci TETAP lomba ini (0079), dan ia dibaca dari
-      // database — bukan diturunkan dari namanya. Foto slip disimpan dengan
-      // kunci itu, jadi menurunkannya dari nama berarti mengganti nama lomba
-      // menghilangkan seluruh fotonya tanpa satu pun galat. Cadangan slug
-      // dipakai hanya untuk baris yang kolomnya belum terisi.
-      peta.set(nama, { nama, kode: k.kode_lomba || slugLomba(nama), kolom: [] });
-      urut.push(peta.get(nama));
-    }
-    peta.get(nama).kolom.push(kol);
-  }
-  return urut;
-}
-
 /** Kolom KERTAS untuk satu kolom layar. Sebagian memakan dua kolom, dan
  *  pembagiannya sama persis dengan kotak di layar — supaya petugas yang
  *  menyalin dari kertas ke layar menemukan urutan yang sama, tidak perlu
@@ -5250,9 +5212,21 @@ async function layarLiveScore() {
      Pos 1 memakan empat kolom "Tebak Simpul" yang isinya saling meniadakan,
      satu per golongan, dan tabelnya memanjang tanpa menambah satu keterangan
      pun. */
+  /* Satu kolom per LOMBA, bukan per penilaian — keputusan pemilik acara.
+     Pembidaian lima kriteria jadi satu angka, PBB empat jadi satu, Yel-Yel
+     empat jadi satu. Yang dibaca orang di papan ini adalah "berapa nilai
+     Pembidaian regu itu", bukan berapa nilai Posisi Bidai-nya; rinciannya
+     tetap utuh di Rekapitulasi dan di layar Input Pos, tempat ia memang
+     menjawab pertanyaan.
+
+     Ini TIDAK mengubah cara nilai dihitung. `poin_per_pos` tetap datang dari
+     database; yang dijumlahkan di sini cuma tampilannya. */
   const posKolom = posSemua
     .filter(p => p.jumlah_komponen > 0)
-    .map(p => ({ ...p, kolom: kolomPos(komponen.filter(k => k.pos === p.nomor)) }));
+    .map(p => ({
+      ...p,
+      lomba: kelompokLomba(kolomPos(komponen.filter(k => k.pos === p.nomor))),
+    }));
   const rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
   /* KEEMPAT golongan selalu digambar, dengan urutan tetap — bukan hanya yang
      kebetulan sudah punya baris.
@@ -5375,7 +5349,11 @@ async function layarLiveScore() {
                       role="button" aria-expanded="false"
                       title="Klik untuk menyaring per sekolah">Organisasi
                     <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
-                  ${posKolom.map(p => `<th colspan="${p.kolom.length + 1}"
+                  <!-- Kolom "Nilai" per pos hanya digambar kalau posnya
+                       memuat LEBIH DARI SATU lomba. Pos 4 cuma punya PBB dan
+                       Pos 5 cuma punya Yel-Yel: di sana "PBB 82 | Nilai 82"
+                       adalah angka yang sama dua kali, bersebelahan. -->
+                  ${posKolom.map(p => `<th colspan="${p.lomba.length + (p.lomba.length > 1 ? 1 : 0)}"
                     class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
                   <!-- Lima kolom perjalanan mendahului Penalti, dan urutan
                        itu yang membuatnya berguna: Penalti selalu dibaca
@@ -5399,9 +5377,13 @@ async function layarLiveScore() {
                        "0 – 5" di bawah kolom berisi 80 justru membantahnya.
                        Rentangnya tetap ada di layar Input Pos dan di
                        Rekapitulasi, tempat ia memang menjawab pertanyaan. -->
-                  ${posKolom.map(p => p.kolom.map(kol =>
-                      `<th class="pos-kol">${esc(kol.nama)}</th>`).join("")
-                    + `<th class="pos-kol rekap-batas">Nilai</th>`).join("")}
+                  ${posKolom.map(p => {
+                    const satuLomba = p.lomba.length === 1;
+                    return p.lomba.map((l, i) =>
+                      `<th class="pos-kol${satuLomba && i === p.lomba.length - 1
+                        ? " rekap-batas" : ""}">${esc(l.nama)}</th>`).join("")
+                      + (satuLomba ? "" : `<th class="pos-kol rekap-batas">Nilai</th>`);
+                  }).join("")}
                 </tr>
               </thead>
               <tbody>
@@ -5418,17 +5400,26 @@ async function layarLiveScore() {
                     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
                     <td>${esc(k.nama_regu)}</td>
                     <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
-                    ${posKolom.map(p => p.kolom.map(kol => {
+                    ${posKolom.map(p => {
+                      const satuLomba = p.lomba.length === 1;
+                      return p.lomba.map((l, i) => {
                         // Satu lomba bisa punya baris wahana berbeda per
                         // golongan; yang berlaku untuk regu INI yang dibaca.
-                        const w = varianUntuk(kol, k.golongan);
-                        return `<td class="text-center">${w
-                          ? selPoin(poinKomponen[`${p.nomor}.${w.kode}`])
-                          : `<span class="sel-mati">–</span>`}</td>`;
+                        // `berlaku === 0` berarti lomba ini memang bukan untuk
+                        // golongannya — bukan berarti nilainya belum masuk.
+                        const r = ringkasLomba(l, k.golongan, p.nomor, poinKomponen);
+                        const batas = satuLomba && i === p.lomba.length - 1
+                          ? " rekap-batas" : "";
+                        if (!r.berlaku)
+                          return `<td class="text-center${batas}"><span class="sel-mati">–</span></td>`;
+                        return `<td class="text-center${batas}">${
+                          r.terisi ? selPoin(r.jumlah) : "–"}</td>`;
                       }).join("")
-                      + `<td class="text-center pos-nilai rekap-batas">${
-                          poin[String(p.nomor)] === undefined
-                            ? "–" : esc(angkaRapi(poin[String(p.nomor)]))}</td>`).join("")}
+                      + (satuLomba ? ""
+                        : `<td class="text-center pos-nilai rekap-batas">${
+                            poin[String(p.nomor)] === undefined
+                              ? "–" : esc(angkaRapi(poin[String(p.nomor)]))}</td>`);
+                    }).join("")}
                     <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
                     <td class="text-center">${esc(rk.kloter ?? "—")}</td>
                     <td class="text-center">${esc(rk.jam_berangkat

@@ -1081,6 +1081,70 @@ export const varianUntuk = (kol, golongan) => {
   return kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
 };
 
+const slugLomba = (nama) => String(nama).toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "lomba";
+
+/** Kolom layar dikelompokkan jadi LOMBA — tingkat ketiga yang tidak dimiliki
+ *  `wahana` sampai migrasi 0054 (CLAUDE.md bagian 11).
+ *
+ *  `lomba` kosong berarti komponen itu lomba tersendiri, keadaan yang benar
+ *  untuk sebagian besar baris — Semaphore, Menaksir, Bakiak. Yang berkelompok
+ *  cuma Pembidaian (lima kriteria), PBB (empat), dan Yel-Yel (empat).
+ *
+ *  Tempatnya di util.js, bukan di app.js: papan panitia dan papan peserta
+ *  sama-sama menyusun kolomnya dari sini. Dua papan yang mengelompokkan
+ *  dengan aturan berbeda adalah bentuk kegagalan yang sudah pernah terjadi
+ *  dan tidak menggagalkan apa pun — ia cuma membuat keduanya saling membantah
+ *  di depan pembina yang sedang membandingkan. */
+export function kelompokLomba(kolom) {
+  const urut = [], peta = new Map();
+  for (const kol of kolom) {
+    const k = kol.varian[0];
+    const nama = k.lomba || kol.nama;
+    if (!peta.has(nama)) {
+      // `kode` adalah kunci TETAP lomba ini (0079), dan ia dibaca dari
+      // database — bukan diturunkan dari namanya. Foto slip disimpan dengan
+      // kunci itu, jadi menurunkannya dari nama berarti mengganti nama lomba
+      // menghilangkan seluruh fotonya tanpa satu pun galat. Cadangan slug
+      // dipakai hanya untuk baris yang kolomnya belum terisi.
+      peta.set(nama, { nama, kode: k.kode_lomba || slugLomba(nama), kolom: [] });
+      urut.push(peta.get(nama));
+    }
+    peta.get(nama).kolom.push(kol);
+  }
+  return urut;
+}
+
+/** Ringkas satu LOMBA untuk satu regu: berapa komponennya yang berlaku,
+ *  berapa yang sudah ada isinya, dan jumlah nilainya.
+ *
+ *  Dipakai kedua papan Live Score, dan sengaja hanya satu fungsi walau
+ *  keduanya menampilkan hal berbeda — panitia menggambar `jumlah`, peserta
+ *  menggambar centang dari `terisi` lawan `berlaku`. Yang harus sama persis
+ *  adalah CARA MEMBACANYA; kalau tidak, satu papan bisa menyebut Pembidaian
+ *  lengkap sementara papan sebelahnya menyebutnya baru sebagian.
+ *
+ *  `peta` berkunci `"<pos>.<kode wahana>"` — bentuk yang sama dipakai
+ *  `poin` maupun `komponen_terisi` di rekap.json (migrasi 0107 dan 0072).
+ *
+ *  `berlaku === 0` berarti lomba ini memang bukan untuk golongan regu itu.
+ *  Itu keadaan sah, bukan konfigurasi rusak: Tebak Simpul Penegak tidak ada
+ *  urusannya dengan regu Penggalang, dan seluruh lomba lapangan tidak ada
+ *  urusannya dengan regu Intern (migrasi 0091). */
+export function ringkasLomba(lomba, golongan, pos, peta) {
+  let berlaku = 0, terisi = 0, jumlah = 0;
+  for (const kol of lomba.kolom) {
+    const w = varianUntuk(kol, golongan);
+    if (!w) continue;
+    berlaku++;
+    const v = (peta || {})[`${pos}.${w.kode}`];
+    if (v === null || v === undefined) continue;
+    terisi++;
+    jumlah += Number(v) || 0;
+  }
+  return { berlaku, terisi, jumlah };
+}
+
 /** Angka nilai sebagai TEKS, satu bagian atau dua.
  *
  *  Mengembalikan bagian-bagiannya, bukan HTML jadi, dan itu yang membuatnya
