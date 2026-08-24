@@ -488,6 +488,11 @@ run tests/sql/73_sisipan_kloter_hak_gerbang.sql
 # tak dikenal.
 run supabase/migrations/0112_buang_v_klasemen_pratinjau.sql
 run tests/sql/74_satu_nama_klasemen.sql
+# Perkiraan berangkat dihitung DUA KALI di repo ini: fungsi database dan
+# web/js/departure-calculator.mjs. Tes 75 menjaga ujung-ujung jendelanya dari
+# sisi SQL; tests/departure_calculator.test.mjs menjaga sisi layar. Keduanya
+# sempat berpisah 37 menit tanpa satu pun galat.
+run tests/sql/75_perkiraan_berangkat_satu_rumus.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
