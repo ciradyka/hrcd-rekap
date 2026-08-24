@@ -6150,9 +6150,16 @@ async function layarFoto() {
   const ubin = new Map();          // kunci -> keadaan ubin
   const dadaDiketik = new Map();   // kunci -> angka yang sudah diketik
 
-  const jam = (iso) => {
-    try { return new Date(iso).toTimeString().slice(0, 5); } catch { return ""; }
-  };
+  /* jamMenit(), bukan toTimeString(): yang terakhir memakai zona waktu ALAT.
+     Laptop meja IT yang zonanya UTC menulis "01:53" untuk foto yang diunggah
+     pukul 08:53 WIB — dan di layar ini jam itulah satu-satunya pembeda antara
+     dua foto yang gambarnya mirip, karena petugas menautkannya ke nomor dada
+     dengan mencocokkan urutan dan waktunya.
+
+     Kosongnya dijaga di sini, bukan diserahkan ke jamMenit(): ia mengembalikan
+     "—" untuk nilai kosong, dan ubin bernama "Pukul —" terbaca seperti foto
+     yang jamnya hilang, bukan seperti foto yang belum punya jam. */
+  const jam = (iso) => (iso ? jamMenit(iso) : "");
 
   function hitungUbin() {
     elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
