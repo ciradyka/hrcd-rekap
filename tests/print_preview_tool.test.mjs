@@ -17,6 +17,20 @@ test("extractor mengenali seluruh selector layar yang disembunyikan", () => {
 });
 
 
+test("extractor membaca SEMUA blok @media print, bukan yang pertama", () => {
+  // style.css punya lebih dari satu blok cetak, dan `.index()` mengambil yang
+  // pertama saja. Yang hilang dari pratinjau tidak menimbulkan tanda apa pun,
+  // sementara keputusan bentuk kertas diambil dari pratinjau itu.
+  const jumlah = [...css.matchAll(/@media print \{/g)].length;
+  assert.ok(jumlah >= 2,
+    "style.css tinggal satu blok cetak — cek apakah penjaga ini masih perlu");
+
+  assert.doesNotMatch(alat, /css\.index\("@media print \{"\)/);
+  assert.match(alat, /while i != -1:/);
+  assert.match(alat, /len\(potongan\) != css\.count\(AWAL\)/);
+});
+
+
 test("workflow menjalankan extractor Python", async () => {
   const workflow = await readFile(
     new URL("../.github/workflows/sql-tests.yml", import.meta.url), "utf8");
