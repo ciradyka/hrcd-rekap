@@ -126,7 +126,7 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | RPC | Menjamin |
 | --- | --- |
 | `submit_pendaftaran` | Buat sekolah (bila baru) + batch + N baris regu + kode pembayaran unik, sekali jalan; validasi ulang rincian golongan = total di server |
-| `verifikasi_pembayaran` | Cek nominal = jumlah regu × `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
+| `verifikasi_pembayaran` | Cek nominal = `tagihan_pendaftaran()` = jumlah `biaya_regu(golongan)` seluruh regu yang belum dibatalkan — Intern memakai `biaya_per_regu_intern`, golongan lain `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
 | `batalkan_verifikasi` | Jalan mundur yang sah untuk salah verifikasi (meja di hari yang sama, admin kapan pun) — dengan alasan, terekam riwayat |
 | `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → tempatkan FIFO ke kloter paling awal yang belum berangkat dengan kuota 5 Eksternal + 3 Intern → tulis semuanya sekaligus. Regu `batal` dilewati. |
 | `tukar_nomor_dada` | Nomor dada rusak/salah pasang: tukar dengan stok tersedia, terekam riwayat |

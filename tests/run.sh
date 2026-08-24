@@ -471,6 +471,12 @@ run tests/sql/70_anggota_hadir_publik.sql
 # keadaan yang harus dikerjakannya.
 run supabase/migrations/0109_kontrak_waktu_tiga_pilihan.sql
 run tests/sql/71_kontrak_waktu_tiga_pilihan.sql
+# 0110 memberi regu Intern harganya sendiri, jadi tagihan berhenti jadi
+# perkalian dan menjadi penjumlahan per regu. Tes 72 memakai batch CAMPURAN —
+# satu-satunya bentuk yang membedakan kedua rumus — dan menempati kursi Meja
+# Pembayaran untuk membuktikan server menolak nominal rumus lama.
+run supabase/migrations/0110_biaya_intern_seratus_ribu.sql
+run tests/sql/72_biaya_intern.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql

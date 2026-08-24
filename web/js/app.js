@@ -36,7 +36,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
          angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
-         GOLONGAN_LABEL, URUT_GOLONGAN } from "./util.js";
+         GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -867,7 +867,12 @@ async function layarPembayaran() {
 
     tbody.replaceChildren(h(baris.map(b => {
       const aktif = reguAktif(b);
-      const tagihan = aktif.length * EDISI.biaya_per_regu;
+      // PENJUMLAHAN per regu, bukan perkalian: regu Intern berharga lain
+      // (migrasi 0110), dan satu pendaftaran boleh memuat kedua jenis.
+      // Angka ini dikirim apa adanya sebagai nominal ke verifikasi_pembayaran,
+      // yang menghitung ulang dengan rumus yang sama di server dan menolak
+      // kalau berbeda — jadi kedua sisi wajib memakai biayaRegu() yang sama.
+      const tagihan = totalBiaya(EDISI, aktif);
       // Cara bayar default TUNAI — mayoritas sekolah membayar langsung di
       // meja, jadi jalur tersibuk cukup satu ketukan. Yang transfer memilih
       // "Transfer" dulu. Salah tandai dibereskan lewat "Batalkan", bukan
@@ -971,7 +976,7 @@ async function layarPembayaran() {
                     <td>${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</td>
                     <td>${esc(r.nama_ketua)}</td>
                     <td>${sekolah}</td>
-                    <td class="text-right">${esc(rupiah(EDISI.biaya_per_regu))}</td>
+                    <td class="text-right">${esc(rupiah(biayaRegu(EDISI, r.golongan)))}</td>
                   </tr>`).join("")}
               </tbody>
             </table>
@@ -1056,7 +1061,7 @@ async function layarPembayaran() {
         const b = semua.find(x => x.kode_pembayaran === kode);
         const metode = tbody.querySelector(`[data-metode="${CSS.escape(kode)}"]`).value;
         const aktif = reguAktif(b);
-        const tagihan = aktif.length * EDISI.biaya_per_regu;
+        const tagihan = totalBiaya(EDISI, aktif);
 
         if (btn.dataset.jalan === "1") return;
         btn.dataset.jalan = "1"; btn.disabled = true; btn.textContent = "Menyimpan…";
@@ -1127,13 +1132,13 @@ function cetakKwitansi(daftar) {
   const halaman = daftar.map(b => {
     const aktif = reguAktif(b);
     const bayar = b.pembayaran || {};
-    const total = bayar.amount ?? aktif.length * EDISI.biaya_per_regu;
+    const total = bayar.amount ?? totalBiaya(EDISI, aktif);
     const baris = aktif.map((r, i) => html`
       <tr><td>${String(i + 1)}</td>
           <td>${r.nama_regu}</td>
           <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
           <td>${r.nama_ketua}</td>
-          <td class="text-right">${rupiah(EDISI.biaya_per_regu)}</td></tr>`).join("");
+          <td class="text-right">${rupiah(biayaRegu(EDISI, r.golongan))}</td></tr>`).join("");
 
     return `
       <section class="print-page">
@@ -1144,8 +1149,13 @@ function cetakKwitansi(daftar) {
            · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}<br>
            <span class="receipt-date"><strong>Tanggal:</strong>
              ${esc(tanggal(bayar.verified_at))}</span></p>
-        <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu
-           @ ${esc(rupiah(EDISI.biaya_per_regu))}</p>
+        <!-- Dulu baris ini berbunyi "N regu @ Rp X". Sejak regu Intern punya
+             harganya sendiri (migrasi 0110) tidak ada lagi SATU harga satuan
+             yang benar untuk setiap batch, dan menuliskan salah satunya di
+             kwitansi yang dipegang pembina lebih buruk daripada tidak
+             menuliskannya. Angkanya tidak hilang: tabel di bawah menyebut
+             biaya tiap regu satu per satu, lalu TOTAL-nya. -->
+        <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu</p>
         <table class="print-table">
           <thead>
             <tr><th>No</th><th>Nama Regu</th><th>Kategori</th><th>Ketua</th>

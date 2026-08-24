@@ -83,10 +83,12 @@ def siapkan():
              json.dumps(regu), 0, str(uuid.uuid4())),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]
-        biaya = jalankan("select biaya_per_regu from edisi where is_active",
-                         role="service_role", fetch="one")["biaya_per_regu"]
+        # Nominalnya diambil dari yang sudah dihitung submit_pendaftaran, bukan
+        # dari REGU_PER_SEKOLAH * biaya_per_regu. Batch ini CAMPURAN Eksternal
+        # dan Intern, dan sejak migrasi 0110 keduanya berharga lain — perkalian
+        # itu meleset dan verifikasi_pembayaran menolak seluruh fixture.
         jalankan("select verifikasi_pembayaran(%s,%s,%s)",
-                 (k, REGU_PER_SEKOLAH * biaya, "tunai"),
+                 (k, h["total_tagihan"], "tunai"),
                  uid=MEJA[0], fetch="one")
         kode.append(k)
     return kode
@@ -242,8 +244,6 @@ def uji_nomor_kembar():
     sama untuk dua regu berbeda, pada detik yang sama. Tepat satu boleh
     menang; yang kalah harus DITOLAK dengan pesan, bukan menimpa regu lain
     atau lolos jadi nomor ganda."""
-    biaya = jalankan("select biaya_per_regu from edisi where is_active",
-                     role="service_role", fetch="one")["biaya_per_regu"]
     kode = []
     for i in range(2):
         h = jalankan(
@@ -253,7 +253,8 @@ def uji_nomor_kembar():
                           "golongan": "penegak_pa"}]), 0, str(uuid.uuid4())),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]
-        jalankan("select verifikasi_pembayaran(%s,%s,%s)", (k, biaya, "tunai"),
+        jalankan("select verifikasi_pembayaran(%s,%s,%s)",
+                 (k, h["total_tagihan"], "tunai"),
                  uid=MEJA[0], fetch="one")
         kode.append(k)
 

@@ -1107,3 +1107,33 @@ export const GOLONGAN_LABEL = {
 export const URUT_GOLONGAN =
   ["penegak_pa", "penegak_pi", "penggalang_pa", "penggalang_pi",
    "intern_pa", "intern_pi"];
+
+/** Biaya pendaftaran SATU regu, menurut golongannya (migrasi 0110).
+ *
+ *  Pasangan sisi layar dari `biaya_regu()` di database, dan seperti fungsi itu
+ *  ia satu-satunya tempat di kedua situs yang tahu golongan mana yang berharga
+ *  intern. Tempatnya di util.js — berkas yang disalin utuh ke live/ dan dijaga
+ *  shared-files.yml — karena Meja Pembayaran dan form pendaftaran HARUS
+ *  menghitung angka yang sama: kalau keduanya berbeda satu rupiah,
+ *  `verifikasi_pembayaran` menolak pembayaran sekolah itu dan tidak ada tombol
+ *  di layar mana pun yang bisa memperbaikinya.
+ *
+ *  Tagihan satu batch adalah PENJUMLAHAN nilai ini per regu, bukan perkalian:
+ *  satu pendaftaran boleh memuat regu Eksternal dan Intern sekaligus.
+ *
+ *  HARGA INTERN YANG TIDAK ADA JATUH KE HARGA BIASA, dan itu yang membuat
+ *  urutan rilis tidak penting. Situs terbit tiap kali PR di-merge sedangkan
+ *  migrasi dijalankan terpisah sesudahnya (CLAUDE.md 7.6), jadi ada jeda
+ *  ketika layar baru ini membaca `v_edisi_publik` yang belum punya kolomnya.
+ *  Dengan jatuh ke `biaya_per_regu` layar menghitung persis seperti server
+ *  yang belum dimigrasi — angkanya cocok, pembayaran jalan. Kalau ia jatuh ke
+ *  nol, regu Intern akan tampil Rp 0 di Meja Pembayaran dan setiap
+ *  pembayarannya ditolak, tanpa satu pun galat yang menyebut sebabnya. */
+export const biayaRegu = (edisi, golongan) =>
+  golongan === "intern_pa" || golongan === "intern_pi"
+    ? Number(edisi?.biaya_per_regu_intern ?? edisi?.biaya_per_regu ?? 0)
+    : Number(edisi?.biaya_per_regu ?? 0);
+
+/** Tagihan satu daftar regu. Terima apa saja yang punya `golongan`. */
+export const totalBiaya = (edisi, daftarRegu) =>
+  (daftarRegu || []).reduce((n, r) => n + biayaRegu(edisi, r.golongan), 0);
