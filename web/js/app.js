@@ -82,6 +82,45 @@ let EDISI = null;
    seluruh keadaan yang hidup selama satu sesi di satu tempat. */
 let segarkanDiTempat = null;
 
+/* ---------------------------------------------------------------------------
+   PENDENGAR DAN PENGAMAT MILIK SATU LAYAR
+
+   Yang dipasang pada `window` atau lewat Resize/IntersectionObserver TIDAK
+   ikut hilang ketika `LAYAR.replaceChildren()` mengganti isinya: keduanya
+   dipegang objek yang hidup lebih lama daripada elemennya. Tanpa dilepas,
+   tiap kunjungan menambah satu salinan — dan salinan itu menahan seluruh
+   closure layarnya, termasuk `lembar` yang berisi ratusan baris nilai.
+
+   Yang menumpuk paling cepat bukan navigasi biasa. Dropdown pemilih pos
+   memanggil `layarInputPos()` lagi tanpa lewat `arahkan()`, jadi koordinator
+   pos yang menyapu kelima pos bolak-balik sepanjang pagi menumpuk satu
+   salinan tiap perpindahan. Karena itu layarnya sendiri yang meminta sinyal
+   baru, bukan hanya router.
+
+   Gejalanya nol: `ulangYangGagal()` sudah menjaga diri dengan
+   `document.body.contains(tbody)`, jadi salinan lama memang tidak melakukan
+   apa-apa. Yang tertinggal memorinya, dan tidak ada yang akan melihatnya
+   sampai satu HP kehabisan.
+
+   Polanya menyalin `pengendaliFilterSekolah` di bawah, yang sudah memakai
+   AbortController justru untuk alasan yang sama. */
+let pengendaliLayar = new AbortController();
+
+/** Lepaskan semua yang dipasang layar sebelumnya, lalu beri sinyal baru. */
+function sinyalLayarBaru() {
+  pengendaliLayar.abort();
+  pengendaliLayar = new AbortController();
+  return pengendaliLayar.signal;
+}
+
+/** Putuskan pengamat saat layarnya ditinggalkan.
+ *
+ *  AbortController tidak mengenal Resize/IntersectionObserver — `signal`
+ *  hanya melepas `addEventListener`. Jadi pengamatnya dititipkan ke peristiwa
+ *  `abort` sinyal yang sama, supaya satu saklar tetap mengurus keduanya. */
+const putusSaatPindah = (sinyal, pengamat) =>
+  sinyal.addEventListener("abort", () => pengamat.disconnect(), { once: true });
+
 const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
@@ -3978,8 +4017,11 @@ async function layarInputPos() {
   }
 
   // Internet kembali: jangan menunggu putaran 15 detik berikutnya.
-  window.addEventListener("online", ulangYangGagal);
-  window.addEventListener("offline", perbaruiRingkasan);
+  // Keduanya dilepas saat layar ini ditinggalkan — termasuk saat dropdown
+  // pemilih pos memanggil layar ini lagi, yang tidak lewat arahkan().
+  const sinyalLayar = sinyalLayarBaru();
+  window.addEventListener("online", ulangYangGagal, { signal: sinyalLayar });
+  window.addEventListener("offline", perbaruiRingkasan, { signal: sinyalLayar });
 
   // Baris yang sudah berisi nilai memang berasal dari database — ✓-nya
   // benar sejak halaman dibuka, bukan hanya untuk yang diketik hari ini.
@@ -5507,13 +5549,16 @@ async function layarLiveScore() {
      apa pun akan benar di satu ukuran dan meninggalkan celah atau tumpang
      tindih di ukuran lain. Diukur ulang saat lebarnya berubah, karena di situ
      pula pembungkusannya berubah. */
+  const sinyalLayar = sinyalLayarBaru();
   LAYAR.querySelectorAll(".table-live").forEach(tabel => {
     const baris1 = tabel.tHead && tabel.tHead.rows[0];
     if (!baris1) return;
     const ukur = () => tabel.style.setProperty(
       "--kepala-baris1", `${Math.round(baris1.getBoundingClientRect().height)}px`);
     ukur();
-    new ResizeObserver(ukur).observe(baris1);
+    const pengamatUkur = new ResizeObserver(ukur);
+    pengamatUkur.observe(baris1);
+    putusSaatPindah(sinyalLayar, pengamatUkur);
   });
 
   LAYAR.querySelectorAll("[data-fase]").forEach(tb => {
@@ -6251,6 +6296,7 @@ async function layarFoto() {
       if (u && !u.url && u.path) gambarUbin(u);
     }
   }, { rootMargin: "200px" });
+  putusSaatPindah(sinyalLayarBaru(), pengamat);
 
   async function gambarUbin(u) {
     try {
@@ -6541,6 +6587,10 @@ async function arahkan() {
   document.getElementById("cetakan")?.remove();
   hashLayar = tujuan;
   segarkanDiTempat = null;
+  // Pendengar window dan pengamat milik layar yang ditinggalkan dilepas di
+  // sini, bukan diserahkan ke layar berikutnya: layar tujuan boleh saja tidak
+  // memasang apa pun, dan yang lama tetap harus pergi.
+  pengendaliLayar.abort();
   if (!sesi()) { layarLogin(); return; }
   // Profil operasional dan centang hak bisa diubah admin saat petugas masih
   // login. Segarkan sekali per boot agar UI tidak memakai peran/pos lama;
