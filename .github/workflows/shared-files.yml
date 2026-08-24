@@ -29,11 +29,16 @@
 
 name: Shared files
 
+# Pull request saja — alasan lengkapnya di sql-tests.yml. Singkatnya: event
+# `pull_request` sudah menguji hasil merge-nya, jadi run kedua saat merge
+# mendarat di `main` memeriksa pohon yang sama persis dan tetap menagih.
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   periksa:

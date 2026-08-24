@@ -66,6 +66,16 @@ on:
       - '.github/workflows/publish-live.yml'
   # schedule:
   #   - cron: '*/5 * * * *'   # nyalakan pada minggu lomba
+  #
+  # SEBELUM MENYALAKANNYA, HITUNG DULU. Tiap lima menit = 288 run sehari, dan
+  # GitHub membulatkan tiap job ke atas ke menit penuh — jadi 288 menit sehari
+  # walaupun run-nya cuma 30 detik. Jatah repo privat 2.000 menit sebulan habis
+  # dalam SEMINGGU, dan yang ikut mati bukan cuma penerbitan ini melainkan
+  # seluruh Actions: tes PR, apply-migration, ganti password panitia.
+  #
+  # Kalau memang dibutuhkan pada hari-H, `*/15` sudah memberi papan yang
+  # terbarui empat kali sejam dengan sepertiga biayanya, dan matikan lagi
+  # begitu acaranya usai.
 
 # Dua jalan yang bertumpuk akan saling menimpa live.json di Cloudflare, dan
 # yang menang belum tentu yang terbaru. Satu jalan saja pada satu waktu.
