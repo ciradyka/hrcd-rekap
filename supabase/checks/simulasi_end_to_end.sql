@@ -258,9 +258,13 @@ begin
     for v_kode in
       select kode_pembayaran from pendaftaran where status = 'menunggu_pembayaran'
     loop
+      -- tagihan_pendaftaran(), bukan jumlah_regu * biaya_per_regu: sejak
+      -- migrasi 0110 regu Intern berharga lain, jadi perkalian lama meleset
+      -- pada batch mana pun yang memuatnya dan simulasi berhenti di
+      -- "nominal tidak sama dengan tagihan".
       perform verifikasi_pembayaran(
         v_kode,
-        (select p.jumlah_regu * v_e.biaya_per_regu from pendaftaran p
+        (select tagihan_pendaftaran(p.id) from pendaftaran p
           where p.kode_pembayaran = v_kode),
         'tunai');
     end loop;

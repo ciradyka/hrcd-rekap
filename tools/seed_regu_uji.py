@@ -182,9 +182,9 @@ def main():
     lunas = 0
     for kode in kode_semua:
         try:
-            t = jalan("select p.jumlah_regu * e.biaya_per_regu tagihan"
-                      " from pendaftaran p, edisi e"
-                      " where p.kode_pembayaran = %s and e.is_active", (kode,))
+            t = jalan("select tagihan_pendaftaran(p.id) tagihan"
+                      " from pendaftaran p"
+                      " where p.kode_pembayaran = %s", (kode,))
             jalan("select verifikasi_pembayaran(%s, %s, %s)",
                   (kode, t[0]["tagihan"], "tunai"))
             lunas += 1

@@ -17,7 +17,7 @@
 
 import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
-         pemuat } from "./util.js";
+         pemuat, biayaRegu, totalBiaya } from "./util.js";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN = [
@@ -506,13 +506,21 @@ function sinkronRegu() {
 
 function perbaruiTotal() {
   const total = jawab.regu.length;
+  // Regu Intern berharga lain (migrasi 0110). Form ini tidak pernah mencampur
+  // keduanya — jenis peserta dipilih sekali di atas dan menentukan seluruh
+  // pilihan golongan — jadi "N × harga" masih benar dan harganya diambil dari
+  // regu pertama. Yang DIJUMLAHKAN tetap per regu, supaya angka besarnya tetap
+  // benar seandainya form suatu hari boleh mencampur; ia juga harus sama
+  // persis dengan hitungan Meja Pembayaran, atau pembayarannya akan ditolak.
+  const satuan = total ? biayaRegu(EDISI, jawab.regu[0].golongan) : 0;
+  const tagihan = totalBiaya(EDISI, jawab.regu);
   document.getElementById("kotak-total").innerHTML = total
     ? html`<strong>Total: ${total} regu</strong>
-           <div class="description">Biaya: ${total} × ${rupiah(EDISI.biaya_per_regu)}
-           = <strong>${rupiah(total * EDISI.biaya_per_regu)}</strong></div>`
+           <div class="description">Biaya: ${total} × ${rupiah(satuan)}
+           = <strong>${rupiah(tagihan)}</strong></div>`
     : `<span class="description">Belum ada regu yang ditambahkan.</span>`;
   document.getElementById("kirim-info").innerHTML = total
-    ? html`${total} regu · ${rupiah(total * EDISI.biaya_per_regu)}`
+    ? html`${total} regu · ${rupiah(tagihan)}`
     : `<span class="description">Belum ada regu</span>`;
   if (sudahDiperiksa) periksa(false);
 }
