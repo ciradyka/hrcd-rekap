@@ -64,7 +64,7 @@
    ditunda sampai DOM siap, yang justru lebih aman daripada sebelumnya. */
 import {
   esc, dada3, jamMenit, tanggalJam, berapaLalu,
-  angkaRapi, kontrakTeks,
+  angkaRapi, kontrakTeks, kolomPos, varianUntuk,
   GOLONGAN_LABEL, URUT_GOLONGAN,
 } from "./js/util.js";
 
@@ -401,14 +401,20 @@ function gambarPapan() {
   const pos = (META && META.pos) || [];
   const komponen = (META && META.komponen) || [];
 
-  // Satu kolom per komponen; versi per golongan digabung jadi satu kolom
-  // bernama sama — persis kolomPos() di layar panitia.
-  const perPos = pos.map(p => {
-    const milik = komponen.filter(w => w.pos === p.nomor);
-    const nama = [];
-    for (const w of milik) if (!nama.includes(w.name)) nama.push(w.name);
-    return { pos: p, nama, milik };
-  }).filter(x => x.nama.length);
+  // kolomPos() YANG SAMA dengan layar panitia, bukan aturan yang ditulis
+  // ulang di sini. Salinan tangan yang dulu berdiri di tempat ini
+  // menggabungkan menurut NAMA tanpa syarat, sedangkan kolomPos() hanya
+  // menggabungkan nama yang memang punya varian bergolongan dan selebihnya
+  // memakai `kode`. Selama tidak ada dua wahana bernama sama tanpa golongan
+  // di satu pos, keduanya menghasilkan kolom yang sama — dan menamai dua
+  // penilaian dengan nama yang sama adalah hal yang bisa dilakukan panitia
+  // dari data, tanpa menyentuh kode. Sesudah itu papan panitia menggambar dua
+  // kolom, papan ini menggambar satu, dan nilai komponen kedua hilang dari
+  // halaman peserta tanpa satu pun galat.
+  const perPos = pos.map(p => ({
+    pos: p,
+    kolom: kolomPos(komponen.filter(w => w.pos === p.nomor)),
+  })).filter(x => x.kolom.length);
 
   const kartu = URUT_GOLONGAN_PESERTA.map(g => {
     const baris = semua.filter(b => b.golongan === g);
@@ -454,7 +460,7 @@ function gambarPapan() {
                     aria-expanded="false"
                     title="Klik untuk menyaring per sekolah">Organisasi
                   <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
-                ${perPos.map(x => `<th class="pos" colspan="${x.nama.length}"
+                ${perPos.map(x => `<th class="pos" colspan="${x.kolom.length}"
                   >${esc(x.pos.bayangan ? x.pos.name
                         : `Pos ${x.pos.nomor} · ${x.pos.name}`)}</th>`).join("")}
                 <!-- Lima kolom perjalanan berdiri SEBELUM Penalti: Penalti
@@ -478,16 +484,19 @@ function gambarPapan() {
                    sudah poin akhir, dan "0 – 5" di kepala kolom berisi 80
                    membantahnya. Rentang menjelaskan apa yang boleh DIKETIK,
                    dan di papan ini tidak ada yang mengetik apa pun. -->
-              <tr>${perPos.map(x => x.nama.map(nm =>
-                `<th class="pos kol-komponen">${esc(nm)}</th>`).join("")).join("")}</tr>
+              <tr>${perPos.map(x => x.kolom.map(kol =>
+                `<th class="pos kol-komponen">${esc(kol.nama)}</th>`).join("")).join("")}</tr>
             </thead>
             <tbody>
               ${baris.map(b => {
                 const terisi = b.komponen_terisi || {};
                 const poin = b.poin || {};
-                const sel = perPos.map(x => x.nama.map(nm => {
-                  const w = x.milik.find(k =>
-                    k.name === nm && (!k.golongan || k.golongan === b.golongan));
+                const sel = perPos.map(x => x.kolom.map(kol => {
+                  // varianUntuk() YANG SAMA dengan layar panitia — dan ia
+                  // tidak simetris: Intern hanya menerima baris bertanda
+                  // `intern`, Eksternal menerima baris umum maupun baris
+                  // golongannya.
+                  const w = varianUntuk(kol, b.golongan);
                   if (!w) return `<td class="pos belum">–</td>`;
                   const kunci = `${x.pos.nomor}.${w.kode}`;
                   if (!penuh) {

@@ -6,8 +6,12 @@ import test from "node:test";
 
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+// Potongannya dibatasi `kolomCetakPos`, yang berdiri tepat sesudah
+// kelompokLomba(). Patokan sebelumnya `const varianUntuk` — dan fungsi itu
+// PINDAH ke util.js supaya papan panitia dan papan peserta memilih varian
+// dengan aturan yang sama, lalu berkas ini berhenti menemukan patokannya.
 const awal = app.indexOf("const slugLomba =");
-const akhir = app.indexOf("const varianUntuk", awal);
+const akhir = app.indexOf("const kolomCetakPos", awal);
 const sumber = app.slice(awal, akhir);
 const { kelompokLomba } = new Function(
   `${sumber}; return { kelompokLomba };`,

@@ -1061,6 +1061,26 @@ export function kolomPos(komponen) {
   return urut;
 }
 
+/** Varian mana dari satu kolom yang berlaku untuk satu regu — atau null.
+ *
+ *  Pasangan sisi layar dari `komponen_berlaku()` di database (migrasi 0091),
+ *  dan seperti fungsi itu ia TIDAK simetris: regu Intern hanya menerima
+ *  komponen bertanda `intern` atau golongannya sendiri, sedangkan golongan
+ *  Eksternal menerima baris umum (`golongan` null) maupun baris golongannya.
+ *  Komponen umum tidak otomatis berlaku untuk Intern — kalau iya, seluruh
+ *  lomba lapangan ikut tergambar untuk regu yang tidak mengikutinya.
+ *
+ *  Tempatnya di util.js bersama kolomPos(), bukan di app.js, karena papan
+ *  panitia dan papan peserta HARUS memilih varian yang sama. Aturan ini
+ *  pernah ditulis dua kali dan salinan yang di halaman peserta menyimpang;
+ *  yang menyimpang tidak menggagalkan apa pun, ia cuma membuat dua papan
+ *  saling membantah di depan pembina yang sedang membandingkan keduanya. */
+export const varianUntuk = (kol, golongan) => {
+  if (golongan === "intern_pa" || golongan === "intern_pi")
+    return kol.varian.find(k => k.golongan === golongan || k.golongan === "intern") || null;
+  return kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
+};
+
 /** Angka nilai sebagai TEKS, satu bagian atau dua.
  *
  *  Mengembalikan bagian-bagiannya, bukan HTML jadi, dan itu yang membuatnya

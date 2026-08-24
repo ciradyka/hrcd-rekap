@@ -36,7 +36,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
          angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
-         GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya } from "./util.js";
+         GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
+         varianUntuk } from "./util.js";
 import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -2668,12 +2669,6 @@ function kelompokLomba(kolom) {
   }
   return urut;
 }
-
-const varianUntuk = (kol, golongan) => {
-  if (golongan === "intern_pa" || golongan === "intern_pi")
-    return kol.varian.find(k => k.golongan === golongan || k.golongan === "intern") || null;
-  return kol.varian.find(k => !k.golongan || k.golongan === golongan) || null;
-};
 
 /** Kolom KERTAS untuk satu kolom layar. Sebagian memakan dua kolom, dan
  *  pembagiannya sama persis dengan kotak di layar — supaya petugas yang
