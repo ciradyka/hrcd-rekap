@@ -75,7 +75,7 @@ const kosong = () => ({
     penegak_pa: 0, penegak_pi: 0,
     intern_pa: 0, intern_pi: 0,
   },
-  regu: [],                      // [{golongan, nama_regu, nama_ketua}]
+  regu: [],                      // [{golongan, nama_regu, nama_ketua, anggota[4]}]
   kontak_wa: "",
   nama_kontak: "",
   kunci_kirim: uuidDraf(),
@@ -499,7 +499,8 @@ function sinkronRegu() {
   for (const g of golonganForm()) {
     const bekas = lama.filter(r => r.golongan === g.kode);
     for (let i = 0; i < jawab.rincian[g.kode]; i++)
-      jawab.regu.push(bekas[i] ?? { golongan: g.kode, nama_regu: "", nama_ketua: "" });
+      jawab.regu.push(bekas[i]
+        ?? { golongan: g.kode, nama_regu: "", nama_ketua: "", anggota: ["", "", "", ""] });
   }
   simpanDraf();
 }
@@ -527,29 +528,58 @@ function perbaruiTotal() {
 
 /* ---------------- 4. nama regu ---------------- */
 
+/** Empat kotak anggota, selalu empat — draf lama yang belum punya kunci
+ *  `anggota` ikut terisi kotak kosong, bukan kehilangan barisnya. */
+const anggotaRegu = (r) => {
+  const a = Array.isArray(r.anggota) ? r.anggota : [];
+  return [0, 1, 2, 3].map(k => a[k] || "");
+};
+
 function gambarRegu() {
   const kotak = document.getElementById("isi-regu");
   if (!jawab.regu.length) {
     kotak.replaceChildren(h(`<p class="description">Belum ada regu.</p>`));
     return;
   }
-  kotak.replaceChildren(h(jawab.regu.map((r, i) => html`
+  /* Template BIASA, BUKAN tag html`` — keempat kotak anggota sudah berupa
+     HTML jadi, dan menyisipkannya ke dalam html`` membuatnya ikut di-escape:
+     tag-nya tampil sebagai teks mentah di dalam kartu. Persis jebakan yang
+     sudah ditulis di app.js untuk baris tabel, dan ia menggigit lagi di sini.
+     Data dari luar tetap lewat esc() satu per satu. */
+  kotak.replaceChildren(h(jawab.regu.map((r, i) => {
+    const kotakAnggota = anggotaRegu(r).map((a, k) => html`
+          <input type="text" id="r-anggota-${i}-${k}" value="${a}"
+                 style="margin-top:.35rem"
+                 placeholder="misal: nama anggota ${k + 2}">`).join("");
+    return `
     <div class="regu-card" id="regu-${i}">
-      <span class="badge badge-green">Regu ${i + 1} — ${labelGolongan(r.golongan)}</span>
+      <span class="badge badge-green">Regu ${i + 1} — ${esc(labelGolongan(r.golongan))}</span>
       <div class="two-column">
         <div class="field" style="margin:0">
           <label for="r-nama-${i}">Nama regu</label>
-          <input type="text" id="r-nama-${i}" value="${r.nama_regu}"
+          <input type="text" id="r-nama-${i}" value="${esc(r.nama_regu)}"
                  maxlength="${NAMA_MAKS}" placeholder="contoh: Rajawali">
           <div class="error" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
         <div class="field" style="margin:0">
           <label for="r-ketua-${i}">Nama ketua</label>
-          <input type="text" id="r-ketua-${i}" value="${r.nama_ketua}" placeholder="contoh: Andi Saputra">
+          <input type="text" id="r-ketua-${i}" value="${esc(r.nama_ketua)}" placeholder="contoh: Andi Saputra">
           <div class="error" id="r-ketua-galat-${i}" hidden>Nama ketua wajib diisi.</div>
         </div>
       </div>
-    </div>`).join("")));
+      <!-- Empat kotak anggota, dan label "opsional" ditulis SEKALI di
+           judulnya — bukan di tiap kotak. Empat kata "opsional" berderet ke
+           bawah membuat yang wajib dan yang tidak sama-sama tenggelam.
+           Nomornya mulai dari 2: ketua adalah anggota pertama, dan regu
+           memang berlima (closing_regu.anggota_hadir 0-5). -->
+      <div class="field" style="margin:.7rem 0 0">
+        <label for="r-anggota-${i}-0">Anggota lain (opsional)</label>
+        ${kotakAnggota}
+        <div class="error" id="r-anggota-galat-${i}" hidden>
+          Nama anggota tidak boleh memakai angka.</div>
+      </div>
+    </div>`;
+  }).join("")));
 
   // Warning SEKETIKA kalau nama regu/ketua kosong — tidak menunggu tombol
   // Kirim ditekan dulu. Dua isian dicek bersama supaya kartu tidak salah
@@ -591,7 +621,22 @@ function gambarRegu() {
     const kotakKetua = document.getElementById(`r-ketua-galat-${i}`);
     kotakKetua.textContent = salahKetua || "";
     kotakKetua.hidden = !salahKetua;
-    document.getElementById(`regu-${i}`).classList.toggle("regu-card-error", !!salahNama || ketuaKosong);
+
+    // Anggota boleh kosong; yang tidak boleh cuma angka di namanya — aturan
+    // yang sama dengan nama ketua, dan database menolaknya juga (0114). Kotak
+    // yang salah ditandai satu per satu supaya pembina tahu yang mana.
+    const salahAnggota = [0, 1, 2, 3].some(k => {
+      const inp = document.getElementById(`r-anggota-${i}-${k}`);
+      if (!inp) return false;
+      const salah = ADA_ANGKA.test(inp.value);
+      inp.setAttribute("aria-invalid", String(salah));
+      return salah;
+    });
+    const kotakAnggota = document.getElementById(`r-anggota-galat-${i}`);
+    if (kotakAnggota) kotakAnggota.hidden = !salahAnggota;
+
+    document.getElementById(`regu-${i}`).classList.toggle("regu-card-error",
+      !!salahNama || ketuaKosong || salahAnggota);
   };
 
   /** Tanya server nama mana yang sudah terpakai — ditunda 450 ms supaya tiap
@@ -625,6 +670,18 @@ function gambarRegu() {
       r.nama_ketua = e.target.value.trim(); simpanDraf();
       cekRegu(i);
       if (sudahDiperiksa) periksa(false);
+    });
+    // Anggota opsional: yang bisa SALAH cuma angka di namanya, dan itu
+    // ditandai seketika — bukan saat tombol Kirim ditekan, karena saat itu
+    // pembina sudah mengisi belasan kotak dan harus mencari yang mana.
+    [0, 1, 2, 3].forEach(k => {
+      document.getElementById(`r-anggota-${i}-${k}`).addEventListener("input", e => {
+        if (!Array.isArray(r.anggota)) r.anggota = ["", "", "", ""];
+        r.anggota[k] = e.target.value.trim();
+        simpanDraf();
+        cekRegu(i);
+        if (sudahDiperiksa) periksa(false);
+      });
     });
     cekRegu(i);   // baris baru (kosong) langsung tertandai, tanpa perlu disentuh dulu
   });
@@ -671,7 +728,9 @@ function periksa(gulir = true) {
     const namaSalah = !n
       || jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n)
       || namaTerpakai.get(n) === true;
-    const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua);
+    const anggotaBerangka = (r.anggota || []).some(a => a && ADA_ANGKA.test(a));
+    const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua)
+      || anggotaBerangka;
     const el = document.getElementById(`regu-${i}`);
     if (el) el.classList.toggle("regu-card-error", kurang);
     if (kurang) {
