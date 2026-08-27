@@ -552,6 +552,14 @@ run tests/sql/82_nama_regu_tiga_huruf.sql
 # perlu ditunggu — dan tes 83.1 memang menuntut bentuk lama itu sudah hilang.
 run supabase/migrations/0121_pembayaran_pilihan_pembina.sql
 run supabase/migrations/0122_tuntut_cara_bayar.sql
+
+# 0123 mempersempit policy storage.objects ke peran yang memang dituju.
+# Tanpa itu unggahan anon ikut mengevaluasi syarat bucket `lembar` yang
+# memanggil pos_saya(), dan galat hak akses membatalkan seluruh INSERT.
+# Di database uji skema `storage` tidak ada, jadi migrasi ini hanya
+# membuktikan dirinya AMAN dijalankan di sana — bukan bahwa ia menyelesaikan
+# masalahnya. Yang membuktikan itu satu unggahan sungguhan ke produksi.
+run supabase/migrations/0123_policy_storage_per_peran.sql
 run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
