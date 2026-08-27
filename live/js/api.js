@@ -104,7 +104,7 @@ export function pesanRamah(m) {
   if (/nominal .* tidak sama dengan tagihan/i.test(t))
     return "Jumlah tagihan berubah (biaya per regu diperbarui admin). Muat ulang halaman, lalu ulangi.";
   if (/sudah daftar ulang \(nomor dada terbit\)/i.test(t))
-    return "Sekolah ini sudah menerima nomor dada, jadi pembayarannya tidak bisa dibatalkan — regunya akan jadi yatim: bernomor dada tapi tercatat belum bayar. Kosongkan dulu nomor dadanya lewat admin.";
+    return "Nomor dada sudah diberikan ke sekolah ini. Kosongkan dulu nomor dadanya sebelum membatalkan status pembayaran.";
   if (/sudah dicentang hadir/i.test(t))
     return "Regu ini sudah dicentang hadir. Hapus dulu centang Hadir-nya di layar Keberangkatan, lalu pindahkan.";
   if (/tercatat ikut berangkat bersama kloter/i.test(t))
