@@ -462,6 +462,16 @@ export async function unggahBuktiTransfer(kunciKirim, blob) {
  *  kedaluwarsa akan beredar di WhatsApp selamanya. */
 export async function tautanBukti(path) {
   if (K.mode === "dev" || !path) return null;
+  // Bukti yang datang dari Google Form XXXVII (migrasi 0130) berupa LINK
+  // Drive, bukan objek di bucket kita — berkasnya masih milik penyelenggara
+  // form dan aksesnya sedang diminta. Link dibuka apa adanya; menandatanganinya
+  // sebagai path Storage menghasilkan 404 yang terbaca "bukti hilang", padahal
+  // ia ada dan cuma tinggal di tempat lain.
+  //
+  // Cabang ini juga yang membuat pemindahan nanti tidak menyentuh layar mana
+  // pun: begitu berkasnya masuk bucket dan kolomnya diganti path, `path` tidak
+  // lagi berawalan http dan jalur tanda tangan di bawah yang dipakai lagi.
+  if (/^https?:\/\//i.test(path)) return path;
   await pastikanSesiSegar();
   const j = await kirim(
     `${K.supabaseUrl}/storage/v1/object/sign/${BUCKET_BUKTI}/${path}`, {

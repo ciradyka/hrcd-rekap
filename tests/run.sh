@@ -613,4 +613,9 @@ run tests/sql/87_nama_regu_angka_di_belakang.sql
 # menghitung apakah keseratus barisnya benar-benar terpasang.
 run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
 
+# 0130 mengisi link Drive bukti bayar untuk keseratus baris itu. Ia MENUNTUT
+# 0129 sudah jalan — sasarannya dipilih lewat kunci_kirim yang sama — jadi
+# tempatnya tepat di belakangnya, bukan di kelompok migrasi mana pun.
+run supabase/migrations/0130_bukti_transfer_link_drive.sql
+
 echo "SEMUA TES LULUS"
