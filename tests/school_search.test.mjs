@@ -42,6 +42,8 @@ const SEKOLAH = [
   { id: 7, name: "MA Agrowisata Shaleha", address: "Cisaga, Ciamis" },
   { id: 8, name: "SMK Galuh Rahayu", address: "Sindangkasih, Ciamis" },
   { id: 9, name: "SMA Islam Nurul Fikri", address: "Ciamis" },
+  { id: 14, name: "SMA Al-Muttaqin", address: "Jl. A. Yani No. 140, Tasikmalaya" },
+  { id: 15, name: "MA Terpadu Ar-Rahman", address: "Nasol, Cikoneng" },
   { id: 10, name: "SMAN 18 Garut", address: "Garut" },
   { id: 11, name: "MTsN 2 Ciamis", address: "Jl. Kertasari, Ciamis" },
   // Di luar Ciamis, dan memang tidak ada di daftar kurasi. Ia ada di sini
@@ -97,6 +99,26 @@ test("huruf status Dapodik tetap diabaikan", () => {
   // ditulis ulang: S di "MAS" berarti Swasta, bukan bagian nama.
   assert.ok(nama(cariSekolah(SEKOLAH, "MAS Agro")).includes("MA Agrowisata Shaleha"));
   assert.ok(nama(cariSekolah(SEKOLAH, "SMKS Galuh")).includes("SMK Galuh Rahayu"));
+});
+
+test("singkatan yang merapatkan kata tetap ketemu", () => {
+  // Nama sekolah di sini penuh partikel dua huruf — al, ar, as, el — dan
+  // yang menyebutnya tidak pernah memberi jeda di situ. "Almut" adalah cara
+  // orang menyebut SMA Al-Muttaqin, bukan salah ketik.
+  for (const [ketik, harap] of [
+    ["Almut",      "SMA Al-Muttaqin"],
+    ["almuttaqin", "SMA Al-Muttaqin"],
+    ["arrahman",   "MA Terpadu Ar-Rahman"],
+    ["nurulfik",   "SMA Islam Nurul Fikri"],
+  ])
+    assert.equal(cariSekolah(SEKOLAH, ketik)[0].name, harap,
+      `"${ketik}" tidak menaruh ${harap} di urutan pertama`);
+});
+
+test("kata rapat tidak boleh memakai kata yang sudah terpakai", () => {
+  // Seluruh rentangnya ikut dipakai habis: huruf "muttaqin" memang terketik
+  // di dalam "almut", jadi ketikan berikutnya tidak boleh memakainya lagi.
+  assert.equal(skorSekolah("almut muttaqin", "SMA Al-Muttaqin"), -1);
 });
 
 test("kata boleh diketik sebagian dan tidak harus berurutan", () => {

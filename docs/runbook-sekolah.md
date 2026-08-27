@@ -20,7 +20,9 @@ tanpa permintaan server per huruf.
 
 Penyaringnya **per kata, bukan per potongan**: tiap kata yang diketik cukup
 jadi awalan salah satu kata di nama sekolah, jadi "SMA 2" menemukan
-"SMAN 2 Ciamis". Sampai 27 Agustus 2026 ia menuntut ketikan menjadi potongan
+"SMAN 2 Ciamis". Satu kata ketikan juga boleh merapatkan beberapa kata
+sekaligus — "Almut" menemukan "SMA Al-Muttaqin" — karena nama di daftar ini
+penuh partikel dua huruf yang tidak pernah diberi jeda waktu diucapkan. Sampai 27 Agustus 2026 ia menuntut ketikan menjadi potongan
 utuh dari namanya — dan huruf `N` yang tidak diucapkan siapa pun membuat
 sekolah yang jelas-jelas ada di daftar seolah tidak terdaftar. Yang lahir dari
 situ baris kembar, yang persis dicegah seluruh runbook ini.
