@@ -21,7 +21,7 @@ import {
   batasNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
-  unggahFotoLembar, daftarFotoLembar, tautanFoto, klasemenLiveScore,
+  unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto, klasemenLiveScore,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
@@ -823,6 +823,11 @@ function pasangAlatTabel(gambar) {
     }));
   inp.focus();
   jalan();
+  // Dikembalikan supaya pemanggil bisa menerapkan ulang saringan yang SEDANG
+  // menyala sesudah datanya berubah di belakang layar — tanpa itu, baris yang
+  // baru saja difoto tetap duduk di daftar "Belum Foto" sampai ada yang
+  // menyentuh saringannya.
+  return jalan;
 }
 
 /** Filter bersama: kode pembayaran, nama sekolah, atau nama salah satu regu
@@ -3369,11 +3374,17 @@ async function layarInputPos() {
   // Gagal membacanya tidak boleh menghalangi apa pun: nol berarti lembar
   // dicetak apa adanya, tanpa baris kosong penambal.
   let batasStok = 0;
+  /* null = status fotonya TIDAK diketahui, dan itu berbeda dari "tidak ada
+     foto". Kalau permintaannya gagal — pos memang sering kehilangan sinyal —
+     menandai semua baris "belum foto" akan menuduh ratusan regu sekaligus.
+     Yang benar: berhenti menilai fotonya, dan katakan begitu di saringannya. */
+  let fotoPos = null;
   try {
-    [komponen, lembar, batasStok] = await Promise.all([
+    [komponen, lembar, batasStok, fotoPos] = await Promise.all([
       komponenPos(EDISI.nomor, pos.nomor),
       lembarPos(pos.nomor),
       batasNomorDada().catch(() => 0),
+      fotoLembarPos(pos.nomor).catch(() => null),
     ]);
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return;
@@ -3451,9 +3462,22 @@ async function layarInputPos() {
         // panjang terpotong di tengah kata — yang justru lebih buruk daripada
         // petunjuk singkat, karena terlihat seperti layar yang rusak.
         cariContoh: "Cari nomor dada / regu / organisasi…",
+        /* Empat saringan, dan keduanya yang "belum" TIDAK saling meniadakan:
+           satu regu bisa belum diinput DAN belum difoto, lalu muncul di
+           kedua-duanya. Itu benar — ini pandangan, bukan kotak yang harus
+           berisi tepat satu kali tiap regu.
+
+           "Lengkap" menuntut KEDUANYA: nilai penuh dan foto penuh. Kalau ia
+           cuma menuntut nilainya, regu yang fotonya kurang akan berdiri di
+           "Belum Foto" dan di "Lengkap" sekaligus — dua label yang saling
+           membantah tentang regu yang sama. */
         saringan: [
-          { kode: "belum", label: "Belum lengkap", pendek: "Belum" },
-          { kode: "sudah", label: "Sudah lengkap", pendek: "Sudah" },
+          // Tanpa `pendek`: keempat labelnya sudah dua kata, dan `pendek` yang
+          // isinya sama persis dengan `label` cuma menggandakan teksnya bagi
+          // pembaca layar — yang dibaca kedua span, bukan yang terlihat.
+          { kode: "belum-input", label: "Belum Input" },
+          { kode: "belum-foto", label: "Belum Foto" },
+          { kode: "lengkap", label: "Lengkap" },
           { kode: "semua", label: "Semua" },
         ],
         saringAktif: "semua",
@@ -3498,10 +3522,38 @@ async function layarInputPos() {
     </div>
   `));
 
+  /* ---------- status foto per regu ----------
+
+     Satu slip = satu LOMBA (bagian 11.6), bukan satu penilaian: Pembidaian
+     lima kriteria berbagi satu kertas dan satu `kode_lomba`. Jadi yang
+     dihitung kurang di sini lomba, bukan kolom.
+
+     Lomba yang komponennya tidak berlaku untuk golongan regu itu TIDAK ikut
+     dituntut — regu Penggalang tidak pernah punya slip Tebak Simpul Penegak,
+     dan menuduhnya belum foto adalah alarm yang tidak bisa dipenuhi siapa
+     pun. */
+  const lombaPos = kelompokLomba(kolom);
+  const fotoPunya = new Map();
+  (fotoPos || []).forEach(f => {
+    const dada = Number(f.nomor_dada);
+    if (!fotoPunya.has(dada)) fotoPunya.set(dada, new Set());
+    fotoPunya.get(dada).add(f.kode_lomba);
+  });
+
+  /** "1" kurang, "0" lengkap, "" belum diketahui (permintaannya gagal). */
+  const tandaFoto = (r) => {
+    if (fotoPos === null) return "";
+    const punya = fotoPunya.get(Number(r.nomor_dada)) || new Set();
+    const kurang = lombaPos.some(l =>
+      l.kolom.some(kol => varianUntuk(kol, r.golongan)) && !punya.has(l.kode));
+    return kurang ? "1" : "0";
+  };
+
   const tbody = document.getElementById("isi-tabel");
   tbody.replaceChildren(h(lembar.map(r => `
     <tr data-dada="${esc(r.nomor_dada)}" data-terisi="${esc(r.jumlah_terisi)}"
         data-golongan="${esc(r.golongan)}" data-komponen="${esc(r.jumlah_komponen)}"
+        data-foto-kurang="${tandaFoto(r)}"
         data-terkunci="${r.terkunci ? "1" : ""}">
       <td class="angka text-center" data-label="Nomor Dada">${esc(dada3(r.nomor_dada))}</td>
       <td data-label="Nama Regu"><strong>${esc(r.nama_regu)}</strong></td>
@@ -3529,9 +3581,34 @@ async function layarInputPos() {
      berbeda dengan gembok dan penanda simpan, yang berganti rupa mengikuti
      keadaan barisnya. Menempelkan ~300 pendengar untuk tombol yang tidak
      pernah berubah adalah ongkos yang tidak dibayar apa-apa. */
+  /** Baca ulang status foto sepos, lalu tandai ulang tiap baris.
+   *
+   *  Dipanggil sesudah dialog foto ditutup: di dalamnya foto bisa diunggah
+   *  atau dihapus, dan penanda yang tidak ikut berubah membuat saringan
+   *  "Belum Foto" berbohong tentang pekerjaan yang baru saja selesai. */
+  const segarkanFoto = async () => {
+    let baru;
+    try { baru = await fotoLembarPos(pos.nomor); }
+    catch { return; }   // pos sering kehilangan sinyal; penanda lama dibiarkan
+    if (location.hash !== layarIni) return;
+    fotoPos = baru;
+    fotoPunya.clear();
+    baru.forEach(f => {
+      const dada = Number(f.nomor_dada);
+      if (!fotoPunya.has(dada)) fotoPunya.set(dada, new Set());
+      fotoPunya.get(dada).add(f.kode_lomba);
+    });
+    [...tbody.children].forEach(tr => {
+      tr.dataset.fotoKurang = tandaFoto({
+        nomor_dada: tr.dataset.dada, golongan: tr.dataset.golongan,
+      });
+    });
+    terapkanSaringan();
+  };
+
   tbody.addEventListener("click", (e) => {
     const b = e.target.closest("[data-foto]");
-    if (b) bukaFoto(b.closest("tr"));
+    if (b) bukaFoto(b.closest("tr")).then(segarkanFoto);
   });
 
   /* ---------- keadaan simpan per baris ----------
@@ -4484,10 +4561,18 @@ async function layarInputPos() {
   document.getElementById("cetak-per-lomba")
     .addEventListener("click", () => cetak(true));
 
-  pasangAlatTabel((cari, saring) => {
+  const terapkanSaringan = pasangAlatTabel((cari, saring) => {
     [...tbody.children].forEach(tr => {
-      const lolosSaring = saring === "semua"
-        || (saring === "sudah" ? lengkap(tr) : !lengkap(tr));
+      // `fotoKurang` kosong berarti BELUM DIKETAHUI, bukan lengkap: saringan
+      // "Belum Foto" lalu tidak menuduh siapa pun, dan "Lengkap" berhenti
+      // menilai fotonya alih-alih menyatakan lengkap tanpa dasar.
+      const fotoKurang = tr.dataset.fotoKurang === "1";
+      const fotoTahu = tr.dataset.fotoKurang !== "";
+      const lolosSaring =
+        saring === "semua" ? true
+        : saring === "belum-input" ? !lengkap(tr)
+        : saring === "belum-foto" ? fotoKurang
+        : lengkap(tr) && !(fotoTahu && fotoKurang);
       tr.hidden = !(cocok(tr, cari) && lolosSaring);
     });
     hitungUlangJumlah();

@@ -161,6 +161,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/status":
                 self._kirim(200, q(
                     "select * from status_acara", uid=p.get("uid"), fetch="one"))
+            elif u.path == "/foto-lembar-pos":
+                self._kirim(200, q(
+                    "select nomor_dada, kode_lomba from v_foto_lembar "
+                    "where pos = %s",
+                    (p.get("pos") or 0,), uid=p.get("uid")))
             elif u.path == "/foto-belum-taut":
                 # nomor_dada NULL = foto borongan yang belum ditautkan (0074).
                 self._kirim(200, q(

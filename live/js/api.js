@@ -802,6 +802,21 @@ export async function daftarFotoLembar(pos, nomorDada) {
     `&select=*&order=diunggah_pada.desc`);
 }
 
+/** Foto slip SELURUH regu di satu pos, sekali ambil.
+ *
+ *  Dipakai saringan "Belum Foto" di layar Input Pos. Menanyakannya per baris
+ *  berarti ratusan permintaan di jaringan pos yang memang sering putus —
+ *  satu permintaan berisi dua kolom jauh lebih murah daripada 300 permintaan
+ *  berisi semuanya.
+ *
+ *  `path` sengaja TIDAK diambil: yang ditanya saringan cuma ADA atau TIDAK,
+ *  dan path adalah bagian paling gemuk dari barisnya. */
+export async function fotoLembarPos(pos) {
+  if (K.mode === "dev") return baca(`/foto-lembar-pos?pos=${encodeURIComponent(pos)}`);
+  return baca(null,
+    `v_foto_lembar?pos=eq.${encodeURIComponent(pos)}&select=nomor_dada,kode_lomba`);
+}
+
 /** Link sementara untuk melihat satu foto. Bucket-nya privat, jadi tidak ada
  *  URL tetap — dan itu memang yang diinginkan: link yang tidak kedaluwarsa
  *  akan beredar di WhatsApp selamanya. Satu jam cukup untuk melihatnya. */
