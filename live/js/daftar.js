@@ -18,7 +18,7 @@
 import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai,
          unggahBuktiTransfer, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
-         pemuat, biayaRegu, totalBiaya, kecilkanFoto } from "./util.js";
+         pemuat, biayaRegu, totalBiaya, kecilkanFoto, ikon } from "./util.js";
 import { cariSekolah, kunciSekolah } from "./school-search.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -376,8 +376,10 @@ function gambarBayar() {
     <div class="field" style="margin-top:.8rem">
       ${sudah ? `<p id="bukti-ada"><strong>Bukti sudah diunggah${
         jawab.bukti_nama ? `:</strong> ${esc(jawab.bukti_nama)}` : ".</strong>"}</p>` : ""}
-      <label for="bukti">${sudah ? "Ganti bukti" : "Unggah Bukti Transfer"}</label>
-      <input type="file" id="bukti" accept="image/*">
+      <label class="button button-primary" style="margin-top:.2rem">
+        <input type="file" id="bukti" accept="image/*" hidden>
+        ${ikon("camera")} ${sudah ? "Ganti Bukti" : "Unggah Bukti"}
+      </label>
       <div class="description" id="bukti-status"></div>
       <div class="error" id="g-bukti" hidden>Bukti transfer wajib diunggah.</div>
     </div>`));
