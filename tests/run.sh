@@ -515,6 +515,12 @@ run supabase/migrations/0115_sekolah_baku_dua_baris.sql
 # ditolak, dan sebaliknya, lewat KEDUA pintu yang memberi nomor.
 run supabase/migrations/0116_nomor_dada_intern_seribu.sql
 run tests/sql/78_deret_nomor_dada_intern.sql
+
+# 0117 membetulkan lpad(...,3) yang MEMOTONG nomor Intern empat digit jadi
+# tiga — dan tiga digit itu regu Eksternal yang benar-benar ada. Tes 79
+# membaca pesan yang keluar, bukan definisi fungsinya.
+run supabase/migrations/0117_dada_empat_digit_berangkat.sql
+run tests/sql/79_dada_empat_digit.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
