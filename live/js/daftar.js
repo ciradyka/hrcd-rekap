@@ -392,7 +392,9 @@ function gambarBayar() {
                   aria-label="Hapus bukti transfer">${ikon("x")}</button>
         </div>
         <div class="description">${esc(jawab.bukti_nama || "")}</div>` : ""}
-      <label class="button button-primary" style="margin-top:.2rem">
+      <label class="button button-primary"
+             style="margin-top:.2rem;display:inline-flex;align-items:center;
+                    justify-content:center;width:100%">
         <input type="file" id="bukti" accept="image/*" hidden>
         ${ikon("camera")} ${sudah ? "Ganti Bukti" : "Unggah Bukti"}
       </label>
@@ -712,7 +714,8 @@ function gambarRegu() {
         <div class="field" style="margin:0">
           <label for="r-nama-${i}">Nama Regu</label>
           <input type="text" id="r-nama-${i}" value="${esc(r.nama_regu)}"
-                 maxlength="${NAMA_MAKS}" placeholder="contoh: Rajawali">
+                 maxlength="${NAMA_MAKS}" placeholder="contoh: Rajawali"
+                 style="text-transform:uppercase">
           <div class="error" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
         <div class="field" style="margin:0">
@@ -824,7 +827,11 @@ function gambarRegu() {
 
   jawab.regu.forEach((r, i) => {
     document.getElementById(`r-nama-${i}`).addEventListener("input", e => {
-      r.nama_regu = e.target.value.trim(); simpanDraf();
+      // Kapital sejak di sini, bukan cuma di layar: yang dikirim, yang tercetak
+      // di konfirmasi, dan yang dibacakan di lapangan harus satu bentuk yang
+      // sama. Database menegakkannya lagi lewat trigger (migrasi 0126) untuk
+      // nama yang diketik panitia dari layar meja.
+      r.nama_regu = e.target.value.trim().toUpperCase(); simpanDraf();
       cekRegu(i);
       periksaNamaKeServer();
       if (sudahDiperiksa) periksa(false);

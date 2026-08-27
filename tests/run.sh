@@ -574,6 +574,13 @@ run tests/sql/84_jumlah_menginap.sql
 # terlalu mahal — rinciannya di kepala migrasinya. Seperti 0123, skema
 # `storage` tidak ada di database uji.
 run supabase/migrations/0125_bukti_transfer_tanpa_policy_ganti.sql
+
+# 0126 menyimpan nama regu KAPITAL, supaya belasan tempat yang menampilkannya
+# — termasuk pesan WhatsApp dan berkas terbit, yang bukan HTML — seragam
+# tanpa ditambal satu per satu. Tes 85 menguji dua jalur: pendaftaran, dan
+# penulisan langsung dari layar meja yang hanya dijaga trigger.
+run supabase/migrations/0126_nama_regu_kapital.sql
+run tests/sql/85_nama_regu_kapital.sql
 run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
