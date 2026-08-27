@@ -57,10 +57,19 @@ from (values
     select exists (select 1 from pg_proc p
                    join pg_namespace n on n.oid = p.pronamespace
                    where n.nspname = 'public' and p.proname = 'pindah_kloter'
-                     and pg_get_functiondef(p.oid) like '%keberangkatan%'))),
+                     and pg_get_functiondef(p.oid)
+                         like '%boleh_apa_saja(''keberangkatan''%'))),
 
-  ('0099', 'anon TIDAK boleh select tabel regu', (
-    select not has_table_privilege('anon', 'public.regu', 'select'))),
+  -- Jejaknya bukan satu tabel melainkan DAFTARNYA: sesudah 0099 anon hanya
+  -- boleh membaca lima relasi milik halaman peserta, dan tidak ada tabel
+  -- baru yang ikut terbuka karena default privileges sudah ditutup.
+  ('0099', 'anon hanya boleh membaca lima relasi peserta', (
+    select not exists (
+      select 1 from information_schema.role_table_grants
+      where grantee = 'anon' and table_schema = 'public'
+        and privilege_type = 'SELECT'
+        and table_name not in ('sekolah', 'v_edisi_publik', 'v_fase_live',
+                               'v_publik_ringkas', 'v_kelengkapan_publik')))),
 
   ('0100', 'v_regu_ringkas definer dan berpagar boleh_apa_saja', (
     select exists (select 1 from pg_class c

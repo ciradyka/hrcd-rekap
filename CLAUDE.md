@@ -182,6 +182,27 @@ Guidance for Claude Code when working in this repository.
    (`shared-files.yml` only compares `web/` against `live/`), and the pair has
    already drifted 21 lines once, losing all of section 5's rules 9-12.
 
+8. **Nothing records which migrations have been applied.**
+   `apply-migration.yml` runs ONE file at a time, by hand, and writes no
+   ledger — so a file nobody dispatches fails silently while CI stays green.
+   Ten did: `0091` and `0098`-`0106` never reached production. What found it,
+   six days later, was a pembina registering an Internal regu and being
+   refused by `regu_golongan_check`, which was still the four-golongan
+   constraint from `0001`. `0119` reinstalls their contents.
+
+   Before believing a merged migration is live, run
+   `supabase/checks/status_migrasi.sql` through `apply-migration.yml`. It
+   reports each migration's FINGERPRINT in the database — a constraint, a view
+   column, a fragment of a function body — and changes nothing. Names of files
+   cannot be checked, because nothing stores them.
+
+   **Re-running a skipped migration is not automatically safe.** Check first
+   whether a younger migration already replaced any of its objects: running
+   the old file now would roll those back. That is why `0119` deliberately
+   omits `v_lembar_pos` (replaced by `0095`), `submit_pendaftaran` (`0110`,
+   then `0114`), `daftar_ulang_batch` (`0116`), and
+   `perkiraan_berangkat_kloter` (`0118`).
+
 ## 8. Printed forms
 
 1. **Every printed form is photocopied, not printed once per copy.** One master
