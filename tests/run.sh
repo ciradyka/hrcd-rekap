@@ -509,6 +509,12 @@ run supabase/migrations/0114_nama_anggota_regu.sql
 # ada, jadi seluruh migrasinya no-op — yang diuji di sini cuma bahwa ia jalan
 # tanpa galat dan pagar akhirnya tidak menyala di daftar kurasi.
 run supabase/migrations/0115_sekolah_baku_dua_baris.sql
+
+# 0116 memecah nomor dada jadi dua deret: Eksternal 1-500, Intern 1001-1250.
+# Tes 78 menempati kursinya — memberi regu Intern nomor Eksternal harus
+# ditolak, dan sebaliknya, lewat KEDUA pintu yang memberi nomor.
+run supabase/migrations/0116_nomor_dada_intern_seribu.sql
+run tests/sql/78_deret_nomor_dada_intern.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.

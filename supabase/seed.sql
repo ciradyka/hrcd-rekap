@@ -61,5 +61,8 @@ insert into status_acara (id) values (true);
 -- 40 kloter (30 dasar + 31-40 cadangan).
 insert into kloter (nomor) select generate_series(1, 40);
 
--- Stok nomor dada fisik 1-500.
+-- Stok nomor dada fisik. DUA deret, karena kainnya dicetak dua set yang
+-- sama-sama mulai dari 001: Eksternal 1-500, Intern 1001-1250 (migrasi 0116).
+-- Batas antaranya `edisi.nomor_dada_intern_mulai`.
 insert into nomor_dada_stok (nomor) select generate_series(1, 500);
+insert into nomor_dada_stok (nomor) select generate_series(1001, 1250);

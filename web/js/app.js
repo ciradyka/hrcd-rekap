@@ -18,7 +18,7 @@ import {
   konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
-  batasNomorDada,
+  rentangNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto, klasemenLiveScore,
@@ -39,6 +39,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
+import { deretCocok, deretIntern, nomorStok, pesanDeret }
+  from "./nomor-dada-series.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -1229,8 +1231,17 @@ async function layarDaftarUlang() {
   LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
-  let semua;
-  try { semua = await daftarPendaftaran(); }
+  let semua, rentang;
+  try {
+    // Rentang deret ikut diambil di sini supaya nomor dari deret yang salah
+    // memerah DI KOTAKNYA, bukan baru ditolak server sesudah belasan kotak
+    // terisi. Gagal mengambilnya tidak boleh mematikan meja: `null` berarti
+    // layar berhenti menilai deret, dan database tetap yang memutuskan.
+    [semua, rentang] = await Promise.all([
+      daftarPendaftaran(),
+      rentangNomorDada().catch(() => null),
+    ]);
+  }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarDaftarUlang)); return; }
   if (location.hash !== layarIni) return;   // lihat catatan di layarPembayaran
 
@@ -1350,7 +1361,10 @@ async function layarDaftarUlang() {
                      kotak nomor dada tidak lagi jatuh tepat di bawah tombol
                      yang membukanya. Disembunyikan di bawah 941px — lihat
                      style.css. -->
-                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th><th>Nomor dada</th>
+                <tr><th>Regu</th><th>Kategori</th><th>Ketua</th>
+                    <th>Nomor dada${deretIntern(menunggu) && rentang
+                      ? `<span class="sub">Intern ${rentang.internMulai}–${rentang.internSampai}</span>`
+                      : ""}</th>
                     <th class="kol-imbang"></th></tr>
               </thead>
               <tbody>
@@ -1361,6 +1375,7 @@ async function layarDaftarUlang() {
                     <td>${esc(r.nama_ketua)}</td>
                     <td><input type="number" class="small-input" inputmode="numeric" min="1"
                                data-dada="${esc(r.id)}" data-untuk="${kode}"
+                               data-golongan="${esc(r.golongan)}"
                                value="${esc(nilaiDada.get(r.id) ?? "")}"></td>
                     <td class="kol-imbang"></td>
                   </tr>`).join("")}
@@ -1490,6 +1505,15 @@ async function layarDaftarUlang() {
           if (dipakai.has(angka)) {
             inp.classList.add("input-error");
             keluhan = keluhan || `Nomor ${angka} diketik untuk dua regu.`;
+            continue;
+          }
+          // Kain Intern bertulis 001 sama seperti kain Eksternal, dan
+          // mengetik apa yang terbaca adalah hal paling wajar sedunia —
+          // karena itu yang ditolak di sini bukan salah ketik, melainkan
+          // kekeliruan yang PASTI terjadi kalau tidak ditolak.
+          if (rentang && !deretCocok(rentang, inp.dataset.golongan, angka)) {
+            inp.classList.add("input-error");
+            keluhan = keluhan || pesanDeret(rentang, inp.dataset.golongan);
             continue;
           }
           dipakai.add(angka);
@@ -3377,24 +3401,24 @@ async function layarInputPos() {
   pasangKepala(`Input ${judulPos(pos)}`, "lembar");
 
   let komponen, lembar;
-  // Batas stok nomor dada diambil DI SINI, bukan saat tombol cetak ditekan.
+  // Rentang stok nomor dada diambil DI SINI, bukan saat tombol cetak ditekan.
   // Alasannya bukan kecepatan: `window.print()` harus tetap berada di giliran
   // event tap, dan Safari iPhone memblokirnya begitu ada satu `await` lebih
   // dulu (lihat catatan yang sama di layarCetakKloter). Stok nomor dada juga
   // tidak berubah di tengah lomba — ia dicetak di kain, bukan di database.
   // Gagal membacanya tidak boleh menghalangi apa pun: nol berarti lembar
   // dicetak apa adanya, tanpa baris kosong penambal.
-  let batasStok = 0;
+  let rentangStok = null;
   /* null = status fotonya TIDAK diketahui, dan itu berbeda dari "tidak ada
      foto". Kalau permintaannya gagal — pos memang sering kehilangan sinyal —
      menandai semua baris "belum foto" akan menuduh ratusan regu sekaligus.
      Yang benar: berhenti menilai fotonya, dan katakan begitu di saringannya. */
   let fotoPos = null;
   try {
-    [komponen, lembar, batasStok, fotoPos] = await Promise.all([
+    [komponen, lembar, rentangStok, fotoPos] = await Promise.all([
       komponenPos(EDISI.nomor, pos.nomor),
       lembarPos(pos.nomor),
-      batasNomorDada().catch(() => 0),
+      rentangNomorDada().catch(() => null),
       fotoLembarPos(pos.nomor).catch(() => null),
     ]);
   } catch (e) {
@@ -4535,10 +4559,10 @@ async function layarInputPos() {
        sebagian regu — menyisipkan seluruh nomor kosong ke dalamnya
        mengembalikan tumpukan kertas yang tadi sengaja dipersempit. */
     let semua = tampil;
-    if (!slip && batasStok > 0 && [...tbody.children].every(tr => !tr.hidden)) {
+    if (!slip && rentangStok && [...tbody.children].every(tr => !tr.hidden)) {
       const peta = new Map(tampil.map(r => [Number(r.nomor_dada), r]));
-      semua = Array.from({ length: batasStok }, (_, i) =>
-        peta.get(i + 1) || { nomor_dada: i + 1, kosong: true });
+      semua = nomorStok(rentangStok).map(
+        n => peta.get(n) || { nomor_dada: n, kosong: true });
     }
 
     if (slip) {

@@ -94,27 +94,42 @@ def siapkan():
     return kode
 
 
-def stok_tersedia(jumlah):
-    """Nomor dada yang masih boleh dipakai, urut kecil ke besar."""
+def stok_tersedia(jumlah, intern=False):
+    """Nomor dada yang masih boleh dipakai, urut kecil ke besar.
+
+    DUA DERET sejak migrasi 0116: kain Intern dicetak set sendiri yang juga
+    mulai dari 001, jadi Intern diketik 1001-1250 dan nomor Eksternal untuk
+    regu Intern ditolak database. Batasnya dibaca dari `edisi`, tidak ditulis
+    di sini — tes yang mematok 1001 akan gugur diam-diam begitu panitia tahun
+    depan menggesernya.
+    """
     baris = jalankan("""
         select s.nomor from nomor_dada_stok s
-        where not exists (select 1 from regu r where r.nomor_dada = s.nomor)
+        where (s.nomor >= (select nomor_dada_intern_mulai from edisi where is_active)) = %s
+          and not exists (select 1 from regu r where r.nomor_dada = s.nomor)
           and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor)
         order by s.nomor limit %s
-    """, (jumlah,), role="service_role")
+    """, (intern, jumlah), role="service_role")
     return [r["nomor"] for r in baris]
 
 
-def pasangan(kode, nomor):
-    """Yang diketik petugas: regu ini nomornya ini (migrasi 0011)."""
+def pasangan(kode, nomor_eksternal, nomor_intern=()):
+    """Yang diketik petugas: regu ini nomornya ini (migrasi 0011).
+
+    Tiap regu mendapat nomor dari DERETNYA SENDIRI — persis yang dilakukan
+    petugas meja, yang memegang dua tumpukan kain terpisah.
+    """
     regu = jalankan("""
-        select r.id::text as id from regu r
+        select r.id::text as id, r.golongan from regu r
         join pendaftaran d on d.id = r.pendaftaran_id
         where d.kode_pembayaran = %s and not r.is_cancelled and r.nomor_dada is null
         order by r.nama_regu, r.id
     """, (kode,), role="service_role")
-    return json.dumps([{"regu_id": r["id"], "nomor_dada": n}
-                       for r, n in zip(regu, nomor)])
+    sisa = {False: iter(nomor_eksternal), True: iter(nomor_intern)}
+    return json.dumps([
+        {"regu_id": r["id"],
+         "nomor_dada": next(sisa[r["golongan"].startswith("intern_")])}
+        for r in regu])
 
 
 def serbu(kode):
@@ -125,13 +140,22 @@ def serbu(kode):
     jadi dua meja tidak pernah menawarkan nomor yang sama. Yang diadu di
     sini tetap sama seperti dulu: penempatan kloter dan penulisan serentak.
     """
-    butuh = len(kode) * REGU_PER_SEKOLAH
-    stok = stok_tersedia(butuh)
-    if len(stok) < butuh:
-        raise SystemExit(f"stok nomor dada kurang: butuh {butuh}, ada {len(stok)}")
+    # Dua tumpukan kain, dua deret (0116) — dan tiap meja memegang potongan
+    # sendiri dari keduanya, sama seperti panitia membaginya sebelum antrean
+    # dibuka.
+    butuh_ext = len(kode) * EKSTERNAL_PER_SEKOLAH
+    butuh_int = len(kode) * INTERN_PER_SEKOLAH
+    stok_ext = stok_tersedia(butuh_ext)
+    stok_int = stok_tersedia(butuh_int, intern=True)
+    if len(stok_ext) < butuh_ext or len(stok_int) < butuh_int:
+        raise SystemExit(
+            f"stok nomor dada kurang: butuh {butuh_ext} Eksternal / {butuh_int} "
+            f"Intern, ada {len(stok_ext)} / {len(stok_int)}")
     # Disiapkan SEBELUM barrier supaya yang diadu murni transaksinya, bukan
     # waktu menyusun JSON di Python.
-    bawaan = {k: pasangan(k, stok[i * REGU_PER_SEKOLAH:(i + 1) * REGU_PER_SEKOLAH])
+    bawaan = {k: pasangan(k,
+                          stok_ext[i * EKSTERNAL_PER_SEKOLAH:(i + 1) * EKSTERNAL_PER_SEKOLAH],
+                          stok_int[i * INTERN_PER_SEKOLAH:(i + 1) * INTERN_PER_SEKOLAH])
               for i, k in enumerate(kode)}
 
     hasil, galat = [], []
