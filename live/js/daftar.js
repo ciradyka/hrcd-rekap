@@ -15,9 +15,10 @@
      tidak ada "perbaiki satu, ketemu satu lagi".
    ========================================================================== */
 
-import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai, ErrorApi } from "./api.js";
+import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai,
+         unggahBuktiTransfer, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
-         pemuat, biayaRegu, totalBiaya } from "./util.js";
+         pemuat, biayaRegu, totalBiaya, kecilkanFoto } from "./util.js";
 import { cariSekolah, kunciSekolah } from "./school-search.mjs";
 
 const LAYAR = document.getElementById("layar");
@@ -79,6 +80,11 @@ const kosong = () => ({
   regu: [],                      // [{golongan, nama_regu, nama_ketua, anggota[4]}]
   kontak_wa: "",
   nama_kontak: "",
+  metode_bayar: null,            // "transfer" atau "tunai"
+  // Path objek di bucket `bukti`, BUKAN berkasnya. Ia ikut tersimpan di draf
+  // supaya HP yang mati sesudah mengunggah tidak menyuruh mengunggah lagi.
+  bukti_transfer: null,
+  bukti_nama: "",                // nama berkas asli, untuk ditampilkan saja
   kunci_kirim: uuidDraf(),
 });
 
@@ -147,6 +153,12 @@ const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, "
    lapangan saat pemberangkatan dan saat juara diumumkan adalah hurufnya.
    Tanda baca dan spasi karena itu dibuang dulu — "Ma'ruf" dan "Nur-Aini"
    tetap lolos. Aturan yang sama ditegakkan database. */
+/* Rekening panitia. Ditulis SEKALI di sini: nomor rekening yang salah satu
+   digit membuat uang masuk ke orang lain, dan angka yang tersalin di dua
+   tempat pada akhirnya berbeda di salah satunya. */
+const REKENING = "BJB 0161891614100 a.n. Hiking Rally Ciradyka";
+const KAMPUS = "kampus SMAN 1 Ciamis";
+
 const HURUF_MIN = 3;
 const cukupHuruf = (t) => (String(t || "").match(/\p{L}/gu) || []).length >= HURUF_MIN;
 
@@ -162,6 +174,7 @@ function halaman() {
   const nomorJumlah = internal() ? 3 : 4;
   const nomorRegu = nomorJumlah + 1;
   const nomorKontak = nomorRegu + 1;
+  const nomorBayar = nomorKontak + 1;
   LAYAR.replaceChildren(h(`
     <section class="card" id="bagian-jenis">
       <h2><span class="section-number">1</span> Peserta</h2>
@@ -225,6 +238,19 @@ function halaman() {
       </div>
     </section>
 
+    <!-- Pembayaran -->
+    <section class="card" id="bagian-bayar">
+      <h2><span class="section-number">${nomorBayar}</span> Pembayaran</h2>
+      <div class="option-row" style="margin-top:.8rem">
+        <button class="option" id="b-transfer" type="button"
+                aria-pressed="${jawab.metode_bayar === "transfer"}">Transfer</button>
+        <button class="option" id="b-tunai" type="button"
+                aria-pressed="${jawab.metode_bayar === "tunai"}">Tunai</button>
+      </div>
+      <div id="isi-bayar" style="margin-top:.9rem"></div>
+      <div class="error" id="g-bayar" hidden>Pilih salah satu.</div>
+    </section>
+
     <div id="turnstile-kotak"></div>
     <div id="ringkas-galat"></div>
 
@@ -262,6 +288,22 @@ function halaman() {
   document.getElementById("p-internal").addEventListener("click", () => pilihJenis("internal"));
   if (!jenisDipilih) return;
 
+  // Bukti yang sudah naik TIDAK dibuang saat pembina bolak-balik antara
+  // Transfer dan Tunai: berkasnya sudah ada di bucket, dan menghapus
+  // catatannya cuma menyuruh mengunggah ulang berkas yang sama.
+  const pilihBayar = (metode) => {
+    if (jawab.metode_bayar === metode) return;
+    jawab.metode_bayar = metode;
+    simpanDraf();
+    for (const [id, m] of [["b-transfer", "transfer"], ["b-tunai", "tunai"]])
+      document.getElementById(id).setAttribute("aria-pressed", String(metode === m));
+    document.getElementById("g-bayar").hidden = true;
+    gambarBayar();
+    if (sudahDiperiksa) periksa(false);
+  };
+  document.getElementById("b-transfer").addEventListener("click", () => pilihBayar("transfer"));
+  document.getElementById("b-tunai").addEventListener("click", () => pilihBayar("tunai"));
+
   gambarSekolah();
   if (!internal()) gambarBarak();
   gambarStepper();
@@ -286,9 +328,69 @@ function halaman() {
     if (sudahDiperiksa) periksa(false);
   });
 
+  gambarBayar();
   document.getElementById("kirim").addEventListener("click", kirim);
   pasangTurnstile();
   perbaruiTotal();
+}
+
+/* ---------------- 7. pembayaran ---------------- */
+
+/* Nominalnya disebut di dalam kalimatnya, bukan di baris terpisah: yang
+   ditanyakan pembina bukan "berapa totalnya" — itu sudah terbaca di bar bawah
+   sepanjang form — melainkan "berapa yang harus saya transfer SEKARANG".
+
+   Yang tidak bisa ditebak sendiri cuma nomor rekeningnya dan tempatnya, dan
+   itulah satu-satunya isi kalimat ini. Tidak ada penjelasan cara mengunggah:
+   tombolnya sudah bernama Unggah Bukti Transfer.                            */
+function gambarBayar() {
+  const kotak = document.getElementById("isi-bayar");
+  if (!kotak) return;
+  const tagihan = rupiah(totalBiaya(EDISI, jawab.regu));
+
+  if (jawab.metode_bayar === "tunai") {
+    kotak.replaceChildren(h(html`
+      <p>Pembayaran senilai <strong>${tagihan}</strong> dapat dilakukan di
+         ${KAMPUS}.</p>`));
+    return;
+  }
+  if (jawab.metode_bayar !== "transfer") { kotak.replaceChildren(); return; }
+
+  const sudah = !!jawab.bukti_transfer;
+  kotak.replaceChildren(h(html`
+    <p>Silakan transfer senilai <strong>${tagihan}</strong> ke rekening
+       <strong>${REKENING}</strong>.</p>
+    <div class="field" style="margin-top:.8rem">
+      <label for="bukti">Unggah Bukti Transfer</label>
+      <input type="file" id="bukti" accept="image/*">
+      <div class="description" id="bukti-status">${
+        sudah ? `Terunggah${jawab.bukti_nama ? `: ${jawab.bukti_nama}` : ""}.`
+              : ""}</div>
+      <div class="error" id="g-bukti" hidden>Bukti transfer wajib diunggah.</div>
+    </div>`));
+
+  document.getElementById("bukti").addEventListener("change", async (e) => {
+    const berkas = e.target.files && e.target.files[0];
+    if (!berkas) return;
+    const status = document.getElementById("bukti-status");
+    // Bukti yang lama TIDAK dilupakan sebelum yang baru berhasil naik: sinyal
+    // putus di tengah unggahan kedua tidak boleh menghapus bukti yang sudah
+    // sah, karena Kirim akan tertahan olehnya.
+    status.textContent = "Mengunggah…";
+    try {
+      const kecil = await kecilkanFoto(berkas);
+      jawab.bukti_transfer = await unggahBuktiTransfer(jawab.kunci_kirim, kecil);
+      jawab.bukti_nama = berkas.name;
+      simpanDraf();
+      status.textContent = `Terunggah: ${berkas.name}`;
+      document.getElementById("g-bukti").hidden = true;
+      if (sudahDiperiksa) periksa(false);
+    } catch (err) {
+      status.textContent = "";
+      notif(err instanceof ErrorApi ? err.message
+            : (err && err.message) || "Bukti gagal diunggah. Coba lagi.", true);
+    }
+  });
 }
 
 /* ---------------- 1. sekolah ---------------- */
@@ -516,6 +618,9 @@ function perbaruiTotal() {
   document.getElementById("kirim-info").innerHTML = total
     ? html`${total} regu · ${rupiah(tagihan)}`
     : `<span class="description">Belum ada regu</span>`;
+  // Kalimat "transfer senilai X" menyebut angka yang sama dengan bar bawah,
+  // jadi ia harus ikut berubah saat jumlah regunya berubah.
+  gambarBayar();
   if (sudahDiperiksa) periksa(false);
 }
 
@@ -753,6 +858,18 @@ function periksa(gulir = true) {
       : "Nama contact person tidak boleh memakai angka" });
   tandai("g-nama-kontak", namaKontakKosong);
 
+  // Cara bayar menahan Kirim sama kerasnya dengan kolom kosong, dan bukti
+  // transfer sama kerasnya dengan cara bayarnya sendiri: RPC menolak keduanya
+  // (migrasi 0121), jadi menahannya di sini cuma membuat penolakan itu
+  // terbaca sebagai kotak merah, bukan sebagai kartu galat sesudah menunggu.
+  if (!jawab.metode_bayar)
+    galat.push({ ke: "bagian-bayar", teks: "Cara pembayaran belum dipilih" });
+  tandai("g-bayar", !jawab.metode_bayar);
+  const buktiKurang = jawab.metode_bayar === "transfer" && !jawab.bukti_transfer;
+  if (buktiKurang)
+    galat.push({ ke: "bagian-bayar", teks: "Bukti transfer belum diunggah" });
+  tandai("g-bukti", buktiKurang);
+
   const digitWa = jawab.kontak_wa.replace(/\D/g, "");
   const waSah = POLA_WA.test(digitWa);
   if (!waSah) galat.push({ ke: "bagian-kontak", teks: "Nomor WA belum sesuai format Indonesia" });
@@ -818,6 +935,10 @@ async function kirim(e) {
       nama_kontak: jawab.nama_kontak,
       regu: jawab.regu,
       kunci_kirim: jawab.kunci_kirim,     // sama saat mencoba lagi
+      metode_bayar: jawab.metode_bayar,
+      // Dikirim apa adanya juga saat tunai; RPC yang membuangnya. Menyaringnya
+      // di sini berarti aturannya hidup di dua tempat.
+      bukti_transfer: jawab.bukti_transfer,
     }, tokenTurnstile);
     sessionStorage.setItem("hrcd_selesai", "1");
     try { localStorage.setItem(KUNCI_HASIL, JSON.stringify(hasil)); } catch {}

@@ -552,6 +552,12 @@ export default {
         // Kunci idempotensi: kiriman ulang setelah sinyal putus tidak
         // melahirkan pendaftaran kedua (migrasi 0006).
         p_kunci_kirim: b.kunci_kirim || null,
+        // Cara bayar PILIHAN pembina, dan path bukti transfernya di bucket
+        // `bukti` (migrasi 0121). Gateway meneruskan apa adanya: yang menolak
+        // transfer tanpa bukti, dan bukti milik kiriman lain, adalah RPC-nya —
+        // satu tempat, bukan dua yang bisa menyimpang.
+        p_metode_bayar: b.metode_bayar || null,
+        p_bukti_transfer: b.bukti_transfer || null,
       }),
     });
     const isi = await r.json();

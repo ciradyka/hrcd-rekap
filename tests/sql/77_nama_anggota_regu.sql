@@ -25,7 +25,7 @@ declare v jsonb; v_id uuid; v_ang text[];
 begin
   v := submit_pendaftaran(
     'SMPN Uji Anggota', 'Jl. Uji Anggota', false, '081200007701',
-    '[{"nama_regu":"Ujianggota Satu","nama_ketua":"Ketua Satu","golongan":"penegak_pa"}]');
+    '[{"nama_regu":"Ujianggota Satu","nama_ketua":"Ketua Satu","golongan":"penegak_pa"}]', p_metode_bayar => 'tunai');
 
   select r.anggota into v_ang
   from regu r join pendaftaran d on d.id = r.pendaftaran_id
@@ -45,7 +45,7 @@ begin
   v := submit_pendaftaran(
     'SMPN Uji Anggota Isi', 'Jl. Uji Isi', false, '081200007702',
     '[{"nama_regu":"Ujianggota Dua","nama_ketua":"Ketua Dua","golongan":"penegak_pa",
-       "anggota":["Budi Santoso","","  ","Citra Lestari"]}]');
+       "anggota":["Budi Santoso","","  ","Citra Lestari"]}]', p_metode_bayar => 'tunai');
 
   select r.anggota into v_ang
   from regu r join pendaftaran d on d.id = r.pendaftaran_id
@@ -73,7 +73,7 @@ begin
     perform submit_pendaftaran(
       'SMPN Uji Anggota Lima', 'Jl. Uji Lima', false, '081200007703',
       '[{"nama_regu":"Ujianggota Tiga","nama_ketua":"Ketua Tiga","golongan":"penegak_pa",
-         "anggota":["A Satu","B Dua","C Tiga","D Empat","E Lima"]}]');
+         "anggota":["A Satu","B Dua","C Tiga","D Empat","E Lima"]}]', p_metode_bayar => 'tunai');
   exception when others then v_tolak := true;
   end;
   assert v_tolak, '77.3 GAGAL: lima anggota diterima';
@@ -84,7 +84,7 @@ begin
     perform submit_pendaftaran(
       'SMPN Uji Anggota Angka', 'Jl. Uji Angka', false, '081200007704',
       '[{"nama_regu":"Ujianggota Empat","nama_ketua":"Ketua Empat","golongan":"penegak_pa",
-         "anggota":["Anggota 2"]}]');
+         "anggota":["Anggota 2"]}]', p_metode_bayar => 'tunai');
   exception when others then v_tolak := true;
   end;
   assert v_tolak, '77.3 GAGAL: nama anggota berangka diterima';
@@ -104,7 +104,7 @@ begin
     perform submit_pendaftaran(
       'SMPN Uji Tanpa Ketua', 'Jl. Uji Ketua', false, '081200007705',
       '[{"nama_regu":"Ujianggota Lima","nama_ketua":"","golongan":"penegak_pa",
-         "anggota":["Budi Santoso"]}]');
+         "anggota":["Budi Santoso"]}]', p_metode_bayar => 'tunai');
   exception when others then v_tolak := true;
   end;
   assert v_tolak, '77.4 GAGAL: regu tanpa nama ketua diterima';

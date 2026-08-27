@@ -78,9 +78,10 @@ def siapkan():
                               else "intern_pa"}
                 for j in range(REGU_PER_SEKOLAH)]
         h = jalankan(
-            "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
+            "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid,"
+            "null, %s) as h",
             (f"UJI KONKUREN {i}", f"Jl. Uji {i}", False, "081200000000",
-             json.dumps(regu), 0, str(uuid.uuid4())),
+             json.dumps(regu), 0, str(uuid.uuid4()), 'tunai'),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]
         # Nominalnya diambil dari yang sudah dihitung submit_pendaftaran, bukan
@@ -271,10 +272,11 @@ def uji_nomor_kembar():
     kode = []
     for i in range(2):
         h = jalankan(
-            "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid) as h",
+            "select submit_pendaftaran(%s,%s,%s,%s,%s::jsonb,%s::smallint,%s::uuid,"
+            "null, %s) as h",
             (f"UJI KONKUREN KEMBAR {i}", f"Jl. Kembar {i}", False, "081200000000",
              json.dumps([{"nama_regu": f"Kembar {kode_huruf(i)}", "nama_ketua": "Ketua",
-                          "golongan": "penegak_pa"}]), 0, str(uuid.uuid4())),
+                          "golongan": "penegak_pa"}]), 0, str(uuid.uuid4()), 'tunai'),
             role="service_role", fetch="one")["h"]
         k = h["kode_pembayaran"]
         jalankan("select verifikasi_pembayaran(%s,%s,%s)",
