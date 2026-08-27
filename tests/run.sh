@@ -598,4 +598,11 @@ run tests/sql/55_cleanup_preserves_schools.sql
 run supabase/migrations/0127_nama_regu_dua_puluh_lima.sql
 run tests/sql/86_nama_regu_dua_puluh_lima.sql
 
+# 0128 membuka angka di nama regu, tapi HANYA sebagai ekor: enam regu SMKN 2
+# Ciamis mendaftar sebagai CAKRA 1..4 dan AGRESI 1..3. Tes 22 di atas tetap
+# menguji larangan lama di tempatnya sendiri; tes 87 menguji aturan barunya,
+# termasuk bahwa nomor WA yang nyasar ke kotak nama masih ditolak.
+run supabase/migrations/0128_nama_regu_angka_di_belakang.sql
+run tests/sql/87_nama_regu_angka_di_belakang.sql
+
 echo "SEMUA TES LULUS"

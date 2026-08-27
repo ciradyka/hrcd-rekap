@@ -161,6 +161,25 @@ const NAMA_MAKS = 25;
    — dan menolak semuanya demi menolak angka akan menolak lebih banyak nama
    asli daripada kesalahan yang dicegahnya. */
 const ADA_ANGKA = /[0-9]/;
+
+/* Nama REGU melonggar di 0128: angka boleh, tapi hanya sebagai ekor. Yang
+   dilepas cuma larangan menomori regu — SMKN 2 Ciamis mengirim enam regu dan
+   menyebutnya CAKRA 1..4 dan AGRESI 1..3, dan itu memang nama yang mereka
+   pakai. Yang TETAP dijaga bentuk khas kolom tertukar: angka di depan tanpa
+   nama sama sekali.
+
+   Harus sama persis dengan check `regu_nama_regu_angka_di_belakang`. Kalau di
+   sini lebih ketat, pembina berhenti mengetik pada aturan yang database
+   sebenarnya sudah terima, dan tidak ada galat apa pun yang muncul.
+
+     diterima   CAKRA 1, AGRESI 3, RAJAWALI
+     ditolak    08477484      (nomor WA nyasar ke kotak nama)
+     ditolak    SMA 2 CIAMIS  (angka di tengah)
+
+   ADA_ANGKA di atas TETAP dipakai lima tempat lain, dan semuanya nama ORANG.
+   Tidak ada yang bernama "Nur Aisyah 2", jadi di sana angka tetap berarti
+   kolom tertukar. */
+const NAMA_REGU_SAH = /^[^0-9]+[0-9]*$/;
 const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 /* Batas BAWAH nama regu (0120). Yang dihitung hurufnya, bukan panjang
@@ -796,7 +815,8 @@ function gambarRegu() {
   const masalahNama = (i) => {
     const n = normalNama(jawab.regu[i].nama_regu);
     if (!n) return "Nama regu wajib diisi.";
-    if (ADA_ANGKA.test(n)) return "Nama regu tidak boleh memakai angka.";
+    if (!NAMA_REGU_SAH.test(n))
+      return "Angka di nama regu hanya boleh di belakang, misal: Cakra 1.";
     if (!cukupHuruf(n)) return `Nama regu minimal ${HURUF_MIN} huruf.`;
     if (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n))
       return "Nama ini sudah dipakai regu lain di form ini.";

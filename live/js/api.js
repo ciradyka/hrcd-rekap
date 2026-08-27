@@ -128,6 +128,8 @@ export function pesanRamah(m) {
     return "Nama regu itu sudah dipakai regu lain. Pilih nama yang berbeda.";
   if (/regu_nama_panjang/i.test(t))
     return "Nama regu paling panjang 25 karakter.";
+  if (/nama_regu_angka_di_belakang/i.test(t))
+    return "Angka di nama regu hanya boleh di belakang, misal: Cakra 1.";
   if (/nama_regu_tanpa_angka/i.test(t))
     return "Nama regu tidak boleh memakai angka.";
   if (/nama_ketua_tanpa_angka/i.test(t))
