@@ -556,13 +556,13 @@ function gambarRegu() {
       <span class="badge badge-green">Regu ${i + 1} — ${esc(labelGolongan(r.golongan))}</span>
       <div class="two-column">
         <div class="field" style="margin:0">
-          <label for="r-nama-${i}">Nama regu</label>
+          <label for="r-nama-${i}">Nama Regu</label>
           <input type="text" id="r-nama-${i}" value="${esc(r.nama_regu)}"
                  maxlength="${NAMA_MAKS}" placeholder="contoh: Rajawali">
           <div class="error" id="r-nama-galat-${i}" hidden>Nama regu wajib diisi.</div>
         </div>
         <div class="field" style="margin:0">
-          <label for="r-ketua-${i}">Nama ketua</label>
+          <label for="r-ketua-${i}">Nama Ketua</label>
           <input type="text" id="r-ketua-${i}" value="${esc(r.nama_ketua)}" placeholder="contoh: Andi Saputra">
           <div class="error" id="r-ketua-galat-${i}" hidden>Nama ketua wajib diisi.</div>
         </div>
