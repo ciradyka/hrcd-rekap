@@ -527,6 +527,14 @@ run tests/sql/79_dada_empat_digit.sql
 # tidak ikut dipendekkan.
 run supabase/migrations/0118_jeda_kloter_maksimal.sql
 run tests/sql/80_jeda_kloter_maksimal.sql
+
+# 0119 memasang isi sepuluh migrasi (0091, 0098-0106) yang tidak pernah sampai
+# ke produksi — empat objek di dalamnya sengaja dilewati karena migrasi yang
+# lebih muda sudah menggantikannya. Di database uji rantainya memang sudah
+# utuh, jadi menjalankannya di sini sekaligus membuktikan berkas itu aman
+# dijalankan dua kali. Tes 81 memeriksa jejak tiap migrasinya satu per satu.
+run supabase/migrations/0119_terapkan_migrasi_terlewat.sql
+run tests/sql/81_migrasi_terlewat.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
