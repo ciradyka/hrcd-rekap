@@ -686,11 +686,28 @@ export async function lembarPos(pos) {
  *  Dibaca dari stok, bukan dari regu yang sudah terdaftar: stok adalah nomor
  *  dada FISIK yang benar-benar dicetak dan dibawa panitia, dan itulah rentang
  *  yang mungkin muncul di kotak penilaian. */
-export async function batasNomorDada() {
+/** Kedua deret nomor dada, dari `v_rentang_nomor_dada` (migrasi 0116).
+ *
+ *  Kain nomor dada dicetak dua set yang sama-sama mulai dari 001, jadi Intern
+ *  diketik 1001-1250 sementara Eksternal tetap 1-500. Yang dibaca di sini
+ *  UJUNG-UJUNGNYA saja, bukan seluruh 750 baris stok: layar cuma perlu tahu
+ *  nomor mana milik deret mana, dan meja daftar ulang bekerja di jaringan
+ *  yang sama dengan lima pos.
+ *
+ *  Nol berarti deretnya kosong — stok Intern yang belum pernah diisi admin.
+ *  Layar yang memakainya harus tetap jalan dalam keadaan itu, bukan menolak
+ *  semua nomor. */
+export async function rentangNomorDada() {
   const d = K.mode === "dev"
-    ? await baca("/batas-nomor-dada")
-    : await baca(null, "nomor_dada_stok?select=nomor&order=nomor.desc&limit=1");
-  return d.length ? Number(d[0].nomor) : 0;
+    ? await baca("/rentang-nomor-dada")
+    : await baca(null, "v_rentang_nomor_dada?select=*");
+  const r = d[0] || {};
+  return {
+    eksternalMulai: Number(r.eksternal_mulai) || 0,
+    eksternalSampai: Number(r.eksternal_sampai) || 0,
+    internMulai: Number(r.intern_mulai) || 0,
+    internSampai: Number(r.intern_sampai) || 0,
+  };
 }
 
 /** Satu baris saja, dibaca ulang sesudah menyimpan. Nilai Pos yang tampil di
