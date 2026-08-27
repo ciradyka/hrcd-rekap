@@ -95,9 +95,17 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
       tidak ada penjumlahan yang bisa meleset dan tidak ada yang perlu
       divalidasi. Yang diperiksa hanya batas bawah ("Tambahkan minimal satu
       regu") dan batas atas per pengiriman.
-   5. **Untuk setiap regu:** nama regu dan nama ketua. **Nama empat anggota
-      lain tidak diminta** — untuk sekarang sistem tidak mencatatnya;
-      kelengkapan 5 orang dicek fisik di akhir lomba (bagian 10.9).
+   5. **Untuk setiap regu:** nama regu, nama ketua, dan **nama empat anggota
+      lain — opsional**. Ketua tetap satu-satunya yang wajib. Yang kosong
+      tidak disimpan sebagai nama kosong; regu yang pembinanya tidak mengisi
+      sama sekali tercatat tanpa daftar anggota, dan itu keadaan yang sah.
+      **Kelengkapan 5 orang tetap dicek FISIK di akhir lomba** (bagian 10.9) —
+      daftar nama ini tidak menggantikannya dan tidak dipakai menghitung
+      penalti anggota. Regu boleh datang berlima dengan satu nama tidak
+      tertulis, dan boleh menulis lima nama lalu datang bertiga.
+      *(Sampai 27 Agustus 2026 keempat nama itu sengaja TIDAK diminta;
+      keputusan itu dibalik pemilik acara, dan migrasi `0114` yang
+      mencatatnya.)*
    6. **Satu Contact Person** untuk keseluruhan batch: nama (wajib) dan nomor
       WhatsApp. Namanya disimpan sebagai `pendaftaran.nama_kontak` dan itulah
       yang dipanggil panitia saat menghubungi sekolah.
@@ -876,5 +884,5 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    *(Pertanyaan-pertanyaan lain di bagian ini yang sudah terjawab dan pindah ke
    badan dokumen: pembayaran sebagian tidak dilayani — bagian 3.5; kode
    pembayaran per batch terbit saat pendaftaran — bagian 3.4; nama anggota
-   selain ketua tidak dicatat untuk sekarang — bagian 3.2; isi dan waktu
-   tampilan live — bagian 1.5.)*
+   selain ketua kini dicatat dan opsional, sesudah sempat diputuskan tidak
+   dicatat — bagian 3.2; isi dan waktu tampilan live — bagian 1.5.)*

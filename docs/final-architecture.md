@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **24 Agustus 2026**, sampai migrasi `0113`.
+Terakhir diperiksa terhadap kode: **24 Agustus 2026**, sampai migrasi `0114`.
 
 ---
 
@@ -62,7 +62,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-113 migrasi, `0001` sampai `0113`, dijalankan berurutan tanpa lubang penomoran.
+114 migrasi, `0001` sampai `0114`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 

@@ -499,6 +499,11 @@ run tests/sql/75_perkiraan_berangkat_satu_rumus.sql
 # dipakai.
 run supabase/migrations/0113_planning_berangkat_tersimpan.sql
 run tests/sql/76_planning_berangkat_tersimpan.sql
+# 0114 mencatat nama empat anggota selain ketua, opsional. Tes 77 menjaga
+# yang paling mudah salah: kotak yang dilewati pembina TIDAK boleh tersimpan
+# sebagai nama kosong, dan pagarnya berdiri di tabel — bukan hanya di RPC.
+run supabase/migrations/0114_nama_anggota_regu.sql
+run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
