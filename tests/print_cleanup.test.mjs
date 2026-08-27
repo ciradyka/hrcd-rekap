@@ -30,3 +30,17 @@ test("pos tanpa blangko tidak meninggalkan printout kosong", () => {
   assert.ok(posisiKosong < posisiPasang,
     "printout dipasang sebelum diketahui bahwa tidak ada blangko");
 });
+
+
+test("form per lomba tidak bergantung pada adanya baris regu", () => {
+  const awal = app.indexOf("const cetak = (slip) => {");
+  const akhir = app.indexOf('document.getElementById("cetak-lembar")', awal);
+  const cetak = app.slice(awal, akhir);
+  const posisiBlangko = cetak.indexOf("if (slip) {");
+  const posisiPagarBaris = cetak.indexOf("if (!tampil.length)");
+
+  assert.notEqual(posisiBlangko, -1);
+  assert.notEqual(posisiPagarBaris, -1);
+  assert.ok(posisiBlangko < posisiPagarBaris,
+    "form per lomba masih ditolak sebelum cabang cetaknya dijalankan");
+});
