@@ -541,6 +541,18 @@ run tests/sql/81_migrasi_terlewat.sql
 # "A B" tiga karakter, dua huruf, dan yang dibacakan di lapangan hurufnya.
 run supabase/migrations/0120_nama_regu_tiga_huruf.sql
 run tests/sql/82_nama_regu_tiga_huruf.sql
+
+# 0121 mencatat cara bayar PILIHAN pembina beserta bukti transfernya, dan itu
+# bukan pembayaran.method yang mencatat cara uangnya benar-benar diterima. Tes
+# 83 menjaga ketiga pagarnya, termasuk yang paling mudah terlewat: bukti milik
+# folder kiriman lain harus ditolak.
+#
+# 0122 mengetatkan cara bayar jadi wajib, dan di produksi ia dijalankan SESUDAH
+# gateway terdeploy. Di sini keduanya berurutan karena tidak ada gateway yang
+# perlu ditunggu — dan tes 83.1 memang menuntut bentuk lama itu sudah hilang.
+run supabase/migrations/0121_pembayaran_pilihan_pembina.sql
+run supabase/migrations/0122_tuntut_cara_bayar.sql
+run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.

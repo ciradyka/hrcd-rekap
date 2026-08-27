@@ -1902,7 +1902,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    tabel lebar kolom Metode cuma 15% jadi ia membungkus jadi dua baris seperti
    sebelumnya. Satu aturan, dua tampilan — tanpa media query yang harus
    ditebak batasnya. */
-.metode-lunas {
+.metode-baris {
   display: inline-flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: .35rem;
 }

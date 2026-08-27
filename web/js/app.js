@@ -27,7 +27,7 @@ import {
   aturFaseLive,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
-  hapusFotoLembar,
+  hapusFotoLembar, tautanBukti,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
          meterSah,
@@ -937,15 +937,24 @@ async function layarPembayaran() {
         // selalu jatuh ke baris berikutnya, bahkan di kartu HP yang kolomnya
         // lapang. Dengan flex-wrap ia tetap menumpuk sendiri di kolom tabel
         // lebar yang cuma 15%, jadi satu aturan melayani kedua tampilan.
-        ? html`<span class="metode-lunas"
+        ? html`<span class="metode-baris"
                ><span>${b.pembayaran ? b.pembayaran.method : "—"}</span
                ><span class="badge badge-green">LUNAS</span></span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
-          : `<select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
-               <option value="tunai" selected>Tunai</option>
-               <option value="transfer">Transfer</option>
-             </select>`;
+          // Yang terpilih lebih dulu adalah cara bayar yang DIPILIH PEMBINA saat
+          // mendaftar (migrasi 0121) — bukan tebakan, dan bukan pula janji: yang
+          // dicatat tetap yang dipilih petugas di sini, karena uangnyalah yang
+          // menentukan. Pendaftaran lama tidak menyimpannya, dan untuk mereka
+          // tunai tetap yang terpilih seperti sebelumnya.
+          : html`<span class="metode-baris"
+                 ><select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
+                    <option value="tunai" ${b.metode_bayar === "transfer" ? "" : "selected"}>Tunai</option>
+                    <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
+                  </select>${b.bukti_transfer
+                    ? html`<button class="button button-mini" type="button"
+                                   data-bukti="${esc(b.bukti_transfer)}">Bukti</button>`
+                    : ""}</span>`;
 
       const aksi = b.status === "lunas"
         // <span class="teks-lebar"> = kata yang DIBUANG di layar sempit, jadi
@@ -1039,6 +1048,21 @@ async function layarPembayaran() {
       satuan.textContent = " regu";
       return [document.createTextNode(`${terbuka ? "▾" : "▸"} ${jumlah}`), satuan];
     };
+
+    // Bukti transfer yang diunggah pembina. Bucket-nya privat, jadi tautannya
+    // ditandatangani saat diketuk — dan jendelanya dibuka SEBELUM await, karena
+    // browser HP memblokir jendela yang dibuka sesudah menunggu jaringan.
+    tbody.querySelectorAll("[data-bukti]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const jendela = window.open("", "_blank");
+        try {
+          const url = await tautanBukti(btn.dataset.bukti);
+          if (jendela && url) jendela.location = url; else if (jendela) jendela.close();
+        } catch (err) {
+          if (jendela) jendela.close();
+          notif(`Bukti tidak bisa dibuka: ${err.message}`, true);
+        }
+      }));
 
     // Buka/tutup rincian regu satu invoice.
     tbody.querySelectorAll("[data-detail]").forEach(btn =>

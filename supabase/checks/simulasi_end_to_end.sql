@@ -136,80 +136,80 @@ begin
     perform submit_pendaftaran('SMAN 1 Maja', 'Jln prabuwangi',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Indi homogen', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMK BANGKIT INDONESIA TALAGA', 'Jln, ganeas no 1 kec, talaga',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Prampasu putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Pramapasu Putra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Pramapasu Putri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMAN 1 cirebon', 'Jl siliwangi no 12',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Kandang maung', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('MTs Rancah', 'Jl Cibeureum No. 50',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'SIREUM ATEUL', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'GARUDA MUDA', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'WANOJA SUNDA', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'MOJANG GALUH', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('MA AL-AZHAR KOTA BANJAR', 'Jl. Pesantren No 2 Citangkolo, Desa Kujangsari, Kecamatan Langensari, Kota Banjar',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Skuad Ambyar', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMAN 1 CIHAURBEUTI', 'Jalan kartawijaya no. 600 Pamokolan-Cihaurbeuti,Pamokolan,Ciamis,Kabupaten Ciamis,Jawa Barat 46262',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Bombang Rarang', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Bombang Kencana', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('MAS AL-KAUTSAR', 'jln. Pejuang No. 100, Karangpucung wetan, Desa Jajawar, Kecamatan Banjar, Kota Banjar, Provinsi Jawa Barat',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Khalid bin Walid', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Fatimah Azzahra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('Mts Rijalul Hikam', 'Jatinagara',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Brighest Star', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('MA ASALIMIAH', 'jl. Kiayi Haji Salim, No 1 Rt 9 rw 7 Desa Darmacaang, Kec. cikoneng, Kab, Ciamis',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Abang pulan', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Dewi Armina', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMA TERPADU CIKANYERE', 'Kec.Rajadesa,Kab.Ciamis',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'COLOR REMBO', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'PHAIS OREGH', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('MA YPI RIJALUL HIKAM', 'Jatinagara',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Nanya ka urang', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'SagombayFly', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'ZAKORAYFLY', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMA Islam Ainurrafiq', 'Kec. Cigandamekar Kab. Kuningan',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'No Mercy ARQ', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Zombie Ainurrafiq', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMP Islam Ainurrafiq', 'Kec. Cigandamekar Kab. Kuningan',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Oxsigen ARQ', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMKS GALUH RAHAYU', 'Jln Raya Sukaraja, Sindangkasih',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Putera Galuh', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMAI NURUL FIKRI', 'Serang Banten',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Pagoli NFBS', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Lastrada NFBS', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMA IT AL-FALAH', 'Jl. Raya Citalahab Ds.Mekarjaya Kec.Bungbulang Kab.Garut Kode Pos 44165',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'ADAM MALIK', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMKN 1 Losarang', 'Jalan Raya Pantura Losarang Desa Santing Kel. Jumbleng, Santing, Kec. Losarang, Kabupaten Indramayu, Jawa Barat 45253',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'KIWANA LAS', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
@@ -217,32 +217,32 @@ begin
         jsonb_build_object('nama_regu', 'NYI WANA KULTUR', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'Nyi Wanagri', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'KiWana Tok', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMK Siliwangi AMS Banjarsari', 'Banjarsari,Ciamis, Jawa barat',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Dyah Pitaloka', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pi'),
         jsonb_build_object('nama_regu', 'Prabu Siliwangi', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa'),
         jsonb_build_object('nama_regu', 'Maung Bodas', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMAT RIYADLUL ULUM', 'Condong, Setianegara, Cibereum Kota Tasikmalaya',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Condong Rover Scout', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMPT RIYADLUL ULUM WADDAWAH', 'condong,setianegara,cibereum, kota Tasikmalaya',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Hileud Jengke', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMPN 2 CIPAKU', 'Jalan Desa Cipaku no.5 desa/kec cipaku',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Swag Partners', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Angel Wings', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Badhrika Chandra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
         jsonb_build_object('nama_regu', 'Pandawa Lima', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMKN 2 CIAMIS', 'Jl. Sadananya no.21',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Agresi Cakra', 'nama_ketua', 'Ketua Regu', 'golongan', 'penegak_pa')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
     perform submit_pendaftaran('SMPN 1 CIAMIS', 'Jl. Jenderal Sudirman No. 6, Ciamis',
       false, '0800000000', jsonb_build_array(
         jsonb_build_object('nama_regu', 'Disconnect Eror', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pa'),
@@ -251,7 +251,7 @@ begin
         jsonb_build_object('nama_regu', 'Pacebuk Nesa', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Disconnect Ngelag', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi'),
         jsonb_build_object('nama_regu', 'Alah Siah Boy', 'nama_ketua', 'Ketua Regu', 'golongan', 'penggalang_pi')),
-      0::smallint, null, 'Pembina');
+      0::smallint, null, 'Pembina', p_metode_bayar => 'tunai');
 
     -- Lunasi lalu beri nomor dada. Nominalnya harus PAS seluruh batch —
     -- verifikasi_pembayaran menolak pembayaran sebagian (alur 3.5).

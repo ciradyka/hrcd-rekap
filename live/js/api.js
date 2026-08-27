@@ -411,6 +411,65 @@ export async function kirimPendaftaran(payload, tokenTurnstile) {
   });
 }
 
+/* ---------------------- BUKTI TRANSFER (migrasi 0121) --------------------
+
+   Satu-satunya unggahan di seluruh sistem yang datang dari orang yang TIDAK
+   login. Karena itu jalannya sengaja beda dari unggahFotoLembar di bawah: ia
+   tidak pernah menyegarkan sesi, dan tidak pernah memakai token siapa pun —
+   anon key saja, persis seperti pembina yang membuka form dari HP-nya.
+
+   Folder pertama WAJIB kunci_kirim, dan itu ditegakkan dua kali: policy
+   storage.objects hanya menerima nama berbentuk `<uuid>/<sesuatu>.jpg`, dan
+   submit_pendaftaran menolak path yang folder-nya bukan kunci_kirim kiriman
+   itu sendiri. Yang pertama menjaga bucket, yang kedua menjaga supaya satu
+   pendaftaran tidak mengaku memakai bukti milik pendaftaran lain.           */
+
+const BUCKET_BUKTI = "bukti";
+
+export function namaObjekBukti(kunciKirim) {
+  const acak = Math.random().toString(36).slice(2, 8);
+  return `${kunciKirim}/bukti-${Date.now()}-${acak}.jpg`;
+}
+
+/** Unggah satu bukti transfer, kembalikan path-nya untuk dikirim ke RPC.
+ *
+ *  Gambarnya sudah dikecilkan pemanggil lewat kecilkanFoto(). Bucket menolak
+ *  apa pun di atas 1 MB dan apa pun yang bukan JPEG — pagar kedua untuk saat
+ *  pengecilan itu gagal diam-diam. */
+export async function unggahBuktiTransfer(kunciKirim, blob) {
+  const path = namaObjekBukti(kunciKirim);
+  // Dev server tidak punya Storage. Path-nya tetap dikembalikan supaya alur
+  // formnya bisa dicoba tanpa Supabase.
+  if (K.mode === "dev") return path;
+
+  await kirim(`${K.supabaseUrl}/storage/v1/object/${BUCKET_BUKTI}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: K.anonKey,
+      Authorization: `Bearer ${K.anonKey}`,
+      "Content-Type": "image/jpeg",
+      "x-upsert": "false",
+    },
+    body: blob,
+  });
+  return path;
+}
+
+/** Link sementara untuk melihat satu bukti transfer di Meja Pembayaran.
+ *  Alasannya sama dengan tautanFoto(): bucket-nya privat, dan link yang tidak
+ *  kedaluwarsa akan beredar di WhatsApp selamanya. */
+export async function tautanBukti(path) {
+  if (K.mode === "dev" || !path) return null;
+  await pastikanSesiSegar();
+  const j = await kirim(
+    `${K.supabaseUrl}/storage/v1/object/sign/${BUCKET_BUKTI}/${path}`, {
+      method: "POST",
+      headers: kepalaSupabase(),
+      body: JSON.stringify({ expiresIn: 3600 }),
+    });
+  return `${K.supabaseUrl}/storage/v1${j.signedURL || j.signedUrl}`;
+}
+
 /* ============================ MEJA ====================================== */
 
 export async function ringkasanMeja() {
@@ -442,7 +501,7 @@ export async function daftarPendaftaran() {
   if (K.mode === "dev") return baca("/daftar-pendaftaran");
   return baca(null,
     "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping," +
-    "butuh_barak,kontak_wa,created_at," +
+    "butuh_barak,kontak_wa,created_at,metode_bayar,bukti_transfer," +
     "sekolah(name,address)," +
     "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,is_cancelled)," +
     "pembayaran(amount,method,nomor_kwitansi,verified_at)" +
