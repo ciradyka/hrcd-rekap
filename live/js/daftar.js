@@ -131,11 +131,17 @@ const golonganForm = () => internal() ? GOLONGAN_INTERNAL : GOLONGAN;
 const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
   ?? [...GOLONGAN, ...GOLONGAN_INTERNAL].find(g => g.kode === k).label;
 
-/* ---------- nama regu: 20 karakter, dan tidak boleh kembar (0051) ----------
+/* ---------- nama regu: 25 karakter, dan tidak boleh kembar ----------------
 
-   20 diturunkan dari kolom Nama Regu pada form tabel per pos: 48mm pada huruf
-   10pt memuat ~21 karakter kapital. Lebih dari itu terpotong DIAM-DIAM di
-   kertas cadangan, yang justru dipakai saat internet mati.
+   20 (0051) diturunkan dari kolom Nama Regu pada blangko pos. Kolom itu sejak
+   itu justru dipersempit jadi 44mm atas keputusan panitia — lebih baik nama
+   terpotong sedikit daripada kotak nilai yang sempit — jadi yang dijaga 20
+   sudah tidak dijaga oleh 20, dan 0127 menaikkannya ke 25. Yang membuat
+   pemotongan itu aman: baris dikenali dari NOMOR DADA, bukan dari namanya.
+
+   Angka ini WAJIB sama dengan check `regu_nama_panjang` di database. Kalau ia
+   lebih kecil, pembina tidak bisa mengetik nama yang sebenarnya diterima dan
+   tidak ada galat apa pun yang muncul — hurufnya cuma berhenti masuk.
 
    Kembar ditolak di seluruh edisi karena nama juara dibacakan di depan
    lapangan, dan nama yang sudah pernah disebut kehilangan momennya.
@@ -144,7 +150,7 @@ const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
    besar-kecil diabaikan, spasi beruntun dirapatkan. Pembatas yang bisa
    dilewati dengan menekan Caps Lock bukan pembatas.                        */
 
-const NAMA_MAKS = 20;
+const NAMA_MAKS = 25;
 
 /* Angka di kolom nama selalu berarti salah satu dari dua hal: kolomnya
    tertukar (nomor WA diketik di kotak Nama), atau regunya dinomori sendiri

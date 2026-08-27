@@ -591,4 +591,11 @@ run supabase/checks/live_json.sql
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
 run tests/sql/55_cleanup_preserves_schools.sql
 
+# 0127 menaikkan batas nama regu 20 -> 25 karakter, karena tiga regu XXXVII
+# mendaftar lewat Google Form dengan nama yang melewatinya. Tes 21 di atas
+# sengaja DIBIARKAN menguji batas 20: ia berjalan sebelum migrasi ini, dan
+# itulah yang benar pada titik itu. Tes 86 menguji batas barunya.
+run supabase/migrations/0127_nama_regu_dua_puluh_lima.sql
+run tests/sql/86_nama_regu_dua_puluh_lima.sql
+
 echo "SEMUA TES LULUS"
