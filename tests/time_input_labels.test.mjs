@@ -12,8 +12,8 @@ test("semua label kotak jam manual menunjuk input HH", () => {
   const pasangan = [
     ["kloter-pertama", "Waktu Berangkat Pertama"],
     ["kloter-terakhir", "Waktu Berangkat Terakhir"],
-    ["planning-pertama", "Planning Berangkat Pertama"],
-    ["planning-terakhir", "Planning Berangkat Terakhir"],
+    ["planning-pertama", "Rencana Berangkat Pertama"],
+    ["planning-terakhir", "Rencana Berangkat Terakhir"],
     ["jam-berangkat", "Jam berangkat"],
     ["jam", "Jam datang"],
   ];

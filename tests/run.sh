@@ -521,6 +521,12 @@ run tests/sql/78_deret_nomor_dada_intern.sql
 # membaca pesan yang keluar, bukan definisi fungsinya.
 run supabase/migrations/0117_dada_empat_digit_berangkat.sql
 run tests/sql/79_dada_empat_digit.sql
+
+# 0118 membuat jendela keberangkatan jadi BATAS ATAS: jeda antar kloter paling
+# lama 5 menit. Tes 80 mengujinya dua arah — yang jarang dibatasi, yang rapat
+# tidak ikut dipendekkan.
+run supabase/migrations/0118_jeda_kloter_maksimal.sql
+run tests/sql/80_jeda_kloter_maksimal.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.

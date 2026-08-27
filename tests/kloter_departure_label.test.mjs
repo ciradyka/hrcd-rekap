@@ -27,7 +27,11 @@ test("kartu kloter memakai satu perakit baris jam, bukan ternary di tempat", () 
 
 
 test("kedua label menyebut asal angkanya", () => {
-  assert.match(layar, /<strong>Planning<\/strong>/);
+  // "Rencana", bukan "Planning": teks layar berbahasa Indonesia (pasal 5.2).
+  // Yang dijaga tetap PASANGANNYA — rencana dan jam sebenarnya digambar
+  // berdampingan, bukan saling menggantikan.
+  assert.match(layar, /<strong>Rencana<\/strong>/);
+  assert.doesNotMatch(layar, /<strong>Planning<\/strong>/);
   assert.match(layar, /<strong>Real<\/strong>/);
   // "Jam berangkat" polos terbaca seperti jadwal; "Estimasi" adalah kata
   // ketiga untuk hal yang kertasnya sebut "Perkiraan".
@@ -90,7 +94,7 @@ test("jendela disimpan, ditunda, dan gagalnya tidak diam", () => {
   // keadaan yang tiga di antaranya belum berarti apa-apa.
   assert.match(layar, /clearTimeout\(jadwalSimpan\)/);
   assert.match(layar, /\}, 800\)/);
-  assert.match(layar, /Planning belum tersimpan: \$\{err\.message\}/);
+  assert.match(layar, /Rencana belum tersimpan: \$\{err\.message\}/);
 });
 
 
@@ -109,6 +113,7 @@ test("kertas staging tetap menyediakan garis jam sebenarnya", () => {
 
 test("layar planning tanpa judul dan tanpa paragraf penjelas", () => {
   assert.doesNotMatch(layar, /<h2[^>]*>Planning Keberangkatan<\/h2>/);
+  assert.doesNotMatch(layar, /<h2[^>]*>Rencana Keberangkatan<\/h2>/);
   assert.doesNotMatch(layar, /Sudah mengambil nomor dada/);
   assert.doesNotMatch(layar, /dibagi rata ke/);
 });

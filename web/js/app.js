@@ -674,6 +674,7 @@ async function layarPengaturanKloter() {
         maksEksternalPerKloter: Number(cfg.maks_eksternal_per_kloter),
         maksInternPerKloter: Number(cfg.maks_intern_per_kloter),
         kloterMaks: Number(cfg.kloter_maks),
+        jedaMaksMenit: Number(cfg.interval_berangkat_menit) || Infinity,
       });
       waktuTerakhir.salah(false);
       tbody.replaceChildren(h(baris.map(x => html`
@@ -2068,25 +2069,25 @@ async function layarCetakKloter() {
           </tr>
         </tbody>
       </table>
-      <!-- Planning berdiri DI ATAS tombol cetak, dan urutan itu berarti:
+      <!-- Rencana berangkat berdiri DI ATAS tombol cetak, dan urutan itu berarti:
            yang tercetak adalah jam yang baru saja diatur di sini. Menaruhnya
            di bawah membuat petugas menekan Cetak lebih dulu, lalu menemukan
            kotak jamnya sesudah kertasnya keluar.
 
            TANPA judul dan TANPA paragraf penjelas. Labelnya sendiri sudah
-           menyebut "Planning Berangkat", jadi judul "Planning Keberangkatan"
-           di atasnya cuma mengulang label yang ada di bawahnya (pasal 9.3),
+           menyebut "Rencana Berangkat", jadi judul di atasnya cuma mengulang
+           label yang ada di bawahnya (pasal 9.3),
            dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
            menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
            sekali (pasal 9.1 dan 9.6). -->
       <div class="two-column planning-jam" style="margin-top:1rem">
         <div class="field">
-          <label for="planning-pertama-hh">Planning Berangkat Pertama</label>
+          <label for="planning-pertama-hh">Rencana Berangkat Pertama</label>
           ${kotakJamHtml("planning-pertama", jamPendek(
             cfg.planning_berangkat_pertama || cfg.jam_mulai_berangkat))}
         </div>
         <div class="field">
-          <label for="planning-terakhir-hh">Planning Berangkat Terakhir</label>
+          <label for="planning-terakhir-hh">Rencana Berangkat Terakhir</label>
           ${kotakJamHtml("planning-terakhir", jamPendek(
             cfg.planning_berangkat_terakhir || cfg.jam_batas_berangkat))}
         </div>
@@ -2121,7 +2122,8 @@ async function layarCetakKloter() {
     const terakhir = waktuTerakhir.nilai();
     if (!pertama || !terakhir) { planning = new Map(); return; }
     try {
-      planning = jadwalPlanning([...perKloter.keys()], pertama, terakhir);
+      planning = jadwalPlanning([...perKloter.keys()], pertama, terakhir,
+                                Number(cfg.interval_berangkat_menit) || Infinity);
     } catch (e) {
       planning = new Map();
       if (/waktu berangkat terakhir/i.test(e.message)) waktuTerakhir.salah(true);
@@ -2146,7 +2148,7 @@ async function layarCetakKloter() {
       || (v.perkiraanBerangkat ? jamMenit(v.perkiraanBerangkat) : null);
 
     const bagian = [];
-    if (rencana) bagian.push(html`<strong>Planning</strong> ${rencana}`);
+    if (rencana) bagian.push(html`<strong>Rencana</strong> ${rencana}`);
     if (v.jamBerangkat) {
       bagian.push(html`<strong>Real</strong> ${jamMenit(v.jamBerangkat)}`);
     }
@@ -2275,7 +2277,7 @@ async function layarCetakKloter() {
       try {
         await aturPlanningBerangkat(pertama, terakhir);
       } catch (err) {
-        galatPlanning.textContent = `Planning belum tersimpan: ${err.message}`;
+        galatPlanning.textContent = `Rencana belum tersimpan: ${err.message}`;
         galatPlanning.hidden = false;
       }
     }, 800);
