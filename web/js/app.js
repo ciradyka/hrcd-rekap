@@ -5636,15 +5636,6 @@ async function layarAkun() {
             min="1" max="20" disabled></div>
         <button class="button button-primary" id="ak-buat" type="button">Buat Akun</button>
       </div>
-      <details>
-        <summary>Buat banyak sekaligus</summary>
-        <div class="field">
-          <label for="ak-tempel">Satu akun per baris: nama akun, peran, pos</label>
-          <textarea id="ak-tempel" rows="4"
-            placeholder="pos1hrcd37, juri_pos, 1&#10;meja1hrcd37, registrasi"></textarea>
-        </div>
-        <button class="button button-primary" id="ak-buat-massal" type="button">Buat Semua</button>
-      </details>
       <div class="error" id="ak-galat" hidden></div>
     </div>
 
@@ -5746,16 +5737,6 @@ async function layarAkun() {
     kirimBuat([{ username: nama, peran: peranBaru.value,
       pos: peranBaru.value === "juri_pos" ? Number(posBaru.value) || null : null }],
       ev.currentTarget);
-  });
-
-  document.getElementById("ak-buat-massal").addEventListener("click", (ev) => {
-    const baris = document.getElementById("ak-tempel").value
-      .split("\n").map(b => b.trim()).filter(Boolean);
-    if (!baris.length) { lapor("Belum ada baris untuk dibuat."); return; }
-    kirimBuat(baris.map(b => {
-      const [username, peran, pos] = b.split(",").map(x => (x || "").trim());
-      return { username, peran, pos: pos ? Number(pos) : null };
-    }), ev.currentTarget);
   });
 
   const tabel = document.getElementById("ak-tabel");
