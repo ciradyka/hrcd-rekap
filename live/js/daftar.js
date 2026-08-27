@@ -993,15 +993,19 @@ const namaAcara = () => {
 const rincianHtml = (r) => {
   if (!r || !r.sekolah) return "";
   const regu = Array.isArray(r.regu) ? r.regu.filter(Boolean) : [];
-  return html`
+  // Template BIASA, bukan tag html`` — hasilnya disisipkan ke template lain
+  // sebagai HTML, dan html`` meng-escape SETIAP nilai yang disisipkan. Blok
+  // ini sempat memakainya, dan yang tercetak di layar adalah tag <p> apa
+  // adanya sebagai teks. Data dari luar tetap lewat esc() satu per satu.
+  return `
     <div style="margin-top:1rem">
-      <p><strong>Asal Sekolah</strong><br>${r.sekolah}</p>
-      ${regu.length ? html`<p style="margin-top:.6rem"><strong>Nama Regu</strong></p>
+      <p><strong>Asal Sekolah</strong><br>${esc(r.sekolah)}</p>
+      ${regu.length ? `<p style="margin-top:.6rem"><strong>Nama Regu</strong></p>
         <ul style="margin:.2rem 0 0 1.1rem">
-          ${regu.map(n => html`<li>${n}</li>`).join("")}
+          ${regu.map(n => `<li>${esc(n)}</li>`).join("")}
         </ul>` : ""}
-      <p style="margin-top:.6rem">${r.jumlah_regu} regu, total
-         <strong>${rupiah(r.total_tagihan)}</strong></p>
+      <p style="margin-top:.6rem">${esc(r.jumlah_regu)} regu, total
+         <strong>${esc(rupiah(r.total_tagihan))}</strong></p>
     </div>`;
 };
 
@@ -1020,18 +1024,20 @@ const pesanWa = (r) => {
 };
 
 function sukses(hasil) {
-  LAYAR.replaceChildren(h(html`
+  // Template biasa, BUKAN tag html`` — rincianHtml() sudah berupa HTML jadi
+  // tidak boleh ikut di-escape. Data dari luar tetap lewat esc().
+  LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--hijau);background:var(--hijau-muda)">
       <h2>✅ Pendaftaran diterima!</h2>
       <p ${hasil.terkirim_ulang ? "" : "hidden"}>
         <strong>Pendaftaran ini sudah tercatat dari kiriman sebelumnya.</strong>
         Perubahan setelah kiriman pertama tidak ikut tersimpan. Data yang
-        tercatat berisi ${hasil.jumlah_regu} regu; hubungi panitia bila perlu
+        tercatat berisi ${esc(hasil.jumlah_regu)} regu; hubungi panitia bila perlu
         diperbaiki.
       </p>
       <p><strong>Simpan kode pembayaran ini.</strong> Kode ini akan digunakan
          untuk verifikasi pembayaran dan daftar ulang.</p>
-      <div class="giant-number" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
+      <div class="giant-number" style="margin:1rem 0">${esc(hasil.kode_pembayaran)}</div>
       <button class="button button-secondary" id="salin" type="button">📋 Salin kode</button>
       ${rincianHtml(hasil)}
     </div>
@@ -1101,15 +1107,16 @@ async function mulai() {
   try { draf = JSON.parse(localStorage.getItem(KUNCI_DRAF) || "null"); } catch {}
 
   if (hasilLama && !draf) {
-    LAYAR.replaceChildren(h(html`
+    // Template biasa, BUKAN tag html`` — alasannya sama dengan sukses().
+    LAYAR.replaceChildren(h(`
       <div class="card" style="border-color:var(--hijau);background:var(--hijau-muda)">
         <h2>Pendaftaran terakhirmu</h2>
         <p>Kode pembayaran:</p>
-        <div class="giant-number" style="margin:.6rem 0">${hasilLama.kode_pembayaran}</div>
+        <div class="giant-number" style="margin:.6rem 0">${esc(hasilLama.kode_pembayaran)}</div>
         ${hasilLama.sekolah
           ? rincianHtml(hasilLama)
-          : html`<p class="description">${hasilLama.jumlah_regu} regu ·
-                 ${rupiah(hasilLama.total_tagihan)}</p>`}
+          : `<p class="description">${esc(hasilLama.jumlah_regu)} regu ·
+             ${esc(rupiah(hasilLama.total_tagihan))}</p>`}
       </div>
       <a class="button button-primary" style="text-decoration:none"
          href="https://wa.me/?text=${encodeURIComponent(pesanWa(hasilLama))}">
