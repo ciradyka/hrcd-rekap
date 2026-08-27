@@ -5992,7 +5992,7 @@ async function layarFoto() {
       </div>
     </div>
     <div class="card">
-      <h2>Belum tertaut <span class="badge" id="foto-belum">0</span></h2>
+      <h2>Belum dihubungkan <span class="badge" id="foto-belum">0</span></h2>
       <div class="grid-foto" id="foto-grid"></div>
     </div>
   `));
