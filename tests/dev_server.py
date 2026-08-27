@@ -121,8 +121,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select e.jam_mulai_berangkat, e.jam_batas_berangkat, "
                     "e.maks_eksternal_per_kloter, e.maks_intern_per_kloter, "
                     "e.perkiraan_regu_eksternal, e.perkiraan_regu_intern, e.kloter_maks, "
-                    "(select count(*) from regu where not is_cancelled and golongan not like 'intern_%') as jumlah_eksternal, "
-                    "(select count(*) from regu where not is_cancelled and golongan like 'intern_%') as jumlah_intern "
+                    # `%%`, bukan `%`: q() selalu memanggil cur.execute(sql, args),
+                    # dan psycopg2 memperlakukan `%` sebagai penanda parameter apa pun
+                    # isi args-nya. Ditulis `%` polos, rute ini melempar
+                    # "IndexError: tuple index out of range" dan layar yang
+                    # memanggilnya mati di dev — tanpa gejala di produksi, karena
+                    # di sana PostgREST yang menjawab.
+                    "(select count(*) from regu where not is_cancelled and golongan not like 'intern_%%') as jumlah_eksternal, "
+                    "(select count(*) from regu where not is_cancelled and golongan like 'intern_%%') as jumlah_intern "
                     "from edisi e where e.is_active",
                     uid=p.get("uid"), fetch="one"))
             elif u.path == "/penalti":

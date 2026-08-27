@@ -1,14 +1,12 @@
-// Daftar Kloter menyebut ASAL jam yang ia tampilkan.
+// Daftar Kloter menyandingkan RENCANA dan KENYATAAN, dan menyebut yang mana.
 //
-// Pasal 10.6: perkiraan bukan catatan, dan layar yang menampilkan keduanya
-// harus menyebut yang mana. Keduanya jam yang terlihat sama — "07:05" — dan
-// sama sekali bukan hal yang sama: yang satu dihitung sistem untuk
-// merencanakan pagi, yang satu diketik petugas dari jam dinding dan menjadi
+// Pasal 10.6: perkiraan bukan catatan. Keduanya jam yang terlihat sama —
+// "07:20" — dan sama sekali bukan hal yang sama: yang satu rencana yang
+// dibagikan ke peserta, yang satu diketik petugas dari jam dinding dan menjadi
 // dasar penalti seluruh regu di kloter itu.
 //
-// Dijaga mesin karena kegagalannya tidak menimbulkan galat apa pun: labelnya
-// tetap tergambar, angkanya tetap benar, dan yang keliru cuma kesimpulan yang
-// diambil orang yang membacanya.
+// Panitia perlu KEDUANYA sekaligus, bukan yang satu menggantikan yang lain:
+// selisihnya yang mereka pakai memutuskan apakah kloter berikutnya digeser.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -17,41 +15,65 @@ import test from "node:test";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 
-const awal = app.indexOf("async function layarDaftarKloter()") >= 0
-  ? app.indexOf("async function layarDaftarKloter()")
-  : app.indexOf('pasangKepala("Daftar Kloter")');
-const daftarKloter = app.slice(awal, app.indexOf("\nfunction siapkanCetakKloter", awal));
+const awal = app.indexOf('pasangKepala("Daftar Kloter")');
+const layar = app.slice(awal, app.indexOf("\nfunction siapkanCetakKloter", awal));
 
 
-test("kartu kloter memilih label menurut ada tidaknya jam tercatat", () => {
+test("kartu kloter memakai satu perakit baris jam, bukan ternary di tempat", () => {
   assert.ok(awal > 0, "layar Daftar Kloter tidak ditemukan");
-  assert.match(daftarKloter, /v\.jamBerangkat\s*\n?\s*\? "Jam Berangkat di Lapangan"/);
-  assert.match(daftarKloter, /: "Prediksi Berangkat"/);
+  assert.match(layar, /const barisJamKloter = \(nomor, v\) =>/);
+  assert.match(layar, /\$\{barisJamKloter\(nomor, v\)\}/);
 });
 
 
-test("label lama yang tidak menyebut asal angkanya tidak kembali", () => {
-  // "Jam berangkat" polos terbaca seperti jadwal, dan "Estimasi" adalah kata
-  // KETIGA untuk hal yang kertasnya sebut "Perkiraan".
-  assert.doesNotMatch(daftarKloter, /\? "Jam berangkat"/);
-  assert.doesNotMatch(daftarKloter, /"Estimasi jam berangkat"/);
+test("kedua label tetap menyebut asal angkanya", () => {
+  assert.match(layar, /<strong>Prediksi Berangkat:<\/strong>/);
+  assert.match(layar, /<strong>Jam Berangkat di Lapangan:<\/strong>/);
+  // "Jam berangkat" polos terbaca seperti jadwal; "Estimasi" adalah kata
+  // ketiga untuk hal yang kertasnya sebut "Perkiraan".
+  assert.doesNotMatch(layar, /\? "Jam berangkat"/);
+  assert.doesNotMatch(layar, /"Estimasi jam berangkat"/);
 });
 
 
-test("angkanya tetap jatuh ke perkiraan hanya saat belum tercatat", () => {
-  // Urutannya mengikat: `jamBerangkat` dulu, perkiraan sebagai cadangan.
-  // Terbalik, kloter yang SUDAH berangkat akan menampilkan perkiraannya dan
-  // penalti dihitung dari angka yang tidak tertulis di mana pun.
-  assert.match(daftarKloter,
-    /jamMenit\(v\.jamBerangkat \|\| v\.perkiraanBerangkat\)/);
+test("keduanya digambar bersama, bukan saling menggantikan", () => {
+  // Dua `bagian.push` berurutan tanpa `else` di antaranya: kloter yang sudah
+  // berangkat menampilkan rencana DAN kenyataannya.
+  assert.match(layar, /if \(rencana\) \{\s*bagian\.push/);
+  assert.match(layar, /if \(v\.jamBerangkat\) \{\s*bagian\.push/);
+  assert.match(layar, /bagian\.join\(" · "\)/);
 });
 
 
-test("kertas kloter TIDAK ikut berubah kata", () => {
-  // Blangko difotokopi dan masternya bisa sudah beredar (pasal 8.1). Kertas
-  // peserta memang selalu memuat perkiraan — ia dicetak sebelum ada yang
-  // berangkat — dan kertas staging menyediakan garis kosong "Jam sebenarnya"
-  // untuk ditulis tangan. Keduanya benar apa adanya.
-  assert.match(app, /Perkiraan jam berangkat: \$\{esc\(perkiraan\)\}/);
+test("planning layar menang, perkiraan database jadi cadangan", () => {
+  // Urutannya mengikat. Terbalik, jam yang baru saja diatur panitia diabaikan
+  // dan kartunya menampilkan sebaran database ke 75 kloter.
+  assert.match(layar,
+    /planning\.get\(Number\(nomor\)\)\s*\n\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*\|\| \(v\.perkiraanBerangkat/);
+});
+
+
+test("selisih dihitung pada hari yang TERCATAT, bukan kalender alat", () => {
+  // "07:20" tidak membawa tanggal, dan layar ini dibuka juga di hari selain
+  // hari-H. Memakai tanggal alat menghasilkan selisih berhari-hari.
+  assert.match(layar, /jamPadaHari\(rencana, v\.jamBerangkat\)/);
+  assert.match(layar, /menit === 0\s*\n?\s*\? html` <span class="sub">tepat<\/span>`/);
+});
+
+
+test("kertas memakai planning yang sama dengan layar", () => {
+  // Tombol cetaknya ada di layar yang sama. Kertas yang menyebut jam lain dari
+  // yang baru saja dibaca petugas adalah kertas yang salah, dan yang
+  // memegangnya peserta.
+  assert.match(layar, /siapkanCetakKloter\(semuaKloter, bentuk, planning\)/);
+  assert.match(app,
+    /function siapkanCetakKloter\(dipakai, bentuk = "staging", planning = new Map\(\)\)/);
+  assert.match(app, /const perkiraan = planning\.get\(Number\(nomor\)\)/);
+});
+
+
+test("kertas staging tetap menyediakan garis jam sebenarnya", () => {
+  // Blangko difotokopi (pasal 8.1) dan petugas menulis jam nyata dengan
+  // tangan di sana — itu yang lalu diketik ke layar Keberangkatan.
   assert.match(app, /Jam sebenarnya: ________/);
 });
