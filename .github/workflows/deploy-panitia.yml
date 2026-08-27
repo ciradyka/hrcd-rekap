@@ -1,0 +1,113 @@
+# ============================================================================
+# hrcd-rekap : deploy-panitia.yml — deploy layar panitia tiap push ke main.
+#
+# ---------------------------------------------------------------------------
+# KENAPA WORKFLOW INI ADA
+#
+# Situs panitia tersambung ke Git di dashboard Cloudflare, dan seharusnya
+# ter-deploy sendiri tiap merge. Pada 28 Agustus 2026 ia TIDAK: merge #647
+# mendarat di `main`, situs peserta tersaji dalam hitungan detik lewat
+# `publish-live.yml`, dan situs panitia masih menyajikan berkas lama setelah
+# lebih dari empat puluh menit. Merge sebelumnya (#643) tersaji normal, jadi
+# ini bukan salah konfigurasi yang menetap — ia build yang menggantung.
+#
+# Yang membuatnya mahal bukan lamanya, melainkan TIDAK ADA YANG BISA
+# DILAKUKAN dari repo: build itu hidup di dashboard Cloudflare, tidak
+# meninggalkan jejak di GitHub, dan tidak bisa diulang dari HP. Panitia yang
+# menunggu perbaikan tidak punya cara memastikan apakah ia sudah terkirim atau
+# belum, selain memuat ulang halaman dan menebak.
+#
+# Workflow ini memindahkan deploy itu ke tempat yang bisa dilihat dan diulang:
+# log-nya di tab Actions, tombol "Run workflow" bekerja dari HP, dan gagalnya
+# terlihat sebagai centang merah alih-alih sebagai halaman yang diam-diam
+# lama.
+#
+# ---------------------------------------------------------------------------
+# INI TIDAK MELANGGAR PASAL 16
+#
+# CLAUDE.md pasal 16.2 membolehkan GitHub Actions untuk "pekerjaan yang tidak
+# bisa dikerjakan di laptop" — deploy termasuk, dan pasal 16.5 menyebut
+# `publish-live.yml` sebagai contohnya: satu-satunya workflow yang masih
+# terpicu otomatis, "karena itu deploy, bukan check". Berkas ini kembarannya
+# untuk situs yang satu lagi.
+#
+# Pemicunya DIPERSEMPIT ke `web/**` supaya merge yang cuma menyentuh migrasi
+# atau dokumen tidak ikut membayar satu menit Actions (pasal 16.6: yang
+# berbiaya jumlah run, bukan lamanya).
+#
+# ---------------------------------------------------------------------------
+# DUA JALUR DEPLOY SEKALIGUS, DAN ITU AMAN
+#
+# Git integration Cloudflare tidak dimatikan oleh berkas ini. Keduanya
+# menjalankan perbuatan yang sama — mengunggah isi `web/` sebagai versi baru
+# Worker `panitia-hrcd37` — dari commit `main` yang sama, jadi yang belakangan
+# menang dan hasilnya identik. Yang didapat: kalau salah satunya menggantung,
+# yang lain sudah menyajikan berkas yang benar.
+#
+# Kalau nanti Git integration dimatikan di dashboard, berkas ini jadi
+# satu-satunya jalur dan tidak ada yang perlu diubah di sini.
+#
+# SECRET yang dipakai sudah ada — `CLOUDFLARE_API_TOKEN`, yang sama dengan
+# `deploy-gateway.yml`.
+# ============================================================================
+
+name: Deploy layar panitia
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+  # Supaya bisa diulang dari HP saat build tersangkut, tanpa perlu push apa pun.
+  workflow_dispatch:
+
+# Dua merge beruntun tidak perlu dua deploy: yang belakangan sudah memuat isi
+# yang terdahulu. `cancel-in-progress` membatalkan yang masih jalan, jadi yang
+# tersaji selalu commit terakhir dan bukan hasil balapan.
+concurrency:
+  group: deploy-panitia
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install -g wrangler
+
+      - name: Deploy ke Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: wrangler deploy
+
+      # Yang membuktikan deploy berhasil bukan keluaran wrangler melainkan
+      # berkas yang benar-benar tersaji. Versi Worker butuh beberapa detik
+      # menyebar ke edge, jadi dicoba berulang sebelum menyerah — dan yang
+      # dicari penanda dari commit ini sendiri, bukan sekadar HTTP 200.
+      - name: Pastikan benar-benar tersaji
+        run: |
+          set -euo pipefail
+          URL=https://panitia-hrcd37.ciradyka.workers.dev/js/api.js
+          # Penanda diambil dari berkas yang BARU SAJA di-deploy, jadi ia ikut
+          # berubah sendiri tiap kali api.js berubah dan tidak pernah basi.
+          PENANDA=$(md5sum js/api.js | cut -c1-8)
+          for i in $(seq 1 20); do
+            if [ "$(curl -fsS "$URL" | md5sum | cut -c1-8)" = "$PENANDA" ]; then
+              echo "TERSAJI: js/api.js di edge sama dengan yang di commit ini."
+              exit 0
+            fi
+            echo "belum sama (percobaan $i) — tunggu 15 detik"
+            sleep 15
+          done
+          echo "GAGAL: setelah 5 menit, js/api.js yang tersaji masih berbeda." >&2
+          echo "Periksa Cloudflare dashboard: build Git integration mungkin" >&2
+          echo "menimpa versi ini dengan commit yang lebih lama." >&2
+          exit 1
