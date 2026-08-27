@@ -335,21 +335,31 @@ export async function infoEdisi() {
 /** Konfigurasi dan jumlah regu untuk nilai awal Kalkulator Keberangkatan. */
 export async function infoPengaturanKloter() {
   if (K.mode === "dev") return baca("/pengaturan-kloter");
-  const [edisi, regu] = await Promise.all([
+  const [edisi, regu, status] = await Promise.all([
     baca(null,
       "edisi?is_active=eq.true" +
       "&select=jam_mulai_berangkat,jam_batas_berangkat," +
       "maks_eksternal_per_kloter,maks_intern_per_kloter," +
       "perkiraan_regu_eksternal,perkiraan_regu_intern,kloter_maks"),
     baca(null, "regu?is_cancelled=eq.false&select=golongan"),
+    // Jendela Planning Keberangkatan (migrasi 0113). Tinggal di status_acara,
+    // bukan di edisi, karena ia disusun pada hari-H — hari yang sama saat
+    // kunci konfigurasi menyala dan menutup seluruh tabel setelan.
+    baca(null, "status_acara?id=eq.true" +
+      "&select=planning_berangkat_pertama,planning_berangkat_terakhir"),
   ]);
   if (!edisi.length) throw new ErrorApi("Belum ada edisi aktif.");
   return {
     ...edisi[0],
+    ...(status[0] || {}),
     jumlah_eksternal: regu.filter(r => !String(r.golongan).startsWith("intern_")).length,
     jumlah_intern: regu.filter(r => String(r.golongan).startsWith("intern_")).length,
   };
 }
+
+/** Simpan jendela Planning Keberangkatan. Kosong = ikut konfigurasi edisi. */
+export const aturPlanningBerangkat = (pertama, terakhir) =>
+  rpc("atur_planning_berangkat", { p_pertama: pertama, p_terakhir: terakhir });
 
 /** Apakah nama regu itu sudah dipakai (0051)? Dipanggil SAMBIL pembina
  *  mengetik — menolak saat tombol Kirim ditekan sudah terlambat, karena saat

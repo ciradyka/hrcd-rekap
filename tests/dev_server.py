@@ -57,6 +57,7 @@ RPC = {
     "buka_kunci_nilai_pos":  ["p_nomor_dada", "p_pos", "p_alasan"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
     "atur_fase_live":        ["p_fase"],
+    "atur_planning_berangkat": ["p_pertama", "p_terakhir"],
     "susun_barak":           [],
     "tandai_kloter_dicetak": ["p_kloter"],
     "pindah_kloter":         ["p_nomor_dada", "p_alasan", "p_kloter"],
@@ -121,6 +122,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select e.jam_mulai_berangkat, e.jam_batas_berangkat, "
                     "e.maks_eksternal_per_kloter, e.maks_intern_per_kloter, "
                     "e.perkiraan_regu_eksternal, e.perkiraan_regu_intern, e.kloter_maks, "
+                    "s.planning_berangkat_pertama, s.planning_berangkat_terakhir, "
                     # `%%`, bukan `%`: q() selalu memanggil cur.execute(sql, args),
                     # dan psycopg2 memperlakukan `%` sebagai penanda parameter apa pun
                     # isi args-nya. Ditulis `%` polos, rute ini melempar
@@ -129,7 +131,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     # di sana PostgREST yang menjawab.
                     "(select count(*) from regu where not is_cancelled and golongan not like 'intern_%%') as jumlah_eksternal, "
                     "(select count(*) from regu where not is_cancelled and golongan like 'intern_%%') as jumlah_intern "
-                    "from edisi e where e.is_active",
+                    "from edisi e, status_acara s where e.is_active and s.id",
                     uid=p.get("uid"), fetch="one"))
             elif u.path == "/penalti":
                 self._kirim(200, q(

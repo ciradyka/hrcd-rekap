@@ -10,7 +10,7 @@
 
 import {
   sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
-  infoEdisi, infoPengaturanKloter, ringkasanMeja, daftarPendaftaran,
+  infoEdisi, infoPengaturanKloter, aturPlanningBerangkat, ringkasanMeja, daftarPendaftaran,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
   cariRegu, catatFinish, infoPenalti,
@@ -2042,11 +2042,13 @@ async function layarCetakKloter() {
       <div class="two-column" style="margin-top:1rem">
         <div class="field">
           <label for="planning-pertama-hh">Planning Berangkat Pertama</label>
-          ${kotakJamHtml("planning-pertama", jamPendek(cfg.jam_mulai_berangkat))}
+          ${kotakJamHtml("planning-pertama", jamPendek(
+            cfg.planning_berangkat_pertama || cfg.jam_mulai_berangkat))}
         </div>
         <div class="field">
           <label for="planning-terakhir-hh">Planning Berangkat Terakhir</label>
-          ${kotakJamHtml("planning-terakhir", jamPendek(cfg.jam_batas_berangkat))}
+          ${kotakJamHtml("planning-terakhir", jamPendek(
+            cfg.planning_berangkat_terakhir || cfg.jam_batas_berangkat))}
         </div>
       </div>
       <div class="error" id="planning-galat" hidden></div>
@@ -2104,12 +2106,9 @@ async function layarCetakKloter() {
       || (v.perkiraanBerangkat ? jamMenit(v.perkiraanBerangkat) : null);
 
     const bagian = [];
-    if (rencana) {
-      bagian.push(html`<strong>Prediksi Berangkat:</strong> ${rencana}`);
-    }
+    if (rencana) bagian.push(html`<strong>Planning</strong> ${rencana}`);
     if (v.jamBerangkat) {
-      bagian.push(html`<strong>Jam Berangkat di Lapangan:</strong> ${
-        jamMenit(v.jamBerangkat)}`);
+      bagian.push(html`<strong>Real</strong> ${jamMenit(v.jamBerangkat)}`);
     }
     if (!bagian.length) return "";
 
@@ -2120,12 +2119,15 @@ async function layarCetakKloter() {
       // selain hari-H (alasan yang sama dengan hariLomba() di Keberangkatan).
       const menit = Math.round(
         (new Date(v.jamBerangkat) - jamPadaHari(rencana, v.jamBerangkat)) / 60000);
-      selisih = menit === 0
-        ? html` <span class="sub">tepat</span>`
-        : html` <span class="sub">${menit > 0 ? "+" : "−"}${
-            Math.abs(menit)} menit</span>`;
+      // Kata, bukan tanda. "+15" menuntut pembacanya mengingat mana yang
+      // rencana dan mana yang nyata sebelum tandanya berarti apa-apa; "telat
+      // 15 menit" tidak menuntut apa pun.
+      const kata = menit === 0 ? "tepat waktu"
+        : menit > 0 ? `telat ${menit} menit`
+        : `terlalu cepat ${Math.abs(menit)} menit`;
+      selisih = html` <span class="sub">(${kata})</span>`;
     }
-    return `<p>${bagian.join(" · ")}${selisih}</p>`;
+    return `<p>${ikon("clock")} ${bagian.join(" · ")}${selisih}</p>`;
   };
 
   const gambarPratayang = (peta) => {
@@ -2212,9 +2214,36 @@ async function layarCetakKloter() {
   document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
   document.getElementById("cetak-peserta").addEventListener("click", () => cetak("umum"));
 
+  /* Simpan jendelanya, jangan biarkan hilang saat layar dimuat ulang.
+     Panitia menggesernya berkali-kali sepanjang pagi, dan jendela yang
+     kembali ke 07:00 tiap refresh membuat kertas yang dicetak sesudahnya
+     berbeda dari yang sebelumnya tanpa ada yang sengaja mengubahnya.
+
+     DITUNDA 800 ms sesudah ketikan terakhir. `dengar` menyala pada tiap
+     penekanan tombol, dan "0"-"7"-"3"-"0" adalah empat keadaan yang tiga di
+     antaranya belum berarti apa-apa.
+
+     Gagalnya TIDAK diam: jam yang terlihat di layar tapi tidak tersimpan
+     adalah kertas yang dicetak dari rencana yang cuma ada di satu HP. */
+  let jadwalSimpan = null;
+  const simpanPlanning = () => {
+    clearTimeout(jadwalSimpan);
+    const pertama = waktuPertama.nilai();
+    const terakhir = waktuTerakhir.nilai();
+    if (!pertama || !terakhir || !planning.size) return;
+    jadwalSimpan = setTimeout(async () => {
+      try {
+        await aturPlanningBerangkat(pertama, terakhir);
+      } catch (err) {
+        galatPlanning.textContent = `Planning belum tersimpan: ${err.message}`;
+        galatPlanning.hidden = false;
+      }
+    }, 800);
+  };
+
   const perbarui = () => { hitungPlanning(); gambarPratayang(perKloter); };
-  waktuPertama.dengar(perbarui);
-  waktuTerakhir.dengar(perbarui);
+  waktuPertama.dengar(() => { perbarui(); simpanPlanning(); });
+  waktuTerakhir.dengar(() => { perbarui(); simpanPlanning(); });
   perbarui();
 }
 

@@ -843,6 +843,10 @@ export function ukuranRapi(bytes) {
    dan ikon yang gagal termuat meninggalkan tombol tanpa muka.            */
 
 const IKON = {
+  // Jarum di 10:10, bukan 12:00 — dua jarum yang bertindih terbaca
+  // sebagai satu garis pada ukuran ikon.
+  "clock":
+    '<circle cx="12" cy="12" r="9" /> <path d="M12 7v5l3 2" />',
   "camera":
     '<path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /> <circle cx="12" cy="13" r="3" />',
   "lock":

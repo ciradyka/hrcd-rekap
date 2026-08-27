@@ -493,6 +493,12 @@ run tests/sql/74_satu_nama_klasemen.sql
 # sisi SQL; tests/departure_calculator.test.mjs menjaga sisi layar. Keduanya
 # sempat berpisah 37 menit tanpa satu pun galat.
 run tests/sql/75_perkiraan_berangkat_satu_rumus.sql
+# 0113 menyimpan jendela Planning Keberangkatan di status_acara, BUKAN di
+# edisi. Tes 76.3 menduduki kursi hari-H: konfigurasi dikunci, dan planning
+# tetap harus bisa disimpan — kalau tidak, fiturnya mati tepat di hari ia
+# dipakai.
+run supabase/migrations/0113_planning_berangkat_tersimpan.sql
+run tests/sql/76_planning_berangkat_tersimpan.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
 run supabase/checks/live_json.sql
