@@ -2018,30 +2018,37 @@ async function layarCetakKloter() {
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
+      <!-- Eksternal dan Intern jadi BARIS TABEL, bukan kalimat. Angkanya
+           yang dicari, dan tabel yang sudah ada di sini adalah tempat angka.
+           Sebagai paragraf ia memakan sepertiga layar HP untuk mengulang
+           "Total Kloter" yang tercetak dua baris di atasnya. -->
       <table class="table">
         <tr><td>Total Kloter</td><td class="angka">${perKloter.size}</td></tr>
         <tr><td>Total Regu</td><td class="angka">${baris.length}</td></tr>
+        <tr><td>Eksternal</td><td class="angka">${jumlahEksternal}</td></tr>
+        <tr><td>Intern</td><td class="angka">${jumlahIntern}</td></tr>
       </table>
       <!-- Planning berdiri DI ATAS tombol cetak, dan urutan itu berarti:
            yang tercetak adalah jam yang baru saja diatur di sini. Menaruhnya
            di bawah membuat petugas menekan Cetak lebih dulu, lalu menemukan
-           kotak jamnya sesudah kertasnya keluar. -->
-      <h2 style="margin-top:1rem">Planning Keberangkatan</h2>
-      <div class="two-column">
+           kotak jamnya sesudah kertasnya keluar.
+
+           TANPA judul dan TANPA paragraf penjelas. Labelnya sendiri sudah
+           menyebut "Planning Berangkat", jadi judul "Planning Keberangkatan"
+           di atasnya cuma mengulang label yang ada di bawahnya (pasal 9.3),
+           dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
+           menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
+           sekali (pasal 9.1 dan 9.6). -->
+      <div class="two-column" style="margin-top:1rem">
         <div class="field">
-          <label for="planning-pertama-hh">Waktu Berangkat Pertama</label>
+          <label for="planning-pertama-hh">Planning Berangkat Pertama</label>
           ${kotakJamHtml("planning-pertama", jamPendek(cfg.jam_mulai_berangkat))}
         </div>
         <div class="field">
-          <label for="planning-terakhir-hh">Waktu Berangkat Terakhir</label>
+          <label for="planning-terakhir-hh">Planning Berangkat Terakhir</label>
           ${kotakJamHtml("planning-terakhir", jamPendek(cfg.jam_batas_berangkat))}
         </div>
       </div>
-      <p class="description">Sudah mengambil nomor dada:
-         <strong>${jumlahEksternal} Eksternal</strong> ·
-         <strong>${jumlahIntern} Intern</strong>, terbagi
-         <strong>${perKloter.size} kloter</strong>. Jam di bawah dibagi rata ke
-         kloter itu, dan itu pula yang tercetak untuk peserta.</p>
       <div class="error" id="planning-galat" hidden></div>
       <div class="option-row" style="margin-top:.9rem">
         <button class="button button-primary" id="cetak-petugas" type="button">
