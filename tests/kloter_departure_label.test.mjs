@@ -77,3 +77,23 @@ test("kertas staging tetap menyediakan garis jam sebenarnya", () => {
   // tangan di sana — itu yang lalu diketik ke layar Keberangkatan.
   assert.match(app, /Jam sebenarnya: ________/);
 });
+
+
+test("layar planning tanpa judul dan tanpa paragraf penjelas", () => {
+  // Pasal 9.1 dan 9.3. Labelnya sendiri sudah menyebut "Planning Berangkat",
+  // jadi judul di atasnya mengulang label di bawahnya; dan kalimat yang
+  // menjelaskan bahwa jamnya dibagi rata lalu tercetak untuk peserta
+  // menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah sekali.
+  //
+  // Bukan kerapian: sebagai paragraf ia memakan sepertiga layar HP, dan yang
+  // terdorong turun justru kartu kloter yang dibaca petugas.
+  assert.doesNotMatch(layar, /<h2[^>]*>Planning Keberangkatan<\/h2>/);
+  assert.doesNotMatch(layar, /Sudah mengambil nomor dada/);
+  assert.doesNotMatch(layar, /dibagi rata ke/);
+});
+
+
+test("jumlah Eksternal dan Intern tetap ada, sebagai baris tabel", () => {
+  assert.match(layar, /<td>Eksternal<\/td><td class="angka">\$\{jumlahEksternal\}<\/td>/);
+  assert.match(layar, /<td>Intern<\/td><td class="angka">\$\{jumlahIntern\}<\/td>/);
+});
