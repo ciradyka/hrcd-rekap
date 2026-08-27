@@ -30,10 +30,13 @@ declare
   v_id     uuid;
   v_lolos  boolean;
 begin
-  -- 83.1 Tanpa cara bayar sama sekali: ditolak, bukan diam-diam dianggap tunai.
+  -- 83.1 Cara bayar NULL — bentuk yang benar-benar dikirim gateway saat
+  -- pembina memakai form lama yang belum punya bagian Pembayaran. Ditolak,
+  -- bukan diam-diam dianggap tunai.
   begin
     perform submit_pendaftaran('SMP Uji Bayar', 'Jl. Uji', false, '081200000083',
-                              v_regu, 0::smallint, gen_random_uuid(), 'Uji');
+                              v_regu, 0::smallint, gen_random_uuid(), 'Uji',
+                              null, null);
     v_lolos := true;
   exception when others then
     v_lolos := false;

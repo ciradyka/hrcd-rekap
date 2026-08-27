@@ -187,8 +187,8 @@ begin
   -- kunci_kirim kiriman ini: nama objek Storage bisa ditebak siapa pun yang
   -- pernah melihat satu contohnya, dan tanpa pagar ini satu pendaftaran bisa
   -- menunjuk bukti milik pendaftaran lain.
-  if coalesce(p_metode_bayar, '') not in ('transfer', 'tunai') then
-    raise exception 'cara pembayaran wajib dipilih';
+  if p_metode_bayar is not null and p_metode_bayar not in ('transfer', 'tunai') then
+    raise exception 'cara pembayaran tidak dikenal: %', p_metode_bayar;
   end if;
   v_bukti := nullif(trim(coalesce(p_bukti_transfer, '')), '');
   if p_metode_bayar = 'transfer' then
@@ -286,10 +286,30 @@ begin
 end;
 $fn$;
 
--- Bentuk argumennya berubah, jadi versi delapan-argumen dari 0114 harus
--- DIBUANG. Kalau dibiarkan, PostgREST melihat dua fungsi bernama sama dan
--- menolak panggilannya dengan "could not choose the best candidate function" —
--- form pendaftaran berhenti bekerja tanpa satu baris pun berubah di klien.
+-- ---------------------------------------------------------------------------
+-- KENAPA VERSI INI BELUM MENUNTUT CARA BAYAR, DAN 0122 YANG MENUNTUTNYA
+--
+-- Tiga hal berubah bersama untuk fitur ini — migrasi, Worker gateway, dan form
+-- peserta — dan ketiganya TIDAK mendarat pada detik yang sama. Kalau fungsi ini
+-- langsung menolak kiriman tanpa cara bayar, gateway yang masih berjalan
+-- ditolak setiap kali, dan pendaftaran mati sampai deploy berikutnya selesai.
+-- Bukan jeda yang bisa dijadwalkan: form ini dibuka pembina kapan saja.
+--
+-- Membiarkan bentuk delapan-argumen dari 0114 hidup berdampingan BUKAN
+-- jalannya. Dua fungsi bernama sama membuat PostgREST harus menebak yang mana,
+-- dan tebakan itu bukan sesuatu yang boleh dipertaruhkan pada satu-satunya
+-- pintu pendaftaran. Jadi bentuk lama dibuang di sini, dan penggantinya
+-- menerima kiriman delapan kunci lewat DEFAULT — cara bayarnya tercatat NULL,
+-- persis seperti seluruh pendaftaran sebelum hari ini.
+--
+-- Yang tetap ditegakkan sejak sekarang: transfer WAJIB berbukti, dan buktinya
+-- wajib milik kiriman itu sendiri. Keduanya tidak punya masa peralihan karena
+-- tidak ada klien lama yang pernah mengirimkannya.
+--
+-- `0122` yang menutupnya: sesudah gateway terdeploy, cara bayar yang NULL
+-- ditolak. Jalankan migrasi itu SESUDAH deploy-gateway.yml selesai.
+-- ---------------------------------------------------------------------------
+
 drop function if exists submit_pendaftaran(
   text, text, boolean, text, jsonb, smallint, uuid, text);
 
