@@ -503,6 +503,12 @@ run tests/sql/76_planning_berangkat_tersimpan.sql
 # yang paling mudah salah: kotak yang dilewati pembina TIDAK boleh tersimpan
 # sebagai nama kosong, dan pagarnya berdiri di tabel — bukan hanya di RPC.
 run supabase/migrations/0114_nama_anggota_regu.sql
+
+# 0115 merapikan dua baris `sekolah` yang lahir dari form pendaftaran: satu
+# kembar dilebur, satu nama dibakukan. Di database uji keduanya memang tidak
+# ada, jadi seluruh migrasinya no-op — yang diuji di sini cuma bahwa ia jalan
+# tanpa galat dan pagar akhirnya tidak menyala di daftar kurasi.
+run supabase/migrations/0115_sekolah_baku_dua_baris.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
