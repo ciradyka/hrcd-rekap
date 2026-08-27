@@ -616,7 +616,14 @@ export function notif(pesan, galat = false) {
 /** Dialog sederhana pengganti prompt(): punya judul, kartu identitas,
  *  beberapa isian, dan tombol batal yang jelas (temuan review: prompt()
  *  beruntun membingungkan dan batalnya senyap). */
-/** Dialog. `bacaSaja: true` membuang tombol Batal.
+/** Dialog. Membatalkan selalu lewat SILANG di pojok kanan atas, tidak lagi
+ *  lewat tombol "Batal" sebaris dengan tombol aksinya: dua tombol selebar
+ *  layar bertumpuk membuat yang membatalkan dan yang mengerjakan terlihat
+ *  sama penting, dan di HP jari menemukan yang atas lebih dulu.
+ *
+ *  `bacaSaja: true` kini tidak mengubah apa pun — dulu ia membuang tombol
+ *  Batal, dan tombol itu sudah tidak ada untuk siapa pun. Dibiarkan supaya
+ *  belasan pemanggilnya tidak perlu disunting dalam satu commit yang sama.
  *
  *  "Batal" pada dialog yang tidak mengubah apa pun bukan sekadar mubazir: ia
  *  menyiratkan ada sesuatu yang sedang berjalan dan bisa diurungkan. Orang yang
@@ -649,9 +656,9 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
     const el = document.body.lastElementChild;
     el.innerHTML = `
       <div class="dialog">
-        ${silangSaja ? `<button class="dialog-silang" data-batal type="button"
-          aria-label="Tutup">&times;</button>` : ""}
-        <h2>${esc(judul)}</h2>
+        <button class="dialog-silang" data-batal type="button"
+          aria-label="Tutup">&times;</button>
+        <h2 style="padding-right:2.2rem">${esc(judul)}</h2>
         ${kartuHtml}
         ${medan.map((m, i) => `
           <div class="field">
@@ -666,8 +673,6 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
         <div class="dialog-error error" hidden></div>
         ${silangSaja ? "" : `
         <div class="option-row">
-          ${bacaSaja ? "" : `<button class="button button-secondary" data-batal
-            type="button">Batal</button>`}
           <button class="button button-primary" data-ok type="button">${esc(labelAksi)}</button>
         </div>`}
       </div>`;

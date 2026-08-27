@@ -937,8 +937,14 @@ async function layarPembayaran() {
         // selalu jatuh ke baris berikutnya, bahkan di kartu HP yang kolomnya
         // lapang. Dengan flex-wrap ia tetap menumpuk sendiri di kolom tabel
         // lebar yang cuma 15%, jadi satu aturan melayani kedua tampilan.
-        ? html`<span class="metode-baris" style="flex-wrap:nowrap"
-               ><span>${b.pembayaran ? b.pembayaran.method : "—"}</span
+        // DIUKUR, bukan dikira-kira (pasal 15.9). Di kolom Metode yang lebarnya
+        // 123px — 15% dari lantai 820px — pasangan "Transfer" + lencana LUNAS
+        // memakan 124px apa adanya, jadi ia meluap satu piksel dan membungkus
+        // jadi dua baris. gap .25rem saja sudah muat (122px), tetapi cuma
+        // bersisa 1px; dengan teks metode .9em ia jadi 117px dan punya jarak
+        // yang tidak habis oleh satu huruf yang lebih lebar di HP lain.
+        ? html`<span class="metode-baris" style="flex-wrap:nowrap;gap:.25rem"
+               ><span style="font-size:.9em">${b.pembayaran ? b.pembayaran.method : "—"}</span
                ><span class="badge badge-green">LUNAS</span></span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
