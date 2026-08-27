@@ -535,6 +535,12 @@ run tests/sql/80_jeda_kloter_maksimal.sql
 # dijalankan dua kali. Tes 81 memeriksa jejak tiap migrasinya satu per satu.
 run supabase/migrations/0119_terapkan_migrasi_terlewat.sql
 run tests/sql/81_migrasi_terlewat.sql
+
+# 0120 memberi nama regu batas BAWAH: minimal tiga huruf. Tes 82 menguji dua
+# arah, karena yang mudah salah bukan angkanya melainkan cara menghitungnya —
+# "A B" tiga karakter, dua huruf, dan yang dibacakan di lapangan hurufnya.
+run supabase/migrations/0120_nama_regu_tiga_huruf.sql
+run tests/sql/82_nama_regu_tiga_huruf.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
 # migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
