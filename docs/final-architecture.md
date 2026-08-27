@@ -153,6 +153,21 @@ Nomor dada **diketik petugas**, tidak diterbitkan sistem (migrasi `0011`) —
 kainnya benda fisik di meja, dan yang ada di tangan petugas belum tentu nomor
 terkecil yang tersedia.
 
+**Dua deret, satu kunci** (migrasi `0116`). Kain dicetak dalam dua set yang
+sama-sama mulai dari 001, jadi Intern diketik **1001–1250** sementara
+Eksternal tetap **1–500**. Yang membedakannya bukan kolom baru: `nomor_dada`
+tetap satu integer unik, dan yang menjaga deretnya `nomor_dada_sesuai_deret()`
+di **dua** pintu — `daftar_ulang_batch` dan `tukar_nomor_dada`. Batas
+antaranya `edisi.nomor_dada_intern_mulai`; batas atas tiap deret dibaca dari
+`nomor_dada_stok`, karena stok itulah daftar kain yang benar-benar dibawa.
+Layar Daftar Ulang memakai `v_rentang_nomor_dada` untuk menolak nomor salah
+deret di kotaknya sendiri, dan pesannya menyebut rentang yang benar.
+
+Yang TIDAK diselesaikan di sini: juri di pos menulis nomor dada dengan tangan
+dari kain di dada regu. Kalau kain Intern polos bertulis 001, blangkonya
+ambigu — kainnya yang harus ditandai `1xxx`, dan tidak ada baris SQL yang bisa
+menggantikan itu.
+
 ---
 
 ## 3. Layar panitia
