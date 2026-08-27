@@ -937,7 +937,7 @@ async function layarPembayaran() {
         // selalu jatuh ke baris berikutnya, bahkan di kartu HP yang kolomnya
         // lapang. Dengan flex-wrap ia tetap menumpuk sendiri di kolom tabel
         // lebar yang cuma 15%, jadi satu aturan melayani kedua tampilan.
-        ? html`<span class="metode-baris"
+        ? html`<span class="metode-baris" style="flex-wrap:nowrap"
                ><span>${b.pembayaran ? b.pembayaran.method : "—"}</span
                ><span class="badge badge-green">LUNAS</span></span>`
         : b.status === "batal"
@@ -962,7 +962,7 @@ async function layarPembayaran() {
                 ? `<button class="button button-mini" type="button"
                            data-bukti="${esc(b.bukti_transfer)}"
                            title="Bukti Pembayaran"
-                           aria-label="Bukti Pembayaran">${ikon("receipt")}</button>`
+                           aria-label="Bukti Pembayaran">${ikon("file-text")}</button>`
                 : ""}</span>`;
 
       const aksi = b.status === "lunas"
