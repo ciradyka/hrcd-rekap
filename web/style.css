@@ -1370,9 +1370,21 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      pernah berlaku: kolomnya diam-diam melebar mengikuti judul "NO DADA"
      yang 13,04mm satu baris. Terlihat di lembar tercetak — judulnya tidak
      pernah membungkus, padahal 10mm mestinya memaksanya. */
+  /* 12mm, naik dari 10mm sejak nomor dada bisa EMPAT digit (migrasi 0116:
+     Intern 1001-1250). Diukur pada tiruan lembar Pos 3 melintang 277mm,
+     kondisi terlebar:
+
+       "1250" pada 11pt      8,85mm tinta
+       kotak isi 10mm        9,29mm  -> sisa 0,44mm
+       kotak isi 12mm       11,30mm  -> sisa 2,45mm
+
+     0,44mm bukan lega, itu kebetulan — dan lembar ini difotokopi lalu diisi
+     tangan. Dua milimeternya diambil dari kolom penilaian yang punya 23mm
+     masing-masing; sesudahnya 22,82mm, dan tinggi baris (4,32mm) maupun
+     tinggi kepala (6,22mm) tidak bergeser sama sekali. */
   .lembar-pos .print-table td.dada,
   .lembar-pos .print-table th:nth-child(1) {
-    width: 10mm; max-width: 10mm; padding-left: 1pt; padding-right: 1pt;
+    width: 12mm; max-width: 12mm; padding-left: 1pt; padding-right: 1pt;
   }
   /* 11pt, turun dari 12pt — SATU-SATUNYA huruf yang dikecilkan di lembar ini,
      dan ia yang menentukan tinggi seluruh baris.
