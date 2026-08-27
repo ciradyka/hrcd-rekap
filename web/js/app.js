@@ -2019,15 +2019,30 @@ async function layarCetakKloter() {
 
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
-      <!-- Eksternal dan Intern jadi BARIS TABEL, bukan kalimat. Angkanya
-           yang dicari, dan tabel yang sudah ada di sini adalah tempat angka.
-           Sebagai paragraf ia memakan sepertiga layar HP untuk mengulang
-           "Total Kloter" yang tercetak dua baris di atasnya. -->
-      <table class="table">
-        <tr><td>Total Kloter</td><td class="angka">${perKloter.size}</td></tr>
-        <tr><td>Total Regu</td><td class="angka">${baris.length}</td></tr>
-        <tr><td>Eksternal</td><td class="angka">${jumlahEksternal}</td></tr>
-        <tr><td>Intern</td><td class="angka">${jumlahIntern}</td></tr>
+      <!-- Empat angka MENDATAR: label jadi kepala kolom, angkanya satu baris
+           di bawahnya. Sebagai empat baris ia memakan setengah layar HP untuk
+           empat angka yang cuma dilirik — dan yang dicari di bawahnya, kotak
+           jam dan tombol Cetak, terdorong keluar layar.
+
+           Tetap tabel, bukan grid: kepala kolom table th sudah membawa
+           bentuk label yang dipakai tabel lain di layar ini, dan angkanya
+           tetap sel angka yang sama. (Tanpa backtick: seluruh markup ini
+           duduk di dalam template literal.) -->
+      <table class="table table-ringkas-kloter">
+        <thead>
+          <tr>
+            <th>Total Kloter</th><th>Total Regu</th>
+            <th>Eksternal</th><th>Intern</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="angka">${perKloter.size}</td>
+            <td class="angka">${baris.length}</td>
+            <td class="angka">${jumlahEksternal}</td>
+            <td class="angka">${jumlahIntern}</td>
+          </tr>
+        </tbody>
       </table>
       <!-- Planning berdiri DI ATAS tombol cetak, dan urutan itu berarti:
            yang tercetak adalah jam yang baru saja diatur di sini. Menaruhnya
@@ -2040,7 +2055,7 @@ async function layarCetakKloter() {
            dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
            menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
            sekali (pasal 9.1 dan 9.6). -->
-      <div class="two-column" style="margin-top:1rem">
+      <div class="two-column planning-jam" style="margin-top:1rem">
         <div class="field">
           <label for="planning-pertama-hh">Planning Berangkat Pertama</label>
           ${kotakJamHtml("planning-pertama", jamPendek(

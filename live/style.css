@@ -322,6 +322,58 @@ input.jam-ketik {
   letter-spacing: .08em;
   text-align: center;
 }
+/* Ringkasan Pengaturan Kloter: empat angka MENDATAR.
+
+   Keempat kolomnya dipatok 25% di bawah `table-layout: fixed` — kolom yang
+   tidak dipatok mendapat NOL, bukan sisanya (pasal 15.3), dan kolom yang
+   lebarnya ikut isinya membuat "Intern" jauh lebih sempit daripada "Total
+   Kloter" sehingga angkanya tidak lagi berjarak sama.
+
+   Rantai anak, bukan selektor keturunan (pasal 15.5): kartu ini tidak
+   bersarang hari ini, dan aturan yang menganggap itu selamanya adalah
+   aturan yang bocor pada perubahan berikutnya.
+
+   Garis bawah baris angkanya dibuang: tabel ini bukan daftar yang dibaca
+   baris demi baris, dan satu garis di bawah empat angka membelah kartu tepat
+   di tempat yang tidak perlu dibelah. */
+.table-ringkas-kloter { table-layout: fixed; }
+.table-ringkas-kloter > thead > tr > th,
+.table-ringkas-kloter > tbody > tr > td {
+  text-align: center;
+  padding-left: .25rem; padding-right: .25rem;
+}
+.table-ringkas-kloter > thead > tr > th { width: 25%; }
+.table-ringkas-kloter > tbody > tr > td { border-bottom: 0; }
+/* Di HP keempat label harus muat DALAM kolomnya, bukan cuma di dalam kartu.
+   Diukur pada iframe 360px: kartu 345px, kolom 76,5px, dan "EKSTERNAL" dengan
+   ukuran kepala biasa selebar 79,9px — ia meluap 11px ke luar kotaknya lalu
+   menempel pada "INTERN" di sebelahnya, jadi keduanya terbaca sebagai satu
+   kata. Tidak ada penggulir mendatar yang menandainya; yang terlihat cuma dua
+   label yang berdempetan.
+
+   Yang dipangkas ukuran huruf DAN letter-spacing kepala tabel — .04em pada
+   sembilan huruf sendirian sudah 5px. Hasilnya "EKSTERNAL" ~63px di kotak
+   68,5px. */
+@media (max-width: 640px) {
+  .table-ringkas-kloter > thead > tr > th {
+    font-size: .72rem;
+    letter-spacing: 0;
+  }
+}
+
+/* Planning Berangkat: label dan kotak jamnya rata TENGAH, bukan rata kiri.
+
+   Kartunya berisi tabel angka yang rata kanan lalu dua tombol Cetak selebar
+   setengah kartu, dan dua kotak jam yang menggantung di tepi kiri kolomnya
+   membentuk tepi keempat yang tidak sejajar dengan satu pun di antaranya.
+   Ditengahkan, keduanya duduk tepat di atas tombol yang mencetaknya.
+
+   Hanya di sini. Kotak jam lain — Keberangkatan, Kedatangan, dialog koreksi —
+   berdiri di sebelah teks yang rata kiri, dan menengahkan yang di sana justru
+   melepasnya dari barisnya. */
+.planning-jam { text-align: center; }
+.planning-jam .field label { text-align: center; }
+
 /* Merah dipasang di WADAH, bukan salah satu kotak: yang salah adalah jamnya
    sebagai satu kesatuan. Menyalahkan kotak menit untuk "jam 25" menyuruh
    petugas membetulkan tempat yang keliru. */
