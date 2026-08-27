@@ -568,6 +568,12 @@ run supabase/migrations/0123_policy_storage_per_peran.sql
 # memeriksa jumlah orang yang benar-benar ditempatkan, bukan definisinya.
 run supabase/migrations/0124_jumlah_menginap.sql
 run tests/sql/84_jumlah_menginap.sql
+
+# 0125 membuat bukti transfer bisa DITIMPA, supaya satu pendaftaran menyimpan
+# satu berkas dan pembina yang salah pilih foto tidak meninggalkan berkas
+# yatim. Seperti 0123, skema `storage` tidak ada di database uji — yang
+# dibuktikan di sini cuma bahwa migrasinya aman dijalankan.
+run supabase/migrations/0125_bukti_transfer_boleh_ditimpa.sql
 run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
