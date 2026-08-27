@@ -2027,9 +2027,20 @@ async function layarCetakKloter() {
         return `
           <div class="card">
             <h2>Kloter ${esc(nomor)}</h2>
+            <!-- Labelnya menyebut ASAL angkanya, bukan cuma "jam berangkat".
+                 Keduanya jam yang terlihat sama di layar dan sama sekali bukan
+                 hal yang sama: yang satu dihitung sistem untuk merencanakan
+                 pagi, yang satu diketik petugas dari jam dinding dan menjadi
+                 dasar penalti SELURUH regu di kloter itu (pasal 10.6).
+
+                 "di Lapangan" bukan hiasan. Tanpa itu "Jam berangkat" terbaca
+                 seperti jadwal — dan petugas yang membaca kartu ini untuk
+                 memutuskan apakah sebuah kloter sudah jalan tidak punya cara
+                 membedakan keduanya selain mengingat kloter mana yang sudah
+                 ia ceklis. -->
             <p><strong>${v.jamBerangkat
-              ? "Jam berangkat"
-              : "Estimasi jam berangkat"}:</strong>
+              ? "Jam Berangkat di Lapangan"
+              : "Prediksi Berangkat"}:</strong>
               ${esc(jamMenit(v.jamBerangkat || v.perkiraanBerangkat))}</p>
             <table class="table">${baris}</table>
           </div>`;
