@@ -5,7 +5,7 @@ ini, bukan rencana. Kalau `desain-sistem.md` atau `rancangan-b.md` berbeda dari
 dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
-Terakhir diperiksa terhadap kode: **24 Agustus 2026**, sampai migrasi `0114`.
+Terakhir diperiksa terhadap kode: **27 Agustus 2026**, sampai migrasi `0115`.
 
 ---
 
@@ -62,7 +62,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-114 migrasi, `0001` sampai `0114`, dijalankan berurutan tanpa lubang penomoran.
+115 migrasi, `0001` sampai `0115`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -790,6 +790,13 @@ Dikumpulkan dari kesalahan yang benar-benar terjadi, bukan daftar teoretis.
 
 Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
 
+- **Bagian 5 masih menjelaskan Layar Rekapitulasi**, padahal layarnya dihapus
+  27 Agustus 2026 (#606). Rutenya sudah dibuang dari tabel rute, prosanya
+  belum. Isinya tidak seluruhnya mati dan karena itu tidak bisa sekadar
+  dihapus: `v_rekap_penuh` masih dipakai (`0107`), hak `rekap` masih menjaga
+  empat hal lain, dan kait `segarkanDiTempat` justru masih hidup — sekarang
+  yang mendaftarkannya layar Input Nilai Pos, bukan layar itu. Bagian 7 nomor
+  10 juga masih menyebutnya sebagai contoh.
 - **`docs/arsitektur-hrcd.svg` dan `.png`** masih menggambarkan Google Sheets
   sebagai bagian arsitektur, dan angkanya sudah bergeser: tertulis "18 view
   berlapis" (sekarang 21) dan "24 RPC bertransaksi" (sekarang 27 fungsi, 15 di
