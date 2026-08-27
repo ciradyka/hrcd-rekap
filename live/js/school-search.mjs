@@ -99,6 +99,7 @@ export function kataSekolah(teks) {
  *
  *   0  tiap kata yang diketik ada persis di namanya
  *   1  per kata yang cuma jadi awalan  ("sma" -> "sman")
+ *   1  per kata yang merapatkan beberapa kata  ("almut" -> "Al-Muttaqin")
  *   2  per kata yang justru LEBIH PANJANG daripada kata di namanya
  *      (hanya kalau kata di namanya minimal tiga huruf)
  *
@@ -149,6 +150,19 @@ export function skorSekolah(ketikan, nama) {
       tambah = 1;
     }
     if (ke < 0) {
+      // Singkatan yang MERAPATKAN kata berurutan: "Almut" untuk
+      // "SMA Al-Muttaqin", "arrahman" untuk "MA Terpadu Ar-Rahman". Nama
+      // sekolah di sini penuh partikel dua huruf — al, ar, as, el, nu —
+      // dan yang menyebutnya tidak pernah memberi jeda di situ.
+      const rentang = rentangGabungan(dimiliki, terpakai, kata);
+      if (rentang) {
+        for (let i = rentang[0]; i <= rentang[1]; i++) terpakai[i] = true;
+        skor += 1;
+        continue;
+      }
+    }
+
+    if (ke < 0) {
       // Kata pendek TIDAK boleh dicocokkan terbalik. Tanpa batas ini
       // "nurul" mencocokkan "NU" pada "SMK Ma'arif NU Ciamis", dan dua
       // baris saran dihabiskan sekolah yang jelas bukan itu — "al", "it",
@@ -163,6 +177,30 @@ export function skorSekolah(ketikan, nama) {
     skor += tambah;
   }
   return skor;
+}
+
+/**
+ * Rentang kata BERURUTAN yang, kalau dirapatkan, diawali `kata`.
+ *
+ * Minimal dua kata: yang satu kata sudah diurus aturan awalan biasa, dan
+ * membiarkannya di sini cuma menduakan jawaban yang sama.
+ *
+ * Yang dipakai habis seluruh rentangnya, bukan kata pertamanya saja — huruf
+ * "muttaqin" memang ikut terketik di dalam "almut", jadi ia tidak boleh
+ * dipakai lagi oleh kata berikutnya.
+ *
+ * @returns {[number, number] | null} indeks awal dan akhir, keduanya inklusif
+ */
+function rentangGabungan(dimiliki, terpakai, kata) {
+  for (let awal = 0; awal < dimiliki.length; awal++) {
+    if (terpakai[awal]) continue;
+    let gabung = dimiliki[awal];
+    for (let akhir = awal + 1; akhir < dimiliki.length && !terpakai[akhir]; akhir++) {
+      gabung += dimiliki[akhir];
+      if (gabung.startsWith(kata)) return [awal, akhir];
+    }
+  }
+  return null;
 }
 
 /**
