@@ -359,16 +359,26 @@ function gambarBayar() {
   }
   if (jawab.metode_bayar !== "transfer") { kotak.replaceChildren(); return; }
 
+  // Kotak berkas bawaan browser TIDAK bisa diisi ulang dari kode — begitu
+  // bagian ini digambar ulang, ia kembali berbunyi "No file chosen" meskipun
+  // buktinya sudah aman di server. Pembina yang menekan Tunai lalu Transfer
+  // lagi membacanya sebagai "bukti saya hilang", padahal Kirim tetap jalan.
+  //
+  // Jadi keadaannya TIDAK lagi dititipkan pada kotak itu. Kalau bukti sudah
+  // ada, yang tampil adalah kalimatnya sendiri, dan kotak berkasnya berganti
+  // peran jadi "ganti bukti" — kotak kosong yang memang berarti kosong.
   const sudah = !!jawab.bukti_transfer;
-  kotak.replaceChildren(h(html`
-    <p>Silakan transfer senilai <strong>${tagihan}</strong> ke rekening
-       <strong>${REKENING}</strong>.</p>
+  // Template biasa, BUKAN tag html`` — potongan di bawah disisipkan sebagai
+  // HTML. Nama berkas dari HP pembina tetap lewat esc().
+  kotak.replaceChildren(h(`
+    <p>Silakan transfer senilai <strong>${esc(tagihan)}</strong> ke rekening
+       <strong>${esc(REKENING)}</strong>.</p>
     <div class="field" style="margin-top:.8rem">
-      <label for="bukti">Unggah Bukti Transfer</label>
+      ${sudah ? `<p id="bukti-ada"><strong>Bukti sudah diunggah${
+        jawab.bukti_nama ? `:</strong> ${esc(jawab.bukti_nama)}` : ".</strong>"}</p>` : ""}
+      <label for="bukti">${sudah ? "Ganti bukti" : "Unggah Bukti Transfer"}</label>
       <input type="file" id="bukti" accept="image/*">
-      <div class="description" id="bukti-status">${
-        sudah ? `Terunggah${jawab.bukti_nama ? `: ${jawab.bukti_nama}` : ""}.`
-              : ""}</div>
+      <div class="description" id="bukti-status"></div>
       <div class="error" id="g-bukti" hidden>Bukti transfer wajib diunggah.</div>
     </div>`));
 
@@ -385,8 +395,11 @@ function gambarBayar() {
       jawab.bukti_transfer = await unggahBuktiTransfer(jawab.kunci_kirim, kecil);
       jawab.bukti_nama = berkas.name;
       simpanDraf();
-      status.textContent = `Terunggah: ${berkas.name}`;
-      document.getElementById("g-bukti").hidden = true;
+      status.textContent = "";
+      // Digambar ulang, bukan ditambal: kalimat "Bukti sudah diunggah" dan
+      // label kotaknya lahir dari keadaan yang sama, jadi keduanya berubah
+      // sekaligus tanpa ada yang tertinggal menyebut nama berkas lama.
+      gambarBayar();
       if (sudahDiperiksa) periksa(false);
     } catch (err) {
       status.textContent = "";
