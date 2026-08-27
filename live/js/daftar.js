@@ -71,7 +71,10 @@ const kosong = () => ({
   jenis_peserta: null,           // "eksternal" atau "internal"
   sekolah: null,                 // {id?, nama, alamat}
   butuh_barak: null,
-  jumlah_pendamping: 0,
+  // Total orang yang menginap, peserta DAN pembina (migrasi 0124). Sampai
+  // 0124 kotak ini cuma menghitung pembina dan susun_barak() yang menambahkan
+  // pesertanya; sekarang angkanya utuh dan rumus itu membacanya apa adanya.
+  jumlah_menginap: 0,
   rincian: {
     penggalang_pa: 0, penggalang_pi: 0,
     penegak_pa: 0, penegak_pi: 0,
@@ -201,7 +204,7 @@ function halaman() {
         <button class="option" id="p-ya" aria-pressed="false" type="button">Ya, perlu</button>
         <button class="option" id="p-tidak" aria-pressed="false" type="button">Tidak perlu</button>
       </div>
-      <div id="isi-pendamping" style="margin-top:.9rem"></div>
+      <div id="isi-menginap" style="margin-top:.9rem"></div>
       <div class="error" id="g-barak" hidden>Pilih salah satu.</div>
     </section>
     `}
@@ -274,7 +277,7 @@ function halaman() {
     jawab.jenis_peserta = jenis;
     jawab.sekolah = jenis === "internal" ? sekolahInternal() : null;
     jawab.butuh_barak = jenis === "internal" ? false : null;
-    jawab.jumlah_pendamping = 0;
+    jawab.jumlah_menginap = 0;
     jawab.rincian = {
       penggalang_pa: 0, penggalang_pi: 0,
       penegak_pa: 0, penegak_pi: 0,
@@ -530,21 +533,21 @@ function gambarBarak() {
     jawab.butuh_barak = ya;
     document.getElementById("p-ya").setAttribute("aria-pressed", String(ya));
     document.getElementById("p-tidak").setAttribute("aria-pressed", String(!ya));
-    const kotak = document.getElementById("isi-pendamping");
+    const kotak = document.getElementById("isi-menginap");
     if (ya) {
       kotak.replaceChildren(h(html`
         <div class="field" style="margin:0">
-          <label for="n-pendamping">Berapa pendamping (pembina/guru) yang ikut menginap?</label>
-          <input type="number" id="n-pendamping" min="0" max="30" inputmode="numeric"
-                 value="${jawab.jumlah_pendamping}">
+          <label for="n-menginap">Total yang menginap (peserta + pembina)?</label>
+          <input type="number" id="n-menginap" min="0" max="200" inputmode="numeric"
+                 value="${jawab.jumlah_menginap}">
           <div class="hint">Boleh 0 kalau belum tahu — bisa diubah saat daftar ulang.</div>
         </div>`));
-      document.getElementById("n-pendamping").addEventListener("input", e => {
-        jawab.jumlah_pendamping = Math.max(0, Number(e.target.value) || 0); simpanDraf();
+      document.getElementById("n-menginap").addEventListener("input", e => {
+        jawab.jumlah_menginap = Math.max(0, Number(e.target.value) || 0); simpanDraf();
       });
     } else {
       kotak.replaceChildren();
-      jawab.jumlah_pendamping = 0;
+      jawab.jumlah_menginap = 0;
     }
     simpanDraf();
     if (sudahDiperiksa) periksa(false);
@@ -930,7 +933,10 @@ async function kirim(e) {
       nama_sekolah: jawab.sekolah.nama,
       alamat_sekolah: jawab.sekolah.alamat,
       butuh_barak: jawab.butuh_barak,
-      jumlah_pendamping: jawab.jumlah_pendamping,
+      // Kunci pada kawat tetap `jumlah_pendamping`: itu kontrak dengan
+      // Worker gateway, dan menggantinya menuntut deploy berbarengan supaya
+      // pendaftaran tidak mati di antaranya. Isinya yang berubah arti.
+      jumlah_pendamping: jawab.jumlah_menginap,
       kontak_wa: jawab.kontak_wa,
       nama_kontak: jawab.nama_kontak,
       regu: jawab.regu,
@@ -1072,7 +1078,7 @@ async function mulai() {
     if (jawab.jenis_peserta === "internal") {
       jawab.sekolah = sekolahInternal();
       jawab.butuh_barak = false;
-      jawab.jumlah_pendamping = 0;
+      jawab.jumlah_menginap = 0;
       jawab.rincian.penggalang_pa = 0;
       jawab.rincian.penggalang_pi = 0;
       jawab.rincian.penegak_pa = 0;

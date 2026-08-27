@@ -560,6 +560,14 @@ run supabase/migrations/0122_tuntut_cara_bayar.sql
 # membuktikan dirinya AMAN dijalankan di sana — bukan bahwa ia menyelesaikan
 # masalahnya. Yang membuktikan itu satu unggahan sungguhan ke produksi.
 run supabase/migrations/0123_policy_storage_per_peran.sql
+
+# 0124 mengubah arti satu kotak di form: dari jumlah pendamping jadi TOTAL
+# yang menginap. Yang berbahaya bukan labelnya melainkan susun_barak(), yang
+# dulu menambahkan `regu aktif x 5` di atasnya — kalau rumus itu tidak ikut
+# berubah, pesertanya terhitung dua kali tanpa satu galat pun. Tes 84
+# memeriksa jumlah orang yang benar-benar ditempatkan, bukan definisinya.
+run supabase/migrations/0124_jumlah_menginap.sql
+run tests/sql/84_jumlah_menginap.sql
 run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
 # Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
