@@ -950,13 +950,19 @@ async function layarPembayaran() {
           // Template biasa, BUKAN tag html`` — tombol Bukti sudah berupa HTML dan
           // html`` meng-escape setiap nilai yang disisipkan, jadi tombolnya
           // sempat TERCETAK sebagai teks di layar Pembayaran.
-          : `<span class="metode-baris"
+          // nowrap DI SINI saja, bukan di kelasnya: pasangan LUNAS di atas memang
+          // perlu menumpuk sendiri di kolom sempit. Di sini yang berdampingan
+          // cuma dropdown dan satu ikon, dan tombol yang jatuh ke baris
+          // berikutnya membuat kartunya setinggi dua baris tanpa alasan.
+          : `<span class="metode-baris" style="flex-wrap:nowrap"
              ><select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
                 <option value="tunai" ${b.metode_bayar === "transfer" ? "" : "selected"}>Tunai</option>
                 <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
               </select>${b.bukti_transfer
                 ? `<button class="button button-mini" type="button"
-                           data-bukti="${esc(b.bukti_transfer)}">Bukti</button>`
+                           data-bukti="${esc(b.bukti_transfer)}"
+                           title="Lihat bukti transfer"
+                           aria-label="Lihat bukti transfer">${ikon("camera")}</button>`
                 : ""}</span>`;
 
       const aksi = b.status === "lunas"
