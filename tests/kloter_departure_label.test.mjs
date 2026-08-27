@@ -118,3 +118,17 @@ test("jumlah Eksternal dan Intern tetap ada, sebagai baris tabel", () => {
   assert.match(layar, /<td>Eksternal<\/td><td class="angka">\$\{jumlahEksternal\}<\/td>/);
   assert.match(layar, /<td>Intern<\/td><td class="angka">\$\{jumlahIntern\}<\/td>/);
 });
+
+
+test("kolom planning yang belum ada TIDAK mematikan layar", async () => {
+  // Situs panitia terbit tiap merge; migrasi dijalankan terpisah sesudahnya
+  // (pasal 7.6). Di sela keduanya PostgREST menjawab 42703, dan tanpa
+  // penangkap ini Promise.all melempar lalu SELURUH layar Daftar Kloter mati
+  // — daftar kloter, pratayang, dan kedua tombol cetak sekaligus.
+  //
+  // Sudah terjadi sekali, 27 Agustus 2026, dua hari sebelum lomba.
+  const { readFile } = await import("node:fs/promises");
+  const api = await readFile(new URL("../web/js/api.js", import.meta.url), "utf8");
+  assert.match(api,
+    /planning_berangkat_pertama,planning_berangkat_terakhir"\)\s*\n\s*\.catch\(\(\) => \[\]\)/);
+});

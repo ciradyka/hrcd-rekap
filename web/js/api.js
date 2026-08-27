@@ -345,8 +345,22 @@ export async function infoPengaturanKloter() {
     // Jendela Planning Keberangkatan (migrasi 0113). Tinggal di status_acara,
     // bukan di edisi, karena ia disusun pada hari-H — hari yang sama saat
     // kunci konfigurasi menyala dan menutup seluruh tabel setelan.
+    // GAGALNYA DITELAN, dan itu wajib. Kolom ini lahir di migrasi 0113,
+    // sementara situs panitia terbit pada TIAP MERGE dan migrasi dijalankan
+    // terpisah sesudahnya (CLAUDE.md 7.6). Di sela keduanya PostgREST
+    // menjawab 42703 "column does not exist" — dan tanpa penangkap ini
+    // Promise.all melempar, `infoPengaturanKloter()` gagal, lalu SELURUH
+    // layar Daftar Kloter mati. Bukan cuma planningnya: daftar kloter,
+    // pratayang, dan kedua tombol cetak ikut hilang.
+    //
+    // Sudah terjadi sekali, pada 27 Agustus 2026, dua hari sebelum lomba.
+    //
+    // Kosong = jendela jatuh ke konfigurasi edisi, persis perilaku sebelum
+    // 0113. Yang hilang cuma penyimpanannya, dan itu menyalak sendiri saat
+    // panitia menggeser jamnya.
     baca(null, "status_acara?id=eq.true" +
-      "&select=planning_berangkat_pertama,planning_berangkat_terakhir"),
+      "&select=planning_berangkat_pertama,planning_berangkat_terakhir")
+      .catch(() => []),
   ]);
   if (!edisi.length) throw new ErrorApi("Belum ada edisi aktif.");
   return {
