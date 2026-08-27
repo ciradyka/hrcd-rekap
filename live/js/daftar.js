@@ -142,6 +142,14 @@ const NAMA_MAKS = 20;
 const ADA_ANGKA = /[0-9]/;
 const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
 
+/* Batas BAWAH nama regu (0120). Yang dihitung hurufnya, bukan panjang
+   karakternya: "A B" tiga karakter tetapi dua huruf, dan yang dibacakan di
+   lapangan saat pemberangkatan dan saat juara diumumkan adalah hurufnya.
+   Tanda baca dan spasi karena itu dibuang dulu — "Ma'ruf" dan "Nur-Aini"
+   tetap lolos. Aturan yang sama ditegakkan database. */
+const HURUF_MIN = 3;
+const cukupHuruf = (t) => (String(t || "").match(/\p{L}/gu) || []).length >= HURUF_MIN;
+
 /* Jawaban server, diingat per nama supaya satu nama tidak ditanyakan berkali
    -kali sementara pembina masih mengetik nama berikutnya. */
 const namaTerpakai = new Map();
@@ -590,6 +598,7 @@ function gambarRegu() {
     const n = normalNama(jawab.regu[i].nama_regu);
     if (!n) return "Nama regu wajib diisi.";
     if (ADA_ANGKA.test(n)) return "Nama regu tidak boleh memakai angka.";
+    if (!cukupHuruf(n)) return `Nama regu minimal ${HURUF_MIN} huruf.`;
     if (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n))
       return "Nama ini sudah dipakai regu lain di form ini.";
     if (namaTerpakai.get(n))
@@ -718,17 +727,21 @@ function periksa(gulir = true) {
     // pun database menolaknya, dan ditolak di sini pembina masih melihat
     // kartu mana yang harus diubah.
     const n = normalNama(r.nama_regu);
-    const namaSalah = !n
-      || jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n)
-      || namaTerpakai.get(n) === true;
+    const namaPendek = !!n && !cukupHuruf(n);
+    const namaKembar = !!n
+      && (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n)
+          || namaTerpakai.get(n) === true);
+    const namaSalah = !n || namaPendek || namaKembar;
     const anggotaBerangka = (r.anggota || []).some(a => a && ADA_ANGKA.test(a));
     const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua)
       || anggotaBerangka;
     const el = document.getElementById(`regu-${i}`);
     if (el) el.classList.toggle("regu-card-error", kurang);
     if (kurang) {
-      galat.push({ ke: `regu-${i}`, teks: namaSalah && n
-        ? `Regu ${i + 1}: nama sudah dipakai` : `Regu ${i + 1} belum lengkap` });
+      galat.push({ ke: `regu-${i}`, teks:
+        namaPendek ? `Regu ${i + 1}: nama minimal ${HURUF_MIN} huruf`
+        : namaKembar ? `Regu ${i + 1}: nama sudah dipakai`
+        : `Regu ${i + 1} belum lengkap` });
     }
   });
 
