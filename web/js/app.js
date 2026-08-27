@@ -1677,7 +1677,14 @@ async function layarKeberangkatan() {
   `));
 
   const gambarPita = () => {
-    document.getElementById("pita-kloter").replaceChildren(h(papan.map(k => {
+    // Layarnya bisa SUDAH DITINGGALKAN. Menceklis regu memanggil server, dan
+    // sesudah `await` itu petugas mungkin sudah menekan Home — pita kloternya
+    // tidak ada lagi, dan `null.replaceChildren` melempar galat yang muncul
+    // sebagai toast merah "Cannot read properties of null" di layar Home,
+    // seolah Home yang rusak. Yang benar: tidak menggambar apa pun.
+    const pita = document.getElementById("pita-kloter");
+    if (!pita) return;
+    pita.replaceChildren(h(papan.map(k => {
       /* Kloter yang SUDAH berangkat menampilkan JAMNYA, bukan kata
          "berangkat".
 
