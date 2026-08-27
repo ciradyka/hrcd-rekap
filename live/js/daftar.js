@@ -131,11 +131,17 @@ const golonganForm = () => internal() ? GOLONGAN_INTERNAL : GOLONGAN;
 const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
   ?? [...GOLONGAN, ...GOLONGAN_INTERNAL].find(g => g.kode === k).label;
 
-/* ---------- nama regu: 20 karakter, dan tidak boleh kembar (0051) ----------
+/* ---------- nama regu: 25 karakter, dan tidak boleh kembar ----------------
 
-   20 diturunkan dari kolom Nama Regu pada form tabel per pos: 48mm pada huruf
-   10pt memuat ~21 karakter kapital. Lebih dari itu terpotong DIAM-DIAM di
-   kertas cadangan, yang justru dipakai saat internet mati.
+   20 (0051) diturunkan dari kolom Nama Regu pada blangko pos. Kolom itu sejak
+   itu justru dipersempit jadi 44mm atas keputusan panitia — lebih baik nama
+   terpotong sedikit daripada kotak nilai yang sempit — jadi yang dijaga 20
+   sudah tidak dijaga oleh 20, dan 0127 menaikkannya ke 25. Yang membuat
+   pemotongan itu aman: baris dikenali dari NOMOR DADA, bukan dari namanya.
+
+   Angka ini WAJIB sama dengan check `regu_nama_panjang` di database. Kalau ia
+   lebih kecil, pembina tidak bisa mengetik nama yang sebenarnya diterima dan
+   tidak ada galat apa pun yang muncul — hurufnya cuma berhenti masuk.
 
    Kembar ditolak di seluruh edisi karena nama juara dibacakan di depan
    lapangan, dan nama yang sudah pernah disebut kehilangan momennya.
@@ -144,7 +150,7 @@ const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
    besar-kecil diabaikan, spasi beruntun dirapatkan. Pembatas yang bisa
    dilewati dengan menekan Caps Lock bukan pembatas.                        */
 
-const NAMA_MAKS = 20;
+const NAMA_MAKS = 25;
 
 /* Angka di kolom nama selalu berarti salah satu dari dua hal: kolomnya
    tertukar (nomor WA diketik di kotak Nama), atau regunya dinomori sendiri
@@ -155,6 +161,25 @@ const NAMA_MAKS = 20;
    — dan menolak semuanya demi menolak angka akan menolak lebih banyak nama
    asli daripada kesalahan yang dicegahnya. */
 const ADA_ANGKA = /[0-9]/;
+
+/* Nama REGU melonggar di 0128: angka boleh, tapi hanya sebagai ekor. Yang
+   dilepas cuma larangan menomori regu — SMKN 2 Ciamis mengirim enam regu dan
+   menyebutnya CAKRA 1..4 dan AGRESI 1..3, dan itu memang nama yang mereka
+   pakai. Yang TETAP dijaga bentuk khas kolom tertukar: angka di depan tanpa
+   nama sama sekali.
+
+   Harus sama persis dengan check `regu_nama_regu_angka_di_belakang`. Kalau di
+   sini lebih ketat, pembina berhenti mengetik pada aturan yang database
+   sebenarnya sudah terima, dan tidak ada galat apa pun yang muncul.
+
+     diterima   CAKRA 1, AGRESI 3, RAJAWALI
+     ditolak    08477484      (nomor WA nyasar ke kotak nama)
+     ditolak    SMA 2 CIAMIS  (angka di tengah)
+
+   ADA_ANGKA di atas TETAP dipakai lima tempat lain, dan semuanya nama ORANG.
+   Tidak ada yang bernama "Nur Aisyah 2", jadi di sana angka tetap berarti
+   kolom tertukar. */
+const NAMA_REGU_SAH = /^[^0-9]+[0-9]*$/;
 const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 /* Batas BAWAH nama regu (0120). Yang dihitung hurufnya, bukan panjang
@@ -790,7 +815,8 @@ function gambarRegu() {
   const masalahNama = (i) => {
     const n = normalNama(jawab.regu[i].nama_regu);
     if (!n) return "Nama regu wajib diisi.";
-    if (ADA_ANGKA.test(n)) return "Nama regu tidak boleh memakai angka.";
+    if (!NAMA_REGU_SAH.test(n))
+      return "Angka di nama regu hanya boleh di belakang, misal: Cakra 1.";
     if (!cukupHuruf(n)) return `Nama regu minimal ${HURUF_MIN} huruf.`;
     if (jawab.regu.some((x, j) => j < i && normalNama(x.nama_regu) === n))
       return "Nama ini sudah dipakai regu lain di form ini.";

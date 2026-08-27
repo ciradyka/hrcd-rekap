@@ -1405,8 +1405,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dan kolom penilaian menerima apa pun yang tersisa — pada Pos 5 itu
      menyisakan 16mm untuk judul "KREATIVITAS", yang tumpah keluar kertas.
 
-     Nama regu 44mm karena 0051 membatasinya 20 karakter, dan 20 kapital 10pt
-     memang selebar itu. Organisasi diberi lebar yang sama dan dipotong
+     Nama regu 44mm, dan angka itu SUDAH di bawah nama terpanjang yang
+     database terima — 25 karakter sejak 0127, ~57mm pada 10pt kapital.
+     Memotong adalah pilihan, bukan kelalaian: yang dibeli dengan milimeter
+     itu kotak penilaian, dan baris tetap dikenali dari nomor dada di kolom
+     pertama. Organisasi diberi lebar yang sama dan dipotong
      elipsis di situ: nama sekolah bisa sepanjang apa pun, dan lembar ini
      dibaca untuk MENCOCOKKAN baris, bukan untuk membaca nama sekolah utuh —
      nomor dada di kolom pertama yang jadi kuncinya.

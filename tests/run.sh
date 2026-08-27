@@ -591,4 +591,26 @@ run supabase/checks/live_json.sql
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
 run tests/sql/55_cleanup_preserves_schools.sql
 
+# 0127 menaikkan batas nama regu 20 -> 25 karakter, karena tiga regu XXXVII
+# mendaftar lewat Google Form dengan nama yang melewatinya. Tes 21 di atas
+# sengaja DIBIARKAN menguji batas 20: ia berjalan sebelum migrasi ini, dan
+# itulah yang benar pada titik itu. Tes 86 menguji batas barunya.
+run supabase/migrations/0127_nama_regu_dua_puluh_lima.sql
+run tests/sql/86_nama_regu_dua_puluh_lima.sql
+
+# 0128 membuka angka di nama regu, tapi HANYA sebagai ekor: enam regu SMKN 2
+# Ciamis mendaftar sebagai CAKRA 1..4 dan AGRESI 1..3. Tes 22 di atas tetap
+# menguji larangan lama di tempatnya sendiri; tes 87 menguji aturan barunya,
+# termasuk bahwa nomor WA yang nyasar ke kotak nama masih ditolak.
+run supabase/migrations/0128_nama_regu_angka_di_belakang.sql
+run tests/sql/87_nama_regu_angka_di_belakang.sql
+
+# 0129 memasukkan 100 regu dari jawaban Google Form. Ditaruh PALING AKHIR, di
+# belakang 55, karena ia satu-satunya migrasi yang membawa data operasional:
+# di tengah daftar, seratus pendaftaran itu ikut terbaca tes-tes sesudahnya
+# yang menghitung baris. Yang dibuktikan di sini cuma bahwa migrasinya jalan
+# bersih di atas skema yang sudah lengkap — pagar di dalamnya sendiri yang
+# menghitung apakah keseratus barisnya benar-benar terpasang.
+run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
+
 echo "SEMUA TES LULUS"
