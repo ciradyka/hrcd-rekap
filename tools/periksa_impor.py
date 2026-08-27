@@ -69,6 +69,7 @@ if __name__ == "__main__":
         ("web/js/app.js", "web/js/util.js", "./util.js"),
         ("live/js/daftar.js", "live/js/api.js", "./api.js"),
         ("live/js/daftar.js", "live/js/util.js", "./util.js"),
+        ("live/js/daftar.js", "live/js/school-search.mjs", "./school-search.mjs"),
         ("live/live.js", "live/js/util.js", "./js/util.js"),
     ]
     gagal = []

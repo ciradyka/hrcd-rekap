@@ -18,6 +18,7 @@
 import { daftarSekolah, kirimPendaftaran, infoEdisi, namaReguDipakai, ErrorApi } from "./api.js";
 import { esc, h, html, rupiah, notif, kartuGagalMuat,
          pemuat, biayaRegu, totalBiaya } from "./util.js";
+import { cariSekolah, kunciSekolah } from "./school-search.mjs";
 
 const LAYAR = document.getElementById("layar");
 const GOLONGAN = [
@@ -105,28 +106,13 @@ const totalRincian = () => Object.values(jawab.rincian).reduce((a, b) => a + b, 
 const internal = () => jawab.jenis_peserta === "internal";
 
 const golonganForm = () => internal() ? GOLONGAN_INTERNAL : GOLONGAN;
-/* Penyamaan untuk PENCARIAN sekolah, bukan untuk menyimpan.
- *
- *  Pembina mengetik nama yang dia ucapkan, bukan nama yang tertulis di
- *  Dapodik. "MAS Agro" harus tetap menemukan "MA Agrowisata Shaleha" —
- *  huruf S di "MAS" itu status Swasta, bukan bagian nama, dan tidak ada
- *  seorang pun yang menyebutnya.
- *
- *  Urutannya penting: huruf statusnya dibuang SELAGI spasinya masih ada.
- *  Versi lama langsung membuang seluruh non-huruf, jadi "MAS Agro" jadi
- *  "masagro" dan tidak pernah cocok dengan "maagrowisatashaleha" — sekolahnya
- *  seolah tidak terdaftar, dan pembina mendaftarkannya lagi sebagai baris
- *  baru.
- *
- *  Aturannya sama dengan kunci_sekolah() di database (migrasi 0062), dan
- *  memang harus sama: yang satu memutuskan apa yang TERLIHAT saat mencari,
- *  yang satu memutuskan apa yang dianggap SEKOLAH YANG SAMA saat menyimpan. */
-const normal = s => String(s || "").toLowerCase()
-  // "SMP Negeri 1" dan "SMP N 1" adalah "SMPN 1".
-  .replace(/\b(sd|smp|sma|smk|mi|mts|ma)\s+n(egeri)?\b/g, "$1n")
-  // Huruf status Dapodik di awal nama: MAS, SMKS, SMAS, SMPS, MTsS, MIS.
-  .replace(/^\s*(sd|smp|sma|smk|mi|mts|ma)s\b/, "$1")
-  .replace(/[^a-z0-9]/g, "");
+/* Pencocokan nama sekolah pindah ke school-search.mjs — aturannya panjang,
+ *  murni perhitungan, dan sekarang punya tesnya sendiri
+ *  (tests/school_search.test.mjs). Yang perlu diingat di sini cuma bahwa ada
+ *  DUA fungsi dan keduanya tidak boleh tertukar (CLAUDE.md 12.10):
+ *  `cariSekolah()` memutuskan apa yang TERLIHAT saat mencari, `kunciSekolah()`
+ *  memutuskan apa yang dianggap SEKOLAH YANG SAMA — dan yang kedua harus tetap
+ *  sama persis dengan kunci_sekolah() di database.                          */
 const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
   ?? [...GOLONGAN, ...GOLONGAN_INTERNAL].find(g => g.kode === k).label;
 
@@ -336,9 +322,7 @@ function gambarSekolah() {
   const saran = document.getElementById("saran");
 
   cari.addEventListener("input", () => {
-    const q = normal(cari.value.trim());
-    if (q.length < 2) { saran.hidden = true; return; }
-    const cocok = SEKOLAH.filter(s => normal(s.name).includes(q)).slice(0, 6);
+    const cocok = cariSekolah(SEKOLAH, cari.value, 6);
     saran.hidden = cocok.length === 0;
     saran.replaceChildren(...cocok.map(s => {
       const b = document.createElement("button");
@@ -382,7 +366,7 @@ function gambarSekolah() {
   function gambarManual() {
     const teks = cari.value.trim();
     if (teks.length < 3) { document.getElementById("manual").replaceChildren(); return; }
-    if (SEKOLAH.some(s => normal(s.name) === normal(teks))) {
+    if (SEKOLAH.some(s => kunciSekolah(s.name) === kunciSekolah(teks))) {
       document.getElementById("manual").replaceChildren(); return;
     }
     if (document.getElementById("m-alamat")) return;    // sudah tergambar
@@ -422,7 +406,8 @@ function gambarSekolah() {
 }
 
 function sekolahInternal() {
-  const tersimpan = SEKOLAH.find(s => normal(s.name) === normal(SEKOLAH_INTERNAL.nama));
+  const tersimpan = SEKOLAH.find(
+    s => kunciSekolah(s.name) === kunciSekolah(SEKOLAH_INTERNAL.nama));
   return tersimpan
     ? { id: tersimpan.id, nama: tersimpan.name, alamat: tersimpan.address }
     : { ...SEKOLAH_INTERNAL };

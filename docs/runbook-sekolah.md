@@ -14,9 +14,16 @@ daftarnya, **bagian 12** untuk jebakan waktu memasangnya ke database.
 ## 1. Kenapa daftar ini ada
 
 Form pendaftaran memuat autocomplete sekolah yang berjalan **di browser**:
-seluruh tabel `sekolah` dimuat sekali, lalu disaring dengan
-`SEKOLAH.filter(...)` (`live/js/daftar.js`). Instan, tanpa permintaan server
-per huruf.
+seluruh tabel `sekolah` dimuat sekali, lalu disaring dengan `cariSekolah()`
+(`live/js/school-search.mjs`, dipanggil dari `live/js/daftar.js`). Instan,
+tanpa permintaan server per huruf.
+
+Penyaringnya **per kata, bukan per potongan**: tiap kata yang diketik cukup
+jadi awalan salah satu kata di nama sekolah, jadi "SMA 2" menemukan
+"SMAN 2 Ciamis". Sampai 27 Agustus 2026 ia menuntut ketikan menjadi potongan
+utuh dari namanya — dan huruf `N` yang tidak diucapkan siapa pun membuat
+sekolah yang jelas-jelas ada di daftar seolah tidak terdaftar. Yang lahir dari
+situ baris kembar, yang persis dicegah seluruh runbook ini.
 
 Isinya sekolah yang **benar-benar pernah ikut HRCD**, dan itulah gunanya —
 mereka yang diprioritaskan diundang lagi tahun berikutnya. Pembina yang
