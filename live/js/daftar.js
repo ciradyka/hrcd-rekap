@@ -847,26 +847,10 @@ function sukses(hasil) {
         tercatat berisi ${hasil.jumlah_regu} regu; hubungi panitia bila perlu
         diperbaiki.
       </p>
-      <p>Ini <strong>kode pembayaran</strong>-mu. Simpan baik-baik — kode ini dipakai
-         saat membayar dan saat daftar ulang.</p>
+      <p><strong>Simpan kode pembayaran ini.</strong> Kode ini akan digunakan
+         untuk verifikasi pembayaran dan daftar ulang.</p>
       <div class="giant-number" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
       <button class="button button-secondary" id="salin" type="button">📋 Salin kode</button>
-    </div>
-    <div class="card">
-      <!-- TUNAI yang disebut duluan, dan itu bukan urutan kalimat belaka:
-           mayoritas sekolah membayar langsung di meja, dan yang disebut lebih
-           dahulu itulah yang dianggap cara yang dimaksud panitia. Transfer
-           tetap ada di kalimat berikutnya, lengkap dengan satu hal yang tidak
-           bisa ditebak sendiri — kodenya harus ikut di berita transfer, kalau
-           tidak uangnya masuk tanpa nama. -->
-      <h2 style="font-size:1.1rem">Cara membayar</h2>
-      <p style="margin-top:.4rem">Bayar tunai <strong>${rupiah(hasil.total_tagihan)}</strong>
-         di meja pendaftaran.</p>
-      <p style="margin-top:.4rem">Kalau lebih mudah transfer: rekening panitia
-         tertera di poster/brosur, dan tulis kode
-         <strong>${hasil.kode_pembayaran}</strong> di berita transfer.</p>
-      <p class="description" style="margin-top:.6rem">Setelah panitia memeriksa
-         pembayaran, semua regumu (${hasil.jumlah_regu} regu) resmi terdaftar.</p>
     </div>
     <a class="button button-primary" style="text-decoration:none"
        href="https://wa.me/?text=${encodeURIComponent(
