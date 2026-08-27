@@ -946,10 +946,19 @@ async function kirim(e) {
       // di sini berarti aturannya hidup di dua tempat.
       bukti_transfer: jawab.bukti_transfer,
     }, tokenTurnstile);
+    // Rincian ikut disimpan, bukan cuma jawaban server: drafnya dihapus satu
+    // baris di bawah ini, dan tanpa salinan ini layar "Pendaftaran terakhirmu"
+    // sesudah reload kehilangan justru bagian yang membuat kodenya bisa
+    // dibedakan dari kode sekolah lain.
+    const lengkap = {
+      ...hasil,
+      sekolah: jawab.sekolah?.nama || "",
+      regu: jawab.regu.map(r => r.nama_regu),
+    };
     sessionStorage.setItem("hrcd_selesai", "1");
-    try { localStorage.setItem(KUNCI_HASIL, JSON.stringify(hasil)); } catch {}
+    try { localStorage.setItem(KUNCI_HASIL, JSON.stringify(lengkap)); } catch {}
     hapusDraf();
-    sukses(hasil);
+    sukses(lengkap);
   } catch (err) {
     btn.dataset.jalan = ""; btn.disabled = false; btn.textContent = "Kirim Pendaftaran";
     document.getElementById("ringkas-galat").replaceChildren(h(html`
@@ -963,6 +972,52 @@ async function kirim(e) {
 }
 
 /* ---------------- sukses ---------------- */
+
+/* "Hiking Rally Ciradyka XXXVII". Nama edisinya tersimpan sebagai "HRCD
+   XXXVII" — bentuk pendek untuk kepala layar — dan yang ditulis di WhatsApp
+   adalah nama yang dikenali orang yang membacanya nanti, termasuk bendahara
+   sekolah yang tidak pernah membuka form ini. */
+const namaAcara = () => {
+  const romawi = String(EDISI?.name || "").replace(/^HRCD\s*/i, "").trim();
+  return `Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
+};
+
+/* Satu pembina bisa memegang beberapa sekolah, dan kode pembayaran tidak
+   menyebutkan satu pun di antaranya. Tanpa rincian ini, empat tangkapan layar
+   di galerinya sama persis kecuali enam huruf terakhir — dan yang salah
+   ditransfer bukan kesalahan yang ketahuan sebelum uangnya berpindah.
+
+   Karena itu asal sekolah dan nama tiap regu ikut ditulis, di layar maupun di
+   pesan WhatsApp-nya. Keduanya membaca objek yang SAMA supaya tangkapan layar
+   dan pesan tidak pernah menyebut isi yang berbeda. */
+const rincianHtml = (r) => {
+  if (!r || !r.sekolah) return "";
+  const regu = Array.isArray(r.regu) ? r.regu.filter(Boolean) : [];
+  return html`
+    <div style="margin-top:1rem">
+      <p><strong>Asal Sekolah</strong><br>${r.sekolah}</p>
+      ${regu.length ? html`<p style="margin-top:.6rem"><strong>Nama Regu</strong></p>
+        <ul style="margin:.2rem 0 0 1.1rem">
+          ${regu.map(n => html`<li>${n}</li>`).join("")}
+        </ul>` : ""}
+      <p style="margin-top:.6rem">${r.jumlah_regu} regu, total
+         <strong>${rupiah(r.total_tagihan)}</strong></p>
+    </div>`;
+};
+
+/* Bentuk pesannya diminta pemilik acara, dan urutannya bukan selera: kode di
+   paling atas supaya terbaca tanpa membuka pesannya, sekolah sesudahnya karena
+   itu yang menjawab "ini pembayaran yang mana". */
+const BARIS_BARU = "\n";
+
+const pesanWa = (r) => {
+  const baris = [`Kode Pembayaran ${namaAcara()}`, "", `- ${r.kode_pembayaran}`];
+  if (r.sekolah) baris.push("", "Asal Sekolah:", r.sekolah);
+  const regu = Array.isArray(r.regu) ? r.regu.filter(Boolean) : [];
+  if (regu.length) baris.push("", "Nama Regu", ...regu.map(n => `- ${n}`));
+  baris.push("", `${r.jumlah_regu} regu, total ${rupiah(r.total_tagihan)}`);
+  return baris.join(BARIS_BARU);
+};
 
 function sukses(hasil) {
   LAYAR.replaceChildren(h(html`
@@ -978,10 +1033,10 @@ function sukses(hasil) {
          untuk verifikasi pembayaran dan daftar ulang.</p>
       <div class="giant-number" style="margin:1rem 0">${hasil.kode_pembayaran}</div>
       <button class="button button-secondary" id="salin" type="button">📋 Salin kode</button>
+      ${rincianHtml(hasil)}
     </div>
     <a class="button button-primary" style="text-decoration:none"
-       href="https://wa.me/?text=${encodeURIComponent(
-         `Kode pembayaran HRCD: ${hasil.kode_pembayaran} (${hasil.jumlah_regu} regu, total ${rupiah(hasil.total_tagihan)})`)}">
+       href="https://wa.me/?text=${encodeURIComponent(pesanWa(hasil))}">
        Kirim kode ke WhatsApp
     </a>
     <button class="button button-secondary" id="daftar-lagi" type="button"
@@ -1029,7 +1084,6 @@ async function mulai() {
   // v_edisi_publik memberi kolom `name` sejak migrasi 0014 — `nama` sudah
   // tidak ada, dan membacanya diam-diam menghasilkan undefined.
   document.getElementById("label-edisi").textContent = EDISI.name;
-  const romawi = String(EDISI.name || "").replace(/^HRCD\s*/i, "").trim();
   // Judul layar cukup satu kata. Nama acaranya sudah berdiri di kanan kepala
   // sebagai "HRCD <edisi>", dan sebelum ini tiga label mengatakan hal yang
   // sama bertumpuk: judul panjang, lencana edisi, dan kartu "Pendaftaran
@@ -1040,7 +1094,7 @@ async function mulai() {
   // sekolah membuka form ini setahun sekali, dan tab lama yang masih terbuka
   // harus bisa dibedakan dari yang baru.
   document.getElementById("judul-daftar").textContent = "Pendaftaran";
-  document.title = `Pendaftaran — Hiking Rally Ciradyka${romawi ? ` ${romawi}` : ""}`;
+  document.title = `Pendaftaran — ${namaAcara()}`;
 
   let hasilLama = null, draf = null;
   try { hasilLama = JSON.parse(localStorage.getItem(KUNCI_HASIL) || "null"); } catch {}
@@ -1052,9 +1106,17 @@ async function mulai() {
         <h2>Pendaftaran terakhirmu</h2>
         <p>Kode pembayaran:</p>
         <div class="giant-number" style="margin:.6rem 0">${hasilLama.kode_pembayaran}</div>
-        <p class="description">${hasilLama.jumlah_regu} regu · ${rupiah(hasilLama.total_tagihan)}</p>
+        ${hasilLama.sekolah
+          ? rincianHtml(hasilLama)
+          : html`<p class="description">${hasilLama.jumlah_regu} regu ·
+                 ${rupiah(hasilLama.total_tagihan)}</p>`}
       </div>
-      <button class="button button-primary" id="baru" type="button">Daftarkan regu lain</button>`));
+      <a class="button button-primary" style="text-decoration:none"
+         href="https://wa.me/?text=${encodeURIComponent(pesanWa(hasilLama))}">
+         Kirim kode ke WhatsApp
+      </a>
+      <button class="button button-secondary" id="baru" type="button"
+              style="margin-top:.6rem">Daftarkan regu lain</button>`));
     document.getElementById("baru").addEventListener("click", () => {
       try { localStorage.removeItem(KUNCI_HASIL); } catch {}
       sessionStorage.removeItem("hrcd_selesai");
