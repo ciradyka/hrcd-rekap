@@ -88,6 +88,12 @@ const kosong = () => ({
   // supaya HP yang mati sesudah mengunggah tidak menyuruh mengunggah lagi.
   bukti_transfer: null,
   bukti_nama: "",                // nama berkas asli, untuk ditampilkan saja
+  // Gambar kecil bukti, disimpan sebagai data URL di dalam draf. Bucket-nya
+  // privat dan pembina TIDAK berhak membacanya kembali (migrasi 0121), jadi
+  // satu-satunya cara menampilkan buktinya lagi sesudah halaman dimuat ulang
+  // adalah menyimpan salinannya sendiri di HP. Ukurannya sama dengan yang
+  // diunggah — puluhan kilobyte — jadi jauh di bawah kuota localStorage.
+  bukti_thumb: "",
   kunci_kirim: uuidDraf(),
 });
 
@@ -374,8 +380,18 @@ function gambarBayar() {
     <p>Silakan transfer senilai <strong>${esc(tagihan)}</strong> ke rekening
        <strong>${esc(REKENING)}</strong>.</p>
     <div class="field" style="margin-top:.8rem">
-      ${sudah ? `<p id="bukti-ada"><strong>Bukti sudah diunggah${
-        jawab.bukti_nama ? `:</strong> ${esc(jawab.bukti_nama)}` : ".</strong>"}</p>` : ""}
+      ${sudah ? `
+        <div style="position:relative;display:inline-block;margin-bottom:.6rem">
+          ${jawab.bukti_thumb
+            ? `<img src="${esc(jawab.bukti_thumb)}" alt="Bukti transfer"
+                    style="display:block;max-width:180px;max-height:180px;
+                           border-radius:10px;border:1px solid var(--garis)">`
+            : `<p><strong>Bukti sudah diunggah.</strong></p>`}
+          <button type="button" class="ubin-silang" id="bukti-hapus"
+                  style="color:var(--bahaya)" title="Hapus bukti"
+                  aria-label="Hapus bukti transfer">${ikon("x")}</button>
+        </div>
+        <div class="description">${esc(jawab.bukti_nama || "")}</div>` : ""}
       <label class="button button-primary" style="margin-top:.2rem">
         <input type="file" id="bukti" accept="image/*" hidden>
         ${ikon("camera")} ${sudah ? "Ganti Bukti" : "Unggah Bukti"}
@@ -383,6 +399,20 @@ function gambarBayar() {
       <div class="description" id="bukti-status"></div>
       <div class="error" id="g-bukti" hidden>Bukti transfer wajib diunggah.</div>
     </div>`));
+
+  // Silang merah: melepas buktinya dari pendaftaran ini. Berkasnya sendiri
+  // tetap di bucket — anon memang tidak berhak menghapus (migrasi 0125) — dan
+  // itu tidak merugikan siapa pun: yang tidak dirujuk pendaftaran mana pun
+  // tidak pernah dibuka siapa pun. Yang penting Kirim kembali tertahan sampai
+  // ada bukti lagi, sama seperti sebelum mengunggah.
+  document.getElementById("bukti-hapus")?.addEventListener("click", () => {
+    jawab.bukti_transfer = null;
+    jawab.bukti_nama = "";
+    jawab.bukti_thumb = "";
+    simpanDraf();
+    gambarBayar();
+    if (sudahDiperiksa) periksa(false);
+  });
 
   document.getElementById("bukti").addEventListener("change", async (e) => {
     const berkas = e.target.files && e.target.files[0];
@@ -396,6 +426,14 @@ function gambarBayar() {
       const kecil = await kecilkanFoto(berkas);
       jawab.bukti_transfer = await unggahBuktiTransfer(jawab.kunci_kirim, kecil);
       jawab.bukti_nama = berkas.name;
+      // Salinan kecil untuk ditampilkan lagi nanti. Dibaca dari blob yang SAMA
+      // dengan yang diunggah, jadi yang dilihat pembina memang yang dikirim.
+      jawab.bukti_thumb = await new Promise((selesai) => {
+        const baca = new FileReader();
+        baca.onload = () => selesai(String(baca.result || ""));
+        baca.onerror = () => selesai("");
+        baca.readAsDataURL(kecil);
+      });
       simpanDraf();
       status.textContent = "";
       // Digambar ulang, bukan ditambal: kalimat "Bukti sudah diunggah" dan
