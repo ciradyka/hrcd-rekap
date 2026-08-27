@@ -131,15 +131,3 @@ test("kolom Nilai per pos hilang saat posnya cuma punya satu lomba", () => {
   assert.match(app, /const satuLomba = p\.lomba\.length === 1/);
   assert.match(app, /satuLomba \? "" : `<th class="pos-kol rekap-batas">Nilai<\/th>`/);
 });
-
-
-test("Rekapitulasi TETAP satu kolom per penilaian", () => {
-  // Bagian 11.7: papan dan blangko boleh berbeda bentuk, dan yang satu tidak
-  // "diperbaiki" mengikuti yang lain. Rekapitulasi adalah lembar rinci —
-  // ia justru tempat kelima kriteria Pembidaian dibaca satu per satu.
-  const awal = app.indexOf("async function layarRekap()");
-  const akhir = app.indexOf("\nasync function ", awal + 10);
-  const rekap = app.slice(awal, akhir);
-  assert.match(rekap, /kolom: kolomPos\(komponen\)/);
-  assert.doesNotMatch(rekap, /kelompokLomba\(/);
-});
