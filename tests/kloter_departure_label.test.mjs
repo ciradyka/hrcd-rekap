@@ -26,9 +26,9 @@ test("kartu kloter memakai satu perakit baris jam, bukan ternary di tempat", () 
 });
 
 
-test("kedua label tetap menyebut asal angkanya", () => {
-  assert.match(layar, /<strong>Prediksi Berangkat:<\/strong>/);
-  assert.match(layar, /<strong>Jam Berangkat di Lapangan:<\/strong>/);
+test("kedua label menyebut asal angkanya", () => {
+  assert.match(layar, /<strong>Planning<\/strong>/);
+  assert.match(layar, /<strong>Real<\/strong>/);
   // "Jam berangkat" polos terbaca seperti jadwal; "Estimasi" adalah kata
   // ketiga untuk hal yang kertasnya sebut "Perkiraan".
   assert.doesNotMatch(layar, /\? "Jam berangkat"/);
@@ -37,19 +37,26 @@ test("kedua label tetap menyebut asal angkanya", () => {
 
 
 test("keduanya digambar bersama, bukan saling menggantikan", () => {
-  // Dua `bagian.push` berurutan tanpa `else` di antaranya: kloter yang sudah
-  // berangkat menampilkan rencana DAN kenyataannya.
-  assert.match(layar, /if \(rencana\) \{\s*bagian\.push/);
-  assert.match(layar, /if \(v\.jamBerangkat\) \{\s*bagian\.push/);
+  // Dua push berurutan tanpa `else` di antaranya: kloter yang sudah berangkat
+  // menampilkan rencana DAN kenyataannya.
+  assert.match(layar, /if \(rencana\) bagian\.push/);
+  assert.match(layar, /if \(v\.jamBerangkat\) \{/);
   assert.match(layar, /bagian\.join\(" · "\)/);
 });
 
 
-test("planning layar menang, perkiraan database jadi cadangan", () => {
-  // Urutannya mengikat. Terbalik, jam yang baru saja diatur panitia diabaikan
-  // dan kartunya menampilkan sebaran database ke 75 kloter.
-  assert.match(layar,
-    /planning\.get\(Number\(nomor\)\)\s*\n\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*\|\| \(v\.perkiraanBerangkat/);
+test("baris jam dibuka ikon jam", () => {
+  assert.match(layar, /\$\{ikon\("clock"\)\} \$\{bagian\.join/);
+});
+
+
+test("selisihnya KATA, bukan tanda", () => {
+  // "+15" menuntut pembacanya mengingat mana yang rencana dan mana yang nyata
+  // sebelum tandanya berarti apa-apa. "telat 15 menit" tidak menuntut apa pun.
+  assert.match(layar, /menit === 0 \? "tepat waktu"/);
+  assert.match(layar, /telat \$\{menit\} menit/);
+  assert.match(layar, /terlalu cepat \$\{Math\.abs\(menit\)\} menit/);
+  assert.match(layar, /<span class="sub">\(\$\{kata\}\)<\/span>/);
 });
 
 
@@ -57,14 +64,37 @@ test("selisih dihitung pada hari yang TERCATAT, bukan kalender alat", () => {
   // "07:20" tidak membawa tanggal, dan layar ini dibuka juga di hari selain
   // hari-H. Memakai tanggal alat menghasilkan selisih berhari-hari.
   assert.match(layar, /jamPadaHari\(rencana, v\.jamBerangkat\)/);
-  assert.match(layar, /menit === 0\s*\n?\s*\? html` <span class="sub">tepat<\/span>`/);
+});
+
+
+test("planning layar menang, perkiraan database jadi cadangan", () => {
+  assert.match(layar,
+    /planning\.get\(Number\(nomor\)\)\s*\n\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*\|\| \(v\.perkiraanBerangkat/);
+});
+
+
+test("kotak jam terisi dari planning TERSIMPAN, bukan konfigurasi edisi", () => {
+  // Kalau nilai awalnya selalu dari edisi, jendela yang barusan digeser
+  // kembali sendiri tiap layar dimuat ulang — dan kertas yang dicetak
+  // sesudahnya berbeda dari yang sebelumnya tanpa ada yang mengubahnya.
+  assert.match(layar,
+    /cfg\.planning_berangkat_pertama \|\| cfg\.jam_mulai_berangkat/);
+  assert.match(layar,
+    /cfg\.planning_berangkat_terakhir \|\| cfg\.jam_batas_berangkat/);
+});
+
+
+test("jendela disimpan, ditunda, dan gagalnya tidak diam", () => {
+  assert.match(layar, /await aturPlanningBerangkat\(pertama, terakhir\)/);
+  // `dengar` menyala tiap penekanan tombol; "0"-"7"-"3"-"0" adalah empat
+  // keadaan yang tiga di antaranya belum berarti apa-apa.
+  assert.match(layar, /clearTimeout\(jadwalSimpan\)/);
+  assert.match(layar, /\}, 800\)/);
+  assert.match(layar, /Planning belum tersimpan: \$\{err\.message\}/);
 });
 
 
 test("kertas memakai planning yang sama dengan layar", () => {
-  // Tombol cetaknya ada di layar yang sama. Kertas yang menyebut jam lain dari
-  // yang baru saja dibaca petugas adalah kertas yang salah, dan yang
-  // memegangnya peserta.
   assert.match(layar, /siapkanCetakKloter\(semuaKloter, bentuk, planning\)/);
   assert.match(app,
     /function siapkanCetakKloter\(dipakai, bentuk = "staging", planning = new Map\(\)\)/);
@@ -73,20 +103,11 @@ test("kertas memakai planning yang sama dengan layar", () => {
 
 
 test("kertas staging tetap menyediakan garis jam sebenarnya", () => {
-  // Blangko difotokopi (pasal 8.1) dan petugas menulis jam nyata dengan
-  // tangan di sana — itu yang lalu diketik ke layar Keberangkatan.
   assert.match(app, /Jam sebenarnya: ________/);
 });
 
 
 test("layar planning tanpa judul dan tanpa paragraf penjelas", () => {
-  // Pasal 9.1 dan 9.3. Labelnya sendiri sudah menyebut "Planning Berangkat",
-  // jadi judul di atasnya mengulang label di bawahnya; dan kalimat yang
-  // menjelaskan bahwa jamnya dibagi rata lalu tercetak untuk peserta
-  // menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah sekali.
-  //
-  // Bukan kerapian: sebagai paragraf ia memakan sepertiga layar HP, dan yang
-  // terdorong turun justru kartu kloter yang dibaca petugas.
   assert.doesNotMatch(layar, /<h2[^>]*>Planning Keberangkatan<\/h2>/);
   assert.doesNotMatch(layar, /Sudah mengambil nomor dada/);
   assert.doesNotMatch(layar, /dibagi rata ke/);
