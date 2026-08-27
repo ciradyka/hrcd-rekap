@@ -1890,15 +1890,27 @@ async function layarKeberangkatan() {
     kotak.querySelectorAll("[data-kontrak]").forEach(sel =>
       sel.addEventListener("change", async () => {
         if (!sel.value) return;
-        sel.disabled = true;
+        // TIDAK dinonaktifkan selama menyimpan. `select:disabled` digambar
+        // abu-abu, dan abu-abu di layar ini punya arti yang sudah dipakai:
+        // "regu sudah diceklis berangkat, kontraknya terkunci". Memakainya
+        // juga untuk "sabar, sedang menyimpan" membuat petugas menyimpulkan
+        // pilihannya tidak bisa diubah lagi — padahal bisa, dan sedetik lagi
+        // kotaknya putih kembali tanpa penjelasan apa pun.
+        //
+        // Yang tetap dijaga adalah bahaya yang sebenarnya: dua perubahan
+        // beruntun yang jawabannya datang terbalik, sehingga yang tersimpan
+        // justru pilihan yang LEBIH LAMA. Nomor urut di bawah membuat jawaban
+        // yang sudah ketinggalan tidak menggambar apa pun.
+        const urut = String(Number(sel.dataset.urut || 0) + 1);
+        sel.dataset.urut = urut;
         try {
           await konfirmasiKontrak(sel.dataset.kontrak, Number(sel.value));
+          if (sel.dataset.urut !== urut) return;
           sel.classList.add("saved");
           setTimeout(() => sel.classList.remove("saved"), 1200);
         } catch (err) {
           notif(err.message, true);
         }
-        sel.disabled = false;
         perbaruiPeringatanKontrak();
       }));
 
