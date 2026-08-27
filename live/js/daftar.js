@@ -550,7 +550,7 @@ function gambarRegu() {
     const kotakAnggota = anggotaRegu(r).map((a, k) => html`
           <input type="text" id="r-anggota-${i}-${k}" value="${a}"
                  style="margin-top:.35rem"
-                 placeholder="misal: nama anggota ${k + 2}">`).join("");
+                 placeholder="Nama Anggota ${k + 1}">`).join("");
     return `
     <div class="regu-card" id="regu-${i}">
       <span class="badge badge-green">Regu ${i + 1} — ${esc(labelGolongan(r.golongan))}</span>
@@ -570,10 +570,18 @@ function gambarRegu() {
       <!-- Empat kotak anggota, dan label "opsional" ditulis SEKALI di
            judulnya — bukan di tiap kotak. Empat kata "opsional" berderet ke
            bawah membuat yang wajib dan yang tidak sama-sama tenggelam.
-           Nomornya mulai dari 2: ketua adalah anggota pertama, dan regu
-           memang berlima (closing_regu.anggota_hadir 0-5). -->
+
+           Placeholder-nya TANPA awalan "misal:", dan itu bukan pengecualian
+           dari pasal 9.5 melainkan penerapannya: awalan itu untuk CONTOH
+           ISIAN — kotak kosong berisi "Budi Santoso" terbaca seperti kotak
+           yang sudah diisi. "Nama Anggota 1" bukan contoh, ia nama kotaknya,
+           sejenis dengan "Cari nomor dada / regu / organisasi…" yang juga
+           tidak diberi awalan itu.
+
+           Nomornya mulai dari 1: ketua punya kotaknya sendiri di atas dan
+           tidak ikut dihitung sebagai anggota. -->
       <div class="field" style="margin:.7rem 0 0">
-        <label for="r-anggota-${i}-0">Anggota lain (opsional)</label>
+        <label for="r-anggota-${i}-0">Nama Anggota (opsional)</label>
         ${kotakAnggota}
         <div class="error" id="r-anggota-galat-${i}" hidden>
           Nama anggota tidak boleh memakai angka.</div>
