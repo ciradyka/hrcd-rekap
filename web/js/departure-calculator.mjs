@@ -21,6 +21,53 @@ function jamDariMenit(total) {
 }
 
 /**
+ * Jadwal PLANNING untuk kloter yang SUDAH terbentuk.
+ *
+ * Menjawab pertanyaan yang berbeda dari hitungRekomendasiKloter() di bawah.
+ * Yang itu proyeksi SEBELUM daftar ulang: "kalau nanti ada 300 regu, berapa
+ * kloter dan jam berapa". Yang ini rencana SESUDAHNYA: "kloter-kloter ini
+ * sudah ada isinya, jam berapa masing-masing berangkat" — dan itulah yang
+ * dibagikan ke peserta.
+ *
+ * Disebar ke kloter yang ADA, bukan ke seluruh kloter edisi. Sepuluh kloter
+ * yang disebar ke 75 slot berangkat semua sebelum pukul 07:25, dan jendela
+ * sampai pukul sepuluh tidak terpakai sama sekali — sementara pasal 10.1
+ * menuntut yang terakhir berangkat pukul sepuluh.
+ *
+ * Nomor kloter TIDAK harus berurutan tanpa lubang: yang menentukan urutan
+ * berangkat adalah urutan nomornya, dan kloter yang kosong memang tidak ada
+ * di daftar ini. Yang dipakai posisinya dalam daftar, bukan nomornya.
+ *
+ * `floor`, bukan `round` — sama dengan sibling-nya di bawah, dan sebuah
+ * rencana keberangkatan yang membulatkan ke bawah tidak pernah melewati
+ * ujung jendelanya.
+ *
+ * @returns {Map<number, string>} nomor kloter -> "HH:MM"
+ */
+export function jadwalPlanning(nomorKloter, waktuPertama, waktuTerakhir) {
+  const pertama = menitDariJam(waktuPertama);
+  const terakhir = menitDariJam(waktuTerakhir);
+  if (pertama === null || terakhir === null) {
+    throw new Error("Waktu keberangkatan belum lengkap.");
+  }
+  if (terakhir <= pertama) {
+    throw new Error("Waktu berangkat terakhir harus setelah waktu pertama.");
+  }
+
+  const urut = [...new Set(nomorKloter.map(Number))]
+    .filter(n => Number.isFinite(n))
+    .sort((a, b) => a - b);
+  const rentang = terakhir - pertama;
+
+  return new Map(urut.map((nomor, i) => [
+    nomor,
+    jamDariMenit(urut.length === 1
+      ? pertama
+      : pertama + Math.floor(rentang * i / (urut.length - 1))),
+  ]));
+}
+
+/**
  * Isi kloter FIFO dengan kuota terpisah Eksternal dan Intern, lalu sebarkan
  * jam K1 sampai kloter terakhir merata di seluruh jendela.
  */

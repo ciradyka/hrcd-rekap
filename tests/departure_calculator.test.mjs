@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { hitungRekomendasiKloter } from "../web/js/departure-calculator.mjs";
+import { hitungRekomendasiKloter, jadwalPlanning } from "../web/js/departure-calculator.mjs";
 
 
 const hitung = (jumlahEksternal, jumlahIntern = 0,
@@ -93,4 +93,47 @@ test("satu kloter memakai waktu berangkat pertama", () => {
 test("menolak jendela terbalik dan jumlah regu di atas kapasitas", () => {
   assert.throws(() => hitung(10, 0, "10:00", "07:00"), /harus setelah/);
   assert.throws(() => hitung(376), /melebihi batas 75/);
+});
+
+
+/* ---------------------------------------------------------------------------
+   jadwalPlanning — rencana untuk kloter yang SUDAH terbentuk.
+
+   Pertanyaannya berbeda dari hitungRekomendasiKloter di atas: yang itu
+   proyeksi sebelum daftar ulang, yang ini rencana sesudahnya. Karena itu
+   pembaginya juga berbeda, dan perbedaan itu disengaja.
+   ------------------------------------------------------------------------- */
+
+test("kloter yang ada disebar penuh di jendela, bukan ke kloter cadangan", () => {
+  const jadwal = jadwalPlanning([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "07:00", "10:00");
+  assert.equal(jadwal.size, 10);
+  assert.equal(jadwal.get(1), "07:00");
+  assert.equal(jadwal.get(2), "07:20");
+  assert.equal(jadwal.get(10), "10:00");
+
+  // Inilah bedanya dengan perkiraan database, yang menyebar ke SELURUH 75
+  // kloter edisi: di sana kesepuluh kloter ini berangkat sebelum 07:25 dan
+  // jendela sampai pukul sepuluh tidak terpakai sama sekali.
+  assert.notEqual(jadwal.get(10), "07:21");
+});
+
+
+test("satu kloter berangkat di jam pertama, bukan NaN", () => {
+  assert.deepEqual([...jadwalPlanning([1], "07:00", "10:00")], [[1, "07:00"]]);
+});
+
+
+test("nomor kloter berlubang tetap berurutan menurut nomornya", () => {
+  // Kloter kosong memang tidak ada di daftar ini. Yang menentukan posisinya
+  // dalam urutan, bukan nomornya.
+  const jadwal = jadwalPlanning([7, 1, 3], "07:00", "10:00");
+  assert.deepEqual([...jadwal.keys()], [1, 3, 7]);
+  assert.equal(jadwal.get(1), "07:00");
+  assert.equal(jadwal.get(7), "10:00");
+});
+
+
+test("jendela terbalik dan jam tidak lengkap ditolak", () => {
+  assert.throws(() => jadwalPlanning([1, 2], "10:00", "07:00"), /harus setelah/);
+  assert.throws(() => jadwalPlanning([1, 2], "", "10:00"), /belum lengkap/);
 });

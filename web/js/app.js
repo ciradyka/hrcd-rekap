@@ -38,7 +38,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba } from "./util.js";
-import { hitungRekomendasiKloter } from "./departure-calculator.mjs";
+import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -1967,8 +1967,11 @@ async function layarCetakKloter() {
   pasangKepala("Daftar Kloter");
   LAYAR.replaceChildren(h(pemuat()));
 
-  let baris;
-  try { baris = await daftarKloter(); }
+  let baris, cfg;
+  // Jendela keberangkatan datang dari konfigurasi edisi — itu nilai awalnya,
+  // bukan nilai matinya. Panitia menggesernya di layar ini sesudah melihat
+  // berapa regu yang benar-benar mengambil nomor dada.
+  try { [baris, cfg] = await Promise.all([daftarKloter(), infoPengaturanKloter()]); }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarCetakKloter)); return; }
 
   if (!baris.length) {
@@ -1995,12 +1998,51 @@ async function layarCetakKloter() {
 
   let perKloter = kelompokkan(baris);
 
+  /* Yang dihitung REGU YANG SUDAH MENGAMBIL NOMOR DADA, bukan yang mendaftar.
+     Keduanya berbeda jauh pada pagi hari-H: sekolah yang mendaftar tapi tidak
+     datang tetap ada di `pendaftaran`, dan merencanakan keberangkatan dari
+     angka itu menyebar jendela ke kloter yang tidak akan pernah berangkat.
+
+     Sumbernya baris yang sudah ada di layar ini — tiap baris `v_daftar_kloter`
+     adalah regu yang berkloter, dan constraint `regu_check` menjamin nomor
+     dada dan kloter selalu ada bersama-sama. Jadi tidak ada permintaan kedua
+     ke server untuk menghitungnya. */
+  const jumlahIntern = baris.filter(
+    b => String(b.golongan || "").startsWith("intern_")).length;
+  const jumlahEksternal = baris.length - jumlahIntern;
+
+  const jamPendek = (nilai) => {
+    const teks = String(nilai || "");
+    return /^\d{2}:\d{2}/.test(teks) ? teks.slice(0, 5) : "";
+  };
+
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <table class="table">
         <tr><td>Total Kloter</td><td class="angka">${perKloter.size}</td></tr>
         <tr><td>Total Regu</td><td class="angka">${baris.length}</td></tr>
       </table>
+      <!-- Planning berdiri DI ATAS tombol cetak, dan urutan itu berarti:
+           yang tercetak adalah jam yang baru saja diatur di sini. Menaruhnya
+           di bawah membuat petugas menekan Cetak lebih dulu, lalu menemukan
+           kotak jamnya sesudah kertasnya keluar. -->
+      <h2 style="margin-top:1rem">Planning Keberangkatan</h2>
+      <div class="two-column">
+        <div class="field">
+          <label for="planning-pertama-hh">Waktu Berangkat Pertama</label>
+          ${kotakJamHtml("planning-pertama", jamPendek(cfg.jam_mulai_berangkat))}
+        </div>
+        <div class="field">
+          <label for="planning-terakhir-hh">Waktu Berangkat Terakhir</label>
+          ${kotakJamHtml("planning-terakhir", jamPendek(cfg.jam_batas_berangkat))}
+        </div>
+      </div>
+      <p class="description">Sudah mengambil nomor dada:
+         <strong>${jumlahEksternal} Eksternal</strong> ·
+         <strong>${jumlahIntern} Intern</strong>, terbagi
+         <strong>${perKloter.size} kloter</strong>. Jam di bawah dibagi rata ke
+         kloter itu, dan itu pula yang tercetak untuk peserta.</p>
+      <div class="error" id="planning-galat" hidden></div>
       <div class="option-row" style="margin-top:.9rem">
         <button class="button button-primary" id="cetak-petugas" type="button">
           ${ikon("printer")} Cetak Kloter untuk Petugas
@@ -2012,6 +2054,72 @@ async function layarCetakKloter() {
     </div>
     <div id="pratayang"></div>
   `));
+
+  const waktuPertama = pasangKotakJam("planning-pertama");
+  const waktuTerakhir = pasangKotakJam("planning-terakhir");
+  const galatPlanning = document.getElementById("planning-galat");
+
+  /** Jam planning tiap kloter, atau Map kosong kalau jendelanya belum sah.
+   *  Kosong = kartu jatuh kembali ke perkiraan database, bukan kartu tanpa
+   *  jam sama sekali — layar ini tetap harus bisa dibaca sambil jendelanya
+   *  sedang diketik. */
+  let planning = new Map();
+
+  const hitungPlanning = () => {
+    galatPlanning.hidden = true;
+    waktuTerakhir.salah(false);
+    const pertama = waktuPertama.nilai();
+    const terakhir = waktuTerakhir.nilai();
+    if (!pertama || !terakhir) { planning = new Map(); return; }
+    try {
+      planning = jadwalPlanning([...perKloter.keys()], pertama, terakhir);
+    } catch (e) {
+      planning = new Map();
+      if (/waktu berangkat terakhir/i.test(e.message)) waktuTerakhir.salah(true);
+      galatPlanning.textContent = e.message;
+      galatPlanning.hidden = false;
+    }
+  };
+
+  /** Satu baris jam untuk kartu kloter — planning, dan yang sebenarnya.
+   *
+   *  KEDUANYA ditampilkan begitu kloter berangkat, bukan yang satu menggantikan
+   *  yang lain. Panitia perlu menyandingkannya: rencana yang dibagikan ke
+   *  peserta lawan apa yang benar-benar terjadi, dan selisihnya adalah kabar
+   *  yang mereka pakai memutuskan apakah kloter berikutnya perlu digeser.
+   *
+   *  Yang tercatat itu pula dasar penalti seluruh regu di kloter ini, jadi ia
+   *  tidak boleh terbaca seperti jadwal — pasal 10.6. */
+  const barisJamKloter = (nomor, v) => {
+    const rencana = planning.get(Number(nomor))
+      // Jendela belum diketik lengkap: pakai perkiraan database, supaya
+      // kartunya tidak pernah kehilangan jam sama sekali.
+      || (v.perkiraanBerangkat ? jamMenit(v.perkiraanBerangkat) : null);
+
+    const bagian = [];
+    if (rencana) {
+      bagian.push(html`<strong>Prediksi Berangkat:</strong> ${rencana}`);
+    }
+    if (v.jamBerangkat) {
+      bagian.push(html`<strong>Jam Berangkat di Lapangan:</strong> ${
+        jamMenit(v.jamBerangkat)}`);
+    }
+    if (!bagian.length) return "";
+
+    let selisih = "";
+    if (rencana && v.jamBerangkat) {
+      // Tanggalnya diambil dari jam yang TERCATAT, bukan dari kalender alat:
+      // "07:20" tidak membawa tanggal, dan layar ini dibuka juga di hari-hari
+      // selain hari-H (alasan yang sama dengan hariLomba() di Keberangkatan).
+      const menit = Math.round(
+        (new Date(v.jamBerangkat) - jamPadaHari(rencana, v.jamBerangkat)) / 60000);
+      selisih = menit === 0
+        ? html` <span class="sub">tepat</span>`
+        : html` <span class="sub">${menit > 0 ? "+" : "−"}${
+            Math.abs(menit)} menit</span>`;
+    }
+    return `<p>${bagian.join(" · ")}${selisih}</p>`;
+  };
 
   const gambarPratayang = (peta) => {
     // CATATAN: baris tabel dirakit dengan html`` (nilai di-escape), lalu
@@ -2038,10 +2146,7 @@ async function layarCetakKloter() {
                  memutuskan apakah sebuah kloter sudah jalan tidak punya cara
                  membedakan keduanya selain mengingat kloter mana yang sudah
                  ia ceklis. -->
-            <p><strong>${v.jamBerangkat
-              ? "Jam Berangkat di Lapangan"
-              : "Prediksi Berangkat"}:</strong>
-              ${esc(jamMenit(v.jamBerangkat || v.perkiraanBerangkat))}</p>
+            ${barisJamKloter(nomor, v)}
             <table class="table">${baris}</table>
           </div>`;
       }).join("")));
@@ -2057,7 +2162,10 @@ async function layarCetakKloter() {
    *  diperiksa petugas. Buka ulang layar untuk mengambil perubahan terbaru. */
   function cetak(bentuk) {
     const semuaKloter = [...perKloter.entries()];
-    siapkanCetakKloter(semuaKloter, bentuk);
+    // Jam yang tercetak = jam yang barusan diatur di layar ini. Kertas yang
+    // menyebut jam lain dari layar yang tombolnya baru saja ditekan adalah
+    // kertas yang salah, dan yang memegangnya peserta.
+    siapkanCetakKloter(semuaKloter, bentuk, planning);
     window.print();
     tanyaWaktuCetak(semuaKloter.map(([n]) => Number(n)));
   }
@@ -2096,7 +2204,11 @@ async function layarCetakKloter() {
 
   document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
   document.getElementById("cetak-peserta").addEventListener("click", () => cetak("umum"));
-  gambarPratayang(perKloter);
+
+  const perbarui = () => { hitungPlanning(); gambarPratayang(perKloter); };
+  waktuPertama.dengar(perbarui);
+  waktuTerakhir.dengar(perbarui);
+  perbarui();
 }
 
 /** Blok cetak daftar kloter — satu kloter per halaman kertas.
@@ -2107,13 +2219,16 @@ async function layarCetakKloter() {
  *                 peserta — perkiraan berangkat dibesarkan, kolom centang
  *                 dihilangkan karena tidak ada gunanya bagi peserta.
  */
-function siapkanCetakKloter(dipakai, bentuk = "staging") {
+function siapkanCetakKloter(dipakai, bentuk = "staging", planning = new Map()) {
   document.getElementById("cetakan")?.remove();
   const dicetak = tanggalJam(new Date().toISOString());
 
   const halaman = dipakai.map(([nomor, v]) => {
     const contoh = v.isi[0] || {};
-    const perkiraan = jamMenit(contoh.perkiraan_berangkat);
+    // Planning dari layar kalau ada; perkiraan database sebagai cadangan,
+    // supaya kertas tidak pernah keluar tanpa jam sama sekali.
+    const perkiraan = planning.get(Number(nomor))
+      || jamMenit(contoh.perkiraan_berangkat);
 
     const baris = v.isi.map(r => bentuk === "staging"
       ? html`
