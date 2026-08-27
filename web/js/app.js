@@ -961,8 +961,8 @@ async function layarPembayaran() {
               </select>${b.bukti_transfer
                 ? `<button class="button button-mini" type="button"
                            data-bukti="${esc(b.bukti_transfer)}"
-                           title="Lihat bukti transfer"
-                           aria-label="Lihat bukti transfer">${ikon("camera")}</button>`
+                           title="Bukti Pembayaran"
+                           aria-label="Bukti Pembayaran">${ikon("receipt")}</button>`
                 : ""}</span>`;
 
       const aksi = b.status === "lunas"
