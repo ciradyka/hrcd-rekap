@@ -867,11 +867,12 @@ const IKON = {
     '<circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" />',
   "clipboard-list":
     '<rect width="8" height="4" x="8" y="2" rx="1" ry="1" /> <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /> <path d="M12 11h4" /> <path d="M12 16h4" /> <path d="M8 11h.01" /> <path d="M8 16h.01" />',
-  // Nota: kertas bergerigi di bawah. Dipakai layar Pembayaran untuk membuka
-  // bukti transfer yang diunggah pembina — kamera sempat dipakai dan salah
-  // membaca: yang dibuka bukan kameranya, melainkan struknya.
-  "receipt":
-    '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" /> <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /> <path d="M12 17.5v-11" />',
+  // Kertas berlipat sudut, dipakai layar Pembayaran untuk membuka bukti
+  // transfer. Dua ikon lain sudah dicoba dan dibuang: kamera terbaca "ambil
+  // foto", dan struk bergerigi punya lengkung S di tengahnya yang pada ukuran
+  // ikon terbaca sebagai LAMBANG DOLAR.
+  "file-text":
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M16 13H8" /> <path d="M16 17H8" /> <path d="M10 9H8" />',
   "credit-card":
     '<rect width="20" height="14" x="2" y="5" rx="2" /> <line x1="2" x2="22" y1="10" y2="10" />',
   "flag":
