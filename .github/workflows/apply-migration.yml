@@ -101,19 +101,25 @@ jobs:
             -f "$BERKAS"
 
           if [ "$BERKAS" = "supabase/checks/cleanup_data_uji.sql" ]; then
-            DAFTAR_FOTO="$RUNNER_TEMP/lembar-objects.json"
-            psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
-              -c "select coalesce(json_agg(name order by name), '[]'::json) from storage.objects where bucket_id = 'lembar'" \
-              > "$DAFTAR_FOTO"
+            # DUA bucket, bukan satu. `bukti` menyimpan bukti transfer yang
+            # diunggah pembina (migrasi 0121); barisnya di `pendaftaran` sudah
+            # terhapus oleh SQL di atas, jadi gambarnya tinggal yatim — dan
+            # bukti pembayaran percobaan tidak boleh ikut ke hari-H.
+            for EMBER in lembar bukti; do
+              DAFTAR="$RUNNER_TEMP/$EMBER-objects.json"
+              psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
+                -c "select coalesce(json_agg(name order by name), '[]'::json) from storage.objects where bucket_id = '$EMBER'" \
+                > "$DAFTAR"
 
-            python scripts/delete_storage_objects.py lembar "$DAFTAR_FOTO"
+              python scripts/delete_storage_objects.py "$EMBER" "$DAFTAR"
 
-            SISA_FOTO=$(psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
-              -c "select count(*) from storage.objects where bucket_id = 'lembar'")
-            if [ "$SISA_FOTO" != "0" ]; then
-              echo "Cleanup belum tuntas: masih ada $SISA_FOTO objek di bucket lembar."
-              exit 1
-            fi
-            echo "BUCKET FOTO BERSIH: lembar"
+              SISA=$(psql "$DB_URL" -A -t -v ON_ERROR_STOP=1 \
+                -c "select count(*) from storage.objects where bucket_id = '$EMBER'")
+              if [ "$SISA" != "0" ]; then
+                echo "Cleanup belum tuntas: masih ada $SISA objek di bucket $EMBER."
+                exit 1
+              fi
+              echo "BUCKET BERSIH: $EMBER"
+            done
           fi
           echo "MIGRASI BERHASIL: $BERKAS"

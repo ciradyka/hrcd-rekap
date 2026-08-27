@@ -4,6 +4,11 @@
 -- MENGHAPUS SELURUH DATA OPERASIONAL PESERTA EDISI AKTIF. Tidak bisa
 -- dibatalkan. Master Asal Sekolah (`sekolah`) tetap disimpan.
 --
+-- Gambar fisiknya dihapus apply-migration.yml sesudah berkas ini jalan, di DUA
+-- bucket: `lembar` (foto slip penilaian) dan `bukti` (bukti transfer yang
+-- diunggah pembina, migrasi 0121). Baris yang merujuk keduanya sudah terhapus
+-- di sini, jadi gambarnya tinggal yatim.
+--
 -- Dijalankan sekali, atas permintaan pemilik, setelah `isi_edisi.sql`
 -- membuktikan bahwa seluruh 16 sekolah di produksi memang sisa pengetesan:
 -- nama bergenerator ("SMA Tabel 054155", "SMK Uji Produksi", "SMP Uji
