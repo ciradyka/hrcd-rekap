@@ -163,10 +163,18 @@ antaranya `edisi.nomor_dada_intern_mulai`; batas atas tiap deret dibaca dari
 Layar Daftar Ulang memakai `v_rentang_nomor_dada` untuk menolak nomor salah
 deret di kotaknya sendiri, dan pesannya menyebut rentang yang benar.
 
-Yang TIDAK diselesaikan di sini: juri di pos menulis nomor dada dengan tangan
-dari kain di dada regu. Kalau kain Intern polos bertulis 001, blangkonya
-ambigu — kainnya yang harus ditandai `1xxx`, dan tidak ada baris SQL yang bisa
-menggantikan itu.
+**Kainnya ikut diberi angka 1 di depan** — keputusan pemilik acara,
+27 Agustus 2026. Ini bukan kerapian: juri di pos menulis nomor dada dengan
+tangan dari kain di dada regu, jadi kain Intern yang polos bertulis 001 akan
+menghasilkan blangko yang ambigu, dan tidak ada baris SQL yang bisa
+memulihkannya. Dengan angka 1 di depan, kain dan sistem menyebut angka yang
+sama dan tidak ada terjemahan di kepala siapa pun.
+
+Konsekuensinya nomor dada bisa EMPAT digit, dan itu menjatuhkan satu bug yang
+sudah lama tidur: `lpad(nomor::text, 3, '0')` memotong 1001 jadi `100` —
+nomor Eksternal yang benar-benar ada. Migrasi `0117` membetulkannya di
+`berangkatkan_kloter` dan memasang pemeriksaan yang membaca definisi SELURUH
+fungsi terpasang, supaya salinan berikutnya tidak lolos lagi.
 
 ---
 
