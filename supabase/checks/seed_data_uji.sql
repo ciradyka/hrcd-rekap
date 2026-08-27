@@ -149,7 +149,7 @@ begin
   on conflict (kunci_sekolah(name)) do nothing;
 
   insert into pendaftaran (sekolah_id, kode_pembayaran, kontak_wa,
-                           jumlah_regu, jumlah_pendamping, butuh_barak, status)
+                           jumlah_regu, jumlah_menginap, butuh_barak, status)
   select s.id,
          'UJI-' || lpad((row_number() over (order by s.name))::text, 3, '0'),
          '08000000000',

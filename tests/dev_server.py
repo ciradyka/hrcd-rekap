@@ -266,7 +266,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif u.path == "/daftar-pendaftaran":
                 self._kirim(200, q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
-                           d.jumlah_pendamping, d.butuh_barak, d.kontak_wa, d.nama_kontak,
+                           d.jumlah_menginap, d.butuh_barak, d.kontak_wa, d.nama_kontak,
                            d.created_at, d.metode_bayar, d.bukti_transfer,
                            jsonb_build_object('name', s.name, 'address', s.address) as sekolah,
                            (select jsonb_agg(jsonb_build_object(

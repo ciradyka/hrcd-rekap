@@ -500,7 +500,7 @@ export async function ringkasanMeja() {
 export async function daftarPendaftaran() {
   if (K.mode === "dev") return baca("/daftar-pendaftaran");
   return baca(null,
-    "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,jumlah_pendamping," +
+    "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu," +
     "butuh_barak,kontak_wa,created_at,metode_bayar,bukti_transfer," +
     "sekolah(name,address)," +
     "regu(id,nama_regu,nama_ketua,golongan,nomor_dada,kloter_nomor,is_cancelled)," +
