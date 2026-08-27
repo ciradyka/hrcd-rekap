@@ -44,7 +44,8 @@ function jamDariMenit(total) {
  *
  * @returns {Map<number, string>} nomor kloter -> "HH:MM"
  */
-export function jadwalPlanning(nomorKloter, waktuPertama, waktuTerakhir) {
+export function jadwalPlanning(nomorKloter, waktuPertama, waktuTerakhir,
+                               jedaMaksMenit = Infinity) {
   const pertama = menitDariJam(waktuPertama);
   const terakhir = menitDariJam(waktuTerakhir);
   if (pertama === null || terakhir === null) {
@@ -59,12 +60,32 @@ export function jadwalPlanning(nomorKloter, waktuPertama, waktuTerakhir) {
     .sort((a, b) => a - b);
   const rentang = terakhir - pertama;
 
-  return new Map(urut.map((nomor, i) => [
-    nomor,
-    jamDariMenit(urut.length === 1
-      ? pertama
-      : pertama + Math.floor(rentang * i / (urut.length - 1))),
-  ]));
+  /* JEDANYA DIBATASI, dan itu yang membuat jendela bukan perintah menyebar.
+
+     Menyebar rata ke seluruh jendela benar ketika kloternya banyak, dan
+     konyol ketika sedikit: dua kloter di jendela 07:00-10:00 terbaca "07:00
+     dan 10:00", seolah kloter kedua menunggu tiga jam di lapangan. Yang
+     sebenarnya terjadi di lapangan: kloter berangkat beruntun, dan jarak
+     antar kloter tidak pernah lebih dari beberapa menit.
+
+     Jadi jendelanya jadi BATAS ATAS, bukan target: jeda = yang lebih kecil
+     antara "rata di jendela" dan jeda maksimal. Kloter terakhir boleh
+     berangkat jauh sebelum ujung jendela — memang begitu kalau regunya
+     sedikit. */
+  const jedaMaks = Number(jedaMaksMenit) || Infinity;
+  // Yang dibandingkan JARAK DARI KLOTER PERTAMA, bukan jeda per langkah:
+  // `rentang / (n-1) * i` menumpuk pembulatan pecahan dan membuat kloter
+  // terakhir meleset satu menit ke bawah, sementara `rentang * i / (n-1)`
+  // jatuh tepat di ujung jendela — bentuk yang sama dengan database.
+  // `i === 0` disebut sendiri, dan itu BUKAN kerapian: tanpa batas jeda,
+  // `jedaMaks` bernilai Infinity, dan `Infinity * 0` di JavaScript adalah NaN
+  // — bukan 0. Kloter pertama lalu tercetak "NaN:NaN" pada jalur yang paling
+  // sering dipakai.
+  const menit = (i) => (i === 0 || urut.length === 1)
+    ? pertama
+    : pertama + Math.floor(Math.min(rentang * i / (urut.length - 1), jedaMaks * i));
+
+  return new Map(urut.map((nomor, i) => [nomor, jamDariMenit(menit(i))]));
 }
 
 /**
@@ -79,6 +100,7 @@ export function hitungRekomendasiKloter({
   maksEksternalPerKloter,
   maksInternPerKloter,
   kloterMaks,
+  jedaMaksMenit = Infinity,
 }) {
   const pertama = menitDariJam(waktuPertama);
   const terakhir = menitDariJam(waktuTerakhir);
@@ -139,10 +161,16 @@ export function hitungRekomendasiKloter({
      layar menampilkannya lewat jamMenit(), yang MEMOTONG detik. K10 di sana
      07:21:53 terbaca "07:21"; membulatkan di sini akan menuliskannya 07:22. */
   const rentang = terakhir - pertama;
+  // Jeda maksimalnya sama dengan yang dipakai jadwalPlanning() dan
+  // perkiraan_berangkat_kloter(): satu aturan lapangan, bukan tiga.
+  const jedaMaks = Number(jedaMaksMenit) || Infinity;
   return Array.from({ length: jumlahKloter }, (_, indeks) => {
-    const waktu = batasKloter === 1
+    // `indeks === 0` disebut sendiri: `Infinity * 0` adalah NaN (lihat
+    // catatan yang sama di jadwalPlanning).
+    const waktu = (indeks === 0 || batasKloter === 1)
       ? pertama
-      : pertama + Math.floor(rentang * indeks / (batasKloter - 1));
+      : pertama + Math.floor(Math.min(rentang * indeks / (batasKloter - 1),
+                                      jedaMaks * indeks));
     return {
       kloter: indeks + 1,
       jumlahEksternal: Math.max(0, Math.min(kapasitasEksternal,

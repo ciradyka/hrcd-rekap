@@ -137,3 +137,69 @@ test("jendela terbalik dan jam tidak lengkap ditolak", () => {
   assert.throws(() => jadwalPlanning([1, 2], "10:00", "07:00"), /harus setelah/);
   assert.throws(() => jadwalPlanning([1, 2], "", "10:00"), /belum lengkap/);
 });
+
+
+// ============================================================================
+// JEDA MAKSIMAL ANTAR KLOTER (migrasi 0118).
+//
+// Menyebar rata ke seluruh jendela benar ketika kloternya banyak, dan konyol
+// ketika sedikit: dua kloter di jendela 07:00-10:00 terbaca "07:00 dan 10:00",
+// seolah kloter kedua menunggu tiga jam di lapangan. Dilaporkan dari layar
+// Cetak Kloter, dengan dua kloter yang benar-benar ada.
+//
+// Jendelanya karena itu jadi BATAS ATAS, bukan target.
+// ============================================================================
+
+test("dua kloter tidak dilempar ke ujung jendela", () => {
+  const jadwal = jadwalPlanning([1, 2], "07:00", "10:00", 5);
+  assert.equal(jadwal.get(1), "07:00");
+  assert.equal(jadwal.get(2), "07:05");
+});
+
+
+test("jeda maksimal tidak melebar-lebarkan yang sudah rapat", () => {
+  // 50 kloter di jendela 07:00-10:00 berjarak 3,67 menit — di bawah batas,
+  // jadi batasnya tidak boleh menyentuh apa pun. Pagar ini yang menahan
+  // "maksimal" diam-diam berubah jadi "selalu".
+  const jadwal = jadwalPlanning(
+    Array.from({ length: 50 }, (_, i) => i + 1), "07:00", "10:00", 5);
+  assert.equal(jadwal.get(1), "07:00");
+  assert.equal(jadwal.get(50), "10:00");
+  assert.equal(jadwal.get(2), "07:03");
+});
+
+
+test("tanpa batas, perilakunya persis seperti sebelum 0118", () => {
+  // Layar boleh terbit sebelum migrasinya dijalankan (pasal 7.6), dan di sela
+  // itu kolom jedanya bisa belum berisi. Kosong = tidak membatasi apa pun.
+  const jadwal = jadwalPlanning([1, 2], "07:00", "10:00");
+  assert.equal(jadwal.get(2), "10:00");
+});
+
+
+test("satu kloter berangkat di awal jendela, bukan di ujungnya", () => {
+  assert.equal(jadwalPlanning([7], "07:00", "10:00", 5).get(7), "07:00");
+});
+
+
+test("kalkulator memakai batas jeda yang sama", () => {
+  // Dua kloter dibutuhkan, batas edisi 52: tanpa batas jeda, K2 jatuh di
+  // 07:03 karena pembaginya 52. Dengan batas 5 ia tetap 07:03 — batasnya
+  // hanya menahan yang MELEBIHI, dan 3 menit tidak melebihi.
+  const rapat = hitungRekomendasiKloter({
+    waktuPertama: "07:00", waktuTerakhir: "10:00",
+    jumlahEksternal: 10, jumlahIntern: 0,
+    maksEksternalPerKloter: 5, maksInternPerKloter: 3,
+    kloterMaks: 52, jedaMaksMenit: 5,
+  });
+  assert.equal(rapat[1].waktuBerangkat, "07:03");
+
+  // Batas edisi 2 kloter: pembaginya 1, jadi tanpa batas K2 jatuh 10:00.
+  const jarang = hitungRekomendasiKloter({
+    waktuPertama: "07:00", waktuTerakhir: "10:00",
+    jumlahEksternal: 10, jumlahIntern: 0,
+    maksEksternalPerKloter: 5, maksInternPerKloter: 3,
+    kloterMaks: 2, jedaMaksMenit: 5,
+  });
+  assert.equal(jarang[1].waktuBerangkat, "07:05");
+});

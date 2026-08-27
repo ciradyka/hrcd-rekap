@@ -340,7 +340,13 @@ export async function infoPengaturanKloter() {
       "edisi?is_active=eq.true" +
       "&select=jam_mulai_berangkat,jam_batas_berangkat," +
       "maks_eksternal_per_kloter,maks_intern_per_kloter," +
-      "perkiraan_regu_eksternal,perkiraan_regu_intern,kloter_maks"),
+      "perkiraan_regu_eksternal,perkiraan_regu_intern,kloter_maks," +
+      // Jeda maksimal antar kloter (migrasi 0118). Kolomnya ADA sejak 0001,
+      // jadi menyebutnya di sini aman walau migrasinya belum dijalankan —
+      // yang berbeda cuma nilainya (4 sebelum, 5 sesudah). Kalau kolomnya
+      // yang belum ada, PostgREST menjawab 42703 dan seluruh layar Daftar
+      // Kloter mati; lihat catatan panjang di bawah.
+      "interval_berangkat_menit"),
     baca(null, "regu?is_cancelled=eq.false&select=golongan"),
     // Jendela Planning Keberangkatan (migrasi 0113). Tinggal di status_acara,
     // bukan di edisi, karena ia disusun pada hari-H — hari yang sama saat
