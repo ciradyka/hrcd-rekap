@@ -4598,16 +4598,40 @@ async function layarInputPos() {
 
   /* ---------- cetak lembar kosong ---------- */
 
-  // Yang dicetak adalah baris yang SEDANG TAMPIL, bukan selalu semuanya.
+  // Form Tabel mencetak baris yang SEDANG TAMPIL, bukan selalu semuanya.
   // Dua kebutuhan berbeda terlayani satu tombol: sebelum lomba cetak "Semua"
   // untuk lembar kosong, dan di tengah lomba saring "Belum lengkap" dulu
   // supaya kertas susulan hanya memuat regu yang memang belum dinilai.
+  //
+  // Form per Lomba tidak membaca baris sama sekali. Ia adalah master kosong
+  // yang bentuk dan jumlah halamannya ditentukan konfigurasi lomba di pos;
+  // belum adanya satu pun regu tidak boleh menghalangi pencetakannya.
   /* TIDAK async, dan itu disengaja. `window.print()` di bawah harus tetap
      berada dalam giliran event tap — Safari iPhone memblokirnya kalau ada
      `await` lebih dulu, dan yang terlihat cuma tombol yang tidak melakukan
      apa-apa. Fungsi biasa membuat pelanggarannya jadi galat sintaks, bukan
      bug yang cuma muncul di iPhone orang lain. */
   const cetak = (slip) => {
+    if (slip) {
+      // Yang dicetak MASTER, bukan tumpukannya — jadi daftar ulang yang belum
+      // ditutup tidak berpengaruh di sini, dan jumlah regu yang sedang tampil
+      // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
+      // di mesin fotokopi, bukan di layar ini.
+      const n = siapkanCetakBlangko(pos, kolom);
+      // Nol berarti pos ini seluruhnya lomba soal — dijawab di lembar soalnya
+      // sendiri, jadi tidak ada blangko yang perlu dicetak. Tanpa cabang ini
+      // browser membuka dialog cetak untuk halaman kosong, dan yang menekan
+      // tombolnya menyimpulkan bahwa pencetakannya rusak.
+      if (!n) {
+        notif("Pos ini seluruhnya lomba soal — dijawab di lembar soalnya "
+              + "sendiri, jadi tidak ada blangko yang perlu dicetak.", true);
+        return;
+      }
+      notif(`${n} master A5 melintang, satu per lomba.`);
+      window.print();
+      return;
+    }
+
     const tampil = [...tbody.children].filter(tr => !tr.hidden)
       .map(tr => lembar.find(r => Number(r.nomor_dada) === Number(tr.dataset.dada)))
       .filter(Boolean);
@@ -4642,25 +4666,7 @@ async function layarInputPos() {
         n => peta.get(n) || { nomor_dada: n, kosong: true });
     }
 
-    if (slip) {
-      // Yang dicetak MASTER, bukan tumpukannya — jadi daftar ulang yang belum
-      // ditutup tidak berpengaruh di sini, dan jumlah regu yang sedang tampil
-      // pun tidak. Blangkonya kosong; berapa banyak yang dibutuhkan diputuskan
-      // di mesin fotokopi, bukan di layar ini.
-      const n = siapkanCetakBlangko(pos, kolom);
-      // Nol berarti pos ini seluruhnya lomba soal — dijawab di lembar soalnya
-      // sendiri, jadi tidak ada blangko yang perlu dicetak. Tanpa cabang ini
-      // browser membuka dialog cetak untuk halaman kosong, dan yang menekan
-      // tombolnya menyimpulkan bahwa pencetakannya rusak.
-      if (!n) {
-        notif("Pos ini seluruhnya lomba soal — dijawab di lembar soalnya "
-              + "sendiri, jadi tidak ada blangko yang perlu dicetak.", true);
-        return;
-      }
-      notif(`${n} master A5 melintang, satu per lomba.`);
-    } else {
-      siapkanCetakLembarPos(pos, kolom, semua);
-    }
+    siapkanCetakLembarPos(pos, kolom, semua);
     window.print();
   };
 
