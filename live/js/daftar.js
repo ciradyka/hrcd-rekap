@@ -165,7 +165,12 @@ const normalNama = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, "
 /* Rekening panitia. Ditulis SEKALI di sini: nomor rekening yang salah satu
    digit membuat uang masuk ke orang lain, dan angka yang tersalin di dua
    tempat pada akhirnya berbeda di salah satunya. */
-const REKENING = "BJB 0161891614100 a.n. Hiking Rally Ciradyka";
+/* Rekening panitia, dipecah tiga karena nomornya perlu bisa DISALIN sendiri:
+   pembina mengetiknya ke aplikasi bank sambil bolak-balik antar aplikasi, dan
+   satu digit yang salah mengirim uang ke orang lain. */
+const BANK = "BJB";
+const REKENING_NOMOR = "0161891614100";
+const REKENING_NAMA = "Hiking Rally Ciradyka";
 const KAMPUS = "kampus SMAN 1 Ciamis";
 
 const HURUF_MIN = 3;
@@ -355,7 +360,8 @@ function halaman() {
 function gambarBayar() {
   const kotak = document.getElementById("isi-bayar");
   if (!kotak) return;
-  const tagihan = rupiah(totalBiaya(EDISI, jawab.regu));
+  const nominal = totalBiaya(EDISI, jawab.regu);
+  const tagihan = rupiah(nominal);
 
   if (jawab.metode_bayar === "tunai") {
     kotak.replaceChildren(h(html`
@@ -377,8 +383,19 @@ function gambarBayar() {
   // Template biasa, BUKAN tag html`` — potongan di bawah disisipkan sebagai
   // HTML. Nama berkas dari HP pembina tetap lewat esc().
   kotak.replaceChildren(h(`
-    <p>Silakan transfer senilai <strong>${esc(tagihan)}</strong> ke rekening
-       <strong>${esc(REKENING)}</strong>.</p>
+    <p style="margin-bottom:.2rem">Silakan transfer senilai</p>
+    <div class="action-row" style="margin-bottom:.4rem">
+      <strong style="font-size:1.15rem">${esc(tagihan)}</strong>
+      <button type="button" class="button button-secondary button-mini"
+              data-salin="${esc(String(nominal))}">Salin</button>
+    </div>
+    <p style="margin-bottom:.2rem">ke rekening</p>
+    <div class="action-row" style="margin-bottom:.4rem">
+      <strong style="font-size:1.15rem">${esc(BANK)} ${esc(REKENING_NOMOR)}</strong>
+      <button type="button" class="button button-secondary button-mini"
+              data-salin="${esc(REKENING_NOMOR)}">Salin</button>
+    </div>
+    <p>a.n. ${esc(REKENING_NAMA)}</p>
     <div class="field" style="margin-top:.8rem">
       ${sudah ? `
         <div style="position:relative;display:inline-block;margin-bottom:.6rem">
@@ -401,6 +418,18 @@ function gambarBayar() {
       <div class="description" id="bukti-status"></div>
       <div class="error" id="g-bukti" hidden>Bukti transfer wajib diunggah.</div>
     </div>`));
+
+  // Yang disalin ANGKANYA saja, bukan "Rp 350.000": yang diketik pembina ke
+  // aplikasi bank adalah digitnya, dan titik pemisah ribuan ditolak di sana.
+  kotak.querySelectorAll("[data-salin]").forEach(b =>
+    b.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.salin);
+        notif(`Tersalin: ${b.dataset.salin}`);
+      } catch {
+        notif("Salin otomatis tidak didukung di HP ini — catat manual.", true);
+      }
+    }));
 
   // Silang merah: melepas buktinya dari pendaftaran ini. Berkasnya sendiri
   // tetap di bucket — anon memang tidak berhak menghapus (migrasi 0125) — dan
