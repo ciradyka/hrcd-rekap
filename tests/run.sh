@@ -605,4 +605,12 @@ run tests/sql/86_nama_regu_dua_puluh_lima.sql
 run supabase/migrations/0128_nama_regu_angka_di_belakang.sql
 run tests/sql/87_nama_regu_angka_di_belakang.sql
 
+# 0129 memasukkan 100 regu dari jawaban Google Form. Ditaruh PALING AKHIR, di
+# belakang 55, karena ia satu-satunya migrasi yang membawa data operasional:
+# di tengah daftar, seratus pendaftaran itu ikut terbaca tes-tes sesudahnya
+# yang menghitung baris. Yang dibuktikan di sini cuma bahwa migrasinya jalan
+# bersih di atas skema yang sudah lengkap — pagar di dalamnya sendiri yang
+# menghitung apakah keseratus barisnya benar-benar terpasang.
+run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
+
 echo "SEMUA TES LULUS"

@@ -77,6 +77,14 @@ BUKAN_JALAN = re.compile(r'\b(Kecamatan|Kec)\b\.?', re.I)
 AWALAN_SALAH = re.compile(r'^(Desa|Kelurahan|Kel)\b\.?', re.I)
 
 
+# Judul bagian E di docs/sekolah-belum-tuntas.md. Pemeriksaan 7 berhenti di
+# sini: yang di bawahnya sekolah yang alamatnya belum dicari sama sekali,
+# bukan daftar kerja atas sekolah_alamat.json. Ditulis sebagai konstanta
+# supaya judul yang berganti gagal keras, bukan diam-diam melebarkan cakupan
+# pemeriksaan sampai melaporkan tiga belas sekolah sebagai pelanggar.
+BAGIAN_XXXVII = "## E. Sekolah baru dari pendaftaran XXXVII"
+
+
 def muat(nama):
     berkas = AKAR / "tools" / "data" / nama
     if not berkas.exists():
@@ -154,8 +162,23 @@ def main():
     if not doc.exists():
         salah.append("docs/sekolah-belum-tuntas.md tidak ada")
     else:
+        isi = doc.read_text(encoding="utf-8")
+        # Yang dibandingkan HANYA bagian A-D. Bagian E daftar yang lain sama
+        # sekali: sekolah yang masuk lewat pendaftaran XXXVII dan alamatnya
+        # BELUM DICARI, jadi ia memang tidak punya baris di sekolah_alamat.json
+        # dan tidak boleh dituntut punya. Tanpa potongan ini pemeriksaan
+        # melaporkan ketiga belasnya sebagai "sudah tinggi tapi masih
+        # terdaftar" — lapor palsu, dan pemeriksa yang lapor palsu berhenti
+        # dipercaya.
+        batas = isi.find(BAGIAN_XXXVII)
+        if batas == -1:
+            salah.append(
+                f"docs/sekolah-belum-tuntas.md: judul {BAGIAN_XXXVII!r} hilang — "
+                "periksa apakah bagiannya diganti nama atau dihapus")
+        else:
+            isi = isi[:batas]
         # Tiap baris tabel berbentuk: | **Nama Sekolah** | ...
-        didaftar = set(re.findall(r'^\| \*\*(.+?)\*\* \|', doc.read_text(encoding="utf-8"), re.M))
+        didaftar = set(re.findall(r'^\| \*\*(.+?)\*\* \|', isi, re.M))
         belum = {a["nama"] for a in alamat if a.get("keyakinan") != "tinggi"}
         for n in sorted(belum - didaftar):
             salah.append(f"{n}: keyakinan belum 'tinggi' tapi tidak ada di docs/sekolah-belum-tuntas.md")

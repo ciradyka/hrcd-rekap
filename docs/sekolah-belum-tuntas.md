@@ -104,6 +104,55 @@ tidak tercampur dengan yang benar-benar butuh jawaban orang.
 
 ---
 
+## E. Sekolah baru dari pendaftaran XXXVII — alamatnya belum dicari
+
+Tiga belas sekolah ini masuk lewat migrasi `0129`, dari jawaban Google Form
+HRCD XXXVII. Mereka **sudah ada di tabel `sekolah` produksi dengan alamat
+kosong**, dan itu tidak menghalangi apa pun: pendaftaran, kloter, dan blangko
+tidak membaca alamat. Yang membacanya cuma surat.
+
+Bedanya dengan bagian A sampai D, dan ini yang membuat mereka ditulis
+terpisah: yang di atas sudah **disisir dan buntu**, yang di sini **belum
+dicari sama sekali**. Keduanya butuh pekerjaan yang berbeda — yang di atas
+butuh satu kalimat dari pembina, yang di sini butuh setengah jam di Data
+Referensi Kemendikdasmen.
+
+Mereka juga sengaja **belum masuk `tools/data/sekolah_nama.json` maupun
+`sekolah_alamat.json`**. Kedua berkas itu hasil kurasi edisi XXXIII-XXXVI
+(runbook bagian 2), dan menambahkan baris tanpa NPSN, tanpa alamat, dan tanpa
+sumber ke dalamnya menurunkan mutu daftar yang justru jadi acuan. Yang benar
+urutannya terbalik: cari alamatnya dulu menurut runbook bagian 6, baru
+tuliskan barisnya lengkap sekaligus.
+
+| Sekolah | Regu | Petunjuk dari form (kwartir ranting / cabang) |
+| --- | ---: | --- |
+| **MA Bahrul Anwar** | 6 | Cipaku / Ciamis |
+| **MTs Bahrul Anwar** | 5 | Cipaku / Ciamis |
+| **MTs Mujahidin** | 6 | Cipaku / Ciamis |
+| **MA Mujahidin** | 4 | Cipaku / Ciamis |
+| **MTsN 1 Ciamis** | 6 | Ciamis / Ciamis |
+| **SMPN 3 Kawali** | 5 | Kawali / Ciamis |
+| **SMPN 1 Kawali** | 4 | Kawali / Ciamis |
+| **SMK As-Sulthoniah** | 3 | Cipaku / Ciamis — alamat SUDAH ada, dari pemilik acara |
+| **MA Sirnarasa** | 1 | Panjalu / Ciamis |
+| **MA IPHI Pamarican** | 1 | Pamarican / Ciamis |
+| **SMA IT Nurul Huda** | 1 | Pamarican / Ciamis |
+| **SMPN 2 Kawali** | 1 | Kawali / Ciamis |
+| **SMPN 3 Baregbeg** | 1 | Baregbeg / Ciamis |
+
+Kolom petunjuk diambil apa adanya dari form dan **bukan alamat** — runbook
+bagian 1 sudah menyebutnya arah, bukan sumber kebenaran. Ia dipasang di sini
+supaya yang mencari tahu harus mulai dari kecamatan mana.
+
+`SMK As-Sulthoniah` pengecualiannya: alamatnya sudah terisi di `0129` dari
+jawaban pemilik acara — Dusun Desa RT 014/007, Jalatrang, Kec. Cipaku, Kab.
+Ciamis. Yang tersisa untuknya cuma NPSN.
+
+**Kolom Regu di atas adalah harganya kalau salah.** Enam regu MA Bahrul Anwar
+berarti enam undangan yang nyasar; satu regu SMPN 2 Kawali, satu. Kerjakan
+dari atas.
+---
+
 ## Yang bukan soal sekolah
 
 **`SMK Bhakti Kencana` masih satu klaster berisi dua sekolah** — satu di Kota
