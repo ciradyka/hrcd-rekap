@@ -947,14 +947,17 @@ async function layarPembayaran() {
           // dicatat tetap yang dipilih petugas di sini, karena uangnyalah yang
           // menentukan. Pendaftaran lama tidak menyimpannya, dan untuk mereka
           // tunai tetap yang terpilih seperti sebelumnya.
-          : html`<span class="metode-baris"
-                 ><select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
-                    <option value="tunai" ${b.metode_bayar === "transfer" ? "" : "selected"}>Tunai</option>
-                    <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
-                  </select>${b.bukti_transfer
-                    ? html`<button class="button button-mini" type="button"
-                                   data-bukti="${esc(b.bukti_transfer)}">Bukti</button>`
-                    : ""}</span>`;
+          // Template biasa, BUKAN tag html`` — tombol Bukti sudah berupa HTML dan
+          // html`` meng-escape setiap nilai yang disisipkan, jadi tombolnya
+          // sempat TERCETAK sebagai teks di layar Pembayaran.
+          : `<span class="metode-baris"
+             ><select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
+                <option value="tunai" ${b.metode_bayar === "transfer" ? "" : "selected"}>Tunai</option>
+                <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
+              </select>${b.bukti_transfer
+                ? `<button class="button button-mini" type="button"
+                           data-bukti="${esc(b.bukti_transfer)}">Bukti</button>`
+                : ""}</span>`;
 
       const aksi = b.status === "lunas"
         // <span class="teks-lebar"> = kata yang DIBUANG di layar sempit, jadi
