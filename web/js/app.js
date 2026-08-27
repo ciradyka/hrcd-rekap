@@ -1508,8 +1508,25 @@ async function layarDaftarUlang() {
     // Loop ketik-Enter (rancangan-b.md 10.1.4): Enter pindah ke regu
     // berikutnya, dan di regu terakhir langsung menyimpan — satu sekolah
     // selesai tanpa memegang mouse.
+    // Deret yang salah memerah SAMBIL DIKETIK, tidak menunggu tombol Simpan.
+    // Kain Intern bertulis 001 sama seperti kain Eksternal, jadi mengetik tiga
+    // angka untuk regu Intern adalah kekeliruan yang paling mungkin terjadi di
+    // meja — dan menahannya sampai Simpan berarti petugas sudah mengetik
+    // sepuluh nomor sebelum tahu yang pertama salah.
+    const tandaiDeret = (inp) => {
+      const isi = inp.value.trim();
+      const angka = Number(isi);
+      const salah = !!isi && rentang && Number.isInteger(angka) && angka > 0
+        && !deretCocok(rentang, inp.dataset.golongan, angka);
+      inp.classList.toggle("input-error", salah);
+    };
+
     tbody.querySelectorAll("[data-dada]").forEach(inp => {
-      inp.addEventListener("input", () => nilaiDada.set(inp.dataset.dada, inp.value));
+      tandaiDeret(inp);
+      inp.addEventListener("input", () => {
+        nilaiDada.set(inp.dataset.dada, inp.value);
+        tandaiDeret(inp);
+      });
       inp.addEventListener("keydown", e => {
         if (e.key !== "Enter") return;
         e.preventDefault();

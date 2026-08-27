@@ -603,13 +603,39 @@ export function notif(pesan, galat = false) {
   const el = document.body.lastElementChild;
   if (galat) el.querySelector(".notification-close").addEventListener("click", () => el.remove());
 
+  // Papan ketik HP MENUTUPI toast ini. Ia dipatok `position: fixed; bottom`,
+  // dan patokan itu layout viewport — yang TIDAK menyusut saat papan ketik
+  // muncul. Jadi pesan "nomor dada intern adalah 1001-1250" muncul persis di
+  // belakang tombol angka, tepat pada satu-satunya saat ia dibutuhkan.
+  //
+  // visualViewport tahu berapa tinggi yang benar-benar terlihat. Selisihnya
+  // itulah tinggi papan ketik, dan toast-nya diangkat sebanyak itu. Di layar
+  // tanpa papan ketik selisihnya nol, jadi tampilannya tidak berubah sama
+  // sekali. Browser lama tanpa visualViewport melewatkannya begitu saja.
+  const vv = window.visualViewport;
+  const angkat = () => {
+    const tertutup = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    el.style.bottom = `calc(1.2rem + ${Math.round(tertutup)}px)`;
+  };
+  if (vv) {
+    angkat();
+    vv.addEventListener("resize", angkat);
+    vv.addEventListener("scroll", angkat);
+  }
+  const lepas = () => {
+    if (!vv) return;
+    vv.removeEventListener("resize", angkat);
+    vv.removeEventListener("scroll", angkat);
+  };
+  if (galat) el.querySelector(".notification-close").addEventListener("click", lepas);
+
   // Dipudarkan dulu, baru dibuang setelah transisinya selesai (.35s di gaya).
   // Kalau sudah ditutup manual, el sudah lepas dari halaman dan kedua baris
   // ini tidak melakukan apa-apa — remove() pada simpul yang sudah lepas aman.
   const jeda = galat ? DETIK_NOTIF_GALAT : DETIK_NOTIF;
   setTimeout(() => {
     el.classList.add("pudar");
-    setTimeout(() => el.remove(), 400);
+    setTimeout(() => { lepas(); el.remove(); }, 400);
   }, jeda);
 }
 
