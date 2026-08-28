@@ -928,6 +928,36 @@ async function layarPembayaran() {
       // Kolom Metode memuat cara bayar SEKALIGUS statusnya: dua fakta
       // tentang uang yang sama, dibaca bersama. Kolom aksi tinggal berisi
       // tombol saja, jadi tombolnya muat berderet ke samping.
+      // HARUS di atas `metode` dan `aksi`, dan itu bukan selera: keduanya
+      // menyisipkan ${nota} ke dalam template mereka, dan `const` yang dipakai
+      // sebelum barisnya dijalankan melempar ReferenceError (temporal dead
+      // zone) — bukan undefined.
+      //
+      // Ia pernah ditulis di bawah `metode`, dan akibatnya: SETIAP baris
+      // gagal dirender, tbody kosong, sementara "39 invoice - 40 regu" di
+      // atasnya tetap benar karena angka itu dihitung dari data, bukan dari
+      // barisnya. Layarnya terlihat seperti daftar yang memang kosong.
+      // `node --check` lulus — TDZ itu galat saat DIJALANKAN, bukan saat
+      // di-parse — dan tidak ada tes yang membuka layar ini.
+      // Nota transfer duduk DI KOLOM METODE, tepat sesudah cara bayarnya —
+      // "Transfer LUNAS [nota]" — karena ia keterangan tentang pembayaran
+      // itu, bukan sebuah aksi. Di kolom tombol ia terbaca sebagai perintah
+      // ketiga sejajar Kwitansi dan Batalkan, padahal ia cuma lampiran.
+      //
+      // Kolom Metode DILEBARKAN 15% -> 20% supaya ketiganya muat SEBARIS;
+      // 5% itu diambil dari kolom tombol, yang jadi longgar begitu labelnya
+      // memendek. Angka dan alasannya di web/style.css, blok min-width 941px.
+      //
+      // Lencana, bukan .button-mini: 33x22 lawan 36x34. Tombol penuh menuntut
+      // ruang seukuran aksi untuk sesuatu yang cuma dibuka sesekali, dan
+      // tingginya menaikkan tinggi seluruh baris.
+      const nota = b.bukti_transfer
+        ? `<button class="badge badge-tombol" type="button"
+                   data-bukti="${esc(b.bukti_transfer)}"
+                   title="Nota pembayaran"
+                   aria-label="Nota pembayaran">${ikon("file-text")}</button>`
+        : "";
+
       const metode = b.status === "lunas"
         // Nomor kwitansi TIDAK ditampilkan di tabel: panjang, tidak pernah
         // dicari lewat layar ini, dan sudah tercetak di kwitansinya sendiri
@@ -968,24 +998,6 @@ async function layarPembayaran() {
                 <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
               </select>${nota}</span>`;
 
-      // Nota transfer duduk DI KOLOM METODE, tepat sesudah cara bayarnya —
-      // "Transfer LUNAS [nota]" — karena ia keterangan tentang pembayaran
-      // itu, bukan sebuah aksi. Di kolom tombol ia terbaca sebagai perintah
-      // ketiga sejajar Kwitansi dan Batalkan, padahal ia cuma lampiran.
-      //
-      // Kolom Metode DILEBARKAN 15% -> 20% supaya ketiganya muat SEBARIS;
-      // 5% itu diambil dari kolom tombol, yang jadi longgar begitu labelnya
-      // memendek. Angka dan alasannya di web/style.css, blok min-width 941px.
-      //
-      // Lencana, bukan .button-mini: 33x22 lawan 36x34. Tombol penuh menuntut
-      // ruang seukuran aksi untuk sesuatu yang cuma dibuka sesekali, dan
-      // tingginya menaikkan tinggi seluruh baris.
-      const nota = b.bukti_transfer
-        ? `<button class="badge badge-tombol" type="button"
-                   data-bukti="${esc(b.bukti_transfer)}"
-                   title="Nota pembayaran"
-                   aria-label="Nota pembayaran">${ikon("file-text")}</button>`
-        : "";
 
       const aksi = b.status === "lunas"
         // <span class="teks-lebar"> = kata yang DIBUANG di layar sempit, jadi
