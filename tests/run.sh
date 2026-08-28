@@ -630,6 +630,11 @@ run supabase/migrations/0130_bukti_transfer_link_drive.sql
 # diterapkan — form yang tersaji belum mengirim kuncinya.
 run supabase/migrations/0133_kelas_organisasi_regu.sql
 
+# 0134 mempersempitnya jadi huruf, angka, dan spasi saja. Pagarnya MENGIRIM
+# dua kiriman lewat submit_pendaftaran: satu berbentuk benar (harus masuk
+# utuh), satu bersimbol (harus ditolak), lalu keduanya dihapus lagi.
+run supabase/migrations/0134_kelas_organisasi_tanpa_simbol.sql
+
 # 0131 meneruskan impor mulai baris 102 sampai akhir workbook. Tiga kiriman
 # ulang dilewati, sehingga pagarnya menuntut 38 pendaftaran unik; baris yang
 # telanjur dimasukkan lewat form baru dicocokkan dan dilengkapi notanya.

@@ -86,7 +86,10 @@ run tests/sql/00_harness.sql
 # Keduanya tidak meninggalkan DDL yang dipakai siapa pun: tabel sementaranya
 # dibuang sendiri di ujung berkasnya, dan sisanya INSERT dan UPDATE.
 LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
-             0129_impor_pendaftaran_xxxvii 0130_bukti_transfer_link_drive"
+             0129_impor_pendaftaran_xxxvii 0130_bukti_transfer_link_drive
+             0131_impor_pendaftaran_xxxvii_susulan
+             0132_impor_pendaftaran_xxxvii_lanjutan
+             0133_kelas_organisasi_regu 0134_kelas_organisasi_tanpa_simbol"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
@@ -211,5 +214,13 @@ run supabase/migrations/0075_koordinator_pos.sql
 # kerusakan 28 Agustus 2026 terlihat.
 run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
 run supabase/migrations/0130_bukti_transfer_link_drive.sql
+run supabase/migrations/0131_impor_pendaftaran_xxxvii_susulan.sql
+run supabase/migrations/0132_impor_pendaftaran_xxxvii_lanjutan.sql
+# 0133 dan 0134 memberi regu kolom kelas/organisasi lalu mempersempit
+# bentuknya. Keduanya MENGIRIM pendaftaran uji lewat submit_pendaftaran dan
+# menghapusnya lagi, jadi keduanya menuntut edisi aktif sudah ada — sebab
+# yang sama dengan keempat migrasi impor di atasnya.
+run supabase/migrations/0133_kelas_organisasi_regu.sql
+run supabase/migrations/0134_kelas_organisasi_tanpa_simbol.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

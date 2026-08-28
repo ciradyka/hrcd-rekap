@@ -152,6 +152,26 @@ const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
 
 const NAMA_MAKS = 25;
 
+/* Kelas / organisasi (jalur Intern). Sama dengan batas kolomnya di database
+   (migrasi 0133), jadi yang lolos di layar juga lolos di sana — pembina tidak
+   pernah menemui penolakan yang tidak bisa ia lihat sebabnya. */
+const KELAS_MAKS = 80;
+
+/* HURUF, ANGKA, DAN SPASI SAJA — tanpa simbol. Bentuk yang dipakai sekolah:
+
+     XI IPA 4     XII IPS 4     PALAGGA     OSIS
+
+   Keputusan pemilik acara, dan alasannya kelihatan begitu daftarnya berjajar:
+   satu orang menulis "XI-1", yang lain "XI/1", yang lain "XI.1" untuk kelas
+   yang SAMA, dan tiga tulisan itu tidak pernah bertemu waktu panitia mencari
+   atau mengurutkannya. Spasi satu-satunya pemisah, jadi cuma ada satu cara
+   menulis tiap kelas.
+
+   Spasi beruntun dirapatkan, bukan ditolak: "XI  IPA  4" itu ketikan yang
+   benar dengan jari yang tergelincir, bukan jawaban yang salah. */
+const POLA_KELAS = /^[A-Za-z0-9 ]*$/;
+const rapatSpasi = (t) => String(t || "").replace(/\s+/g, " ").trim();
+
 /* Angka di kolom nama selalu berarti salah satu dari dua hal: kolomnya
    tertukar (nomor WA diketik di kotak Nama), atau regunya dinomori sendiri
    ("REGU 1") — dan nomor regu sudah ada, namanya nomor dada.
@@ -254,9 +274,11 @@ function halaman() {
       <div class="error" id="g-jumlah" hidden>Tambahkan minimal satu regu.</div>
     </section>
 
-    <!-- Nama regu -->
+    <!-- Identitas regu. Judulnya bukan lagi "Nama tiap regu" karena jalur
+         Intern mengisi lebih dari nama di sini: kelas atau organisasi asal
+         tiap regu ikut, dan itu justru yang membedakan mereka. -->
     <section class="card" id="bagian-regu">
-      <h2><span class="section-number">${nomorRegu}</span> Nama tiap regu</h2>
+      <h2><span class="section-number">${nomorRegu}</span> Identitas regu</h2>
       <div id="isi-regu"></div>
     </section>
 
@@ -707,7 +729,8 @@ function sinkronRegu() {
     const bekas = lama.filter(r => r.golongan === g.kode);
     for (let i = 0; i < jawab.rincian[g.kode]; i++)
       jawab.regu.push(bekas[i]
-        ?? { golongan: g.kode, nama_regu: "", nama_ketua: "", anggota: ["", "", "", ""] });
+        ?? { golongan: g.kode, nama_regu: "", nama_ketua: "",
+             kelas_organisasi: "", anggota: ["", "", "", ""] });
   }
   simpanDraf();
 }
@@ -761,9 +784,26 @@ function gambarRegu() {
           <input type="text" id="r-anggota-${i}-${k}" value="${a}"
                  style="margin-top:.35rem"
                  placeholder="Nama Anggota ${k + 1}">`).join("");
+    /* Kelas / organisasi HANYA di jalur Intern, dan di ATAS nama regunya.
+       Regu Eksternal sudah dibedakan oleh sekolahnya; regu Intern semuanya
+       dari satu sekolah, jadi inilah satu-satunya yang membedakan mereka —
+       dan yang dibaca lebih dulu saat memanggil regu di lapangan.
+
+       Per REGU, bukan satu kotak untuk seluruh kiriman: satu pembina tuan
+       rumah mendaftarkan seluruh angkatan sekaligus, dari kelas yang
+       berbeda-beda. */
+    const kotakKelas = !internal() ? "" : html`
+      <div class="field" style="margin:0 0 .7rem">
+        <label for="r-kelas-${i}">Kelas / Organisasi</label>
+        <input type="text" id="r-kelas-${i}" value="${r.kelas_organisasi || ""}"
+               maxlength="${KELAS_MAKS}" placeholder="contoh: XI IPA 4 atau OSIS">
+        <div class="error" id="r-kelas-galat-${i}" hidden>Tulis dengan huruf,
+             angka, dan spasi saja — misal XI IPA 4 atau OSIS.</div>
+      </div>`;
     return `
     <div class="regu-card" id="regu-${i}">
       <span class="badge badge-green">Regu ${i + 1} — ${esc(labelGolongan(r.golongan))}</span>
+      ${kotakKelas}
       <div class="two-column">
         <div class="field" style="margin:0">
           <label for="r-nama-${i}">Nama Regu</label>
@@ -896,6 +936,24 @@ function gambarRegu() {
       cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
+    // Opsional ISINYA, tapi BENTUKNYA dijaga: huruf, angka, spasi saja.
+    // Ditandai seketika, bukan saat tombol Kirim ditekan — saat itu pembina
+    // sudah mengisi belasan kotak dan harus mencari yang mana, dan aturan yang
+    // baru muncul di ujung terbaca seperti penolakan yang mengada-ada.
+    //
+    // Kotaknya cuma ada di jalur Intern, dan gambarRegu() menggambar ulang
+    // seluruh kartunya saat jenis peserta berganti, jadi tidak ada listener
+    // yang menggantung ke kotak yang sudah tidak ada.
+    const inpKelas = document.getElementById(`r-kelas-${i}`);
+    if (inpKelas) inpKelas.addEventListener("input", e => {
+      // Yang DISIMPAN sudah rapat spasinya; yang diketik dibiarkan apa adanya
+      // supaya kursornya tidak melompat saat pembina menekan spasi.
+      r.kelas_organisasi = rapatSpasi(e.target.value); simpanDraf();
+      const salah = !POLA_KELAS.test(e.target.value);
+      document.getElementById(`r-kelas-galat-${i}`).hidden = !salah;
+      e.target.setAttribute("aria-invalid", String(salah));
+      if (sudahDiperiksa) periksa(false);
+    });
     // Anggota opsional: yang bisa SALAH cuma angka di namanya, dan itu
     // ditandai seketika — bukan saat tombol Kirim ditekan, karena saat itu
     // pembina sudah mengisi belasan kotak dan harus mencari yang mana.
@@ -956,14 +1014,20 @@ function periksa(gulir = true) {
           || namaTerpakai.get(n) === true);
     const namaSalah = !n || namaPendek || namaKembar;
     const anggotaBerangka = (r.anggota || []).some(a => a && ADA_ANGKA.test(a));
+    // Kelas/organisasi boleh KOSONG, tapi kalau diisi bentuknya dijaga: huruf,
+    // angka, spasi. Database menegakkannya lagi (migrasi 0134), jadi kiriman
+    // yang lolos dari sini pun tetap ditolak di sana — lebih baik pembina
+    // melihatnya di kotaknya sendiri daripada sebagai galat kirim.
+    const kelasSalah = !!r.kelas_organisasi && !POLA_KELAS.test(r.kelas_organisasi);
     const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua)
-      || anggotaBerangka;
+      || anggotaBerangka || kelasSalah;
     const el = document.getElementById(`regu-${i}`);
     if (el) el.classList.toggle("regu-card-error", kurang);
     if (kurang) {
       galat.push({ ke: `regu-${i}`, teks:
         namaPendek ? `Regu ${i + 1}: nama minimal ${HURUF_MIN} huruf`
         : namaKembar ? `Regu ${i + 1}: nama sudah dipakai`
+        : kelasSalah ? `Regu ${i + 1}: kelas/organisasi pakai huruf, angka, spasi saja`
         : `Regu ${i + 1} belum lengkap` });
     }
   });
