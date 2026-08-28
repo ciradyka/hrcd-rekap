@@ -667,6 +667,11 @@ run supabase/migrations/0136_tanggal_daftar_dari_form.sql
 # tercatat trigger sejak 0002, yang belum ada cuma cara melihatnya. Pagarnya
 # memakai boleh(), jadi jalur positifnya diuji tes 89 yang menempati kursi.
 run supabase/migrations/0137_riwayat_pendaftaran.sql
+
+# 0138 membuang "(tidak dikenal)" dari riwayat: pelaku kosong berarti tidak ada
+# orang yang melakukannya (migrasi impor), dan itu tersampaikan lebih baik oleh
+# ketiadaan nama. Tes 89.5 menempati kursi untuk membuktikannya.
+run supabase/migrations/0138_riwayat_pelaku_kosong.sql
 run tests/sql/89_riwayat_pendaftaran.sql
 
 echo "SEMUA TES LULUS"

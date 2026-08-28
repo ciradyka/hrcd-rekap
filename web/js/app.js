@@ -957,7 +957,10 @@ function nilaiRiwayat(v) {
  *  menyampaikan seluruh yang berguna. */
 function liRiwayat(b) {
   const tabel = TABEL_RIWAYAT[b.table_name] || b.table_name;
-  const oleh = `${b.oleh} · ${tanggalJam(b.changed_at)}`;
+  // Perubahan tanpa pelaku (migrasi impor — lihat 0138) menyisakan TANGGALNYA
+  // saja. "(tidak dikenal)" terbaca seperti sistem yang gagal mengenali
+  // petugas, padahal memang tidak ada petugas yang melakukannya.
+  const oleh = [b.oleh, tanggalJam(b.changed_at)].filter(Boolean).join(" · ");
 
   if (b.action !== "UPDATE") {
     return html`<li>
@@ -976,28 +979,25 @@ function liRiwayat(b) {
   </li>`).join("");
 }
 
-/** Centang hijau yang bisa diketuk.
+/** Penanda "sudah selesai" yang bisa diketuk untuk membuka riwayatnya.
  *
- *  `label` opsional, dan itu yang membuat satu fungsi melayani dua layar:
+ *  TIDAK ADA IKON BARU. Yang dijadikan tombol adalah penanda yang SUDAH
+ *  berdiri di baris itu — lencana LUNAS di Meja Pembayaran, pil nomor dada di
+ *  Meja Daftar Ulang. Keputusan pemilik acara, dan alasannya sederhana:
+ *  menambah satu lambang berarti satu hal lagi yang harus diartikan petugas,
+ *  padahal yang mau ditanyakan orang saat menatap "LUNAS" memang "lunas oleh
+ *  siapa". Tombolnya sudah ada; ia cuma belum bisa diketuk.
  *
- *  - Meja Pembayaran memakai centang BERLABEL, dan ia MENGGANTIKAN lencana
- *    LUNAS yang sudah ada di sana — bukan berdiri di sebelahnya. Kolom tombol
- *    di layar itu sudah penuh sampai piksel terakhir pada lebar tersempitnya
- *    (diukur: isinya 197px di dalam sel 193px), jadi elemen ketujuh di baris
- *    itu meluap keluar tabel. Menjadikan lencana statusnya SENDIRI sebagai
- *    tombol tidak menambah satu elemen pun — dan itu persis idiom layar Input
- *    Nilai Pos, tempat lencana hijaunya memang tombol riwayat.
+ *  Bentuknya juga yang membuatnya muat. Kolom tombol Meja Pembayaran penuh
+ *  sampai piksel terakhir pada lebar tersempitnya — diukur: isinya 197px di
+ *  dalam sel 193px — jadi elemen ketujuh di baris itu meluap keluar tabel.
  *
- *  - Meja Daftar Ulang memakai centang polos, karena di sana tidak ada lencana
- *    status untuk dijadikan tombol: yang menyatakan "selesai" adalah deretan
- *    nomor dadanya sendiri.
- *
- *  aria-label ditulis penuh: tombol yang isinya cuma "✓" tidak menyebutkan
- *  apa-apa ke pembaca layar. */
-const centangRiwayat = (kode, label = "") => html`<button
-  class="badge badge-green badge-tombol" type="button"
-  data-riwayat-kode="${kode}" title="Riwayat perubahan"
-  aria-label="Riwayat perubahan ${kode}">✓${label ? " " + label : ""}</button>`;
+ *  aria-label ditulis penuh karena "LUNAS" saja tidak memberi tahu pembaca
+ *  layar bahwa ini tombol dan apa yang dibukanya. */
+const tombolRiwayat = (kode, isiHtml, kelas) =>
+  `<button class="${esc(kelas)}" type="button"
+           data-riwayat-kode="${esc(kode)}" title="Riwayat perubahan"
+           aria-label="Riwayat perubahan ${esc(kode)}">${isiHtml}</button>`;
 
 /** Pasang penangannya pada seluruh centang di dalam satu wadah. Dipanggil
  *  sekali per penggambaran tabel, bukan per baris. */
@@ -1406,7 +1406,8 @@ async function layarPembayaran() {
         // sebagai teks. Nilai dari luar tetap lewat esc() satu per satu.
         ? `<span class="metode-baris" style="flex-wrap:nowrap;gap:.25rem"
            ><span class="metode-kata">${esc(b.pembayaran ? b.pembayaran.method : "—")}</span
-           >${centangRiwayat(b.kode_pembayaran, "LUNAS")}${nota}</span>`
+           >${tombolRiwayat(b.kode_pembayaran, "LUNAS",
+               "badge badge-green badge-klik")}${nota}</span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
           // Yang terpilih lebih dulu adalah cara bayar yang DIPILIH PEMBINA saat
@@ -1811,13 +1812,28 @@ async function layarDaftarUlang() {
     tbody.replaceChildren(h(baris.map(b => {
       const aktif = reguAktif(b);
       const menunggu = aktif.filter(r => r.nomor_dada === null);
-      const nomorHtml = aktif.filter(r => r.nomor_dada !== null)
+      // Pil nomor dada = penanda "sudah selesai" di layar ini, jadi PIL ITU
+      // yang jadi tombol riwayat — sejajar dengan lencana LUNAS di Meja
+      // Pembayaran, dan tanpa menggambar satu lambang baru pun. Bentuknya
+      // tidak berubah sedikit pun; yang bertambah cuma bisa diketuk.
+      //
+      // TAPI hanya kalau seluruh regunya sudah bernomor. Batch yang baru
+      // separuh terisi juga menampilkan nomor yang sudah masuk, di bawah
+      // tombol "Isi N Nomor Dada" — dan di sana pil yang bisa diketuk
+      // menyatakan baris itu selesai, padahal petugas justru sedang berdiri
+      // di tengah pekerjaannya.
+      const pilNomor = (bisaKlik) => aktif.filter(r => r.nomor_dada !== null)
         .sort((x, y) => x.nomor_dada - y.nomor_dada)
-        .map(r => html`<span class="pill-number">${dada3(r.nomor_dada)}
-          <span class="kloter-pill">K${r.kloter_nomor}</span></span>`).join(" ");
+        .map(r => {
+          const isi = html`${dada3(r.nomor_dada)}<span
+            class="kloter-pill">K${r.kloter_nomor}</span>`;
+          return bisaKlik
+            ? tombolRiwayat(b.kode_pembayaran, isi, "pill-number")
+            : `<span class="pill-number">${isi}</span>`;
+        }).join(" ");
 
       const kode = esc(b.kode_pembayaran);
-      const tombolTukar = nomorHtml
+      const tombolTukar = aktif.some(r => r.nomor_dada !== null)
         ? `<button class="button button-secondary button-mini" type="button"
                    data-tukar="${kode}">Tukar nomor rusak…</button>`
         : "";
@@ -1831,11 +1847,9 @@ async function layarDaftarUlang() {
                    data-isi="${kode}" data-jumlah="${menunggu.length}"
                    aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
-           </button>${nomorHtml ? `<div class="sub">${nomorHtml}</div>` : ""}`
-        // Selesai = seluruh regunya sudah bernomor, dan tidak ada lagi tombol
-        // di baris ini. Centangnya berdiri di depan deretan nomor, tempat mata
-        // sudah berhenti untuk memastikan nomornya lengkap.
-        : `<div class="pill-row">${centangRiwayat(b.kode_pembayaran)}${nomorHtml}</div>`;
+           </button>${aktif.some(r => r.nomor_dada !== null)
+             ? `<div class="sub">${pilNomor(false)}</div>` : ""}`
+        : `<div class="pill-row">${pilNomor(true)}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `

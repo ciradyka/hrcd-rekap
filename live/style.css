@@ -1936,11 +1936,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      memang terbaca oleh pengukurannya. */
   .table-bayar .action-row .button { white-space: nowrap; }
   .table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
-  /* 23%, bukan 24%. Satu persen pindah ke kolom Metode di bawah — lihat
-     catatannya di sana. Nama sekolah tetap 195px di tabel tersempit (848px,
-     diukur di browser), yang memuat "MTs Al-Hasan Banjarsari" tanpa membungkus
-     dan membungkus yang lebih panjang seperti sebelumnya. */
-  .table-bayar > thead > tr > th:nth-child(2) { width: 23%; }
+  .table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
   .table-bayar > thead > tr > th:nth-child(3) { width:  6%; }
   .table-bayar > thead > tr > th:nth-child(4) { width: 12%; }
   /* Metode 20%, naik dari 15%, dan 5%-nya diambil dari kolom tombol di
@@ -1954,14 +1950,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      (aturan .teks-lebar di atas), jadi kolom tombol cuma butuh 152px dan
      20% memberinya 174px pada ambang yang sama. Sebelum labelnya
      dipendekkan, 5% ini TIDAK ada untuk diambil. */
-  /* 21%, bukan 20%. Lencana LUNAS sekarang berbunyi "✓ LUNAS" — ia tombol
-     riwayat — dan satu glif itu melebarkannya ±11px. DIUKUR, bukan dikira
-     (pasal 15.9): isi kolom Metode jadi 175px, sementara 20% di tabel
-     tersempit yang mungkin di rentang ini (848px) cuma 170px. Meleset lima
-     piksel, dan "Transfer ✓ LUNAS [nota]" meluap keluar selnya pada jendela
-     946–961px SAJA — pita selebar 16 piksel yang tidak akan pernah tertangkap
-     dengan membaca aturannya. 21% memberi 178px. */
-  .table-bayar > thead > tr > th:nth-child(5) { width: 21%; }
+  .table-bayar > thead > tr > th:nth-child(5) { width: 20%; }
   .table-bayar > thead > tr > th:nth-child(6) { width: 20%; }
 
   /* Perataan kolom Metode dan kolom tombol TIDAK diatur di sini melainkan di
@@ -2361,6 +2350,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    akan menghapus salah satunya. Bayangan menggelapkan apa pun yang ada di
    bawahnya tanpa perlu tahu warnanya — dan ia dilukis DI BAWAH isi, jadi ikon
    dan hurufnya tetap tajam. */
+/* Lencana BERTULISAN yang bisa diketuk — "LUNAS" di Meja Pembayaran.
+   Sengaja BUKAN .badge-tombol: kelas itu dibuat untuk tombol yang isinya ikon
+   saja, dan `font: inherit` di sana membuang font-weight 700 serta font-size
+   .85rem milik .badge sekaligus. Akibatnya tulisan "LUNAS" tercetak tipis
+   (400) dan sedikit lebih besar — terlihat seperti lencana yang berbeda dari
+   semua lencana lain di layar yang sama.
+
+   Yang direset di sini hanya CHROME bawaan <button>: garis tepi, kursor, dan
+   dua sifat huruf yang memang tidak diwarisi tombol dari halamannya. Ukuran,
+   ketebalan, padding, dan warnanya tetap milik .badge — jadi lencana ini
+   identik dengan lencana biasa sampai ke pikselnya, dan satu-satunya yang
+   bertambah adalah ia bisa diketuk. */
+.badge-klik {
+  border: 0; cursor: pointer;
+  font-family: inherit; letter-spacing: inherit;
+}
+.badge-klik:hover { box-shadow: inset 0 0 0 999px rgba(0, 0, 0, .07); }
+.badge-klik:active { box-shadow: inset 0 0 0 999px rgba(0, 0, 0, .12); }
+.badge-klik:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+
 .badge-tombol:hover { box-shadow: inset 0 0 0 999px rgba(0, 0, 0, .07); }
 .badge-tombol:active { box-shadow: inset 0 0 0 999px rgba(0, 0, 0, .12); }
 .badge-tombol:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
@@ -2569,6 +2578,28 @@ input.small-input { text-align: center; }
   font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .pill-number .kloter-pill { font-weight: 600; font-size: .75rem; opacity: .8; }
+/* Pil nomor dada yang bisa diketuk untuk membuka riwayatnya (Meja Daftar
+   Ulang). Bentuknya harus SAMA PERSIS dengan pil biasa — <button> membawa
+   border, background, font, dan padding bawaan browser, dan ketiganya harus
+   dimatikan supaya tidak ada satu pun tombol yang terlihat berbeda dari pil di
+   sebelahnya. `font: inherit` sekaligus mengembalikan ukuran huruf, yang
+   default-nya lebih kecil di dalam <button>.
+
+   Ia sengaja TIDAK diberi tanda visual bahwa ia tombol. Yang mencarinya
+   menemukannya lewat kursor dan tooltip; yang tidak mencarinya melihat papan
+   nomor dada yang sama seperti kemarin — dan itu yang dipakai sepanjang hari
+   (pasal 9.1). */
+/* Yang direset hanya chrome bawaan <button>. `font: inherit` TIDAK dipakai —
+   ia ikut membuang font-weight 800 milik .pill-number, dan nomor dadanya
+   tercetak tipis. Persoalan yang sama persis dengan .badge-klik di atas. */
+button.pill-number {
+  border: 0; cursor: pointer;
+  font-family: inherit; font-size: inherit; letter-spacing: inherit;
+  /* Baseline, bukan center: satu-satunya cara pil-tombol berbaris lurus
+     dengan pil biasa di baris yang sama. */
+  align-items: baseline;
+}
+button.pill-number:hover { filter: brightness(.95); }
 .checkbox { width: 26px; height: 26px; accent-color: var(--utama); cursor: pointer; }
 /* Sedang disimpan: DIREDUPKAN, bukan di-disable. Kotak yang di-disable
    berubah abu-abu dan kehilangan kursor pointer, jadi selama sedetik itu
