@@ -976,11 +976,11 @@ async function layarDataPeserta() {
           </td>
           <td data-label="Contact Person">
             <input type="text" class="small-input" data-kontak-nama="${kode}"
-                   value="${esc(b.nama_kontak || "")}" placeholder="contoh: Aji"></td>
+                   value="${esc(b.nama_kontak || "")}" placeholder="misal: Bu Rina"></td>
           <td data-label="WhatsApp">
             <input type="tel" class="small-input" inputmode="numeric"
                    data-kontak-wa="${kode}" value="${esc(b.kontak_wa || "")}"
-                   placeholder="08123456789"></td>
+                   placeholder="misal: 08123456789"></td>
         </tr>
         ${!aktif.length ? "" : `
         <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>

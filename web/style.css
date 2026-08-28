@@ -1839,51 +1839,70 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* ---- Data Peserta ----
 
      `table-layout: fixed`, dan alasannya SATU: membuka baris rincian tidak
-     boleh menggeser kolom induknya.
+     boleh menggeser kolom induknya. Dengan `auto`, lebar tiap kolom dihitung
+     dari SELURUH isi tabel — baris rincian yang baru muncul ikut dihitung,
+     dan enam kolom di atasnya bergeser semua. Petugas yang menekan satu
+     tombol melihat seluruh tabel melompat, lalu harus mencari lagi baris yang
+     tadi dilihatnya.
 
-     Dengan `auto`, lebar tiap kolom dihitung dari SELURUH isi tabel — baris
-     rincian yang baru muncul ikut dihitung, dan enam kolom di atasnya
-     bergeser semua. Petugas yang menekan satu tombol melihat seluruh tabel
-     melompat, lalu harus mencari lagi baris yang tadi dilihatnya. Itu keluhan
-     yang dilaporkan langsung, dan `fixed` yang menyelesaikannya: lebar kolom
-     ditentukan patokan di bawah, bukan isinya, jadi yang berubah saat rincian
-     dibuka cuma tingginya.
+     ANGKANYA DIUKUR, BUKAN DITEBAK (pasal 15.11). Diambil dari isi terlebar
+     tiap kolom atas 145 pendaftaran sungguhan di layar, dibandingkan dengan
+     lebar JUDUL kolomnya, lalu ditambah padding sel 16px:
 
-     Persentasenya WAJIB berjumlah 100 di kedua tabel. Di bawah `fixed`, kolom
-     yang tidak dipatok mendapat NOL — bukan sisanya (pasal 15.3).
+       tanggal 139 · kode 123 · sekolah 242 · regu 50 · kontak 201 · WA 187
+       jumlah 942px
 
-       induk    14 + 15 + 22 +  8 + 20 + 21              = 100
-       rincian  14 + 11 + 13 + 15 + 12 + 12 + 12 + 11    = 100
+     UNTUK SEL BERISI KOTAK ISIAN yang dipakai `scrollWidth` KOTAKNYA, bukan
+     lebar teksnya. Pengukuran pertama memakai lebar teks lalu menambahkan
+     padding SEL — dan melewatkan padding kotaknya sendiri (12px dua sisi) serta
+     ukuran hurufnya yang 17px, bukan 16px. Selisihnya kecil di atas kertas dan
+     besar di layar: 127 dari 145 nomor WhatsApp terpotong di dalam kotaknya,
+     terparah 17px. Yang menemukannya `input.scrollWidth > input.clientWidth`,
+     bukan melihat tangkapan layar.
 
-     Keduanya TIDAK dipasangkan kolom per kolom, dan itu beda dari tabel
-     Pembayaran (pasal 15.2). Di sana kolom terakhir keduanya harus bertemu
-     supaya angka rupiah tiap regu jatuh di bawah tombolnya. Di sini rinciannya
-     bicara hal lain sama sekali — satu baris per regu, kolomnya Ketua dan
-     Anggota — dan tidak ada angka yang perlu berbaris tegak.
+     Patokan pertama 1120px dengan 14/15/22/8/20/21 dibuat tanpa diukur sama
+     sekali: kolom Regu diberi 90px untuk isi selebar 50px sementara Kode Bayar
+     diberi 168px untuk 123px. Yang terlihat jarak menganga antara Asal Sekolah
+     dan Regu, dan tabel yang menggulir mendatar tanpa perlu.
 
-     1120px = delapan kolom rincian yang masing-masing memuat satu kotak nama.
-     Di bawah itu pembungkusnya menggulir mendatar, bukan memampatkan kotaknya
-     sampai nama tidak terbaca. Di bawah 900px ia sudah jadi kartu dan seluruh
-     angka di sini tidak berlaku. */
+     980px memberi tiap kolom sedikit di atas kebutuhannya — sisa 38px dibagi
+     rata, bukan ditumpuk di satu kolom yang kebetulan kelebihan. Persentasenya
+     WAJIB berjumlah 100: di bawah `fixed`, kolom yang tidak dipatok mendapat
+     NOL, bukan sisanya (pasal 15.3).
+
+       induk    15 + 13 + 26 +  6 + 21 + 19           = 100
+       rincian  14 + 10 + 11 + 15 + 12 + 12 + 13 + 13 = 100
+
+     Kolom rincian TIDAK dipatok dari max-content-nya: nama selengkapnya
+     menuntut 2.064px, dan tabel selebar itu tidak bisa dibaca di layar mana
+     pun. Isinya kotak isian, dan teks di dalam kotak isian menggulir sendiri
+     — yang perlu cukup lebar untuk MENYUNTING, bukan untuk memuat nama
+     terpanjang sekaligus. Keduanya juga sengaja tidak dipasangkan kolom per
+     kolom seperti tabel Pembayaran (pasal 15.2): di sana kolom terakhir harus
+     bertemu supaya angka rupiah jatuh di bawah tombolnya, di sini rinciannya
+     bicara hal lain sama sekali.
+
+     Di bawah 900px ia sudah jadi kartu dan seluruh angka di sini tidak
+     berlaku. */
   .table-peserta, .detail-table-peserta { table-layout: fixed; }
-  .table-peserta { min-width: 1120px; }
+  .table-peserta { min-width: 980px; }
   .detail-table-peserta { width: 100%; }
 
-  .table-peserta > thead > tr > th:nth-child(1) { width: 14%; }
-  .table-peserta > thead > tr > th:nth-child(2) { width: 15%; }
-  .table-peserta > thead > tr > th:nth-child(3) { width: 22%; }
-  .table-peserta > thead > tr > th:nth-child(4) { width:  8%; }
-  .table-peserta > thead > tr > th:nth-child(5) { width: 20%; }
-  .table-peserta > thead > tr > th:nth-child(6) { width: 21%; }
+  .table-peserta > thead > tr > th:nth-child(1) { width: 15%; }
+  .table-peserta > thead > tr > th:nth-child(2) { width: 13%; }
+  .table-peserta > thead > tr > th:nth-child(3) { width: 26%; }
+  .table-peserta > thead > tr > th:nth-child(4) { width:  6%; }
+  .table-peserta > thead > tr > th:nth-child(5) { width: 21%; }
+  .table-peserta > thead > tr > th:nth-child(6) { width: 19%; }
 
   .detail-table-peserta > thead > tr > th:nth-child(1) { width: 14%; }
-  .detail-table-peserta > thead > tr > th:nth-child(2) { width: 11%; }
-  .detail-table-peserta > thead > tr > th:nth-child(3) { width: 13%; }
+  .detail-table-peserta > thead > tr > th:nth-child(2) { width: 10%; }
+  .detail-table-peserta > thead > tr > th:nth-child(3) { width: 11%; }
   .detail-table-peserta > thead > tr > th:nth-child(4) { width: 15%; }
   .detail-table-peserta > thead > tr > th:nth-child(5) { width: 12%; }
   .detail-table-peserta > thead > tr > th:nth-child(6) { width: 12%; }
-  .detail-table-peserta > thead > tr > th:nth-child(7) { width: 12%; }
-  .detail-table-peserta > thead > tr > th:nth-child(8) { width: 11%; }
+  .detail-table-peserta > thead > tr > th:nth-child(7) { width: 13%; }
+  .detail-table-peserta > thead > tr > th:nth-child(8) { width: 13%; }
 
   /* Kotak isian mengisi selnya. Tanpa ini `.small-input` memakai lebar bawaan
      input dan meluap keluar kolom yang sudah dipatok. */
