@@ -618,6 +618,18 @@ run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
 # tempatnya tepat di belakangnya, bukan di kelompok migrasi mana pun.
 run supabase/migrations/0130_bukti_transfer_link_drive.sql
 
+# 0133 memberi regu kolom kelas/organisasi, dipakai jalur Intern. Pagar di
+# dalamnya MENGIRIM dua pendaftaran uji lewat submit_pendaftaran lalu
+# menghapusnya lagi — salah satunya untuk membuktikan kiriman TANPA kunci
+# baru itu tetap diterima.
+#
+# Ia berjalan SEBELUM 0131 dan 0132 di daftar ini, bukan sesudahnya, dan itu
+# justru pembuktian tambahan: keduanya mengimpor lewat submit_pendaftaran
+# tanpa mengirim kunci `kelas_organisasi` sama sekali, dan tetap lulus di atas
+# fungsi yang sudah diganti 0133. Itu persis keadaan produksi saat migrasi ini
+# diterapkan — form yang tersaji belum mengirim kuncinya.
+run supabase/migrations/0133_kelas_organisasi_regu.sql
+
 # 0131 meneruskan impor mulai baris 102 sampai akhir workbook. Tiga kiriman
 # ulang dilewati, sehingga pagarnya menuntut 38 pendaftaran unik; baris yang
 # telanjur dimasukkan lewat form baru dicocokkan dan dilengkapi notanya.
