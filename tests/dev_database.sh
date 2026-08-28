@@ -43,32 +43,88 @@ run tests/sql/00_harness.sql
 # menambalnya dengan mengedit 0076 — migrasi yang sudah diterapkan ke produksi
 # tidak pernah diedit (final-architecture.md bagian 2).
 #
-# SYARAT MASUK LEWATI_DULU: migrasinya tidak boleh memuat DDL. 0076 memenuhinya
-# — isinya satu blok `do` berisi UPDATE dan INSERT saja. Migrasi yang menambah
-# kolom SEKALIGUS mengisi data per edisi tidak boleh dilewati: seluruh migrasi
-# sesudahnya akan berjalan di atas tabel yang kolomnya belum ada, persis
-# kerusakan yang diceritakan alinea pertama. 0037, 0039 dan 0054 menambah
-# kolom, jadi ketiganya diulang dan tidak pernah dilewati.
-LEWATI_DULU="0076_bidai_dan_lomba_soal"
+# SYARAT MASUK LEWATI_DULU, dan bunyinya lebih tepat begini: migrasi yang
+# dilewati tidak boleh meninggalkan SESUATU YANG DIPAKAI migrasi sesudahnya.
+#
+# Versi pertama syarat ini berbunyi "tidak boleh memuat DDL", dan itu terlalu
+# lebar. Yang benar-benar merusak kolom atau tabel yang belum ada saat migrasi
+# berikutnya membacanya — 0037, 0039 dan 0054 menambah kolom, jadi ketiganya
+# diulang dan tidak pernah dilewati. Sebuah `create or replace function` yang
+# tidak dipanggil siapa pun di antara dua titik itu TIDAK merusak apa pun: yang
+# ada sementara versi lamanya, dan pengulangannya memasang versi barunya.
+#
+# Yang wajib diperiksa sebelum menambah nama ke daftar ini, satu per satu:
+#
+#   1. Apa yang ditinggalkannya — kolom/tabel (JANGAN dilewati) atau fungsi,
+#      view, komentar (boleh, kalau syarat 2 terpenuhi)?
+#   2. Adakah migrasi SESUDAHNYA sampai seed.sql yang memakainya? Cari
+#      namanya di supabase/migrations dengan nomor lebih besar.
+#
+# 0076 : satu blok `do` berisi UPDATE dan INSERT saja, tanpa DDL.
+# 0118 : `create or replace function perkiraan_berangkat_kloter` + dua
+#        `comment on`. Diperiksa 28 Agustus 2026 — yang menyebutnya sesudah
+#        0118 cuma 0119, dan itu pun cuma di dalam KOMENTAR ("sudah
+#        digantikan 0118"), bukan pemanggilan. Jadi tidak ada yang membacanya
+#        di antara dua titik itu.
+#
+# KENAPA 0118 HARUS DITUNDA. Blok penutupnya bukan sekadar `raise notice`
+# melainkan dua `assert` atas jam berangkat kloter pertama dan terakhir. Di
+# sini tabel `edisi` masih KOSONG, jadi ketiga nilainya NULL, `assert NULL`
+# gagal, dan skripnya berhenti di situ — seluruh migrasi 0119-0130 tidak
+# pernah dijalankan. Itulah yang membuat dev server tidak bisa dipakai sama
+# sekali sejak 0118 mendarat, dan kenapa layar Meja Pembayaran yang rusak
+# 28 Agustus 2026 baru ketahuan oleh petugas di lapangan: tidak ada satu pun
+# cara membuka layarnya di laptop.
+# 0129 dan 0130 ditunda karena alasan ketiga lagi, dan ia yang paling sunyi:
+# keduanya memakai `edisi_aktif()`. Di glob nilainya NULL, jadi
+#   'HRCD' || edisi_aktif() || '-' || ...
+# seluruhnya jadi NULL — dan `exit when not exists (... = NULL)` langsung
+# keluar pada putaran pertama, karena perbandingan dengan NULL tidak pernah
+# benar. Yang menghentikan skripnya bukan logika kodenya melainkan
+# not-null constraint kolom kode_pembayaran, beberapa baris sesudahnya.
+#
+# Keduanya tidak meninggalkan DDL yang dipakai siapa pun: tabel sementaranya
+# dibuang sendiri di ujung berkasnya, dan sisanya INSERT dan UPDATE.
+LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
+             0129_impor_pendaftaran_xxxvii 0130_bukti_transfer_link_drive"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
        0076_bidai_dan_lomba_soal 0091_intern_golongan
-       0093_configure_fifo_capacity"
+       0093_configure_fifo_capacity 0118_jeda_kloter_maksimal"
 
-# Yang dilewati WAJIB ada di ULANG. Kalau tidak, ia tidak dijalankan sama
-# sekali — kerusakan yang sama dengan berhenti di 0011, dan sama diamnya.
+# Yang dilewati WAJIB dijalankan lagi di suatu tempat. Kalau tidak, ia tidak
+# dijalankan sama sekali — kerusakan yang sama dengan berhenti di 0011, dan
+# sama diamnya.
+#
+# Ada DUA cara menjalankannya lagi, dan pagar ini menerima keduanya:
+#   * masuk daftar ULANG, yang diputar tepat sesudah seed.sql, atau
+#   * satu baris `run supabase/migrations/<nama>.sql` tersendiri di bawah,
+#     untuk yang harus PALING AKHIR — 0129 dan 0130 begitu, karena keduanya
+#     membawa data operasional dan tidak boleh terbaca langkah sesudahnya.
+#
+# Versi pertama pagar ini hanya memeriksa ULANG, jadi ia menolak cara kedua
+# walau migrasinya benar-benar dijalankan sepuluh baris kemudian.
 for m in $LEWATI_DULU; do
-  case " $(echo $ULANG) " in
-    *" $m "*) ;;
-    *) echo "dev_database.sh: $m ada di LEWATI_DULU tapi tidak di ULANG — ia tidak akan pernah dijalankan." >&2
-       exit 1 ;;
-  esac
+  diulang=""
+  case " $(echo $ULANG) " in *" $m "*) diulang="ya" ;; esac
+  grep -q "^run supabase/migrations/$m[.]sql$" "$0" && diulang="ya"
+  if [ -z "$diulang" ]; then
+    echo "dev_database.sh: $m ada di LEWATI_DULU tapi tidak pernah dijalankan lagi — tambahkan ke ULANG atau beri baris run sendiri." >&2
+    exit 1
+  fi
 done
 
 for m in "$ROOT"/supabase/migrations/*.sql; do
   nama="$(basename "$m")"
-  case " $LEWATI_DULU " in *" ${nama%.sql} "*) echo "-- (ditunda) $nama"; continue ;; esac
+  # `$(echo ...)` MELIPAT baris barunya jadi spasi, dan itu bukan gaya
+  # penulisan. Pola di bawah menuntut SPASI di kedua sisi nama; kalau
+  # LEWATI_DULU ditulis dua baris, yang di ujung baris pertama diapit spasi
+  # dan BARIS BARU, jadi ia tidak pernah cocok dan migrasinya tetap
+  # dijalankan di sini — diam-diam, karena tidak ada yang melaporkan
+  # kegagalan mencocokkan. Pemeriksa ULANG di atas sudah memakai bentuk ini;
+  # yang di sini tertinggal sampai daftarnya benar-benar jadi dua baris.
+  case " $(echo $LEWATI_DULU) " in *" ${nama%.sql} "*) echo "-- (ditunda) $nama"; continue ;; esac
   run "supabase/migrations/$nama"
 done
 run supabase/seed.sql
@@ -142,5 +198,18 @@ run supabase/migrations/0058_peran_per_pekerjaan.sql
 # ia periksa — `(peran = 'juri_pos') = (pos is not null)` — baru saja dipasang
 # kembali oleh 0058 satu baris di atas.
 run supabase/migrations/0075_koordinator_pos.sql
+
+# 0129 dan 0130 PALING AKHIR, sama seperti di tests/run.sh, dan alasannya
+# sama: keduanya satu-satunya migrasi yang membawa DATA OPERASIONAL. Di
+# tengah daftar, seratus pendaftaran itu ikut terbaca langkah sesudahnya —
+# dan 01_seed_uji.sql membuat regu dengan nama karangan yang bisa menabrak
+# `regu_nama_unik`, indeks yang berlaku SELURUH edisi.
+#
+# Keduanya sengaja IKUT di dev, bukan dilewati begitu saja: layar Meja
+# Pembayaran yang berisi empat baris uji tidak menunjukkan apa pun tentang
+# layar yang berisi seratus, dan justru di layar seratus baris itulah
+# kerusakan 28 Agustus 2026 terlihat.
+run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
+run supabase/migrations/0130_bukti_transfer_link_drive.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

@@ -58,11 +58,25 @@ values (37, 10, 10, 100, 20, 0);
 -- Saklar hari-H: satu baris.
 insert into status_acara (id) values (true);
 
+-- Baris acuan di bawah semuanya `on conflict do nothing`, dan itu bukan
+-- kehati-hatian berlebih: berkas ini dijalankan pada DUA urutan yang berbeda.
+-- tests/run.sh menjalankannya di TENGAH daftar migrasi, sementara
+-- tests/dev_database.sh menjalankannya SESUDAH semuanya — dan beberapa
+-- migrasi memasukkan baris yang sama (0093, 0105, 0119 untuk kloter; 0116
+-- untuk stok nomor dada Intern, yang memang sudah memakai penjaga yang sama).
+--
+-- Tanpa penjaga ini, seed berhenti dengan "duplicate key" pada urutan kedua,
+-- dan yang gagal bukan cuma seed-nya: seluruh langkah sesudahnya tidak
+-- pernah dijalankan, jadi dev server tidak bisa dipakai sama sekali.
+
 -- 40 kloter (30 dasar + 31-40 cadangan).
-insert into kloter (nomor) select generate_series(1, 40);
+insert into kloter (nomor) select generate_series(1, 40)
+on conflict (nomor) do nothing;
 
 -- Stok nomor dada fisik. DUA deret, karena kainnya dicetak dua set yang
 -- sama-sama mulai dari 001: Eksternal 1-500, Intern 1001-1250 (migrasi 0116).
 -- Batas antaranya `edisi.nomor_dada_intern_mulai`.
-insert into nomor_dada_stok (nomor) select generate_series(1, 500);
-insert into nomor_dada_stok (nomor) select generate_series(1001, 1250);
+insert into nomor_dada_stok (nomor) select generate_series(1, 500)
+on conflict (nomor) do nothing;
+insert into nomor_dada_stok (nomor) select generate_series(1001, 1250)
+on conflict (nomor) do nothing;
