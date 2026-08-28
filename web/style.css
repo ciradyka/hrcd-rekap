@@ -1759,6 +1759,29 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .table-bayar > tbody > tr > td:nth-child(6) .action-row {
     justify-content: flex-start;
   }
+
+  /* Kata cara bayarnya DIPATOK LEBARNYA, supaya lencana LUNAS dan ikon nota
+     sesudahnya jatuh di titik yang sama pada tiap baris. Tanpa ini keduanya
+     menempel di ujung kata, dan katanya cuma ada dua panjang — jadi baris
+     "Transfer" dan baris "Tunai" memulai lencananya di tempat berbeda.
+
+     DIUKUR di layar sungguhan (dev server + 100 pendaftaran), bukan di
+     halaman contoh: "transfer" 52,6px, "tunai" 34,1px. Selisih 18,5px, dan
+     itu persis jarak geser lencana maupun ikonnya.
+
+     3,75rem = 60px: menampung "transfer" dengan sisa ~7px. Kosakatanya
+     TERTUTUP — `pendaftaran_metode_bayar_check` cuma mengizinkan
+     'transfer' dan 'tunai', dan bentuk ketiganya "—" saat pembayarannya
+     belum tercatat. Jadi angka ini tidak bisa dilewati isian tak terduga,
+     dan hanya perlu ditinjau kalau kosakatanya bertambah.
+
+     `min-width`, bukan `width`: kalau suatu saat ada kata yang lebih
+     panjang, ia melebar dan barisnya tetap terbaca — yang hilang cuma
+     kelurusannya, bukan isinya. */
+  .table-bayar > tbody > tr > td > .metode-baris > .metode-kata {
+    min-width: 3.75rem;
+    text-align: left;
+  }
 }
 
 .detail-table-dada { width: 100%; margin: 0; }
@@ -1988,6 +2011,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    tabel lebar kolom Metode cuma 15% jadi ia membungkus jadi dua baris seperti
    sebelumnya. Satu aturan, dua tampilan — tanpa media query yang harus
    ditebak batasnya. */
+/* Cara bayar di baris LUNAS. Dulu `style="font-size:.9em"` di dalam app.js;
+   dijadikan kelas supaya lebarnya bisa dipatok di tampilan tabel — lihat blok
+   `min-width: 901px`. */
+.metode-kata { font-size: .9em; }
+
 .metode-baris {
   display: inline-flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: .35rem;
