@@ -1720,6 +1720,47 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   }
 }
 
+/* ---------------------------------------------------------------------------
+   MEJA PEMBAYARAN: KOLOM METODE DAN KOLOM TOMBOL RATA KIRI
+
+   Berlaku di KEDUA rentang tabel — 901-940 yang `auto` dan >=941 yang
+   `fixed` — karena yang diperbaikinya sama di keduanya, dan aturan yang sama
+   ditulis dua kali pada akhirnya berbeda di salah satunya (pasal 15.6).
+
+   Sampai sekarang keduanya DITENGAHKAN, dan itu terlihat rapi hanya selama
+   isi tiap baris sama panjang. Ia tidak pernah sama panjang:
+
+     "Transfer LUNAS [nota]"  lawan  "Tunai LUNAS"
+     "Kwitansi Batalkan"      lawan  "Lunas"
+
+   Isi yang lebih pendek ditengahkan berarti tepi kirinya MASUK ke dalam, jadi
+   tiap baris memulai di tempat yang berbeda. Mata yang menyusuri daftar 100
+   invoice kehilangan garis tegaknya dan harus mencari ulang tiap baris —
+   persis alasan yang sudah tertulis untuk kartu HP di bawah, tempat tombolnya
+   sudah rata kiri sejak dicoba di HP sungguhan.
+
+   Catatan lama menyebut tampilan tabel berbeda karena "tombolnya mengisi satu
+   KOLOM, bukan satu baris". Itu benar untuk lebar kolomnya, bukan untuk isinya:
+   yang mengisi kolom tetap sepasang tombol yang panjangnya berubah-ubah.
+
+   Kolom Biaya di tabel rincian tetap RATA KANAN dan tetap selebar kolom tombol
+   (pasal 15.2), jadi angka rupiahnya tetap berakhir di tepi yang sama. Yang
+   berpindah tepi kiri tombolnya, bukan tepi kanan kolomnya. */
+@media (min-width: 901px) {
+  /* Menang atas kelas .text-center di markup-nya lewat kekhususan, bukan lewat
+     urutan — jadi ia tetap benar di mana pun blok ini diletakkan (pasal 15.12). */
+  .table-bayar > thead > tr > th:nth-child(5),
+  .table-bayar > tbody > tr > td:nth-child(5),
+  .table-bayar > tbody > tr > td:nth-child(6) { text-align: left; }
+  /* Dua pembungkus lentur di dalamnya ikut, kalau tidak `text-align` saja
+     tidak menggerakkan apa pun: keduanya flex, dan yang menentukan letak
+     anaknya `justify-content`. */
+  .table-bayar > tbody > tr > td > .metode-baris,
+  .table-bayar > tbody > tr > td:nth-child(6) .action-row {
+    justify-content: flex-start;
+  }
+}
+
 .detail-table-dada { width: 100%; margin: 0; }
 /* Padding sel disamakan dengan tabel induk (.table td), kalau tidak isinya
    bergeser beberapa piksel dan kesejajarannya hilang lagi. */
@@ -1815,12 +1856,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .table-bayar > thead > tr > th:nth-child(5) { width: 20%; }
   .table-bayar > thead > tr > th:nth-child(6) { width: 20%; }
 
-  /* Tombol aksi DITENGAHKAN di kolomnya, dan kolom Biaya di rincian memakai
-     lebar yang sama (25%). Akibatnya angka rupiah tiap regu jatuh tepat di
-     bawah tombol "Tandai Lunas" — itu jumlah yang sedang dihitung petugas
-     saat jarinya sudah di atas tombol itu. */
-  .table-bayar > tbody > tr > td:nth-child(6) { text-align: center; }
-  .table-bayar > tbody > tr > td:nth-child(6) .action-row { justify-content: center; }
+  /* Perataan kolom Metode dan kolom tombol TIDAK diatur di sini melainkan di
+     blok `min-width: 901px` di bawah — ia berlaku untuk KEDUA rentang tabel,
+     dan aturan yang sama ditulis dua kali pada akhirnya berbeda di salah
+     satunya (pasal 15.6). */
 
   .detail-table-bayar { width: 100%; }
   .detail-table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
@@ -2783,9 +2822,10 @@ input.small-input { text-align: center; }
   /* Cetak Kwitansi + Batalkan RATA KIRI di kartu HP — sempat ditengahkan dan
      dikembalikan setelah dicoba di HP sungguhan. Seluruh isi kartu lainnya
      rata kiri, dan sepasang tombol yang menyendiri di tengah memutus garis
-     baca tegak yang dipakai mata menyusuri kartu demi kartu. Tampilan tabel
-     lebar tetap tengah (lihat .table-bayar td:nth-child(6)): di sana tombolnya
-     mengisi satu KOLOM, bukan satu baris. */
+     baca tegak yang dipakai mata menyusuri kartu demi kartu. Sejak alasan itu
+     ternyata berlaku sama di tampilan tabel, keduanya rata kiri — lihat blok
+     `min-width: 901px`. Aturan ini tetap ada karena kartu HP punya jalur
+     tata letaknya sendiri (grid per sel) dan tidak tersentuh blok itu. */
   .table-bayar tbody tr[data-baris] > td:last-child .action-row {
     justify-content: flex-start;
   }
