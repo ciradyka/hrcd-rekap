@@ -877,19 +877,24 @@ const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
    salah ketik melainkan pendaftaran yang salah. Alasan lengkapnya di kepala
    migrasi 0135. */
 
-/** "17 Agu 26 16:55" — pendek karena ia satu kolom di antara enam, dan yang
- *  dicari orang di sana urutan kedatangan, bukan tanggal lengkapnya. WIB,
- *  sama seperti tanggalPanjang(): menjelang tengah malam tanggal alat dan
- *  tanggal WIB bisa menunjuk hari yang berbeda. */
+/** "28/08/2026 04:32" — angka semua, dan itu diminta pemilik acara. Bentuk
+ *  bernama bulan ("28 Agu 26") lebih pendek tapi panjangnya BERUBAH-UBAH: Mei
+ *  tiga huruf, Agustus disingkat tiga, September empat kalau tidak disingkat.
+ *  Di satu kolom yang dipindai dari atas ke bawah, angka dengan nol di depan
+ *  membuat tiap bagian jatuh di titik yang sama tiap baris.
+ *
+ *  WIB, sama seperti tanggalPanjang(): menjelang tengah malam tanggal alat dan
+ *  tanggal WIB bisa menunjuk hari yang berbeda, dan riwayat yang menyebut hari
+ *  kemarin untuk kejadian hari ini lebih buruk daripada tidak ada tanggal. */
 const FMT_DP = new Intl.DateTimeFormat("id-ID", {
-  timeZone: "Asia/Jakarta", day: "numeric", month: "short",
-  year: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+  timeZone: "Asia/Jakarta", day: "2-digit", month: "2-digit",
+  year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
 });
 const tanggalRingkas = (t) => {
   if (!t) return "—";
   const b = {};
   for (const x of FMT_DP.formatToParts(new Date(t))) b[x.type] = x.value;
-  return `${b.day} ${b.month.replace(".", "")} ${b.year} ${b.hour}:${b.minute}`;
+  return `${b.day}/${b.month}/${b.year} ${b.hour}:${b.minute}`;
 };
 
 async function layarDataPeserta() {

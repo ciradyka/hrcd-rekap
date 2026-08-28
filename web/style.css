@@ -1849,8 +1849,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      tiap kolom atas 145 pendaftaran sungguhan di layar, dibandingkan dengan
      lebar JUDUL kolomnya, lalu ditambah padding sel 16px:
 
-       tanggal 139 · kode 123 · sekolah 242 · regu 50 · kontak 201 · WA 187
-       jumlah 942px
+       tanggal 147 · kode 123 · sekolah 242 · regu 50 · kontak 201 · WA 187
+       jumlah 950px
+
+     Tanggal 147, bukan 139: sejak formatnya jadi 28/08/2026 04:32 ia delapan
+     piksel lebih lebar daripada bentuk bernama bulan. Satu persen dipindahkan
+     dari Asal Sekolah, yang paling longgar — 25% masih 245px untuk kebutuhan
+     242px, dan nama sekolah memang kolom yang boleh membungkus.
 
      UNTUK SEL BERISI KOTAK ISIAN yang dipakai `scrollWidth` KOTAKNYA, bukan
      lebar teksnya. Pengukuran pertama memakai lebar teks lalu menambahkan
@@ -1870,7 +1875,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      WAJIB berjumlah 100: di bawah `fixed`, kolom yang tidak dipatok mendapat
      NOL, bukan sisanya (pasal 15.3).
 
-       induk    15 + 13 + 26 + 6 + 21 + 19 = 100
+       induk    16 + 13 + 25 + 6 + 21 + 19 = 100
 
      RINCIANNYA BUKAN TABEL, jadi tidak punya patokan kolom sama sekali. Versi
      pertama membuatnya delapan kolom — Regu, Kategori, Kelas, Ketua, Anggota
@@ -1888,9 +1893,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      berlaku. */
   .table-peserta { table-layout: fixed; min-width: 980px; }
 
-  .table-peserta > thead > tr > th:nth-child(1) { width: 15%; }
+  .table-peserta > thead > tr > th:nth-child(1) { width: 16%; }
   .table-peserta > thead > tr > th:nth-child(2) { width: 13%; }
-  .table-peserta > thead > tr > th:nth-child(3) { width: 26%; }
+  .table-peserta > thead > tr > th:nth-child(3) { width: 25%; }
   .table-peserta > thead > tr > th:nth-child(4) { width:  6%; }
   .table-peserta > thead > tr > th:nth-child(5) { width: 21%; }
   .table-peserta > thead > tr > th:nth-child(6) { width: 19%; }
