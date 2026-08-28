@@ -520,6 +520,43 @@ export async function daftarPendaftaran() {
     "&regu.order=nama_regu.asc&order=created_at.asc");
 }
 
+/** Bahan layar Data Peserta: yang BISA DIBETULKAN, dan tidak lebih.
+ *
+ *  Sengaja tidak memakai daftarPendaftaran() walau dua-duanya membaca tabel
+ *  yang sama. Layar itu perlu tagihan, metode bayar, dan kwitansi; layar ini
+ *  perlu nama anggota dan kelas/organisasi. Satu bentuk untuk keduanya berarti
+ *  tiap layar mengirimkan kolom yang tidak dipakainya ke ratusan baris — dan
+ *  yang lebih mahal, tiap perubahan pada salah satunya menyentuh keduanya. */
+export async function dataPeserta() {
+  if (K.mode === "dev") return baca("/data-peserta");
+  return baca(null,
+    "pendaftaran?select=id,kode_pembayaran,status,jumlah_regu,kontak_wa," +
+    "nama_kontak,created_at,sekolah(name)," +
+    "regu(id,nama_regu,nama_ketua,golongan,anggota,kelas_organisasi," +
+    "nomor_dada,is_cancelled)" +
+    "&regu.order=nama_regu.asc&order=created_at.asc");
+}
+
+/** Betulkan kontak pembina satu pendaftaran (migrasi 0135). Nama dan nomor
+ *  dikirim BERSAMA: yang mengganti nomor hampir selalu mengganti orangnya. */
+export async function ubahKontakPendaftaran(kode, namaKontak, kontakWa) {
+  return rpc("ubah_kontak_pendaftaran", {
+    p_kode: kode, p_nama_kontak: namaKontak || null, p_kontak_wa: kontakWa,
+  });
+}
+
+/** Betulkan identitas satu regu (migrasi 0135). Golongan, sekolah, nomor dada
+ *  dan status bayar TIDAK di sini — masing-masing punya jalurnya sendiri. */
+export async function ubahIdentitasRegu(reguId, data) {
+  return rpc("ubah_identitas_regu", {
+    p_regu_id: reguId,
+    p_nama_regu: data.nama_regu,
+    p_nama_ketua: data.nama_ketua,
+    p_anggota: data.anggota || [],
+    p_kelas_organisasi: data.kelas_organisasi || null,
+  });
+}
+
 export const verifikasiPembayaran = (kode, nominal, metode) =>
   rpc("verifikasi_pembayaran", { p_kode: kode, p_nominal: nominal, p_metode: metode });
 

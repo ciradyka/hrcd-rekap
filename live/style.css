@@ -1835,6 +1835,65 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      kolom dilebarkan, angka ini ikut naik — DAN ambang kartu 900px di bawah
      harus ikut naik, kalau tidak tabelnya kembali menggeser ke samping dan
      kolom tombol hilang lagi dari layar. */
+
+  /* ---- Data Peserta ----
+
+     `table-layout: fixed`, dan alasannya SATU: membuka baris rincian tidak
+     boleh menggeser kolom induknya.
+
+     Dengan `auto`, lebar tiap kolom dihitung dari SELURUH isi tabel — baris
+     rincian yang baru muncul ikut dihitung, dan enam kolom di atasnya
+     bergeser semua. Petugas yang menekan satu tombol melihat seluruh tabel
+     melompat, lalu harus mencari lagi baris yang tadi dilihatnya. Itu keluhan
+     yang dilaporkan langsung, dan `fixed` yang menyelesaikannya: lebar kolom
+     ditentukan patokan di bawah, bukan isinya, jadi yang berubah saat rincian
+     dibuka cuma tingginya.
+
+     Persentasenya WAJIB berjumlah 100 di kedua tabel. Di bawah `fixed`, kolom
+     yang tidak dipatok mendapat NOL — bukan sisanya (pasal 15.3).
+
+       induk    14 + 15 + 22 +  8 + 20 + 21              = 100
+       rincian  14 + 11 + 13 + 15 + 12 + 12 + 12 + 11    = 100
+
+     Keduanya TIDAK dipasangkan kolom per kolom, dan itu beda dari tabel
+     Pembayaran (pasal 15.2). Di sana kolom terakhir keduanya harus bertemu
+     supaya angka rupiah tiap regu jatuh di bawah tombolnya. Di sini rinciannya
+     bicara hal lain sama sekali — satu baris per regu, kolomnya Ketua dan
+     Anggota — dan tidak ada angka yang perlu berbaris tegak.
+
+     1120px = delapan kolom rincian yang masing-masing memuat satu kotak nama.
+     Di bawah itu pembungkusnya menggulir mendatar, bukan memampatkan kotaknya
+     sampai nama tidak terbaca. Di bawah 900px ia sudah jadi kartu dan seluruh
+     angka di sini tidak berlaku. */
+  .table-peserta, .detail-table-peserta { table-layout: fixed; }
+  .table-peserta { min-width: 1120px; }
+  .detail-table-peserta { width: 100%; }
+
+  .table-peserta > thead > tr > th:nth-child(1) { width: 14%; }
+  .table-peserta > thead > tr > th:nth-child(2) { width: 15%; }
+  .table-peserta > thead > tr > th:nth-child(3) { width: 22%; }
+  .table-peserta > thead > tr > th:nth-child(4) { width:  8%; }
+  .table-peserta > thead > tr > th:nth-child(5) { width: 20%; }
+  .table-peserta > thead > tr > th:nth-child(6) { width: 21%; }
+
+  .detail-table-peserta > thead > tr > th:nth-child(1) { width: 14%; }
+  .detail-table-peserta > thead > tr > th:nth-child(2) { width: 11%; }
+  .detail-table-peserta > thead > tr > th:nth-child(3) { width: 13%; }
+  .detail-table-peserta > thead > tr > th:nth-child(4) { width: 15%; }
+  .detail-table-peserta > thead > tr > th:nth-child(5) { width: 12%; }
+  .detail-table-peserta > thead > tr > th:nth-child(6) { width: 12%; }
+  .detail-table-peserta > thead > tr > th:nth-child(7) { width: 12%; }
+  .detail-table-peserta > thead > tr > th:nth-child(8) { width: 11%; }
+
+  /* Kotak isian mengisi selnya. Tanpa ini `.small-input` memakai lebar bawaan
+     input dan meluap keluar kolom yang sudah dipatok. */
+  .table-peserta .small-input,
+  .detail-table-peserta .small-input { width: 100%; min-width: 0; }
+  /* Nama sekolah satu-satunya isi yang panjangnya tak terduga — ia yang
+     mengalah dan membungkus, seperti di tabel Pembayaran. */
+  .table-peserta > tbody > tr > td:nth-child(3) {
+    white-space: normal; overflow-wrap: break-word;
+  }
   .table-bayar { min-width: 820px; }
 
   /* Label tombol MEMENDEK di sini juga: "Cetak Kwitansi" -> "Kwitansi",

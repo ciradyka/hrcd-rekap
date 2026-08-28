@@ -635,6 +635,12 @@ run supabase/migrations/0133_kelas_organisasi_regu.sql
 # utuh), satu bersimbol (harus ditolak), lalu keduanya dihapus lagi.
 run supabase/migrations/0134_kelas_organisasi_tanpa_simbol.sql
 
+# 0135 membuat data pendaftaran bisa DIBETULKAN dari layar panitia — peserta
+# salah ketik, panitia membantu. Pagarnya mendaftar satu regu lewat RPC-nya
+# sendiri, mengubahnya, memeriksa hasilnya, lalu menghapusnya lagi.
+run supabase/migrations/0135_ubah_data_peserta.sql
+run tests/sql/88_ubah_data_peserta.sql
+
 # 0131 meneruskan impor mulai baris 102 sampai akhir workbook. Tiga kiriman
 # ulang dilewati, sehingga pagarnya menuntut 38 pendaftaran unik; baris yang
 # telanjur dimasukkan lewat form baru dicocokkan dan dilengkapi notanya.

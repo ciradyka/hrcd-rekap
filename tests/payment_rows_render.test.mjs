@@ -36,7 +36,13 @@ const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8")
 
 /** Potong blok `baris.map(b => { ... }).join("")` dari layarPembayaran(). */
 function blokPembangunBaris() {
-  const mulai = app.indexOf("tbody.replaceChildren(h(baris.map(b => {");
+  // Dicari MULAI DARI layarPembayaran(), bukan dari awal berkas. Layar Data
+  // Peserta memakai potongan pembuka yang sama persis dan berada lebih dulu
+  // di app.js — tanpa jangkar ini, tes Pembayaran diam-diam menguji blok milik
+  // layar lain. Yang menemukannya tes ini sendiri, saat layar itu ditambahkan.
+  const layar = app.indexOf("async function layarPembayaran() {");
+  assert.notEqual(layar, -1, "layarPembayaran() tidak ditemukan di app.js");
+  const mulai = app.indexOf("tbody.replaceChildren(h(baris.map(b => {", layar);
   assert.notEqual(mulai, -1,
     "blok pembangun baris Meja Pembayaran tidak ditemukan — kalau bentuknya " +
     "berubah, sesuaikan potongan ini, JANGAN hapus tesnya");

@@ -39,6 +39,10 @@ DSN = " ".join([
 ])
 PORT = 8787
 
+# Argumen yang bertipe text[] di Postgres, bukan jsonb. Dipisah karena
+# keduanya sampai ke sini sebagai list JSON yang sama persis.
+ARRAY_TEKS = {"p_anggota"}
+
 # RPC yang boleh dipanggil layar, beserta urutan argumennya.
 RPC = {
     "verifikasi_pembayaran": ["p_kode", "p_nominal", "p_metode"],
@@ -56,6 +60,9 @@ RPC = {
     "kunci_nilai_pos":       ["p_nomor_dada", "p_pos"],
     "buka_kunci_nilai_pos":  ["p_nomor_dada", "p_pos", "p_alasan"],
     "catat_closing":         ["p_nomor_dada", "p_jam_datang", "p_anggota_hadir", "p_catatan"],
+    "ubah_kontak_pendaftaran": ["p_kode", "p_nama_kontak", "p_kontak_wa"],
+    "ubah_identitas_regu":   ["p_regu_id", "p_nama_regu", "p_nama_ketua",
+                              "p_anggota", "p_kelas_organisasi"],
     "atur_fase_live":        ["p_fase"],
     "atur_planning_berangkat": ["p_pertama", "p_terakhir"],
     "susun_barak":           [],
@@ -263,6 +270,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "order by nomor_dada",
                     (p.get("pos") or 0, p.get("dada") or "", p.get("dada") or ""),
                     uid=p.get("uid")))
+            elif u.path == "/data-peserta":
+                # Bahan layar Data Peserta. Kolomnya BEDA dari
+                # /daftar-pendaftaran: yang di sini nama anggota dan
+                # kelas/organisasi, bukan tagihan dan kwitansi.
+                self._kirim(200, q("""
+                    select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
+                           d.kontak_wa, d.nama_kontak, d.created_at,
+                           jsonb_build_object('name', s.name) as sekolah,
+                           coalesce((select jsonb_agg(jsonb_build_object(
+                                       'id', r.id, 'nama_regu', r.nama_regu,
+                                       'nama_ketua', r.nama_ketua,
+                                       'golongan', r.golongan,
+                                       'anggota', r.anggota,
+                                       'kelas_organisasi', r.kelas_organisasi,
+                                       'nomor_dada', r.nomor_dada,
+                                       'is_cancelled', r.is_cancelled)
+                                     order by r.nama_regu)
+                             from regu r where r.pendaftaran_id = d.id),
+                            '[]'::jsonb) as regu
+                    from pendaftaran d join sekolah s on s.id = d.sekolah_id
+                    order by d.created_at
+                """, uid=p.get("uid")))
+
             elif u.path == "/daftar-pendaftaran":
                 self._kirim(200, q("""
                     select d.id, d.kode_pembayaran, d.status, d.jumlah_regu,
@@ -423,7 +453,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 nilai = []
                 for k in urutan:
                     v = args.get(k)
-                    if isinstance(v, (dict, list)):
+                    # Daftar yang tujuannya text[] diteruskan sebagai LIST
+                    # Python — psycopg2 mengubahnya jadi array Postgres. Kalau
+                    # ikut di-json.dumps seperti jsonb, yang sampai ke fungsi
+                    # teks '["a","b"]' dan Postgres menolaknya dengan
+                    # "malformed array literal". PostgREST di produksi memang
+                    # sudah memetakannya sendiri; yang perlu diajari cuma
+                    # tiruan ini.
+                    if isinstance(v, list) and k in ARRAY_TEKS:
+                        pass
+                    elif isinstance(v, (dict, list)):
                         v = json.dumps(v)
                     nilai.append(v)
                 # Postgres tidak meng-coerce integer->smallint saat memilih
