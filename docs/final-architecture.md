@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0140`
+sampai migrasi `0136`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0141`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0140`.
+`0119`-`0141`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-140 migrasi, `0001` sampai `0140`, dijalankan berurutan tanpa lubang penomoran.
+141 migrasi, `0001` sampai `0141`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -198,7 +198,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos + podium; saklar fase hanya untuk pemegang `pengaturan` |
-| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Peserta Terbanyak dari nomor dada, dan tiga pilihan manual panitia |
+| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Peserta Terbanyak dari nomor dada Eksternal, dan tiga pilihan manual panitia |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
