@@ -677,3 +677,41 @@ Guidance for Claude Code when working in this repository.
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia
    run from their phones.
+
+## 17. Selama acara berjalan
+
+1. **Sejak pendaftaran dibuka sampai juara diumumkan, sistem ini DIPAKAI orang
+   sungguhan sambil kita menyuntingnya.** Panitia berdiri di meja dengan
+   antrean di depannya; layar yang mati bukan bug yang dilaporkan besok,
+   melainkan pekerjaan yang berhenti sekarang.
+2. **Sebelum merge, BUKA layar yang disentuh dan lihat isinya.** Bukan
+   tesnya, bukan halaman contoh, bukan `node --check` — layar yang benar-benar
+   dirender `app.js`, berisi data sebanyak yang dipegang produksi.
+
+   ```bash
+   PSQL=... PGPORT=5432 PGPASSWORD=... bash tests/dev_database.sh
+   PGPORT=5432 PGPASSWORD=... python tests/dev_server.py &   # 8787
+   python tests/static_server.py &                           # 8788
+   # web/config.js: mode "dev" (JANGAN di-commit), lalu buka 127.0.0.1:8788
+   ```
+3. **Kenapa aturan ini ditulis:** 28 Agustus 2026, Meja Pembayaran kosong di
+   produksi selama acara berjalan. `const nota` berakhir di bawah pemakainya,
+   dan temporal dead zone melempar ReferenceError untuk SETIAP baris.
+   `node --check` lulus, seluruh tes lulus, dan pengukuran tata letak
+   dikerjakan di halaman contoh berisi markup statis — tidak ada satu pun
+   langkah yang membuka layarnya. Yang menemukannya petugas di lapangan.
+4. **Layar yang rusak sering terbaca seperti layar yang kosong.** Waktu itu
+   "39 invoice · 40 regu" di atas tabel tetap benar, karena angkanya dihitung
+   dari data yang sudah diterima, bukan dari barisnya. Jadi jangan menilai
+   dari kepala layar; hitung barisnya.
+5. **Yang menghalangi panitia didahulukan di atas apa pun yang sedang
+   dikerjakan.** Tidak ada perbaikan tampilan yang lebih mendesak daripada
+   satu layar yang tidak bisa dipakai.
+6. **Kalau alat untuk membuka layarnya sendiri rusak, itu bug prioritas
+   tinggi, bukan gangguan kecil.** `tests/dev_database.sh` sempat berhenti di
+   0118 sejak migrasi itu mendarat, dan selama itu tidak ada cara membuka
+   layar mana pun di laptop — itulah yang membuat pasal 2 di atas mustahil
+   dipatuhi tanpa disadari siapa pun.
+7. **Perubahan yang tidak bisa dibuka layarnya, jangan di-merge selama acara
+   berjalan.** Tunda sampai bisa. Risiko menahan satu perbaikan tampilan jauh
+   lebih kecil daripada risiko satu layar mati di tengah antrean.
