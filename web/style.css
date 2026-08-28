@@ -732,6 +732,18 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table-kejuaraan .select-small { width: 100%; }
 .kejuaraan-bagian { display: grid; gap: 1rem; }
 .kejuaraan-bagian .card { margin-bottom: 0; }
+@media (min-width: 900px) {
+  .kejuaraan-bagian { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kejuaraan-umum {
+    grid-column: 1 / -1; grid-row: 1;
+    width: calc(50% - .5rem); justify-self: center;
+  }
+  .kejuaraan-penegak-pa { grid-column: 1; grid-row: 2; }
+  .kejuaraan-penegak-pi { grid-column: 1; grid-row: 3; }
+  .kejuaraan-penggalang-pa { grid-column: 2; grid-row: 2; }
+  .kejuaraan-penggalang-pi { grid-column: 2; grid-row: 3; }
+  .kejuaraan-khusus { grid-column: 1 / -1; grid-row: 4; }
+}
 .kejuaraan-cari { position: relative; }
 .kejuaraan-cari .small-input { width: 100%; }
 .kejuaraan-cari .suggestions {

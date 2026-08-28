@@ -6089,23 +6089,24 @@ async function layarKejuaraan() {
 
   const bagian = [
     ["Juara Umum", x => x.kode.startsWith("juara_umum"),
-      x => x.nama_penghargaan.replace(/^Juara Umum /, "")],
+      x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
     ["Penegak PA", x => x.kode.startsWith("penegak_pa_"),
-      x => x.nama_penghargaan.replace(/^Penegak PA /, "")],
+      x => x.nama_penghargaan.replace(/^Penegak PA /, ""), "kejuaraan-penegak-pa"],
     ["Penegak PI", x => x.kode.startsWith("penegak_pi_"),
-      x => x.nama_penghargaan.replace(/^Penegak PI /, "")],
+      x => x.nama_penghargaan.replace(/^Penegak PI /, ""), "kejuaraan-penegak-pi"],
     ["Penggalang PA", x => x.kode.startsWith("penggalang_pa_"),
-      x => x.nama_penghargaan.replace(/^Penggalang PA /, "")],
+      x => x.nama_penghargaan.replace(/^Penggalang PA /, ""), "kejuaraan-penggalang-pa"],
     ["Penggalang PI", x => x.kode.startsWith("penggalang_pi_"),
-      x => x.nama_penghargaan.replace(/^Penggalang PI /, "")],
+      x => x.nama_penghargaan.replace(/^Penggalang PI /, ""), "kejuaraan-penggalang-pi"],
     ["Penghargaan Khusus", x => !x.kode.startsWith("juara_umum")
-      && !/^(penegak|penggalang)_(pa|pi)_/.test(x.kode), x => x.nama_penghargaan],
+      && !/^(penegak|penggalang)_(pa|pi)_/.test(x.kode), x => x.nama_penghargaan,
+      "kejuaraan-khusus"],
   ];
 
   LAYAR.replaceChildren(h(`
     <div class="kejuaraan-bagian">
-      ${bagian.map(([judul, masuk, label]) => `
-        <section class="card"><h2>${esc(judul)}</h2>
+      ${bagian.map(([judul, masuk, label, kelas]) => `
+        <section class="card ${kelas}"><h2>${esc(judul)}</h2>
           <table class="table data-table table-kejuaraan"><tbody>
             ${hasil.filter(masuk).map(x => baris(x, label(x))).join("")}
           </tbody></table>
