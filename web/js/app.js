@@ -6097,12 +6097,16 @@ async function layarKejuaraan() {
       </div></td></tr>` : `<tr><th>${esc(label)}</th><td>${nilai(x)}</td></tr>`;
 
   const bagian = [
-    ["Juara Umum", x => x.kode.startsWith("juara_umum"),
+    ["Juara Umum", x => x.kode === "juara_umum",
       x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
+    ["Juara Umum Penegak", x => x.kode === "juara_umum_penegak",
+      () => "PENEGAK", "kejuaraan-umum-penegak"],
     ["Penegak PA", x => x.kode.startsWith("penegak_pa_"),
       x => x.nama_penghargaan.replace(/^Penegak PA /, ""), "kejuaraan-penegak-pa"],
     ["Penegak PI", x => x.kode.startsWith("penegak_pi_"),
       x => x.nama_penghargaan.replace(/^Penegak PI /, ""), "kejuaraan-penegak-pi"],
+    ["Juara Umum Penggalang", x => x.kode === "juara_umum_penggalang",
+      () => "PENGGALANG", "kejuaraan-umum-penggalang"],
     ["Penggalang PA", x => x.kode.startsWith("penggalang_pa_"),
       x => x.nama_penghargaan.replace(/^Penggalang PA /, ""), "kejuaraan-penggalang-pa"],
     ["Penggalang PI", x => x.kode.startsWith("penggalang_pi_"),
