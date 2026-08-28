@@ -730,6 +730,14 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table-kejuaraan th { width: 45%; }
 .table-kejuaraan td strong, .table-kejuaraan td .description { display: block; }
 .table-kejuaraan .select-small { width: 100%; }
+.kejuaraan-bagian { display: grid; gap: 1rem; }
+.kejuaraan-bagian .card { margin-bottom: 0; }
+.kejuaraan-cari { position: relative; }
+.kejuaraan-cari .small-input { width: 100%; }
+.kejuaraan-cari .suggestions {
+  position: absolute; z-index: 10; left: 0; right: 0;
+  box-shadow: var(--bayang-naik);
+}
 
 /* ---------- dialog (pengganti prompt) ---------- */
 
