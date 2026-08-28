@@ -876,6 +876,15 @@ export async function klasemenLiveScore() {
     "v_klasemen_live_score?select=*&order=golongan.asc,peringkat.asc");
 }
 
+/** Daftar penghargaan final dan pilihan khusus panitia. */
+export async function hasilKejuaraan() {
+  if (K.mode === "dev") return baca("/kejuaraan");
+  return baca(null, "v_kejuaraan?select=*&order=urutan.asc");
+}
+
+export const simpanKejuaraanManual = (kode, reguId) =>
+  rpc("simpan_kejuaraan_manual", { p_kode: kode, p_regu: reguId });
+
 /* ============================ FOTO LEMBAR =============================== */
 
 /* Salinan slip penilaian di server (migrasi 0047). Kertas hilang; foto tidak.

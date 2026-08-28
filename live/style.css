@@ -727,6 +727,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .function-menu .function-name .badge { margin-left: auto; }
 .function-menu .description { color: var(--tinta-lembut); margin-top: .3rem; }
 
+.table-kejuaraan th { width: 45%; }
+.table-kejuaraan td strong, .table-kejuaraan td .description { display: block; }
+.table-kejuaraan .select-small { width: 100%; }
+
 /* ---------- dialog (pengganti prompt) ---------- */
 
 .overlay {
