@@ -943,36 +943,12 @@ async function layarPembayaran() {
         // jadi dua baris. gap .25rem saja sudah muat (122px), tetapi cuma
         // bersisa 1px; dengan teks metode .9em ia jadi 117px dan punya jarak
         // yang tidak habis oleh satu huruf yang lebih lebar di HP lain.
-        // Nota transfernya IKUT TAMPIL sesudah lunas, bukan hilang bersama
-        // dropdown-nya. Sesudah uang masuk barulah ia paling sering dicari:
-        // saat menyusun berkas pertanggungjawaban, dan saat satu setoran
-        // dipertanyakan — dan sampai sekarang satu-satunya cara melihatnya
-        // lagi adalah membatalkan pelunasan, yang mengubah data demi melihat
-        // data.
-        //
-        // Lencana, BUKAN .button-mini seperti di baris belum lunas. Kolom
-        // Metode cuma 15% — 123px pada lantai 820px — dan pasangan
-        // "Transfer" + LUNAS sudah memakai 117px di antaranya. Tombol biasa
-        // menuntut lebar kolomnya sendiri; lencana ikut arus.
-        //
-        // Dan `flex-wrap` dilepas HANYA ketika notanya ada. Nowrap itu hasil
-        // pengukuran lama untuk dua elemen; dengan elemen ketiga ia bukan
-        // lagi menjaga apa-apa melainkan memaksa tiga benda berdesakan di
-        // 123px. Yang dikembalikan cuma perilaku bawaan .metode-baris —
-        // membungkus kalau sempit, sebaris kalau lapang — dan baris tanpa
-        // nota tidak berubah sedikit pun.
-        //
-        // Template biasa, BUKAN tag html``. Alasannya sama dengan cabang di
-        // bawah: ikon sudah berupa HTML, dan html`` meng-escape setiap nilai
-        // yang disisipkan — tombolnya akan TERCETAK sebagai teks.
-        ? `<span class="metode-baris" style="gap:.25rem${b.bukti_transfer ? "" : ";flex-wrap:nowrap"}"
+        // Template biasa, BUKAN tag html``: nota sudah berupa HTML, dan html``
+        // meng-escape apa pun yang disisipkan — tombolnya akan TERCETAK
+        // sebagai teks. Nilai dari luar tetap lewat esc() satu per satu.
+        ? `<span class="metode-baris" style="flex-wrap:nowrap;gap:.25rem"
            ><span style="font-size:.9em">${esc(b.pembayaran ? b.pembayaran.method : "—")}</span
-           ><span class="badge badge-green">LUNAS</span>${b.bukti_transfer
-            ? `<button class="badge badge-tombol" type="button"
-                       data-bukti="${esc(b.bukti_transfer)}"
-                       title="Nota pembayaran"
-                       aria-label="Nota pembayaran">${ikon("file-text")}</button>`
-            : ""}</span>`
+           ><span class="badge badge-green">LUNAS</span>${nota}</span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
           // Yang terpilih lebih dulu adalah cara bayar yang DIPILIH PEMBINA saat
@@ -980,31 +956,36 @@ async function layarPembayaran() {
           // dicatat tetap yang dipilih petugas di sini, karena uangnyalah yang
           // menentukan. Pendaftaran lama tidak menyimpannya, dan untuk mereka
           // tunai tetap yang terpilih seperti sebelumnya.
-          // Template biasa, BUKAN tag html`` — tombol Bukti sudah berupa HTML dan
-          // html`` meng-escape setiap nilai yang disisipkan, jadi tombolnya
-          // sempat TERCETAK sebagai teks di layar Pembayaran.
-          // nowrap HANYA kalau tidak ada tombol bukti. Di kartu HP kolomnya
-          // lapang (284px ke atas) jadi nowrap tidak pernah terpakai di sana —
-          // ia cuma berlaku di rentang tabel `fixed`, tempat kolom Metode
-          // selebar 131-152px. Di situ dropdown 128px + tombol 36px = 170px,
-          // dan dengan nowrap tombolnya menonjol 38px KELUAR kolom, menimpa
-          // "Tandai Lunas" di sebelahnya. DIUKUR di browser (pasal 15.9-15.10),
-          // bukan dibaca.
-          //
-          // Meluapnya baru terlihat sejak 0130 mengisi bukti untuk keseratus
-          // pendaftaran XXXVII: sebelumnya hampir tidak ada baris yang punya
-          // bukti, jadi tombolnya nyaris tidak pernah tergambar dan aturan
-          // nowrap-nya tidak pernah diuji oleh data sungguhan.
-          : `<span class="metode-baris" style="${b.bukti_transfer ? "" : "flex-wrap:nowrap"}"
+          // Template biasa, BUKAN tag html``. Nilainya lewat esc() satu per
+          // satu — html`` meng-escape apa pun yang disisipkan, dan itu pernah
+          // membuat tombol di sini TERCETAK sebagai teks.
+          // nowrap DI SINI saja, bukan di kelasnya: pasangan LUNAS di atas memang
+          // perlu menumpuk sendiri di kolom sempit. Di sini yang berdampingan
+          // cuma dropdown, dan kolomnya memang hanya cukup untuk itu.
+          : `<span class="metode-baris" style="flex-wrap:nowrap"
              ><select class="select-small" data-metode="${esc(b.kode_pembayaran)}">
                 <option value="tunai" ${b.metode_bayar === "transfer" ? "" : "selected"}>Tunai</option>
                 <option value="transfer" ${b.metode_bayar === "transfer" ? "selected" : ""}>Transfer</option>
-              </select>${b.bukti_transfer
-                ? `<button class="button button-mini" type="button"
-                           data-bukti="${esc(b.bukti_transfer)}"
-                           title="Bukti Pembayaran"
-                           aria-label="Bukti Pembayaran">${ikon("file-text")}</button>`
-                : ""}</span>`;
+              </select>${nota}</span>`;
+
+      // Nota transfer duduk DI KOLOM METODE, tepat sesudah cara bayarnya —
+      // "Transfer LUNAS [nota]" — karena ia keterangan tentang pembayaran
+      // itu, bukan sebuah aksi. Di kolom tombol ia terbaca sebagai perintah
+      // ketiga sejajar Kwitansi dan Batalkan, padahal ia cuma lampiran.
+      //
+      // Kolom Metode DILEBARKAN 15% -> 20% supaya ketiganya muat SEBARIS;
+      // 5% itu diambil dari kolom tombol, yang jadi longgar begitu labelnya
+      // memendek. Angka dan alasannya di web/style.css, blok min-width 941px.
+      //
+      // Lencana, bukan .button-mini: 33x22 lawan 36x34. Tombol penuh menuntut
+      // ruang seukuran aksi untuk sesuatu yang cuma dibuka sesekali, dan
+      // tingginya menaikkan tinggi seluruh baris.
+      const nota = b.bukti_transfer
+        ? `<button class="badge badge-tombol" type="button"
+                   data-bukti="${esc(b.bukti_transfer)}"
+                   title="Nota pembayaran"
+                   aria-label="Nota pembayaran">${ikon("file-text")}</button>`
+        : "";
 
       const aksi = b.status === "lunas"
         // <span class="teks-lebar"> = kata yang DIBUANG di layar sempit, jadi
