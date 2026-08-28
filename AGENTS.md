@@ -688,9 +688,10 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia
    run from their phones. The event-only exception in `publish-live.yml` runs
-   every 15 minutes on 28-29 August UTC, covering the 29 August event in WIB.
-   Its date-bound schedule costs at most 192 runs a year; do not widen it to an
-   everyday schedule.
+   every 15 minutes from 08:00 through 23:45 WIB on 29 August 2026. Cron has no
+   year field, so the first step rejects every scheduled run outside that exact
+   date before reading the database or deploying. Do not widen its window or
+   remove that year guard.
 
 ## 17. Selama acara berjalan
 

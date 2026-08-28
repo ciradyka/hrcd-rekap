@@ -21,11 +21,11 @@
 # nilai — bukan berisi nilai yang disembunyikan tampilan. Admin memindah fase
 # ke 'penuh' saat hasil diumumkan, dan jalan berikutnya klasemennya ikut.
 #
-# CRON 15 MENIT AKTIF HANYA UNTUK HARI-H. Tanggal cron memakai UTC, jadi
-# 28-29 Agustus mencakup 29 Agustus WIB dari sebelum acara sampai pagi
-# sesudahnya. Batas tanggal menahan biaya di paling banyak 192 run per tahun;
-# jangan lebarkan menjadi setiap hari. Tombol Run workflow tetap bisa ditekan
-# kapan pun, termasuk dari HP.
+# CRON 15 MENIT AKTIF HANYA 29 AGUSTUS 2026, 08:00-23:59 WIB. Cron memakai
+# UTC dan tidak punya kolom tahun, jadi jadwal memilih 01:00-16:45 UTC lalu
+# langkah pertama memeriksa tahun/tanggal lengkap. Di luar jendela itu workflow
+# berhenti sebelum membaca database atau deploy. Tombol Run workflow tetap bisa
+# ditekan kapan pun, termasuk dari HP.
 #
 # Butuh repository secret (dua-duanya sudah dipakai workflow lain):
 #   SUPABASE_DB_URL       connection string Postgres (Session pooler, 5432)
@@ -66,9 +66,9 @@ on:
       - 'supabase/checks/live_json.sql'
       - '.github/workflows/publish-live.yml'
   schedule:
-    # Cron memakai UTC. Rentang ini mencakup 28 Agustus 07:00 WIB sampai
-    # 30 Agustus 06:45 WIB, termasuk seluruh hari lomba 29 Agustus.
-    - cron: '*/15 * 28-29 8 *'
+    # 01:00-16:45 UTC = 08:00-23:45 WIB. Cron tidak mendukung tahun;
+    # langkah `jadwal` di bawah menolak semua tanggal selain 29-08-2026.
+    - cron: '*/15 1-16 29 8 *'
 
 # Dua jalan yang bertumpuk akan saling menimpa live.json di Cloudflare, dan
 # yang menang belum tentu yang terbaru. Satu jalan saja pada satu waktu.
@@ -80,9 +80,30 @@ jobs:
   terbitkan:
     runs-on: ubuntu-latest
     steps:
+      - name: Periksa jendela penerbitan otomatis
+        id: jadwal
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "aktif=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          sekarang="$(date -u '+%Y-%m-%dT%H:%M')"
+          if [[ "$sekarang" =~ ^2026-08-29T(0[1-9]|1[0-6]): ]]; then
+            echo "aktif=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aktif=false" >> "$GITHUB_OUTPUT"
+            echo "Di luar 29 Agustus 2026 08:00-23:59 WIB; tidak menerbitkan."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.jadwal.outputs.aktif == 'true'
 
       - name: Tulis live.json + rekap.json dari database
+        if: steps.jadwal.outputs.aktif == 'true'
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
@@ -193,16 +214,20 @@ jobs:
           PY
 
       - uses: actions/setup-node@v4
+        if: steps.jadwal.outputs.aktif == 'true'
         with:
           node-version: '20'
 
       - run: npm install -g wrangler
+        if: steps.jadwal.outputs.aktif == 'true'
 
       - name: Deploy halaman rekap
+        if: steps.jadwal.outputs.aktif == 'true'
         working-directory: live
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: wrangler deploy
 
       - name: Ringkasan
+        if: steps.jadwal.outputs.aktif == 'true'
         run: echo "REKAP TERBIT — $(date -u '+%Y-%m-%d %H:%M UTC')"

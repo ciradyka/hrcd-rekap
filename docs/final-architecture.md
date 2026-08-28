@@ -662,7 +662,7 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
 | Layar panitia (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
-| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | **otomatis** tiap push ke `main` yang menyentuh `live/**` atau `live_json.sql` (#235); pada hari-H juga terbit tiap 15 menit lewat cron bertanggal 28-29 Agustus UTC |
+| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | **otomatis** tiap push ke `main` yang menyentuh `live/**` atau `live_json.sql` (#235); pada 29 Agustus 2026 pukul 08:00-23:59 WIB juga terbit tiap 15 menit |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
 
@@ -837,11 +837,11 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   `berangkatkan_kloter`; sisanya menunggu karena tiap perbaikan menuntut
   seluruh badan fungsinya disalin ulang.
 - **Cron rekap live hanya hidup pada hari-H.** `publish-live.yml` berjalan
-  tiap 15 menit pada 28-29 Agustus UTC, rentang yang mencakup seluruh 29
-  Agustus WIB. Batas tanggal itu sengaja menahan biaya di paling banyak 192
-  run per tahun; jangan ubah menjadi jadwal setiap hari. Di luar rentang itu,
-  halaman rekap terbit saat ada push yang menyentuh `live/` atau saat tombol
-  Run workflow ditekan.
+  tiap 15 menit pada 29 Agustus 2026 pukul 08:00-23:45 WIB. GitHub cron tidak
+  punya kolom tahun, jadi langkah pertama memeriksa tanggal lengkap dan
+  berhenti sebelum membaca database atau deploy pada tahun lain. Di luar
+  jendela itu, halaman rekap hanya terbit saat ada push yang menyentuh `live/`
+  atau saat tombol Run workflow ditekan.
 - **Upload massal nilai belum ada.** `rancangan-b.md` bagian 6 menjelaskan
   jalur tempel-dari-Excel lengkap dengan layar preview. Yang sudah dibangun
   baru input tabelnya (`#/pos`) — yang sebenarnya sudah menutup sebagian besar

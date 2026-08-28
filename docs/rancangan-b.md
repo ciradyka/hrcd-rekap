@@ -300,12 +300,13 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
    HP penonton hanya menyentuh hosting statis — bandwidth gratis tak terbatas,
    **nol request ke Supabase**.
 2. Regenerasi: workflow GitHub Actions (`publish-live.yml`) — cron 15 menit
-   bertanggal 28-29 Agustus UTC (mencakup hari-H dalam WIB) + tombol manual.
-   Tiga langkah yang bisa
+   pada 29 Agustus 2026 pukul 08:00-23:45 WIB + tombol manual. Tahun diperiksa
+   langkah pertama karena format cron hanya membawa tanggal dan bulan. Tiga
+   langkah yang bisa
    dibaca pelajar: baca view publik memakai **service role key dari GitHub
    Secrets** (bukan anon — anon tidak bisa baca apa pun) → tulis `live.json` →
-   deploy ke Pages. Maksimal 192 run per tahun ≪ kuota gratis 2.000
-   menit/bulan.
+   deploy ke Pages. Hanya 64 penerbitan terjadwal pada hari-H ≪ kuota gratis
+   2.000 menit/bulan.
 3. **Bertahap sebagai data, bukan kode**: `status_acara.fase_live` menentukan
    isi view publik — `pra` (jumlah pendaftar per golongan), `progres` (per
    regu: sudah lewat pos mana, **tanpa angka**), `penuh` (klasemen 4 golongan
