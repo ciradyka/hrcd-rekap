@@ -651,4 +651,16 @@ run supabase/migrations/0131_impor_pendaftaran_xxxvii_susulan.sql
 # aktif dicocokkan tanpa mengubah nama atau nomor regu yang sudah bernomor.
 run supabase/migrations/0132_impor_pendaftaran_xxxvii_lanjutan.sql
 
+# 0136 menyamakan tanggal daftar dengan Timestamp Google Form, dan
+# menyegarkan ketua serta anggota dari kiriman TERAKHIR tiap regu.
+#
+# PALING AKHIR, sesudah SELURUH impor. Versi pertama menaruhnya di atas 0131
+# dan 0132 — dan ia melaporkan 45 nama "tidak ada di database", padahal regu
+# itu memang belum diimpor pada titik tersebut. Migrasi yang menyegarkan data
+# harus berjalan sesudah data yang disegarkannya ada.
+#
+# Nama yang tetap tidak ketemu dilewati dengan raise notice, bukan
+# digagalkan: database uji dan produksi tidak memuat regu yang sama persis.
+run supabase/migrations/0136_tanggal_daftar_dari_form.sql
+
 echo "SEMUA TES LULUS"
