@@ -21,10 +21,11 @@
 # nilai — bukan berisi nilai yang disembunyikan tampilan. Admin memindah fase
 # ke 'penuh' saat hasil diumumkan, dan jalan berikutnya klasemennya ikut.
 #
-# CRON SENGAJA DIMATIKAN (baris `schedule` dikomentari). Nyalakan pada minggu
-# lomba, matikan lagi sesudahnya — repo ini privat, dan menit Actions
-# terpakai walau tidak ada yang berubah. Tombol Run workflow tetap bisa
-# ditekan kapan pun, termasuk dari HP.
+# CRON 15 MENIT AKTIF HANYA UNTUK HARI-H. Tanggal cron memakai UTC, jadi
+# 28-29 Agustus mencakup 29 Agustus WIB dari sebelum acara sampai pagi
+# sesudahnya. Batas tanggal menahan biaya di paling banyak 192 run per tahun;
+# jangan lebarkan menjadi setiap hari. Tombol Run workflow tetap bisa ditekan
+# kapan pun, termasuk dari HP.
 #
 # Butuh repository secret (dua-duanya sudah dipakai workflow lain):
 #   SUPABASE_DB_URL       connection string Postgres (Session pooler, 5432)
@@ -64,18 +65,10 @@ on:
       # terbit, walau tidak satu berkas pun di live/ ikut berubah.
       - 'supabase/checks/live_json.sql'
       - '.github/workflows/publish-live.yml'
-  # schedule:
-  #   - cron: '*/5 * * * *'   # nyalakan pada minggu lomba
-  #
-  # SEBELUM MENYALAKANNYA, HITUNG DULU. Tiap lima menit = 288 run sehari, dan
-  # GitHub membulatkan tiap job ke atas ke menit penuh — jadi 288 menit sehari
-  # walaupun run-nya cuma 30 detik. Jatah repo privat 2.000 menit sebulan habis
-  # dalam SEMINGGU, dan yang ikut mati bukan cuma penerbitan ini melainkan
-  # seluruh Actions: tes PR, apply-migration, ganti password panitia.
-  #
-  # Kalau memang dibutuhkan pada hari-H, `*/15` sudah memberi papan yang
-  # terbarui empat kali sejam dengan sepertiga biayanya, dan matikan lagi
-  # begitu acaranya usai.
+  schedule:
+    # Cron memakai UTC. Rentang ini mencakup 28 Agustus 07:00 WIB sampai
+    # 30 Agustus 06:45 WIB, termasuk seluruh hari lomba 29 Agustus.
+    - cron: '*/15 * 28-29 8 *'
 
 # Dua jalan yang bertumpuk akan saling menimpa live.json di Cloudflare, dan
 # yang menang belum tentu yang terbaru. Satu jalan saja pada satu waktu.

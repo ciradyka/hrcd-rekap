@@ -687,7 +687,10 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    a day, which empties a private repo's monthly allowance in a week. Multiply
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia
-   run from their phones.
+   run from their phones. The event-only exception in `publish-live.yml` runs
+   every 15 minutes on 28-29 August UTC, covering the 29 August event in WIB.
+   Its date-bound schedule costs at most 192 runs a year; do not widen it to an
+   everyday schedule.
 
 ## 17. Selama acara berjalan
 
