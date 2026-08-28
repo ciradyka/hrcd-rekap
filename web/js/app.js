@@ -6184,7 +6184,11 @@ async function layarKejuaraan() {
       pilih.disabled = true;
       try {
         await simpanKejuaraanManual(pilih.dataset.kode, dipilih.regu_id);
-        await layarKejuaraan();
+        terkunci.querySelector(".kejuaraan-nilai").innerHTML = nilai(dipilih);
+        pilih.value = labelRegu(dipilih);
+        saran.hidden = true;
+        isian.hidden = true;
+        terkunci.hidden = false;
         notif("Kejuaraan tersimpan.");
       } catch (e) { notif(e.message, true); }
       finally { pilih.disabled = false; }

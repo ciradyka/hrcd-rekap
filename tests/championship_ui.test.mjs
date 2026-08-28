@@ -26,6 +26,11 @@ test("pilihan manual tidak menawarkan regu Intern dan terkunci setelah dipilih",
   assert.match(app, /terkunci\.hidden = true;\s*isian\.hidden = false;/);
 });
 
+test("menyimpan juara mengunci baris tanpa memuat ulang layar", () => {
+  assert.match(app, /simpanKejuaraanManual[\s\S]*kejuaraan-nilai[\s\S]*isian\.hidden = true;[\s\S]*terkunci\.hidden = false;/);
+  assert.doesNotMatch(app, /simpanKejuaraanManual\(pilih\.dataset\.kode, dipilih\.regu_id\);\s*await layarKejuaraan\(\)/);
+});
+
 test("layout desktop menempatkan juara umum di tengah dan golongan berdampingan", () => {
   assert.match(css, /@media \(min-width: 900px\)[\s\S]*\.kejuaraan-umum[\s\S]*justify-self: center/);
   assert.match(css, /\.kejuaraan-umum-penegak \{ grid-column: 1; grid-row: 2; \}/);
