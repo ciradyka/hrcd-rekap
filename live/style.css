@@ -1772,12 +1772,48 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      harus ikut naik, kalau tidak tabelnya kembali menggeser ke samping dan
      kolom tombol hilang lagi dari layar. */
   .table-bayar { min-width: 820px; }
+
+  /* Label tombol MEMENDEK di sini juga: "Cetak Kwitansi" -> "Kwitansi",
+     "Tandai Lunas" -> "Lunas". Sampai sekarang .teks-lebar hanya
+     disembunyikan di rentang 880-940px, jadi labelnya justru TUMBUH KEMBALI
+     begitu tabelnya jadi `fixed` — dan di situlah kolomnya paling sempit.
+
+     DIUKUR. Dengan nota transfer di kolom tombol, baris lunas butuh 227px
+     sementara kolomnya cuma 215px pada 941px, 220 pada 960, 225 pada 980.
+     Label pendek memangkasnya jadi 177px — sisa 38px di titik tersempit.
+
+     Akibatnya label lengkap kini hanya muncul di kartu HP, dan itu memang
+     yang dimaksud aturan aslinya: "Lunas" sendirian di tombol selebar layar
+     terbaca seperti label status, bukan perintah. Di tabel, tombolnya
+     seukuran isinya dan kata kedua sudah membedakan aksinya. */
+  .table-bayar .teks-lebar { display: none; }
+
+  /* Label tombol TIDAK BOLEH pecah di dalam tombolnya.
+
+     Ini yang membuat kesalahan sebelumnya lolos dari pengukuran: waktu
+     kolomnya kurang, "Cetak Kwitansi" membungkus jadi dua baris DI DALAM
+     tombol, jadi tombolnya justru terukur lebih SEMPIT dan pemeriksaan
+     "muat atau tidak" lulus. Yang rusak tingginya, dan tinggi tidak ikut
+     diperiksa. Dengan nowrap, kekurangan lebar muncul sebagai luapan yang
+     memang terbaca oleh pengukurannya. */
+  .table-bayar .action-row .button { white-space: nowrap; }
   .table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
   .table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
   .table-bayar > thead > tr > th:nth-child(3) { width:  6%; }
   .table-bayar > thead > tr > th:nth-child(4) { width: 12%; }
-  .table-bayar > thead > tr > th:nth-child(5) { width: 15%; }
-  .table-bayar > thead > tr > th:nth-child(6) { width: 25%; }
+  /* Metode 20%, naik dari 15%, dan 5%-nya diambil dari kolom tombol di
+     bawahnya. Yang harus muat SEBARIS di sini tiga benda, bukan dua:
+     "Transfer" + lencana LUNAS + lencana nota = 151px, sementara 15%
+     cuma 131px pada ambang 941px. Notanya duduk di sini karena ia
+     keterangan tentang pembayaran, bukan aksi — di kolom tombol ia
+     terbaca sebagai perintah ketiga sejajar Kwitansi dan Batalkan.
+
+     Yang membuat 5% itu boleh diambil: label tombol memendek di blok ini
+     (aturan .teks-lebar di atas), jadi kolom tombol cuma butuh 152px dan
+     20% memberinya 174px pada ambang yang sama. Sebelum labelnya
+     dipendekkan, 5% ini TIDAK ada untuk diambil. */
+  .table-bayar > thead > tr > th:nth-child(5) { width: 20%; }
+  .table-bayar > thead > tr > th:nth-child(6) { width: 20%; }
 
   /* Tombol aksi DITENGAHKAN di kolomnya, dan kolom Biaya di rincian memakai
      lebar yang sama (25%). Akibatnya angka rupiah tiap regu jatuh tepat di
@@ -1790,8 +1826,16 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .detail-table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
   .detail-table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
   .detail-table-bayar > thead > tr > th:nth-child(3) { width: 18%; }
-  .detail-table-bayar > thead > tr > th:nth-child(4) { width: 15%; }
-  .detail-table-bayar > thead > tr > th:nth-child(5) { width: 25%; }
+  /* Kolom TERAKHIR kedua tabel harus tetap bertemu — itu yang membuat angka
+     rupiah tiap regu jatuh tepat di bawah tombol induknya (pasal 15.2). Jadi
+     begitu induknya turun 25% -> 20%, rincian ikut turun, dan 5% yang lepas
+     jatuh ke kolom Sekolah supaya jumlahnya tetap 100.
+
+     18 + 24 + 18 + 20 + 20 = 100. Di bawah `fixed`, kolom yang tidak dipatok
+     mendapat NOL, bukan sisanya (pasal 15.3) — jadi jumlah ini bukan
+     formalitas. */
+  .detail-table-bayar > thead > tr > th:nth-child(4) { width: 20%; }
+  .detail-table-bayar > thead > tr > th:nth-child(5) { width: 20%; }
 }
 
 .detail-table-bayar { margin: 0; }
