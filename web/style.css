@@ -2488,8 +2488,19 @@ input.small-input { text-align: center; }
 /* KECUALI yang isinya NAMA. `.small-input` ditengahkan karena isinya angka —
    nomor dada, jumlah benar — dan angka yang ditengahkan lebih mudah
    dibandingkan antar baris. Nama akun bukan angka: ditengahkan, ia terbaca
-   seperti judul, dan contoh isiannya makin terlihat seperti nilai sungguhan. */
-.form-akun input.small-input { text-align: left; }
+   seperti judul, dan contoh isiannya makin terlihat seperti nilai sungguhan.
+
+   Contact Person di layar Data Peserta masuk kelompok yang sama, dan itu
+   aturan ini dipakai lagi, bukan pengecualian baru: satu kolom berisi nama
+   orang yang panjangnya berbeda-beda, dan yang ditengahkan tepi kirinya
+   bergeser tiap baris — mata kehilangan garis tegaknya, persis alasan yang
+   sudah ditulis untuk kolom Metode di Meja Pembayaran.
+
+   Nomor WhatsApp di sebelahnya TETAP ditengahkan, dan itu bukan kelalaian:
+   ia angka, panjangnya hampir selalu sama, dan aturan di atas memang
+   membuatnya. */
+.form-akun input.small-input,
+.table-peserta input.small-input[data-kontak-nama] { text-align: left; }
 /* Isian yang ditolak sebelum dikirim — memerah di tempatnya supaya petugas
    tahu BARIS MANA yang salah, bukan cuma bahwa "ada yang salah". */
 .input-error { border-color: var(--bahaya); background: var(--bahaya-muda); }
