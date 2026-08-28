@@ -1936,7 +1936,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      memang terbaca oleh pengukurannya. */
   .table-bayar .action-row .button { white-space: nowrap; }
   .table-bayar > thead > tr > th:nth-child(1) { width: 18%; }
-  .table-bayar > thead > tr > th:nth-child(2) { width: 24%; }
+  /* 23%, bukan 24%. Satu persen pindah ke kolom Metode di bawah — lihat
+     catatannya di sana. Nama sekolah tetap 195px di tabel tersempit (848px,
+     diukur di browser), yang memuat "MTs Al-Hasan Banjarsari" tanpa membungkus
+     dan membungkus yang lebih panjang seperti sebelumnya. */
+  .table-bayar > thead > tr > th:nth-child(2) { width: 23%; }
   .table-bayar > thead > tr > th:nth-child(3) { width:  6%; }
   .table-bayar > thead > tr > th:nth-child(4) { width: 12%; }
   /* Metode 20%, naik dari 15%, dan 5%-nya diambil dari kolom tombol di
@@ -1950,7 +1954,14 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      (aturan .teks-lebar di atas), jadi kolom tombol cuma butuh 152px dan
      20% memberinya 174px pada ambang yang sama. Sebelum labelnya
      dipendekkan, 5% ini TIDAK ada untuk diambil. */
-  .table-bayar > thead > tr > th:nth-child(5) { width: 20%; }
+  /* 21%, bukan 20%. Lencana LUNAS sekarang berbunyi "✓ LUNAS" — ia tombol
+     riwayat — dan satu glif itu melebarkannya ±11px. DIUKUR, bukan dikira
+     (pasal 15.9): isi kolom Metode jadi 175px, sementara 20% di tabel
+     tersempit yang mungkin di rentang ini (848px) cuma 170px. Meleset lima
+     piksel, dan "Transfer ✓ LUNAS [nota]" meluap keluar selnya pada jendela
+     946–961px SAJA — pita selebar 16 piksel yang tidak akan pernah tertangkap
+     dengan membaca aturannya. 21% memberi 178px. */
+  .table-bayar > thead > tr > th:nth-child(5) { width: 21%; }
   .table-bayar > thead > tr > th:nth-child(6) { width: 20%; }
 
   /* Perataan kolom Metode dan kolom tombol TIDAK diatur di sini melainkan di
@@ -2220,6 +2231,35 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   color: var(--tinta-lembut); font-size: .78rem;
   white-space: nowrap; margin-left: auto;
 }
+
+/* Riwayat PENDAFTARAN memakai daftar, warna, dan kelas yang sama dengan
+   riwayat nilai pos — dua dialog yang menjawab pertanyaan yang sama tidak
+   boleh terasa seperti dua aplikasi. Satu hal yang berbeda: "oleh · kapan"
+   turun ke barisnya SENDIRI, selalu.
+
+   Sebabnya bukan selera, melainkan lebar yang diukur. Di riwayat pos ketiga
+   kolomnya muat sebaris karena nilainya ANGKA — "1250 → 1250" selebar 92px.
+   Di sini nilainya nama, status, dan daftar anggota: "menunggu_pembayaran →
+   lunas" saja sudah 242px. Diukur di kartu dialog yang isinya 423px, baris
+   terpendek pun menuntut 482px dan yang memuat tautan bukti 638px — jadi
+   SETIAP baris tergeser mendatar, dan yang hilang di ujung kanan adalah
+   jamnya, justru yang dicari orang yang membuka riwayat.
+
+   SELALU turun, bukan kadang-kadang. Membungkus hanya saat tidak muat adalah
+   bug yang sudah pernah diperbaiki di .riwayat li di atas: daftar jadi
+   bergerigi, sebagian baris dua baris dan sebagian satu, dan justru lebih
+   sulit disapu mata daripada dua baris yang rata. */
+.riwayat-pendaftaran li { flex-wrap: wrap; min-width: 0; }
+/* Nilainya boleh memakai sisa lebar dan MEMBUNGKUS di dalam kolomnya: daftar
+   anggota adalah empat nama sekaligus, dan menahannya nowrap mengembalikan
+   penggulir mendatar yang baru saja dibuang. */
+.riwayat-pendaftaran .r-nilai {
+  flex: 1 1 auto; min-width: 0; white-space: normal; overflow-wrap: anywhere;
+}
+/* Barisnya sendiri, dan rata KIRI di bawah nama kolomnya — bukan didorong ke
+   kanan oleh margin-left: auto, yang di baris kedua cuma membuat jam setiap
+   entri berhenti di tempat yang berbeda-beda. */
+.riwayat-pendaftaran .r-oleh { flex: 0 0 100%; margin-left: 0; }
 
 /* Galeri seluruh foto satu lomba. Gambarnya ditumpuk ke bawah, bukan dibuka
    satu per satu di tab baru: sembilan tab adalah sembilan kali menekan

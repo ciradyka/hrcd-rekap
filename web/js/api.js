@@ -757,6 +757,22 @@ export async function riwayatNilai(pos, nomorDada) {
     `&select=*&order=changed_at.desc`);
 }
 
+/** Riwayat satu pendaftaran: perubahan pada pendaftaran, regu, dan pembayaran
+ *  (view v_riwayat_pendaftaran, migrasi 0137).
+ *
+ *  Sejajar dengan riwayatNilai() di atas, dan sengaja dibaca PER KODE
+ *  PEMBAYARAN: itu yang dipegang ketiga layar yang memakainya — Pembayaran,
+ *  Daftar Ulang, dan Data Peserta. Memuatnya sekaligus untuk seluruh tabel
+ *  berarti ratusan baris yang hampir semuanya tidak dibuka siapa pun. */
+export async function riwayatPendaftaran(kode) {
+  if (K.mode === "dev") {
+    return baca(`/riwayat-pendaftaran?kode=${encodeURIComponent(kode)}`);
+  }
+  return baca(null,
+    `v_riwayat_pendaftaran?kode_pembayaran=eq.${encodeURIComponent(kode)}` +
+    "&select=*&order=changed_at.desc,id.desc");
+}
+
 /** Kelengkapan input per pos — satu baris per pos, bukan per regu.
  *
  *  Sengaja agregat: layar memanggilnya tiap 20 detik, dan menarik 300 × 5

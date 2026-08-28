@@ -55,6 +55,21 @@ function blokPembangunBaris() {
 }
 
 
+/** Ambil centangRiwayat() APA ADANYA dari app.js.
+ *
+ *  Sejak lencana LUNAS menjadi tombol riwayat, fungsi inilah yang menggambar
+ *  lencana itu — jadi menirunya di sini berarti menguji lencana yang tidak
+ *  pernah muncul di layar. Yang dijalankan harus yang sungguhan. */
+function sumberCentangRiwayat() {
+  const mulai = app.indexOf("const centangRiwayat = (kode");
+  assert.notEqual(mulai, -1,
+    "centangRiwayat() tidak ditemukan di app.js — kalau namanya berubah, " +
+    "sesuaikan potongan ini, JANGAN hapus tesnya");
+  const akhir = app.indexOf("`;", app.indexOf("aria-label=", mulai)) + 2;
+  return app.slice(mulai, akhir);
+}
+
+
 /* Tiruan seadanya. Yang ditiru cuma yang DIPANGGIL blok itu; kalau ia mulai
    memanggil yang lain, tes ini gagal dengan "x is not defined" — dan itu
    memang laporan yang benar, bukan gangguan. */
@@ -100,7 +115,8 @@ const BARIS = [
 function bangun(baris = BARIS) {
   const nama = Object.keys(TIRUAN);
   // eslint-disable-next-line no-new-func
-  const jalan = new Function("baris", ...nama, blokPembangunBaris());
+  const jalan = new Function("baris", ...nama,
+    [sumberCentangRiwayat(), blokPembangunBaris()].join(";"));
   return jalan(baris, ...nama.map((n) => TIRUAN[n]));
 }
 
@@ -112,7 +128,11 @@ test("blok pembangun baris berjalan sampai selesai untuk keempat bentuk", () => 
   const jumlah = (pola) => (keluaran.match(pola) || []).length;
 
   assert.equal(jumlah(/<tr class="invoice-row"/g), 4, "empat baris invoice");
-  assert.equal(jumlah(/badge-green">LUNAS/g), 2, "dua lencana LUNAS");
+  assert.equal(jumlah(/✓ LUNAS<\/button>/g), 2,
+    "dua lencana LUNAS, dan keduanya tombol riwayat");
+  assert.equal(jumlah(/data-riwayat-kode=/g), 2,
+    "centang riwayat HANYA di baris lunas — bukan di yang belum bayar " +
+    "atau yang batal, tempat ia akan berbohong tentang keadaannya");
   assert.equal(jumlah(/badge-red">BATAL/g), 1, "satu lencana BATAL");
   assert.equal(jumlah(/data-metode=/g), 1, "satu dropdown cara bayar");
 });
@@ -134,7 +154,11 @@ test("tombol nota duduk di kolom Metode, bukan di kolom tombol", () => {
   // keterangan tentang pembayaran — bukan aksi ketiga sejajar Kwitansi dan
   // Batalkan.
   const rapat = bangun().replace(/\s+/g, " ");
-  assert.match(rapat, /badge-green">LUNAS<\/span><button[^>]*data-bukti/,
+  // Lencana LUNAS sekarang <button> (ia tombol riwayat), bukan lagi <span>.
+  // Yang diuji tetap HUBUNGANNYA — nota tepat sesudah lencana lunas — bukan
+  // nama tagnya: tes yang memaku ejaan markup gagal atas perubahan yang benar
+  // dan diam atas yang salah.
+  assert.match(rapat, /✓ LUNAS<\/button><button[^>]*data-bukti/,
     "di baris lunas, nota harus tepat sesudah lencana LUNAS");
   assert.match(rapat, /<\/select><button[^>]*data-bukti/,
     "di baris belum lunas, nota harus tepat sesudah dropdown cara bayar");

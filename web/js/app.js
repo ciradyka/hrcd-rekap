@@ -20,7 +20,7 @@ import {
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   rentangNomorDada,
-  komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai,
+  komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto, klasemenLiveScore,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
@@ -897,6 +897,136 @@ const tanggalRingkas = (t) => {
   return `${b.day}/${b.month}/${b.year} ${b.hour}:${b.minute}`;
 };
 
+/* ---------------------------------------------------------------------------
+   RIWAYAT SATU PENDAFTARAN — centang hijau yang bisa diketuk.
+
+   Bentuknya menyalin yang sudah ada di layar Input Nilai Pos: centang hijau
+   berarti "sudah masuk database", dan mengetuknya menjawab pertanyaan yang
+   memang muncul saat menatapnya — siapa yang menaruhnya, dan apa yang ia ganti.
+   Kelasnya pun sama (.riwayat, .r-lomba, .r-nilai, .r-oleh): dua dialog yang
+   menjawab pertanyaan yang sama tidak boleh terasa seperti dua aplikasi.
+
+   Hanya pada baris yang SUDAH SELESAI — Lunas di Pembayaran, dan bernomor dada
+   di Daftar Ulang. Itu bukan penghematan: pada baris yang belum lunas atau
+   belum bernomor, centang hijau berbohong tentang keadaannya.
+
+   Datanya sudah tercatat trigger `catat_riwayat()` sejak 0002 — pendaftaran,
+   regu, DAN pembayaran. Yang baru cuma cara melihatnya: view
+   v_riwayat_pendaftaran (migrasi 0137).
+   --------------------------------------------------------------------------- */
+
+/** Nama kolom database tidak terbaca oleh yang tidak menulisnya. Yang tidak
+ *  terdaftar di sini tetap tampil dengan nama aslinya — nama teknis yang jujur
+ *  lebih baik daripada baris yang hilang diam-diam. */
+const LABEL_RIWAYAT = {
+  nama_regu: "Nama regu", nama_ketua: "Ketua", anggota: "Anggota",
+  kelas_organisasi: "Kelas", golongan: "Golongan", nomor_dada: "Nomor dada",
+  kloter_nomor: "Kloter", urutan_kloter: "Urutan", kontrak_menit: "Kontrak",
+  is_cancelled: "Dibatalkan",
+  nama_kontak: "Contact person", kontak_wa: "WhatsApp",
+  status: "Status", jumlah_regu: "Jumlah regu", butuh_barak: "Barak",
+  jumlah_menginap: "Menginap", metode_bayar: "Cara bayar",
+  bukti_transfer: "Bukti transfer",
+  amount: "Nominal", method: "Metode", nomor_kwitansi: "Kwitansi",
+};
+
+const TABEL_RIWAYAT = {
+  pendaftaran: "Pendaftaran", regu: "Regu", pembayaran: "Pembayaran",
+};
+
+/** JSON apa adanya tidak dibaca orang: null jadi "—", daftar anggota jadi
+ *  kalimat, dan boolean jadi kata. */
+function nilaiRiwayat(v) {
+  if (v === null || v === undefined) return "—";
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
+  if (typeof v === "boolean") return v ? "ya" : "tidak";
+  const t = String(v);
+  if (t === "") return "—";
+  // Tautan bukti transfer ditulis "(tautan)", bukan alamatnya. Alamat Drive
+  // panjangnya 60 huruf dan tidak satu pun di antaranya menjawab pertanyaan
+  // yang sedang ditanyakan — sedangkan tombol yang MEMBUKA tautan itu ada di
+  // baris yang riwayatnya sedang dibaca.
+  return /^https?:\/\//.test(t) ? "(tautan)" : t;
+}
+
+/** Satu baris riwayat jadi satu atau beberapa <li>.
+ *
+ *  INSERT sengaja TIDAK dirinci kolom per kolom: saat baris lahir, SELURUH
+ *  kolomnya terhitung berubah, dan dua puluh baris "— → sesuatu" mengubur
+ *  perubahan sungguhan yang justru dicari. Satu baris "Regu dibuat" sudah
+ *  menyampaikan seluruh yang berguna. */
+function liRiwayat(b) {
+  const tabel = TABEL_RIWAYAT[b.table_name] || b.table_name;
+  const oleh = `${b.oleh} · ${tanggalJam(b.changed_at)}`;
+
+  if (b.action !== "UPDATE") {
+    return html`<li>
+      <span class="r-lomba">${tabel}</span>
+      <span class="r-nilai"><strong>${b.action === "DELETE" ? "dihapus" : "dibuat"}</strong></span>
+      <span class="r-oleh">${oleh}</span>
+    </li>`;
+  }
+
+  const ubah = b.perubahan || {};
+  return Object.keys(ubah).map(k => html`<li>
+    <span class="r-lomba">${LABEL_RIWAYAT[k] || k}</span>
+    <span class="r-nilai">${nilaiRiwayat(ubah[k].lama)} →
+      <strong>${nilaiRiwayat(ubah[k].baru)}</strong></span>
+    <span class="r-oleh">${oleh}</span>
+  </li>`).join("");
+}
+
+/** Centang hijau yang bisa diketuk.
+ *
+ *  `label` opsional, dan itu yang membuat satu fungsi melayani dua layar:
+ *
+ *  - Meja Pembayaran memakai centang BERLABEL, dan ia MENGGANTIKAN lencana
+ *    LUNAS yang sudah ada di sana — bukan berdiri di sebelahnya. Kolom tombol
+ *    di layar itu sudah penuh sampai piksel terakhir pada lebar tersempitnya
+ *    (diukur: isinya 197px di dalam sel 193px), jadi elemen ketujuh di baris
+ *    itu meluap keluar tabel. Menjadikan lencana statusnya SENDIRI sebagai
+ *    tombol tidak menambah satu elemen pun — dan itu persis idiom layar Input
+ *    Nilai Pos, tempat lencana hijaunya memang tombol riwayat.
+ *
+ *  - Meja Daftar Ulang memakai centang polos, karena di sana tidak ada lencana
+ *    status untuk dijadikan tombol: yang menyatakan "selesai" adalah deretan
+ *    nomor dadanya sendiri.
+ *
+ *  aria-label ditulis penuh: tombol yang isinya cuma "✓" tidak menyebutkan
+ *  apa-apa ke pembaca layar. */
+const centangRiwayat = (kode, label = "") => html`<button
+  class="badge badge-green badge-tombol" type="button"
+  data-riwayat-kode="${kode}" title="Riwayat perubahan"
+  aria-label="Riwayat perubahan ${kode}">✓${label ? " " + label : ""}</button>`;
+
+/** Pasang penangannya pada seluruh centang di dalam satu wadah. Dipanggil
+ *  sekali per penggambaran tabel, bukan per baris. */
+function pasangCentangRiwayat(wadah) {
+  wadah.querySelectorAll("[data-riwayat-kode]").forEach(btn =>
+    btn.addEventListener("click", () => bukaRiwayatPendaftaran(btn.dataset.riwayatKode)));
+}
+
+/** Dibaca saat DIKETUK, bukan ikut dimuat bersama tabelnya: satu layar memuat
+ *  ratusan baris dan hampir semuanya tidak pernah ditanya riwayatnya.
+ *
+ *  Yang ditampilkan sengaja apa adanya — dari apa jadi apa, siapa, kapan —
+ *  tanpa menyimpulkan mana yang "mencurigakan". Yang tahu apakah suatu
+ *  perubahan wajar adalah orang yang mengerjakannya, bukan layar. */
+async function bukaRiwayatPendaftaran(kode) {
+  let baris;
+  try { baris = await riwayatPendaftaran(kode); }
+  catch (err) { notif(`Riwayat tidak bisa dibaca: ${err.message}`, true); return; }
+
+  const isi = baris.map(liRiwayat).join("");
+  await dialog({
+    judul: `Riwayat ${kode}`,
+    kartuHtml: isi
+      ? `<ul class="riwayat riwayat-pendaftaran">${isi}</ul>`
+      : `<p class="description">Belum pernah diubah.</p>`,
+    labelAksi: "Tutup", bacaSaja: true,
+  });
+}
+
 async function layarDataPeserta() {
   if (!EDISI) { layarButuhEdisi("Data Peserta"); return; }
   pasangKepala("Data Peserta", true);
@@ -1276,7 +1406,7 @@ async function layarPembayaran() {
         // sebagai teks. Nilai dari luar tetap lewat esc() satu per satu.
         ? `<span class="metode-baris" style="flex-wrap:nowrap;gap:.25rem"
            ><span class="metode-kata">${esc(b.pembayaran ? b.pembayaran.method : "—")}</span
-           ><span class="badge badge-green">LUNAS</span>${nota}</span>`
+           >${centangRiwayat(b.kode_pembayaran, "LUNAS")}${nota}</span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
           // Yang terpilih lebih dulu adalah cara bayar yang DIPILIH PEMBINA saat
@@ -1389,6 +1519,11 @@ async function layarPembayaran() {
       satuan.textContent = " regu";
       return [document.createTextNode(`${terbuka ? "▾" : "▸"} ${jumlah}`), satuan];
     };
+
+    // Riwayat perubahan invoice ini. Dipasang sekali per penggambaran, bukan
+    // per baris — tabelnya digambar ulang tiap kali saringan atau pencarian
+    // berubah, dan penangan yang menempel di baris lama ikut hilang bersamanya.
+    pasangCentangRiwayat(tbody);
 
     // Bukti transfer yang diunggah pembina. Bucket-nya privat, jadi tautannya
     // ditandatangani saat diketuk — dan jendelanya dibuka SEBELUM await, karena
@@ -1697,7 +1832,10 @@ async function layarDaftarUlang() {
                    aria-expanded="${terbuka}">
              ${terbuka ? "▾" : "▸"} Isi ${menunggu.length} Nomor Dada
            </button>${nomorHtml ? `<div class="sub">${nomorHtml}</div>` : ""}`
-        : `<div class="pill-row">${nomorHtml}</div>`;
+        // Selesai = seluruh regunya sudah bernomor, dan tidak ada lagi tombol
+        // di baris ini. Centangnya berdiri di depan deretan nomor, tempat mata
+        // sudah berhenti untuk memastikan nomornya lengkap.
+        : `<div class="pill-row">${centangRiwayat(b.kode_pembayaran)}${nomorHtml}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
       return `
@@ -1756,6 +1894,9 @@ async function layarDaftarUlang() {
           </td>
         </tr>`}`;
     }).join("")));
+
+    // Riwayat perubahan pendaftaran ini — lihat catatan sama di Meja Pembayaran.
+    pasangCentangRiwayat(tbody);
 
     // Nomor rusak/sobek di lapangan: nomor lama PENSIUN (tidak pernah terbit
     // ulang), supaya lembar nilai lama tidak menilai regu yang salah.
