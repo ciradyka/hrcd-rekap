@@ -681,5 +681,6 @@ run supabase/migrations/0141_peserta_terbanyak_eksternal.sql
 run tests/sql/92_peserta_terbanyak_eksternal.sql
 run supabase/migrations/0142_kejuaraan_tanpa_intern.sql
 run tests/sql/93_kejuaraan_tanpa_intern.sql
+run tests/sql/94_simulasi_pemenang_kejuaraan.sql
 
 echo "SEMUA TES LULUS"
