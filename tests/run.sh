@@ -663,4 +663,10 @@ run supabase/migrations/0132_impor_pendaftaran_xxxvii_lanjutan.sql
 # digagalkan: database uji dan produksi tidak memuat regu yang sama persis.
 run supabase/migrations/0136_tanggal_daftar_dari_form.sql
 
+# 0137 membuka riwayat pendaftaran, regu, dan pembayaran — datanya sudah
+# tercatat trigger sejak 0002, yang belum ada cuma cara melihatnya. Pagarnya
+# memakai boleh(), jadi jalur positifnya diuji tes 89 yang menempati kursi.
+run supabase/migrations/0137_riwayat_pendaftaran.sql
+run tests/sql/89_riwayat_pendaftaran.sql
+
 echo "SEMUA TES LULUS"

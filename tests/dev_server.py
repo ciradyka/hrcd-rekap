@@ -219,6 +219,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select * from v_riwayat_nilai where pos = %s "
                     "and nomor_dada = %s order by changed_at desc",
                     (p.get("pos") or 0, p.get("dada") or 0), uid=p.get("uid")))
+            elif u.path == "/riwayat-pendaftaran":
+                self._kirim(200, q(
+                    "select * from v_riwayat_pendaftaran "
+                    "where kode_pembayaran = %s order by changed_at desc, id desc",
+                    (p.get("kode") or "",), uid=p.get("uid")))
             elif u.path == "/rentang-nomor-dada":
                 self._kirim(200, q(
                     "select * from v_rentang_nomor_dada",
