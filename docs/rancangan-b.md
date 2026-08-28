@@ -299,11 +299,13 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
    `live.json` tiap 60 detik dan menampilkan cap "Diperbarui 10:35". Ratusan
    HP penonton hanya menyentuh hosting statis — bandwidth gratis tak terbatas,
    **nol request ke Supabase**.
-2. Regenerasi: workflow GitHub Actions (`publish-live.yml`) — cron 5 menit
-   (dinyalakan hanya minggu lomba) + tombol manual. Tiga langkah yang bisa
+2. Regenerasi: workflow GitHub Actions (`publish-live.yml`) — cron 15 menit
+   bertanggal 28-29 Agustus UTC (mencakup hari-H dalam WIB) + tombol manual.
+   Tiga langkah yang bisa
    dibaca pelajar: baca view publik memakai **service role key dari GitHub
    Secrets** (bukan anon — anon tidak bisa baca apa pun) → tulis `live.json` →
-   deploy ke Pages. ±144 run di hari-H ≪ kuota gratis 2.000 menit/bulan.
+   deploy ke Pages. Maksimal 192 run per tahun ≪ kuota gratis 2.000
+   menit/bulan.
 3. **Bertahap sebagai data, bukan kode**: `status_acara.fase_live` menentukan
    isi view publik — `pra` (jumlah pendaftar per golongan), `progres` (per
    regu: sudah lewat pos mana, **tanpa angka**), `penuh` (klasemen 4 golongan

@@ -662,7 +662,7 @@ Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 | Yang di-deploy | Cara | Pemicu |
 | --- | --- | --- |
 | Layar panitia (`web/`) | Cloudflare Workers, tersambung Git | otomatis tiap push ke `main` |
-| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | **otomatis** tiap push ke `main` yang menyentuh `live/**` atau `live_json.sql` (#235); cron 5 menit masih dikomentari, nyalakan pada minggu lomba supaya rekapnya ikut segar tanpa ada yang push |
+| Situs peserta (`live/`) | GitHub Actions `publish-live.yml` | **otomatis** tiap push ke `main` yang menyentuh `live/**` atau `live_json.sql` (#235); pada hari-H juga terbit tiap 15 menit lewat cron bertanggal 28-29 Agustus UTC |
 | Gateway Worker | GitHub Actions `deploy-gateway.yml` | manual |
 | Migrasi database | GitHub Actions `apply-migration.yml` | manual, satu berkas per jalan |
 
@@ -836,12 +836,12 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   lain), padahal di layar selalu tiga digit. Migrasi `0020` baru membetulkan
   `berangkatkan_kloter`; sisanya menunggu karena tiap perbaikan menuntut
   seluruh badan fungsinya disalin ulang.
-- **Cron rekap live masih dimatikan.** `publish-live.yml` punya jadwal 5
-  menit yang sengaja dikomentari; nyalakan pada minggu lomba dan matikan lagi
-  sesudahnya. Sampai dinyalakan, halaman rekap hanya terbit saat ada push yang
-  menyentuh `live/` atau saat tombol Run workflow ditekan — dan pada hari-H
-  keduanya tidak terjadi, karena tidak ada yang mengubah kode hari itu.
-  Angkanya bergerak dari database, bukan dari repo.
+- **Cron rekap live hanya hidup pada hari-H.** `publish-live.yml` berjalan
+  tiap 15 menit pada 28-29 Agustus UTC, rentang yang mencakup seluruh 29
+  Agustus WIB. Batas tanggal itu sengaja menahan biaya di paling banyak 192
+  run per tahun; jangan ubah menjadi jadwal setiap hari. Di luar rentang itu,
+  halaman rekap terbit saat ada push yang menyentuh `live/` atau saat tombol
+  Run workflow ditekan.
 - **Upload massal nilai belum ada.** `rancangan-b.md` bagian 6 menjelaskan
   jalur tempel-dari-Excel lengkap dengan layar preview. Yang sudah dibangun
   baru input tabelnya (`#/pos`) — yang sebenarnya sudah menutup sebagian besar
