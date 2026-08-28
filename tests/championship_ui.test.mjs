@@ -32,3 +32,25 @@ test("layout desktop menempatkan juara umum di tengah dan golongan berdampingan"
   assert.match(css, /\.kejuaraan-penggalang-pa \{ grid-column: 2; grid-row: 3; \}/);
   assert.match(css, /\.kejuaraan-khusus \{ grid-column: 1 \/ -1; grid-row: 5; \}/);
 });
+
+test("tiap tingkat punya warna sendiri dan judulnya tetap tertulis", () => {
+  assert.match(css, /\.kejuaraan-bagian \.card \{ border-left: 5px solid var\(--aksen\); \}/);
+  assert.match(css, /\.kejuaraan-bagian \.card > h2 \{ color: var\(--aksen\); \}/);
+  for (const [kelas, aksen] of [
+    ["kejuaraan-umum", "#a16207"],
+    ["kejuaraan-umum-penegak", "#1a56db"],
+    ["kejuaraan-umum-penggalang", "#067647"],
+    ["kejuaraan-khusus", "#6941c6"],
+  ]) assert.ok(css.includes(`.${kelas} `) && css.includes(`{ --aksen: ${aksen}; `),
+    `warna aksen ${kelas} hilang`);
+  // PA dan PI ikut warna tingkatnya, jadi Penegak dan Penggalang terbaca
+  // sebagai dua kelompok sebelum judulnya sempat dibaca.
+  assert.match(css, /\.kejuaraan-penegak-pa,\s*\.kejuaraan-penegak-pi\s+\{ --aksen: #1a56db; \}/);
+  assert.match(css, /\.kejuaraan-penggalang-pa,\s*\.kejuaraan-penggalang-pi\s+\{ --aksen: #067647; \}/);
+});
+
+test("garis pemisah juara ada di baris, bukan di tiap sel", () => {
+  assert.match(css, /\.table-kejuaraan > tbody > tr \{ border-bottom: 1px solid var\(--garis\); \}/);
+  assert.match(css, /\.table-kejuaraan > tbody > tr > th,\s*\.table-kejuaraan > tbody > tr > td \{ border-bottom: 0; \}/);
+  assert.match(css, /@media \(max-width: 900px\) \{\s*\.table-kejuaraan > tbody > tr \{\s*display: grid; grid-template-columns: 6\.75rem 1fr;/);
+});

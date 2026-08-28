@@ -730,6 +730,71 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .table-kejuaraan th { width: 45%; }
 .table-kejuaraan td strong, .table-kejuaraan td .description { display: block; }
 .table-kejuaraan .select-small { width: 100%; }
+
+/* Satu juara = satu blok, dan garisnya di BARIS, bukan di sel.
+   Sebelumnya tiap sel membawa border-bottom sendiri, jadi di HP — tempat th
+   dan td bertumpuk — "JUARA I" dan nilainya dipisahkan garis yang sama
+   tebalnya dengan garis yang memisahkan Juara I dari Juara II. Dua hal yang
+   satu pasangan terlihat sama jauhnya dengan dua hal yang bukan, dan
+   daftarnya jadi tujuh baris yang berhimpitan tanpa awal dan akhir. */
+.table-kejuaraan > tbody > tr { border-bottom: 1px solid var(--garis); }
+.table-kejuaraan > tbody > tr:last-child { border-bottom: 0; }
+.table-kejuaraan > tbody > tr > th,
+.table-kejuaraan > tbody > tr > td { border-bottom: 0; }
+/* Di HP satu juara tetap SATU BARIS: label di kiri, pemenangnya di kanan.
+
+   Bertumpuk — label di atas, nilai di bawah — pertanyaannya jadi "Belum
+   ditentukan" ini milik JUARA I di atasnya atau JUARA II di bawahnya, dan itu
+   pertanyaan yang benar-benar ditanyakan panitia. Bersebelahan, tidak ada yang
+   perlu ditebak.
+
+   Kolom labelnya DIPATOK 6.75rem, bukan max-content: tiap baris adalah grid
+   sendiri, jadi max-content diukur ulang per baris dan "Juara I" (59px) akan
+   memulai nilainya di tempat yang berbeda dari "Harapan III" (89px) — persis
+   tepi kiri berpindah-pindah yang dihindari kartu Meja Pembayaran (bagian
+   15.7). 6.75rem = 108px, diambil dari label terpanjang di kartu-kartu ini
+   yang diukur di browser pada 390px: PENGGALANG 102px. */
+@media (max-width: 900px) {
+  .table-kejuaraan > tbody > tr {
+    display: grid; grid-template-columns: 6.75rem 1fr;
+    column-gap: .7rem; align-items: baseline; padding: .5rem 0;
+  }
+  .table-kejuaraan > tbody > tr:first-child { padding-top: 0; }
+  .table-kejuaraan > tbody > tr:last-child { padding-bottom: 0; }
+  .table-kejuaraan > tbody > tr > th { display: block; width: auto; padding: 0; }
+  .table-kejuaraan > tbody > tr > td { display: block; padding: 0; }
+
+  /* Penghargaan Khusus BERTUMPUK, dan itu bukan pengecualian yang malas:
+     labelnya sampai 159px ("Peserta Terfavorit") — separuh lebar HP — dan tiga
+     dari lima barisnya berisi kotak cari beserta tombol Hapus pilihan, yang
+     tidak muat di sisa 200px. Di sini tidak ada yang bisa tertukar juga:
+     tiap label berbeda kata, bukan Juara I sampai Harapan III. */
+  .kejuaraan-khusus .table-kejuaraan > tbody > tr { display: block; }
+  .kejuaraan-khusus .table-kejuaraan > tbody > tr > th { padding-bottom: .15rem; }
+}
+
+/* Warna per TINGKAT, bukan per kartu.
+
+   Tujuh kartu seragam memaksa panitia membaca judul tiap kartu untuk tahu
+   sedang melihat Penegak atau Penggalang — persis keluhan "pusing melihatnya".
+   Sekarang tepi kiri dan judulnya sewarna dalam satu tingkat: biru untuk
+   Penegak, hijau untuk Penggalang, emas untuk Juara Umum edisi, ungu untuk
+   penghargaan khusus. Kartu "Juara Umum <tingkat>" tambah latar tint pucat
+   supaya kepala tingkatnya terbaca lebih dulu daripada PA/PI di bawahnya.
+
+   Warnanya TIDAK PERNAH jadi satu-satunya pembeda (aturan yang sama dengan
+   ikon kotak): judul tiap kartu tetap tertulis penuh, dan urutannya sendiri
+   sudah mengelompokkan tingkat. */
+.kejuaraan-bagian .card { border-left: 5px solid var(--aksen); }
+.kejuaraan-bagian .card > h2 { color: var(--aksen); }
+.kejuaraan-umum            { --aksen: #a16207; background: #fdfaf1; }
+.kejuaraan-umum-penegak    { --aksen: #1a56db; background: #f5f8fe; }
+.kejuaraan-penegak-pa,
+.kejuaraan-penegak-pi      { --aksen: #1a56db; }
+.kejuaraan-umum-penggalang { --aksen: #067647; background: #f3faf6; }
+.kejuaraan-penggalang-pa,
+.kejuaraan-penggalang-pi   { --aksen: #067647; }
+.kejuaraan-khusus          { --aksen: #6941c6; }
 .kejuaraan-bagian { display: grid; gap: 1rem; }
 .kejuaraan-bagian .card { margin-bottom: 0; }
 @media (min-width: 900px) {
