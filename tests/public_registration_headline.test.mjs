@@ -20,16 +20,59 @@ const jumlahHelper = potong("const jumlahPesertaPra = () => {", "const mulai =")
 const muat = potong("async function muat() {", "muat();");
 
 
-test("headline pra menjumlahkan golongan peserta yang sama dengan pill", () => {
-  // Aturannya pindah ke jumlahPesertaPra() supaya kunci penggambaran ulang
-  // bisa memakai angka yang SAMA — tapi ia tetap satu aturan, bukan dua.
-  assert.match(
-    jumlahHelper,
-    /URUT_GOLONGAN_PESERTA\.reduce\(\(n, g\) => n \+ Number\(per\[g\] \|\| 0\), 0\)/,
-  );
+test("headline pra menjumlahkan golongan yang sama dengan pill", () => {
+  // Yang dijaga HUBUNGANNYA, bukan nama konstantanya: headline dan pil harus
+  // menjumlahkan daftar yang SAMA. Dua sumber untuk satu populasi adalah dua
+  // sumber yang suatu hari tidak sepakat, dan yang terlihat cuma angka besar
+  // membantah pil di bawahnya.
+  //
+  // Versi pertama memaku `URUT_GOLONGAN_PESERTA` apa adanya, lalu gagal saat
+  // penghitung pendaftar dipindahkan ke daftar yang memuat Intern — padahal
+  // pilnya ikut pindah dan keduanya tetap sepakat. Tes yang memaku ejaan
+  // menghukum perubahan yang benar, lalu diabaikan.
+  const headline = jumlahHelper.match(
+    /(\w+)\.reduce\(\(n, g\) => n \+ Number\(per\[g\] \|\| 0\), 0\)/);
+  assert.ok(headline, "headline tidak menjumlahkan per_golongan");
+
+  const pil = gambarPra.match(/(\w+)\.filter\(g => per\[g\]\)/);
+  assert.ok(pil, "pil tidak dibangun dari per_golongan");
+
+  assert.equal(pil[1], headline[1],
+    `headline menjumlahkan ${headline[1]} sementara pil menggambar ${pil[1]}`
+    + " — angka besarnya akan membantah pil di bawahnya");
+
   assert.match(gambarPra, /jumlahPesertaPra\(\)/);
   assert.match(gambarPra, /String\(jumlahPeserta\)/);
   assert.doesNotMatch(gambarPra, /angka-besar[^\n]+jumlah_regu_daftar/);
+});
+
+
+test("jumlah pendaftar memuat Intern; klasemen tetap tanpa Intern", () => {
+  // Dua pertanyaan yang berbeda, dan sejak 28 Agustus 2026 dua daftar yang
+  // berbeda:
+  //
+  //   "berapa regu sudah mendaftar"  -> SELURUHNYA. Regu Intern sama-sama
+  //                                     mendaftar, membayar, dan berangkat.
+  //   "siapa yang muncul di papan"   -> Eksternal saja, dan itu tetap.
+  //
+  // Sebelumnya keduanya memakai satu daftar, jadi 64 regu Intern hilang dari
+  // hitungan pendaftar tanpa ada yang memutuskannya.
+  assert.match(live, /const URUT_GOLONGAN_DAFTAR = URUT_GOLONGAN;/,
+    "daftar penghitung pendaftar bukan lagi daftar penuh — Intern akan hilang "
+    + "lagi dari angka pendaftar");
+
+  const saringan = live.match(
+    /const URUT_GOLONGAN_PESERTA =\s*URUT_GOLONGAN\.filter\(g => !g\.startsWith\("intern_"\)\);/);
+  assert.ok(saringan, "saringan klasemen tidak lagi membuang Intern");
+
+  // Papan klasemen — tab, kartu, dan golongan aktif — tetap memakai saringan
+  // Eksternal. Kalau salah satunya berpindah ke daftar penuh, Intern mendapat
+  // tab di papan publik, dan itu keputusan yang berbeda sama sekali.
+  const papan = live.slice(live.indexOf("let golAktif ="));
+  for (const pemakai of ["let golAktif = URUT_GOLONGAN_PESERTA[0]",
+                         "URUT_GOLONGAN_PESERTA.map(g => {"])
+    assert.ok(papan.includes(pemakai),
+      `papan klasemen tidak lagi memakai saringan Eksternal: ${pemakai}`);
 });
 
 
