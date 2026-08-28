@@ -6059,13 +6059,18 @@ async function layarKejuaraan() {
   }
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
+  const bisaUbah = bolehLihat("pengaturan");
   let hasil, regu;
-  try { [hasil, regu] = await Promise.all([hasilKejuaraan(), rekapPenuh()]); }
+  try {
+    [hasil, regu] = await Promise.all([
+      hasilKejuaraan(), bisaUbah ? rekapPenuh() : Promise.resolve([]),
+    ]);
+  }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKejuaraan)); return; }
   if (location.hash !== layarIni) return;
 
-  const bisaUbah = bolehLihat("pengaturan");
-  const opsi = [...new Map(regu.filter(r => r.nomor_dada != null)
+  const opsi = [...new Map(regu.filter(r => r.nomor_dada != null
+      && !String(r.golongan).startsWith("intern_"))
     .map(r => [r.regu_id, r])).values()]
     .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));
   const manual = new Set(["kostum", "terfavorit", "terjauh"]);
@@ -6079,12 +6084,16 @@ async function layarKejuaraan() {
   };
   const baris = (x, label = x.nama_penghargaan) => manual.has(x.kode) && bisaUbah ? `
     <tr><th>${esc(label)}</th><td>
-      <div class="kejuaraan-cari">
-        <input type="search" class="small-input kejuaraan-pilih" data-kode="${esc(x.kode)}"
-          autocomplete="off" aria-label="Pilih ${esc(x.nama_penghargaan)}"
-          placeholder="Nomor dada / nama regu / asal sekolah…"
-          value="${esc(x.regu_id ? labelRegu(x) : "")}">
-        <div class="suggestions kejuaraan-saran" hidden></div>
+      <div class="kejuaraan-isian">
+        <div class="kejuaraan-cari">
+          <input type="search" class="small-input kejuaraan-pilih" data-kode="${esc(x.kode)}"
+            autocomplete="off" aria-label="Pilih ${esc(x.nama_penghargaan)}"
+            placeholder="Nomor dada / nama regu / asal sekolah…"
+            value="${esc(x.regu_id ? labelRegu(x) : "")}">
+          <div class="suggestions kejuaraan-saran" hidden></div>
+        </div>
+        <button type="button" class="button button-secondary button-small kejuaraan-hapus"
+          ${x.regu_id ? "" : "hidden"}>Hapus pilihan</button>
       </div></td></tr>` : `<tr><th>${esc(label)}</th><td>${nilai(x)}</td></tr>`;
 
   const bagian = [
@@ -6115,6 +6124,7 @@ async function layarKejuaraan() {
 
   LAYAR.querySelectorAll(".kejuaraan-pilih").forEach(pilih => {
     const saran = pilih.nextElementSibling;
+    const hapus = pilih.closest(".kejuaraan-isian").querySelector(".kejuaraan-hapus");
     const cocok = (r, q) => `${r.nomor_dada} ${dada3(r.nomor_dada)} ${r.nama_regu} ${r.nama_sekolah}`
       .toLocaleLowerCase("id").includes(q.toLocaleLowerCase("id"));
     const gambarSaran = () => {
@@ -6136,14 +6146,25 @@ async function layarKejuaraan() {
       if (!tombol) return;
       const dipilih = opsi.find(r => r.regu_id === tombol.dataset.reguId);
       if (!dipilih) return;
-      pilih.disabled = true;
+      pilih.disabled = hapus.disabled = true;
       try {
         await simpanKejuaraanManual(pilih.dataset.kode, dipilih.regu_id);
         pilih.value = labelRegu(dipilih);
+        hapus.hidden = false;
         saran.hidden = true;
         notif("Kejuaraan tersimpan.");
       } catch (e) { notif(e.message, true); }
-      finally { pilih.disabled = false; }
+      finally { pilih.disabled = hapus.disabled = false; }
+    });
+    hapus.addEventListener("click", async () => {
+      pilih.disabled = hapus.disabled = true;
+      try {
+        await simpanKejuaraanManual(pilih.dataset.kode, null);
+        pilih.value = "";
+        hapus.hidden = true;
+        notif("Pilihan juara dihapus.");
+      } catch (e) { notif(e.message, true); }
+      finally { pilih.disabled = hapus.disabled = false; }
     });
   });
 }
