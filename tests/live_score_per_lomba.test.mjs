@@ -112,6 +112,20 @@ test("nol komponen terisi berbeda dari nol poin", () => {
 });
 
 
+test("boolean false pada komponen_terisi tetap terbaca kosong", () => {
+  const [pbb] = lombaPos(POS4);
+  const r = ringkasLomba(pbb, "penegak_pa", 4, {
+    "4.pbb_sikap": false,
+    "4.pbb_gerakan": false,
+    "4.pbb_kekompakan": true,
+    "4.pbb_kerapihan": false,
+  });
+  assert.equal(r.berlaku, 4);
+  assert.equal(r.terisi, 1,
+    "hanya boolean true yang menandakan penilaian sudah masuk");
+});
+
+
 test("kedua papan memakai ringkasLomba yang sama", () => {
   assert.match(app, /ringkasLomba\(l, k\.golongan, p\.nomor, poinKomponen\)/);
   assert.match(live, /ringkasLomba\(l, b\.golongan, x\.pos\.nomor,/);

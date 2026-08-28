@@ -1181,7 +1181,10 @@ export function ringkasLomba(lomba, golongan, pos, peta) {
     if (!w) continue;
     berlaku++;
     const v = (peta || {})[`${pos}.${w.kode}`];
-    if (v === null || v === undefined) continue;
+    /* `komponen_terisi` membawa semua kunci sebagai boolean. `false` berarti
+       nilainya BELUM masuk, bukan nilai sah yang kebetulan falsy. Peta poin
+       memakai angka, jadi 0 tetap harus dihitung sebagai sudah terisi. */
+    if (v === null || v === undefined || v === false) continue;
     terisi++;
     jumlah += Number(v) || 0;
   }
