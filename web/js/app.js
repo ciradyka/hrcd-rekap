@@ -855,28 +855,43 @@ const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
 
 /* ============================ DATA PESERTA ==============================
 
-   Membetulkan yang salah diketik pembina. Peserta mendaftar sendiri lewat
-   form di situs peserta, dan sebagian salah ketik — nomor WA kurang satu
-   digit, nama anggota tertukar, nama ketua salah eja. Sampai layar ini ada,
-   satu-satunya jalan membatalkan pendaftaran lalu meminta mereka mengisi
-   ulang, dan yang benar-benar terjadi: panitia mencatat betulannya di kertas
-   lain, dan database berbeda dari kenyataan tanpa ada yang tahu bagian mana.
+   Membetulkan yang salah diketik pembina. Peserta mendaftar sendiri lewat form
+   di situs peserta, dan sebagian salah ketik — nomor WA kurang satu digit, nama
+   anggota tertukar, nama ketua salah eja. Sampai layar ini ada, satu-satunya
+   jalan membatalkan pendaftaran lalu meminta mereka mengisi ulang, dan yang
+   benar-benar terjadi: panitia mencatat betulannya di kertas lain, dan database
+   berbeda dari kenyataan tanpa ada yang tahu bagian mana.
 
-   YANG BISA DIUBAH DI SINI cuma tulisan: kontak pembina, dan identitas tiap
-   regu. Golongan, sekolah, nomor dada, dan status bayar sengaja tidak —
-   masing-masing punya jalurnya sendiri, dan yang salah di antaranya bukan
+   BENTUKNYA SAMA DENGAN MEJA PEMBAYARAN: satu baris per pendaftaran, tombol
+   jumlah regu membuka baris rinciannya. Yang berbeda cuma isinya — di sini
+   setiap sel yang boleh dibetulkan adalah kotak isian.
+
+   DISIMPAN SAAT KOTAKNYA DITINGGALKAN, tanpa tombol Simpan. Satu tombol per
+   baris berarti petugas yang membetulkan satu huruf harus mencari tombolnya
+   dulu, dan yang lupa menekannya kehilangan suntingannya tanpa tahu. Kotaknya
+   berkedip hijau sesudah tersimpan — cara yang sama dengan layar Input Nilai
+   Pos, jadi tidak ada kebiasaan baru yang perlu dipelajari.
+
+   YANG TIDAK ADA DI SINI: golongan, sekolah, nomor dada, status bayar.
+   Masing-masing punya jalurnya sendiri, dan yang salah di antaranya bukan
    salah ketik melainkan pendaftaran yang salah. Alasan lengkapnya di kepala
-   migrasi 0135.
+   migrasi 0135. */
 
-   KARTU, BUKAN TABEL. Layar Pembayaran menampilkan angka yang dibaca sekilas,
-   jadi tabel enam kolom benar di sana. Yang di sini isian yang diketik, dan
-   isian di dalam sel tabel `fixed` selebar 15% tidak bisa dipakai. Alat cari
-   dan saringannya tetap sama persis (alatTabel), jadi kebiasaan panitia tidak
-   berubah.
+/** "17 Agu 26 16:55" — pendek karena ia satu kolom di antara enam, dan yang
+ *  dicari orang di sana urutan kedatangan, bukan tanggal lengkapnya. WIB,
+ *  sama seperti tanggalPanjang(): menjelang tengah malam tanggal alat dan
+ *  tanggal WIB bisa menunjuk hari yang berbeda. */
+const FMT_DP = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta", day: "numeric", month: "short",
+  year: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+});
+const tanggalRingkas = (t) => {
+  if (!t) return "—";
+  const b = {};
+  for (const x of FMT_DP.formatToParts(new Date(t))) b[x.type] = x.value;
+  return `${b.day} ${b.month.replace(".", "")} ${b.year} ${b.hour}:${b.minute}`;
+};
 
-   ISIANNYA BARU DIGAMBAR SAAT KARTUNYA DIBUKA. 250 pendaftaran x 7 kotak per
-   regu adalah ribuan elemen form yang tidak ada gunanya sampai satu di antara
-   mereka disentuh. Yang tergambar duluan cuma barisnya. */
 async function layarDataPeserta() {
   if (!EDISI) { layarButuhEdisi("Data Peserta"); return; }
   pasangKepala("Data Peserta", true);
@@ -889,9 +904,8 @@ async function layarDataPeserta() {
   if (location.hash !== layarIni) return;
 
   const dibuka = new Set();
-
-  const reguAktifDp = (b) => (b.regu || []).filter(r => !r.is_cancelled);
-  const internDp = (b) => reguAktifDp(b).some(r => String(r.golongan || "").startsWith("intern"));
+  const aktifDp = (b) => (b.regu || []).filter(r => !r.is_cancelled);
+  const internDp = (b) => aktifDp(b).some(r => String(r.golongan || "").startsWith("intern"));
 
   LAYAR.replaceChildren(h(`
     <div class="card">
@@ -905,182 +919,195 @@ async function layarDataPeserta() {
         jumlah: semua.length,
         cariContoh: "Cari kode, sekolah, regu, ketua, atau nomor WA…",
       })}
-      <div id="isi-peserta"></div>
+      <div class="table-wrapper">
+        <table class="table data-table table-peserta">
+          <thead>
+            <tr>
+              <th>Tanggal</th><th>Kode Bayar</th><th>Asal Sekolah</th>
+              <th class="text-center">Regu</th><th>Contact Person</th><th>WhatsApp</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel"></tbody>
+        </table>
+      </div>
     </div>
   `));
 
   const gambar = (cari = "", saring = "semua") => {
-    const cocok = semua.filter(b => {
+    const baris = semua.filter(b => {
       if (saring === "intern" && !internDp(b)) return false;
       if (saring === "eksternal" && internDp(b)) return false;
       if (!cari) return true;
-      const kumpul = [
+      return [
         b.kode_pembayaran, b.sekolah?.name, b.kontak_wa, b.nama_kontak,
-        ...reguAktifDp(b).flatMap(r => [r.nama_regu, r.nama_ketua,
-                                        r.kelas_organisasi, ...(r.anggota || [])]),
-      ].filter(Boolean).join(" ").toLowerCase();
-      return kumpul.includes(cari);
+        ...aktifDp(b).flatMap(r => [r.nama_regu, r.nama_ketua, r.kelas_organisasi,
+                                    ...(r.anggota || [])]),
+      ].filter(Boolean).join(" ").toLowerCase().includes(cari);
     });
 
-    const kotak = document.getElementById("isi-peserta");
     document.getElementById("tabel-jumlah").textContent =
-      `${cocok.length} pendaftaran · `
-      + `${cocok.reduce((n, b) => n + reguAktifDp(b).length, 0)} regu`;
+      `${baris.length} pendaftaran · ${baris.reduce((n, b) => n + aktifDp(b).length, 0)} regu`;
 
-    if (!cocok.length) {
-      kotak.replaceChildren(h(`<p class="table-empty">Tidak ada yang cocok.</p>`));
+    const tbody = document.getElementById("isi-tabel");
+    if (!baris.length) {
+      tbody.replaceChildren(h(`<tr><td colspan="6" class="table-empty">
+        Tidak ada yang cocok.</td></tr>`));
       return;
     }
 
-    kotak.replaceChildren(h(cocok.map(b => {
+    /* Template BIASA, bukan tag html`` — baris rincian sudah berupa HTML jadi,
+       dan html`` meng-escape setiap nilai yang disisipkan. Nilai dari luar
+       tetap lewat esc() satu per satu. */
+    tbody.replaceChildren(h(baris.map(b => {
       const kode = esc(b.kode_pembayaran);
-      const aktif = reguAktifDp(b);
+      const aktif = aktifDp(b);
       const terbuka = dibuka.has(b.kode_pembayaran);
       return `
-      <div class="regu-card" id="dp-${kode}">
-        <div class="action-row" style="justify-content:space-between;align-items:baseline">
-          <div>
-            <strong class="mono">${kode}</strong>
-            <span style="margin-left:.5rem">${esc(b.sekolah?.name || "—")}</span>
-          </div>
-          <button class="button-detail" type="button" data-buka="${kode}"
-                  aria-expanded="${terbuka}">${terbuka ? "▾" : "▸"} ${aktif.length}<span
-                  class="satuan-regu"> regu</span></button>
-        </div>
-        <div class="sub" style="margin-top:.15rem">
-          ${esc(b.nama_kontak || "tanpa nama kontak")} · ${esc(b.kontak_wa || "—")}
-        </div>
-        ${!terbuka ? "" : isiUbah(b, aktif)}
-      </div>`;
+        <tr class="invoice-row" data-baris="${kode}">
+          <td class="mono" data-label="Tanggal">${esc(tanggalRingkas(b.created_at))}</td>
+          <td class="mono" data-label="Kode Bayar">${kode}</td>
+          <td data-label="Asal Sekolah"><strong>${esc(b.sekolah?.name || "—")}</strong></td>
+          <td class="text-center" data-label="Regu">
+            <button class="button-detail" type="button" data-detail="${kode}"
+                    aria-expanded="${terbuka}"
+                    aria-label="Lihat ${aktif.length} regu"><span class="panah">${
+              terbuka ? "▾" : "▸"}</span> ${aktif.length}<span
+                    class="satuan-regu"> regu</span></button>
+          </td>
+          <td data-label="Contact Person">
+            <input type="text" class="small-input" data-kontak-nama="${kode}"
+                   value="${esc(b.nama_kontak || "")}" placeholder="contoh: Aji"></td>
+          <td data-label="WhatsApp">
+            <input type="tel" class="small-input" inputmode="numeric"
+                   data-kontak-wa="${kode}" value="${esc(b.kontak_wa || "")}"
+                   placeholder="08123456789"></td>
+        </tr>
+        ${!aktif.length ? "" : `
+        <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
+          <td colspan="6" class="detail-cell-flush">
+            <table class="detail-table detail-table-peserta">
+              <thead>
+                <tr><th>Regu</th><th>Kategori</th><th>Kelas</th><th>Ketua</th>
+                    <th>Anggota 1</th><th>Anggota 2</th><th>Anggota 3</th><th>Anggota 4</th></tr>
+              </thead>
+              <tbody>
+                ${aktif.map(r => barisRegu(r)).join("")}
+              </tbody>
+            </table>
+          </td>
+        </tr>`}`;
     }).join("")));
 
-    kotak.querySelectorAll("[data-buka]").forEach(btn =>
-      btn.addEventListener("click", () => {
-        const k = btn.dataset.buka;
-        if (dibuka.has(k)) dibuka.delete(k); else dibuka.add(k);
-        gambar(cari, saring);
-      }));
-
-    pasangUbah(cocok, () => gambar(cari, saring));
+    pasangBaris(() => gambar(cari, saring));
   };
 
-  /* Isian satu pendaftaran: kontak di atas, lalu satu blok per regu. Tiap blok
-     punya tombol Simpan sendiri — satu tombol untuk seluruh kartu berarti satu
-     nama regu yang kembar menggagalkan penyimpanan lima regu lain yang sudah
-     benar, dan petugas tidak tahu mana yang tersimpan. */
-  const isiUbah = (b, aktif) => {
-    const kode = esc(b.kode_pembayaran);
-    return `
-      <div style="margin-top:.7rem;border-top:1.5px solid var(--garis);padding-top:.7rem">
-        <div class="two-column">
-          <div class="field" style="margin:0">
-            <label for="dp-nama-${kode}">Contact Person</label>
-            <input type="text" id="dp-nama-${kode}" value="${esc(b.nama_kontak || "")}"
-                   placeholder="contoh: Bu Rina">
-          </div>
-          <div class="field" style="margin:0">
-            <label for="dp-wa-${kode}">Nomor WhatsApp</label>
-            <input type="tel" id="dp-wa-${kode}" inputmode="numeric"
-                   value="${esc(b.kontak_wa || "")}" placeholder="contoh: 08123456789">
-          </div>
-        </div>
-        <div class="action-row" style="margin-top:.5rem">
-          <button class="button button-secondary button-mini" type="button"
-                  data-simpan-kontak="${kode}">Simpan kontak</button>
-        </div>
+  /* Satu baris rincian = satu regu. Ketua DAN empat anggota, karena satu regu
+     lima orang: ketuanya salah satu dari kelima, bukan orang keenam. Kolom
+     "Anggota 5" karena itu tidak ada — constraint regu_anggota_maks_empat
+     menolaknya, dan yang menolak lebih dulu seharusnya layar ini.
 
-        ${aktif.map(r => blokRegu(r)).join("")}
-      </div>`;
-  };
-
-  const blokRegu = (r) => {
+     Kelas punya kolomnya sendiri, dan kotaknya cuma digambar untuk regu
+     Intern — regu Eksternal dibedakan oleh sekolahnya, dan kolom ini kosong
+     untuk mereka. Digambar "—", bukan kotak yang tidak bisa diisi: kotak
+     kosong yang menolak ketikan terbaca seperti kerusakan. */
+  const barisRegu = (r) => {
     const id = esc(r.id);
     const intern = String(r.golongan || "").startsWith("intern");
     const ang = [0, 1, 2, 3].map(k => (r.anggota || [])[k] || "");
     return `
-      <div class="regu-card" style="margin-top:.6rem" id="dp-regu-${id}">
-        <span class="badge badge-green">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}${
-          r.nomor_dada ? ` · ${esc(dada3(r.nomor_dada))}` : ""}</span>
-        ${!intern ? "" : `
-        <div class="field" style="margin:.45rem 0 .7rem">
-          <label for="dp-kelas-${id}">Kelas / Organisasi</label>
-          <input type="text" id="dp-kelas-${id}" maxlength="80"
-                 value="${esc(r.kelas_organisasi || "")}"
-                 placeholder="contoh: XI IPA 4 atau OSIS">
-        </div>`}
-        <div class="two-column">
-          <div class="field" style="margin:0">
-            <label for="dp-regu-nama-${id}">Nama Regu</label>
-            <input type="text" id="dp-regu-nama-${id}" maxlength="25"
-                   value="${esc(r.nama_regu || "")}" style="text-transform:uppercase">
-          </div>
-          <div class="field" style="margin:0">
-            <label for="dp-ketua-${id}">Nama Ketua</label>
-            <input type="text" id="dp-ketua-${id}" value="${esc(r.nama_ketua || "")}">
-          </div>
-        </div>
-        <div class="field" style="margin-top:.5rem">
-          <label for="dp-ang-${id}-0">Nama Anggota (opsional)</label>
-          ${ang.map((a, k) => `
-            <input type="text" id="dp-ang-${id}-${k}" value="${esc(a)}"
-                   style="margin-top:.35rem" placeholder="Nama Anggota ${k + 1}">`).join("")}
-        </div>
-        <div class="action-row" style="margin-top:.5rem">
-          <button class="button button-secondary button-mini" type="button"
-                  data-simpan-regu="${id}">Simpan regu</button>
-        </div>
-      </div>`;
+      <tr data-regu="${id}">
+        <td data-label="Regu">
+          <input type="text" class="small-input" data-f="nama_regu" data-id="${id}"
+                 maxlength="25" style="text-transform:uppercase"
+                 value="${esc(r.nama_regu || "")}"></td>
+        <td data-label="Kategori">
+          <span class="badge badge-green">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</span></td>
+        <td data-label="Kelas">${!intern ? "—" : `
+          <input type="text" class="small-input" data-f="kelas_organisasi" data-id="${id}"
+                 maxlength="80" value="${esc(r.kelas_organisasi || "")}"
+                 placeholder="XI IPA 4">`}</td>
+        <td data-label="Ketua">
+          <input type="text" class="small-input" data-f="nama_ketua" data-id="${id}"
+                 value="${esc(r.nama_ketua || "")}"></td>
+        ${ang.map((a, k) => `
+        <td data-label="Anggota ${k + 1}">
+          <input type="text" class="small-input" data-f="anggota${k}" data-id="${id}"
+                 value="${esc(a)}"></td>`).join("")}
+      </tr>`;
   };
 
-  /* Sesudah tersimpan, data DI MEMORI ikut diperbarui lalu tabelnya digambar
-     ulang. Tanpa itu baris ringkasnya masih menyebut nomor lama sampai layar
-     dimuat ulang, dan petugas menyimpulkan simpanannya tidak masuk. */
-  const pasangUbah = (cocok, gambarUlang) => {
-    LAYAR.querySelectorAll("[data-simpan-kontak]").forEach(btn =>
-      btn.addEventListener("click", async () => {
-        const kode = btn.dataset.simpanKontak;
-        const b = semua.find(x => x.kode_pembayaran === kode);
-        const nama = document.getElementById(`dp-nama-${kode}`).value.trim();
-        const wa = document.getElementById(`dp-wa-${kode}`).value.trim();
-        btn.disabled = true;
-        try {
-          await ubahKontakPendaftaran(kode, nama, wa);
-          b.nama_kontak = nama || null;
-          b.kontak_wa = wa.replace(/\D/g, "").replace(/^62/, "0");
-          notif("Kontak tersimpan.");
-          gambarUlang();
-        } catch (e) {
-          notif(e instanceof ErrorApi ? e.message : "Kontak gagal disimpan.", true);
-          btn.disabled = false;
-        }
+  /* Disimpan saat kotaknya ditinggalkan (change), bukan tiap ketukan huruf:
+     satu nama yang diketik pelan akan jadi belasan permintaan, dan tiap
+     permintaan menulis satu baris riwayat. */
+  const pasangBaris = (gambarUlang) => {
+    const tbody = document.getElementById("isi-tabel");
+
+    tbody.querySelectorAll("[data-detail]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.detail;
+        if (dibuka.has(k)) dibuka.delete(k); else dibuka.add(k);
+        const row = tbody.querySelector(`[data-detail-untuk="${CSS.escape(k)}"]`);
+        if (row) row.hidden = !dibuka.has(k);
+        btn.setAttribute("aria-expanded", String(dibuka.has(k)));
+        // Panahnya saja yang diganti, JUMLAHNYA jangan. Versi pertama menulis
+        // ke firstChild.nodeValue — dan simpul pertama itu memuat "▸ 1",
+        // bukan panahnya sendiri, jadi angkanya ikut terhapus dan tombolnya
+        // berbunyi "-". Sekarang panahnya punya simpulnya sendiri.
+        btn.querySelector(".panah").textContent = dibuka.has(k) ? "▾" : "▸";
       }));
 
-    LAYAR.querySelectorAll("[data-simpan-regu]").forEach(btn =>
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.simpanRegu;
-        const r = semua.flatMap(x => x.regu || []).find(x => String(x.id) === id);
-        const ambil = (s) => (document.getElementById(s)?.value || "").trim();
-        const data = {
-          nama_regu: ambil(`dp-regu-nama-${id}`).toUpperCase(),
-          nama_ketua: ambil(`dp-ketua-${id}`),
-          anggota: [0, 1, 2, 3].map(k => ambil(`dp-ang-${id}-${k}`)).filter(Boolean),
-          kelas_organisasi: ambil(`dp-kelas-${id}`),
-        };
-        btn.disabled = true;
-        try {
-          await ubahIdentitasRegu(id, data);
-          Object.assign(r, {
-            nama_regu: data.nama_regu, nama_ketua: data.nama_ketua,
-            anggota: data.anggota.length ? data.anggota : null,
-            kelas_organisasi: data.kelas_organisasi || null,
-          });
-          notif("Regu tersimpan.");
-          gambarUlang();
-        } catch (e) {
-          notif(e instanceof ErrorApi ? e.message : "Regu gagal disimpan.", true);
-          btn.disabled = false;
-        }
-      }));
+    const kedip = (el) => {
+      el.classList.add("saved");
+      setTimeout(() => el.classList.remove("saved"), 1200);
+    };
+
+    const simpanKontak = async (kode, el) => {
+      const b = semua.find(x => x.kode_pembayaran === kode);
+      const nama = tbody.querySelector(`[data-kontak-nama="${CSS.escape(kode)}"]`).value.trim();
+      const wa = tbody.querySelector(`[data-kontak-wa="${CSS.escape(kode)}"]`).value.trim();
+      if (nama === (b.nama_kontak || "") && wa === (b.kontak_wa || "")) return;
+      try {
+        await ubahKontakPendaftaran(kode, nama, wa);
+        b.nama_kontak = nama || null;
+        b.kontak_wa = wa.replace(/\D/g, "").replace(/^62/, "0");
+        tbody.querySelector(`[data-kontak-wa="${CSS.escape(kode)}"]`).value = b.kontak_wa;
+        kedip(el);
+      } catch (e) {
+        notif(e instanceof ErrorApi ? e.message : "Kontak gagal disimpan.", true);
+        gambarUlang();
+      }
+    };
+
+    const simpanRegu = async (id, el) => {
+      const r = semua.flatMap(x => x.regu || []).find(x => String(x.id) === id);
+      const ambil = (f) => (tbody.querySelector(
+        `[data-f="${f}"][data-id="${CSS.escape(id)}"]`)?.value || "").trim();
+      const data = {
+        nama_regu: ambil("nama_regu").toUpperCase(),
+        nama_ketua: ambil("nama_ketua"),
+        anggota: [0, 1, 2, 3].map(k => ambil(`anggota${k}`)).filter(Boolean),
+        kelas_organisasi: ambil("kelas_organisasi"),
+      };
+      try {
+        await ubahIdentitasRegu(id, data);
+        Object.assign(r, {
+          nama_regu: data.nama_regu, nama_ketua: data.nama_ketua,
+          anggota: data.anggota.length ? data.anggota : null,
+          kelas_organisasi: data.kelas_organisasi || null,
+        });
+        kedip(el);
+      } catch (e) {
+        notif(e instanceof ErrorApi ? e.message : "Regu gagal disimpan.", true);
+        gambarUlang();
+      }
+    };
+
+    tbody.querySelectorAll("[data-kontak-nama],[data-kontak-wa]").forEach(inp =>
+      inp.addEventListener("change", () =>
+        simpanKontak(inp.dataset.kontakNama || inp.dataset.kontakWa, inp)));
+
+    tbody.querySelectorAll("[data-f][data-id]").forEach(inp =>
+      inp.addEventListener("change", () => simpanRegu(inp.dataset.id, inp)));
   };
 
   gambar();
