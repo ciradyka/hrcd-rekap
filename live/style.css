@@ -745,6 +745,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .kejuaraan-khusus { grid-column: 1 / -1; grid-row: 4; }
 }
 .kejuaraan-cari { position: relative; }
+.kejuaraan-isian { display: flex; align-items: center; gap: .45rem; }
+.kejuaraan-isian .kejuaraan-cari { flex: 1 1 auto; min-width: 0; }
+.kejuaraan-hapus { flex: 0 0 auto; }
 .kejuaraan-cari .small-input { width: 100%; }
 .kejuaraan-cari .suggestions {
   position: absolute; z-index: 10; left: 0; right: 0;

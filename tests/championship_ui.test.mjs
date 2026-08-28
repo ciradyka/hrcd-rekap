@@ -17,6 +17,12 @@ test("pilihan manual mencari nomor dada, regu, dan sekolah", () => {
   assert.match(app, /slice\(0, 8\)/);
 });
 
+test("pilihan manual tidak menawarkan regu Intern dan dapat dihapus", () => {
+  assert.match(app, /!String\(r\.golongan\)\.startsWith\("intern_"\)/);
+  assert.match(app, />Hapus pilihan<\/button>/);
+  assert.match(app, /simpanKejuaraanManual\(pilih\.dataset\.kode, null\)/);
+});
+
 test("layout desktop menempatkan juara umum di tengah dan golongan berdampingan", () => {
   assert.match(css, /@media \(min-width: 900px\)[\s\S]*\.kejuaraan-umum[\s\S]*justify-self: center/);
   assert.match(css, /\.kejuaraan-penegak-pa \{ grid-column: 1; grid-row: 2; \}/);
