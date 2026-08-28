@@ -58,3 +58,26 @@ test("persentase kolom berjumlah 100", () => {
     assert.equal(jumlah, 100, `${tabel} berjumlah ${jumlah}%, bukan 100 — ${lebar.join("/")}`);
   }
 });
+
+
+test("kolom Metode dan kolom tombol rata kiri di tampilan tabel", () => {
+  // Ditengahkan, isi yang lebih pendek tepi kirinya masuk ke dalam, jadi tiap
+  // baris memulai di tempat yang berbeda — "Transfer LUNAS [nota]" lawan
+  // "Tunai LUNAS", "Kwitansi Batalkan" lawan "Lunas". Mata yang menyusuri 100
+  // invoice kehilangan garis tegaknya dan harus mencari ulang tiap baris.
+  //
+  // `text-align` saja tidak cukup: kedua pembungkusnya flex, dan yang
+  // menentukan letak anaknya `justify-content`. Aturan yang hilang salah
+  // satunya tidak menggerakkan apa pun, dan tidak ada galat yang muncul.
+  const blok = css.slice(css.indexOf("@media (min-width: 901px) {"));
+  assert.notEqual(blok.length, 0, "blok perataan min-width: 901px tidak ada");
+
+  assert.match(blok, /\.table-bayar > tbody > tr > td:nth-child\(5\),/);
+  assert.match(blok, /\.table-bayar > tbody > tr > td:nth-child\(6\) \{ text-align: left; \}/);
+  assert.match(blok, /\.table-bayar > tbody > tr > td > \.metode-baris,/);
+  assert.match(blok, /\.action-row \{\s*justify-content: flex-start;/);
+
+  // Dan tidak boleh ada yang menengahkannya kembali di tempat lain.
+  assert.doesNotMatch(css,
+    /\.table-bayar > tbody > tr > td:nth-child\(6\)[^{]*\{[^}]*text-align: center/);
+});
