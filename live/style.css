@@ -1870,23 +1870,23 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      WAJIB berjumlah 100: di bawah `fixed`, kolom yang tidak dipatok mendapat
      NOL, bukan sisanya (pasal 15.3).
 
-       induk    15 + 13 + 26 +  6 + 21 + 19           = 100
-       rincian  14 + 10 + 11 + 15 + 12 + 12 + 13 + 13 = 100
+       induk    15 + 13 + 26 + 6 + 21 + 19 = 100
 
-     Kolom rincian TIDAK dipatok dari max-content-nya: nama selengkapnya
-     menuntut 2.064px, dan tabel selebar itu tidak bisa dibaca di layar mana
-     pun. Isinya kotak isian, dan teks di dalam kotak isian menggulir sendiri
-     — yang perlu cukup lebar untuk MENYUNTING, bukan untuk memuat nama
-     terpanjang sekaligus. Keduanya juga sengaja tidak dipasangkan kolom per
-     kolom seperti tabel Pembayaran (pasal 15.2): di sana kolom terakhir harus
-     bertemu supaya angka rupiah jatuh di bawah tombolnya, di sini rinciannya
-     bicara hal lain sama sekali.
+     RINCIANNYA BUKAN TABEL, jadi tidak punya patokan kolom sama sekali. Versi
+     pertama membuatnya delapan kolom — Regu, Kategori, Kelas, Ketua, Anggota
+     1-4 — dan itu tidak bisa dipakai untuk apa yang layar itu ada: MENGETIK.
+     Delapan kolom dalam satu baris berarti tiap kotak sekitar 110px, dan
+     "MUHAMMAD FACHRY SEPTIAN RAMDANI" tidak muat seperempatnya. Memuat nama
+     terpanjang seluruhnya menuntut tabel selebar 2.064px, yang tidak muat di
+     layar mana pun.
+
+     Sekarang rinciannya berbentuk FORM PENDAFTARAN — bentuk yang sudah dikenal
+     karena itu yang diisi pembina waktu mendaftar. Yang dibaca sekilas tetap
+     tabel; yang diketik jadi form.
 
      Di bawah 900px ia sudah jadi kartu dan seluruh angka di sini tidak
      berlaku. */
-  .table-peserta, .detail-table-peserta { table-layout: fixed; }
-  .table-peserta { min-width: 980px; }
-  .detail-table-peserta { width: 100%; }
+  .table-peserta { table-layout: fixed; min-width: 980px; }
 
   .table-peserta > thead > tr > th:nth-child(1) { width: 15%; }
   .table-peserta > thead > tr > th:nth-child(2) { width: 13%; }
@@ -1895,19 +1895,10 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .table-peserta > thead > tr > th:nth-child(5) { width: 21%; }
   .table-peserta > thead > tr > th:nth-child(6) { width: 19%; }
 
-  .detail-table-peserta > thead > tr > th:nth-child(1) { width: 14%; }
-  .detail-table-peserta > thead > tr > th:nth-child(2) { width: 10%; }
-  .detail-table-peserta > thead > tr > th:nth-child(3) { width: 11%; }
-  .detail-table-peserta > thead > tr > th:nth-child(4) { width: 15%; }
-  .detail-table-peserta > thead > tr > th:nth-child(5) { width: 12%; }
-  .detail-table-peserta > thead > tr > th:nth-child(6) { width: 12%; }
-  .detail-table-peserta > thead > tr > th:nth-child(7) { width: 13%; }
-  .detail-table-peserta > thead > tr > th:nth-child(8) { width: 13%; }
 
   /* Kotak isian mengisi selnya. Tanpa ini `.small-input` memakai lebar bawaan
      input dan meluap keluar kolom yang sudah dipatok. */
-  .table-peserta .small-input,
-  .detail-table-peserta .small-input { width: 100%; min-width: 0; }
+  .table-peserta .small-input { width: 100%; min-width: 0; }
   /* Nama sekolah satu-satunya isi yang panjangnya tak terduga — ia yang
      mengalah dan membungkus, seperti di tabel Pembayaran. */
   .table-peserta > tbody > tr > td:nth-child(3) {

@@ -985,15 +985,9 @@ async function layarDataPeserta() {
         ${!aktif.length ? "" : `
         <tr class="detail-row" data-detail-untuk="${kode}" ${terbuka ? "" : "hidden"}>
           <td colspan="6" class="detail-cell-flush">
-            <table class="detail-table detail-table-peserta">
-              <thead>
-                <tr><th>Regu</th><th>Kategori</th><th>Kelas</th><th>Ketua</th>
-                    <th>Anggota 1</th><th>Anggota 2</th><th>Anggota 3</th><th>Anggota 4</th></tr>
-              </thead>
-              <tbody>
-                ${aktif.map(r => barisRegu(r)).join("")}
-              </tbody>
-            </table>
+            <div class="rincian-peserta">
+              ${aktif.map((r, i) => barisRegu(r, i)).join("")}
+            </div>
           </td>
         </tr>`}`;
     }).join("")));
@@ -1001,39 +995,65 @@ async function layarDataPeserta() {
     pasangBaris(() => gambar(cari, saring));
   };
 
-  /* Satu baris rincian = satu regu. Ketua DAN empat anggota, karena satu regu
-     lima orang: ketuanya salah satu dari kelima, bukan orang keenam. Kolom
-     "Anggota 5" karena itu tidak ada — constraint regu_anggota_maks_empat
-     menolaknya, dan yang menolak lebih dulu seharusnya layar ini.
+  /* Satu kartu per regu, BENTUKNYA SAMA DENGAN FORM PENDAFTARAN: lencana
+     golongan, Kelas/Organisasi selebar kartu, lalu Nama Regu dan Nama Ketua
+     berdampingan, lalu empat kotak anggota bertumpuk.
 
-     Kelas punya kolomnya sendiri, dan kotaknya cuma digambar untuk regu
-     Intern — regu Eksternal dibedakan oleh sekolahnya, dan kolom ini kosong
-     untuk mereka. Digambar "—", bukan kotak yang tidak bisa diisi: kotak
-     kosong yang menolak ketikan terbaca seperti kerusakan. */
-  const barisRegu = (r) => {
+     Versi pertama menaruh kedelapan kotak itu sebagai kolom tabel, dan itu
+     tidak bisa dipakai untuk apa yang layar ini ada: MENGETIK. Delapan kolom
+     dalam satu baris berarti tiap kotak sekitar 110px, dan "MUHAMMAD FACHRY
+     SEPTIAN RAMDANI" tidak muat seperempatnya — petugas mengganti satu nama
+     sambil melihat sepotong nama. Nama selengkapnya menuntut tabel selebar
+     2.064px, yang tidak muat di layar mana pun.
+
+     Barisnya tetap tabel, karena baris memang untuk DIPINDAI: tanggal, kode,
+     sekolah, kontak. Yang dibaca sekilas jadi tabel, yang diketik jadi form —
+     dan formnya sudah punya bentuk yang dikenal, yaitu bentuk yang diisi
+     pembina waktu mendaftar.
+
+     Ketua DAN empat anggota, karena satu regu lima orang: ketuanya salah satu
+     dari kelima, bukan orang keenam. Kotak "Anggota 5" karena itu tidak ada —
+     constraint regu_anggota_maks_empat menolaknya.
+
+     Kelas hanya untuk regu Intern; regu Eksternal dibedakan oleh sekolahnya
+     dan kotaknya tidak digambar sama sekali. */
+  const barisRegu = (r, i) => {
     const id = esc(r.id);
     const intern = String(r.golongan || "").startsWith("intern");
     const ang = [0, 1, 2, 3].map(k => (r.anggota || [])[k] || "");
     return `
-      <tr data-regu="${id}">
-        <td data-label="Regu">
-          <input type="text" class="small-input" data-f="nama_regu" data-id="${id}"
-                 maxlength="25" style="text-transform:uppercase"
-                 value="${esc(r.nama_regu || "")}"></td>
-        <td data-label="Kategori">
-          <span class="badge badge-green">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}</span></td>
-        <td data-label="Kelas">${!intern ? "—" : `
-          <input type="text" class="small-input" data-f="kelas_organisasi" data-id="${id}"
+      <div class="regu-card" data-regu="${id}">
+        <span class="badge badge-green">Regu ${i + 1} — ${
+          esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}${
+          r.nomor_dada ? ` · ${esc(dada3(r.nomor_dada))}` : ""}</span>
+        ${!intern ? "" : `
+        <div class="field" style="margin:.45rem 0 .7rem">
+          <label for="dp-kelas-${id}">Kelas / Organisasi</label>
+          <input type="text" id="dp-kelas-${id}" data-f="kelas_organisasi" data-id="${id}"
                  maxlength="80" value="${esc(r.kelas_organisasi || "")}"
-                 placeholder="XI IPA 4">`}</td>
-        <td data-label="Ketua">
-          <input type="text" class="small-input" data-f="nama_ketua" data-id="${id}"
-                 value="${esc(r.nama_ketua || "")}"></td>
-        ${ang.map((a, k) => `
-        <td data-label="Anggota ${k + 1}">
-          <input type="text" class="small-input" data-f="anggota${k}" data-id="${id}"
-                 value="${esc(a)}"></td>`).join("")}
-      </tr>`;
+                 placeholder="misal: XI IPA 4 atau OSIS">
+        </div>`}
+        <div class="two-column">
+          <div class="field" style="margin:0">
+            <label for="dp-nama-${id}">Nama Regu</label>
+            <input type="text" id="dp-nama-${id}" data-f="nama_regu" data-id="${id}"
+                   maxlength="25" style="text-transform:uppercase"
+                   value="${esc(r.nama_regu || "")}">
+          </div>
+          <div class="field" style="margin:0">
+            <label for="dp-ketua-${id}">Nama Ketua</label>
+            <input type="text" id="dp-ketua-${id}" data-f="nama_ketua" data-id="${id}"
+                   value="${esc(r.nama_ketua || "")}">
+          </div>
+        </div>
+        <div class="field" style="margin-top:.5rem">
+          <label for="dp-ang-${id}-0">Nama Anggota (opsional)</label>
+          ${ang.map((a, k) => `
+            <input type="text" id="dp-ang-${id}-${k}" data-f="anggota${k}" data-id="${id}"
+                   style="margin-top:.35rem" value="${esc(a)}"
+                   placeholder="Nama Anggota ${k + 1}">`).join("")}
+        </div>
+      </div>`;
   };
 
   /* Disimpan saat kotaknya ditinggalkan (change), bukan tiap ketukan huruf:
