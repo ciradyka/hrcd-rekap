@@ -797,6 +797,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .kejuaraan-khusus          { --aksen: #6941c6; }
 .kejuaraan-bagian { display: grid; gap: 1rem; }
 .kejuaraan-bagian .card { margin-bottom: 0; }
+.kejuaraan-terkunci { display: flex; align-items: center; gap: .45rem; }
+.kejuaraan-nilai { flex: 1; min-width: 0; }
 @media (min-width: 900px) {
   .kejuaraan-bagian { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kejuaraan-umum {
