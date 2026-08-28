@@ -623,4 +623,9 @@ run supabase/migrations/0130_bukti_transfer_link_drive.sql
 # telanjur dimasukkan lewat form baru dicocokkan dan dilengkapi notanya.
 run supabase/migrations/0131_impor_pendaftaran_xxxvii_susulan.sql
 
+# 0132 meneruskan lagi mulai baris 143. Dua kiriman ulang dilewati, sehingga
+# tujuh baris sumber menjadi lima regu unik; data yang sudah masuk lewat form
+# aktif dicocokkan tanpa mengubah nama atau nomor regu yang sudah bernomor.
+run supabase/migrations/0132_impor_pendaftaran_xxxvii_lanjutan.sql
+
 echo "SEMUA TES LULUS"
