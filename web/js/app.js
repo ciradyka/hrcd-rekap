@@ -5480,6 +5480,27 @@ const selPoin = (v) => esc(angkaRapi(v));
    <body>, jadi tidak ada yang membuangnya saat pindah layar. */
 let pengendaliFilterSekolah = null;
 
+/** Satu request yang putus tidak boleh merobohkan seluruh papan.
+ *
+ *  Live Score menarik enam sumber sekaligus. Di koneksi lapangan, satu dari
+ *  enam request kadang putus walau lima lainnya sudah sampai; Promise.all
+ *  lalu membuang kelimanya dan mengganti seluruh layar dengan kartu galat.
+ *  Semua pembacaan ini idempotent, jadi yang gagal aman dicoba sekali lagi.
+ *
+ *  Status acara dan cincin kelengkapan hanya keterangan tambahan. Setelah
+ *  percobaan kedua pun gagal, papan skor tetap lebih berguna daripada layar
+ *  kosong; sumber inti tetap wajib berhasil agar angka tidak menyesatkan. */
+async function muatDataLiveScore(ambil, kosong) {
+  try { return await ambil(); }
+  catch (pertama) {
+    try { return await ambil(); }
+    catch (kedua) {
+      if (arguments.length > 1) return kosong;
+      throw kedua;
+    }
+  }
+}
+
 async function layarLiveScore() {
   pasangKepala("Live Score", true);
   LAYAR.replaceChildren(h(pemuat()));
@@ -5488,8 +5509,12 @@ async function layarLiveScore() {
   let pos, klasemen, status, posSemua, komponen, rekap;
   try {
     [pos, klasemen, status, posSemua, komponen, rekap] = await Promise.all([
-      kelengkapanPos(), klasemenLiveScore(), statusAcara(),
-      daftarPos(), komponenSemua(EDISI.nomor), rekapPenuh(),
+      muatDataLiveScore(kelengkapanPos, []),
+      muatDataLiveScore(klasemenLiveScore),
+      muatDataLiveScore(statusAcara, null),
+      muatDataLiveScore(daftarPos),
+      muatDataLiveScore(() => komponenSemua(EDISI.nomor)),
+      muatDataLiveScore(rekapPenuh),
     ]);
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, layarLiveScore));
