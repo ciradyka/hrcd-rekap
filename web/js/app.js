@@ -23,6 +23,7 @@ import {
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto, klasemenLiveScore,
+  hasilKejuaraan, simpanKejuaraanManual,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
@@ -478,6 +479,10 @@ async function layarHome() {
         <a href="#/live-score">
           <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
         </a>` : ""}
+        ${bolehLihat("live_score") ? `
+        <a href="#/kejuaraan">
+          <div class="function-name">${ikonKotak("trophy", "jingga")} Kejuaraan</div>
+        </a>` : ""}
       </div>
 `));
     return;
@@ -573,6 +578,10 @@ async function layarHome() {
       ${bolehLihat("live_score") ? `
       <a href="#/live-score">
         <div class="function-name">${ikonKotak("medal", "emas")} Live Score</div>
+      </a>` : ""}
+      ${bolehLihat("live_score") ? `
+      <a href="#/kejuaraan">
+        <div class="function-name">${ikonKotak("trophy", "jingga")} Kejuaraan</div>
       </a>` : ""}
 
       ${bolehLihat("pengaturan") ? `
@@ -6040,6 +6049,57 @@ async function layarLiveScore() {
   }
 }
 
+/* ============================ KEJUARAAN ================================= */
+
+async function layarKejuaraan() {
+  pasangKepala("Kejuaraan", true);
+  if (!bolehLihat("live_score")) {
+    LAYAR.replaceChildren(h(kartuGalat("Akun ini tidak berhak membuka Kejuaraan.")));
+    return;
+  }
+  LAYAR.replaceChildren(h(pemuat()));
+  const layarIni = location.hash;
+  let hasil, regu;
+  try { [hasil, regu] = await Promise.all([hasilKejuaraan(), rekapPenuh()]); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKejuaraan)); return; }
+  if (location.hash !== layarIni) return;
+
+  const bisaUbah = bolehLihat("pengaturan");
+  const opsi = [...new Map(regu.filter(r => r.nomor_dada != null)
+    .map(r => [r.regu_id, r])).values()]
+    .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));
+  const manual = new Set(["kostum", "yel_yel", "terfavorit", "terjauh"]);
+  const nilai = (x) => {
+    if (x.nama_regu) return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
+      <span class="description">${esc(x.nama_sekolah || "")}</span>`;
+    if (x.nama_sekolah) return `<strong>${esc(x.nama_sekolah)}</strong>${x.kode === "peserta_terbanyak"
+      ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
+    return `<span class="description">Belum ditentukan</span>`;
+  };
+  const baris = (x) => manual.has(x.kode) && bisaUbah ? `
+    <tr><th>${esc(x.nama_penghargaan)}</th><td>
+      <select class="select-small kejuaraan-pilih" data-kode="${esc(x.kode)}">
+        <option value="">Pilih regu</option>
+        ${opsi.map(r => `<option value="${esc(r.regu_id)}"${r.regu_id === x.regu_id ? " selected" : ""}>
+          ${esc(dada3(r.nomor_dada))} · ${esc(r.nama_regu)} · ${esc(r.nama_sekolah)}</option>`).join("")}
+      </select></td></tr>` : `<tr><th>${esc(x.nama_penghargaan)}</th><td>${nilai(x)}</td></tr>`;
+
+  LAYAR.replaceChildren(h(`
+    <div class="card"><table class="table data-table table-kejuaraan"><tbody>
+      ${hasil.map(baris).join("")}
+    </tbody></table></div>`));
+
+  LAYAR.querySelectorAll(".kejuaraan-pilih").forEach(pilih => {
+    pilih.addEventListener("change", async () => {
+      if (!pilih.value) return;
+      pilih.disabled = true;
+      try { await simpanKejuaraanManual(pilih.dataset.kode, pilih.value); notif("Kejuaraan tersimpan."); }
+      catch (e) { notif(e.message, true); }
+      finally { pilih.disabled = false; }
+    });
+  });
+}
+
 /* ============================ AKUN ======================================= */
 
 const PERAN_LABEL = { admin: "Admin", registrasi: "Registrasi",
@@ -6871,6 +6931,7 @@ const RUTE = {
   "#/finish": layarFinish,
   "#/pos": layarInputPos,
   "#/live-score": layarLiveScore,
+  "#/kejuaraan": layarKejuaraan,
   "#/pengaturan-kloter": layarPengaturanKloter,
   "#/ganti-password": layarGantiPassword,
   "#/account": layarAkun,

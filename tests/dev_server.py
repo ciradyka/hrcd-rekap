@@ -76,6 +76,7 @@ RPC = {
     "hapus_foto_lembar":     ["p_id", "p_alasan"],
     "catat_foto_masuk":      ["p_pos", "p_kode_lomba", "p_nama_lomba", "p_path", "p_ukuran"],
     "tautkan_foto":          ["p_foto_id", "p_nomor_dada", "p_cara"],
+    "simpan_kejuaraan_manual": ["p_kode", "p_regu"],
 }
 # RPC yang hasilnya tabel (bukan skalar/jsonb).
 RPC_TABEL = {"daftar_ulang_batch"}
@@ -260,6 +261,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select * from v_klasemen_live_score"
                     " order by golongan, peringkat",
+                    uid=p.get("uid")))
+            elif u.path == "/kejuaraan":
+                self._kirim(200, q(
+                    "select * from v_kejuaraan order by urutan",
                     uid=p.get("uid")))
             elif u.path == "/rekap-penuh":
                 self._kirim(200, q(

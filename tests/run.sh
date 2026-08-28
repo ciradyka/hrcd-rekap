@@ -673,5 +673,7 @@ run supabase/migrations/0137_riwayat_pendaftaran.sql
 # ketiadaan nama. Tes 89.5 menempati kursi untuk membuktikannya.
 run supabase/migrations/0138_riwayat_pelaku_kosong.sql
 run tests/sql/89_riwayat_pendaftaran.sql
+run supabase/migrations/0139_kejuaraan.sql
+run tests/sql/90_kejuaraan.sql
 
 echo "SEMUA TES LULUS"

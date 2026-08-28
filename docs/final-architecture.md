@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0138`
+sampai migrasi `0136`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0139`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0138`.
+`0119`-`0139`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-138 migrasi, `0001` sampai `0138`, dijalankan berurutan tanpa lubang penomoran.
+139 migrasi, `0001` sampai `0139`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -78,7 +78,8 @@ bernomor besar, bukan di `0004_rpcs.sql`.
 
 Operasional: `pendaftaran`, `regu`, `sekolah`, `pembayaran`, `kloter`,
 `keberangkatan_regu`, `nilai_mentah`, `closing_regu`, `penempatan_barak`,
-`nomor_dada_stok`, `nomor_dada_pensiun`, `nilai_terkunci`, `foto_lembar`.
+`nomor_dada_stok`, `nomor_dada_pensiun`, `nilai_terkunci`, `foto_lembar`,
+`kejuaraan_manual`.
 
 Konfigurasi per edisi: `edisi`, `pos`, `wahana`, `kontrak_opsi`,
 `konfig_penalti`, `room`, `status_acara`.
@@ -197,6 +198,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos + podium; saklar fase hanya untuk pemegang `pengaturan` |
+| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Peserta Terbanyak dari nomor dada, dan empat pilihan manual panitia |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
