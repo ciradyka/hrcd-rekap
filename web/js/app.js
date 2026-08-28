@@ -977,7 +977,7 @@ async function layarPembayaran() {
         // meng-escape apa pun yang disisipkan — tombolnya akan TERCETAK
         // sebagai teks. Nilai dari luar tetap lewat esc() satu per satu.
         ? `<span class="metode-baris" style="flex-wrap:nowrap;gap:.25rem"
-           ><span style="font-size:.9em">${esc(b.pembayaran ? b.pembayaran.method : "—")}</span
+           ><span class="metode-kata">${esc(b.pembayaran ? b.pembayaran.method : "—")}</span
            ><span class="badge badge-green">LUNAS</span>${nota}</span>`
         : b.status === "batal"
           ? `<span class="badge badge-red">BATAL</span>`
