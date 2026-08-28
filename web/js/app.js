@@ -6068,7 +6068,7 @@ async function layarKejuaraan() {
   const opsi = [...new Map(regu.filter(r => r.nomor_dada != null)
     .map(r => [r.regu_id, r])).values()]
     .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));
-  const manual = new Set(["kostum", "yel_yel", "terfavorit", "terjauh"]);
+  const manual = new Set(["kostum", "terfavorit", "terjauh"]);
   const nilai = (x) => {
     if (x.nama_regu) return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
       <span class="description">${esc(x.nama_sekolah || "")}</span>`;

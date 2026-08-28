@@ -675,5 +675,7 @@ run supabase/migrations/0138_riwayat_pelaku_kosong.sql
 run tests/sql/89_riwayat_pendaftaran.sql
 run supabase/migrations/0139_kejuaraan.sql
 run tests/sql/90_kejuaraan.sql
+run supabase/migrations/0140_yel_yel_dari_pos_5.sql
+run tests/sql/91_yel_yel_dari_pos_5.sql
 
 echo "SEMUA TES LULUS"
