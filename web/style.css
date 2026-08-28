@@ -738,11 +738,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
     grid-column: 1 / -1; grid-row: 1;
     width: calc(50% - .5rem); justify-self: center;
   }
-  .kejuaraan-penegak-pa { grid-column: 1; grid-row: 2; }
-  .kejuaraan-penegak-pi { grid-column: 1; grid-row: 3; }
-  .kejuaraan-penggalang-pa { grid-column: 2; grid-row: 2; }
-  .kejuaraan-penggalang-pi { grid-column: 2; grid-row: 3; }
-  .kejuaraan-khusus { grid-column: 1 / -1; grid-row: 4; }
+  .kejuaraan-umum-penegak { grid-column: 1; grid-row: 2; }
+  .kejuaraan-umum-penggalang { grid-column: 2; grid-row: 2; }
+  .kejuaraan-penegak-pa { grid-column: 1; grid-row: 3; }
+  .kejuaraan-penegak-pi { grid-column: 1; grid-row: 4; }
+  .kejuaraan-penggalang-pa { grid-column: 2; grid-row: 3; }
+  .kejuaraan-penggalang-pi { grid-column: 2; grid-row: 4; }
+  .kejuaraan-khusus { grid-column: 1 / -1; grid-row: 5; }
 }
 .kejuaraan-cari { position: relative; }
 .kejuaraan-isian { display: flex; align-items: center; gap: .45rem; }
