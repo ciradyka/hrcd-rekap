@@ -21,11 +21,15 @@ Guidance for Claude Code when working in this repository.
    period, ideally under 72 characters.
 2. Add a body when the change needs a *why*. Wrap it at 72 columns and separate
    it from the subject with a blank line.
-3. End every commit message with the co-author trailer:
-   ```
-   Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
-   ```
-4. Keep a commit to one logical change. Do not bundle unrelated edits.
+3. **No authorship trailer, and nothing that names the tool that wrote it.**
+   No `Co-Authored-By: Claude`, no "generated with", no session link, no
+   emoji badge — not in the subject, the body, or a trailer. This replaces the
+   trailer this section used to require; owner's decision, 28 August 2026.
+4. **The same applies to code comments, documentation, and test names.** A
+   comment explains why the code is the way it is. "AI-generated", "written by
+   Claude", or a note about which model produced it explains nothing a reader
+   can act on, and it dates the file the moment the tool changes.
+5. Keep a commit to one logical change. Do not bundle unrelated edits.
 
 ## 3. Creating the pull request
 
@@ -41,10 +45,9 @@ Guidance for Claude Code when working in this repository.
    it read well on its own.
 4. Structure the body with a **What** section and a **Why** section. Add
    **Notes** only when there is a caveat worth flagging.
-5. End the PR body with:
-   ```
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
-   ```
+5. **Nothing about how the PR was written.** No "Generated with" footer, no
+   session link, no tool name anywhere in the title or body — see section 2.3.
+   The PR describes the change; who or what typed it is not part of it.
 6. Only create or push a PR when the user has asked for it.
 
 ## 4. Merging to `main`
