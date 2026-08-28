@@ -145,26 +145,35 @@ Guidance for Claude Code when working in this repository.
    something GitHub enforces. Follow it deliberately.
 3. Git identity is configured **repo-locally**, not globally:
    `Furqon Aji Yudhistira <furqonajiy@gmail.com>`.
-4. **Seven commits on `main` have no merge point**, and the root
-   `Initial commit` besides. All of them predate 22 August 2026, and all are
-   known — none is new damage:
+4. **Eight commits on `main` have no merge point**, and the root
+   `Initial commit` besides. All are known — none is new damage:
 
    | Commit | Date | Why |
    | --- | --- | --- |
    | `4fb9fcb` | 4 Aug | PR #1, squash-merged before this convention existed |
    | `5502a5a` | 15 Aug | pushed straight to `main` by mistake |
    | `f133c8d` `b532dd9` `23ec32b` `aa28b57` `769d760` | 17 Aug | five more direct pushes, same mistake repeated |
+   | `bde75b8` | 28 Aug | committed and pushed while the working copy sat on `main` after a merge |
 
-   Leave all eight as they are: undoing any of them means force-pushing the
+   Leave all nine as they are: undoing any of them means force-pushing the
    default branch, which is worse than untidy history. Verify the count with
    `git log --first-parent` and check each commit's parent count — a commit
    reached as a merge's *second* parent is normal and must not be counted.
 
    **This clause said "two" until 27 August 2026, when a branch audit found
-   seven.** The five from 17 August were never recorded. A stale count is not
-   a cosmetic error: whoever runs the check next reads five false alarms and
-   cannot tell known history from fresh damage. If the number changes again,
-   change it HERE — do not leave the discrepancy for the next reader.
+   seven; `bde75b8` made it eight the next day.** The five from 17 August were
+   never recorded. A stale count is not a cosmetic error: whoever runs the
+   check next reads five false alarms and cannot tell known history from fresh
+   damage. If the number changes again, change it HERE — do not leave the
+   discrepancy for the next reader.
+
+   **`bde75b8` is worth reading as a warning, not just a tally mark.** Nothing
+   unusual happened: a PR had just been merged, `--delete-branch` returned the
+   working copy to `main`, and the next piece of work was committed without a
+   `git checkout -b` in front of it. That is the whole failure, and it is
+   silent — `git push` succeeds, the change ships, and only a later audit
+   notices. Section 1.1 is not a formality; the moment it protects is the one
+   right after a merge.
 5. **`tests/run.sh` lists every migration by hand.** A new migration is NOT
    tested until it is added there, and CI stays green while ignoring it
    completely. Seven migrations and three test files once sat unrun for a day
