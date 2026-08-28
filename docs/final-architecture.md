@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0134`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0134`
+sampai migrasi `0135`. Penomorannya disegarkan 28 Agustus 2026 sampai migrasi `0135`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0134`.
+`0119`-`0135`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-134 migrasi, `0001` sampai `0134`, dijalankan berurutan tanpa lubang penomoran.
+135 migrasi, `0001` sampai `0135`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -189,6 +189,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | --- | --- | --- |
 | `#/home` | Home | menu + **empat** lencana: dua antrean (menunggu pembayaran, lunas belum bernomor) dan dua kemajuan berantai (Keberangkatan `berangkat/siap`, Kedatangan `datang/berangkat`) |
 | `#/foto` | Foto Jawaban | foto borongan per lomba di pos, lalu tautkan nomor dada |
+| `#/data-peserta` | Data Peserta | betulkan yang salah diketik pembina: kontak, nama regu, ketua, anggota, kelas/organisasi |
 | `#/pembayaran` | Meja Pembayaran | tabel semua invoice, tandai lunas, cetak kwitansi |
 | `#/daftar-ulang` | Meja Daftar Ulang | isi nomor dada per regu, tukar nomor rusak |
 | `#/cetak-kloter` | Daftar Kloter | lembar per kloter untuk petugas start |

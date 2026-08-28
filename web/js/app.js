@@ -11,6 +11,7 @@
 import {
   sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
   infoEdisi, infoPengaturanKloter, aturPlanningBerangkat, ringkasanMeja, daftarPendaftaran,
+  dataPeserta, ubahKontakPendaftaran, ubahIdentitasRegu,
   verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor,
   daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
   cariRegu, catatFinish, infoPenalti,
@@ -527,6 +528,16 @@ async function layarHome() {
          target="_blank" rel="noopener">
         <div class="function-name">${ikonKotak("clipboard-list", "biru")} Pendaftaran</div>
       </a>` : ""}
+      <!-- Data Peserta duduk tepat di sebelah Pendaftaran, dan itu bukan
+           soal tata letak: keduanya satu pekerjaan yang sama dibelah dua oleh
+           waktu. Yang satu menerima apa yang diketik pembina, yang satu
+           membetulkannya waktu pembina menelepon karena salah ketik. Haknya
+           pun sama: hak pendaftaran. (Tanpa backtick di komentar ini — ia
+           berada DI DALAM template literal, dan satu backtick menutupnya.) -->
+      ${bolehLihat("pendaftaran") ? `
+      <a href="#/data-peserta">
+        <div class="function-name">${ikonKotak("id-card", "toska")} Data Peserta</div>
+      </a>` : ""}
       ${bolehLihat("pembayaran") ? `
       <a href="#/pembayaran">
         <div class="function-name">${ikonKotak("credit-card", "hijau")} Pembayaran ${lencana(r ? r.menunggu_pembayaran : null)}</div>
@@ -841,6 +852,241 @@ const cocokCari = (b, cari) => !cari
 const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
 
 /* ============================ MEJA PEMBAYARAN ============================ */
+
+/* ============================ DATA PESERTA ==============================
+
+   Membetulkan yang salah diketik pembina. Peserta mendaftar sendiri lewat
+   form di situs peserta, dan sebagian salah ketik — nomor WA kurang satu
+   digit, nama anggota tertukar, nama ketua salah eja. Sampai layar ini ada,
+   satu-satunya jalan membatalkan pendaftaran lalu meminta mereka mengisi
+   ulang, dan yang benar-benar terjadi: panitia mencatat betulannya di kertas
+   lain, dan database berbeda dari kenyataan tanpa ada yang tahu bagian mana.
+
+   YANG BISA DIUBAH DI SINI cuma tulisan: kontak pembina, dan identitas tiap
+   regu. Golongan, sekolah, nomor dada, dan status bayar sengaja tidak —
+   masing-masing punya jalurnya sendiri, dan yang salah di antaranya bukan
+   salah ketik melainkan pendaftaran yang salah. Alasan lengkapnya di kepala
+   migrasi 0135.
+
+   KARTU, BUKAN TABEL. Layar Pembayaran menampilkan angka yang dibaca sekilas,
+   jadi tabel enam kolom benar di sana. Yang di sini isian yang diketik, dan
+   isian di dalam sel tabel `fixed` selebar 15% tidak bisa dipakai. Alat cari
+   dan saringannya tetap sama persis (alatTabel), jadi kebiasaan panitia tidak
+   berubah.
+
+   ISIANNYA BARU DIGAMBAR SAAT KARTUNYA DIBUKA. 250 pendaftaran x 7 kotak per
+   regu adalah ribuan elemen form yang tidak ada gunanya sampai satu di antara
+   mereka disentuh. Yang tergambar duluan cuma barisnya. */
+async function layarDataPeserta() {
+  if (!EDISI) { layarButuhEdisi("Data Peserta"); return; }
+  pasangKepala("Data Peserta", true);
+  LAYAR.replaceChildren(h(pemuat()));
+
+  const layarIni = location.hash;
+  let semua;
+  try { semua = await dataPeserta(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarDataPeserta)); return; }
+  if (location.hash !== layarIni) return;
+
+  const dibuka = new Set();
+
+  const reguAktifDp = (b) => (b.regu || []).filter(r => !r.is_cancelled);
+  const internDp = (b) => reguAktifDp(b).some(r => String(r.golongan || "").startsWith("intern"));
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      ${alatTabel({
+        saringan: [
+          { kode: "semua", label: "Semua" },
+          { kode: "eksternal", label: "Eksternal", pendek: "Luar" },
+          { kode: "intern", label: "Intern" },
+        ],
+        saringAktif: "semua",
+        jumlah: semua.length,
+        cariContoh: "Cari kode, sekolah, regu, ketua, atau nomor WA…",
+      })}
+      <div id="isi-peserta"></div>
+    </div>
+  `));
+
+  const gambar = (cari = "", saring = "semua") => {
+    const cocok = semua.filter(b => {
+      if (saring === "intern" && !internDp(b)) return false;
+      if (saring === "eksternal" && internDp(b)) return false;
+      if (!cari) return true;
+      const kumpul = [
+        b.kode_pembayaran, b.sekolah?.name, b.kontak_wa, b.nama_kontak,
+        ...reguAktifDp(b).flatMap(r => [r.nama_regu, r.nama_ketua,
+                                        r.kelas_organisasi, ...(r.anggota || [])]),
+      ].filter(Boolean).join(" ").toLowerCase();
+      return kumpul.includes(cari);
+    });
+
+    const kotak = document.getElementById("isi-peserta");
+    document.getElementById("tabel-jumlah").textContent =
+      `${cocok.length} pendaftaran · `
+      + `${cocok.reduce((n, b) => n + reguAktifDp(b).length, 0)} regu`;
+
+    if (!cocok.length) {
+      kotak.replaceChildren(h(`<p class="table-empty">Tidak ada yang cocok.</p>`));
+      return;
+    }
+
+    kotak.replaceChildren(h(cocok.map(b => {
+      const kode = esc(b.kode_pembayaran);
+      const aktif = reguAktifDp(b);
+      const terbuka = dibuka.has(b.kode_pembayaran);
+      return `
+      <div class="regu-card" id="dp-${kode}">
+        <div class="action-row" style="justify-content:space-between;align-items:baseline">
+          <div>
+            <strong class="mono">${kode}</strong>
+            <span style="margin-left:.5rem">${esc(b.sekolah?.name || "—")}</span>
+          </div>
+          <button class="button-detail" type="button" data-buka="${kode}"
+                  aria-expanded="${terbuka}">${terbuka ? "▾" : "▸"} ${aktif.length}<span
+                  class="satuan-regu"> regu</span></button>
+        </div>
+        <div class="sub" style="margin-top:.15rem">
+          ${esc(b.nama_kontak || "tanpa nama kontak")} · ${esc(b.kontak_wa || "—")}
+        </div>
+        ${!terbuka ? "" : isiUbah(b, aktif)}
+      </div>`;
+    }).join("")));
+
+    kotak.querySelectorAll("[data-buka]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.buka;
+        if (dibuka.has(k)) dibuka.delete(k); else dibuka.add(k);
+        gambar(cari, saring);
+      }));
+
+    pasangUbah(cocok, () => gambar(cari, saring));
+  };
+
+  /* Isian satu pendaftaran: kontak di atas, lalu satu blok per regu. Tiap blok
+     punya tombol Simpan sendiri — satu tombol untuk seluruh kartu berarti satu
+     nama regu yang kembar menggagalkan penyimpanan lima regu lain yang sudah
+     benar, dan petugas tidak tahu mana yang tersimpan. */
+  const isiUbah = (b, aktif) => {
+    const kode = esc(b.kode_pembayaran);
+    return `
+      <div style="margin-top:.7rem;border-top:1.5px solid var(--garis);padding-top:.7rem">
+        <div class="two-column">
+          <div class="field" style="margin:0">
+            <label for="dp-nama-${kode}">Contact Person</label>
+            <input type="text" id="dp-nama-${kode}" value="${esc(b.nama_kontak || "")}"
+                   placeholder="contoh: Bu Rina">
+          </div>
+          <div class="field" style="margin:0">
+            <label for="dp-wa-${kode}">Nomor WhatsApp</label>
+            <input type="tel" id="dp-wa-${kode}" inputmode="numeric"
+                   value="${esc(b.kontak_wa || "")}" placeholder="contoh: 08123456789">
+          </div>
+        </div>
+        <div class="action-row" style="margin-top:.5rem">
+          <button class="button button-secondary button-mini" type="button"
+                  data-simpan-kontak="${kode}">Simpan kontak</button>
+        </div>
+
+        ${aktif.map(r => blokRegu(r)).join("")}
+      </div>`;
+  };
+
+  const blokRegu = (r) => {
+    const id = esc(r.id);
+    const intern = String(r.golongan || "").startsWith("intern");
+    const ang = [0, 1, 2, 3].map(k => (r.anggota || [])[k] || "");
+    return `
+      <div class="regu-card" style="margin-top:.6rem" id="dp-regu-${id}">
+        <span class="badge badge-green">${esc(GOLONGAN_LABEL[r.golongan] || r.golongan)}${
+          r.nomor_dada ? ` · ${esc(dada3(r.nomor_dada))}` : ""}</span>
+        ${!intern ? "" : `
+        <div class="field" style="margin:.45rem 0 .7rem">
+          <label for="dp-kelas-${id}">Kelas / Organisasi</label>
+          <input type="text" id="dp-kelas-${id}" maxlength="80"
+                 value="${esc(r.kelas_organisasi || "")}"
+                 placeholder="contoh: XI IPA 4 atau OSIS">
+        </div>`}
+        <div class="two-column">
+          <div class="field" style="margin:0">
+            <label for="dp-regu-nama-${id}">Nama Regu</label>
+            <input type="text" id="dp-regu-nama-${id}" maxlength="25"
+                   value="${esc(r.nama_regu || "")}" style="text-transform:uppercase">
+          </div>
+          <div class="field" style="margin:0">
+            <label for="dp-ketua-${id}">Nama Ketua</label>
+            <input type="text" id="dp-ketua-${id}" value="${esc(r.nama_ketua || "")}">
+          </div>
+        </div>
+        <div class="field" style="margin-top:.5rem">
+          <label for="dp-ang-${id}-0">Nama Anggota (opsional)</label>
+          ${ang.map((a, k) => `
+            <input type="text" id="dp-ang-${id}-${k}" value="${esc(a)}"
+                   style="margin-top:.35rem" placeholder="Nama Anggota ${k + 1}">`).join("")}
+        </div>
+        <div class="action-row" style="margin-top:.5rem">
+          <button class="button button-secondary button-mini" type="button"
+                  data-simpan-regu="${id}">Simpan regu</button>
+        </div>
+      </div>`;
+  };
+
+  /* Sesudah tersimpan, data DI MEMORI ikut diperbarui lalu tabelnya digambar
+     ulang. Tanpa itu baris ringkasnya masih menyebut nomor lama sampai layar
+     dimuat ulang, dan petugas menyimpulkan simpanannya tidak masuk. */
+  const pasangUbah = (cocok, gambarUlang) => {
+    LAYAR.querySelectorAll("[data-simpan-kontak]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const kode = btn.dataset.simpanKontak;
+        const b = semua.find(x => x.kode_pembayaran === kode);
+        const nama = document.getElementById(`dp-nama-${kode}`).value.trim();
+        const wa = document.getElementById(`dp-wa-${kode}`).value.trim();
+        btn.disabled = true;
+        try {
+          await ubahKontakPendaftaran(kode, nama, wa);
+          b.nama_kontak = nama || null;
+          b.kontak_wa = wa.replace(/\D/g, "").replace(/^62/, "0");
+          notif("Kontak tersimpan.");
+          gambarUlang();
+        } catch (e) {
+          notif(e instanceof ErrorApi ? e.message : "Kontak gagal disimpan.", true);
+          btn.disabled = false;
+        }
+      }));
+
+    LAYAR.querySelectorAll("[data-simpan-regu]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.simpanRegu;
+        const r = semua.flatMap(x => x.regu || []).find(x => String(x.id) === id);
+        const ambil = (s) => (document.getElementById(s)?.value || "").trim();
+        const data = {
+          nama_regu: ambil(`dp-regu-nama-${id}`).toUpperCase(),
+          nama_ketua: ambil(`dp-ketua-${id}`),
+          anggota: [0, 1, 2, 3].map(k => ambil(`dp-ang-${id}-${k}`)).filter(Boolean),
+          kelas_organisasi: ambil(`dp-kelas-${id}`),
+        };
+        btn.disabled = true;
+        try {
+          await ubahIdentitasRegu(id, data);
+          Object.assign(r, {
+            nama_regu: data.nama_regu, nama_ketua: data.nama_ketua,
+            anggota: data.anggota.length ? data.anggota : null,
+            kelas_organisasi: data.kelas_organisasi || null,
+          });
+          notif("Regu tersimpan.");
+          gambarUlang();
+        } catch (e) {
+          notif(e instanceof ErrorApi ? e.message : "Regu gagal disimpan.", true);
+          btn.disabled = false;
+        }
+      }));
+  };
+
+  gambar();
+  pasangAlatTabel(gambar);
+}
+
 
 async function layarPembayaran() {
   if (!EDISI) { layarButuhEdisi("Meja Pembayaran"); return; }
@@ -6410,6 +6656,7 @@ async function layarFoto() {
 const RUTE = {
   "#/home": layarHome,
   "#/foto": layarFoto,
+  "#/data-peserta": layarDataPeserta,
   "#/pembayaran": layarPembayaran,
   "#/daftar-ulang": layarDaftarUlang,
   "#/cetak-kloter": layarCetakKloter,
