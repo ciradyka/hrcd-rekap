@@ -172,6 +172,25 @@ const KELAS_MAKS = 80;
 const POLA_KELAS = /^[A-Za-z0-9 ]*$/;
 const rapatSpasi = (t) => String(t || "").replace(/\s+/g, " ").trim();
 
+/* Kelas / organisasi: WAJIB di jalur Intern, tidak ada sama sekali di jalur
+   Eksternal. Satu tempat yang memutuskan, dipakai cekRegu() maupun periksa().
+   Dua aturan untuk satu kotak berarti kotak yang merah tapi tetap bisa
+   dikirim, atau sebaliknya.
+
+   DI LINGKUP MODUL, bukan di dalam pasangRegu(). Versi pertama menaruhnya di
+   sebelah cekRegu() — dan periksa() adalah fungsi top-level yang tidak bisa
+   melihat ke dalam sana, jadi tombol Kirim akan melempar ReferenceError.
+   `node --check` tetap lulus: galat lingkup baru muncul saat DIJALANKAN,
+   sama persis dengan yang mengosongkan Meja Pembayaran 28 Agustus 2026. */
+const masalahKelas = (i) => {
+  if (!internal()) return null;
+  const t = jawab.regu[i].kelas_organisasi || "";
+  if (!t) return "Kelas / Organisasi wajib diisi.";
+  if (!POLA_KELAS.test(t))
+    return "Tulis dengan huruf, angka, dan spasi saja — misal XI IPA 4 atau OSIS.";
+  return null;
+};
+
 /* Angka di kolom nama selalu berarti salah satu dari dua hal: kolomnya
    tertukar (nomor WA diketik di kotak Nama), atau regunya dinomori sendiri
    ("REGU 1") — dan nomor regu sudah ada, namanya nomor dada.
@@ -793,12 +812,11 @@ function gambarRegu() {
        rumah mendaftarkan seluruh angkatan sekaligus, dari kelas yang
        berbeda-beda. */
     const kotakKelas = !internal() ? "" : html`
-      <div class="field" style="margin:0 0 .7rem">
+      <div class="field" style="margin:.45rem 0 .7rem">
         <label for="r-kelas-${i}">Kelas / Organisasi</label>
         <input type="text" id="r-kelas-${i}" value="${r.kelas_organisasi || ""}"
                maxlength="${KELAS_MAKS}" placeholder="contoh: XI IPA 4 atau OSIS">
-        <div class="error" id="r-kelas-galat-${i}" hidden>Tulis dengan huruf,
-             angka, dan spasi saja — misal XI IPA 4 atau OSIS.</div>
+        <div class="error" id="r-kelas-galat-${i}" hidden></div>
       </div>`;
     return `
     <div class="regu-card" id="regu-${i}">
@@ -896,8 +914,19 @@ function gambarRegu() {
     const kotakAnggota = document.getElementById(`r-anggota-galat-${i}`);
     if (kotakAnggota) kotakAnggota.hidden = !salahAnggota;
 
+    // Kotaknya cuma ada di jalur Intern; di Eksternal keduanya null dan
+    // baris ini tidak melakukan apa-apa.
+    const salahKelas = masalahKelas(i);
+    const inpKelas = document.getElementById(`r-kelas-${i}`);
+    const kotakKelas = document.getElementById(`r-kelas-galat-${i}`);
+    if (inpKelas) inpKelas.setAttribute("aria-invalid", String(!!salahKelas));
+    if (kotakKelas) {
+      kotakKelas.textContent = salahKelas || "";
+      kotakKelas.hidden = !salahKelas;
+    }
+
     document.getElementById(`regu-${i}`).classList.toggle("regu-card-error",
-      !!salahNama || ketuaKosong || salahAnggota);
+      !!salahNama || ketuaKosong || salahAnggota || !!salahKelas);
   };
 
   /** Tanya server nama mana yang sudah terpakai — ditunda 450 ms supaya tiap
@@ -949,9 +978,7 @@ function gambarRegu() {
       // Yang DISIMPAN sudah rapat spasinya; yang diketik dibiarkan apa adanya
       // supaya kursornya tidak melompat saat pembina menekan spasi.
       r.kelas_organisasi = rapatSpasi(e.target.value); simpanDraf();
-      const salah = !POLA_KELAS.test(e.target.value);
-      document.getElementById(`r-kelas-galat-${i}`).hidden = !salah;
-      e.target.setAttribute("aria-invalid", String(salah));
+      cekRegu(i);
       if (sudahDiperiksa) periksa(false);
     });
     // Anggota opsional: yang bisa SALAH cuma angka di namanya, dan itu
@@ -1018,7 +1045,7 @@ function periksa(gulir = true) {
     // angka, spasi. Database menegakkannya lagi (migrasi 0134), jadi kiriman
     // yang lolos dari sini pun tetap ditolak di sana — lebih baik pembina
     // melihatnya di kotaknya sendiri daripada sebagai galat kirim.
-    const kelasSalah = !!r.kelas_organisasi && !POLA_KELAS.test(r.kelas_organisasi);
+    const kelasSalah = !!masalahKelas(i);
     const kurang = namaSalah || !r.nama_ketua || ADA_ANGKA.test(r.nama_ketua)
       || anggotaBerangka || kelasSalah;
     const el = document.getElementById(`regu-${i}`);
@@ -1027,7 +1054,7 @@ function periksa(gulir = true) {
       galat.push({ ke: `regu-${i}`, teks:
         namaPendek ? `Regu ${i + 1}: nama minimal ${HURUF_MIN} huruf`
         : namaKembar ? `Regu ${i + 1}: nama sudah dipakai`
-        : kelasSalah ? `Regu ${i + 1}: kelas/organisasi pakai huruf, angka, spasi saja`
+        : kelasSalah ? `Regu ${i + 1}: ${masalahKelas(i)}`
         : `Regu ${i + 1} belum lengkap` });
     }
   });
