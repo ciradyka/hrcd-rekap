@@ -7,8 +7,7 @@ select set_config(
   'request.jwt.claim.sub',
   (select user_id::text
      from akun_panitia
-    where peran = 'gerbang' and is_active
-    order by username
+    where username = 'aji.furqon' and is_active
     limit 1),
   false
 );
@@ -26,5 +25,8 @@ select count(*) as status_acara from status_acara;
 select count(*) as pos from v_pos;
 select count(*) as komponen from wahana where edisi = edisi_aktif();
 select count(*) as rekap from v_rekap_penuh;
+select count(*) as jumlah_rekap,
+       pg_size_pretty(sum(pg_column_size(r))::bigint) as ukuran_rekap
+  from v_rekap_penuh r;
 
 reset role;
