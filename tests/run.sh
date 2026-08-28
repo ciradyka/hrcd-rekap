@@ -618,4 +618,9 @@ run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
 # tempatnya tepat di belakangnya, bukan di kelompok migrasi mana pun.
 run supabase/migrations/0130_bukti_transfer_link_drive.sql
 
+# 0131 meneruskan impor mulai baris 102 sampai akhir workbook. Tiga kiriman
+# ulang dilewati, sehingga pagarnya menuntut 38 pendaftaran unik; baris yang
+# telanjur dimasukkan lewat form baru dicocokkan dan dilengkapi notanya.
+run supabase/migrations/0131_impor_pendaftaran_xxxvii_susulan.sql
+
 echo "SEMUA TES LULUS"

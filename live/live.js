@@ -78,6 +78,21 @@ const URUT_GOLONGAN_PESERTA =
   URUT_GOLONGAN.filter(g => !g.startsWith("intern_"));
 const golonganPeserta = g => URUT_GOLONGAN_PESERTA.includes(g);
 
+/* MENGHITUNG PENDAFTAR itu pertanyaan lain dari MENYUSUN KLASEMEN, dan sejak
+   28 Agustus 2026 keduanya tidak lagi memakai daftar yang sama.
+
+   Yang di atas menjawab "siapa yang muncul di papan" — Intern tidak, dan itu
+   tetap. Yang di sini menjawab "berapa regu sudah mendaftar", dan jawabannya
+   SELURUHNYA, karena regu Intern sama-sama mendaftar, sama-sama membayar, dan
+   sama-sama berangkat pagi itu. Angka yang menghilangkan 64 di antaranya
+   bukan angka yang lebih sopan, cuma angka yang salah.
+
+   Dipakai berpasangan oleh headline dan pil di bawahnya, jadi keduanya selalu
+   menghitung populasi yang sama dan pilnya berjumlah persis headline-nya.
+   Itu yang membuat halaman ini tidak perlu satu kalimat pun untuk menjelaskan
+   angkanya (CLAUDE.md bagian 9.1). */
+const URUT_GOLONGAN_DAFTAR = URUT_GOLONGAN;
+
 /** dada3() mengembalikan teks kosong untuk nomor yang tidak ada; di tabel ini
  *  yang dibutuhkan tanda pisah supaya barisnya tidak terlihat bolong. */
 const dada = (n) => n === null || n === undefined ? "—" : dada3(n);
@@ -176,15 +191,19 @@ async function ambilRingkasDb() {
 /** Ringkasan yang berlaku: database kalau terbaca, berkas kalau tidak. */
 const ringkasBerlaku = () => RINGKAS_DB || (META && META.ringkas) || {};
 
-/** Regu yang sudah mendaftar, EKSTERNAL saja — sama dengan yang diumumkan
- *  pil golongan di bawahnya. Ringkasan sumber juga memuat Intern untuk
- *  kebutuhan panitia; halaman ini sengaja tidak. Cadangan `jumlah_regu_daftar`
- *  menjaga live.json lama yang belum punya `per_golongan` tetap tergambar. */
+/** Regu yang sudah mendaftar, SELURUHNYA — Intern ikut, sama dengan yang
+ *  diumumkan pil golongan di bawahnya. Sampai 28 Agustus 2026 angka ini
+ *  menjumlahkan golongan Eksternal saja, memakai ulang saringan klasemen
+ *  padahal pertanyaannya berbeda.
+ *
+ *  Cadangan `jumlah_regu_daftar` menjaga live.json lama yang belum punya
+ *  `per_golongan` tetap tergambar — dan kebetulan ia MEMANG sudah berisi
+ *  total dengan Intern, jadi kedua jalur kini menjawab hal yang sama. */
 const jumlahPesertaPra = () => {
   const r = ringkasBerlaku();
   const per = r.per_golongan || {};
   return r.per_golongan && typeof r.per_golongan === "object"
-    ? URUT_GOLONGAN_PESERTA.reduce((n, g) => n + Number(per[g] || 0), 0)
+    ? URUT_GOLONGAN_DAFTAR.reduce((n, g) => n + Number(per[g] || 0), 0)
     : Number(r.jumlah_regu_daftar ?? r.jumlah_regu_lunas ?? 0);
 };
 
@@ -237,7 +256,7 @@ function gambarPra() {
       <p>regu sudah mendaftar</p>
       <p><a class="tombol" href="daftar.html">Daftar Sekarang</a></p>
       <div class="pil-baris">
-        ${URUT_GOLONGAN_PESERTA.filter(g => per[g]).map(g =>
+        ${URUT_GOLONGAN_DAFTAR.filter(g => per[g]).map(g =>
           `<span class="pil">${esc(GOLONGAN[g])}: ${esc(String(per[g]))}</span>`).join("")}
       </div>
     </div>`;
