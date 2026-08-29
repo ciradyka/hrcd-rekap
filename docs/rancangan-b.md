@@ -253,7 +253,8 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
       konfigurasi sekarang `1 menit → 1 poin`, jadi tidak ada toleransi menit.
    5. `v_total_skor` — Σ pos − penalti waktu − `(5 − anggota_hadir) ×
       penalti_per_anggota_hilang`. Tanpa baris closing, penalti waktu dan
-      penalti checkout sama-sama 0; regunya tetap tidak masuk peringkat.
+      penalti checkout sama-sama 0; regunya tetap terlihat di Live Score tanpa
+      peringkat dan tidak dapat masuk enam besar.
    6. `v_klasemen` — `rank() OVER (PARTITION BY golongan ORDER BY total DESC,
       |selisih_menit| ASC)` — empat klasemen, tie-break ketepatan waktu sudah
       tertanam. Regu `batal` dan yang tidak pernah berangkat tidak ikut
