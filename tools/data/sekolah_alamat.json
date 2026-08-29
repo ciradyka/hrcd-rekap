@@ -1722,6 +1722,34 @@
     "catatan": "Alamat lengkap di Dapodik: \"JL. RAYA TIMUR SAWALA KOTAK POS 20 KADIPATEN\" — ada Kotak Pos 20 yang saya pisahkan dari nama jalan. Sekolah negeri."
   },
   {
+    "nama": "SMK LPS 1 Ciamis",
+    "nama_resmi": "SMKS LPS 1 CIAMIS",
+    "npsn": "20211529",
+    "jalan": "Jl. R.E. Martadinata No. 23",
+    "desa": "Maleber",
+    "kecamatan": "Ciamis",
+    "kabupaten": "Kabupaten Ciamis",
+    "provinsi": "Jawa Barat",
+    "kode_pos": "46214",
+    "keyakinan": "tinggi",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211529 ; kode pos desa Maleber sama dengan empat sekolah kurasi lain di desa itu",
+    "catatan": "Yang mendaftar HRCD XXXVII. Nama yang masuk lewat form tanpa angka; angkanya dari pemilik acara."
+  },
+  {
+    "nama": "SMK LPS 2 Ciamis",
+    "nama_resmi": "SMKS LPS 2 CIAMIS",
+    "npsn": "20251831",
+    "jalan": "Jl. R.E. Martadinata No. 23",
+    "desa": "Maleber",
+    "kecamatan": "Ciamis",
+    "kabupaten": "Kabupaten Ciamis",
+    "provinsi": "Jawa Barat",
+    "kode_pos": "46214",
+    "keyakinan": "tinggi",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20251831 ; kode pos desa Maleber sama dengan empat sekolah kurasi lain di desa itu",
+    "catatan": "Belum pernah mendaftar. Didaftarkan supaya angka pada nama LPS 1 punya lawan (CLAUDE.md 12.8)."
+  },
+  {
     "nama": "SMK Ma'arif NU Ciamis",
     "nama_resmi": "SMKS MAARIF NU CIAMIS",
     "npsn": "20254633",

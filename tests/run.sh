@@ -708,5 +708,7 @@ run supabase/migrations/0154_sekolah_alamat_xxxvii.sql
 run tests/sql/106_sekolah_alamat_xxxvii.sql
 run supabase/migrations/0155_sekolah_kode_pos.sql
 run tests/sql/107_sekolah_kode_pos.sql
+run supabase/migrations/0156_smk_lps_satu_dan_dua.sql
+run tests/sql/108_smk_lps_satu_dan_dua.sql
 
 echo "SEMUA TES LULUS"

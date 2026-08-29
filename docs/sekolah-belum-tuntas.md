@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Duapuluh lima dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
+Duapuluh empat dari 212 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -137,11 +137,18 @@ Anwar` (desanya dikosongkan Dapodik), `MA Adzkia` dan `SMA IT Nurul Huda`
 (tidak punya NPSN). Ketiganya sudah punya alamat yang bisa dipakai berkirim
 surat; yang kurang cuma satu kalimat dari pembina.
 
+**`SMK Lps Ciamis` sudah terjawab, 30 Agustus 2026.** Di Jl. R.E. Martadinata
+No. 23 memang ada dua sekolah — SMK LPS 1 (NPSN 20211529) dan SMK LPS 2
+(NPSN 20251831), satu alamat dan satu desa. Tidak ada data yang bisa memilih;
+pemilik acara yang menjawab: yang mendaftar **LPS 1**. Migrasi `0156`
+melengkapi angkanya dan sekalian mendaftarkan LPS 2, supaya angka itu punya
+lawan — nama pembeda yang berdiri sendiri tidak membedakan apa pun
+(CLAUDE.md 12.8).
+
 ### Yang masih tersisa dari XXXVII
 
 | Sekolah | Regu | Kenapa belum tuntas | Yang ditanyakan ke pembina |
 | --- | ---: | --- | --- |
-| **SMK Lps Ciamis** | 1 | Di Jl. R.E. Martadinata No. 23 ada **SMK LPS 1** DAN **SMK LPS 2**. Alamatnya sama, jadi surat tetap sampai; yang salah namanya, dan nama itulah yang dicetak di blangko. | "SMK LPS 1 atau SMK LPS 2?" |
 | **SMP AL Fadliliyah Darussalam** | 0 | Tidak ada SMP di kompleks Darussalam menurut Data Referensi — yang ada MTs Al-Fadliliyah Darussalam, dan alamat yang diketik pembina memang alamat MTs itu. Nol regu, jadi tidak mendesak. | "Regunya dari MTs Al-Fadliliyah Darussalam, atau memang ada SMP-nya?" |
 | **SMAN 1 Majalengka** | 0 | Alamatnya sudah berbentuk baku dan tidak ada yang salah; ia cuma belum punya baris di daftar kurasi. Nol regu. | — tidak perlu ditanyakan |
 
