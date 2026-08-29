@@ -6085,15 +6085,19 @@ async function layarKejuaraan() {
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
   const bisaUbah = bolehLihat("pengaturan");
-  let hasil, regu;
+  let hasil, snapshot;
   try {
-    [hasil, regu] = await Promise.all([
-      hasilKejuaraan(), bisaUbah ? rekapPenuh() : Promise.resolve([]),
+    [hasil, snapshot] = await Promise.all([
+      hasilKejuaraan(), bisaUbah ? cacheLiveScore() : Promise.resolve(null),
     ]);
   }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKejuaraan)); return; }
   if (location.hash !== layarIni) return;
 
+  /* Pilihan penghargaan manual hanya butuh identitas regu dan jam datang.
+     Semuanya sudah ada di snapshot Live Score; menjalankan v_rekap_penuh lagi
+     di sini membuat layar Kejuaraan mengulang seluruh kalkulasi skor. */
+  const regu = snapshot ? snapshot.rekap || [] : [];
   const opsi = [...new Map(regu.filter(r => r.nomor_dada != null && r.jam_datang != null
       && !String(r.golongan).startsWith("intern_"))
     .map(r => [r.regu_id, r])).values()]
