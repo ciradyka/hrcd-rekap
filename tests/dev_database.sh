@@ -89,12 +89,15 @@ LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
              0129_impor_pendaftaran_xxxvii 0130_bukti_transfer_link_drive
              0131_impor_pendaftaran_xxxvii_susulan
              0132_impor_pendaftaran_xxxvii_lanjutan
-             0133_kelas_organisasi_regu 0134_kelas_organisasi_tanpa_simbol"
+             0133_kelas_organisasi_regu 0134_kelas_organisasi_tanpa_simbol
+             0137_riwayat_pendaftaran 0138_riwayat_pelaku_kosong
+             0146_cache_live_score 0147_waktu_nol_pos_2"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
        0076_bidai_dan_lomba_soal 0091_intern_golongan
-       0093_configure_fifo_capacity 0118_jeda_kloter_maksimal"
+       0093_configure_fifo_capacity 0105_expand_kloter_capacity
+       0118_jeda_kloter_maksimal"
 
 # Yang dilewati WAJIB dijalankan lagi di suatu tempat. Kalau tidak, ia tidak
 # dijalankan sama sekali — kerusakan yang sama dengan berhenti di 0011, dan
@@ -164,7 +167,15 @@ run supabase/migrations/0024_komponen_pos.sql
 #     database ini" dan penjaganya diam.
 #   * 0091 harus SESUDAH 0076 agar lima komponen Soal Tulis yang disalin untuk
 #     Intern sudah ada. 0093 menyiapkan 60 kloter setelah edisi aktif lahir;
-#     0105 menambah headroom-nya menjadi 75.
+#     0105 menambah headroom-nya menjadi 75, dan ia HARUS ikut diulang di
+#     sini: di glob ia berjalan sebelum edisi aktif lahir, jadi
+#     `select kloter_maks from edisi where is_active` tidak menemukan apa
+#     pun dan nol kloter dibuat — tanpa sepatah galat. Akibatnya dev
+#     berhenti di 60 kloter sementara produksi punya 75, dan layar yang
+#     dicoba di laptop memakai papan kloter yang tidak ada di lapangan.
+#     Urutannya sesudah 0093 dan sebelum 0118, sama dengan nomornya di
+#     tests/run.sh: 0093 membuat 60, 0105 menaikkannya jadi 75, lalu
+#     assert 0118 memeriksa sebaran jamnya atas jumlah yang benar.
 for m in $ULANG; do
   run "supabase/migrations/$m.sql"
 done
@@ -222,5 +233,35 @@ run supabase/migrations/0132_impor_pendaftaran_xxxvii_lanjutan.sql
 # yang sama dengan keempat migrasi impor di atasnya.
 run supabase/migrations/0133_kelas_organisasi_regu.sql
 run supabase/migrations/0134_kelas_organisasi_tanpa_simbol.sql
+# 0137 dan 0138 sebab yang SAMA PERSIS dengan 0133/0134 di atas: pagar
+# penutupnya mengirim satu pendaftaran lewat submit_pendaftaran lalu
+# menghapusnya lagi. Tanpa edisi aktif, `'HRCD' || edisi_aktif() || '-' || ...`
+# jadi NULL dan kode_pembayaran menabrak not-null constraint — skripnya
+# berhenti persis di situ, dan sejak 0137 mendarat TIDAK ADA cara membuka satu
+# layar pun di laptop (CLAUDE.md 17.6).
+#
+# Keduanya cuma meninggalkan `create or replace view v_riwayat_pendaftaran`
+# beserta grant dan comment-nya. Yang membacanya sesudah 0137 sampai ujung
+# daftar cuma 0138, dan 0138 ikut ditunda ke sini — urutannya tetap 0137 lalu
+# 0138, sama dengan nomornya.
+run supabase/migrations/0137_riwayat_pendaftaran.sql
+run supabase/migrations/0138_riwayat_pelaku_kosong.sql
+
+# 0146 dan 0147 ditunda ke ujung karena keduanya diakhiri
+# `select segarkan_cache_live_score()`, dan fungsi itu memilih satu akun
+# aktif pemegang hak live_score untuk menempati kursinya. Di glob belum ada
+# satu akun pun, jadi ia melempar 'Tidak ada akun aktif dengan hak
+# live_score' dan skripnya BERHENTI di situ — 0148 sampai 0152 tidak pernah
+# jalan, dan layar Kejuaraan di laptop memakai aturan lama tanpa ada yang
+# memberi tahu (CLAUDE.md 17.6).
+#
+# 0147 punya alasan kedua untuk ada di sini: ia memasang tingkat nol pada
+# komponen waktu Pos 2 `where edisi = edisi_aktif()`. Di glob edisi aktif
+# belum lahir, jadi nol baris tersentuh dan ia cuma memberi notice
+# 'dilewati' — kalimat yang terbaca seperti keterangan, bukan kegagalan.
+# Urutannya 0146 lalu 0147, sama dengan nomornya: 0147 memanggil fungsi yang
+# baru dibuat 0146.
+run supabase/migrations/0146_cache_live_score.sql
+run supabase/migrations/0147_waktu_nol_pos_2.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
