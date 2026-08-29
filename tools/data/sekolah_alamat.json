@@ -9,9 +9,9 @@
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
     "kode_pos": "46271",
-    "keyakinan": "sedang",
-    "sumber": "MTs Adzkia satu yayasan, Data Referensi Kemendikdasmen, (belum ada NPSN terdaftar) ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
-    "catatan": "Belum terdaftar di Data Referensi Kemendikdasmen. Alamat diambil dari MTs Adzkia (NPSN 69976289) di dusun yang sama, dan cocok dengan alamat yang diketik pembina sendiri."
+    "keyakinan": "tinggi",
+    "sumber": "MTs Adzkia satu yayasan, Data Referensi Kemendikdasmen, (belum ada NPSN terdaftar) ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama ; satu tempat dengan MTs Adzkia, dikonfirmasi pemilik acara",
+    "catatan": "Belum terdaftar di Data Referensi Kemendikdasmen, jadi NPSN-nya belum diketahui — didaftar di TANPA_NPSN, sama seperti MTs Serba Bakti Suryalaya. Alamatnya dari MTs Adzkia (NPSN 69976289): pemilik acara membenarkan 30 Agustus 2026 bahwa keduanya satu tempat."
   },
   {
     "nama": "MA Agrowisata Shaleha",
