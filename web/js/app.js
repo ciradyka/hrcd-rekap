@@ -22,7 +22,7 @@ import {
   rentangNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos,
-  unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto, klasemenLiveScore,
+  unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
   hasilKejuaraan, simpanKejuaraanManual,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
@@ -5466,9 +5466,9 @@ let pengendaliFilterSekolah = null;
 
 /** Satu request yang putus tidak boleh merobohkan seluruh papan.
  *
- *  Live Score menarik enam sumber sekaligus. Di koneksi lapangan, satu dari
- *  enam request kadang putus walau lima lainnya sudah sampai; Promise.all
- *  lalu membuang kelimanya dan mengganti seluruh layar dengan kartu galat.
+ *  Live Score menarik lima sumber sekaligus. Di koneksi lapangan, satu dari
+ *  lima request kadang putus walau empat lainnya sudah sampai; Promise.all
+ *  lalu membuang keempatnya dan mengganti seluruh layar dengan kartu galat.
  *  Semua pembacaan ini idempotent, jadi yang gagal aman dicoba sekali lagi.
  *
  *  Status acara dan cincin kelengkapan hanya keterangan tambahan. Setelah
@@ -5490,11 +5490,10 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
 
-  let pos, klasemen, status, posSemua, komponen, rekap;
+  let pos, status, posSemua, komponen, rekap;
   try {
-    [pos, klasemen, status, posSemua, komponen, rekap] = await Promise.all([
+    [pos, status, posSemua, komponen, rekap] = await Promise.all([
       muatDataLiveScore(kelengkapanPos, []),
-      muatDataLiveScore(klasemenLiveScore),
       muatDataLiveScore(statusAcara, null),
       muatDataLiveScore(daftarPos),
       muatDataLiveScore(() => komponenSemua(EDISI.nomor)),
@@ -5505,6 +5504,15 @@ async function layarLiveScore() {
     return;
   }
   if (location.hash !== layarIni) return;
+
+  /* v_rekap_penuh sudah menghitung peringkat, total, penalti, dan poin per pos
+     yang sama dengan klasemen_live_score(). Meminta keduanya membuat database
+     menjalankan seluruh rantai skor dua kali untuk setiap panitia yang membuka
+     layar ini. Papan hanya memerlukan baris yang sudah berangkat; nama kolom
+     poin dinormalkan di sini agar bentuk data untuk penggambar tidak berubah. */
+  const klasemen = rekap
+    .filter(r => r.sudah_berangkat)
+    .map(r => ({ ...r, poin_per_pos: r.poin_pos }));
 
   // `let`, bukan `const`: saklar di bawah memperbaruinya DI TEMPAT.
   let fase = (status && status.fase_live) || "pra";
@@ -5862,8 +5870,8 @@ async function layarLiveScore() {
     ${papan}`));
 
   /* Diperbarui DI TEMPAT, bukan dengan menggambar ulang layar.
-     layarLiveScore() menarik enam permintaan sekaligus — klasemen, rekap,
-     kelengkapan, pos, komponen, status — dan menggambar ulang seluruh papan.
+     layarLiveScore() menarik lima permintaan sekaligus — rekap, kelengkapan,
+     pos, komponen, status — dan menggambar ulang seluruh papan.
      Untuk satu kolom yang berpindah itu mahal, dan yang paling terasa: papan
      berkedip dan tab golongan yang sedang dibuka kembali ke awal. Yang
      berubah di layar cuma tombol mana yang menyala. */

@@ -22,6 +22,13 @@ test("pembacaan Live Score yang putus dicoba satu kali lagi", () => {
 test("status dan kelengkapan boleh gagal tanpa merobohkan papan", () => {
   assert.match(layar, /muatDataLiveScore\(kelengkapanPos, \[\]\)/);
   assert.match(layar, /muatDataLiveScore\(statusAcara, null\)/);
-  assert.match(layar, /muatDataLiveScore\(klasemenLiveScore\)/);
   assert.match(layar, /muatDataLiveScore\(rekapPenuh\)/);
+});
+
+
+test("klasemen memakai hasil rekap tanpa menghitung skor dua kali", () => {
+  assert.doesNotMatch(layar, /klasemenLiveScore/);
+  assert.match(layar, /const klasemen = rekap/);
+  assert.match(layar, /\.filter\(r => r\.sudah_berangkat\)/);
+  assert.match(layar, /poin_per_pos: r\.poin_pos/);
 });
