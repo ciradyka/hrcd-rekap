@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Duapuluh dua dari 212 baris di `tools/data/sekolah_alamat.json` belum bisa
+Duapuluh satu dari 212 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -37,7 +37,6 @@ yang kurang satu kalimat dari orang yang tahu.
 
 | Sekolah | Peserta | Kenapa belum tuntas | Yang ditanyakan ke pembina |
 | --- | ---: | --- | --- |
-| **SMA IT Nurul Huda** | 1 | **Tidak ada SMA bernama ini di Data Referensi.** Yang terdaftar SMP IT Nurul Huda (Pamarican dan Panjalu) dan MA Nurul Huda (Kawali). Petunjuk kwartir rantingnya "Pamarican", jadi alamatnya dipinjam dari SMP IT Nurul Huda Margajaya (NPSN 69993153). | "Sekolahnya SMA yang sekompleks dengan SMP IT Nurul Huda di Margajaya, Pamarican? Berapa NPSN-nya?" |
 | **MTsN 2 Ciamis** | 16 | Alamat yang ditulis peserta, `Jl. Raya Ciamis-Banjar KM 3 No. 141`, adalah **alamat MTs PUI Cijantung** di Kec. Cijeungjing. MTsN 2 Ciamis ada di Kec. Lumbung, jauh dari situ. Yang terisi sekarang alamat resmi MTsN 2. | "Regunya dari MTsN 2 Ciamis di Lumbung, atau dari MTs PUI Cijantung di Cijeungjing?" |
 | **MTs Rancah** | 13 | Kec. Rancah punya **tujuh MTs**: MTsN 5, 14, 17 Ciamis, MTs Rancah, MTs Karangpari, MTs Al-Istiqomah Kiarapayung, MTs GUPPI Cileungsir. Dipilih MTs Rancah karena namanya persis dan ada di Desa Rancah. | "MTs-nya yang di Desa Rancah, atau salah satu MTs Negeri di Kec. Rancah? Kalau negeri, nomor berapa?" |
 | **MA Agrowisata Shaleha** | 11 | **Tidak punya NPSN.** MA ini di bawah Kemenag/EMIS, bukan Dapodik, jadi tidak ada di Data Referensi. Alamat dan kode posnya dipinjam dari SLB Agrowisata Shaleha (NPSN 20263112) yang satu kompleks yayasan. | "Berapa NPSN MA-nya, dan alamat suratnya sama dengan SLB yang sekompleks?" |
