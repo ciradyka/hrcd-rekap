@@ -369,51 +369,31 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
 /* ---------------------------------------------------------------------------
    CETAK SKOR — hanya fase penuh, dan tidak mengambil data lagi.
 
-   Pos memakai poin per lomba dari `progres.poin`, lalu Total Pos dari
-   `klasemen.poin_per_pos`. Keberangkatan adalah klasemen total yang dibawa
-   `total`; lembar itu dipasang di titik kumpul ketika seluruh hasil sudah
-   dibuka. Empat golongan dipisah agar regu tidak pernah dibandingkan dengan
-   golongan lain.
+   Seluruh lomba Pos 1-5 digabung dalam satu tabel, lalu Total Akhir dari
+   klasemen. Detail memakai `progres.poin`; identitas, total, dan urutan juara
+   memakai `klasemen`. Satu golongan tetap satu lembar agar regu tidak pernah
+   dibandingkan dengan golongan lain.
    ------------------------------------------------------------------------- */
-const pilihanCetak = () => [
-  ...((META && META.pos) || [])
-    .filter(p => Number(p.nomor) >= 1 && Number(p.nomor) <= 5)
-    .map(p => ({ kode: String(p.nomor),
-      label: `Pos ${p.nomor} · ${p.name}`, judul: `Skor Pos ${p.nomor} · ${p.name}` })),
-  { kode: "keberangkatan", label: "Keberangkatan",
-    judul: "Keberangkatan · Total Skor" },
-];
-
-const skorCetak = (baris, kode) => {
-  const mentah = kode === "keberangkatan"
-    ? baris.total
-    : baris.poin_per_pos && baris.poin_per_pos[kode];
+const skorTotalCetak = (baris) => {
+  const mentah = baris.total;
   if (mentah === null || mentah === undefined || mentah === "") return null;
   const angka = Number(mentah);
   return Number.isFinite(angka) ? angka : null;
 };
 
-function urutSkorCetak(a, b, kode) {
-  const skorA = skorCetak(a, kode);
-  const skorB = skorCetak(b, kode);
+function urutSkorCetak(a, b) {
+  if (a.peringkat !== b.peringkat)
+    return Number(a.peringkat ?? 1e9) - Number(b.peringkat ?? 1e9);
+  const skorA = skorTotalCetak(a);
+  const skorB = skorTotalCetak(b);
   if (skorA === null && skorB !== null) return 1;
   if (skorA !== null && skorB === null) return -1;
   if (skorA !== skorB) return skorB - skorA;
-
-  // Jika skor pos sama, total keseluruhan membuat urutannya tetap berguna.
-  // Untuk Keberangkatan, peringkat database sudah memuat tie-break ketepatan
-  // waktu; jangan membuat aturan peringkat kedua di browser.
-  if (kode === "keberangkatan" && a.peringkat !== b.peringkat)
-    return Number(a.peringkat ?? 1e9) - Number(b.peringkat ?? 1e9);
-  const total = Number(b.total ?? -1e9) - Number(a.total ?? -1e9);
-  if (total) return total;
   return Number(a.nomor_dada ?? 1e9) - Number(b.nomor_dada ?? 1e9);
 }
 
-function buatCetakanSkor(kode, golonganDipilih) {
-  const pilihan = pilihanCetak().find(p => p.kode === kode);
-  if (!pilihan || !golonganPeserta(golonganDipilih)
-      || fase() !== "penuh" || !REKAP) return;
+function buatCetakanSkor(golonganDipilih) {
+  if (!golonganPeserta(golonganDipilih) || fase() !== "penuh" || !REKAP) return;
 
   // Rincian lomba tinggal di progres, sedangkan Total Pos dan peringkat tinggal
   // di klasemen. Keduanya berasal dari snapshot statis yang sama dan disatukan
@@ -422,39 +402,44 @@ function buatCetakanSkor(kode, golonganDipilih) {
   const semua = (REKAP.klasemen || [])
     .map(b => ({ ...perDada.get(b.nomor_dada), ...b }))
     .filter(b => golonganPeserta(b.golongan));
-  const nomorPos = Number(kode);
-  const lomba = kode === "keberangkatan" ? [] : kelompokLomba(kolomPos(
-    ((META && META.komponen) || []).filter(w => Number(w.pos) === nomorPos),
-  ));
+  const perPos = ((META && META.pos) || [])
+    .filter(p => Number(p.nomor) >= 1 && Number(p.nomor) <= 5)
+    .map(p => ({ ...p, lomba: kelompokLomba(kolomPos(
+      ((META && META.komponen) || []).filter(w => Number(w.pos) === Number(p.nomor)),
+    )) }))
+    .filter(p => p.lomba.length);
   // Satu pilihan = satu golongan = satu lembar A4. Mencetak keempat golongan
   // sekaligus memaksa empat halaman padahal petugas biasanya hanya membawa
   // lembar golongan yang sedang diumumkan.
   const halaman = [golonganDipilih].map(g => {
     const baris = semua.filter(b => b.golongan === g)
-      .sort((a, b) => urutSkorCetak(a, b, kode));
-    const kepalaSkor = kode === "keberangkatan"
-      ? `<th class="text-right">Total Skor</th>`
-      : lomba.map(l => `<th class="text-right">${esc(l.nama)}</th>`).join("")
-        + `<th class="text-right">Total Pos</th>`;
+      .sort(urutSkorCetak);
     return `
       <section class="print-page">
         <div class="kepala-cetak-skor">
-          <h1>${esc(pilihan.judul)}</h1>
+          <h1>Rekap Seluruh Nilai</h1>
           <p><strong>${esc(GOLONGAN[g] || g)}</strong> · ${esc(META.edisi?.name || "")}
             · ${esc(tanggalJam(META.dibuat_pada))}</p>
         </div>
         <table class="print-table">
-          <thead><tr>
-            <th>No Dada</th><th>Nama Regu</th><th>Asal Sekolah</th>
-            ${kepalaSkor}
-          </tr></thead>
+          <thead>
+            <tr>
+              <th rowspan="2">No Dada</th><th rowspan="2">Nama Regu</th>
+              <th rowspan="2">Asal Sekolah</th>
+              ${perPos.map(p => `<th class="text-center kepala-pos" colspan="${
+                esc(String(p.lomba.length))}">Pos ${esc(String(p.nomor))}</th>`).join("")}
+              <th rowspan="2" class="text-right">Total Akhir</th>
+            </tr>
+            <tr>${perPos.map(p => p.lomba.map(l =>
+              `<th class="text-right kepala-lomba">${esc(l.nama)}</th>`).join("")).join("")}</tr>
+          </thead>
           <tbody>${baris.map(b => {
-            const skor = skorCetak(b, kode);
-            const rincian = lomba.map(l => {
-              const r = ringkasLomba(l, b.golongan, nomorPos, b.poin || {});
+            const skor = skorTotalCetak(b);
+            const rincian = perPos.map(p => p.lomba.map(l => {
+              const r = ringkasLomba(l, b.golongan, p.nomor, b.poin || {});
               const nilai = r.berlaku && r.terisi ? angkaRapi(r.jumlah) : "—";
               return `<td class="text-right">${esc(nilai)}</td>`;
-            }).join("");
+            }).join("")).join("");
             return `<tr>
               <td class="dada">${esc(dada(b.nomor_dada))}</td>
               <td>${esc(b.nama_regu || "—")}</td>
@@ -479,24 +464,20 @@ function buatCetakanSkor(kode, golonganDipilih) {
 function pasangCetakSkor() {
   const buka = document.getElementById("buka-cetak");
   const dialog = document.getElementById("dialog-cetak");
-  const daftar = document.getElementById("pilihan-cetak");
   const golongan = document.getElementById("golongan-cetak");
   const cetak = document.getElementById("cetak-skor");
-  if (!buka || !dialog || !daftar || !golongan || !cetak) return;
+  if (!buka || !dialog || !golongan || !cetak) return;
 
   buka.addEventListener("click", () => {
-    daftar.innerHTML = pilihanCetak().map(p =>
-      `<option value="${esc(p.kode)}">${esc(p.label)}</option>`).join("");
     golongan.innerHTML = URUT_GOLONGAN_PESERTA.map(g =>
       `<option value="${esc(g)}"${g === golAktif ? " selected" : ""}>${
         esc(GOLONGAN[g] || g)}</option>`).join("");
     dialog.showModal();
   });
   cetak.addEventListener("click", () => {
-    const kode = daftar.value;
     const golonganDipilih = golongan.value;
     dialog.close();
-    buatCetakanSkor(kode, golonganDipilih);
+    buatCetakanSkor(golonganDipilih);
   });
   window.addEventListener("afterprint", () =>
     document.getElementById("cetakan")?.remove());

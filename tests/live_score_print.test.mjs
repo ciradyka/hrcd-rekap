@@ -11,29 +11,28 @@ test("Print hanya tersedia pada fase Live penuh", () => {
   assert.match(js, /tombolCetak\.hidden = fase\(\) !== "penuh" \|\| !REKAP/);
 });
 
-test("pilihan cetak memuat Pos 1-5 dan Keberangkatan", () => {
+test("cetakan menggabungkan seluruh lomba Pos 1-5", () => {
   assert.match(js, /Number\(p\.nomor\) >= 1 && Number\(p\.nomor\) <= 5/);
-  assert.match(js, /kode: "keberangkatan", label: "Keberangkatan"/);
-  assert.match(html, /<select id="pilihan-cetak"><\/select>/);
+  assert.doesNotMatch(html, /id="pilihan-cetak"/);
   assert.match(html, /<select id="golongan-cetak"><\/select>/);
+  assert.match(js, /<h1>Rekap Seluruh Nilai<\/h1>/);
 });
 
-test("skor pos dan Keberangkatan memakai data statis yang sudah dimuat", () => {
-  assert.match(js, /baris\.poin_per_pos && baris\.poin_per_pos\[kode\]/);
-  assert.match(js, /\? baris\.total/);
+test("seluruh nilai memakai data statis yang sudah dimuat", () => {
+  assert.match(js, /const mentah = baris\.total/);
   assert.match(js, /new Map\(\(REKAP\.progres \|\| \[\]\)\.map/);
   assert.doesNotMatch(js.slice(js.indexOf("function buatCetakanSkor"),
     js.indexOf("function pasangCetakSkor")), /fetch\(/);
 });
 
 test("lembar diurutkan skor tertinggi dan dirinci per lomba", () => {
-  assert.match(js, /if \(skorA !== skorB\) return skorB - skorA/);
+  assert.match(js, /return Number\(a\.peringkat \?\? 1e9\) - Number\(b\.peringkat \?\? 1e9\)/);
   for (const kepala of ["No Dada", "Nama Regu", "Asal Sekolah"])
-    assert.ok(js.includes(`<th>${kepala}</th>`));
+    assert.ok(js.includes(`<th rowspan="2">${kepala}</th>`));
   assert.match(js, /kelompokLomba\(kolomPos\(/);
-  assert.match(js, /ringkasLomba\(l, b\.golongan, nomorPos, b\.poin \|\| \{\}\)/);
-  assert.match(js, /<th class="text-right">Total Pos<\/th>/);
-  assert.match(js, /<th class="text-right">Total Skor<\/th>/);
+  assert.match(js, /ringkasLomba\(l, b\.golongan, p\.nomor, b\.poin \|\| \{\}\)/);
+  assert.match(js, /<th rowspan="2" class="text-right">Total Akhir<\/th>/);
+  assert.match(js, /class="text-center kepala-pos" colspan=/);
   assert.match(js, /const halaman = \[golonganDipilih\]\.map\(g =>/);
 });
 
@@ -41,7 +40,7 @@ test("print dibuka langsung dari klik kedua dan hanya cetakan yang terlihat", ()
   const awal = js.indexOf('cetak.addEventListener("click"');
   const akhir = js.indexOf("window.addEventListener", awal);
   const handler = js.slice(awal, akhir);
-  assert.match(handler, /buatCetakanSkor\(kode, golonganDipilih\)/);
+  assert.match(handler, /buatCetakanSkor\(golonganDipilih\)/);
   assert.doesNotMatch(handler, /await|fetch\(/);
   assert.match(css, /@media print[\s\S]*\.kepala, #isi, \.kaki, \.dialog-cetak[\s\S]*display: none !important/);
   assert.match(css, /\.cetak-skor \{ display: block !important; \}/);
@@ -55,6 +54,6 @@ test("setiap golongan dipadatkan ke satu A4 tanpa mengecilkan teks di bawah 7pt"
   assert.match(js, /class="kepala-cetak-skor"/);
   assert.doesNotMatch(js.slice(js.indexOf("function buatCetakanSkor"),
     js.indexOf("function pasangCetakSkor")), /class="print-note"/);
-  assert.match(js, /buatCetakanSkor\(kode, golonganDipilih\)/);
+  assert.match(js, /buatCetakanSkor\(golonganDipilih\)/);
   assert.match(js, /g === golAktif \? " selected" : ""/);
 });

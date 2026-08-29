@@ -282,15 +282,22 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
   .cetak-skor .kepala-cetak-skor h1 { font-size: 11pt; margin: 0; white-space: nowrap; }
   .cetak-skor .kepala-cetak-skor p { font-size: 7pt; margin: 0; text-align: right; }
   .cetak-skor .print-table { margin-top: 0; }
+  .cetak-skor .print-table { table-layout: fixed; width: 100%; }
   .cetak-skor thead { display: table-header-group; }
   .cetak-skor tr { break-inside: avoid; page-break-inside: avoid; }
   .cetak-skor .print-table th, .cetak-skor .print-table td {
     padding: .5pt 2pt; font-size: 7pt; line-height: 1;
   }
   .cetak-skor .print-table th { font-size: 7pt; border-bottom-width: 1pt; }
-  .cetak-skor .print-table td.dada { width: 12mm; font-size: 7pt; }
-  .cetak-skor .print-table td:nth-child(2) { width: 38mm; }
-  .cetak-skor .print-table td:nth-child(3) { width: 48mm; }
-  .cetak-skor .print-table td:last-child { width: 17mm; }
+  .cetak-skor .print-table th:nth-child(1),
+  .cetak-skor .print-table td.dada { width: 10mm; font-size: 7pt; }
+  .cetak-skor .print-table th:nth-child(2),
+  .cetak-skor .print-table td:nth-child(2) { width: 30mm; }
+  .cetak-skor .print-table th:nth-child(3),
+  .cetak-skor .print-table td:nth-child(3) { width: 38mm; }
+  .cetak-skor .print-table th:last-child,
+  .cetak-skor .print-table td:last-child { width: 15mm; }
+  .cetak-skor .kepala-pos { border-left-width: 1.5pt; }
+  .cetak-skor .kepala-lomba { white-space: normal; overflow-wrap: anywhere; }
 }
 
