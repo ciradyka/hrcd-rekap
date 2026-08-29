@@ -41,7 +41,14 @@ test("umur snapshot terlihat di layar", () => {
 
 
 test("snapshot diurutkan menurut peringkat dan score, bukan nomor dada", () => {
-  assert.match(layar, /Number\(a\.peringkat\) - Number\(b\.peringkat\)/);
-  assert.match(layar, /Number\(b\.total\) - Number\(a\.total\)/);
-  assert.doesNotMatch(layar, /Number\(a\.nomor_dada\)|Number\(b\.nomor_dada\)/);
+  // Yang diperiksa cuma pengurutan SNAPSHOT — baris tabel. Podium di bawahnya
+  // punya pengurutannya sendiri dan memang berakhir di nomor dada, karena
+  // penghargaan harus jatuh ke satu regu bahkan saat skornya seri; membaca
+  // seluruh layarLiveScore() di sini membuat pemecah seri itu terbaca seperti
+  // pelanggaran aturan ini.
+  const urut = layar.slice(layar.indexOf("const klasemen = rekap"),
+                           layar.indexOf("let fase ="));
+  assert.match(urut, /Number\(a\.peringkat\) - Number\(b\.peringkat\)/);
+  assert.match(urut, /Number\(b\.total\) - Number\(a\.total\)/);
+  assert.doesNotMatch(urut, /Number\(a\.nomor_dada\)|Number\(b\.nomor_dada\)/);
 });
