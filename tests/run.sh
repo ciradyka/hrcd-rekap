@@ -714,5 +714,7 @@ run supabase/migrations/0157_direktori_sekolah_ciamis.sql
 run tests/sql/109_direktori_sekolah_ciamis.sql
 run supabase/migrations/0158_rapikan_alamat_direktori.sql
 run tests/sql/110_rapikan_alamat_direktori.sql
+run supabase/migrations/0159_lebur_kembar_direktori.sql
+run tests/sql/111_lebur_kembar_direktori.sql
 
 echo "SEMUA TES LULUS"

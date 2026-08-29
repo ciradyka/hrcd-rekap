@@ -18,13 +18,30 @@ test("pemeriksa kembar tidak mengubah satu baris pun", () => {
       `pemeriksa kembar memuat "${kata}" — ia harus hanya membaca`);
 });
 
-test("kelima aturan disebut, masing-masing dengan alasannya", () => {
+test("keenam aturan disebut, masing-masing dengan alasannya", () => {
   for (const sebab of ["tanda baca / spasi saja bedanya",
                        "ejaan h / huruf ganda saja bedanya",
                        "huruf N / status negeri-swasta saja bedanya",
                        "satu nama memuat sisipan yang satunya tidak",
-                       "kata terakhirnya nama diri yang sama"])
+                       "kata terakhirnya nama diri yang sama",
+                       "jalan dan desa sama persis, jenjang sama"])
     assert.ok(sql.includes(sebab), `aturan hilang: ${sebab}`);
+});
+
+test("aturan alamat memakai TINGKAT, bukan kolom jenjang", () => {
+  // Kolom `jenjang` isinya nama LENGKAP dengan huruf N dibuang, bukan tingkat
+  // sekolah. Aturan F sempat memakainya dan karena itu menuntut namanya hampir
+  // sama — yang meniadakan seluruh gunanya, karena ia dibuat justru untuk
+  // pasangan yang namanya berbeda jauh seperti MAN Darussalam lawan
+  // MAN 1 Ciamis.
+  const f = sql.slice(sql.indexOf("-- F. Jalan DAN desa"));
+  assert.match(f, /a\.jalan = b\.jalan and a\.desa_alamat = b\.desa_alamat/);
+  assert.match(f, /a\.tingkat.*b\.tingkat/s);
+  assert.doesNotMatch(f, /a\.jenjang/);
+  assert.match(f, /length\(a\.jalan\) >= 8/);
+  // Alamat tanpa nama jalan dimulai dari desanya; tanpa syarat ini dua sekolah
+  // sedesa terlihat sealamat.
+  assert.match(f, /desa_alamat not like 'kec\. %'/);
 });
 
 test("aturan sisipan diperiksa dua arah", () => {
@@ -34,10 +51,12 @@ test("aturan sisipan diperiksa dua arah", () => {
   assert.match(sql, /b\.kata <@ a\.kata/);
 });
 
-test("yang TIDAK bisa ditemukannya ikut ditulis", () => {
-  // MAN Darussalam lawan MAN 1 Ciamis tidak punya satu huruf pun yang sama;
-  // yang membuktikannya NPSN, dan `sekolah` tidak menyimpan NPSN. Pemeriksa
-  // yang diam soal batasnya dibaca seolah menutup semuanya.
+test("batas pemeriksaan ini tetap tertulis", () => {
+  // Aturan F menutup kasus MAN Darussalam lawan MAN 1 Ciamis — tetapi lewat
+  // ALAMAT, bukan NPSN. Sekolah yang pindah alamat dan berganti nama sekaligus
+  // tetap lolos, dan pemeriksa yang diam soal batasnya dibaca seolah menutup
+  // semuanya.
   assert.match(sql, /MAN Darussalam/);
-  assert.match(sql, /tabel `sekolah` tidak menyimpan NPSN/);
+  assert.match(sql, /tetapi lewat alamat, bukan lewat NPSN/);
+  assert.match(sql, /berganti nama sekaligus tetap lolos/);
 });
