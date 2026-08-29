@@ -99,6 +99,61 @@ const kosong = () => ({
 
 let jawab = kosong();
 let SEKOLAH = [];
+
+/* ---------------------------------------------------------------------------
+   DAFTAR SEKOLAH DISIMPAN DI HP, BUKAN DIMINTA ULANG TIAP BUKA HALAMAN.
+
+   Tabelnya 517 baris sejak migrasi 0157 memasukkan seluruh SMP/MTs/SMA/SMK/MA
+   se-Kabupaten Ciamis — 94 KB JSON. Sebelum ini setiap kali halaman ini dibuka
+   ia diminta ulang ke database, padahal pembina membuka form yang sama
+   berkali-kali: mengisi separuh, menutup, kembali lagi, mengoreksi satu regu.
+   Isinya nyaris tidak pernah berubah di antara kunjungan itu.
+
+   Bentuknya "pakai dulu, segarkan belakangan": kalau ada simpanan ia dipakai
+   SEKETIKA dan halaman terbuka tanpa satu permintaan pun; kalau simpanannya
+   sudah lewat enam jam, penyegaran jalan di latar belakang dan `SEKOLAH`
+   diganti begitu datang. Itu aman karena tidak ada yang menyalin `SEKOLAH` ke
+   indeks siapkan-dulu — `cariSekolah(SEKOLAH, ...)` membacanya saat diketik,
+   jadi hasil yang lebih baru langsung terpakai pada ketukan berikutnya.
+
+   Basi paling parah yang bisa terjadi: sekolah yang baru mendaftar hari ini
+   belum muncul di kotak cari pembina lain. Yang mengetiknya tetap menulis nama
+   yang sama, dan `kunci_sekolah()` di database tetap menyatukannya ke satu
+   baris — jadi yang hilang cuma kenyamanan, bukan kebenaran.
+
+   `infoEdisi()` SENGAJA tidak ikut disimpan. Ia 180 byte, dan ia yang memutus
+   pendaftaran masih dibuka atau tidak; menyimpannya berarti form yang sudah
+   ditutup masih menerima kiriman selama enam jam.
+   ------------------------------------------------------------------------ */
+const SIMPANAN_SEKOLAH = "hrcd_sekolah";
+const UMUR_SEKOLAH = 6 * 60 * 60 * 1000;
+
+/** Baca simpanan. Seluruh akses localStorage dibungkus try/catch: di mode
+ *  privat sebagian browser MELEMPAR, bukan mengembalikan null, dan form yang
+ *  gagal terbuka gara-gara cache adalah pertukaran yang salah arah. */
+function sekolahTersimpan() {
+  try {
+    const t = JSON.parse(localStorage.getItem(SIMPANAN_SEKOLAH) || "null");
+    if (!t || !Array.isArray(t.isi) || !t.isi.length) return null;
+    return { isi: t.isi, basi: Date.now() - (t.pada || 0) > UMUR_SEKOLAH };
+  } catch { return null; }
+}
+
+function simpanSekolah(isi) {
+  try {
+    localStorage.setItem(SIMPANAN_SEKOLAH, JSON.stringify({ pada: Date.now(), isi }));
+  } catch { /* kuota penuh atau mode privat — simpanan memang boleh gagal */ }
+}
+
+/** Segarkan di latar belakang. Gagalnya DIABAIKAN: yang sudah di layar tetap
+ *  bisa dipakai, dan memunculkan galat untuk penyegaran yang tidak diminta
+ *  siapa pun cuma membuat pembina mengira formnya rusak. */
+async function segarkanSekolah() {
+  try {
+    const baru = await daftarSekolah();
+    if (Array.isArray(baru) && baru.length) { SEKOLAH = baru; simpanSekolah(baru); }
+  } catch { /* diam */ }
+}
 let EDISI = null;
 let tokenTurnstile = null;
 let sudahDiperiksa = false;      // galat baru ditampilkan setelah Kirim ditekan
@@ -1288,7 +1343,15 @@ async function mulai() {
   // style.css yang sama, jadi tidak ada gaya kedua yang perlu dijaga.
   LAYAR.replaceChildren(h(pemuat()));
   try {
-    [SEKOLAH, EDISI] = await Promise.all([daftarSekolah(), infoEdisi()]);
+    const simpanan = sekolahTersimpan();
+    if (simpanan) {
+      SEKOLAH = simpanan.isi;
+      EDISI = await infoEdisi();
+      if (simpanan.basi) segarkanSekolah();
+    } else {
+      [SEKOLAH, EDISI] = await Promise.all([daftarSekolah(), infoEdisi()]);
+      simpanSekolah(SEKOLAH);
+    }
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, mulai));
     return;
