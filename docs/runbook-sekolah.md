@@ -649,6 +649,15 @@ SMPT RIYADLUL ULUM WADDAWAH   ->  SMP Terpadu Riyadlul Ulum Waddawah
 nama yang benar-benar ada di produksi. Enam baris, disebut satu per satu, tidak
 ada normalisasi yang perlu dipercaya.
 
+**Sebelum cetak blangko, jalankan `supabase/checks/sekolah_kembar.sql`.**
+Ia melapor pasangan baris `sekolah` yang bedanya cuma tanda baca, huruf `h`,
+huruf status Dapodik, sisipan satu kata, atau kata terakhir yang sama — hal-hal
+yang `kunci_sekolah()` sengaja lewatkan. Ia TIDAK melebur apa pun; yang
+memutuskan tetap manusia, lewat NPSN. Diuji atas 217 nama produksi: lima dari
+enam baris kembar yang pernah ada tertangkap, tanpa satu pun lapor palsu. Yang
+keenam, `MAN Darussalam` lawan `MAN 1 Ciamis`, tidak punya satu huruf pun yang
+sama dan hanya bisa dibuktikan NPSN — yang tidak disimpan tabel `sekolah`.
+
 **Kalau mengulanginya tahun depan:** cocokkan ke daftar kurasi memakai `kunci()`
 Python, cetak pasangannya, baca, baru rakit migrasinya. Jangan serahkan
 pencocokan itu ke SQL.
