@@ -91,6 +91,7 @@ body {
 .dialog-cetak::backdrop { background: rgba(0,0,0,.45); }
 .dialog-cetak h2 { margin-bottom: .8rem; }
 .dialog-cetak label { display: block; margin-bottom: .3rem; font-weight: 700; }
+.dialog-cetak select + label { margin-top: .75rem; }
 .dialog-cetak select {
   width: 100%; min-height: 44px; padding: .5rem; border: 1px solid var(--garis);
   border-radius: 8px; background: #fff; font: inherit;
@@ -266,15 +267,30 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 .tombol:hover { background: #004d43; }
 
 @media print {
-  @page { size: A4 landscape; margin: 10mm; }
+  /* Satu golongan harus selesai di satu A4. Margin 6mm masih aman untuk
+     printer kantor (tepi 4-5mm tidak tercetak), sementara font 7pt adalah
+     batas bawah yang tetap bertahan saat hasilnya difotokopi. */
+  @page { size: A4 landscape; margin: 6mm; }
   .kepala, #isi, .kaki, .dialog-cetak { display: none !important; }
   .cetak-skor { display: block !important; }
+  .cetak-skor .print-page { break-after: page; page-break-after: always; }
+  .cetak-skor .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .kepala-cetak-skor {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 4mm; margin-bottom: 2pt;
+  }
+  .cetak-skor .kepala-cetak-skor h1 { font-size: 11pt; margin: 0; white-space: nowrap; }
+  .cetak-skor .kepala-cetak-skor p { font-size: 7pt; margin: 0; text-align: right; }
+  .cetak-skor .print-table { margin-top: 0; }
   .cetak-skor thead { display: table-header-group; }
   .cetak-skor tr { break-inside: avoid; page-break-inside: avoid; }
   .cetak-skor .print-table th, .cetak-skor .print-table td {
-    padding: 3pt 4pt; font-size: 8pt;
+    padding: .5pt 2pt; font-size: 7pt; line-height: 1;
   }
-  .cetak-skor .print-table td:nth-child(1) { width: 18mm; }
-  .cetak-skor .print-table td:last-child { width: 22mm; }
+  .cetak-skor .print-table th { font-size: 7pt; border-bottom-width: 1pt; }
+  .cetak-skor .print-table td.dada { width: 12mm; font-size: 7pt; }
+  .cetak-skor .print-table td:nth-child(2) { width: 38mm; }
+  .cetak-skor .print-table td:nth-child(3) { width: 48mm; }
+  .cetak-skor .print-table td:last-child { width: 17mm; }
 }
 

@@ -410,9 +410,10 @@ function urutSkorCetak(a, b, kode) {
   return Number(a.nomor_dada ?? 1e9) - Number(b.nomor_dada ?? 1e9);
 }
 
-function buatCetakanSkor(kode) {
+function buatCetakanSkor(kode, golonganDipilih) {
   const pilihan = pilihanCetak().find(p => p.kode === kode);
-  if (!pilihan || fase() !== "penuh" || !REKAP) return;
+  if (!pilihan || !golonganPeserta(golonganDipilih)
+      || fase() !== "penuh" || !REKAP) return;
 
   // Rincian lomba tinggal di progres, sedangkan Total Pos dan peringkat tinggal
   // di klasemen. Keduanya berasal dari snapshot statis yang sama dan disatukan
@@ -425,7 +426,10 @@ function buatCetakanSkor(kode) {
   const lomba = kode === "keberangkatan" ? [] : kelompokLomba(kolomPos(
     ((META && META.komponen) || []).filter(w => Number(w.pos) === nomorPos),
   ));
-  const halaman = URUT_GOLONGAN_PESERTA.map(g => {
+  // Satu pilihan = satu golongan = satu lembar A4. Mencetak keempat golongan
+  // sekaligus memaksa empat halaman padahal petugas biasanya hanya membawa
+  // lembar golongan yang sedang diumumkan.
+  const halaman = [golonganDipilih].map(g => {
     const baris = semua.filter(b => b.golongan === g)
       .sort((a, b) => urutSkorCetak(a, b, kode));
     const kepalaSkor = kode === "keberangkatan"
@@ -434,8 +438,11 @@ function buatCetakanSkor(kode) {
         + `<th class="text-right">Total Pos</th>`;
     return `
       <section class="print-page">
-        <h1>${esc(pilihan.judul)}</h1>
-        <p><strong>${esc(GOLONGAN[g] || g)}</strong> · ${esc(META.edisi?.name || "")}</p>
+        <div class="kepala-cetak-skor">
+          <h1>${esc(pilihan.judul)}</h1>
+          <p><strong>${esc(GOLONGAN[g] || g)}</strong> · ${esc(META.edisi?.name || "")}
+            · ${esc(tanggalJam(META.dibuat_pada))}</p>
+        </div>
         <table class="print-table">
           <thead><tr>
             <th>No Dada</th><th>Nama Regu</th><th>Asal Sekolah</th>
@@ -457,7 +464,6 @@ function buatCetakanSkor(kode) {
             </tr>`;
           }).join("")}</tbody>
         </table>
-        <p class="print-note">Data diperbarui ${esc(tanggalJam(META.dibuat_pada))}.</p>
       </section>`;
   }).join("");
 
@@ -474,18 +480,23 @@ function pasangCetakSkor() {
   const buka = document.getElementById("buka-cetak");
   const dialog = document.getElementById("dialog-cetak");
   const daftar = document.getElementById("pilihan-cetak");
+  const golongan = document.getElementById("golongan-cetak");
   const cetak = document.getElementById("cetak-skor");
-  if (!buka || !dialog || !daftar || !cetak) return;
+  if (!buka || !dialog || !daftar || !golongan || !cetak) return;
 
   buka.addEventListener("click", () => {
     daftar.innerHTML = pilihanCetak().map(p =>
       `<option value="${esc(p.kode)}">${esc(p.label)}</option>`).join("");
+    golongan.innerHTML = URUT_GOLONGAN_PESERTA.map(g =>
+      `<option value="${esc(g)}"${g === golAktif ? " selected" : ""}>${
+        esc(GOLONGAN[g] || g)}</option>`).join("");
     dialog.showModal();
   });
   cetak.addEventListener("click", () => {
     const kode = daftar.value;
+    const golonganDipilih = golongan.value;
     dialog.close();
-    buatCetakanSkor(kode);
+    buatCetakanSkor(kode, golonganDipilih);
   });
   window.addEventListener("afterprint", () =>
     document.getElementById("cetakan")?.remove());
