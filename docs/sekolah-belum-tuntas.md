@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Dua puluh satu dari 190 baris di `tools/data/sekolah_alamat.json` belum bisa
+Duapuluh empat dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -37,6 +37,9 @@ yang kurang satu kalimat dari orang yang tahu.
 
 | Sekolah | Peserta | Kenapa belum tuntas | Yang ditanyakan ke pembina |
 | --- | ---: | --- | --- |
+| **MA Bahrul Anwar** | 6 | Data Referensi mengosongkan kolom **desa** untuk MA-nya (NPSN 70044831); yang terisi sekarang `Mekarsari`, diambil dari MTs Bahrul Anwar (NPSN 69955929) yang berdiri di Dusun Cicurug yang sama. | "MA-nya sedesa dengan MTs-nya di Mekarsari, atau desanya lain?" |
+| **MA Adzkia** | 2 | **Tidak punya NPSN.** Yang terdaftar di Data Referensi cuma MTs-nya (NPSN 69976289). Alamatnya dipinjam dari MTs itu, dan kebetulan cocok persis dengan yang diketik pembina sendiri. | "Berapa NPSN MA-nya, dan alamat suratnya sama dengan MTs yang sekompleks?" |
+| **SMA IT Nurul Huda** | 1 | **Tidak ada SMA bernama ini di Data Referensi.** Yang terdaftar SMP IT Nurul Huda (Pamarican dan Panjalu) dan MA Nurul Huda (Kawali). Petunjuk kwartir rantingnya "Pamarican", jadi alamatnya dipinjam dari SMP IT Nurul Huda Margajaya (NPSN 69993153). | "Sekolahnya SMA yang sekompleks dengan SMP IT Nurul Huda di Margajaya, Pamarican? Berapa NPSN-nya?" |
 | **MTsN 2 Ciamis** | 16 | Alamat yang ditulis peserta, `Jl. Raya Ciamis-Banjar KM 3 No. 141`, adalah **alamat MTs PUI Cijantung** di Kec. Cijeungjing. MTsN 2 Ciamis ada di Kec. Lumbung, jauh dari situ. Yang terisi sekarang alamat resmi MTsN 2. | "Regunya dari MTsN 2 Ciamis di Lumbung, atau dari MTs PUI Cijantung di Cijeungjing?" |
 | **MTs Rancah** | 13 | Kec. Rancah punya **tujuh MTs**: MTsN 5, 14, 17 Ciamis, MTs Rancah, MTs Karangpari, MTs Al-Istiqomah Kiarapayung, MTs GUPPI Cileungsir. Dipilih MTs Rancah karena namanya persis dan ada di Desa Rancah. | "MTs-nya yang di Desa Rancah, atau salah satu MTs Negeri di Kec. Rancah? Kalau negeri, nomor berapa?" |
 | **MA Agrowisata Shaleha** | 11 | **Tidak punya NPSN.** MA ini di bawah Kemenag/EMIS, bukan Dapodik, jadi tidak ada di Data Referensi. Alamat dan kode posnya dipinjam dari SLB Agrowisata Shaleha (NPSN 20263112) yang satu kompleks yayasan. | "Berapa NPSN MA-nya, dan alamat suratnya sama dengan SLB yang sekompleks?" |
@@ -104,53 +107,43 @@ tidak tercampur dengan yang benar-benar butuh jawaban orang.
 
 ---
 
-## E. Sekolah baru dari pendaftaran XXXVII — alamatnya belum dicari
+## E. Sekolah baru dari pendaftaran XXXVII
 
-Tiga belas sekolah ini masuk lewat migrasi `0129`, dari jawaban Google Form
-HRCD XXXVII. Mereka **sudah ada di tabel `sekolah` produksi dengan alamat
-kosong**, dan itu tidak menghalangi apa pun: pendaftaran, kloter, dan blangko
-tidak membaca alamat. Yang membacanya cuma surat.
+**Ketiga belasnya sudah dicari, 30 Agustus 2026.** Bagian ini dulu daftar
+kerja; sekarang catatan hasilnya, dan judulnya tetap berdiri karena
+`tools/periksa_sekolah.py` memotong pemeriksaannya di sini — yang di bawah
+judul ini bukan daftar kerja atas `sekolah_alamat.json`.
 
-Bedanya dengan bagian A sampai D, dan ini yang membuat mereka ditulis
-terpisah: yang di atas sudah **disisir dan buntu**, yang di sini **belum
-dicari sama sekali**. Keduanya butuh pekerjaan yang berbeda — yang di atas
-butuh satu kalimat dari pembina, yang di sini butuh setengah jam di Data
-Referensi Kemendikdasmen.
+Alamatnya dipasang ke produksi lewat migrasi `0154`, bersama tujuh sekolah
+XXXVII lain yang alamatnya sudah terisi tapi belum baku, dan enam baris kembar
+yang dilebur. Semuanya sekarang punya baris di `sekolah_nama.json` maupun
+`sekolah_alamat.json`, lengkap dengan NPSN dan URL sumbernya.
 
-Mereka juga sengaja **belum masuk `tools/data/sekolah_nama.json` maupun
-`sekolah_alamat.json`**. Kedua berkas itu hasil kurasi edisi XXXIII-XXXVI
-(runbook bagian 2), dan menambahkan baris tanpa NPSN, tanpa alamat, dan tanpa
-sumber ke dalamnya menurunkan mutu daftar yang justru jadi acuan. Yang benar
-urutannya terbalik: cari alamatnya dulu menurut runbook bagian 6, baru
-tuliskan barisnya lengkap sekaligus.
+**Yang paling mahal kalau salah, dan hampir salah.** `MA Mujahidin` dan
+`MTs Mujahidin` punya DUA kandidat yang sama-sama meyakinkan: satu yayasan
+MA+MTs di Kec. Cipaku Kabupaten Ciamis, dan satu lagi di Kec. Sukaratu
+Kabupaten **Tasikmalaya**. Pencarian tidak bisa memilih — yang memilih kolom
+kwartir ranting di form pendaftaran, yang kebetulan sudah disalin ke tabel di
+atas sebelum dihapus: "Cipaku / Ciamis". Sepuluh regu, dan tanpa kolom itu
+suratnya menyeberang kabupaten.
 
-| Sekolah | Regu | Petunjuk dari form (kwartir ranting / cabang) |
-| --- | ---: | --- |
-| **MA Bahrul Anwar** | 6 | Cipaku / Ciamis |
-| **MTs Bahrul Anwar** | 5 | Cipaku / Ciamis |
-| **MTs Mujahidin** | 6 | Cipaku / Ciamis |
-| **MA Mujahidin** | 4 | Cipaku / Ciamis |
-| **MTsN 1 Ciamis** | 6 | Ciamis / Ciamis |
-| **SMPN 3 Kawali** | 5 | Kawali / Ciamis |
-| **SMPN 1 Kawali** | 4 | Kawali / Ciamis |
-| **SMK As-Sulthoniah** | 3 | Cipaku / Ciamis — alamat SUDAH ada, dari pemilik acara |
-| **MA Sirnarasa** | 1 | Panjalu / Ciamis |
-| **MA IPHI Pamarican** | 1 | Pamarican / Ciamis |
-| **SMA IT Nurul Huda** | 1 | Pamarican / Ciamis |
-| **SMPN 2 Kawali** | 1 | Kawali / Ciamis |
-| **SMPN 3 Baregbeg** | 1 | Baregbeg / Ciamis |
+Kolom petunjuk itu **bukan alamat** — runbook bagian 1 menyebutnya arah, bukan
+sumber kebenaran. Tetapi sebagai pemilih di antara dua alamat yang sama-sama
+resmi, ia persis yang dibutuhkan. Simpan kolomnya untuk edisi berikutnya.
 
-Kolom petunjuk diambil apa adanya dari form dan **bukan alamat** — runbook
-bagian 1 sudah menyebutnya arah, bukan sumber kebenaran. Ia dipasang di sini
-supaya yang mencari tahu harus mulai dari kecamatan mana.
+Tiga di antaranya tidak selesai penuh dan pindah ke bagian A: `MA Bahrul
+Anwar` (desanya dikosongkan Dapodik), `MA Adzkia` dan `SMA IT Nurul Huda`
+(tidak punya NPSN). Ketiganya sudah punya alamat yang bisa dipakai berkirim
+surat; yang kurang cuma satu kalimat dari pembina.
 
-`SMK As-Sulthoniah` pengecualiannya: alamatnya sudah terisi di `0129` dari
-jawaban pemilik acara — Dusun Desa RT 014/007, Jalatrang, Kec. Cipaku, Kab.
-Ciamis. Yang tersisa untuknya cuma NPSN.
+### Yang masih tersisa dari XXXVII
 
-**Kolom Regu di atas adalah harganya kalau salah.** Enam regu MA Bahrul Anwar
-berarti enam undangan yang nyasar; satu regu SMPN 2 Kawali, satu. Kerjakan
-dari atas.
+| Sekolah | Regu | Kenapa belum tuntas | Yang ditanyakan ke pembina |
+| --- | ---: | --- | --- |
+| **SMK Lps Ciamis** | 1 | Di Jl. R.E. Martadinata No. 23 ada **SMK LPS 1** DAN **SMK LPS 2**. Alamatnya sama, jadi surat tetap sampai; yang salah namanya, dan nama itulah yang dicetak di blangko. | "SMK LPS 1 atau SMK LPS 2?" |
+| **SMP AL Fadliliyah Darussalam** | 0 | Tidak ada SMP di kompleks Darussalam menurut Data Referensi — yang ada MTs Al-Fadliliyah Darussalam, dan alamat yang diketik pembina memang alamat MTs itu. Nol regu, jadi tidak mendesak. | "Regunya dari MTs Al-Fadliliyah Darussalam, atau memang ada SMP-nya?" |
+| **SMAN 1 Majalengka** | 0 | Alamatnya sudah berbentuk baku dan tidak ada yang salah; ia cuma belum punya baris di daftar kurasi. Nol regu. | — tidak perlu ditanyakan |
+
 ---
 
 ## Yang bukan soal sekolah
