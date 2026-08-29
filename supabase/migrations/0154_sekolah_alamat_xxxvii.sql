@@ -36,6 +36,17 @@
 -- `raise notice` di ujung berkas supaya panitia melihatnya tanpa membuka
 -- dokumen mana pun:
 --
+-- SATU PASANGAN TERNYATA BUKAN KEMBAR, DAN PAGARNYA YANG MENEMUKAN
+--
+-- `MA Al-Azhar Kota Banjar` semula ditulis di daftar peleburan, karena
+-- alamatnya sama persis dengan baris kurasi `MA Al-Azhar Citangkolo Kota
+-- Banjar`. Ternyata produksi cuma punya SATU barisnya — yang bernama panjang
+-- tidak pernah sampai ke sana — jadi yang benar mengganti nama, bukan
+-- melebur. Yang menemukannya pagar `pasangan peleburan salah` saat migrasi
+-- ini dijalankan ke produksi, dan ia berhenti SEBELUM satu baris pun berubah.
+-- Pagar yang cuma sopan akan melewatinya dan meninggalkan nama pendek itu
+-- selamanya.
+--
 --   * `SMK Lps Ciamis` — di Jl. R.E. Martadinata No. 23 ada SMK LPS 1 DAN
 --     SMK LPS 2. Alamatnya sama; namanya yang harus dilengkapi angka, dan
 --     angka itu tidak ada di mana pun kecuali di kepala pembinanya.
@@ -102,16 +113,12 @@ create temporary table lebur_0154 (buang text, simpan text, alasan text);
 insert into lebur_0154 (buang, simpan, alasan) values
   ('SMK MAARIF NU CIAMIS', 'SMK Ma''arif NU Ciamis',
    'satu NPSN 20254633; Dapodik menulis SMKS MAARIF NU CIAMIS'),
-  ('SMAN 1 SINDANGKASIH', 'SMA 1 Sindangkasih',
-   'satu NPSN 20238437; yang bertahan baris kurasi, dan huruf N-nya yang hilang dipasang di langkah 2'),
   ('SMA IT MD FATAHILLAH', 'SMA IT MD Fathahillah',
    'satu NPSN 70051695; Dapodik menulis Fathahillah'),
   ('SMP IT MUHAMADANU FATAHILAH', 'SMP IT MD Fathahillah',
    'satu NPSN 70003434; resminya SMP Islam Terpadu Muhammad Danu Fathahillah, jadi MD = Muhammad Danu'),
   ('MAN 1 Ciamis', 'MAN Darussalam',
-   'satu NPSN 20276451; runbook bagian 5 menahan nama MAN Darussalam karena itu yang diucapkan orang'),
-  ('MA Al-Azhar Kota Banjar', 'MA Al-Azhar Citangkolo Kota Banjar',
-   'satu NPSN 20277086; alamat kedua baris sudah sama persis');
+   'satu NPSN 20276451; runbook bagian 5 menahan nama MAN Darussalam karena itu yang diucapkan orang');
 
 do $$
 declare r record; v_p int; v_k int; v_total int := 0;
@@ -206,7 +213,13 @@ insert into baku_0154 (nama_lama, nama_baku, alamat) values
   ('SMA TERPADU AL-MUAAWANAH',
    'SMA Terpadu Al-Mu''aawanah',
    'Jl. KH. Ahmad Romli No. 26, Rajadesa, Kec. Rajadesa, Kabupaten Ciamis, Jawa Barat, Indonesia'),   -- NPSN 70006980
+  ('MA Al-Azhar Kota Banjar',
+   'MA Al-Azhar Citangkolo Kota Banjar',
+   'Jl. Pesantren No. 02, Kujangsari, Kec. Langensari, Kota Banjar, Jawa Barat 46345, Indonesia'),   -- NPSN 20277086
   ('SMA 1 Sindangkasih',
+   'SMAN 1 Sindangkasih',
+   'Jl. Raya Sindangkasih Cikoneng, Sindangkasih, Kec. Sindangkasih, Kabupaten Ciamis, Jawa Barat 46268, Indonesia'),   -- NPSN 20238437, baris kurasi yang kehilangan huruf N
+  ('SMAN 1 SINDANGKASIH',
    'SMAN 1 Sindangkasih',
    'Jl. Raya Sindangkasih Cikoneng, Sindangkasih, Kec. Sindangkasih, Kabupaten Ciamis, Jawa Barat 46268, Indonesia'),   -- NPSN 20238437
   ('MA Mujahidin',
@@ -235,7 +248,15 @@ begin
       -- berubah, jadi pendaftaran berikutnya yang mengetik nama LAMA melahirkan
       -- baris baru lagi. Yang membuatnya ketahuan justru menjalankan migrasi
       -- ini dua kali di database dev, dengan impor pendaftaran di antaranya.
-      if exists (select 1 from sekolah where kunci_sekolah(name) = kunci_sekolah(r.nama_baku)) then
+      -- `and <> nama_lama` bukan kehati-hatian berlebih: `SMAN 1 SINDANGKASIH`
+      -- dan `SMAN 1 Sindangkasih` punya kunci_sekolah() yang SAMA — bedanya
+      -- cuma huruf besar — jadi tanpa syarat ini barisnya menemukan DIRINYA
+      -- SENDIRI, lalu mencoba menghapus dirinya dan ditolak foreign key
+      -- pendaftaran. Kunci sama berarti satu baris, dan satu baris cuma perlu
+      -- diganti namanya.
+      if exists (select 1 from sekolah
+                  where kunci_sekolah(name) = kunci_sekolah(r.nama_baku)
+                    and kunci_sekolah(name) <> kunci_sekolah(r.nama_lama)) then
         update pendaftaran d
            set sekolah_id = (select id from sekolah where kunci_sekolah(name) = kunci_sekolah(r.nama_baku))
          where d.sekolah_id = (select id from sekolah where kunci_sekolah(name) = kunci_sekolah(r.nama_lama));
@@ -246,12 +267,24 @@ begin
          where m.sekolah_id = (select id from sekolah where kunci_sekolah(name) = kunci_sekolah(r.nama_lama));
 
         delete from sekolah where kunci_sekolah(name) = kunci_sekolah(r.nama_lama);
-        raise notice '0154: "%" dilebur ke "%" yang sudah baku (% pendaftaran dialihkan)',
+        update sekolah
+           set name = r.nama_baku, address = r.alamat
+         where kunci_sekolah(name) = kunci_sekolah(r.nama_baku)
+           and (name, address) is distinct from (r.nama_baku, r.alamat);
+        raise notice '0154: "%" dilebur ke "%" (% pendaftaran dialihkan)',
                      r.nama_lama, r.nama_baku, v_p;
         continue;
       end if;
-      v_nama := v_nama + 1;
-      raise notice '0154: nama "%" -> "%"', r.nama_lama, r.nama_baku;
+      -- Dihitung hanya kalau namanya MEMANG masih beda. Baris yang sudah
+      -- baku tetap cocok lewat kunci_sekolah() — `SMAN 1 SINDANGKASIH` dan
+      -- `SMAN 1 Sindangkasih` satu kunci — dan menghitungnya membuat
+      -- jalanan kedua melaporkan penggantian nama yang tidak terjadi.
+      if exists (select 1 from sekolah
+                  where kunci_sekolah(name) = kunci_sekolah(r.nama_lama)
+                    and name <> r.nama_baku) then
+        v_nama := v_nama + 1;
+        raise notice '0154: nama "%" -> "%"', r.nama_lama, r.nama_baku;
+      end if;
     end if;
 
     update sekolah
