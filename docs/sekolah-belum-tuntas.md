@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Duapuluh satu dari 212 baris di `tools/data/sekolah_alamat.json` belum bisa
+Sembilan belas dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -54,17 +54,31 @@ yang kurang satu kalimat dari orang yang tahu.
 
 ## B. Sekolahnya belum ketemu sama sekali
 
-Kolom alamatnya sengaja dibiarkan kosong. Dua-duanya sudah disisir dari sisi
-alamat, bukan cuma dari sisi nama.
+**Kosong.** Dua baris yang pernah ada di sini dihapus 30 Agustus 2026, keputusan
+pemilik acara:
 
-| Sekolah | Peserta | Kenapa belum tuntas | Yang ditanyakan ke pembina |
-| --- | ---: | --- | --- |
-| **SMK Nusantara 1 Bekasi** | 1 | Jl. Kapten Tendean tidak ada di Kota maupun Kab. Bekasi. Di Jl. Kapten Tendean Jakarta Selatan tidak ada sekolah menengah. Kelima SMK bernama "Nusantara 1" yang terdaftar (Ciputat, Kota Tangerang, Jakarta Utara, Comal, Kotabumi) alamatnya tidak ada yang cocok. Nama dan alamatnya saling bertentangan. | "Nama persis sekolahnya apa, dan di kota mana? Data yang kami punya tidak cocok satu sama lain." |
-| **SMPN 1 Kalijaya** | 1 | Tidak ada sekolah bernama itu di Kemendikdasmen. Kalijaya nama **desa**, dan ada empat. Kandidat terkuat **SMPN 5 Banjarsari** di Desa Kalijaya, Kec. Banjaranyar, Ciamis — satu-satunya SMP negeri di sebuah Desa Kalijaya di wilayah Ciamis. Namanya tidak cocok, jadi sengaja tidak diisikan. | "Sekolahnya SMPN 5 Banjarsari di Desa Kalijaya, Kec. Banjaranyar — atau bukan?" |
+- **`SMPN 1 Kalijaya`** — ditulis satu peserta di edisi XXXIV dan tidak pernah
+  cocok dengan sekolah mana pun di Kemendikdasmen. Kalijaya nama desa, dan ada
+  empat.
+- **`SMK Nusantara 1 Bekasi`** — ditulis satu peserta, dan nama serta alamatnya
+  saling bertentangan: Jl. Kapten Tendean tidak ada di Kota maupun Kab. Bekasi,
+  dan kelima SMK bernama "Nusantara 1" yang terdaftar tidak ada yang cocok
+  alamatnya.
 
-Kalau jawabannya SMPN 5 Banjarsari, **kode posnya 46384, bukan 46383**.
-Banjaranyar mekar dari Banjarsari tahun 2015 dan cermin Dapodik masih memakai
-kode lama.
+Keduanya tidak ikut edisi XXXVII, dan keduanya sudah disisir dari sisi alamat,
+bukan cuma dari sisi nama. Barisnya dibuang dari `sekolah_nama.json` maupun
+`sekolah_alamat.json`.
+
+> **Satu akibat yang perlu diketahui.** Kedua berkas itu asalnya dari
+> `normalize_sekolah.py` atas spreadsheet edisi lama, jadi **menjalankan ulang
+> skrip itu akan memunculkan keduanya kembali**. Kalau itu terjadi, hapus lagi
+> — jangan dicari lagi.
+
+Bagian ini sengaja tidak dihapus meski kosong, begitu juga daftar
+`BELUM_KETEMU` di `tools/periksa_sekolah.py`. Keduanya satu-satunya cara
+menandai "sekolah ini memang tidak punya alamat"; tanpa itu, baris tanpa alamat
+berikutnya dilaporkan sebagai cacat dan seseorang menghabiskan setengah hari
+mencarinya lagi.
 
 ---
 
@@ -75,6 +89,18 @@ kode lama.
 | **MTsN 1 Ciamis** | 6 | Situs resmi sekolahnya menulis **46251**; desanya Panyingkiran, dan dua direktori berbeda sama-sama menulis **46211** — keduanya juga menyebut rentang Kec. Ciamis 46211-46219, yang tidak memuat 46251. Delapan belas sekolah kurasi lain di kecamatan itu semuanya cocok dengan direktori. Yang dipakai **46211**. | "Kode pos surat madrasahnya 46211 atau 46251? Situs sekolah dan direktori kode pos berbeda." |
 | **SMPN 1 Purwadadi** | 3 | Tiga sumber, tiga angka untuk Desa Karangpaningal: **46385** (cermin Dapodik dan kodeposina — ini yang dipakai), 46380 (nomor.net), 46286 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
 | **SMP Islam Bahrul Ulum** | 1 | Desa Gunungsari, Kec. Sukaratu: **46415** (dipakai) lawan 46452 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
+
+> **Banjarsari dan Banjaranyar dulu satu kecamatan, dan cermin Dapodik belum
+> semuanya menyusul.** Banjaranyar mekar dari Banjarsari tahun 2015; desa yang
+> ikut pindah memakai **46384**, bukan 46383. Dua baris kurasi masih tidak
+> sepakat soal ini — `SMAN 2 Banjarsari` (Desa Cigayam, Kec. Banjaranyar)
+> memakai 46383 sementara `SMPN 6 Banjarsari` (Desa Cikupa, kecamatan yang
+> sama) memakai 46384. Keduanya nol regu tahun ini, jadi tidak mendesak, tetapi
+> yang menyentuh kode pos Banjaranyar berikutnya harus memeriksa desanya dulu.
+>
+> Catatan ini dulu menempel pada baris `SMPN 1 Kalijaya` di bagian B. Barisnya
+> dihapus; peringatannya tidak.
+
 
 Kenapa tidak diambil saja yang dari Pos Indonesia, padahal merekalah yang
 menerbitkan kode pos: karena untuk sederet kecamatan Ciamis selatan direktori

@@ -3147,20 +3147,6 @@
     "petunjuk_alamat": []
   },
   {
-    "kunci": "smk nusantara 1 bekasi",
-    "nama": "SMK Nusantara 1 Bekasi",
-    "peserta": 1,
-    "edisi": [
-      "XXXIII"
-    ],
-    "ejaan": [
-      "SMK Nusantara 1 bekasi"
-    ],
-    "petunjuk_alamat": [
-      "Jl kapten Tendean no45 Bekasi Selatan Jakarta DKI Jawa barat"
-    ]
-  },
-  {
     "kunci": "smk al hasan",
     "nama": "SMK Terpadu Al Hasan Ciamis",
     "peserta": 1,
@@ -3256,20 +3242,6 @@
     ],
     "petunjuk_alamat": [
       "BANJARSARI"
-    ]
-  },
-  {
-    "kunci": "smpn kalijaya",
-    "nama": "SMPN 1 Kalijaya",
-    "peserta": 1,
-    "edisi": [
-      "XXXIV"
-    ],
-    "ejaan": [
-      "SMPN 1 KALIJAYA"
-    ],
-    "petunjuk_alamat": [
-      "KALIJAYA"
     ]
   },
   {
