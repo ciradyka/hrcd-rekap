@@ -71,11 +71,37 @@ body {
   position: sticky; top: 0; z-index: 10;
 }
 .kepala-isi { max-width: 1200px; margin: 0 auto; }
+.kepala-baris { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .kepala h1 { font-size: 1.15rem; font-weight: 800; }
 /* Cap sinkronisasi: kecil tapi selalu ada. Halaman yang menyegarkan dirinya
    sendiri harus bisa dibedakan dari halaman yang berhenti bekerja. */
 .sinkron { font-size: .8rem; opacity: .9; margin-top: .15rem; }
 .sinkron.basi { opacity: 1; font-weight: 700; color: #ffd9a0; }
+.tombol-cetak {
+  border: 1px solid #fff; border-radius: 8px; background: transparent;
+  color: #fff; padding: .45rem .85rem; font: inherit; font-weight: 700;
+  cursor: pointer;
+}
+.tombol-cetak:hover { background: rgba(255,255,255,.15); }
+
+.dialog-cetak {
+  width: min(90vw, 360px); border: 0; border-radius: 12px;
+  padding: 1.1rem; box-shadow: 0 16px 48px rgba(0,0,0,.25);
+}
+.dialog-cetak::backdrop { background: rgba(0,0,0,.45); }
+.dialog-cetak h2 { margin-bottom: .8rem; }
+.dialog-cetak label { display: block; margin-bottom: .3rem; font-weight: 700; }
+.dialog-cetak select {
+  width: 100%; min-height: 44px; padding: .5rem; border: 1px solid var(--garis);
+  border-radius: 8px; background: #fff; font: inherit;
+}
+.aksi-cetak { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+.tombol-dialog {
+  min-height: 42px; padding: .45rem .85rem; border: 1px solid var(--garis);
+  border-radius: 8px; background: #fff; color: var(--tinta); font: inherit;
+  font-weight: 700; cursor: pointer;
+}
+.tombol-dialog.utama { background: var(--utama); border-color: var(--utama); color: #fff; }
 
 main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 .memuat { text-align: center; color: var(--tinta-lembut); padding: 2rem 0; }
@@ -238,4 +264,13 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
   min-height: 48px; line-height: 34px;
 }
 .tombol:hover { background: #004d43; }
+
+@media print {
+  .kepala, #isi, .kaki, .dialog-cetak { display: none !important; }
+  .cetak-skor { display: block !important; }
+  .cetak-skor thead { display: table-header-group; }
+  .cetak-skor tr { break-inside: avoid; page-break-inside: avoid; }
+  .cetak-skor .print-table td:nth-child(1) { width: 18mm; }
+  .cetak-skor .print-table td:nth-child(4) { width: 28mm; }
+}
 

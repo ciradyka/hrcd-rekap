@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const html = await readFile(new URL("../live/index.html", import.meta.url), "utf8");
+const js = await readFile(new URL("../live/live.js", import.meta.url), "utf8");
+const css = await readFile(new URL("../live/live.css", import.meta.url), "utf8");
+
+test("Print hanya tersedia pada fase Live penuh", () => {
+  assert.match(html, /id="buka-cetak" hidden>Print<\/button>/);
+  assert.match(js, /tombolCetak\.hidden = fase\(\) !== "penuh" \|\| !REKAP/);
+});
+
+test("pilihan cetak memuat Pos 1-5 dan Keberangkatan", () => {
+  assert.match(js, /Number\(p\.nomor\) >= 1 && Number\(p\.nomor\) <= 5/);
+  assert.match(js, /kode: "keberangkatan", label: "Keberangkatan"/);
+  assert.match(html, /<select id="pilihan-cetak"><\/select>/);
+});
+
+test("skor pos dan Keberangkatan memakai data statis yang sudah dimuat", () => {
+  assert.match(js, /baris\.poin_per_pos && baris\.poin_per_pos\[kode\]/);
+  assert.match(js, /\? baris\.total/);
+  assert.doesNotMatch(js.slice(js.indexOf("function buatCetakanSkor"),
+    js.indexOf("function pasangCetakSkor")), /fetch\(/);
+});
+
+test("lembar diurutkan skor tertinggi dan memuat empat kolom yang diminta", () => {
+  assert.match(js, /if \(skorA !== skorB\) return skorB - skorA/);
+  for (const kepala of ["No Dada", "Nama Regu", "Asal Sekolah", "Skor"])
+    assert.ok(js.includes(`<th${kepala === "Skor" ? ' class="text-right"' : ""}>${kepala}</th>`));
+  assert.match(js, /URUT_GOLONGAN_PESERTA\.map\(g =>/);
+});
+
+test("print dibuka langsung dari klik kedua dan hanya cetakan yang terlihat", () => {
+  const awal = js.indexOf('cetak.addEventListener("click"');
+  const akhir = js.indexOf("window.addEventListener", awal);
+  const handler = js.slice(awal, akhir);
+  assert.match(handler, /buatCetakanSkor\(kode\)/);
+  assert.doesNotMatch(handler, /await|fetch\(/);
+  assert.match(css, /@media print[\s\S]*\.kepala, #isi, \.kaki, \.dialog-cetak[\s\S]*display: none !important/);
+  assert.match(css, /\.cetak-skor \{ display: block !important; \}/);
+});
