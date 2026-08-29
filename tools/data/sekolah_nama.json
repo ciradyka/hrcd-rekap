@@ -3135,6 +3135,18 @@
     ]
   },
   {
+    "kunci": "smk lps 1",
+    "nama": "SMK LPS 1 Ciamis",
+    "peserta": 1,
+    "edisi": [
+      "XXXVII"
+    ],
+    "ejaan": [
+      "SMK Lps Ciamis"
+    ],
+    "petunjuk_alamat": []
+  },
+  {
     "kunci": "smk nusantara 1 bekasi",
     "nama": "SMK Nusantara 1 Bekasi",
     "peserta": 1,
@@ -3337,5 +3349,17 @@
     "petunjuk_alamat": [
       "Cikupa, Dsn Mulyasari Rt.002 Rw.001 Banjarsari, Banjaranyar"
     ]
+  },
+  {
+    "kunci": "smk lps 2",
+    "nama": "SMK LPS 2 Ciamis",
+    "peserta": 0,
+    "edisi": [
+      "XXXVII"
+    ],
+    "ejaan": [
+      "SMK LPS 2 Ciamis"
+    ],
+    "petunjuk_alamat": []
   }
 ]

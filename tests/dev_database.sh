@@ -337,5 +337,6 @@ run supabase/migrations/0147_waktu_nol_pos_2.sql
 # pembakuannya menyaring `where name = <nama lama>`.
 run supabase/migrations/0154_sekolah_alamat_xxxvii.sql
 run supabase/migrations/0155_sekolah_kode_pos.sql
+run supabase/migrations/0156_smk_lps_satu_dan_dua.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
