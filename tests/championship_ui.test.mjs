@@ -39,7 +39,7 @@ test("Juara Umum menampilkan poin juara dan total skor", () => {
   assert.match(layar, /x\.poin_juara/);
   assert.match(layar, /x\.jumlah_skor/);
   assert.match(layar, /poin juara ·/);
-  assert.match(layar, /total skor/);
+  assert.match(layar, /total skor 6 besar/);
 });
 
 test("menyimpan juara mengunci baris tanpa memuat ulang layar", () => {
