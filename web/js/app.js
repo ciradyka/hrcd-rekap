@@ -20,7 +20,8 @@ import {
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   rentangNomorDada,
-  komponenSemua, rekapPenuh, kelengkapanPos, riwayatNilai, riwayatPendaftaran,
+  komponenSemua, rekapPenuh, kelengkapanPos, cacheLiveScore,
+  riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
   hasilKejuaraan, simpanKejuaraanManual,
@@ -5466,9 +5467,9 @@ let pengendaliFilterSekolah = null;
 
 /** Satu request yang putus tidak boleh merobohkan seluruh papan.
  *
- *  Live Score menarik lima sumber sekaligus. Di koneksi lapangan, satu dari
- *  lima request kadang putus walau empat lainnya sudah sampai; Promise.all
- *  lalu membuang keempatnya dan mengganti seluruh layar dengan kartu galat.
+ *  Live Score menarik snapshot skor dan status acara. Di koneksi lapangan,
+ *  salah satunya kadang putus walau yang lain sudah sampai; Promise.all lalu
+ *  membuang hasil yang berhasil dan mengganti seluruh layar dengan kartu galat.
  *  Semua pembacaan ini idempotent, jadi yang gagal aman dicoba sekali lagi.
  *
  *  Status acara dan cincin kelengkapan hanya keterangan tambahan. Setelah
@@ -5490,20 +5491,22 @@ async function layarLiveScore() {
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
 
-  let pos, status, posSemua, komponen, rekap;
+  let snapshot, status;
   try {
-    [pos, status, posSemua, komponen, rekap] = await Promise.all([
-      muatDataLiveScore(kelengkapanPos, []),
+    [snapshot, status] = await Promise.all([
+      muatDataLiveScore(cacheLiveScore),
       muatDataLiveScore(statusAcara, null),
-      muatDataLiveScore(daftarPos),
-      muatDataLiveScore(() => komponenSemua(EDISI.nomor)),
-      muatDataLiveScore(rekapPenuh),
     ]);
   } catch (e) {
     LAYAR.replaceChildren(kartuGagalMuat(e.message, layarLiveScore));
     return;
   }
   if (location.hash !== layarIni) return;
+
+  const pos = snapshot.kelengkapan || [];
+  const posSemua = snapshot.pos || [];
+  const komponen = snapshot.komponen || [];
+  const rekap = snapshot.rekap || [];
 
   /* v_rekap_penuh sudah menghitung peringkat, total, penalti, dan poin per pos
      yang sama dengan klasemen_live_score(). Meminta keduanya membuat database
@@ -5553,6 +5556,7 @@ async function layarLiveScore() {
         <span class="js-persen">${esc(String(persenSemua))}%</span>
         <span class="kr-panah" aria-hidden="true">▾</span>
       </button>
+      <div class="description">Update ${esc(tanggalJam(snapshot.dibuat_pada))}</div>
       <ul class="kemajuan" id="kemajuan-rinci">
         ${pos.map(p => {
           const s = persenPos(p);
@@ -5870,8 +5874,8 @@ async function layarLiveScore() {
     ${papan}`));
 
   /* Diperbarui DI TEMPAT, bukan dengan menggambar ulang layar.
-     layarLiveScore() menarik lima permintaan sekaligus — rekap, kelengkapan,
-     pos, komponen, status — dan menggambar ulang seluruh papan.
+     layarLiveScore() menarik snapshot dan status, lalu menggambar ulang
+     seluruh papan.
      Untuk satu kolom yang berpindah itu mahal, dan yang paling terasa: papan
      berkedip dan tab golongan yang sedang dibuka kembali ke awal. Yang
      berubah di layar cuma tombol mana yang menyala. */

@@ -1,0 +1,34 @@
+name: Refresh Live Score cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:00-23:59 WIB pada hari lomba. GitHub cron memakai UTC.
+    - cron: '*/5 1-16 29 8 *'
+
+concurrency:
+  group: refresh-live-score
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Periksa hari lomba
+        id: jadwal
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" != "schedule" ] || [[ "$(date -u '+%Y-%m-%dT%H:%M')" =~ ^2026-08-29T(0[1-9]|1[0-6]): ]]; then
+            echo "aktif=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aktif=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Refresh snapshot
+        if: steps.jadwal.outputs.aktif == 'true'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c 'select segarkan_cache_live_score();'
