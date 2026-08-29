@@ -20,14 +20,19 @@ test("pilihan cetak memuat Pos 1-5 dan Keberangkatan", () => {
 test("skor pos dan Keberangkatan memakai data statis yang sudah dimuat", () => {
   assert.match(js, /baris\.poin_per_pos && baris\.poin_per_pos\[kode\]/);
   assert.match(js, /\? baris\.total/);
+  assert.match(js, /new Map\(\(REKAP\.progres \|\| \[\]\)\.map/);
   assert.doesNotMatch(js.slice(js.indexOf("function buatCetakanSkor"),
     js.indexOf("function pasangCetakSkor")), /fetch\(/);
 });
 
-test("lembar diurutkan skor tertinggi dan memuat empat kolom yang diminta", () => {
+test("lembar diurutkan skor tertinggi dan dirinci per lomba", () => {
   assert.match(js, /if \(skorA !== skorB\) return skorB - skorA/);
-  for (const kepala of ["No Dada", "Nama Regu", "Asal Sekolah", "Skor"])
-    assert.ok(js.includes(`<th${kepala === "Skor" ? ' class="text-right"' : ""}>${kepala}</th>`));
+  for (const kepala of ["No Dada", "Nama Regu", "Asal Sekolah"])
+    assert.ok(js.includes(`<th>${kepala}</th>`));
+  assert.match(js, /kelompokLomba\(kolomPos\(/);
+  assert.match(js, /ringkasLomba\(l, b\.golongan, nomorPos, b\.poin \|\| \{\}\)/);
+  assert.match(js, /<th class="text-right">Total Pos<\/th>/);
+  assert.match(js, /<th class="text-right">Total Skor<\/th>/);
   assert.match(js, /URUT_GOLONGAN_PESERTA\.map\(g =>/);
 });
 

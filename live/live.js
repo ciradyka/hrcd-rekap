@@ -369,10 +369,11 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
 /* ---------------------------------------------------------------------------
    CETAK SKOR — hanya fase penuh, dan tidak mengambil data lagi.
 
-   Pos memakai poin akhir per pos dari `poin_per_pos`. Keberangkatan adalah
-   klasemen total yang dibawa `total`; lembar itu dipasang di titik kumpul
-   ketika seluruh hasil sudah dibuka. Empat golongan dipisah agar regu tidak
-   pernah dibandingkan dengan golongan lain.
+   Pos memakai poin per lomba dari `progres.poin`, lalu Total Pos dari
+   `klasemen.poin_per_pos`. Keberangkatan adalah klasemen total yang dibawa
+   `total`; lembar itu dipasang di titik kumpul ketika seluruh hasil sudah
+   dibuka. Empat golongan dipisah agar regu tidak pernah dibandingkan dengan
+   golongan lain.
    ------------------------------------------------------------------------- */
 const pilihanCetak = () => [
   ...((META && META.pos) || [])
@@ -413,10 +414,24 @@ function buatCetakanSkor(kode) {
   const pilihan = pilihanCetak().find(p => p.kode === kode);
   if (!pilihan || fase() !== "penuh" || !REKAP) return;
 
-  const semua = (REKAP.klasemen || []).filter(b => golonganPeserta(b.golongan));
+  // Rincian lomba tinggal di progres, sedangkan Total Pos dan peringkat tinggal
+  // di klasemen. Keduanya berasal dari snapshot statis yang sama dan disatukan
+  // dengan nomor dada, persis seperti papan Live di atas.
+  const perDada = new Map((REKAP.progres || []).map(b => [b.nomor_dada, b]));
+  const semua = (REKAP.klasemen || [])
+    .map(b => ({ ...perDada.get(b.nomor_dada), ...b }))
+    .filter(b => golonganPeserta(b.golongan));
+  const nomorPos = Number(kode);
+  const lomba = kode === "keberangkatan" ? [] : kelompokLomba(kolomPos(
+    ((META && META.komponen) || []).filter(w => Number(w.pos) === nomorPos),
+  ));
   const halaman = URUT_GOLONGAN_PESERTA.map(g => {
     const baris = semua.filter(b => b.golongan === g)
       .sort((a, b) => urutSkorCetak(a, b, kode));
+    const kepalaSkor = kode === "keberangkatan"
+      ? `<th class="text-right">Total Skor</th>`
+      : lomba.map(l => `<th class="text-right">${esc(l.nama)}</th>`).join("")
+        + `<th class="text-right">Total Pos</th>`;
     return `
       <section class="print-page">
         <h1>${esc(pilihan.judul)}</h1>
@@ -424,14 +439,20 @@ function buatCetakanSkor(kode) {
         <table class="print-table">
           <thead><tr>
             <th>No Dada</th><th>Nama Regu</th><th>Asal Sekolah</th>
-            <th class="text-right">Skor</th>
+            ${kepalaSkor}
           </tr></thead>
           <tbody>${baris.map(b => {
             const skor = skorCetak(b, kode);
+            const rincian = lomba.map(l => {
+              const r = ringkasLomba(l, b.golongan, nomorPos, b.poin || {});
+              const nilai = r.berlaku && r.terisi ? angkaRapi(r.jumlah) : "—";
+              return `<td class="text-right">${esc(nilai)}</td>`;
+            }).join("");
             return `<tr>
               <td class="dada">${esc(dada(b.nomor_dada))}</td>
               <td>${esc(b.nama_regu || "—")}</td>
               <td>${esc(b.nama_sekolah || "—")}</td>
+              ${rincian}
               <td class="text-right"><strong>${skor === null ? "—" : esc(angkaRapi(skor))}</strong></td>
             </tr>`;
           }).join("")}</tbody>
