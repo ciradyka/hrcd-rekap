@@ -38,3 +38,10 @@ test("klasemen memakai hasil rekap tanpa menghitung skor dua kali", () => {
 test("umur snapshot terlihat di layar", () => {
   assert.match(layar, /Update \$\{esc\(tanggalJam\(snapshot\.dibuat_pada\)\)\}/);
 });
+
+
+test("snapshot diurutkan menurut peringkat dan score, bukan nomor dada", () => {
+  assert.match(layar, /Number\(a\.peringkat\) - Number\(b\.peringkat\)/);
+  assert.match(layar, /Number\(b\.total\) - Number\(a\.total\)/);
+  assert.doesNotMatch(layar, /Number\(a\.nomor_dada\)|Number\(b\.nomor_dada\)/);
+});

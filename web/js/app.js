@@ -5515,7 +5515,15 @@ async function layarLiveScore() {
      poin dinormalkan di sini agar bentuk data untuk penggambar tidak berubah. */
   const klasemen = rekap
     .filter(r => r.sudah_berangkat)
-    .map(r => ({ ...r, poin_per_pos: r.poin_pos }));
+    .map(r => ({ ...r, poin_per_pos: r.poin_pos }))
+    .sort((a, b) => {
+      const aPunyaPeringkat = a.peringkat != null;
+      const bPunyaPeringkat = b.peringkat != null;
+      if (aPunyaPeringkat !== bPunyaPeringkat) return aPunyaPeringkat ? -1 : 1;
+      if (aPunyaPeringkat && a.peringkat !== b.peringkat)
+        return Number(a.peringkat) - Number(b.peringkat);
+      return Number(b.total) - Number(a.total);
+    });
 
   // `let`, bukan `const`: saklar di bawah memperbaruinya DI TEMPAT.
   let fase = (status && status.fase_live) || "pra";
