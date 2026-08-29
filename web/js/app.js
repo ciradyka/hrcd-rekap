@@ -6110,7 +6110,13 @@ async function layarKejuaraan() {
       && !String(r.golongan).startsWith("intern_"))
     .map(r => [r.regu_id, r])).values()]
     .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));
-  const manual = new Set(["kostum", "terfavorit", "terjauh"]);
+  /* Kostum dan Terfavorit dipilih PER GOLONGAN, jadi kotak carinya hanya boleh
+     menawarkan regu golongan itu. Golongannya dibaca dari ekor kode
+     (`kostum_penegak_pa`); Terjauh tidak berekor dan tetap memilih dari
+     seluruh peserta. RPC-nya menolak pasangan yang salah juga — ini yang
+     membuat panitia tidak perlu sampai ditolak. */
+  const golonganKode = (kode) =>
+    (kode.match(/(?:penegak|penggalang)_(?:pa|pi)$/) || [""])[0];
   const labelRegu = (r) => `${dada3(r.nomor_dada)} · ${r.nama_regu} · ${r.nama_sekolah}`;
   const nilai = (x) => {
     if (x.nama_regu) return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
@@ -6121,7 +6127,7 @@ async function layarKejuaraan() {
         ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
     return `<span class="description">Belum ditentukan</span>`;
   };
-  const baris = (x, label = x.nama_penghargaan) => manual.has(x.kode) && bisaUbah ? `
+  const baris = (x, label = x.nama_penghargaan) => x.sumber === "manual" && bisaUbah ? `
     <tr><th>${esc(label)}</th><td>
       <div class="kejuaraan-terkunci" ${x.regu_id ? "" : "hidden"}>
         <div class="kejuaraan-nilai">${nilai(x)}</div>
@@ -6132,31 +6138,43 @@ async function layarKejuaraan() {
       <div class="kejuaraan-isian" ${x.regu_id ? "hidden" : ""}>
         <div class="kejuaraan-cari">
           <input type="search" class="small-input kejuaraan-pilih" data-kode="${esc(x.kode)}"
+            data-golongan="${esc(golonganKode(x.kode))}"
             autocomplete="off" aria-label="Pilih ${esc(x.nama_penghargaan)}"
-            placeholder="Nomor dada / nama regu / asal sekolah…"
+            placeholder="Cari nomor dada / regu / sekolah…"
             value="${esc(x.regu_id ? labelRegu(x) : "")}">
           <div class="suggestions kejuaraan-saran" hidden></div>
         </div>
       </div></td></tr>` : `<tr><th>${esc(label)}</th><td>${nilai(x)}</td></tr>`;
+
+  /* Label golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini:
+     satu-satunya tempatnya `util.js`, dan `periksa_urutan_golongan.py` yang
+     menjaganya tetap satu. */
+  const gelarGolongan = (kode, kelas) => [
+    GOLONGAN_LABEL[kode], x => x.kode.startsWith(kode + "_"),
+    x => x.nama_penghargaan.replace(GOLONGAN_LABEL[kode] + " ", ""), kelas];
 
   const bagian = [
     ["Juara Umum", x => x.kode === "juara_umum",
       x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
     ["Juara Umum Penegak", x => x.kode === "juara_umum_penegak",
       () => "PENEGAK", "kejuaraan-umum-penegak"],
-    ["Penegak PA", x => x.kode.startsWith("penegak_pa_"),
-      x => x.nama_penghargaan.replace(/^Penegak PA /, ""), "kejuaraan-penegak-pa"],
-    ["Penegak PI", x => x.kode.startsWith("penegak_pi_"),
-      x => x.nama_penghargaan.replace(/^Penegak PI /, ""), "kejuaraan-penegak-pi"],
+    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa"),
+    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi"),
     ["Juara Umum Penggalang", x => x.kode === "juara_umum_penggalang",
       () => "PENGGALANG", "kejuaraan-umum-penggalang"],
-    ["Penggalang PA", x => x.kode.startsWith("penggalang_pa_"),
-      x => x.nama_penghargaan.replace(/^Penggalang PA /, ""), "kejuaraan-penggalang-pa"],
-    ["Penggalang PI", x => x.kode.startsWith("penggalang_pi_"),
-      x => x.nama_penghargaan.replace(/^Penggalang PI /, ""), "kejuaraan-penggalang-pi"],
-    ["Penghargaan Khusus", x => !x.kode.startsWith("juara_umum")
-      && !/^(penegak|penggalang)_(pa|pi)_/.test(x.kode), x => x.nama_penghargaan,
-      "kejuaraan-khusus"],
+    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa"),
+    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi"),
+    ["Juara Kostum", x => x.kode.startsWith("kostum_"),
+      x => x.nama_penghargaan.replace(/^Juara Kostum /, ""),
+      "kejuaraan-kostum kejuaraan-pilihan"],
+    ["Juara Yel Yel", x => x.kode.startsWith("yel_yel_"),
+      x => x.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel"],
+    ["Peserta Terfavorit", x => x.kode.startsWith("terfavorit_"),
+      x => x.nama_penghargaan.replace(/^Peserta Terfavorit /, ""),
+      "kejuaraan-terfavorit kejuaraan-pilihan"],
+    ["Penghargaan Khusus",
+      x => x.kode === "terjauh" || x.kode === "peserta_terbanyak",
+      x => x.nama_penghargaan, "kejuaraan-khusus kejuaraan-pilihan"],
   ];
 
   LAYAR.replaceChildren(h(`
@@ -6176,9 +6194,11 @@ async function layarKejuaraan() {
     const ubah = terkunci.querySelector(".kejuaraan-ubah");
     const cocok = (r, q) => `${r.nomor_dada} ${dada3(r.nomor_dada)} ${r.nama_regu} ${r.nama_sekolah}`
       .toLocaleLowerCase("id").includes(q.toLocaleLowerCase("id"));
+    const golongan = pilih.dataset.golongan;
+    const calon = golongan ? opsi.filter(r => r.golongan === golongan) : opsi;
     const gambarSaran = () => {
       const q = pilih.value.trim();
-      const ditemukan = opsi.filter(r => cocok(r, q)).slice(0, 8);
+      const ditemukan = calon.filter(r => cocok(r, q)).slice(0, 8);
       saran.innerHTML = ditemukan.map(r => `
         <button type="button" data-regu-id="${esc(r.regu_id)}">
           <strong>${esc(dada3(r.nomor_dada))} · ${esc(r.nama_regu)}</strong>
@@ -6193,7 +6213,7 @@ async function layarKejuaraan() {
     saran.addEventListener("click", async e => {
       const tombol = e.target.closest("[data-regu-id]");
       if (!tombol) return;
-      const dipilih = opsi.find(r => r.regu_id === tombol.dataset.reguId);
+      const dipilih = calon.find(r => r.regu_id === tombol.dataset.reguId);
       if (!dipilih) return;
       pilih.disabled = true;
       try {
