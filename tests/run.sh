@@ -716,5 +716,9 @@ run supabase/migrations/0158_rapikan_alamat_direktori.sql
 run tests/sql/110_rapikan_alamat_direktori.sql
 run supabase/migrations/0159_lebur_kembar_direktori.sql
 run tests/sql/111_lebur_kembar_direktori.sql
+run supabase/migrations/0160_kode_pos_dan_nama_tersisa.sql
+run tests/sql/112_kode_pos_dan_nama_tersisa.sql
+run supabase/migrations/0161_lebur_kembar_ejaan.sql
+run tests/sql/113_lebur_kembar_ejaan.sql
 
 echo "SEMUA TES LULUS"
