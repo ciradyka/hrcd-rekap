@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0149`
+sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0150`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0149`.
+`0119`-`0150`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-149 migrasi, `0001` sampai `0149`, dijalankan berurutan tanpa lubang penomoran.
+150 migrasi, `0001` sampai `0150`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 

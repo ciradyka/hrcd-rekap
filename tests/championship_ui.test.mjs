@@ -35,6 +35,13 @@ test("pilihan manual memakai snapshot tanpa menghitung rekap lagi", () => {
   assert.doesNotMatch(layar, /rekapPenuh\(/);
 });
 
+test("Juara Umum menampilkan poin juara dan total skor", () => {
+  assert.match(layar, /x\.poin_juara/);
+  assert.match(layar, /x\.jumlah_skor/);
+  assert.match(layar, /poin juara ·/);
+  assert.match(layar, /total skor/);
+});
+
 test("menyimpan juara mengunci baris tanpa memuat ulang layar", () => {
   assert.match(app, /simpanKejuaraanManual[\s\S]*kejuaraan-nilai[\s\S]*isian\.hidden = true;[\s\S]*terkunci\.hidden = false;/);
   assert.doesNotMatch(app, /simpanKejuaraanManual\(pilih\.dataset\.kode, dipilih\.regu_id\);\s*await layarKejuaraan\(\)/);
