@@ -17,8 +17,21 @@ where edisi = edisi_aktif()
   and not tingkat @> '[{"sampai": 0, "poin": 0}]'::jsonb;
 
 do $$
-declare v_n int;
+declare v_total int; v_n int;
 begin
+  select count(*) into v_total
+  from wahana
+  where edisi = edisi_aktif() and pos = 2 and satuan = 'detik'
+    and form = 'bertingkat';
+
+  if v_total = 0 then
+    raise notice '0147: konfigurasi ini tidak punya komponen waktu Pos 2 — dilewati.';
+    return;
+  end if;
+
+  assert v_total = 3,
+    format('0147: ditemukan %s komponen waktu Pos 2, seharusnya 3', v_total);
+
   select count(*) into v_n
   from wahana
   where edisi = edisi_aktif() and pos = 2 and satuan = 'detik'
