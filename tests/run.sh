@@ -694,5 +694,7 @@ run supabase/migrations/0147_waktu_nol_pos_2.sql
 run tests/sql/99_waktu_nol_pos_2.sql
 run supabase/migrations/0148_juara_umum_berdasarkan_poin.sql
 run tests/sql/100_juara_umum_poin.sql
+run supabase/migrations/0149_juara_umum_tanpa_poin_di_bawah.sql
+run tests/sql/101_juara_umum_null.sql
 
 echo "SEMUA TES LULUS"
