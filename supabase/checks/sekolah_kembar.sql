@@ -29,11 +29,20 @@
 --
 -- YANG TIDAK BISA DITEMUKANNYA, DAN INI PENTING
 --
--- Pasangan terakhir di atas, `MAN Darussalam` lawan `MAN 1 Ciamis`, TIDAK
--- akan muncul di laporan mana pun di bawah. Tidak ada satu huruf pun yang
--- menghubungkan keduanya; yang membuktikannya NPSN 20276451 yang sama, dan
--- tabel `sekolah` tidak menyimpan NPSN. Selama itu belum berubah, pemeriksaan
--- ini menutup lima dari enam — dan pembacanya harus tahu yang keenam ada.
+-- Pasangan terakhir di atas, `MAN Darussalam` lawan `MAN 1 Ciamis`, dulu
+-- TIDAK bisa ditemukan pemeriksaan ini: tidak ada satu huruf pun yang
+-- menghubungkan keduanya, dan yang membuktikannya NPSN 20276451 yang sama —
+-- sesuatu yang tidak disimpan tabel `sekolah`.
+--
+-- Aturan F menutupnya, dan lahirnya dari kejadian nyata. Impor 0157
+-- menghidupkan kembali `MAN 1 Ciamis` yang baru saja dilebur 0154, dan tidak
+-- satu pun aturan A-E bersuara. Yang menemukannya pertanyaan yang tidak
+-- membandingkan nama sama sekali: adakah dua baris beralamat JALAN dan DESA
+-- yang sama persis, dengan jenjang yang sama? Empat pasangan muncul dari
+-- situ, dan keempatnya terbukti satu NPSN.
+--
+-- Jadi keenamnya sekarang tertutup — tetapi lewat alamat, bukan lewat NPSN.
+-- Sekolah yang pindah alamat dan berganti nama sekaligus tetap lolos.
 --
 -- SESUDAH IMPOR DIREKTORI CIAMIS, LAPORAN INI TIDAK LAGI KOSONG
 --
@@ -84,7 +93,15 @@ with s as (
            regexp_replace(regexp_replace(lower(regexp_replace(name, '^.* ', '')),
                                          '[^a-z0-9]', '', 'g'), 'h', '', 'g'),
            '([a-z])\1+', '\1', 'g') as akhir_serupa,
-         string_to_array(lower(regexp_replace(name, '[^A-Za-z0-9 ]', '', 'g')), ' ') as kata
+         string_to_array(lower(regexp_replace(name, '[^A-Za-z0-9 ]', '', 'g')), ' ') as kata,
+         regexp_replace(lower(split_part(address, ', ', 1)), '[^a-z0-9]', '', 'g') as jalan,
+         lower(split_part(address, ', ', 2)) as desa_alamat,
+         -- TINGKAT sekolahnya saja: smp, mts, sma, smk, ma. Berbeda dari
+         -- kolom `jenjang` di atas, yang isinya nama LENGKAP dengan huruf N
+         -- dibuang. Aturan F sempat memakai `jenjang` dan karena itu menuntut
+         -- namanya hampir sama — yang justru meniadakan seluruh gunanya,
+         -- karena ia dibuat untuk pasangan yang namanya BERBEDA JAUH.
+         (regexp_match(lower(name), '^(smkn|smk|sman|sma|smpn|smp|mtsn|mts|man|ma|min|mi|sdn|sd)'))[1] as tingkat
     from sekolah
 ),
 -- Kata terakhir yang dipakai BANYAK sekolah adalah nama tempat, bukan nama
@@ -147,6 +164,28 @@ pasangan as (
                      and a.serupa <> b.serupa
                      and regexp_replace(lower(a.name), '[0-9]', '', 'g')
                       <> regexp_replace(lower(b.name), '[0-9]', '', 'g')
+
+  union all
+  -- F. Jalan DAN desa sama persis, jenjangnya sama. Ini satu-satunya aturan
+  --    yang tidak membandingkan nama sama sekali, dan karena itu satu-satunya
+  --    yang bisa menemukan `MAN Darussalam` lawan `MAN 1 Ciamis` — dua nama
+  --    tanpa satu huruf pun yang sama, satu NPSN. Impor 0157 menghidupkan
+  --    kembali baris yang 0154 baru saja lebur, dan tidak ada aturan A-E yang
+  --    bersuara; aturan ini yang menemukannya.
+  --
+  --    Jenjang HARUS sama. Tanpa syarat itu ia melaporkan tigapuluh pasangan
+  --    MA+MTs dan SMA+SMP satu yayasan yang memang dua sekolah berbeda.
+  --    Jalan yang terlalu pendek diabaikan: "Pasawahan" saja bukan alamat.
+  select a.name, b.name, 'jalan dan desa sama persis, jenjang sama', a.address, b.address
+    from s a join s b on a.id < b.id
+                     and a.jalan = b.jalan and a.desa_alamat = b.desa_alamat
+                     and length(a.jalan) >= 8
+                     -- Alamat tanpa nama jalan dimulai dari desanya, jadi
+                     -- bagian kedua berbunyi "Kec. ...". Dua sekolah sedesa
+                     -- yang Dapodik tidak beri nama jalan akan selalu terlihat
+                     -- seliteral-literalnya sama; itu sedesa, bukan sealamat.
+                     and a.desa_alamat not like 'kec. %'
+                     and regexp_replace(a.tingkat, 'n$', '') = regexp_replace(b.tingkat, 'n$', '')
 )
 select sebab, sekolah_a, sekolah_b,
        left(coalesce(nullif(alamat_a, ''), '(kosong)'), 46) as alamat_a,

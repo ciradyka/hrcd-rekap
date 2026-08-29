@@ -1457,17 +1457,17 @@
   },
   {
     "nama": "SMAN 2 Banjarsari",
-    "nama_resmi": null,
+    "nama_resmi": "SMAN 1 BANJARANYAR",
     "npsn": "20255008",
     "jalan": "Jl. Sukadana No. 239",
     "desa": "Cigayam",
     "kecamatan": "Banjaranyar",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": "46383",
+    "kode_pos": "46384",
     "keyakinan": "tinggi",
     "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20255008",
-    "catatan": "Namanya SMAN 2 Banjarsari tapi lokasinya sekarang di Kec. BANJARANYAR, Desa Cigayam — Banjaranyar dimekarkan dari Banjarsari, dan data referensi resmi sudah memakai kecamatan baru. Cermin Dapodik lama masih menulis Kec. Banjarsari. Kode pos 46383 dari cermin Dapodik, bukan dari halaman referensi."
+    "catatan": "Banjaranyar mekar dari Banjarsari tahun 2015 dan sekolahnya ikut berganti nama jadi SMAN 1 Banjaranyar. Nama lama dipertahankan karena itu yang ditulis empat peserta di edisi XXXIV dan XXXVI. Kode posnya sempat 46383 — kode Kec. Banjarsari — dan dibetulkan jadi 46384 pada migrasi 0159; seluruh sepuluh desa Kec. Banjaranyar memakai 46384."
   },
   {
     "nama": "SMAN 2 Ciamis",

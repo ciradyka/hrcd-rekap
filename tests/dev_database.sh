@@ -340,5 +340,6 @@ run supabase/migrations/0155_sekolah_kode_pos.sql
 run supabase/migrations/0156_smk_lps_satu_dan_dua.sql
 run supabase/migrations/0157_direktori_sekolah_ciamis.sql
 run supabase/migrations/0158_rapikan_alamat_direktori.sql
+run supabase/migrations/0159_lebur_kembar_direktori.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
