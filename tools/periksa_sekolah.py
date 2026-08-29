@@ -49,10 +49,16 @@ import sys
 AKAR = pathlib.Path(__file__).resolve().parent.parent
 KEYAKINAN = {"tinggi", "sedang", "rendah"}
 
-# Sekolah yang memang belum punya alamat, dan alasannya sudah ditulis di
-# runbook bagian 11. Keduanya menunggu jawaban pembina, bukan menunggu
-# pencarian yang lebih keras.
-BELUM_KETEMU = {"SMK Nusantara 1 Bekasi", "SMPN 1 Kalijaya"}
+# Sekolah yang memang belum punya alamat: barisnya ada, kolom alamatnya
+# kosong, dan itu disengaja. KOSONG SEKARANG — `SMPN 1 Kalijaya` dan
+# `SMK Nusantara 1 Bekasi` dihapus 30 Agustus 2026 atas keputusan pemilik
+# acara (sekolah-belum-tuntas.md bagian B).
+#
+# Daftarnya sengaja dipertahankan meski kosong. Ia satu-satunya cara
+# menandai "sekolah ini memang tidak punya alamat, jangan cari lagi" —
+# tanpa itu, baris tanpa alamat berikutnya akan dilaporkan sebagai cacat
+# dan seseorang menghabiskan setengah hari mencarinya lagi.
+BELUM_KETEMU = set()
 
 # `SMK Bhakti Kencana` satu klaster berisi DUA sekolah (Kota Banjar dan
 # Kab. Ciamis). Memisahkannya di sekolah_nama.json butuh berkas .xlsx yang

@@ -1792,20 +1792,6 @@
     "catatan": "Satu-satunya SMK bernama Miftahussalam di Kabupaten Ciamis. Naungan Yayasan Miftahussalam."
   },
   {
-    "nama": "SMK Nusantara 1 Bekasi",
-    "nama_resmi": null,
-    "npsn": null,
-    "jalan": null,
-    "desa": null,
-    "kecamatan": null,
-    "kabupaten": null,
-    "provinsi": null,
-    "kode_pos": null,
-    "keyakinan": "rendah",
-    "sumber": null,
-    "catatan": "TIDAK KETEMU, dan kali ini dicari dari sisi ALAMAT, bukan dari nama. Kuota pencarian tidak habis — ini benar-benar nihil. Petunjuk peserta \"Jl kapten Tendean no45 Bekasi Selatan Jakarta DKI Jawa barat\" menyebut dua daerah sekaligus, tanda peserta sendiri tidak yakin. Yang sudah disisir: (1) Jl. Kapten Tendean di Jakarta Selatan melewati Kebayoran Baru, Mampang Prapatan, dan Pancoran — daftar dikmen ketiganya dibuka, tidak ada sekolah menengah di jalan itu; (2) Jl. Kapten Tendean tidak ada di Kota maupun Kab. Bekasi menurut basis data kode pos; (3) kelima SMK bernama \"Nusantara 1\" (Ciputat, Kota Tangerang, Jakarta Utara, Comal, Kotabumi) alamatnya dicek satu per satu, tidak ada yang di Jl. Kapten Tendean; (4) SMK bernama Nusantara di wilayah Bekasi (NPSN 20238049, 20218370, 20253379) juga tidak cocok. Nama dan alamatnya saling bertentangan dan dua-duanya buntu. TANYAKAN KE PEMBINA: nama persis sekolahnya dan kotanya."
-  },
-  {
     "nama": "SMK PGRI Cikoneng",
     "nama_resmi": "SMKS PGRI CIKONENG",
     "npsn": "20211525",
@@ -2574,20 +2560,6 @@
     "keyakinan": "tinggi",
     "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211641",
     "catatan": "Alamat resmi tertulis \"Jln Rancah No 16\", ditulis ulang sesuai format. Kode pos 46386 dari cermin Dapodik (data.sekolah-kita.net), bukan dari halaman referensi."
-  },
-  {
-    "nama": "SMPN 1 Kalijaya",
-    "nama_resmi": null,
-    "npsn": null,
-    "jalan": null,
-    "desa": null,
-    "kecamatan": null,
-    "kabupaten": null,
-    "provinsi": null,
-    "kode_pos": null,
-    "keyakinan": "rendah",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211620",
-    "catatan": "DITAHAN — kandidatnya kuat tapi namanya tidak cocok, jadi sengaja tidak diisikan. Tidak ada sekolah bernama \"SMPN 1 Kalijaya\" di Kemendikdasmen; Kalijaya nama desa. Empat desa bernama Kalijaya disisir: Kec. Banjaranyar (Kab. Ciamis) — hanya ada SDN 1 Kalijaya dan SMP NEGERI 5 BANJARSARI (NPSN 20211620); Kec. Cikarang Barat (Kab. Bekasi) — SMPN 4 Cikarang Barat (NPSN 20218452); Kec. Alian (Kebumen) dan Kec. Telagasari (Karawang) — tidak ada SMP negeri. Kandidat terkuat SMPN 5 Banjarsari, Dusun Wanarasa, Desa Kalijaya, Kec. Banjaranyar: satu-satunya SMP negeri di sebuah Desa Kalijaya di wilayah Ciamis, dan pola \"SDN 1 Kalijaya\" menjelaskan kenapa peserta menyebutnya dengan nama desa. TANYAKAN KE PEMBINA, sebut kedua kandidatnya: \"SMPN 5 Banjarsari di Desa Kalijaya, Kec. Banjaranyar — atau bukan?\" AWAS KODE POS kalau nanti diisi: 46383 dari cermin Dapodik kemungkinan besar SALAH; itu kode Kec. Banjarsari sebelum Banjaranyar mekar tahun 2015, dan Desa Kalijaya, Banjaranyar tercatat 46384. Baris \"SMPN 1 Kalijaya Bekasi\" dari putaran pertama sudah dibuang: tidak ada peserta yang pernah menulis \"Bekasi\" — petunjuk di sekolah_nama.json cuma berbunyi \"KALIJAYA\"."
   },
   {
     "nama": "SMPN 1 Karangpawitan Garut",
