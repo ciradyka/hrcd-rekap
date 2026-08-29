@@ -727,9 +727,42 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .function-menu .function-name .badge { margin-left: auto; }
 .function-menu .description { color: var(--tinta-lembut); margin-top: .3rem; }
 
-.table-kejuaraan th { width: 45%; }
+/* Kolom label MENYUSUT ke isinya, tidak dipatok 45%.
+
+   Dipatok, "JUARA I" berdiri di kolom selebar separuh kartu dan nama juaranya
+   mulai di tengah — jarak kosong yang terbaca seperti dua tabel berbeda, dan
+   itu keluhan yang datang dari lapangan. `width: 1%` di bawah `table-layout:
+   auto` adalah cara meminta "sesempit isinya"; nowrap menjaga "HARAPAN III"
+   tetap satu baris, dan karena ini TABEL sungguhan (bukan grid per baris),
+   satu lebar itu berlaku untuk seluruh barisnya — tepi kiri nama juara tidak
+   berpindah-pindah, syarat yang sama dengan kartu Meja Pembayaran (15.7).
+
+   Di dalam media query: di bawah 901px barisnya bertumpuk atau jadi grid, dan
+   nowrap di sana justru memaksa label panjang meluap keluar sel (15.8). */
+@media (min-width: 901px) {
+  .table-kejuaraan th { width: 1%; white-space: nowrap; }
+
+  /* Baris lebih rapat. Nilainya dua baris — nama regu dan asal sekolah — jadi
+     padding bawaan tabel data menambah tinggi yang tidak dipakai apa pun.
+     Di dalam media query karena di bawah 901px barisnya sudah punya aturan
+     paddingnya sendiri; menimpanya dari luar menggeser label terhadap
+     nilainya, dan yang menang cuma ditentukan urutan baris di berkas. */
+  .table-kejuaraan > tbody > tr > th,
+  .table-kejuaraan > tbody > tr > td { padding: .3rem .5rem; }
+  .table-kejuaraan > tbody > tr > th { padding-left: 0; }
+}
 .table-kejuaraan td strong, .table-kejuaraan td .description { display: block; }
 .table-kejuaraan .select-small { width: 100%; }
+.table-kejuaraan .description { line-height: 1.25; }
+
+/* Skor berdiri di kanan baris dengan angka selebar sama, supaya kolomnya bisa
+   dibaca lurus ke bawah untuk mengecek urutan juara. */
+.kejuaraan-isi { display: flex; align-items: baseline; gap: .5rem; }
+.kejuaraan-nama { flex: 1 1 auto; min-width: 0; }
+.kejuaraan-skor {
+  flex: 0 0 auto; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: var(--tinta);
+}
 
 /* Satu juara = satu blok, dan garisnya di BARIS, bukan di sel.
    Sebelumnya tiap sel membawa border-bottom sendiri, jadi di HP — tempat th
@@ -816,8 +849,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .kejuaraan-yel-yel,
 .kejuaraan-terfavorit,
 .kejuaraan-khusus          { --aksen: #6941c6; }
-.kejuaraan-bagian { display: grid; gap: 1rem; }
-.kejuaraan-bagian .card { margin-bottom: 0; }
+.kejuaraan-bagian { display: grid; gap: .75rem; }
+.kejuaraan-bagian .card { margin-bottom: 0; padding: .85rem 1rem; }
 /* `.card { overflow-x: auto }` di bawah membuat overflow-y ikut `auto` — itu
    aturan CSS, bukan salah ketik — dan daftar saran kotak cari digunting oleh
    tepi kartunya sendiri. Yang terlihat: kartu Juara Kostum tumbuh penggulir

@@ -702,5 +702,7 @@ run supabase/migrations/0151_skor_juara_umum_enam_besar.sql
 run tests/sql/103_skor_juara_umum_enam_besar.sql
 run supabase/migrations/0152_kejuaraan_empat_golongan.sql
 run tests/sql/104_kejuaraan_empat_golongan.sql
+run supabase/migrations/0153_terjauh_pilih_sekolah.sql
+run tests/sql/105_terjauh_pilih_sekolah.sql
 
 echo "SEMUA TES LULUS"
