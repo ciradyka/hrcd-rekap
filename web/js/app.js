@@ -5586,11 +5586,14 @@ async function layarLiveScore() {
      (migrasi 0139) — jadi papan yang berhenti di tiga membuat panitia menghitung
      sendiri siapa Harapan 1 dari baris tabel di bawahnya.
 
-     Ketiga Harapan memakai medali yang sama: emas, perak, dan perunggu sudah
-     habis di Juara 1-3, dan memberi Harapan 1 lambang yang berbeda dari
-     Harapan 2 mengarang tingkatan yang tidak ada di penghargaannya. */
+     Ketiga Harapan memakai PITA, satu lambang yang sama untuk ketiganya.
+     Bentuknya sengaja tidak bundar: emas, perak, dan perunggu sudah habis di
+     Juara 1-3, jadi medali bundar keempat cuma menambah satu benda yang mirip
+     tiga benda di atasnya. Memberi Harapan 1 lambang yang berbeda dari
+     Harapan 2 juga tidak dilakukan — itu mengarang tingkatan yang tidak ada
+     di penghargaannya. */
   const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉",
-                   4: "🏅", 5: "🏅", 6: "🏅" };
+                   4: "🎖️", 5: "🎖️", 6: "🎖️" };
   const gelar = (n) => n <= 3 ? `Juara ${n}` : `Harapan ${n - 3}`;
   /* Podium diurutkan SENDIRI, dengan pemecah seri yang sama persis dengan
      hasil_kejuaraan() (migrasi 0139): total, lalu yang paling dekat dengan
