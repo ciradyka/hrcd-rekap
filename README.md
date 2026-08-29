@@ -17,12 +17,16 @@ Gambaran lengkapnya di `docs/final-architecture.md`.
 | `docs/alur-lomba.md` | Alur penyelenggaraan dan aturan penilaian | Berlaku |
 | `docs/desain-sistem.md` | Perbandingan empat kandidat arsitektur + keputusan | Catatan keputusan |
 | `docs/rancangan-b.md` | Cetak biru implementasi yang dipakai membangun | Catatan keputusan |
+| `docs/runbook-sekolah.md` | Cara membakukan daftar sekolah dari tulisan pembina | Berlaku |
+| `docs/sekolah-belum-tuntas.md` | Sekolah yang alamatnya masih perlu ditanyakan | Daftar kerja |
+| `docs/arsitektur-hrcd.svg` | Diagram lapisan teknis — Cloudflare, Supabase, penerbitan rekap | Berlaku |
+| `docs/alur-hrcd.svg` | Diagram alur acara — pendaftaran sampai klasemen | Berlaku |
 
-Dua dokumen terakhir merekam **keputusan pada saat itu**, bukan keadaan hari
-ini. Keduanya sengaja dipertahankan apa adanya karena 42 komentar di kode —
-tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.md
-11.9`, `bagian 4`, dan seterusnya). Kalau isinya berbeda dari sistem sekarang,
-`docs/final-architecture.md` yang benar.
+`desain-sistem.md` dan `rancangan-b.md` merekam **keputusan pada saat itu**,
+bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 42
+komentar di kode — tersebar di migrasi, tes, dan SPA — menunjuk ke nomor
+bagiannya (`rancangan-b.md 11.9`, `bagian 4`, dan seterusnya). Kalau isinya
+berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 
 ## Struktur repo
 
@@ -48,11 +52,17 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0034
+│   ├── migrations/           # skema database, urut 0001..0153
 │   ├── checks/               # SQL manual — flow_test & cleanup_smoke MENGUBAH
 │   │                         # data; live_json.sql dipakai Publish rekap live
 │   └── seed.sql              # konfigurasi edisi + baris wajib
-├── scripts/                  # provision_accounts.py, change_password.py
+├── scripts/                  # provision_accounts.py, change_password.py,
+│                             # set_shared_password.py, delete_storage_objects.py
+├── tools/                    # pemeriksa sumber + penyiap data uji:
+│                             # periksa_impor.py, periksa_sekolah.py,
+│                             # periksa_urutan_golongan.py, normalize_sekolah.py,
+│                             # pratinjau_cetak.py, seed_regu_uji.py,
+│                             # simulasi_end_to_end.py
 ├── tests/
 │   ├── sql/                  # harness + tes constraint, alur, skor, kloter, rekap
 │   ├── run.sh                # jalankan semuanya di database lokal
@@ -60,7 +70,7 @@ tersebar di migrasi, tes, dan SPA — menunjuk ke nomor bagiannya (`rancangan-b.
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
 │   ├── static_server.py      # penyaji web/ tanpa cache
 │   └── concurrency_test.py   # uji daftar ulang serentak dari banyak meja
-├── .github/workflows/        # 7 workflow (lihat final-architecture.md)
+├── .github/workflows/        # 10 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
 └── AGENTS.md                 # aturan sama dengan CLAUDE.md (judul + pembuka beda)
 ```

@@ -6,9 +6,18 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0151`
-— hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0151`.
+sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0153`: angka
+tabel, view, RPC, policy, check dan pemicu DIHITUNG ULANG dari database, dan
+bagian 3 diperiksa terhadap layar. Isi bagian 2 sampai 9 selebihnya belum
+dibaca ulang baris demi baris terhadap `0119`-`0153`.
+
+Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
+[`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
+[`alur-hrcd.svg`](alur-hrcd.svg) — alur acaranya dari pendaftaran sampai
+klasemen. Keduanya SVG, jadi teksnya bisa dicari dan angkanya bisa dibetulkan
+tanpa alat gambar; pasangan `.png`-nya dihapus 30 Agustus 2026 karena tidak
+ada langkah yang membuatnya ikut segar, dan raster yang basi di sebelah SVG
+yang benar lebih menyesatkan daripada tidak ada gambar sama sekali.
 
 ---
 
@@ -65,7 +74,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-151 migrasi, `0001` sampai `0151`, dijalankan berurutan tanpa lubang penomoran.
+153 migrasi, `0001` sampai `0153`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -86,6 +95,15 @@ Konfigurasi per edisi: `edisi`, `pos`, `wahana`, `kontrak_opsi`,
 
 Akun, hak & jejak: `akun_panitia`, `fitur`, `akun_hak`, `history`.
 
+Singgahan: `cache_live_score` (migrasi `0146`). Ia satu-satunya tabel yang
+isinya BUKAN data, melainkan salinan hasil hitungan — satu baris JSON berisi
+seluruh papan Live Score, disegarkan `segarkan_cache_live_score()`. Layar Live
+Score dan layar Kejuaraan membacanya alih-alih menjalankan ulang seluruh rantai
+skor untuk tiap panitia yang membuka layar. Menghapus isinya tidak menghilangkan
+satu nilai pun; yang hilang cuma kecepatannya sampai disegarkan lagi.
+
+Duapuluh enam tabel seluruhnya, dan keduapuluh enamnya menyalakan RLS.
+
 > Tabel jejak audit bernama **`history`** dengan kolom `table_name`, `row_id`,
 > `action`, `old_value`, `new_value`, `changed_by`, `changed_at`. Dokumen lama
 > menyebutnya `riwayat` — itu nama sebelum migrasi `0012`. Migrasi `0014`
@@ -105,6 +123,17 @@ Regu yang belum punya jam datang tetap membawa skor posnya tanpa pengurangan
 `-100` dan tetap ditampilkan di kedua Live Score, tetapi peringkatnya kosong
 dan ia tidak dapat masuk enam besar. Setelah jam datang dicatat, penalti waktu
 dapat dihitung dan regu baru masuk peringkat.
+
+**Enam besar tiap golongan bergelar Juara 1-3 lalu Harapan 1-3**, dan kedua
+layar yang menyebutkannya harus menyebut regu yang sama. `v_klasemen.peringkat`
+memakai `rank()`: dua regu berskor sama berbagi angka yang sama lalu angka
+berikutnya dilompati — benar untuk sebuah peringkat, salah untuk gelar, karena
+penghargaannya cuma ada satu per gelar. Karena itu podium Live Score TIDAK
+memakai `peringkat`; ia mengurutkan sendiri dengan pemecah seri yang sama
+persis dengan `hasil_kejuaraan()` (migrasi `0139`): total menurun, lalu yang
+paling dekat dengan kontrak waktunya (`abs(selisih_menit)`), lalu nomor dada
+terkecil. Kolom `#` di tabel di bawahnya tetap `rank()`, dan itu memang benar
+di sana.
 
 Apa yang dinilai di tiap pos juga konfigurasi: satu baris `wahana` per kolom
 penilaian, dengan **enam bentuk konversi** — `kecil_baik`, `besar_baik`,
@@ -202,8 +231,8 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/keberangkatan` | Keberangkatan | ceklis hadir, kontrak waktu, pindah kloter, berangkatkan |
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
-| `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos + podium; saklar fase hanya untuk pemegang `pengaturan` |
-| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Terjauh satu untuk seluruh acara |
+| `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos, lalu podium ENAM tempat per golongan (Juara 1-3 di satu baris, Harapan 1-3 di baris berikutnya) dan tabel rinci; saklar fase hanya untuk pemegang `pengaturan` |
+| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Juara Umum dari poin juara, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Pangkalan Terjauh satu SEKOLAH untuk seluruh acara |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
@@ -839,11 +868,23 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   empat hal lain, dan kait `segarkanDiTempat` justru masih hidup — sekarang
   yang mendaftarkannya layar Input Nilai Pos, bukan layar itu. Bagian 7 nomor
   10 juga masih menyebutnya sebagai contoh.
-- **`docs/arsitektur-hrcd.svg` dan `.png`** masih menggambarkan Google Sheets
-  sebagai bagian arsitektur, dan angkanya sudah bergeser: tertulis "18 view
-  berlapis" (sekarang 21) dan "24 RPC bertransaksi" (sekarang 27 fungsi, 15 di
-  antaranya dipanggil layar). Diagramnya tidak dirujuk dari dokumen mana pun,
-  jadi dibiarkan sampai ada yang menggambar ulang.
+- **`supabase/seed.sql` menyimpan konfigurasi penalti yang sudah diganti dua
+  migrasi, dan itu membuat database dev BERBEDA dari produksi.** Barisnya
+  `(37, 10, 10, 100, 20, 0)` — blok 10 menit, 10 poin per blok, −100 tanpa jam
+  datang — sedangkan `0089` menjadikannya 1 menit/1 poin dan `0143`
+  menjadikan potongan tanpa jam datang 0. Di produksi keduanya benar, karena
+  keduanya berjalan di atas database yang barisnya sudah ada. Di
+  `tests/dev_database.sh` seed berjalan SESUDAH seluruh migrasi, jadi ia
+  menimpa keduanya dan laptop memakai aturan penalti lama tanpa sepatah galat.
+  Assert penutup `0143` pun tidak menangkapnya: saat ia berjalan, barisnya
+  belum ada. Perbaikannya satu baris — tambahkan `0089_penalti_waktu_per_menit`
+  dan `0143_juara_harus_tiba` ke `ULANG` di `tests/dev_database.sh`.
+- **Empat tes di `tests/championship_ui.test.mjs` gagal di `main`**, dan yang
+  tertinggal adalah TESNYA, bukan layarnya. Ia masih menuntut empat judul
+  section per golongan ("Penegak PA", "Penggalang PI", …) yang dirapikan #703,
+  serta kotak cari `Nomor dada / nama regu / asal sekolah…` beserta saringan
+  "Eksternal yang sudah tiba" — padahal sejak `0153` Pangkalan Terjauh memilih
+  SEKOLAH, bukan regu. Layarnya sendiri dibuka dan benar.
 - **Beberapa RPC masih mencetak nomor dada mentah** di pesan galatnya
   (`nomor dada % tidak dikenal` di `catat_closing` dan `pindah_kloter`, antara
   lain), padahal di layar selalu tiga digit. Migrasi `0020` baru membetulkan

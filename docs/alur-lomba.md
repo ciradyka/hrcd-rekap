@@ -343,10 +343,14 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    > sini") dan `0025` menulis rantai estafet yang lama — migrasi yang sudah
    > diterapkan tidak pernah diedit (`final-architecture.md` bagian 2), jadi
    > keduanya dibaca sebagai catatan sejarah, bukan sebagai aturan yang
-   > berlaku. Yang **belum** dibetulkan dan memang perlu digambar ulang adalah
-   > `docs/arsitektur-hrcd.svg` beserta pasangan `.png`-nya: di sana masih
-   > tertulis "soal berjalan satu pos ke depan" dengan empat kotak "Soal dari
-   > Pos N". Bagian ini yang berlaku kalau keduanya berbeda.
+   > berlaku.
+   >
+   > `docs/arsitektur-hrcd.svg` DULU menyimpannya juga — empat kotak "Soal dari
+   > Pos N" beserta kalimat "soal berjalan satu pos ke depan". Ia digambar
+   > ulang 30 Agustus 2026 dan sekarang menggambarkan model yang sama dengan
+   > bagian ini; pasangan `.png`-nya dihapus di commit yang sama, karena tidak
+   > ada langkah yang membuatnya ikut segar. Bagian ini tetap yang berlaku
+   > kalau suatu saat keduanya berbeda lagi.
 
 5. Rumusnya karena itu:
 

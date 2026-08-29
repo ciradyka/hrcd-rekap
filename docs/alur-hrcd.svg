@@ -101,7 +101,7 @@
       <text x="1508" y="185" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
       <text x="1242" y="266" font-size="21" font-weight="700" fill="#1A1A1A">Daftar Ulang</text>
       <text x="1242" y="293" font-size="14.5" fill="#6B6B6B">H-1 / H-2 — sebut kode</text>
-      <text x="1242" y="315" font-size="14.5" fill="#6B6B6B">Nomor dada diambil per sekolah</text>
+      <text x="1242" y="315" font-size="14.5" fill="#6B6B6B">Nomor dada dari stok panitia</text>
     </g>
 
     <!-- Panah baris 1 -->
@@ -120,7 +120,7 @@
     <g>
       <line x1="1380" y1="333" x2="1380" y2="345" stroke="#2E7D32" stroke-width="2"/>
       <rect x="1220" y="345" width="320" height="34" rx="17" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
-      <text x="1380" y="367" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Nomor Dada + Kloter FIFO (5 Eksternal + 3 Intern)</text>
+      <text x="1380" y="367" font-size="14.5" font-weight="600" fill="#2E7D32" text-anchor="middle">Kloter FIFO · 5 Eksternal + 3 Intern</text>
     </g>
 
     <!-- ================= TAHAP 2 ================= -->
@@ -145,7 +145,7 @@
       <text x="348" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
       <text x="82" y="546" font-size="21" font-weight="700" fill="#1A1A1A">Garis Start</text>
       <text x="82" y="573" font-size="14.5" fill="#6B6B6B">Konfirmasi kontrak waktu</text>
-      <text x="82" y="595" font-size="14.5" fill="#6B6B6B">3 / 3,5 / 4 jam · antre 4 tahap</text>
+      <text x="82" y="595" font-size="14.5" fill="#6B6B6B">3 / 3,5 / 4 jam · 3 kloter siaga</text>
     </g>
 
     <!-- Node 6 : Lima Pos — peserta mendaki dengan ransel -->
@@ -186,7 +186,7 @@
       <text x="1121" y="465" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
       <text x="855" y="546" font-size="21" font-weight="700" fill="#1A1A1A">Closing</text>
       <text x="855" y="573" font-size="14.5" fill="#6B6B6B">Jam datang dicatat per regu</text>
-      <text x="855" y="595" font-size="14.5" fill="#6B6B6B">Tidak checkout: −100</text>
+      <text x="855" y="595" font-size="14.5" fill="#6B6B6B">Tanpa jam datang: tidak berperingkat</text>
     </g>
 
     <!-- Node 8 : Klasemen — podium juara -->
@@ -225,7 +225,7 @@
     <g>
       <line x1="993" y1="613" x2="993" y2="625" stroke="#C62828" stroke-width="2"/>
       <rect x="833" y="625" width="320" height="34" rx="17" fill="#FFEBEE" stroke="#C62828" stroke-width="1.5"/>
-      <text x="993" y="647" font-size="14.5" font-weight="600" fill="#C62828" text-anchor="middle">Penalti −10 poin tiap 10 menit meleset</text>
+      <text x="993" y="647" font-size="14.5" font-weight="600" fill="#C62828" text-anchor="middle">Penalti 1 poin tiap 1 menit meleset</text>
     </g>
 
     <!-- ================= JALUR DATA ================= -->
@@ -264,8 +264,8 @@
         <rect x="15" y="8" width="13" height="10" rx="1.5"/>
         <path d="M13.5,21 H29.5"/>
       </g>
-      <text x="521" y="768" font-size="16" font-weight="700" fill="#1A1A1A">Operator IT di pos</text>
-      <text x="521" y="789" font-size="13.5" fill="#6B6B6B">Input manual atau upload Excel</text>
+      <text x="521" y="768" font-size="16" font-weight="700" fill="#1A1A1A">Juri pos</text>
+      <text x="521" y="789" font-size="13.5" fill="#6B6B6B">Mengetik di layar Input Pos</text>
     </g>
 
     <!-- D3 : server -->
@@ -310,7 +310,7 @@
     </g>
 
     <!-- ================= CATATAN KAKI ================= -->
-    <text x="60" y="860" font-size="14" fill="#8A8A8A">Setiap pos punya link dan password sendiri  ·  Riwayat perubahan nilai tercatat  ·  Aturan penilaian dapat diubah setiap tahun</text>
+    <text x="60" y="860" font-size="14" fill="#8A8A8A">Satu akun panitia, hak per fitur  ·  Riwayat perubahan nilai tercatat  ·  Aturan penilaian dapat diubah setiap tahun</text>
 
   </g>
 </svg>

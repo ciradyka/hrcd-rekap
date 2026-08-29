@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1190" width="1600" height="1190" role="img" aria-label="Arsitektur teknis sistem HRCD Rekap: pengguna, Cloudflare, Supabase, keluaran data, siklus kertas, dan alur estafet soal antar pos">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-label="Arsitektur teknis HRCD Rekap: pengguna, tiga Worker Cloudflare, Supabase, penerbitan rekap live, siklus kertas, serta susunan pos dan lomba">
+  <title>Arsitektur sistem HRCD Rekap</title>
+  <desc>Digambar dari tree per 30 Agustus 2026, sampai migrasi 0153. Angka tabel, view, RPC, policy, check dan pemicu dihitung dari database, bukan dikira-kira.</desc>
+
   <defs>
     <marker id="mh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,1 L9,5 L0,9 Z" fill="#2E9E5B"/>
@@ -12,336 +15,286 @@
     <marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,1 L9,5 L0,9 Z" fill="#B8792F"/>
     </marker>
+
+    <symbol id="orang" viewBox="0 0 44 50">
+      <circle cx="22" cy="11" r="9" fill="none" stroke="#7B3FE4" stroke-width="2.4"/>
+      <path d="M6 48 v-9 a16 16 0 0 1 32 0 v9" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="orang-hijau" viewBox="0 0 44 50">
+      <circle cx="22" cy="11" r="9" fill="none" stroke="#2E9E5B" stroke-width="2.4"/>
+      <path d="M6 48 v-9 a16 16 0 0 1 32 0 v9" fill="none" stroke="#2E9E5B" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="orang-abu" viewBox="0 0 44 50">
+      <circle cx="22" cy="11" r="9" fill="none" stroke="#888888" stroke-width="2.4"/>
+      <path d="M6 48 v-9 a16 16 0 0 1 32 0 v9" fill="none" stroke="#888888" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
   </defs>
 
-  <rect width="1600" height="1190" fill="#FFFFFF"/>
+  <rect width="1600" height="1200" fill="#FFFFFF"/>
 
   <g font-family="Segoe UI, Calibri, Arial, sans-serif">
 
   <!-- ================== JUDUL ================== -->
-  <rect x="40" y="30" width="152" height="54" rx="4" fill="#0B5F4E"/>
-  <text x="116" y="69" font-size="33" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">HRCD</text>
-  <text x="204" y="69" font-size="33" font-weight="700" fill="#1A1A1A">ARSITEKTUR SISTEM</text>
-  <text x="42" y="105" font-size="15" fill="#666666">Hiking Rally Ciradyka — alur teknis dari pendaftaran hingga juara ditentukan</text>
+  <rect x="32" y="26" width="126" height="46" rx="7" fill="#1B7A5A"/>
+  <text x="95" y="57" font-size="25" font-weight="700" fill="#FFFFFF" text-anchor="middle">HRCD</text>
+  <text x="172" y="59" font-size="30" font-weight="700" fill="#1A1A1A">ARSITEKTUR SISTEM</text>
+  <text x="32" y="92" font-size="13" fill="#666666">Hiking Rally Ciradyka — alur teknis dari pendaftaran sampai juara diumumkan</text>
+  <text x="32" y="112" font-size="11" fill="#999999">Digambar dari tree per 30 Agustus 2026 · sampai migrasi 0153 · angkanya dihitung dari database, bukan dikira-kira</text>
 
   <!-- ================== LEGENDA ================== -->
-  <g font-size="12.5">
-    <line x1="1148" y1="36" x2="1196" y2="36" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6"/>
-    <text x="1206" y="41" fill="#333333">Pendaftaran publik — wajib lewat gerbang</text>
-    <line x1="1148" y1="62" x2="1196" y2="62" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6"/>
-    <text x="1206" y="67" fill="#333333">Panitia &amp; Tim IT — tulis dan baca langsung</text>
-    <line x1="1148" y1="88" x2="1196" y2="88" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6"/>
-    <text x="1206" y="93" fill="#333333">Data keluar — live, arsip</text>
-    <line x1="1148" y1="114" x2="1196" y2="114" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6"/>
-    <text x="1206" y="119" fill="#333333">Siklus kertas — keluar, lalu kembali</text>
+  <g font-size="12" fill="#333333">
+    <line x1="1074" y1="30" x2="1114" y2="30" stroke="#2E9E5B" stroke-width="2.4" stroke-dasharray="7 5"/>
+    <text x="1124" y="34">Pendaftaran publik — wajib lewat gerbang</text>
+    <line x1="1074" y1="54" x2="1114" y2="54" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5"/>
+    <text x="1124" y="58">Panitia — tulis dan baca langsung</text>
+    <line x1="1074" y1="78" x2="1114" y2="78" stroke="#E5397A" stroke-width="2.4" stroke-dasharray="7 5"/>
+    <text x="1124" y="82">Rekap terbit — satu arah, keluar</text>
+    <line x1="1074" y1="102" x2="1114" y2="102" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5"/>
+    <text x="1124" y="106">Siklus kertas — keluar, lalu kembali</text>
   </g>
 
-  <!-- ================== KOLOM: PENGGUNA ================== -->
-  <text x="40" y="176" font-size="12" font-weight="700" fill="#999999" letter-spacing="1.6">PENGGUNA</text>
+  <!-- ================== PENGGUNA ================== -->
+  <text x="32" y="152" font-size="12" font-weight="700" fill="#666666" letter-spacing="1.6">PENGGUNA</text>
 
-  <!-- Pendaftar : orang memegang HP -->
-  <g transform="translate(100,255)" fill="none" stroke="#2E9E5B" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-46" r="7.5"/>
-    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-    <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
-    <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
-    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-  </g>
-  <text x="100" y="276" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Pendaftar</text>
-  <text x="100" y="293" font-size="11.5" fill="#777777" text-anchor="middle">pembina sekolah · HP</text>
+  <use href="#orang-hijau" x="44" y="168" width="44" height="50"/>
+  <text x="32" y="238" font-size="13" font-weight="700" fill="#1A1A1A">Pembina sekolah</text>
+  <text x="32" y="254" font-size="11" fill="#777777">HP · tanpa login</text>
 
-  <!-- Panitia meja : orang memegang papan jalan -->
-  <g transform="translate(96,370)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-46" r="7.5"/>
-    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
-    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
-    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
-    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-  </g>
-  <text x="100" y="391" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Panitia Meja</text>
-  <text x="100" y="408" font-size="11.5" fill="#777777" text-anchor="middle">2–3 meja · laptop</text>
+  <use href="#orang" x="44" y="278" width="44" height="50"/>
+  <text x="32" y="348" font-size="13" font-weight="700" fill="#1A1A1A">Panitia meja</text>
+  <text x="32" y="364" font-size="11" fill="#777777">laptop · meja</text>
 
-  <!-- Panitia lapangan -->
-  <g transform="translate(96,485)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-46" r="7.5"/>
-    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
-    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
-    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
-    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-  </g>
-  <text x="100" y="506" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Panitia Lapangan</text>
-  <text x="100" y="523" font-size="11.5" fill="#777777" text-anchor="middle">staging &amp; finish · HP</text>
+  <use href="#orang" x="44" y="388" width="44" height="50"/>
+  <text x="32" y="458" font-size="13" font-weight="700" fill="#1A1A1A">Panitia lapangan</text>
+  <text x="32" y="474" font-size="11" fill="#777777">HP · start &amp; finish</text>
 
-  <!-- Tim IT : orang di depan laptop -->
-  <g transform="translate(100,600)" fill="none" stroke="#7B3FE4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-48" r="7.5"/>
-    <path d="M-9,-39 Q0,-42 9,-39 L11,-20 L-11,-20 Z"/>
-    <path d="M-11,-35 L-14,-24"/><path d="M11,-35 L14,-24"/>
-    <rect x="-13" y="-22" width="26" height="16" rx="1.5"/>
-    <path d="M-17,-6 L17,-6 L20,-1 L-20,-1 Z"/>
-  </g>
-  <text x="100" y="621" font-size="14.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Tim IT</text>
-  <text x="100" y="638" font-size="11.5" fill="#777777" text-anchor="middle">operator pos · admin</text>
+  <use href="#orang" x="44" y="498" width="44" height="50"/>
+  <text x="32" y="568" font-size="13" font-weight="700" fill="#1A1A1A">Juri pos &amp; admin</text>
+  <text x="32" y="584" font-size="11" fill="#777777">HP · nilai pos</text>
 
   <!-- ================== CLOUDFLARE ================== -->
-  <rect x="250" y="185" width="270" height="455" rx="8" fill="#FFF9F3" stroke="#F6821F" stroke-width="2"/>
-  <path d="M310,228 H276 a11,11 0 0 1 -1.5,-21.5 a13.5,13.5 0 0 1 25.4,3.4 a9,9 0 0 1 4.9,18.1 Z" fill="#F6821F"/>
-  <text x="322" y="222" font-size="17" font-weight="700" fill="#D96A0B">Cloudflare</text>
+  <rect x="238" y="164" width="268" height="436" rx="12" fill="#FFF9F3" stroke="#F6821F" stroke-width="1.6"/>
+  <path d="M263 190 a13 13 0 0 1 25 -4 a10 10 0 0 1 14 12 h-38 a11 11 0 0 1 -1 -8 z" fill="#F6821F"/>
+  <text x="312" y="198" font-size="17" font-weight="700" fill="#F6821F">Cloudflare</text>
+  <text x="254" y="222" font-size="11" fill="#7A6448">tiga Worker TERPISAH · hanya menyajikan berkas</text>
 
-  <rect x="268" y="248" width="234" height="132" rx="5" fill="#FFFFFF" stroke="#E5D5C4" stroke-width="1.5"/>
-  <text x="284" y="273" font-size="14" font-weight="700" fill="#1A1A1A">Pages · CDN</text>
-  <text x="284" y="295" font-size="12" fill="#666666">daftar.html — form pendaftaran</text>
-  <text x="284" y="314" font-size="12" fill="#666666">index.html — aplikasi panitia</text>
-  <text x="284" y="333" font-size="12" fill="#666666">live.html — klasemen penonton</text>
-  <text x="284" y="360" font-size="11.5" font-style="italic" fill="#999999">file statis · tidak menyentuh data</text>
+  <rect x="254" y="236" width="236" height="88" rx="8" fill="#FFFFFF" stroke="#E5D5C4"/>
+  <text x="268" y="258" font-size="13" font-weight="700" fill="#1A1A1A">Situs peserta</text>
+  <text x="268" y="275" font-size="10" fill="#999999">hrcd37.ciradyka.workers.dev</text>
+  <text x="268" y="293" font-size="11" fill="#333333">form pendaftaran + rekap live</text>
+  <text x="268" y="311" font-size="11" fill="#666666">live/index.html · live/live.json</text>
 
-  <rect x="268" y="400" width="234" height="220" rx="5" fill="#FFFFFF" stroke="#E5D5C4" stroke-width="1.5"/>
-  <path d="M296,418 L311,423 v12 c0,9.5 -6.3,15.5 -15,18.5 c-8.7,-3 -15,-9 -15,-18.5 v-12 Z" fill="#F6821F"/>
-  <path d="M289,435 l5,5 l9,-10" stroke="#FFFFFF" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="320" y="437" font-size="14" font-weight="700" fill="#1A1A1A">Worker Gerbang</text>
-  <text x="284" y="474" font-size="12" fill="#666666">1 · verifikasi anti-robot</text>
-  <text x="284" y="494" font-size="12" fill="#666666">2 · batas laju per IP</text>
-  <text x="284" y="514" font-size="12" fill="#666666">3 · batas ukuran kiriman</text>
-  <circle cx="292" cy="544" r="5.5" fill="none" stroke="#D96A0B" stroke-width="2.4"/>
-  <path d="M296,548 L309,561 M305,557 l4,-4 M309,561 l3,-3" stroke="#D96A0B" stroke-width="2.4" stroke-linecap="round"/>
-  <text x="322" y="552" font-size="13" font-weight="700" fill="#D96A0B">kunci rahasia</text>
-  <text x="284" y="578" font-size="11.5" font-style="italic" fill="#999999">hidup hanya di sini — tidak</text>
-  <text x="284" y="595" font-size="11.5" font-style="italic" fill="#999999">pernah dikirim ke HP siapa pun</text>
+  <rect x="254" y="336" width="236" height="88" rx="8" fill="#FFFFFF" stroke="#E5D5C4"/>
+  <text x="268" y="358" font-size="13" font-weight="700" fill="#1A1A1A">Layar panitia</text>
+  <text x="268" y="375" font-size="10" fill="#999999">panitia-hrcd37.ciradyka.workers.dev</text>
+  <text x="268" y="393" font-size="11" fill="#333333">SPA satu berkas · wajib login</text>
+  <text x="268" y="411" font-size="11" fill="#666666">web/index.html · web/js/app.js</text>
+
+  <rect x="254" y="436" width="236" height="148" rx="8" fill="#FFFFFF" stroke="#E5D5C4"/>
+  <path d="M268 449 l11 -4 l11 4 v10 a12 12 0 0 1 -11 12 a12 12 0 0 1 -11 -12 z" fill="#F6821F"/>
+  <text x="298" y="463" font-size="13" font-weight="700" fill="#1A1A1A">Worker Gerbang</text>
+  <text x="268" y="484" font-size="11" fill="#333333">1 · verifikasi anti-robot</text>
+  <text x="268" y="502" font-size="11" fill="#333333">2 · batas laju per IP</text>
+  <text x="268" y="520" font-size="11" fill="#333333">3 · batas ukuran kiriman</text>
+  <text x="268" y="543" font-size="12" font-weight="700" fill="#D96A0B">kunci rahasia</text>
+  <text x="268" y="560" font-size="10" font-style="italic" fill="#7A6448">hidup hanya di sini — tidak pernah</text>
+  <text x="268" y="574" font-size="10" font-style="italic" fill="#7A6448">dikirim ke HP siapa pun</text>
 
   <!-- ================== SUPABASE ================== -->
-  <rect x="565" y="185" width="450" height="455" rx="8" fill="#F4FBF8" stroke="#3ECF8E" stroke-width="2"/>
-  <path d="M605,192 L610,229 L586,229 Z" fill="#3ECF8E" opacity="0.45"/>
-  <path d="M611,242 L606,205 L630,205 Z" fill="#3ECF8E"/>
-  <text x="650" y="226" font-size="18" font-weight="700" fill="#1B9E6B">Supabase</text>
-  <text x="778" y="226" font-size="12" fill="#8AA69C">satu-satunya sumber kebenaran</text>
+  <rect x="536" y="164" width="404" height="436" rx="12" fill="#F4FBF8" stroke="#3ECF8E" stroke-width="1.6"/>
+  <path d="M560 176 l22 0 l-8 20 l16 0 l-26 28 l6 -20 l-16 0 z" fill="#3ECF8E"/>
+  <text x="600" y="198" font-size="17" font-weight="700" fill="#1B7A5A">Supabase</text>
+  <text x="926" y="198" font-size="11" fill="#666666" text-anchor="end">satu-satunya sumber kebenaran</text>
 
-  <rect x="585" y="248" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <text x="600" y="271" font-size="13.5" font-weight="700" fill="#1A1A1A">Auth — siapa kamu</text>
-  <text x="600" y="293" font-size="11.5" fill="#666666">login → JWT di sessionStorage · hangus saat tab ditutup</text>
+  <rect x="552" y="216" width="372" height="50" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <text x="568" y="238" font-size="13" font-weight="700" fill="#1A1A1A">Auth — siapa kamu</text>
+  <text x="568" y="256" font-size="10.5" fill="#666666">login → JWT di sessionStorage · hangus saat tab ditutup</text>
 
-  <rect x="585" y="316" width="410" height="48" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <text x="600" y="339" font-size="13.5" font-weight="700" fill="#1A1A1A">PostgREST</text>
-  <text x="704" y="339" font-size="11.5" fill="#666666">satu pintu API · HTTPS · kunci publik + JWT</text>
+  <rect x="552" y="276" width="372" height="46" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <text x="568" y="298" font-size="13" font-weight="700" fill="#1A1A1A">PostgREST</text>
+  <text x="568" y="315" font-size="10.5" fill="#666666">satu pintu API · HTTPS · anon key + JWT · tanpa server aplikasi</text>
 
-  <rect x="585" y="372" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <path d="M609,383 L621,387 v9.5 c0,7.5 -5,12.3 -12,14.7 c-7,-2.4 -12,-7.2 -12,-14.7 V387 Z" fill="#1B9E6B"/>
-  <path d="M603,396 l4,4 l7,-8" stroke="#FFFFFF" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="631" y="396" font-size="13.5" font-weight="700" fill="#1A1A1A">RLS — boleh apa</text>
-  <text x="600" y="420" font-size="11.5" fill="#666666">39 aturan · meja / operator pos / admin · ditegakkan database</text>
+  <rect x="552" y="332" width="372" height="52" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <circle cx="576" cy="350" r="9" fill="#2E9E5B"/>
+  <path d="M572 350 l3 3 l6 -7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <text x="594" y="355" font-size="13" font-weight="700" fill="#1A1A1A">RLS — boleh apa</text>
+  <text x="568" y="374" font-size="10.5" fill="#666666">48 policy · yang menjaga pintu boleh(fitur) dari akun_hak, BUKAN peran</text>
 
-  <rect x="585" y="440" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <text x="600" y="463" font-size="13.5" font-weight="700" fill="#1A1A1A">24 RPC bertransaksi</text>
-  <text x="600" y="485" font-size="11.5" fill="#666666">berhasil seluruhnya atau batal seluruhnya · antrean nomor dada</text>
+  <rect x="552" y="394" width="372" height="52" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <text x="568" y="416" font-size="13" font-weight="700" fill="#1A1A1A">26 RPC dipanggil layar</text>
+  <text x="568" y="435" font-size="10.5" fill="#666666">security definer · berhasil seluruhnya atau batal seluruhnya</text>
 
-  <rect x="585" y="508" width="410" height="60" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <text x="600" y="531" font-size="13.5" font-weight="700" fill="#1A1A1A">18 view berlapis</text>
-  <text x="600" y="553" font-size="11.5" fill="#666666">mentah → poin → total → peringkat · dihitung tiap dibaca</text>
+  <rect x="552" y="456" width="372" height="52" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <text x="568" y="478" font-size="13" font-weight="700" fill="#1A1A1A">31 view berlapis</text>
+  <text x="568" y="497" font-size="10.5" fill="#666666">mentah → poin → total → peringkat · dihitung tiap dibaca, tidak disimpan</text>
 
-  <rect x="585" y="576" width="410" height="50" rx="5" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.5"/>
-  <ellipse cx="622" cy="590" rx="6" ry="8.5" fill="#27506F"/>
-  <circle cx="612" cy="593" r="11.5" fill="#336791"/>
-  <path d="M605,602 q-3,10 2,13 q5,2.5 7,-2.5" stroke="#336791" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <circle cx="607" cy="590" r="2.1" fill="#FFFFFF"/>
-  <path d="M617,604 l3,7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-  <text x="637" y="595" font-size="13.5" font-weight="700" fill="#1A1A1A">PostgreSQL</text>
-  <text x="637" y="614" font-size="11.5" fill="#666666">20 tabel · 45 pagar data · 24 pemicu · riwayat perubahan</text>
+  <rect x="552" y="518" width="372" height="52" rx="8" fill="#FFFFFF" stroke="#D5EDE3"/>
+  <ellipse cx="576" cy="536" rx="9" ry="4" fill="#336791"/>
+  <path d="M567 536 v10 a9 4 0 0 0 18 0 v-10" fill="#336791"/>
+  <text x="594" y="541" font-size="13" font-weight="700" fill="#1A1A1A">PostgreSQL</text>
+  <text x="568" y="560" font-size="10.5" fill="#666666">26 tabel · 68 check · 27 pemicu · 153 migrasi · riwayat perubahan</text>
 
-  <!-- ================== KELUARAN ================== -->
-  <text x="1060" y="176" font-size="12" font-weight="700" fill="#999999" letter-spacing="1.6">KELUARAN</text>
+  <!-- ================== PENERBITAN REKAP ================== -->
+  <text x="964" y="152" font-size="12" font-weight="700" fill="#666666" letter-spacing="1.6">PENERBITAN REKAP</text>
 
-  <rect x="1060" y="195" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
-  <circle cx="1096" cy="239" r="18" fill="#2088FF"/>
-  <path d="M1096,227 a12,12 0 1 0 10,6" stroke="#FFFFFF" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-  <path d="M1093,233 L1103,239 L1093,245 Z" fill="#FFFFFF"/>
-  <text x="1124" y="230" font-size="13.5" font-weight="700" fill="#1A1A1A">GitHub Actions</text>
-  <text x="1124" y="250" font-size="11.5" fill="#666666">berjalan berkala</text>
-  <text x="1124" y="267" font-size="11.5" fill="#666666">memanggang klasemen</text>
+  <rect x="964" y="168" width="352" height="96" rx="10" fill="#FFFFFF" stroke="#E0E0E0"/>
+  <circle cx="994" cy="200" r="15" fill="none" stroke="#1A1A1A" stroke-width="2.4"/>
+  <path d="M989 194 l10 6 l-10 6 z" fill="#1A1A1A"/>
+  <text x="1020" y="197" font-size="14" font-weight="700" fill="#1A1A1A">GitHub Actions</text>
+  <text x="1020" y="215" font-size="11" fill="#666666">publish-live.yml — baca database, tulis live.json, deploy</text>
+  <text x="982" y="238" font-size="11" fill="#333333">otomatis pada tiap push yang menyentuh live/</text>
+  <text x="982" y="255" font-size="11" fill="#333333">terjadwal HANYA pada hari-H, dijaga pagar tanggal</text>
 
-  <rect x="1060" y="315" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
-  <path d="M1082,332 h20 l10,10 v29 a2,2 0 0 1 -2,2 h-28 a2,2 0 0 1 -2,-2 v-37 a2,2 0 0 1 2,-2 Z" fill="#E5397A"/>
-  <path d="M1102,332 l10,10 h-10 Z" fill="#B32A5D"/>
-  <text x="1128" y="350" font-size="13.5" font-weight="700" fill="#1A1A1A">live.json di CDN</text>
-  <text x="1128" y="370" font-size="11.5" fill="#666666">file mati, bukan database</text>
-  <text x="1128" y="387" font-size="11.5" fill="#666666">bandwidth tak terbatas</text>
+  <path d="M1140 268 v28" stroke="#E5397A" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mm)"/>
 
-  <g fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <g transform="translate(1385,392)">
-      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
-      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
-      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-    </g>
-    <g transform="translate(1435,392)">
-      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
-      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
-      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-    </g>
-    <g transform="translate(1485,392)">
-      <circle cx="0" cy="-46" r="7.5"/><path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-      <path d="M-11,-33 L-5,-25"/><path d="M11,-33 L5,-25"/>
-      <rect x="-4.5" y="-29.5" width="9" height="13" rx="1.5"/>
-      <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
-    </g>
-  </g>
-  <text x="1435" y="414" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Penonton</text>
-  <text x="1435" y="431" font-size="11.5" fill="#777777" text-anchor="middle">ratusan HP · hanya membaca</text>
+  <rect x="964" y="304" width="352" height="120" rx="10" fill="#FFFFFF" stroke="#E0E0E0"/>
+  <rect x="978" y="320" width="26" height="30" rx="4" fill="#E5397A"/>
+  <text x="1020" y="336" font-size="14" font-weight="700" fill="#1A1A1A">live.json di CDN</text>
+  <text x="1020" y="353" font-size="11" fill="#666666">berkas mati, bukan database · bandwidth tak terbatas</text>
+  <text x="978" y="378" font-size="11" fill="#333333">Fase pra / progres / penuh / top10 menentukan ISI</text>
+  <text x="978" y="395" font-size="11" fill="#333333">berkasnya, bukan cara menggambarnya: nilai yang belum</text>
+  <text x="978" y="412" font-size="11" fill="#333333">boleh terbit memang TIDAK ADA di dalamnya.</text>
 
-  <rect x="1060" y="435" width="248" height="88" rx="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
-  <path d="M1082,452 h18 l11,11 v28 a2,2 0 0 1 -2,2 h-27 a2,2 0 0 1 -2,-2 v-37 a2,2 0 0 1 2,-2 Z" fill="#0F9D58"/>
-  <path d="M1100,452 l11,11 h-11 Z" fill="#0A7440"/>
-  <rect x="1086" y="470" width="20" height="16" fill="#FFFFFF"/>
-  <path d="M1086,476 h20 M1086,481 h20 M1093,470 v16 M1100,470 v16" stroke="#0F9D58" stroke-width="1"/>
-  <text x="1128" y="470" font-size="13.5" font-weight="700" fill="#1A1A1A">Google Sheets</text>
-  <text x="1128" y="490" font-size="11.5" fill="#666666">arsip tahunan lewat CSV</text>
-  <text x="1128" y="507" font-size="11.5" fill="#666666">terbuka tanpa sistem berjalan</text>
+  <use href="#orang-abu" x="1352" y="316" width="40" height="46"/>
+  <use href="#orang-abu" x="1396" y="316" width="40" height="46"/>
+  <use href="#orang-abu" x="1440" y="316" width="40" height="46"/>
+  <text x="1416" y="386" font-size="13" font-weight="700" fill="#1A1A1A" text-anchor="middle">Peserta &amp; penonton</text>
+  <text x="1416" y="403" font-size="11" fill="#777777" text-anchor="middle">ratusan HP · hanya membaca</text>
 
-  <text x="1060" y="560" font-size="12" font-style="italic" fill="#B33A6B">Penonton tidak pernah menyentuh database.</text>
-  <text x="1060" y="579" font-size="12" font-style="italic" fill="#B33A6B">Seribu HP membuka live.json = nol permintaan</text>
-  <text x="1060" y="598" font-size="12" font-style="italic" fill="#B33A6B">ke Supabase — meja panitia tidak melambat.</text>
+  <path d="M1320 364 h24" stroke="#E5397A" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mm)"/>
 
-  <!-- ================== PANAH: HIJAU (pendaftaran) ================== -->
-  <path d="M128,232 C180,228 205,262 258,282" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
-  <path d="M385,384 V394" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
-  <path d="M506,486 C536,486 545,472 575,468" fill="none" stroke="#2E9E5B" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mh)"/>
-  <text x="514" y="506" font-size="11" font-weight="700" fill="#2E9E5B">TULIS</text>
+  <text x="964" y="458" font-size="11.5" font-style="italic" fill="#B33A6B">Penonton tidak pernah menyentuh database.</text>
+  <text x="964" y="476" font-size="11.5" font-style="italic" fill="#B33A6B">Seribu HP membuka live.json = nol permintaan ke Supabase —</text>
+  <text x="964" y="494" font-size="11.5" font-style="italic" fill="#B33A6B">meja panitia tidak melambat sedikit pun.</text>
 
-  <!-- ================== PANAH: UNGU (panitia &amp; tim IT) ================== -->
-  <path d="M130,352 C180,346 210,330 258,320" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
-  <path d="M130,462 C186,452 214,352 258,332" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
-  <path d="M132,578 C190,566 216,368 258,344" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
+  <text x="964" y="530" font-size="11" fill="#777777">Google Sheets TIDAK dipakai. Ia disebut di dokumen lama</text>
+  <text x="964" y="547" font-size="11" fill="#777777">sebagai jendela arsip, dan rencana itu tidak pernah dibangun.</text>
 
-  <path d="M506,286 C532,282 546,276 575,272" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
-  <text x="510" y="268" font-size="11" font-weight="700" fill="#7B3FE4">TULIS</text>
-  <path d="M575,340 C546,344 532,350 506,354" fill="none" stroke="#7B3FE4" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mu)"/>
-  <text x="510" y="372" font-size="11" font-weight="700" fill="#7B3FE4">BACA</text>
+  <!-- ================== PANAH ANTAR ZONA ================== -->
+  <path d="M158 248 C 196 252, 206 440, 248 500" fill="none" stroke="#2E9E5B" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mh)"/>
+  <text x="176" y="330" font-size="11" font-weight="700" fill="#2E9E5B">TULIS</text>
 
-  <!-- ================== PANAH: MERAH (data keluar) ================== -->
-  <path d="M1019,239 H1052" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
-  <path d="M1184,287 V309" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
-  <path d="M1312,359 C1338,359 1348,368 1364,378" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
-  <path d="M1019,479 H1052" fill="none" stroke="#E5397A" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mm)"/>
+  <path d="M158 358 C 190 360, 214 364, 248 370" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mu)"/>
+  <path d="M158 468 C 192 462, 216 400, 248 382" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mu)"/>
+  <path d="M158 578 C 198 572, 220 420, 248 394" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mu)"/>
+
+  <path d="M494 366 h32" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mu)"/>
+  <text x="510" y="356" font-size="11" font-weight="700" fill="#7B3FE4" text-anchor="middle">TULIS</text>
+  <path d="M526 396 h-32" fill="none" stroke="#7B3FE4" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mu)"/>
+  <text x="510" y="416" font-size="11" font-weight="700" fill="#7B3FE4" text-anchor="middle">BACA</text>
+
+  <path d="M494 500 C 512 500, 516 470, 540 462" fill="none" stroke="#2E9E5B" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mh)"/>
+  <text x="508" y="524" font-size="11" font-weight="700" fill="#2E9E5B" text-anchor="middle">TULIS</text>
+
+  <path d="M944 240 h12" fill="none" stroke="#E5397A" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mm)"/>
+
+  <line x1="32" y1="636" x2="1568" y2="636" stroke="#EEEEEE" stroke-width="1.5"/>
 
   <!-- ================== SIKLUS KERTAS ================== -->
-  <line x1="40" y1="668" x2="1560" y2="668" stroke="#EEEEEE" stroke-width="1.5"/>
-  <text x="40" y="696" font-size="13" font-weight="700" fill="#B8792F" letter-spacing="1.2">SIKLUS KERTAS</text>
-  <text x="178" y="696" font-size="12.5" fill="#777777">— keluar jadi kertas, lalu kembali jadi data</text>
+  <text x="32" y="672" font-size="12" font-weight="700" fill="#B8792F" letter-spacing="1.6">SIKLUS KERTAS</text>
 
-  <!-- printer -->
-  <rect x="150" y="748" width="50" height="26" rx="3" fill="#5A5A5A"/>
-  <rect x="160" y="730" width="30" height="18" fill="#FFFFFF" stroke="#5A5A5A" stroke-width="2"/>
-  <rect x="160" y="774" width="30" height="20" fill="#FFFFFF" stroke="#5A5A5A" stroke-width="2"/>
-  <path d="M166,782 h18 M166,788 h12" stroke="#BBBBBB" stroke-width="1.6"/>
-  <circle cx="192" cy="756" r="2.6" fill="#3ECF8E"/>
-  <text x="175" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Cetak</text>
-  <text x="175" y="835" font-size="11.5" fill="#777777" text-anchor="middle">2 bentuk: staging &amp; barak</text>
+  <rect x="94" y="700" width="52" height="38" rx="5" fill="#4A4A4A"/>
+  <rect x="106" y="690" width="28" height="14" rx="2" fill="#FFFFFF" stroke="#4A4A4A" stroke-width="2"/>
+  <rect x="106" y="734" width="28" height="18" rx="2" fill="#FFFFFF" stroke="#4A4A4A" stroke-width="2"/>
+  <text x="120" y="776" font-size="13" font-weight="700" fill="#1A1A1A" text-anchor="middle">Cetak</text>
+  <text x="120" y="793" font-size="11" fill="#777777" text-anchor="middle">layar mencetak MASTER,</text>
+  <text x="120" y="808" font-size="11" fill="#777777" text-anchor="middle">bukan setumpuk</text>
 
-  <!-- kertas kloter -->
-  <rect x="352" y="726" width="46" height="60" rx="2" fill="#FFFFFF" stroke="#8A7A62" stroke-width="2"/>
-  <path d="M368,738 h22 M368,750 h22 M368,762 h22 M368,774 h14" stroke="#BBAE97" stroke-width="1.8"/>
-  <path d="M358,735 l3,3 l5,-6 M358,747 l3,3 l5,-6 M358,759 l3,3 l5,-6" stroke="#2E9E5B" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="375" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Kertas kloter</text>
-  <text x="375" y="835" font-size="11.5" fill="#777777" text-anchor="middle">isinya dibekukan setelah cetak</text>
+  <path d="M180 720 h84" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
 
-  <!-- staging -->
-  <g transform="translate(568,786)" fill="none" stroke="#B8792F" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-46" r="7.5"/>
-    <path d="M-9,-37 Q0,-40 9,-37 L11,-14 L-11,-14 Z"/>
-    <path d="M-11,-33 L-15,-19"/><path d="M11,-33 L15,-26"/>
-    <rect x="13" y="-31" width="14" height="18" rx="1.5"/>
-    <path d="M16.5,-26 L23.5,-26 M16.5,-22 L23.5,-22 M16.5,-18 L20.5,-18" stroke-width="1.4"/>
-    <path d="M-4,-14 L-5.5,0"/><path d="M4,-14 L5.5,0"/>
+  <rect x="286" y="686" width="42" height="54" rx="4" fill="#FFFFFF" stroke="#B8792F" stroke-width="2"/>
+  <path d="M296 700 h22 M296 712 h22 M296 724 h14" stroke="#B8792F" stroke-width="2" stroke-linecap="round"/>
+  <text x="307" y="776" font-size="13" font-weight="700" fill="#1A1A1A" text-anchor="middle">Fotokopi</text>
+  <text x="307" y="793" font-size="11" fill="#777777" text-anchor="middle">daftar kloter · blangko,</text>
+  <text x="307" y="808" font-size="11" fill="#777777" text-anchor="middle">satu lembar per lomba</text>
+
+  <path d="M348 720 h84" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
+
+  <use href="#orang" x="452" y="686" width="44" height="50"/>
+  <text x="474" y="776" font-size="13" font-weight="700" fill="#1A1A1A" text-anchor="middle">Di lapangan</text>
+  <text x="474" y="793" font-size="11" fill="#777777" text-anchor="middle">juri menulis nilai,</text>
+  <text x="474" y="808" font-size="11" fill="#777777" text-anchor="middle">petugas menulis jam</text>
+
+  <path d="M516 720 h84" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
+
+  <rect x="622" y="690" width="60" height="42" rx="5" fill="#FFFFFF" stroke="#4A4A4A" stroke-width="2"/>
+  <path d="M634 704 h36 M634 716 h24" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M640 732 v8 h24 v-8" fill="none" stroke="#4A4A4A" stroke-width="2"/>
+  <text x="652" y="776" font-size="13" font-weight="700" fill="#1A1A1A" text-anchor="middle">Diketik ke layar</text>
+  <text x="652" y="793" font-size="11" fill="#777777" text-anchor="middle">Input Pos · Kedatangan</text>
+
+  <path d="M700 720 h84" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
+
+  <rect x="806" y="676" width="316" height="92" rx="10" fill="#FDF6EC" stroke="#B8792F"/>
+  <text x="824" y="702" font-size="13" font-weight="700" fill="#1A1A1A">Kembali jadi data</text>
+  <text x="824" y="722" font-size="11" fill="#333333">jam berangkat dan jam datang DIKETIK petugas</text>
+  <text x="824" y="740" font-size="11" fill="#333333">menyalin jam sungguhan; kertasnya jadi cek silang</text>
+  <text x="824" y="758" font-size="11" font-style="italic" fill="#B8792F">jam tidak pernah diambil dari waktu server</text>
+
+  <path d="M1122 700 C 1210 692, 1214 606, 1150 598" fill="none" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <path d="M1150 598 C 1060 590, 990 600, 946 582" fill="none" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
+  <path d="M556 604 C 420 630, 300 660, 190 684 C 168 690, 148 700, 132 710" fill="none" stroke="#B8792F" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#mk)"/>
+
+  <line x1="32" y1="846" x2="1568" y2="846" stroke="#EEEEEE" stroke-width="1.5"/>
+
+  <!-- ================== POS DAN LOMBA ================== -->
+  <text x="32" y="882" font-size="12" font-weight="700" fill="#1B7A5A" letter-spacing="1.6">POS &amp; LOMBA</text>
+  <text x="152" y="882" font-size="12" fill="#666666">— tiga tingkat: satu pos memuat beberapa lomba, satu lomba memuat satu atau lebih penilaian</text>
+
+  <g font-size="11">
+    <rect x="32" y="900" width="288" height="182" rx="10" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.6"/>
+    <text x="50" y="928" font-size="14" font-weight="700" fill="#1A1A1A">POS 1 — Kepramukaan</text>
+    <line x1="50" y1="940" x2="302" y2="940" stroke="#EEEEEE"/>
+    <text x="50" y="962" fill="#333333">Semaphore</text>
+    <text x="50" y="982" fill="#333333">Tebak Simpul</text>
+    <text x="50" y="1002" fill="#333333">Menaksir</text>
+    <text x="50" y="1022" fill="#333333">Keagamaan — 10 soal</text>
+    <text x="50" y="1042" fill="#333333">Kepramukaan — 10 soal</text>
+    <text x="50" y="1068" font-size="11.5" font-weight="700" fill="#1B7A5A">5 lomba · 5 blangko</text>
+
+    <rect x="342" y="900" width="288" height="182" rx="10" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.6"/>
+    <text x="360" y="928" font-size="14" font-weight="700" fill="#1A1A1A">POS 2 — Halang Rintang</text>
+    <line x1="360" y1="940" x2="612" y2="940" stroke="#EEEEEE"/>
+    <text x="360" y="962" fill="#333333">Bakiak</text>
+    <text x="360" y="982" fill="#333333">Balap Karung</text>
+    <text x="360" y="1002" fill="#333333">Lari Balok</text>
+    <text x="360" y="1022" fill="#333333">Kesehatan — 10 soal</text>
+    <text x="360" y="1042" fill="#333333">Pengetahuan Umum — 10 soal</text>
+    <text x="360" y="1068" font-size="11.5" font-weight="700" fill="#1B7A5A">5 lomba · 5 blangko</text>
+
+    <rect x="652" y="900" width="288" height="182" rx="10" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.6"/>
+    <text x="670" y="928" font-size="14" font-weight="700" fill="#1A1A1A">POS 3 — P3K</text>
+    <line x1="670" y1="940" x2="922" y2="940" stroke="#EEEEEE"/>
+    <text x="670" y="962" fill="#333333">Pembidaian — 5 penilaian</text>
+    <text x="670" y="982" fill="#333333">KIM — 2 penilaian</text>
+    <text x="670" y="1002" fill="#333333">Logika — 20 soal</text>
+    <text x="670" y="1030" font-size="10.5" font-style="italic" fill="#777777">Layar memberinya 8 kolom;</text>
+    <text x="670" y="1046" font-size="10.5" font-style="italic" fill="#777777">kertas tetap 3 lembar.</text>
+    <text x="670" y="1068" font-size="11.5" font-weight="700" fill="#1B7A5A">3 lomba · 3 blangko</text>
+
+    <rect x="962" y="900" width="288" height="182" rx="10" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.6"/>
+    <text x="980" y="928" font-size="14" font-weight="700" fill="#1A1A1A">POS 4 — PBB</text>
+    <line x1="980" y1="940" x2="1232" y2="940" stroke="#EEEEEE"/>
+    <text x="980" y="962" fill="#333333">PBB — 4 penilaian</text>
+    <text x="980" y="990" font-size="10.5" font-style="italic" fill="#777777">Sikap Sempurna, Gerakan Dasar,</text>
+    <text x="980" y="1006" font-size="10.5" font-style="italic" fill="#777777">Kekompakan, Kerapihan — satu</text>
+    <text x="980" y="1022" font-size="10.5" font-style="italic" fill="#777777">regu dinilai sekali, di satu</text>
+    <text x="980" y="1038" font-size="10.5" font-style="italic" fill="#777777">lembar yang sama.</text>
+    <text x="980" y="1068" font-size="11.5" font-weight="700" fill="#1B7A5A">1 lomba · 1 blangko</text>
+
+    <rect x="1272" y="900" width="296" height="182" rx="10" fill="#FFFFFF" stroke="#D5EDE3" stroke-width="1.6"/>
+    <text x="1290" y="928" font-size="14" font-weight="700" fill="#1A1A1A">POS 5 — Yel-Yel</text>
+    <line x1="1290" y1="940" x2="1550" y2="940" stroke="#EEEEEE"/>
+    <text x="1290" y="962" fill="#333333">Yel-Yel — 4 penilaian</text>
+    <text x="1290" y="990" font-size="10.5" font-style="italic" fill="#777777">Kreativitas, Kekompakan,</text>
+    <text x="1290" y="1006" font-size="10.5" font-style="italic" fill="#777777">Semangat, Penampilan.</text>
+    <text x="1290" y="1068" font-size="11.5" font-weight="700" fill="#1B7A5A">1 lomba · 1 blangko</text>
   </g>
-  <text x="575" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">3 Staging</text>
-  <text x="575" y="835" font-size="11.5" fill="#777777" text-anchor="middle">centang · tulis jam berangkat</text>
 
-  <!-- finish -->
-  <g transform="translate(790,788)" fill="none" stroke="#B8792F" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="0" cy="-48" r="7.5"/>
-    <path d="M-9,-39 Q0,-42 9,-39 L11,-20 L-11,-20 Z"/>
-    <path d="M-11,-35 L-14,-24"/><path d="M11,-35 L14,-24"/>
-    <rect x="-13" y="-22" width="26" height="16" rx="1.5"/>
-    <path d="M-17,-6 L17,-6 L20,-1 L-20,-1 Z"/>
-  </g>
-  <text x="790" y="818" font-size="13.5" font-weight="700" fill="#1A1A1A" text-anchor="middle">Meja Finish</text>
-  <text x="790" y="835" font-size="11.5" fill="#777777" text-anchor="middle">tombol · kertas jadi cek silang</text>
-
-  <!-- kembali jadi data -->
-  <rect x="960" y="726" width="256" height="72" rx="5" fill="#FDF6EC" stroke="#B8792F" stroke-width="1.8"/>
-  <text x="976" y="750" font-size="13.5" font-weight="700" fill="#8A5A18">Kembali jadi data</text>
-  <text x="976" y="770" font-size="11.5" fill="#7A6448">jam berangkat diketik menyalin kertas;</text>
-  <text x="976" y="787" font-size="11.5" fill="#7A6448">jam datang dari tombol, kertas cek silang</text>
-  <text x="1088" y="818" font-size="11.5" font-style="italic" fill="#999999" text-anchor="middle">jam tidak pernah diambil dari waktu server</text>
-
-  <!-- panah siklus kertas -->
-  <path d="M640,636 C580,700 420,720 208,734" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M206,760 H344" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M406,760 H538" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M614,760 H758" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M822,760 H952" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M1105,720 C1085,684 1000,656 906,646" fill="none" stroke="#B8792F" stroke-width="2.8" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-
-  <!-- ================== CATATAN KAKI ================== -->
-
-  <!-- ================== ALUR POS ================== -->
-  <line x1="40" y1="900" x2="1560" y2="900" stroke="#EEEEEE" stroke-width="1.5"/>
-  <text x="40" y="930" font-size="13" font-weight="700" fill="#1B7A5A" letter-spacing="1.2">ALUR POS</text>
-  <text x="136" y="930" font-size="12.5" fill="#777777">— wahana dinilai di tempat, soal berjalan satu pos ke depan</text>
-  <rect x="40" y="950" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1.5"/>
-  <text x="56" y="978" font-size="15" font-weight="700" fill="#1A1A1A">POS 1</text>
-  <line x1="56" y1="988" x2="264" y2="988" stroke="#EEEEEE" stroke-width="1.2"/>
-  <rect x="56" y="1001" width="9" height="9" rx="1.5" fill="#2E9E5B"/>
-  <text x="72" y="1010" font-size="11.5" fill="#333333">Wahana Pos 1 — dinilai di sini</text>
-  <rect x="56" y="1025" width="9" height="9" rx="1.5" fill="#DDDDDD"/>
-  <text x="72" y="1034" font-size="11.5" font-style="italic" fill="#999999">tidak ada soal masuk</text>
-  <rect x="41" y="1046" width="238" height="23" rx="0" fill="#F4FBF8"/>
-  <text x="56" y="1062" font-size="11.5" font-weight="700" fill="#1B7A5A">Nilai = Wahana 1</text>
-  <rect x="360" y="950" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1.5"/>
-  <text x="376" y="978" font-size="15" font-weight="700" fill="#1A1A1A">POS 2</text>
-  <line x1="376" y1="988" x2="584" y2="988" stroke="#EEEEEE" stroke-width="1.2"/>
-  <rect x="376" y="1001" width="9" height="9" rx="1.5" fill="#2E9E5B"/>
-  <text x="392" y="1010" font-size="11.5" fill="#333333">Wahana Pos 2 — dinilai di sini</text>
-  <rect x="376" y="1025" width="9" height="9" rx="1.5" fill="#B8792F"/>
-  <text x="392" y="1034" font-size="11.5" fill="#333333">Soal dari Pos 1 — dikumpulkan di sini</text>
-  <rect x="361" y="1046" width="238" height="23" rx="0" fill="#F4FBF8"/>
-  <text x="376" y="1062" font-size="11.5" font-weight="700" fill="#1B7A5A">Nilai = Wahana 2 + Soal 1</text>
-  <rect x="680" y="950" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1.5"/>
-  <text x="696" y="978" font-size="15" font-weight="700" fill="#1A1A1A">POS 3</text>
-  <line x1="696" y1="988" x2="904" y2="988" stroke="#EEEEEE" stroke-width="1.2"/>
-  <rect x="696" y="1001" width="9" height="9" rx="1.5" fill="#2E9E5B"/>
-  <text x="712" y="1010" font-size="11.5" fill="#333333">Wahana Pos 3 — dinilai di sini</text>
-  <rect x="696" y="1025" width="9" height="9" rx="1.5" fill="#B8792F"/>
-  <text x="712" y="1034" font-size="11.5" fill="#333333">Soal dari Pos 2 — dikumpulkan di sini</text>
-  <rect x="681" y="1046" width="238" height="23" rx="0" fill="#F4FBF8"/>
-  <text x="696" y="1062" font-size="11.5" font-weight="700" fill="#1B7A5A">Nilai = Wahana 3 + Soal 2</text>
-  <rect x="1000" y="950" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1.5"/>
-  <text x="1016" y="978" font-size="15" font-weight="700" fill="#1A1A1A">POS 4</text>
-  <line x1="1016" y1="988" x2="1224" y2="988" stroke="#EEEEEE" stroke-width="1.2"/>
-  <rect x="1016" y="1001" width="9" height="9" rx="1.5" fill="#2E9E5B"/>
-  <text x="1032" y="1010" font-size="11.5" fill="#333333">Wahana Pos 4 — dinilai di sini</text>
-  <rect x="1016" y="1025" width="9" height="9" rx="1.5" fill="#B8792F"/>
-  <text x="1032" y="1034" font-size="11.5" fill="#333333">Soal dari Pos 3 — dikumpulkan di sini</text>
-  <rect x="1001" y="1046" width="238" height="23" rx="0" fill="#F4FBF8"/>
-  <text x="1016" y="1062" font-size="11.5" font-weight="700" fill="#1B7A5A">Nilai = Wahana 4 + Soal 3</text>
-  <rect x="1320" y="950" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1.5"/>
-  <text x="1336" y="978" font-size="15" font-weight="700" fill="#1A1A1A">POS 5</text>
-  <line x1="1336" y1="988" x2="1544" y2="988" stroke="#EEEEEE" stroke-width="1.2"/>
-  <rect x="1336" y="1001" width="9" height="9" rx="1.5" fill="#2E9E5B"/>
-  <text x="1352" y="1010" font-size="11.5" fill="#333333">Wahana Pos 5 — dinilai di sini</text>
-  <rect x="1336" y="1025" width="9" height="9" rx="1.5" fill="#B8792F"/>
-  <text x="1352" y="1034" font-size="11.5" fill="#333333">Soal dari Pos 4 — dikumpulkan di sini</text>
-  <rect x="1321" y="1046" width="238" height="23" rx="0" fill="#F4FBF8"/>
-  <text x="1336" y="1062" font-size="11.5" font-weight="700" fill="#1B7A5A">Nilai = Wahana 5 + Soal 4</text>
-  <path d="M240,1072 C280,1114 360,1114 396,1078" fill="none" stroke="#B8792F" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M560,1072 C600,1114 680,1114 716,1078" fill="none" stroke="#B8792F" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M880,1072 C920,1114 1000,1114 1036,1078" fill="none" stroke="#B8792F" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <path d="M1200,1072 C1240,1114 1320,1114 1356,1078" fill="none" stroke="#B8792F" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#mk)"/>
-  <text x="300" y="1122" font-size="10.5" font-weight="700" fill="#B8792F" text-anchor="middle">dikerjakan sambil berjalan</text>
-  <text x="40" y="1152" font-size="12.5" fill="#555555">Soal dibagikan di satu pos, dikerjakan di perjalanan, lalu dikumpulkan dan dinilai di pos berikutnya — jadi nilai satu pos selalu datang dari dua tempat.</text>
-  <text x="40" y="1172" font-size="11.5" fill="#8A6BC4">Operator pos memasukkan keduanya, dan keduanya dihitung sebagai nilai pos tempat mereka dikumpulkan — sehingga RLS tetap mengunci tiap operator ke satu pos saja.</text>
-  <text x="1560" y="1172" font-size="11.5" fill="#AAAAAA" text-anchor="end">Seluruh lapisan berjalan di paket gratis — tanpa kartu kredit, termasuk selama sepuluh bulan sistem ini tidak dipakai.</text>
+  <text x="32" y="1114" font-size="11.5" fill="#333333">Soal tulis MILIK pos tempat ia dikerjakan dan tidak berjalan ke pos berikutnya. Model estafet lama — “soal dari Pos sebelumnya dikumpulkan di sini” — tidak berlaku lagi sejak migrasi 0076.</text>
+  <text x="32" y="1134" font-size="11.5" fill="#333333">Bobot pos tidak pernah ditulis sebagai angka: yang menentukannya jumlah poin_maks seluruh baris wahana di pos itu. Memindahkan satu lomba ke pos lain mengubah bobot keduanya.</text>
+  <text x="32" y="1154" font-size="11.5" fill="#333333">Pos 0 (Keberangkatan) dan Pos 6 (Kedatangan) tidak dinilai — yang dicatat di sana waktu, bukan nilai. Yang menentukan sebuah pos dinilai adalah ada tidaknya baris wahana.</text>
+  <text x="32" y="1180" font-size="11" fill="#999999">Seluruh lapisan berjalan di paket gratis, tanpa kartu kredit.</text>
 
   </g>
 </svg>
