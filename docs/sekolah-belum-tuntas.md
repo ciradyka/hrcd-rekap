@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Sembilan belas dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
+Delapan belas dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -86,7 +86,6 @@ mencarinya lagi.
 
 | Sekolah | Peserta | Kenapa belum tuntas | Yang ditanyakan |
 | --- | ---: | --- | --- |
-| **MTsN 1 Ciamis** | 6 | Situs resmi sekolahnya menulis **46251**; desanya Panyingkiran, dan dua direktori berbeda sama-sama menulis **46211** — keduanya juga menyebut rentang Kec. Ciamis 46211-46219, yang tidak memuat 46251. Delapan belas sekolah kurasi lain di kecamatan itu semuanya cocok dengan direktori. Yang dipakai **46211**. | "Kode pos surat madrasahnya 46211 atau 46251? Situs sekolah dan direktori kode pos berbeda." |
 | **SMPN 1 Purwadadi** | 3 | Tiga sumber, tiga angka untuk Desa Karangpaningal: **46385** (cermin Dapodik dan kodeposina — ini yang dipakai), 46380 (nomor.net), 46286 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
 | **SMP Islam Bahrul Ulum** | 1 | Desa Gunungsari, Kec. Sukaratu: **46415** (dipakai) lawan 46452 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
 
@@ -107,6 +106,18 @@ menerbitkan kode pos: karena untuk sederet kecamatan Ciamis selatan direktori
 mereka menjawab berbeda dari **semua** sumber lain sekaligus, termasuk dari
 alamat yang dicetak sekolahnya sendiri. Alasan lengkapnya di
 [`runbook-sekolah.md`](runbook-sekolah.md) bagian 9.
+
+---
+
+> **`MTsN 1 Ciamis` diputuskan 30 Agustus 2026: 46211.** Situs resmi sekolahnya
+> menulis 46251, tetapi desanya Panyingkiran, dan 46211 dipakai dua direktori
+> kode pos yang berbeda serta **delapan belas sekolah kurasi lain di Kec.
+> Ciamis tanpa kecuali** — Ciamis 46211, Kertasari 46213, Maleber 46214,
+> Sindangrasa 46215, Linggasari 46216, Imbanagara 46219. Angka 46251 tidak ada
+> di Kec. Ciamis, dan juga tidak di Sindangkasih (46268) maupun Cikoneng
+> (46261) yang bersebelahan.
+>
+> `tests/sql/107` menjaga 46251 tidak diam-diam kembali.
 
 ---
 

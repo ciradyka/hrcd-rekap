@@ -723,9 +723,9 @@
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
     "kode_pos": "46211",
-    "keyakinan": "sedang",
+    "keyakinan": "tinggi",
     "sumber": "Kode pos dari situs resmi www.mtsn1ciamis.sch.id ; Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278600 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
-    "catatan": "Situs resmi sekolah menulis kode pos 46251; desanya Panyingkiran, dan dua direktori menulis 46211 — sama dengan delapan belas sekolah kurasi lain di Kec. Ciamis. Yang dipakai 46211."
+    "catatan": "Situs resmi sekolah menulis kode pos 46251. Desanya Panyingkiran, dan 46211 dipakai dua direktori kode pos yang berbeda serta delapan belas sekolah kurasi lain di Kec. Ciamis tanpa kecuali; 46251 tidak ada di Kec. Ciamis, Sindangkasih, maupun Cikoneng. Diputuskan 46211, 30 Agustus 2026."
   },
   {
     "nama": "MTsN 2 Banjar",
