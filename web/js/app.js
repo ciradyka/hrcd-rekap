@@ -4289,28 +4289,19 @@ async function layarInputPos() {
     sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
   };
 
-  /** Mengunci, atau meminta admin membukanya. */
+  /** Mengunci, atau langsung membukanya kembali. */
   async function ubahGembok(tr) {
     const dada = Number(tr.dataset.dada);
     const kunci = tr.dataset.terkunci === "1";
     const tiga = dada3(dada);
 
-    // MENGUNCI tidak bertanya. Petugas menekan gembok ratusan kali dalam satu
-    // shift, dan setiap kali harus menjawab "yakin?" untuk perbuatan yang bisa
-    // ia batalkan sendiri (0045) — ongkos itu dibayar di tiap baris, sementara
-    // yang dicegahnya cuma satu ketukan nyasar yang tinggal diketuk lagi.
-    //
-    // MEMBUKA bertanya, dan itu bukan sekadar konfirmasi: alasannya wajib, dan
-    // alasan itulah satu-satunya penjelasan yang tersisa kalau nilainya
-    // berubah sesudah gemboknya terbuka. Yang mahal memang arah itu, bukan
-    // arah sebaliknya.
     if (!kunci) {
-      // Gembok hanya boleh mengesahkan angka yang SUDAH dibaca kembali dari
-      // database. Tanpa pagar ini request kunci bisa mendahului request simpan,
-      // lalu server menolak simpanan itu karena baris telanjur terkunci.
+      // Gembok hanya boleh mengesahkan SEMUA angka yang sudah dibaca kembali
+      // dari database. `jumlah_komponen` sudah memperhitungkan golongan regu,
+      // jadi sel yang memang tidak berlaku tidak ikut menahan gembok.
       if (tr.dataset.keadaan !== "tersimpan"
-          || Number(tr.dataset.terisi) === 0) {
-        notif(`Nilai ${tiga} belum tersimpan. Tunggu tanda ✓, lalu kunci.`, true);
+          || Number(tr.dataset.terisi) !== Number(tr.dataset.komponen)) {
+        notif(`Nilai ${tiga} belum lengkap. Isi semuanya dan tunggu tanda ✓.`, true);
         return;
       }
       try { await kunciNilaiPos(dada, pos.nomor); }
@@ -4321,16 +4312,9 @@ async function layarInputPos() {
       return;
     }
 
-    // Tanpa kalimat penjelas. Kotak alasan yang wajib diisi sudah mengatakan
-    // seluruhnya — bahwa alasannya dicatat adalah hal yang petugas pelajari
-    // sekali, sedangkan kalimatnya dibaca ulang setiap kali gembok dibuka.
-    const jawab = await dialog({
-      judul: `Buka Gembok No. Dada ${tiga}?`,
-      medan: [{ label: "Alasan membuka", contoh: "misal: nilai semaphore salah ketik" }],
-      labelAksi: "Buka",
-    });
-    if (!jawab) return;
-    try { await bukaKunciNilaiPos(dada, pos.nomor, jawab[0]); }
+    // RPC lama masih menyimpan alasan di riwayat. Teks tetap ini menjaga
+    // jejak pembukaan tanpa memaksa petugas melewati dialog konfirmasi.
+    try { await bukaKunciNilaiPos(dada, pos.nomor, "Dibuka dari Input Nilai Pos"); }
     catch (err) { notif(`Gagal membuka: ${err.message}`, true); return; }
     tr.dataset.terkunci = "";
     gambarGembok(tr);
