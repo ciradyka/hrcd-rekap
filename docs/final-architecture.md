@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0143`
+sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0144`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0143`.
+`0119`-`0144`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-143 migrasi, `0001` sampai `0143`, dijalankan berurutan tanpa lubang penomoran.
+144 migrasi, `0001` sampai `0144`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -102,8 +102,9 @@ Konsekuensinya: memperbaiki satu nilai yang salah ketik langsung memperbaiki
 klasemen, tanpa proses hitung ulang apa pun.
 
 Regu yang belum punya jam datang tetap membawa skor posnya tanpa pengurangan
-`-100`, tetapi tidak masuk `v_klasemen` dan tidak dapat menjadi juara. Setelah
-jam datang dicatat, penalti waktu dapat dihitung dan regu baru masuk peringkat.
+`-100` dan tetap ditampilkan di kedua Live Score, tetapi peringkatnya kosong
+dan ia tidak dapat masuk enam besar. Setelah jam datang dicatat, penalti waktu
+dapat dihitung dan regu baru masuk peringkat.
 
 Apa yang dinilai di tiap pos juga konfigurasi: satu baris `wahana` per kolom
 penilaian, dengan **enam bentuk konversi** — `kecil_baik`, `besar_baik`,

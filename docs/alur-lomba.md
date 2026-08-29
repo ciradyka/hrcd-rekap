@@ -767,8 +767,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 
 ### Pengurangan lain di luar penalti waktu
 
-7. **Belum tercatat tiba** di meja Kedatangan: **tidak mendapat peringkat dan
-   tidak dapat menjadi juara**, tetapi tidak dikenai pengurangan skor.
+7. **Belum tercatat tiba** di meja Kedatangan: tetap ditampilkan di Live Score
+   tanpa peringkat, **tidak dapat masuk enam besar**, dan tidak dikenai
+   pengurangan skor.
 8. **Melewatkan sebuah pos**: nilai pos tersebut menjadi **0**. Tidak ada
    pengurangan tambahan di luar itu.
 9. **Anggota regu tidak lengkap.** Kelengkapan diperiksa di akhir lomba, dan

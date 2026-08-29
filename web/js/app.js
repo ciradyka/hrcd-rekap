@@ -5631,7 +5631,7 @@ async function layarLiveScore() {
 
   const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
-        const juara = baris.filter(k => k.peringkat <= 3);
+        const juara = baris.filter(k => k.peringkat && k.peringkat <= 3);
         const sekolahAda = [...new Set(baris.map(k => k.nama_sekolah).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id"));
         if (!baris.length) return `
@@ -5768,7 +5768,7 @@ async function layarLiveScore() {
                   const poin = k.poin_per_pos || {};
                   return `
                   <tr data-sekolah="${esc(k.nama_sekolah || "")}">
-                    <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat))}</span></td>
+                    <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat ?? ""))}</span></td>
                     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
                     <td>${esc(k.nama_regu)}</td>
                     <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
