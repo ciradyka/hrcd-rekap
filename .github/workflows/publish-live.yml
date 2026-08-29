@@ -17,9 +17,8 @@
 # YANG MENJAGA KEJUTAN ADA DI DATABASE, BUKAN DI SINI.
 # Selama status_acara.fase_live masih 'progres', v_klasemen_publik memang
 # mengembalikan nol baris dan v_progres_publik tidak memuat satu pun angka
-# nilai. Jadi live.json yang dihasilkan workflow ini memang TIDAK BERISI
-# nilai — bukan berisi nilai yang disembunyikan tampilan. Admin memindah fase
-# ke 'penuh' saat hasil diumumkan, dan jalan berikutnya klasemennya ikut.
+# nilai. Fase 'top10' hanya menerbitkan maksimal sepuluh regu eligible per
+# golongan beserta totalnya; fase 'penuh' menerbitkan papan lengkap.
 #
 # CRON 15 MENIT AKTIF HANYA 29 AGUSTUS 2026, 08:00-23:59 WIB. Cron memakai
 # UTC dan tidak punya kolom tahun, jadi jadwal memilih 01:00-16:45 UTC lalu
@@ -145,9 +144,29 @@ jobs:
           d['klasemen'] = [baris for baris in d['klasemen'] if eksternal(baris)]
           d['komponen'] = [baris for baris in d['komponen'] if eksternal(baris)]
 
+          # Top 10 bukan papan penuh yang kolomnya disembunyikan dengan CSS.
+          # Berkas publiknya sendiri hanya membawa identitas, peringkat, dan
+          # Total; poin per pos serta rincian penalti tidak ikut ke CDN.
+          if d['fase'] == 'top10':
+              kunci_top = ('peringkat', 'nomor_dada', 'nama_regu',
+                           'nama_sekolah', 'golongan', 'total')
+              d['klasemen'] = [
+                  {k: baris.get(k) for k in kunci_top}
+                  for baris in d['klasemen']
+              ]
+
           # Pagar kebocoran, dijaga di sini SEKALIGUS di view (0005/0026).
-          if d['fase'] != 'penuh' and d['klasemen']:
-              sys.exit('BOCOR: klasemen ikut tertulis padahal fase belum penuh')
+          if d['fase'] not in ('penuh', 'top10') and d['klasemen']:
+              sys.exit('BOCOR: klasemen ikut tertulis pada fase yang tertutup')
+          if d['fase'] == 'top10':
+              per_golongan = {}
+              for baris in d['klasemen']:
+                  if baris.get('peringkat') is None:
+                      sys.exit('BOCOR: regu tanpa peringkat ikut Top 10')
+                  golongan = baris.get('golongan')
+                  per_golongan[golongan] = per_golongan.get(golongan, 0) + 1
+              if any(jumlah > 10 for jumlah in per_golongan.values()):
+                  sys.exit('BOCOR: Top 10 memuat lebih dari sepuluh regu per golongan')
           # Sebelum lomba dimulai peserta tidak boleh melihat rekap apa pun,
           # dan v_progres_publik memang mengembalikan nol baris di fase 'pra'.
           # Kalau suatu hari ia tidak lagi begitu, berhenti di sini.

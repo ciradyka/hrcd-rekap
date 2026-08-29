@@ -66,6 +66,6 @@ select jsonb_pretty(jsonb_build_object(
               from v_progres_publik p),
 
   'klasemen', (select coalesce(jsonb_agg(to_jsonb(k)
-                        order by k.golongan, k.peringkat), '[]'::jsonb)
+                        order by k.golongan, k.peringkat, k.nomor_dada), '[]'::jsonb)
                from v_klasemen_publik k)
 ));

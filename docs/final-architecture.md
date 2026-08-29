@@ -6,9 +6,9 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0144`
+sampai migrasi `0136`. Penomorannya disegarkan 29 Agustus 2026 sampai migrasi `0145`
 — hanya angkanya; isi bagian 2 sampai 9 belum dibaca ulang terhadap
-`0119`-`0144`.
+`0119`-`0145`.
 
 ---
 
@@ -65,7 +65,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-144 migrasi, `0001` sampai `0144`, dijalankan berurutan tanpa lubang penomoran.
+145 migrasi, `0001` sampai `0145`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -491,6 +491,11 @@ Tiga aturan membentuk seluruh halaman ini:
    `penuh` membuka klasemen empat golongan — tampil tanpa perlu mencari apa
    pun, karena itulah pengumumannya — dan menambahkan kloter, kontrak, jam
    berangkat, dan jam datang ke tabel sekolah.
+4. **Top 10 adalah papan ringkas per golongan.** Hanya sepuluh regu yang sudah
+   eligible untuk diperingkat yang terbit, dan tabelnya hanya membawa nomor
+   dada, regu, organisasi, peringkat, serta Total. Regu yang belum tercatat
+   tiba tidak ikut; poin per pos dan rincian penalti tidak ditulis ke berkas
+   publiknya.
 
 ### Yang menjaga kejutan adalah database, bukan tampilan
 
@@ -498,9 +503,9 @@ Selama `status_acara.fase_live` masih `progres`, `v_klasemen_publik`
 mengembalikan **nol baris** dan `v_progres_publik` tidak punya satu pun kolom
 berisi angka nilai. Jadi `live.json` yang terbit memang **tidak memuat**
 nilai — bukan memuatnya lalu disembunyikan CSS, yang bisa dibuka siapa pun
-dengan membuka alamat berkasnya langsung. Admin memindah fase ke `penuh` saat
-hasil diumumkan, dan jalan berikutnya klasemen empat golongan beserta juaranya
-ikut terbit.
+dengan membuka alamat berkasnya langsung. Admin dapat memindah fase ke
+`top10` untuk menerbitkan papan ringkas atau ke `penuh` untuk menerbitkan
+klasemen empat golongan beserta rinciannya.
 
 `tests/sql/09_rekap_publik.sql` menjaga janji itu dari dua arah: klasemen
 harus nol baris di fase progres, dan `v_progres_publik` diperiksa **lewat
@@ -529,8 +534,9 @@ yang menghasilkan seluruh isi — lalu memecah hasilnya jadi **dua berkas**
 sebelum men-deploy folder `live/`. Seluruh data peserta dan nilai hanya dibaca
 dari berkas statis itu. Satu-satunya permintaan langsung dari HP peserta ke
 Supabase adalah `v_fase_live` tiap 15 detik, supaya admin dapat memperketat
-`penuh` menjadi `progres` atau `pra` tanpa menunggu penerbitan baru; hasilnya
-tidak pernah boleh membuka lebih banyak daripada isi berkas yang sudah terbit.
+`penuh` menjadi `top10`, `progres`, atau `pra` tanpa menunggu penerbitan baru;
+hasilnya tidak pernah boleh membuka lebih banyak daripada isi berkas yang
+sudah terbit.
 
 | Sumber | Besar | Isinya | Kapan diambil |
 | --- | --- | --- | --- |
@@ -573,7 +579,9 @@ tanpa menambah kalimat yang harus dibaca berulang kali; umur dalam kurung sudah
 menunjukkan bahwa datanya tertinggal.
 
 Sebelum di-deploy, workflow memeriksa berkasnya sendiri: JSON harus terurai,
-kunci wajib harus ada, dan **klasemen harus kosong selama fase belum `penuh`**.
+kunci wajib harus ada, klasemen harus kosong di fase `pra` dan `progres`, serta
+fase `top10` tidak boleh membawa regu tanpa peringkat atau lebih dari sepuluh
+regu per golongan.
 JSON yang rusak akan membuat halaman rekap kosong tanpa pesan apa pun, dan
 tidak ada yang menyadarinya sampai ada peserta yang bertanya.
 

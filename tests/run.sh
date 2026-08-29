@@ -686,5 +686,7 @@ run supabase/migrations/0143_juara_harus_tiba.sql
 run tests/sql/95_juara_harus_tiba.sql
 run supabase/migrations/0144_tampilkan_regu_belum_tiba.sql
 run tests/sql/96_tampilkan_regu_belum_tiba.sql
+run supabase/migrations/0145_top_10_live_score.sql
+run tests/sql/97_top_10_live_score.sql
 
 echo "SEMUA TES LULUS"
