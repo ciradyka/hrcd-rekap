@@ -6115,8 +6115,10 @@ async function layarKejuaraan() {
   const nilai = (x) => {
     if (x.nama_regu) return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
       <span class="description">${esc(x.nama_sekolah || "")}</span>`;
-    if (x.nama_sekolah) return `<strong>${esc(x.nama_sekolah)}</strong>${x.kode === "peserta_terbanyak"
-      ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
+    if (x.nama_sekolah) return `<strong>${esc(x.nama_sekolah)}</strong>${x.kode.startsWith("juara_umum")
+      ? `<span class="description">${esc(angkaRapi(x.poin_juara))} poin juara · ${esc(angkaRapi(x.jumlah_skor))} total skor</span>`
+      : x.kode === "peserta_terbanyak"
+        ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
     return `<span class="description">Belum ditentukan</span>`;
   };
   const baris = (x, label = x.nama_penghargaan) => manual.has(x.kode) && bisaUbah ? `
