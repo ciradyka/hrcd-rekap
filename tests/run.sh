@@ -712,5 +712,7 @@ run supabase/migrations/0156_smk_lps_satu_dan_dua.sql
 run tests/sql/108_smk_lps_satu_dan_dua.sql
 run supabase/migrations/0157_direktori_sekolah_ciamis.sql
 run tests/sql/109_direktori_sekolah_ciamis.sql
+run supabase/migrations/0158_rapikan_alamat_direktori.sql
+run tests/sql/110_rapikan_alamat_direktori.sql
 
 echo "SEMUA TES LULUS"
