@@ -31,13 +31,16 @@
        peserta: kepala hijau, kartu, tabel klasemen, dan dua override yang
        disengaja. Urutannya penting — yang belakangan menang. -->
   <link rel="stylesheet" href="style.css?v=4">
-  <link rel="stylesheet" href="live.css?v=2">
+  <link rel="stylesheet" href="live.css?v=3">
 </head>
 <body>
   <header class="kepala">
-    <div class="kepala-isi">
-      <h1 id="judul">Live Score</h1>
-      <p class="sinkron" id="sinkron">Memuat…</p>
+    <div class="kepala-isi kepala-baris">
+      <div>
+        <h1 id="judul">Live Score</h1>
+        <p class="sinkron" id="sinkron">Memuat…</p>
+      </div>
+      <button type="button" class="tombol-cetak" id="buka-cetak" hidden>Print</button>
     </div>
   </header>
 
@@ -49,6 +52,18 @@
     <p>Hiking Rally Ciradyka · Ambalan Ciung Wanara – Dyah Pitaloka,
        SMA Negeri 1 Ciamis</p>
   </footer>
+
+  <dialog class="dialog-cetak" id="dialog-cetak" aria-labelledby="judul-cetak">
+    <form method="dialog">
+      <h2 id="judul-cetak">Print Skor</h2>
+      <label for="pilihan-cetak">Pilih daftar</label>
+      <select id="pilihan-cetak"></select>
+      <div class="aksi-cetak">
+        <button type="submit" class="tombol-dialog" value="batal">Batal</button>
+        <button type="button" class="tombol-dialog utama" id="cetak-skor">Print</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- Versinya DINAIKKAN tiap kali live.js berubah. Cache-Control-nya
        memang `no-cache` (selalu divalidasi), tapi itu tidak menolong
@@ -63,6 +78,6 @@
        mendadak. Skrip biasa, bukan modul: ia cuma menaruh satu objek global.
   -->
   <script src="config.js"></script>
-  <script type="module" src="live.js?v=13"></script>
+  <script type="module" src="live.js?v=14"></script>
 </body>
 </html>

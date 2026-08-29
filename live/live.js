@@ -367,6 +367,111 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 
 /* ---------------------------------------------------------------------------
+   CETAK SKOR — hanya fase penuh, dan tidak mengambil data lagi.
+
+   Pos memakai poin akhir per pos dari `poin_per_pos`. Keberangkatan adalah
+   klasemen total yang dibawa `total`; lembar itu dipasang di titik kumpul
+   ketika seluruh hasil sudah dibuka. Empat golongan dipisah agar regu tidak
+   pernah dibandingkan dengan golongan lain.
+   ------------------------------------------------------------------------- */
+const pilihanCetak = () => [
+  ...((META && META.pos) || [])
+    .filter(p => Number(p.nomor) >= 1 && Number(p.nomor) <= 5)
+    .map(p => ({ kode: String(p.nomor),
+      label: `Pos ${p.nomor} · ${p.name}`, judul: `Skor Pos ${p.nomor} · ${p.name}` })),
+  { kode: "keberangkatan", label: "Keberangkatan",
+    judul: "Keberangkatan · Total Skor" },
+];
+
+const skorCetak = (baris, kode) => {
+  const mentah = kode === "keberangkatan"
+    ? baris.total
+    : baris.poin_per_pos && baris.poin_per_pos[kode];
+  if (mentah === null || mentah === undefined || mentah === "") return null;
+  const angka = Number(mentah);
+  return Number.isFinite(angka) ? angka : null;
+};
+
+function urutSkorCetak(a, b, kode) {
+  const skorA = skorCetak(a, kode);
+  const skorB = skorCetak(b, kode);
+  if (skorA === null && skorB !== null) return 1;
+  if (skorA !== null && skorB === null) return -1;
+  if (skorA !== skorB) return skorB - skorA;
+
+  // Jika skor pos sama, total keseluruhan membuat urutannya tetap berguna.
+  // Untuk Keberangkatan, peringkat database sudah memuat tie-break ketepatan
+  // waktu; jangan membuat aturan peringkat kedua di browser.
+  if (kode === "keberangkatan" && a.peringkat !== b.peringkat)
+    return Number(a.peringkat ?? 1e9) - Number(b.peringkat ?? 1e9);
+  const total = Number(b.total ?? -1e9) - Number(a.total ?? -1e9);
+  if (total) return total;
+  return Number(a.nomor_dada ?? 1e9) - Number(b.nomor_dada ?? 1e9);
+}
+
+function buatCetakanSkor(kode) {
+  const pilihan = pilihanCetak().find(p => p.kode === kode);
+  if (!pilihan || fase() !== "penuh" || !REKAP) return;
+
+  const semua = (REKAP.klasemen || []).filter(b => golonganPeserta(b.golongan));
+  const halaman = URUT_GOLONGAN_PESERTA.map(g => {
+    const baris = semua.filter(b => b.golongan === g)
+      .sort((a, b) => urutSkorCetak(a, b, kode));
+    return `
+      <section class="print-page">
+        <h1>${esc(pilihan.judul)}</h1>
+        <p><strong>${esc(GOLONGAN[g] || g)}</strong> · ${esc(META.edisi?.name || "")}</p>
+        <table class="print-table">
+          <thead><tr>
+            <th>No Dada</th><th>Nama Regu</th><th>Asal Sekolah</th>
+            <th class="text-right">Skor</th>
+          </tr></thead>
+          <tbody>${baris.map(b => {
+            const skor = skorCetak(b, kode);
+            return `<tr>
+              <td class="dada">${esc(dada(b.nomor_dada))}</td>
+              <td>${esc(b.nama_regu || "—")}</td>
+              <td>${esc(b.nama_sekolah || "—")}</td>
+              <td class="text-right"><strong>${skor === null ? "—" : esc(angkaRapi(skor))}</strong></td>
+            </tr>`;
+          }).join("")}</tbody>
+        </table>
+        <p class="print-note">Data diperbarui ${esc(tanggalJam(META.dibuat_pada))}.</p>
+      </section>`;
+  }).join("");
+
+  document.getElementById("cetakan")?.remove();
+  const cetakan = document.createElement("div");
+  cetakan.id = "cetakan";
+  cetakan.className = "printout cetak-skor";
+  cetakan.innerHTML = halaman;
+  document.body.appendChild(cetakan);
+  window.print();
+}
+
+function pasangCetakSkor() {
+  const buka = document.getElementById("buka-cetak");
+  const dialog = document.getElementById("dialog-cetak");
+  const daftar = document.getElementById("pilihan-cetak");
+  const cetak = document.getElementById("cetak-skor");
+  if (!buka || !dialog || !daftar || !cetak) return;
+
+  buka.addEventListener("click", () => {
+    daftar.innerHTML = pilihanCetak().map(p =>
+      `<option value="${esc(p.kode)}">${esc(p.label)}</option>`).join("");
+    dialog.showModal();
+  });
+  cetak.addEventListener("click", () => {
+    const kode = daftar.value;
+    dialog.close();
+    buatCetakanSkor(kode);
+  });
+  window.addEventListener("afterprint", () =>
+    document.getElementById("cetakan")?.remove());
+}
+
+
+/* ---------------------------------------------------------------------------
    PAPAN — bentuknya SAMA dengan layar Live Score panitia.
 
    Empat tab golongan Eksternal, judul "Klasemen sementara", podium tiga
@@ -746,6 +851,8 @@ function gambar() {
   document.getElementById("judul").textContent =
     `Live Score${META.edisi ? ` — ${META.edisi.name}` : ""}`;
   document.title = `Live Score — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
+  const tombolCetak = document.getElementById("buka-cetak");
+  if (tombolCetak) tombolCetak.hidden = fase() !== "penuh" || !REKAP;
 
   // Top 10 sengaja hanya membawa papan ringkas. Pada fase lain susunannya
   // sama dengan layar panitia: kemajuan di atas, lalu tab golongan, lalu
@@ -853,6 +960,7 @@ async function muat() {
 }
 
 muat();
+pasangCetakSkor();
 
 /* Polling hanya berjalan saat halamannya benar-benar dilihat. Ribuan HP yang
    tertinggal terbuka di saku adalah beban yang tidak menghasilkan apa pun —
