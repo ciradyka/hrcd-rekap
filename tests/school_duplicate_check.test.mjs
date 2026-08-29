@@ -28,14 +28,20 @@ test("keenam aturan disebut, masing-masing dengan alasannya", () => {
     assert.ok(sql.includes(sebab), `aturan hilang: ${sebab}`);
 });
 
-test("aturan alamat menuntut jenjang yang sama", () => {
-  // Tanpa syarat itu ia melaporkan tigapuluh pasangan MA+MTs dan SMA+SMP satu
-  // yayasan yang memang dua sekolah berbeda, dan laporan sepanjang itu
-  // berhenti dibaca.
+test("aturan alamat memakai TINGKAT, bukan kolom jenjang", () => {
+  // Kolom `jenjang` isinya nama LENGKAP dengan huruf N dibuang, bukan tingkat
+  // sekolah. Aturan F sempat memakainya dan karena itu menuntut namanya hampir
+  // sama — yang meniadakan seluruh gunanya, karena ia dibuat justru untuk
+  // pasangan yang namanya berbeda jauh seperti MAN Darussalam lawan
+  // MAN 1 Ciamis.
   const f = sql.slice(sql.indexOf("-- F. Jalan DAN desa"));
   assert.match(f, /a\.jalan = b\.jalan and a\.desa_alamat = b\.desa_alamat/);
+  assert.match(f, /a\.tingkat.*b\.tingkat/s);
+  assert.doesNotMatch(f, /a\.jenjang/);
   assert.match(f, /length\(a\.jalan\) >= 8/);
-  assert.match(f, /a\.jenjang.*=.*b\.jenjang/s);
+  // Alamat tanpa nama jalan dimulai dari desanya; tanpa syarat ini dua sekolah
+  // sedesa terlihat sealamat.
+  assert.match(f, /desa_alamat not like 'kec\. %'/);
 });
 
 test("aturan sisipan diperiksa dua arah", () => {
