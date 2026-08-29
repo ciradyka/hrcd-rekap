@@ -3713,15 +3713,31 @@ button.pill-number:hover { filter: brightness(.95); }
 }
 .c-alarm { color: var(--bahaya); }
 
-/* Podium: SATU juara satu baris, bertumpuk ke bawah.
+/* Podium: DUA BARIS BERTIGA di layar lebar — Juara 1-3 di atas, Harapan 1-3
+   tepat di bawahnya — dan satu kolom bertumpuk di layar sempit.
 
-   Tiga kartu berdampingan membungkus jadi 2 + 1 di layar HP, dan baris kedua
-   yang cuma berisi satu kartu terbaca seperti tampilan yang rusak, bukan
-   seperti podium. Bertumpuk, ketiganya selalu sejajar, urutannya tidak pernah
-   ambigu, dan nama regu punya selebar layar untuk dirinya sendiri — nama
-   juara adalah satu-satunya hal di baris itu yang benar-benar dicari orang. */
+   Enam kartu bertumpuk memakan hampir seluruh tinggi layar, dan tabel yang
+   menjawab "regu saya di peringkat berapa" terdorong sepenuhnya ke bawah
+   lipatan. Dua baris bertiga memuat keenamnya dalam tinggi dua kartu, dan
+   bentuknya sendiri sudah mengatakan mana Juara dan mana Harapan tanpa satu
+   kata tambahan.
+
+   `grid`, BUKAN flex-wrap. Tiga kartu yang dibungkus flex akan patah jadi
+   2 + 1 begitu isinya melebar, dan baris berisi satu kartu terbaca seperti
+   tampilan yang rusak, bukan seperti podium. Grid tiga kolom tidak pernah
+   bisa melakukan itu: yang keempat SELALU memulai baris baru.
+
+   Ambangnya 901px, sama dengan ambang yang dipakai tabel di seluruh berkas
+   ini (bagian 15 CLAUDE.md). Di bawahnya podium kembali bertumpuk satu kolom
+   — di lebar HP, kartu selebar sepertiga layar tidak menyisakan tempat untuk
+   nama regu, dan nama itulah satu-satunya hal di kartu ini yang benar-benar
+   dicari orang. */
 .podium {
-  display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0 1rem;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  column-gap: .5rem; row-gap: .75rem; margin: .6rem 0 1rem;
+}
+@media (max-width: 900px) {
+  .podium { grid-template-columns: 1fr; row-gap: .5rem; }
 }
 .juara {
   display: flex; align-items: center; gap: .75rem;
@@ -3765,9 +3781,13 @@ button.pill-number:hover { filter: brightness(.95); }
 .juara.harapan { padding: .45rem .75rem; }
 .juara.harapan .medali { font-size: 1.5rem; }
 .juara.harapan .total { font-size: 1.15rem; }
-/* Satu jarak di tempat Juara berakhir: enam kartu berjarak sama terbaca
-   seperti satu daftar berisi enam juara. */
-.juara:not(.harapan) + .juara.harapan { margin-top: .45rem; }
+/* Satu jarak di tempat Juara berakhir, dan HANYA di rentang bertumpuk. Di
+   dua baris bertiga, `row-gap` sudah memisahkan keduanya; menambahkan margin
+   di sana cuma menurunkan kartu Harapan 1 sendirian sementara Harapan 2 dan 3
+   di sebelahnya tetap di tempatnya. */
+@media (max-width: 900px) {
+  .juara:not(.harapan) + .juara.harapan { margin-top: .3rem; }
+}
 
 /* RANTAI `th.pos-kol`, BUKAN `.pos-kol` SAJA — dan itu bukan kerapian.
    `.pos-kol` sendirian berkekhususan (0,1,0), kalah dari `.table th` (0,1,1)

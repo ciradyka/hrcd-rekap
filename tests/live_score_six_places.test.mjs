@@ -19,7 +19,11 @@ test("podium memuat enam tempat, bukan tiga", () => {
 test("keenamnya bermedali, dan Harapan memakai lambang yang sama", () => {
   const daftar = panitia.match(/const MEDALI = \{[^}]*\}/s)[0];
   for (const n of [1, 2, 3, 4, 5, 6]) assert.ok(daftar.includes(`${n}: "`));
-  assert.equal((daftar.match(/🏅/g) || []).length, 3);
+  // Pita, bukan medali bundar keempat: emas/perak/perunggu sudah habis di
+  // Juara 1-3. Satu lambang untuk ketiga Harapan — lambang berbeda per
+  // Harapan mengarang tingkatan yang tidak ada di penghargaannya.
+  assert.equal((daftar.match(/🎖️/g) || []).length, 3);
+  assert.doesNotMatch(daftar, /🏅/);
 });
 
 test("tempat 4-6 bernama Harapan 1-3", () => {
@@ -48,4 +52,27 @@ test("ketiga Harapan dibedakan satu kelas, bukan tiga selektor", () => {
   assert.match(panitia, /\$\{i >= 3 \? " harapan" : ""\}/);
   assert.match(gaya, /\.juara\.harapan \{/);
   assert.doesNotMatch(gaya, /\.juara\.j4/);
+});
+
+test("podium dua baris bertiga di layar lebar, bertumpuk di layar sempit", () => {
+  // Enam kartu bertumpuk mendorong tabel peringkat keluar layar sepenuhnya.
+  const blok = gaya.slice(gaya.indexOf(".podium {"), gaya.indexOf(".juara {"));
+  assert.match(blok, /display: grid; grid-template-columns: repeat\(3, 1fr\)/);
+  assert.match(blok, /@media \(max-width: 900px\) \{\s*\.podium \{ grid-template-columns: 1fr/);
+});
+
+test("grid, bukan flex-wrap: kartu keempat selalu memulai baris baru", () => {
+  // Tiga kartu yang dibungkus flex patah jadi 2 + 1 begitu isinya melebar,
+  // dan baris berisi satu kartu terbaca seperti tampilan yang rusak.
+  const blok = gaya.slice(gaya.indexOf(".podium {"), gaya.indexOf(".juara {"));
+  assert.doesNotMatch(blok, /flex-wrap|flex-direction/);
+});
+
+test("jarak antara Juara dan Harapan hanya dipasang di rentang bertumpuk", () => {
+  // Di dua baris bertiga, margin itu menurunkan kartu Harapan 1 sendirian
+  // sementara Harapan 2 dan 3 di sebelahnya tetap di tempatnya; `row-gap`
+  // yang memisahkan keduanya di sana.
+  const pisah = gaya.indexOf(".juara:not(.harapan) + .juara.harapan");
+  assert.ok(pisah > 0);
+  assert.match(gaya.slice(pisah - 200, pisah), /@media \(max-width: 900px\) \{\s*$/);
 });
