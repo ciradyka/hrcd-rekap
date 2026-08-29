@@ -135,9 +135,9 @@
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
     "kode_pos": "46252",
-    "keyakinan": "sedang",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70044831 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
-    "catatan": "Desa dikosongkan Dapodik untuk MA-nya; diambil dari MTs Bahrul Anwar (NPSN 69955929) di dusun yang sama."
+    "keyakinan": "tinggi",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70044831 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama ; desa dikonfirmasi pemilik acara",
+    "catatan": "Data Referensi mengosongkan kolom desa untuk MA-nya; desa Mekarsari dikonfirmasi pemilik acara 30 Agustus 2026 — MA dan MTs Bahrul Anwar satu desa, satu dusun."
   },
   {
     "nama": "MA Darul Huda",
