@@ -18,7 +18,8 @@ test("pilihan manual mencari nomor dada, regu, dan sekolah", () => {
   assert.match(app, /slice\(0, 8\)/);
 });
 
-test("pilihan manual tidak menawarkan regu Intern dan terkunci setelah dipilih", () => {
+test("pilihan manual hanya menawarkan regu Eksternal yang sudah tiba", () => {
+  assert.match(app, /r\.nomor_dada != null && r\.jam_datang != null/);
   assert.match(app, /!String\(r\.golongan\)\.startsWith\("intern_"\)/);
   assert.match(app, />\s*Ubah Juara\s*<\/button>/);
   assert.doesNotMatch(app, /Hapus pilihan/);

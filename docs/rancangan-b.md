@@ -87,7 +87,7 @@ penyelesaiannya dicatat di bagian 11.
 | `pos` | Daftar pos dinilai + bobot | 5 baris, `bobot=1.00` semua (aturan 9.2) |
 | `wahana` | Satu baris per komponen nilai (wahana **atau** soal, kolom `jenis`): bentuk konversi + parameter + rentang wajar | `kode='lari_zigzag', bentuk='kecil_baik', poin_maks=100, raw_terbaik=20, raw_terburuk=90` → raw 40 detik = 71,4 poin |
 | `kontrak_opsi` | Pilihan kontrak waktu | `('3 jam',180), ('3,5 jam',210), ('4 jam',240)` |
-| `konfig_penalti` | Semua angka penalti, **kolom bernama** — pelajar baca satu baris, paham semua aturan | `blok_menit=1, penalti_per_blok=1, penalti_tanpa_checkout=100, penalti_per_anggota_hilang=20, nilai_pos_terlewat=0` |
+| `konfig_penalti` | Semua angka penalti, **kolom bernama** — pelajar baca satu baris, paham semua aturan | `blok_menit=1, penalti_per_blok=1, penalti_tanpa_checkout=0, penalti_per_anggota_hilang=20, nilai_pos_terlewat=0` |
 
 1. `wahana.kode` dibatasi `CHECK` huruf-kecil/angka/underscore — kode ini
    dipakai sebagai **header kolom lembar cetak sekaligus header import**,
@@ -251,9 +251,9 @@ lembar resmi membuat klarifikasi berpijak pada angka yang sama.
       `selisih_menit` bertanda, presisi menit;
       `penalti = floor(|selisih|/blok_menit) × penalti_per_blok` — simetris;
       konfigurasi sekarang `1 menit → 1 poin`, jadi tidak ada toleransi menit.
-   5. `v_total_skor` — Σ pos − penalti waktu − `penalti_tanpa_checkout` (bila
-      tidak ada baris closing; penalti waktu saat itu 0 karena tak
-      terhitung) − `(5 − anggota_hadir) × penalti_per_anggota_hilang`.
+   5. `v_total_skor` — Σ pos − penalti waktu − `(5 − anggota_hadir) ×
+      penalti_per_anggota_hilang`. Tanpa baris closing, penalti waktu dan
+      penalti checkout sama-sama 0; regunya tetap tidak masuk peringkat.
    6. `v_klasemen` — `rank() OVER (PARTITION BY golongan ORDER BY total DESC,
       |selisih_menit| ASC)` — empat klasemen, tie-break ketepatan waktu sudah
       tertanam. Regu `batal` dan yang tidak pernah berangkat tidak ikut
