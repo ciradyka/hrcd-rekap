@@ -788,6 +788,22 @@ yang hanya dibaca developer berbahasa Inggris. Nama berkasnya selalu Inggris
 
 ## 6. Menjalankan secara lokal
 
+> **`supabase/seed.sql` sengaja menyimpan konfigurasi penalti seperti saat
+> edisi 37 dibuat** — blok 10 menit, 10 poin per blok, −100 tanpa jam datang —
+> bukan yang berlaku sekarang. `tests/run.sh` menjalankannya SEBELUM `0089`
+> dan `0143`, persis seperti produksi, dan di sanalah kedua migrasi itu
+> benar-benar diuji mengubah barisnya. Menyegarkan seed akan membuat keduanya
+> lulus tanpa mengubah apa pun.
+>
+> `tests/dev_database.sh` urutannya terbalik — seluruh migrasi berjalan
+> sebelum seed membuat edisi aktif — jadi ia mengembalikan baris itu ke
+> **bawaan kolomnya** sesudah seed, lewat `set kolom = default`. Defaultnya
+> sendiri dipasang `0089` dan `0143`, bagian migrasi yang memang berhasil
+> berjalan tanpa memerlukan satu baris pun, sehingga tidak ada angka penalti
+> yang ditulis dua kali di repo ini. Menjalankan ulang `0143` BUKAN jalan
+> keluarnya: ia juga membuat ulang `v_klasemen` dan `simpan_kejuaraan_manual`,
+> yang sudah diganti `0144`, `0145`, `0152`, dan `0153`.
+
 Tanpa akun Supabase sama sekali. `tests/dev_server.py` menirukan PostgREST +
 GoTrue di atas Postgres lokal, termasuk RLS: tiap request dijalankan dalam
 transaksi dengan `SET LOCAL app.uid` dan `SET LOCAL ROLE`, sehingga policy yang
@@ -868,17 +884,6 @@ Diketahui basi, sengaja dibiarkan, supaya tidak ada yang mengira sudah dicek:
   empat hal lain, dan kait `segarkanDiTempat` justru masih hidup — sekarang
   yang mendaftarkannya layar Input Nilai Pos, bukan layar itu. Bagian 7 nomor
   10 juga masih menyebutnya sebagai contoh.
-- **`supabase/seed.sql` menyimpan konfigurasi penalti yang sudah diganti dua
-  migrasi, dan itu membuat database dev BERBEDA dari produksi.** Barisnya
-  `(37, 10, 10, 100, 20, 0)` — blok 10 menit, 10 poin per blok, −100 tanpa jam
-  datang — sedangkan `0089` menjadikannya 1 menit/1 poin dan `0143`
-  menjadikan potongan tanpa jam datang 0. Di produksi keduanya benar, karena
-  keduanya berjalan di atas database yang barisnya sudah ada. Di
-  `tests/dev_database.sh` seed berjalan SESUDAH seluruh migrasi, jadi ia
-  menimpa keduanya dan laptop memakai aturan penalti lama tanpa sepatah galat.
-  Assert penutup `0143` pun tidak menangkapnya: saat ia berjalan, barisnya
-  belum ada. Perbaikannya satu baris — tambahkan `0089_penalti_waktu_per_menit`
-  dan `0143_juara_harus_tiba` ke `ULANG` di `tests/dev_database.sh`.
 - **Empat tes di `tests/championship_ui.test.mjs` gagal di `main`**, dan yang
   tertinggal adalah TESNYA, bukan layarnya. Ia masih menuntut empat judul
   section per golongan ("Penegak PA", "Penggalang PI", …) yang dirapikan #703,

@@ -134,6 +134,70 @@ for m in "$ROOT"/supabase/migrations/*.sql; do
   run "supabase/migrations/$nama"
 done
 run supabase/seed.sql
+
+# KONFIGURASI PENALTI DIKEMBALIKAN KE BAWAAN KOLOM, dan tanpa ini database dev
+# memakai aturan penalti yang sudah dua kali diganti.
+#
+# seed.sql menulis konfig_penalti apa adanya seperti saat edisi 37 dibuat:
+# blok 10 menit, 10 poin per blok, -100 tanpa jam datang. Di produksi angka itu
+# benar sesaat, lalu 0089 menjadikannya 1 menit -> 1 poin dan 0143 menjadikan
+# potongan tanpa jam datang 0 — keduanya berjalan di atas database yang barisnya
+# sudah ada, jadi keduanya menemukan baris itu dan membetulkannya.
+#
+# Di sini urutannya terbalik. Seluruh migrasi berjalan di glob SEBELUM seed.sql
+# membuat edisi 37, jadi 0089 dan 0143 tidak menemukan satu baris pun untuk
+# diperbaiki — 0089 malah mengatakannya dengan tenang lewat notice "data
+# dilewati" — lalu seed.sql menulis angka lamanya, dan tidak ada lagi yang
+# lewat sesudahnya. Assert penutup 0143 pun tidak menangkapnya, karena saat ia
+# berjalan barisnya memang belum ada. Akibatnya layar yang dicoba di laptop
+# menghitung penalti dengan aturan yang tidak dipakai siapa pun, tanpa sepatah
+# galat (CLAUDE.md pasal 17.6).
+#
+# TIDAK bisa dibereskan dengan menaruh 0089 dan 0143 di ULANG. 0089 sendiri
+# aman, tapi 0143 juga membuat ulang view v_klasemen dan fungsi
+# simpan_kejuaraan_manual — dan keduanya sudah diganti migrasi yang lebih muda
+# (0144, 0145, 0152, 0153). Menjalankannya ulang di ujung daftar akan
+# MENGEMBALIKAN keempatnya ke versi lama; itu jebakan yang sama dengan yang
+# ditulis di CLAUDE.md pasal 7.8.
+#
+# Yang dipakai di bawah karena itu BUKAN angka. `set kolom = default` membaca
+# default kolomnya sendiri, dan default itulah yang dipasang 0089 dan 0143 —
+# bagian migrasi yang memang berhasil berjalan di glob, karena ia tidak
+# memerlukan satu baris pun. Jadi tidak ada satu angka penalti pun yang ditulis
+# dua kali di repo ini: migrasinya tetap satu-satunya tempat angka itu hidup.
+# Migrasi penalti berikutnya cukup memindahkan default kolomnya seperti 0089
+# dan 0143 — kebiasaan yang memang sudah ditulis di kepala 0089 — dan langkah
+# ini ikut benar dengan sendirinya.
+"$PSQL" -d "$DB" -v ON_ERROR_STOP=1 -q -c "
+  do \$blok\$
+  declare
+    n integer;
+    v konfig_penalti%rowtype;
+  begin
+    update konfig_penalti
+    set blok_menit                 = default,
+        penalti_per_blok           = default,
+        penalti_tanpa_checkout     = default,
+        penalti_per_anggota_hilang = default,
+        nilai_pos_terlewat         = default
+    where edisi = edisi_aktif();
+
+    -- Yang diperiksa cuma bahwa barisnya KENA. Nilainya sendiri tidak
+    -- diperiksa terhadap angka mana pun: sesudah 'set = default' ia sama
+    -- dengan default kolomnya menurut definisi, dan menuliskan angka yang
+    -- diharapkan di sini justru mengembalikan salinan kedua yang langkah ini
+    -- dibuat untuk menghilangkan. Nol baris berarti belum ada edisi aktif -
+    -- dan itu berarti seluruh skrip ini berjalan di urutan yang salah.
+    get diagnostics n = row_count;
+    assert n = 1,
+           format('dev_database.sh: %s baris konfig_penalti tersentuh, seharusnya 1', n);
+
+    select * into v from konfig_penalti where edisi = edisi_aktif();
+    raise notice 'konfig_penalti edisi %: blok % menit -> % poin, tanpa jam datang %, anggota hilang %.',
+                 v.edisi, v.blok_menit, v.penalti_per_blok,
+                 v.penalti_tanpa_checkout, v.penalti_per_anggota_hilang;
+  end;
+  \$blok\$;"
 # Konfigurasi pos butuh edisinya sudah ada — lihat catatan panjang yang sama
 # di tests/run.sh.
 run supabase/migrations/0024_komponen_pos.sql
