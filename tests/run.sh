@@ -690,5 +690,7 @@ run supabase/migrations/0145_top_10_live_score.sql
 run tests/sql/97_top_10_live_score.sql
 run supabase/migrations/0146_cache_live_score.sql
 run tests/sql/98_cache_live_score.sql
+run supabase/migrations/0147_waktu_nol_pos_2.sql
+run tests/sql/99_waktu_nol_pos_2.sql
 
 echo "SEMUA TES LULUS"
