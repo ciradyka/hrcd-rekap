@@ -904,6 +904,11 @@ export async function hasilKejuaraan() {
 export const simpanKejuaraanManual = (kode, reguId) =>
   rpc("simpan_kejuaraan_manual", { p_kode: kode, p_regu: reguId });
 
+/** Pangkalan Terjauh menunjuk SEKOLAH, bukan regu (migrasi 0153) — yang diukur
+ *  jarak pangkalannya, dan itu sama untuk seluruh regu yang dikirimnya. */
+export const simpanKejuaraanTerjauh = (sekolahId) =>
+  rpc("simpan_kejuaraan_terjauh", { p_sekolah: sekolahId });
+
 /* ============================ FOTO LEMBAR =============================== */
 
 /* Salinan slip penilaian di server (migrasi 0047). Kertas hilang; foto tidak.

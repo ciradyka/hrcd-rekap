@@ -24,7 +24,7 @@ import {
   riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
-  hasilKejuaraan, simpanKejuaraanManual,
+  hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
   aturFaseLive,
@@ -6093,10 +6093,11 @@ async function layarKejuaraan() {
   LAYAR.replaceChildren(h(pemuat()));
   const layarIni = location.hash;
   const bisaUbah = bolehLihat("pengaturan");
-  let hasil, snapshot;
+  let hasil, snapshot, semuaSekolah;
   try {
-    [hasil, snapshot] = await Promise.all([
+    [hasil, snapshot, semuaSekolah] = await Promise.all([
       hasilKejuaraan(), bisaUbah ? cacheLiveScore() : Promise.resolve(null),
+      bisaUbah ? daftarSekolah() : Promise.resolve([]),
     ]);
   }
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKejuaraan)); return; }
@@ -6110,38 +6111,55 @@ async function layarKejuaraan() {
       && !String(r.golongan).startsWith("intern_"))
     .map(r => [r.regu_id, r])).values()]
     .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));
+  /* Pangkalan Terjauh menunjuk SEKOLAH; daftarnya dipersempit ke sekolah yang
+     benar-benar mengirim regu. Master `sekolah` memuat seluruh sekolah kurasi
+     — 189 baris — dan menawarkan semuanya membuat satu salah klik memberi
+     gelar kepada pangkalan yang tidak hadir. */
+  const ikut = new Set(opsi.map(r => r.nama_sekolah));
+  const sekolah = (semuaSekolah || []).filter(s => ikut.has(s.name));
+
   /* Kostum dan Terfavorit dipilih PER GOLONGAN, jadi kotak carinya hanya boleh
      menawarkan regu golongan itu. Golongannya dibaca dari ekor kode
-     (`kostum_penegak_pa`); Terjauh tidak berekor dan tetap memilih dari
-     seluruh peserta. RPC-nya menolak pasangan yang salah juga — ini yang
+     (`kostum_penegak_pa`). RPC-nya menolak pasangan yang salah juga — ini yang
      membuat panitia tidak perlu sampai ditolak. */
   const golonganKode = (kode) =>
     (kode.match(/(?:penegak|penggalang)_(?:pa|pi)$/) || [""])[0];
   const labelRegu = (r) => `${dada3(r.nomor_dada)} · ${r.nama_regu} · ${r.nama_sekolah}`;
+  /* Skornya berdiri di kanan baris, bukan ikut mengalir di bawah nama sekolah:
+     panitia membaca kolom itu ke bawah untuk mengecek urutan juara, dan angka
+     yang letaknya berpindah-pindah menuntut mata mencarinya tiap baris. */
+  const skor = (x) => x.total == null ? ""
+    : `<span class="kejuaraan-skor">${esc(angkaRapi(x.total))}</span>`;
   const nilai = (x) => {
-    if (x.nama_regu) return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
-      <span class="description">${esc(x.nama_sekolah || "")}</span>`;
+    if (x.nama_regu) return `<div class="kejuaraan-isi"><div class="kejuaraan-nama">
+      <strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
+      <span class="description">${esc(x.nama_sekolah || "")}</span></div>${skor(x)}</div>`;
     if (x.nama_sekolah) return `<strong>${esc(x.nama_sekolah)}</strong>${x.kode.startsWith("juara_umum")
       ? `<span class="description">${esc(angkaRapi(x.poin_juara))} poin juara · ${esc(angkaRapi(x.jumlah_skor))} total skor 6 besar</span>`
       : x.kode === "peserta_terbanyak"
         ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
     return `<span class="description">Belum ditentukan</span>`;
   };
-  const baris = (x, label = x.nama_penghargaan) => x.sumber === "manual" && bisaUbah ? `
+  const bisaPilih = (x) =>
+    bisaUbah && (x.sumber === "manual" || x.sumber === "manual_sekolah");
+  const baris = (x, label = x.nama_penghargaan) => bisaPilih(x) ? `
     <tr><th>${esc(label)}</th><td>
-      <div class="kejuaraan-terkunci" ${x.regu_id ? "" : "hidden"}>
+      <div class="kejuaraan-terkunci" ${x.nama_sekolah ? "" : "hidden"}>
         <div class="kejuaraan-nilai">${nilai(x)}</div>
         <button type="button" class="button button-secondary button-small kejuaraan-ubah">
           Ubah Juara
         </button>
       </div>
-      <div class="kejuaraan-isian" ${x.regu_id ? "hidden" : ""}>
+      <div class="kejuaraan-isian" ${x.nama_sekolah ? "hidden" : ""}>
         <div class="kejuaraan-cari">
           <input type="search" class="small-input kejuaraan-pilih" data-kode="${esc(x.kode)}"
+            data-jenis="${x.sumber === "manual_sekolah" ? "sekolah" : "regu"}"
             data-golongan="${esc(golonganKode(x.kode))}"
             autocomplete="off" aria-label="Pilih ${esc(x.nama_penghargaan)}"
-            placeholder="Cari nomor dada / regu / sekolah…"
-            value="${esc(x.regu_id ? labelRegu(x) : "")}">
+            placeholder="${x.sumber === "manual_sekolah"
+              ? "Cari nama sekolah…" : "Cari nomor dada / regu / sekolah…"}"
+            value="${esc(x.sumber === "manual_sekolah"
+              ? (x.nama_sekolah || "") : (x.regu_id ? labelRegu(x) : ""))}">
           <div class="suggestions kejuaraan-saran" hidden></div>
         </div>
       </div></td></tr>` : `<tr><th>${esc(label)}</th><td>${nilai(x)}</td></tr>`;
@@ -6192,17 +6210,25 @@ async function layarKejuaraan() {
     const isian = pilih.closest(".kejuaraan-isian");
     const terkunci = pilih.closest("td").querySelector(".kejuaraan-terkunci");
     const ubah = terkunci.querySelector(".kejuaraan-ubah");
-    const cocok = (r, q) => `${r.nomor_dada} ${dada3(r.nomor_dada)} ${r.nama_regu} ${r.nama_sekolah}`
-      .toLocaleLowerCase("id").includes(q.toLocaleLowerCase("id"));
+    /* Satu kotak cari, dua macam isi: Kostum dan Terfavorit menunjuk regu,
+       Pangkalan Terjauh menunjuk sekolah. Yang membedakan cuma data-jenis;
+       sisanya — saran, blur, simpan, kunci lagi — sama persis. */
+    const sekolahan = pilih.dataset.jenis === "sekolah";
     const golongan = pilih.dataset.golongan;
-    const calon = golongan ? opsi.filter(r => r.golongan === golongan) : opsi;
+    const calon = sekolahan ? sekolah
+      : golongan ? opsi.filter(r => r.golongan === golongan) : opsi;
+    const kunci = (c) => sekolahan ? c.id : c.regu_id;
+    const teks = (c) => sekolahan ? `${c.name} ${c.address || ""}`
+      : `${c.nomor_dada} ${dada3(c.nomor_dada)} ${c.nama_regu} ${c.nama_sekolah}`;
+    const isiKotak = (c) => sekolahan ? c.name : labelRegu(c);
     const gambarSaran = () => {
-      const q = pilih.value.trim();
-      const ditemukan = calon.filter(r => cocok(r, q)).slice(0, 8);
-      saran.innerHTML = ditemukan.map(r => `
-        <button type="button" data-regu-id="${esc(r.regu_id)}">
-          <strong>${esc(dada3(r.nomor_dada))} · ${esc(r.nama_regu)}</strong>
-          <span class="alamat">${esc(r.nama_sekolah)}</span>
+      const q = pilih.value.trim().toLocaleLowerCase("id");
+      const ditemukan = calon
+        .filter(c => teks(c).toLocaleLowerCase("id").includes(q)).slice(0, 8);
+      saran.innerHTML = ditemukan.map(c => `
+        <button type="button" data-pilihan="${esc(kunci(c))}">
+          <strong>${esc(sekolahan ? c.name : `${dada3(c.nomor_dada)} · ${c.nama_regu}`)}</strong>
+          <span class="alamat">${esc(sekolahan ? (c.address || "") : c.nama_sekolah)}</span>
         </button>`).join("");
       saran.hidden = !ditemukan.length;
     };
@@ -6211,15 +6237,17 @@ async function layarKejuaraan() {
     pilih.addEventListener("blur", () => setTimeout(() => { saran.hidden = true; }, 100));
     saran.addEventListener("mousedown", e => e.preventDefault());
     saran.addEventListener("click", async e => {
-      const tombol = e.target.closest("[data-regu-id]");
+      const tombol = e.target.closest("[data-pilihan]");
       if (!tombol) return;
-      const dipilih = calon.find(r => r.regu_id === tombol.dataset.reguId);
+      const dipilih = calon.find(c => kunci(c) === tombol.dataset.pilihan);
       if (!dipilih) return;
       pilih.disabled = true;
       try {
-        await simpanKejuaraanManual(pilih.dataset.kode, dipilih.regu_id);
-        terkunci.querySelector(".kejuaraan-nilai").innerHTML = nilai(dipilih);
-        pilih.value = labelRegu(dipilih);
+        if (sekolahan) await simpanKejuaraanTerjauh(dipilih.id);
+        else await simpanKejuaraanManual(pilih.dataset.kode, dipilih.regu_id);
+        terkunci.querySelector(".kejuaraan-nilai").innerHTML = nilai(
+          sekolahan ? { kode: "terjauh", nama_sekolah: dipilih.name } : dipilih);
+        pilih.value = isiKotak(dipilih);
         saran.hidden = true;
         isian.hidden = true;
         terkunci.hidden = false;
