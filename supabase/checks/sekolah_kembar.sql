@@ -35,6 +35,26 @@
 -- tabel `sekolah` tidak menyimpan NPSN. Selama itu belum berubah, pemeriksaan
 -- ini menutup lima dari enam — dan pembacanya harus tahu yang keenam ada.
 --
+-- SESUDAH IMPOR DIREKTORI CIAMIS, LAPORAN INI TIDAK LAGI KOSONG
+--
+-- 0157 memasukkan 309 SMP/MTs/SMA/SMK/MA se-Kabupaten Ciamis, dan di antara
+-- 524 baris itu ada sekitar 18 pasangan yang memang MIRIP tetapi memang DUA
+-- SEKOLAH. Sudah diperiksa satu per satu 30 Agustus 2026, dan bentuknya
+-- berulang:
+--
+--   * `SMPN Satu Atap 1 Panumbangan` lawan `SMPN 1 Panumbangan` — SD-SMP satu
+--     atap adalah satuan pendidikan tersendiri, NPSN-nya sendiri.
+--   * `MTs Nurul Huda` lawan `MTs Nurul Huda Al-Husna` — satu nama yayasan
+--     yang dipakai beberapa madrasah di kecamatan berbeda.
+--   * `MA Al-Ishlah` lawan `MA Al Islah`, `MA Darul Huda` lawan
+--     `MA Daarul Huda` — dua-duanya sudah tercatat di
+--     docs/sekolah-belum-tuntas.md bagian A sebagai kandidat yang belum
+--     dipastikan, jauh sebelum impor ini.
+--
+-- Jadi yang dicari BUKAN "laporan kosong" lagi, melainkan pasangan yang BARU
+-- muncul. Kalau daftarnya lebih panjang dari sekitar itu, ada yang perlu
+-- dibaca.
+--
 -- Cara pakai: Actions -> "Apply migration to Supabase" -> Run workflow, isi
 --   supabase/checks/sekolah_kembar.sql
 -- ============================================================================
@@ -56,14 +76,14 @@ with s as (
          regexp_replace(lower(name), '[^a-z0-9]', '', 'g') as rapat,
          regexp_replace(
            regexp_replace(regexp_replace(lower(name), '[^a-z0-9]', '', 'g'), 'h', '', 'g'),
-           '(.)\1+', '\1', 'g') as serupa,
+           '([a-z])\1+', '\1', 'g') as serupa,
          regexp_replace(lower(name), '^(sd|smp|sma|smk|mi|mts|ma)[ns]?\y', '\1', '') as jenjang,
          lower(split_part(name, ' ', 1)) as kata1,
          lower(regexp_replace(name, '^.* ', '')) as kata_akhir,
          regexp_replace(
            regexp_replace(regexp_replace(lower(regexp_replace(name, '^.* ', '')),
                                          '[^a-z0-9]', '', 'g'), 'h', '', 'g'),
-           '(.)\1+', '\1', 'g') as akhir_serupa,
+           '([a-z])\1+', '\1', 'g') as akhir_serupa,
          string_to_array(lower(regexp_replace(name, '[^A-Za-z0-9 ]', '', 'g')), ' ') as kata
     from sekolah
 ),
