@@ -11,7 +11,7 @@ const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8")
 
 test("gembok hanya dipasang setelah nilai terkonfirmasi di database", () => {
   const awal = app.indexOf("async function ubahGembok(tr) {");
-  const akhir = app.indexOf("const jawab = await dialog", awal);
+  const akhir = app.indexOf("await bukaKunciNilaiPos", awal);
   assert.notEqual(awal, -1, "ubahGembok tidak ditemukan");
   assert.notEqual(akhir, -1, "cabang mengunci tidak ditemukan");
   const kunci = app.slice(awal, akhir);
@@ -20,8 +20,19 @@ test("gembok hanya dipasang setelah nilai terkonfirmasi di database", () => {
   const panggil = kunci.indexOf("await kunciNilaiPos");
   assert.ok(pagar >= 0 && pagar < panggil,
     "kunciNilaiPos dipanggil sebelum keadaan tersimpan diperiksa");
-  assert.match(kunci, /Number\(tr\.dataset\.terisi\) === 0/,
-    "baris tanpa satu nilai pun masih bisa digembok");
+  assert.match(kunci,
+    /Number\(tr\.dataset\.terisi\) !== Number\(tr\.dataset\.komponen\)/,
+    "baris dengan nilai yang belum lengkap masih bisa digembok");
+});
+
+test("membuka gembok tidak meminta konfirmasi", () => {
+  const awal = app.indexOf("async function ubahGembok(tr) {");
+  const akhir = app.indexOf("function bukaRiwayat", awal);
+  const gembok = app.slice(awal, akhir);
+  assert.doesNotMatch(gembok, /await dialog\(/,
+    "membuka gembok masih menampilkan dialog konfirmasi");
+  assert.match(gembok, /await bukaKunciNilaiPos\(/,
+    "membuka gembok tidak memanggil API");
 });
 
 test("Ulangi pada baris terkunci memberi alasan, bukan diam", () => {
