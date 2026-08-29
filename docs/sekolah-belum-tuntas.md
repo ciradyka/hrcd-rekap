@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Duapuluh empat dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
+Duapuluh lima dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -75,6 +75,7 @@ kode lama.
 
 | Sekolah | Peserta | Kenapa belum tuntas | Yang ditanyakan |
 | --- | ---: | --- | --- |
+| **MTsN 1 Ciamis** | 6 | Situs resmi sekolahnya menulis **46251**; desanya Panyingkiran, dan dua direktori berbeda sama-sama menulis **46211** — keduanya juga menyebut rentang Kec. Ciamis 46211-46219, yang tidak memuat 46251. Delapan belas sekolah kurasi lain di kecamatan itu semuanya cocok dengan direktori. Yang dipakai **46211**. | "Kode pos surat madrasahnya 46211 atau 46251? Situs sekolah dan direktori kode pos berbeda." |
 | **SMPN 1 Purwadadi** | 3 | Tiga sumber, tiga angka untuk Desa Karangpaningal: **46385** (cermin Dapodik dan kodeposina — ini yang dipakai), 46380 (nomor.net), 46286 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
 | **SMP Islam Bahrul Ulum** | 1 | Desa Gunungsari, Kec. Sukaratu: **46415** (dipakai) lawan 46452 (Pos Indonesia). | Tanyakan kode pos surat ke sekolahnya langsung. |
 
