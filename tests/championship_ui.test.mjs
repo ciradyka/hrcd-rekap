@@ -4,6 +4,8 @@ import test from "node:test";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
+const awal = app.indexOf("async function layarKejuaraan()");
+const layar = app.slice(awal, app.indexOf("/* ============================ AKUN", awal));
 
 test("Kejuaraan dibagi menjadi section yang dibaca panitia", () => {
   for (const judul of ["Juara Umum", "Juara Umum Penegak", "Penegak PA", "Penegak PI",
@@ -25,6 +27,12 @@ test("pilihan manual hanya menawarkan regu Eksternal yang sudah tiba", () => {
   assert.doesNotMatch(app, /Hapus pilihan/);
   assert.match(app, /kejuaraan-terkunci" \$\{x\.regu_id \? "" : "hidden"\}/);
   assert.match(app, /terkunci\.hidden = true;\s*isian\.hidden = false;/);
+});
+
+test("pilihan manual memakai snapshot tanpa menghitung rekap lagi", () => {
+  assert.match(layar, /bisaUbah \? cacheLiveScore\(\)/);
+  assert.match(layar, /snapshot \? snapshot\.rekap \|\| \[\] : \[\]/);
+  assert.doesNotMatch(layar, /rekapPenuh\(/);
 });
 
 test("menyimpan juara mengunci baris tanpa memuat ulang layar", () => {
