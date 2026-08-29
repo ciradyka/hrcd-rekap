@@ -700,5 +700,7 @@ run supabase/migrations/0150_tampilkan_poin_juara_umum.sql
 run tests/sql/102_tampilkan_poin_juara_umum.sql
 run supabase/migrations/0151_skor_juara_umum_enam_besar.sql
 run tests/sql/103_skor_juara_umum_enam_besar.sql
+run supabase/migrations/0152_kejuaraan_empat_golongan.sql
+run tests/sql/104_kejuaraan_empat_golongan.sql
 
 echo "SEMUA TES LULUS"

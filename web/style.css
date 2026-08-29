@@ -764,14 +764,32 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .table-kejuaraan > tbody > tr > th { display: block; width: auto; padding: 0; }
   .table-kejuaraan > tbody > tr > td { display: block; padding: 0; }
 
-  /* Penghargaan Khusus BERTUMPUK, dan itu bukan pengecualian yang malas:
-     labelnya sampai 159px ("Peserta Terfavorit") — separuh lebar HP — dan tiga
-     dari lima barisnya berisi kotak cari beserta tombol Hapus pilihan, yang
-     tidak muat di sisa 200px. Di sini tidak ada yang bisa tertukar juga:
-     tiap label berbeda kata, bukan Juara I sampai Harapan III. */
-  .kejuaraan-khusus .table-kejuaraan > tbody > tr { display: block; }
-  .kejuaraan-khusus .table-kejuaraan > tbody > tr > th { padding-bottom: .15rem; }
 }
+
+/* Kartu berisi PILIHAN panitia bertumpuk di SEMUA lebar: label di atas, kotak
+   cari selebar kartu di bawahnya.
+
+   Dulu ini cuma aturan HP, karena Penghargaan Khusus satu-satunya kartu
+   pilihan dan ia selebar dua kolom. Sejak Kostum dan Terfavorit ikut dibagi
+   empat golongan, ketiganya berdiri di setengah lebar, dan bersebelahan
+   TIDAK ADA lebar yang benar: label butuh 170px agar "PENGGALANG PA" dan
+   "PESERTA TERBANYAK" tidak patah dua baris, kotak carinya butuh 280px agar
+   perintahnya terbaca utuh, dan di layar 941px — saat dua kolom baru saja
+   menyala — seluruh tabelnya cuma 373px. Diukur di browser, bukan dikira:
+   45% membuat labelnya utuh dan placeholder-nya terpotong, 30% sebaliknya.
+   Bertumpuk, keduanya utuh di 320px sampai 1920px.
+
+   Yel Yel TIDAK ikut: ia dihitung dari poin Pos 5, barisnya cuma nama
+   pemenang, dan itu muat bersebelahan seperti kartu gelar golongan. */
+.kejuaraan-pilihan .table-kejuaraan > tbody > tr {
+  display: block; padding: .5rem 0;
+}
+.kejuaraan-pilihan .table-kejuaraan > tbody > tr:first-child { padding-top: 0; }
+.kejuaraan-pilihan .table-kejuaraan > tbody > tr:last-child { padding-bottom: 0; }
+.kejuaraan-pilihan .table-kejuaraan > tbody > tr > th {
+  display: block; width: auto; padding: 0 0 .15rem;
+}
+.kejuaraan-pilihan .table-kejuaraan > tbody > tr > td { display: block; padding: 0; }
 
 /* Warna per TINGKAT, bukan per kartu.
 
@@ -794,9 +812,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .kejuaraan-umum-penggalang { --aksen: #067647; background: #f3faf6; }
 .kejuaraan-penggalang-pa,
 .kejuaraan-penggalang-pi   { --aksen: #067647; }
+.kejuaraan-kostum,
+.kejuaraan-yel-yel,
+.kejuaraan-terfavorit,
 .kejuaraan-khusus          { --aksen: #6941c6; }
 .kejuaraan-bagian { display: grid; gap: 1rem; }
 .kejuaraan-bagian .card { margin-bottom: 0; }
+/* `.card { overflow-x: auto }` di bawah membuat overflow-y ikut `auto` — itu
+   aturan CSS, bukan salah ketik — dan daftar saran kotak cari digunting oleh
+   tepi kartunya sendiri. Yang terlihat: kartu Juara Kostum tumbuh penggulir
+   sendiri dan hanya tiga dari delapan calon terbaca. Tabel di sini cuma dua
+   kolom dan tidak pernah perlu menggeser, jadi kartunya tidak butuh gunting
+   itu sama sekali. */
+.kejuaraan-bagian .card { overflow: visible; }
 .kejuaraan-terkunci { display: flex; align-items: center; gap: .45rem; }
 .kejuaraan-nilai { flex: 1; min-width: 0; }
 @media (min-width: 900px) {
@@ -811,7 +839,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .kejuaraan-penegak-pi { grid-column: 1; grid-row: 4; }
   .kejuaraan-penggalang-pa { grid-column: 2; grid-row: 3; }
   .kejuaraan-penggalang-pi { grid-column: 2; grid-row: 4; }
-  .kejuaraan-khusus { grid-column: 1 / -1; grid-row: 5; }
+  /* Empat kartu penghargaan khusus, dua baris. Kostum dan Terfavorit — dua
+     kartu yang panitia ISI — berdiri di kolom yang sama supaya kotak carinya
+     berbaris lurus dari kartu ke kartu. */
+  .kejuaraan-kostum { grid-column: 1; grid-row: 5; }
+  .kejuaraan-yel-yel { grid-column: 2; grid-row: 5; }
+  .kejuaraan-terfavorit { grid-column: 1; grid-row: 6; }
+  .kejuaraan-khusus { grid-column: 2; grid-row: 6; }
 }
 .kejuaraan-cari { position: relative; }
 .kejuaraan-isian { display: flex; align-items: center; gap: .45rem; }

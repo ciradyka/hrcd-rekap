@@ -203,7 +203,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos + podium; saklar fase hanya untuk pemegang `pengaturan` |
-| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Peserta Terbanyak dari nomor dada Eksternal, dan tiga pilihan manual panitia |
+| `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Terjauh satu untuk seluruh acara |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
