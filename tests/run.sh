@@ -704,5 +704,7 @@ run supabase/migrations/0152_kejuaraan_empat_golongan.sql
 run tests/sql/104_kejuaraan_empat_golongan.sql
 run supabase/migrations/0153_terjauh_pilih_sekolah.sql
 run tests/sql/105_terjauh_pilih_sekolah.sql
+run supabase/migrations/0154_sekolah_alamat_xxxvii.sql
+run tests/sql/106_sekolah_alamat_xxxvii.sql
 
 echo "SEMUA TES LULUS"

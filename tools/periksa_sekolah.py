@@ -62,7 +62,8 @@ BELUM_DIPISAH = {"SMK Bhakti Kencana Banjar", "SMK Bhakti Kencana Ciamis"}
 
 # Madrasah di bawah Kemenag/EMIS tidak selalu ada di Dapodik, jadi tidak selalu
 # punya NPSN. Alamatnya ketemu lewat sekolah saudara di kompleks yang sama.
-TANPA_NPSN = {"MA Agrowisata Shaleha", "MTs Serba Bakti Suryalaya"}
+TANPA_NPSN = {"MA Agrowisata Shaleha", "MTs Serba Bakti Suryalaya",
+              "MA Adzkia", "SMA IT Nurul Huda"}
 
 # Kolom `jalan` tidak boleh mengulang apa yang sudah punya kolom sendiri
 # (runbook bagian 8). Yang diperiksa hanya yang tidak bisa diperdebatkan:

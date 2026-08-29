@@ -328,4 +328,13 @@ run supabase/migrations/0138_riwayat_pelaku_kosong.sql
 run supabase/migrations/0146_cache_live_score.sql
 run supabase/migrations/0147_waktu_nol_pos_2.sql
 
+# 0154 DIJALANKAN ULANG PALING AKHIR, karena ia membetulkan baris `sekolah`
+# yang baru lahir di 0129-0132. Di glob ia berjalan jauh sebelum keempat
+# migrasi impor itu, jadi tidak menemukan satu baris pun untuk dilebur maupun
+# dibakukan — dan dev lalu memakai tabel sekolah yang masih memuat nama
+# ketikan pembina beserta belasan alamat kosong, sementara produksi sudah
+# bersih. Aman diulang: peleburannya melewati pasangan yang tidak ada, dan
+# pembakuannya menyaring `where name = <nama lama>`.
+run supabase/migrations/0154_sekolah_alamat_xxxvii.sql
+
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
