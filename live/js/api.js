@@ -785,6 +785,25 @@ export async function kelengkapanPos() {
   return baca(null, "v_kelengkapan_pos?select=*&order=pos.asc");
 }
 
+/** Snapshot privat untuk papan Live Score panitia.
+ *
+ *  Seluruh kalkulasi berat dijalankan scheduled job satu kali tiap lima menit,
+ *  bukan sekali per HP yang membuka layar. Status fase tetap dibaca langsung
+ *  karena saklar publish harus berubah seketika. */
+export async function cacheLiveScore() {
+  if (K.mode === "dev") {
+    const [kelengkapan, pos, komponen, rekap] = await Promise.all([
+      baca("/kelengkapan-pos"), baca("/pos"), baca("/komponen-semua"),
+      baca("/rekap-penuh"),
+    ]);
+    return { dibuat_pada: new Date().toISOString(), kelengkapan, pos, komponen, rekap };
+  }
+  const d = await baca(null,
+    "cache_live_score?select=dibuat_pada,data&tunggal=eq.true");
+  if (!d.length) throw new ErrorApi("Cache Live Score belum tersedia.");
+  return { dibuat_pada: d[0].dibuat_pada, ...d[0].data };
+}
+
 /** Rekapitulasi lengkap seluruh regu × seluruh pos — layar #/rekap.
  *
  *  Hanya admin dan meja: view-nya sendiri yang menolak operator pos, karena

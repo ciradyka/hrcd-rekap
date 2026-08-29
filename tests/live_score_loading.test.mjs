@@ -19,10 +19,11 @@ test("pembacaan Live Score yang putus dicoba satu kali lagi", () => {
 });
 
 
-test("status dan kelengkapan boleh gagal tanpa merobohkan papan", () => {
-  assert.match(layar, /muatDataLiveScore\(kelengkapanPos, \[\]\)/);
+test("Live Score membaca satu snapshot dan status ringan", () => {
+  assert.match(layar, /muatDataLiveScore\(cacheLiveScore\)/);
   assert.match(layar, /muatDataLiveScore\(statusAcara, null\)/);
-  assert.match(layar, /muatDataLiveScore\(rekapPenuh\)/);
+  assert.doesNotMatch(layar, /muatDataLiveScore\(rekapPenuh\)/);
+  assert.doesNotMatch(layar, /muatDataLiveScore\(kelengkapanPos/);
 });
 
 
@@ -31,4 +32,9 @@ test("klasemen memakai hasil rekap tanpa menghitung skor dua kali", () => {
   assert.match(layar, /const klasemen = rekap/);
   assert.match(layar, /\.filter\(r => r\.sudah_berangkat\)/);
   assert.match(layar, /poin_per_pos: r\.poin_pos/);
+});
+
+
+test("umur snapshot terlihat di layar", () => {
+  assert.match(layar, /Update \$\{esc\(tanggalJam\(snapshot\.dibuat_pada\)\)\}/);
 });
