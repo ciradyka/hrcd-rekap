@@ -6,10 +6,10 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0156`: angka
+sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0157`: angka
 tabel, view, RPC, policy, check dan pemicu DIHITUNG ULANG dari database, dan
 bagian 3 diperiksa terhadap layar. Isi bagian 2 sampai 9 selebihnya belum
-dibaca ulang baris demi baris terhadap `0119`-`0156`.
+dibaca ulang baris demi baris terhadap `0119`-`0157`.
 
 Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
@@ -74,7 +74,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-156 migrasi, `0001` sampai `0156`, dijalankan berurutan tanpa lubang penomoran.
+157 migrasi, `0001` sampai `0157`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
