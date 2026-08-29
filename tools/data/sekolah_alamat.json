@@ -8,9 +8,9 @@
     "kecamatan": "Cijeungjing",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46271",
     "keyakinan": "sedang",
-    "sumber": "MTs Adzkia satu yayasan, Data Referensi Kemendikdasmen, (belum ada NPSN terdaftar)",
+    "sumber": "MTs Adzkia satu yayasan, Data Referensi Kemendikdasmen, (belum ada NPSN terdaftar) ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Belum terdaftar di Data Referensi Kemendikdasmen. Alamat diambil dari MTs Adzkia (NPSN 69976289) di dusun yang sama, dan cocok dengan alamat yang diketik pembina sendiri."
   },
   {
@@ -92,9 +92,9 @@
     "kecamatan": "Malausma",
     "kabupaten": "Kabupaten Majalengka",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "45464",
     "keyakinan": "tinggi",
-    "sumber": "referensi.data.kemendikdasmen.go.id/pendidikan/dikmen/021624 (daftar dikmen Kec. Malausma)",
+    "sumber": "referensi.data.kemendikdasmen.go.id/pendidikan/dikmen/021624 (daftar dikmen Kec. Malausma) ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Sumber menulis \"Jln. Desa Malaumsa-Bungursari\" — \"Malaumsa\" salah ketik untuk Malausma. Satu-satunya MA di Kec. Malausma. Kode pos tidak tercantum di sumber mana pun yang saya buka."
   },
   {
@@ -134,9 +134,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "sedang",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70044831",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70044831 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Desa dikosongkan Dapodik untuk MA-nya; diambil dari MTs Bahrul Anwar (NPSN 69955929) di dusun yang sama."
   },
   {
@@ -176,9 +176,9 @@
     "kecamatan": "Pamarican",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46382",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20276455",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20276455 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -204,9 +204,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280180 ; kabupatennya dipastikan kolom kwartir ranting di form pendaftaran (docs/sekolah-belum-tuntas.md bagian E: Cipaku / Ciamis), karena ada MA+MTs Mujahidin kedua di Kec. Sukaratu Kabupaten Tasikmalaya",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280180 ; kabupatennya dipastikan kolom kwartir ranting di form pendaftaran (docs/sekolah-belum-tuntas.md bagian E: Cipaku / Ciamis), karena ada MA+MTs Mujahidin kedua di Kec. Sukaratu Kabupaten Tasikmalaya ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -260,9 +260,9 @@
     "kecamatan": "Panjalu",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46264",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280196",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280196 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -302,9 +302,9 @@
     "kecamatan": "Cibeureum",
     "kabupaten": "Kota Tasikmalaya",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46196",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20277188",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20277188 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Beda sekolah dengan MAN 1 Tasikmalaya (NPSN 20276807, Kec. Sukarame, Kab. Tasikmalaya). Kode pos tidak tercantum, tidak saya tebak."
   },
   {
@@ -428,9 +428,9 @@
     "kecamatan": "Rancah",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46387",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280193",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20280193 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Ada di Kec. Rancah, bukan Kec. Ciamis — petunjuk peserta cuma menulis \"Ciamis\" (nama kabupaten). Kode pos kosong di data referensi maupun mirror Dapodik; situs man6ciamis.sch.id tidak bisa diakses saat pengecekan."
   },
   {
@@ -470,9 +470,9 @@
     "kecamatan": "Cijeungjing",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46271",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69976289",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69976289 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -526,9 +526,9 @@
     "kecamatan": "Cisaga",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46386",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278642 ; https://annibuku.com/sekolah/30997-mtss-al-iqna-cisaga ; https://data-sekolah.zekolah.id/sekolah/mtss-al-iqna-cisaga-39893",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278642 ; https://annibuku.com/sekolah/30997-mtss-al-iqna-cisaga ; https://data-sekolah.zekolah.id/sekolah/mtss-al-iqna-cisaga-39893 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Cocok persis dengan petunjuk Cisaga Ciamis. Alamat lengkap versi Dapodik menyebut \"Dusun Cisaga Kota, Desa Cisaga\". KODE POS TIDAK KETEMU — di Dapodik field kode pos memang kosong (tertulis \"-\"), jadi dikosongkan, tidak ditebak."
   },
   {
@@ -540,9 +540,9 @@
     "kecamatan": "Rancah",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46387",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278708",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278708 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Kiarapayung adalah desa di Kec. Rancah, bukan Rajadesa. Data Referensi menambahkan RT 01 RW 05. Kode pos tidak tercantum, tidak saya tebak."
   },
   {
@@ -596,9 +596,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69955929",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69955929 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -638,9 +638,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278636 ; kabupatennya dipastikan kolom kwartir ranting di form pendaftaran (docs/sekolah-belum-tuntas.md bagian E: Cipaku / Ciamis)",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278636 ; kabupatennya dipastikan kolom kwartir ranting di form pendaftaran (docs/sekolah-belum-tuntas.md bagian E: Cipaku / Ciamis) ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -666,9 +666,9 @@
     "kecamatan": "Rancah",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46387",
     "keyakinan": "sedang",
-    "sumber": "https://annibuku.com/sekolah/31096-mtss-rancah ; daftar alamat SMP/MTs Kecamatan Rancah di data.emka.web.id",
+    "sumber": "https://annibuku.com/sekolah/31096-mtss-rancah ; daftar alamat SMP/MTs Kecamatan Rancah di data.emka.web.id ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "AMBIGU. Di Kecamatan Rancah ada tujuh MTs: MTsN 5 Ciamis (Cisontrol), MTsN 14 Ciamis (Kawunglarang), MTsN 17 Ciamis (Jl. Gagak Ngampar), MTSS Rancah, MTSS Karangpari, MTSS Al-Istiqomah Kiarapayung, dan MTSS GUPPI Cileungsir. Saya memilih MTSS Rancah karena namanya persis \"MTs Rancah\" dan berada di Desa Rancah, tapi peserta bisa saja memaksudkan salah satu MTs Negeri di kecamatan yang sama. Perlu dikonfirmasi ke pembina. Kode pos tidak ketemu, dikosongkan."
   },
   {
@@ -722,10 +722,10 @@
     "kecamatan": "Ciamis",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": "46251",
-    "keyakinan": "tinggi",
-    "sumber": "Kode pos dari situs resmi www.mtsn1ciamis.sch.id ; Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278600",
-    "catatan": null
+    "kode_pos": "46211",
+    "keyakinan": "sedang",
+    "sumber": "Kode pos dari situs resmi www.mtsn1ciamis.sch.id ; Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278600 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
+    "catatan": "Situs resmi sekolah menulis kode pos 46251; desanya Panyingkiran, dan dua direktori menulis 46211 — sama dengan delapan belas sekolah kurasi lain di Kec. Ciamis. Yang dipakai 46211."
   },
   {
     "nama": "MTsN 2 Banjar",
@@ -764,9 +764,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278635",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278635 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -778,9 +778,9 @@
     "kecamatan": "Rancah",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46387",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278703",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20278703 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Alamat resmi tanpa nama jalan, hanya dusun dan RT/RW — itu yang diisikan. Madrasah di bawah Kemenag, kode pos tidak tercantum di Data Referensi dan tidak ketemu di sumber lain, dibiarkan kosong."
   },
   {
@@ -890,9 +890,9 @@
     "kecamatan": "Baregbeg",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46274",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70051695",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70051695 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -904,9 +904,9 @@
     "kecamatan": "Pamarican",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46382",
     "keyakinan": "sedang",
-    "sumber": "Alamat dipinjam dari SMP IT Nurul Huda Margajaya (NPSN 69993153) satu yayasan; petunjuk kwartir ranting di form pendaftaran menyebut Pamarican / Ciamis",
+    "sumber": "Alamat dipinjam dari SMP IT Nurul Huda Margajaya (NPSN 69993153) satu yayasan; petunjuk kwartir ranting di form pendaftaran menyebut Pamarican / Ciamis ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Belum ada di Data Referensi Kemendikdasmen dengan jenjang SMA. Perlu satu kali konfirmasi ke pembina."
   },
   {
@@ -1016,9 +1016,9 @@
     "kecamatan": "Rajadesa",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46254",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70006980",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70006980 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -1590,9 +1590,9 @@
     "kecamatan": "Cipaku",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46252",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69988146",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69988146 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -1814,9 +1814,9 @@
     "kecamatan": "Banjarsari",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46383",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20254624",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20254624 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Kec. Banjarsari Kab. Ciamis — bukan Kota Banjar, sesuai petunjuk. Kode pos tidak tercantum di data referensi dan situs sekolah (smksiliwangiams.sch.id) sudah tidak aktif."
   },
   {
@@ -2276,9 +2276,9 @@
     "kecamatan": "Baregbeg",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46274",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70003434",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/70003434 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -2290,9 +2290,9 @@
     "kecamatan": "Pamarican",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46382",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69993153 ; https://smpitnudapamarican.sch.id/",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69993153 ; https://smpitnudapamarican.sch.id/ ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Petunjuk peserta cuma \"Kec. Pamarican Kab. Ciamis\" dan itu ternyata sudah cukup: daftar dikdas Kec. Pamarican memuat 8 satuan setingkat SMP, dan yang bernama Nurul Huda ada DUA — yang ini di Desa Margajaya, dan MTs Nurul Huda (NPSN 70059036) di Desa Sukahurip. Peserta menulis \"SMP IT\" dan \"Margajaya\", jadi dua sumbu sekaligus memisahkannya. Putaran pertama menyisir semua desa bernama Margajaya di lima kecamatan lain dan justru melewatkan Pamarican. Alamat resminya \"Dusun Sukasari RT 026 RW 011\" — dusun, bukan nama jalan, jadi kolom jalan diisi dusunnya; pakai keterangan itu kalau menyurati. KODE POS DIKOSONGKAN: tidak ada di halaman resmi maupun di situs sekolah. Direktori kode pos per desa menyebut Margajaya = 46382 dan Kec. Pamarican punya tiga kode berbeda, jadi 46382 bukan tebakan — tapi karena bukan dari sumber sekolahnya sendiri, angkanya ditulis di sini saja, tidak diisikan. JANGAN menyalin kode pos dari dua sekolah senama: SMP IT Nurul Huda di Kec. Panjalu (NPSN 69948101, 46264) dan yang di Kec. Rajagaluh, Majalengka (45472). Kalau nanti ada yang menulis \"Nurul Huda Pamarican\" saja, petunjuk itu tidak cukup untuk memilih antara keduanya."
   },
   {
@@ -2402,9 +2402,9 @@
     "kecamatan": "Banjarsari",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46383",
     "keyakinan": "tinggi",
-    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252468",
+    "sumber": "https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20252468 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": "Alamat resmi di Dapodik tidak memakai nama jalan, hanya \"Dusun Tuban Rt.02 Rw.06\" — itu yang diisikan di field jalan. Satu situs mirror menyebut \"Jl. Pasir Garu\" di depannya, tapi tidak ada di sumber resmi jadi tidak dipakai. Kode pos tidak tercantum di Dapodik maupun mirror mana pun, dibiarkan kosong. Ada juga SMA Terpadu Dampasan (NPSN 259306) di yayasan yang sama, jangan tertukar."
   },
   {
@@ -2584,9 +2584,9 @@
     "kecamatan": "Kawali",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46253",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211633",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211633 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -2780,9 +2780,9 @@
     "kecamatan": "Kawali",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46253",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211652",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211652 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -2822,9 +2822,9 @@
     "kecamatan": "Baregbeg",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46274",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69969012",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/69969012 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -2850,9 +2850,9 @@
     "kecamatan": "Kawali",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46253",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211582",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211582 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
@@ -2878,9 +2878,9 @@
     "kecamatan": "Ciamis",
     "kabupaten": "Kabupaten Ciamis",
     "provinsi": "Jawa Barat",
-    "kode_pos": null,
+    "kode_pos": "46211",
     "keyakinan": "tinggi",
-    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211613",
+    "sumber": "Data Referensi Kemendikdasmen, https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/20211613 ; kode pos desa dari kodepos.co.id, dicocokkan dengan 179 baris kurasi yang sudah terverifikasi di kecamatan yang sama",
     "catatan": null
   },
   {
