@@ -761,3 +761,128 @@ tempat bertanya.
 Arah kedua di tes 28 yang paling mudah hilang: menghapus pagar lama sambil
 merusak kebutuhan yang melahirkannya bukan perbaikan. `MAN 3 Ciamis` dan
 `MAN 3 Tasikmalaya` harus tetap dua baris.
+
+---
+
+## 13. Impor direktori se-kabupaten (29 Agustus 2026)
+
+Bagian 1–12 soal **210 sekolah yang pernah mendaftar**. Bagian ini soal
+keputusan yang berbeda: memasukkan **seluruh** SMP/MTs/SMA/SMK/MA se-Kabupaten
+Ciamis supaya pembina memilih dari daftar dan tidak lagi mengetik namanya
+sendiri.
+
+### 13.1 Kenapa, dan kenapa hanya satu kabupaten
+
+Seluruh kerusakan nama yang dibereskan `0154`–`0156` lahir dari satu tempat:
+form pendaftaran menerima nama yang **diketik**. `SMK MAARIF NU CIAMIS` lahir
+karena `SMK Ma'arif NU Ciamis` tidak ketemu di kotak carinya. Isi kotak itu
+tabel `sekolah`, dan sampai `0157` isinya cuma sekolah yang **sudah pernah
+mendaftar** — jadi sekolah baru selalu mengetik, dan setiap ketikan kesempatan
+lahirnya kembar.
+
+Peserta datang dari 24 kabupaten/kota, jadi ini menutup sebagian saja — tetapi
+bagian terbesarnya. Mengambil seluruh Jawa Barat berarti puluhan ribu baris
+untuk memenuhi kotak cari yang dipakai sekali setahun, dan sejak `#720` daftar
+itu ikut disimpan di HP pembina, jadi ukurannya bukan lagi soal yang bisa
+diabaikan.
+
+### 13.2 Alamat impor BUKAN alamat kurasi, dan bedanya tidak kelihatan
+
+Alamat 309 baris impor disalin dari kolom alamat Dapodik apa adanya. Yang lama
+dicari satu per satu, punya NPSN tercatat, keyakinan, dan URL sumber di
+`sekolah_alamat.json`. Yang baru tidak punya satu pun dari itu.
+
+**Berkas itu tetap penanda mana yang terkurasi.** Sekolah mana pun dari
+direktori yang benar-benar mendaftar tahun depan harus dikurasi seperti bagian
+6–9 sebelum alamatnya dipakai berkirim surat.
+
+### 13.3 Menyaring impor dengan nama TIDAK PERNAH cukup
+
+Ini kesalahan yang sama tiga kali berturut-turut, dan pola ketiganya identik:
+
+| Lolos | Sebabnya | Ditemukan |
+| --- | --- | --- |
+| 12 baris (`MTS S AL-HASAN`) | huruf status Dapodik ditulis terpisah | `0157` sendiri, sebelum merge |
+| 8 baris (`SMK Maarif NU Ciamis`) | disaring cuma dengan `kunci_sekolah()`, tidak dengan `kunci()` | bagian 12.2, sesudah impor |
+| `MAN 1 Ciamis` | `0154` sudah meleburnya ke `MAN Darussalam`; namanya tidak mirip sama sekali | pindai jalan + desa (`0159`) |
+| `MA Daarul Huda`, `SMK Galuh Rahayu Sindangkasih` | ejaan, bukan nama | `sekolah_kembar.sql` (`0161`) |
+
+Sebabnya satu dan struktural: **yang membuktikan dua baris satu sekolah adalah
+NPSN, dan `sekolah` tidak menyimpan NPSN.** Selama itu belum berubah, impor
+berikutnya akan mengulanginya, dan yang menahannya cuma pemeriksaan sesudahnya.
+
+Dua kali buktinya sebenarnya sudah ada di repositori ini: baris kurasi
+`MA Darul Huda` dan `SMK Galuh Rahayu` mencatat `nama_resmi` yang **persis
+sama** dengan nama yang diimpor. Yang tidak ada adalah pemeriksaan yang
+membacanya.
+
+**Jalankan `supabase/checks/sekolah_kembar.sql` sesudah SETIAP impor**, bukan
+sesudah ada yang mengeluh. Ia hanya membaca, enam aturan, dan hasilnya dibaca
+manusia — jangan pernah melebur otomatis dari keluarannya.
+
+### 13.4 Kode pos: uji rujukannya dulu, baru pakai
+
+Kolom alamat Dapodik memuat kode pos hanya pada **delapan dari 309** baris,
+jadi 297 alamat berbentuk benar tetapi tidak lengkap. `0160` mengisinya dari
+daftar kode pos per desa se-Kabupaten Ciamis.
+
+**Yang membuat angka itu boleh dipercaya bukan situsnya.** Sebelum dipakai, ia
+diuji terhadap isi produksi sendiri: 130 baris kurasi di Kabupaten Ciamis sudah
+punya kode pos, dan rujukan itu setuju dengan **seluruh 130** — nol berbeda,
+nol desa yang tidak dikenalnya. Termasuk dua angka yang dulu sempat salah:
+Panyingkiran **46211** (bukan 46251) dan Cigayam **46384** (bukan 46383,
+dibetulkan `0159`).
+
+Kerjakan urutan itu untuk rujukan apa pun: cocokkan dulu dengan yang sudah
+diketahui benar, hitung selisihnya, baru pakai untuk yang belum diketahui.
+Rujukan yang tidak diuji dulu memasukkan kesalahan ke tempat yang paling sulit
+ditemukan — baris yang tidak ada pembandingnya.
+
+### 13.5 Kecamatan cukup, kecuali kecamatan kota
+
+Dua puluh enam kecamatan Kabupaten Ciamis memakai **satu** kode pos untuk
+seluruh desanya. **Kecamatan Ciamis tidak**: dua belas desanya terbagi ke enam
+kode pos (46211–46219), karena ia kecamatan kotanya.
+
+| Desa | Kode pos | | Desa | Kode pos |
+| --- | --- | --- | --- | --- |
+| Ciamis, Panyingkiran | 46211 | | Linggasari | 46216 |
+| Cigembor | 46212 | | Benteng | 46217 |
+| Kertasari | 46213 | | Pawindan | 46218 |
+| Maleber | 46214 | | Imbanagara, Imbanagara Raya | 46219 |
+| Cisadap, Sindangrasa | 46215 | | | |
+
+Jadi `0160` punya dua tabel: kecamatan untuk yang 26, desa untuk Kec. Ciamis.
+Menyederhanakannya jadi satu kode pos per kecamatan akan memberi angka yang
+salah kepada sebelas dari dua belas desa Kec. Ciamis. Tes `112` menjaga itu
+lewat dua baris yang akan bertabrakan kalau seseorang mencobanya.
+
+### 13.6 Keadaan sekarang (29 Agustus 2026)
+
+**515 baris `sekolah` di produksi, seluruhnya beralamat lengkap dengan kode
+pos.** Nol alamat kosong, nol yang bentuknya cacat, nol kunci kembar, nol nama
+tanpa jenjang. Dari 515 itu, 210 terkurasi (bagian 11) dan sisanya dari
+direktori.
+
+Satu pertanyaan sengaja dibiarkan terbuka: `SMP Al-Fadliliyah Darussalam` tidak
+ada di Data Referensi, dan `MTs Al-Fadliliyah Darussalam` (NPSN 20211978)
+beralamat sama. Keduanya setingkat Penggalang, jadi tidak ada di data yang bisa
+memutuskan apakah itu SMP yang belum terdaftar atau salah ketik. `0160`
+mencetak pertanyaannya lewat `raise notice` tiap kali dijalankan.
+
+### 13.7 Migrasi dan tesnya
+
+| Berkas | Isi |
+| --- | --- |
+| `0157_direktori_sekolah_ciamis.sql` | 309 sekolah se-Kabupaten Ciamis |
+| `0158_rapikan_alamat_direktori.sql` | 158 alamat dirapikan bentuknya |
+| `0159_lebur_kembar_direktori.sql` | 4 kembar bawaan impor + kode pos Banjaranyar |
+| `0160_kode_pos_dan_nama_tersisa.sql` | 297 kode pos + 4 nama tanpa jenjang |
+| `0161_lebur_kembar_ejaan.sql` | 2 kembar ejaan + nama Satu Atap |
+| `supabase/checks/sekolah_kembar.sql` | pemeriksa enam aturan, hanya membaca |
+| `tests/sql/109`–`113` | tesnya, satu per migrasi |
+
+Kelima migrasi memotret `regu`, `nilai_mentah`, `closing_regu`, dan
+`pendaftaran` di awal lalu membandingkannya di akhir. Itu bukan kehati-hatian
+berlebihan: peleburan memindahkan `pendaftaran.sekolah_id`, dan seluruh
+pekerjaan ini dikerjakan **selama acara berjalan** (CLAUDE.md bagian 17).

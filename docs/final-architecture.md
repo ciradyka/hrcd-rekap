@@ -6,10 +6,10 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0159`: angka
+sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0161`: angka
 tabel, view, RPC, policy, check dan pemicu DIHITUNG ULANG dari database, dan
 bagian 3 diperiksa terhadap layar. Isi bagian 2 sampai 9 selebihnya belum
-dibaca ulang baris demi baris terhadap `0119`-`0159`.
+dibaca ulang baris demi baris terhadap `0119`-`0161`.
 
 Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
@@ -74,7 +74,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-159 migrasi, `0001` sampai `0159`, dijalankan berurutan tanpa lubang penomoran.
+161 migrasi, `0001` sampai `0161`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -696,6 +696,20 @@ Pagar yang benar-benar aktif di gateway:
 
 Service key hidup sebagai `wrangler secret` di Worker, tidak pernah di SPA.
 `web/config.js` hanya memuat anon key, yang memang publik.
+
+**Yang DIBACA halaman ini cuma dua, dan salah satunya disimpan di HP.** Daftar
+sekolah (`sekolah?select=id,name,address`) jadi **94 KB** sejak `0157`
+memasukkan seluruh SMP/MTs/SMA/SMK/MA se-Kabupaten Ciamis, dan pembina membuka
+form yang sama berkali-kali — mengisi separuh, menutup, kembali lagi. Sejak
+`#720` ia disimpan di `localStorage` dan dipakai dari sana; kalau simpanannya
+lewat enam jam, penyegaran jalan di latar belakang. Kotak cari sekolah bekerja
+seluruhnya dari memori, jadi mengetik tidak menyentuh database sama sekali.
+
+`infoEdisi()` **sengaja tidak ikut disimpan** — 180 byte, dan ia yang memutus
+pendaftaran masih dibuka atau tidak. Basi paling parah yang bisa terjadi:
+sekolah yang baru mendaftar hari ini belum muncul di kotak cari pembina lain.
+Yang mengetiknya tetap menulis nama yang sama dan `kunci_sekolah()` tetap
+menyatukannya ke satu baris — yang hilang kenyamanan, bukan kebenaran.
 
 ---
 
