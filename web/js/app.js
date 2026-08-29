@@ -5581,7 +5581,33 @@ async function layarLiveScore() {
       </ul>
     </div>`;
 
-  const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
+  /* Enam besar, bukan tiga. Yang diumumkan di lapangan adalah Juara 1-3 lalu
+     Harapan 1-3 — sama dengan daftar penghargaan yang dipilih layar Kejuaraan
+     (migrasi 0139) — jadi papan yang berhenti di tiga membuat panitia menghitung
+     sendiri siapa Harapan 1 dari baris tabel di bawahnya.
+
+     Ketiga Harapan memakai medali yang sama: emas, perak, dan perunggu sudah
+     habis di Juara 1-3, dan memberi Harapan 1 lambang yang berbeda dari
+     Harapan 2 mengarang tingkatan yang tidak ada di penghargaannya. */
+  const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉",
+                   4: "🏅", 5: "🏅", 6: "🏅" };
+  const gelar = (n) => n <= 3 ? `Juara ${n}` : `Harapan ${n - 3}`;
+  /* Podium diurutkan SENDIRI, dengan pemecah seri yang sama persis dengan
+     hasil_kejuaraan() (migrasi 0139): total, lalu yang paling dekat dengan
+     kontrak waktunya, lalu nomor dada terkecil.
+
+     Kolom # di tabel memakai `peringkat` dari rank(), dan itu memang benar di
+     sana — dua regu berskor sama berbagi angka yang sama. Di podium ia salah:
+     penghargaannya cuma satu per gelar, jadi rank() menuliskan "Harapan 1"
+     dua kali lalu melompat ke "Harapan 3", sementara layar Kejuaraan
+     menyerahkan Harapan 1 dan Harapan 2 kepada dua regu itu. Papan yang
+     dibacakan panitia harus menyebut enam nama yang sama dengan lembar
+     penghargaan. */
+  const dekatKontrak = (k) => Math.abs(k.selisih_menit ?? 100000);
+  const urutJuara = (a, b) =>
+    Number(b.total) - Number(a.total)
+    || dekatKontrak(a) - dekatKontrak(b)
+    || Number(a.nomor_dada) - Number(b.nomor_dada);
 
   /* Kolom rincian dibangun dengan kolomPos() yang SAMA dengan layar Input Pos
      dan Rekapitulasi. Satu kolom per LOMBA, bukan per baris wahana — tanpa itu
@@ -5636,7 +5662,7 @@ async function layarLiveScore() {
 
   const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
-        const juara = baris.filter(k => k.peringkat && k.peringkat <= 3);
+        const juara = baris.filter(k => k.peringkat).sort(urutJuara).slice(0, 6);
         const sekolahAda = [...new Set(baris.map(k => k.nama_sekolah).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id"));
         if (!baris.length) return `
@@ -5667,11 +5693,11 @@ async function layarLiveScore() {
             <div class="sisi kanan">${saklar}</div>
           </div>
           <div class="podium">
-            ${juara.map(k => `
-              <div class="juara j${esc(String(k.peringkat))}">
-                <div class="medali" aria-hidden="true">${MEDALI[k.peringkat] || ""}</div>
+            ${juara.map((k, i) => `
+              <div class="juara j${i + 1}${i >= 3 ? " harapan" : ""}">
+                <div class="medali" aria-hidden="true">${MEDALI[i + 1] || ""}</div>
                 <div class="j-teks">
-                  <div class="peringkat">Juara ${esc(String(k.peringkat))}
+                  <div class="peringkat">${esc(gelar(i + 1))}
                     <span class="dada-juara">${esc(dada3(k.nomor_dada))}</span></div>
                   <div class="nama">${esc(k.nama_regu)}</div>
                   <div class="sekolah">${esc(k.nama_sekolah)}</div>

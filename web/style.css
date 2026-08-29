@@ -3752,6 +3752,23 @@ button.pill-number:hover { filter: brightness(.95); }
   font-variant-numeric: tabular-nums;
 }
 
+/* Harapan 1-3 berdiri di podium yang sama, satu tingkat lebih tenang.
+
+   Enam kartu berukuran sama membuat Juara 1 tidak lagi menonjol, padahal
+   itulah baris yang dicari orang lebih dulu. Yang dikecilkan cuma medali dan
+   angkanya — nama regu tetap sebesar juara, karena nama itulah yang dibacakan
+   saat penghargaan diserahkan.
+
+   Satu kelas `harapan`, bukan rantai `.j4, .j5, .j6`. Ketiganya diperlakukan
+   sama persis, dan aturan yang menyebut nomor kartunya satu per satu adalah
+   aturan yang lupa diperlebar pada hari podiumnya berubah panjang. */
+.juara.harapan { padding: .45rem .75rem; }
+.juara.harapan .medali { font-size: 1.5rem; }
+.juara.harapan .total { font-size: 1.15rem; }
+/* Satu jarak di tempat Juara berakhir: enam kartu berjarak sama terbaca
+   seperti satu daftar berisi enam juara. */
+.juara:not(.harapan) + .juara.harapan { margin-top: .45rem; }
+
 /* RANTAI `th.pos-kol`, BUKAN `.pos-kol` SAJA — dan itu bukan kerapian.
    `.pos-kol` sendirian berkekhususan (0,1,0), kalah dari `.table th` (0,1,1)
    yang menyetel `text-align: left` untuk semua kepala tabel. Aturan tengah di
