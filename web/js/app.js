@@ -6094,7 +6094,7 @@ async function layarKejuaraan() {
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarKejuaraan)); return; }
   if (location.hash !== layarIni) return;
 
-  const opsi = [...new Map(regu.filter(r => r.nomor_dada != null
+  const opsi = [...new Map(regu.filter(r => r.nomor_dada != null && r.jam_datang != null
       && !String(r.golongan).startsWith("intern_"))
     .map(r => [r.regu_id, r])).values()]
     .sort((a, b) => Number(a.nomor_dada) - Number(b.nomor_dada));

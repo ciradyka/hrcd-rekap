@@ -767,7 +767,8 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 
 ### Pengurangan lain di luar penalti waktu
 
-7. **Tidak melakukan checkout** di meja closing: **−100**.
+7. **Belum tercatat tiba** di meja Kedatangan: **tidak mendapat peringkat dan
+   tidak dapat menjadi juara**, tetapi tidak dikenai pengurangan skor.
 8. **Melewatkan sebuah pos**: nilai pos tersebut menjadi **0**. Tidak ada
    pengurangan tambahan di luar itu.
 9. **Anggota regu tidak lengkap.** Kelengkapan diperiksa di akhir lomba, dan
@@ -866,11 +867,7 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    tidak memindahkan kertas sama sekali. Kalau foto tidak diwajibkan, perlu
    disepakati siapa yang bertanggung jawab atas kotak sejak pos tutup sampai
    isinya masuk sistem.
-5. **Dua pembacaan pada bagian 10 yang belum dipastikan:**
-   - Pengurangan −100 karena tidak checkout — apakah menggantikan penalti waktu,
-     atau ditambahkan padanya? Tanpa checkout tidak ada jam datang, sehingga
-     penalti waktu tidak dapat dihitung. Dokumen ini menuliskannya sebagai
-     pengurangan tersendiri.
+5. **Satu pembacaan pada bagian 10 yang belum dipastikan:**
    - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
      yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
      Dokumen ini mengasumsikan per orang.

@@ -682,5 +682,7 @@ run tests/sql/92_peserta_terbanyak_eksternal.sql
 run supabase/migrations/0142_kejuaraan_tanpa_intern.sql
 run tests/sql/93_kejuaraan_tanpa_intern.sql
 run tests/sql/94_simulasi_pemenang_kejuaraan.sql
+run supabase/migrations/0143_juara_harus_tiba.sql
+run tests/sql/95_juara_harus_tiba.sql
 
 echo "SEMUA TES LULUS"
