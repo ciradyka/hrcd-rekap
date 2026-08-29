@@ -5614,12 +5614,13 @@ async function layarLiveScore() {
      tahapan, bukan akibat. "Internal" langsung menjawab pertanyaan yang
      sebenarnya ditanyakan: apakah peserta sudah bisa melihat ini.
 
-     Kodenya TETAP pra/progres/penuh. Nilai itu duduk di status_acara, dipakai
+     Kodenya TETAP pra/progres/penuh/top10. Nilai itu duduk di status_acara, dipakai
      v_progres_publik, keempat pagar "BOCOR" di publish-live.yml, dan migrasi
      0068/0070/0072 — menggantinya menuntut migrasi beserta seluruh policy,
      demi tiga kata di layar. */
   const FASE = [
     ["pra", "Internal"], ["progres", "Progress"], ["penuh", "Live"],
+    ["top10", "Top 10"],
   ];
   const saklar = !bisaPublish ? "" : `
     <div class="segmen-fase" role="group" aria-label="Fase Live Score">
@@ -5861,9 +5862,9 @@ async function layarLiveScore() {
      lain tidak melihat apa pun di tempat ini, bukan tombol mati: tombol mati
      di pojok tidak memberi tahu apa pun selain ada sesuatu yang tidak boleh
      disentuh. */
-  /* Judul di TENGAH, saklar tiga keadaan di KANAN, satu baris.
+  /* Judul di TENGAH, saklar empat keadaan di KANAN, satu baris.
      Tombol besar sebelumnya memakan tinggi layar untuk sesuatu yang ditekan
-     dua kali sepanjang acara. Tiga keadaan ditampilkan sekaligus, bukan satu
+     beberapa kali sepanjang acara. Empat keadaan ditampilkan sekaligus, bukan satu
      tombol yang berganti tulisan: dengan begitu fase yang SEDANG berlaku
      terbaca tanpa harus tahu apa arti tulisan tombolnya.
 
@@ -5946,7 +5947,10 @@ async function layarLiveScore() {
            ini, admin menekan Live, membaca "peserta dapat melihat", dan
            peserta tetap melihat papan kosong tanpa satu pun tanda kenapa —
            cron penerbitan berkala masih dimatikan di luar minggu lomba. */
-        notif(ke === "penuh"
+        notif(ke === "top10"
+          ? "Peserta dapat melihat Top 10 per golongan — jalankan Publish "
+            + "rekap live supaya angkanya ikut terbit."
+          : ke === "penuh"
           ? "Live Score aktif. Peserta dapat melihat rekapitulasi penuh — "
             + "jalankan Publish rekap live supaya angkanya ikut terbit."
           : ke === "progres" ? "Peserta dapat melihat progress live score."

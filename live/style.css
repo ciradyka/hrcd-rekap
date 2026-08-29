@@ -854,9 +854,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
 .printout { display: none; }
 
-/* Saklar tiga keadaan Live Score. Tiga tombol yang menempel jadi satu
-   batang: yang sedang berlaku memakai warna utama, dua lainnya diam. Bukan
-   satu tombol yang berganti tulisan — dengan tiga terlihat sekaligus, fase
+/* Saklar empat keadaan Live Score. Tombol-tombol yang menempel jadi satu
+   batang: yang sedang berlaku memakai warna utama, lainnya diam. Bukan
+   satu tombol yang berganti tulisan — dengan semua terlihat sekaligus, fase
    yang berlaku terbaca tanpa harus tahu arti tulisan tombolnya. */
 .segmen-fase { display: inline-flex; gap: 0; }
 /* Baris kepala kartu klasemen: judul di TENGAH, saklar di KANAN, dan judulnya

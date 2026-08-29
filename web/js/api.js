@@ -867,7 +867,7 @@ export const hapusNilaiPos = (nomorDada, kode, pos) =>
 /** Klasemen yang AKAN dilihat peserta, dibuka lebih awal untuk admin
  *  (0049, dinamai ulang 0050).
  *
- *  Bukan `v_klasemen_publik`: view itu dipagari `fase_live = 'penuh'` dan
+ *  Bukan `v_klasemen_publik`: view itu dipagari fase publik dan
  *  pagar itu yang menahan hasil lomba supaya tidak bocor sebelum diumumkan.
  *  Yang ini dipagari peran, dan hanya admin yang mendapat baris. */
 export async function klasemenLiveScore() {

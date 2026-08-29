@@ -13,10 +13,12 @@ const barisPapan = live.slice(awalBaris, awalPapan);
 const gambarPapan = live.slice(awalPapan, akhirPapan);
 
 
-test("klasemen cache hanya menentukan urutan pada fase penuh", () => {
-  assert.match(barisPapan, /function barisPapan\(penuh\)/);
-  assert.match(barisPapan, /if \(penuh && klasemen\.length\)/);
-  assert.match(gambarPapan, /const penuh = fase\(\) === "penuh";\s+const semua = barisPapan\(penuh\);/);
+test("klasemen cache hanya terbuka pada fase Live atau Top 10", () => {
+  assert.match(barisPapan,
+    /function barisPapan\(klasemenTerbuka, top10 = false\)/);
+  assert.match(barisPapan, /if \(klasemenTerbuka && klasemen\.length\)/);
+  assert.match(gambarPapan,
+    /const top10 = fase\(\) === "top10";\s+const semua = barisPapan\(penuh \|\| top10, top10\);/);
 });
 
 

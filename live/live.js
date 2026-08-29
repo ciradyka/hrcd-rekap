@@ -117,7 +117,10 @@ let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
  *  digambar", dan siapa pun yang membuka rekap.json langsung melihatnya.
  *
  *  Jadi: mematikan seketika, menyalakan tetap lewat penerbitan. */
-const URUT_FASE = { pra: 0, progres: 1, penuh: 2 };
+// Top 10 membuka lebih sedikit data daripada Live penuh. Karena fase database
+// hanya boleh memperketat berkas yang sudah terbit, urutannya berada di antara
+// Progress dan Live meskipun tombolnya ditaruh setelah Live di layar panitia.
+const URUT_FASE = { pra: 0, progres: 1, top10: 2, penuh: 3 };
 // Fase database hanya memperketat isi berkas. Ia harus sempat menjawab sebelum
 // gambar pertama, tetapi tidak boleh menahan papan CDN lebih dari beberapa
 // detik ketika origin Supabase sedang sulit dijangkau.
@@ -387,7 +390,7 @@ const MEDALI = { 1: "🥇", 2: "🥈", 3: "🥉" };
    ------------------------------------------------------------------------- */
 let golAktif = URUT_GOLONGAN_PESERTA[0];
 
-function barisPapan(penuh) {
+function barisPapan(klasemenTerbuka, top10 = false) {
   /* Penyaring ini tetap ada walau workflow penerbitan juga membuang Intern.
      Dengan begitu berkas lama yang masih tersimpan di cache tidak sempat
      menampilkan Intern setelah kode halaman yang baru sudah ter-deploy. */
@@ -398,8 +401,18 @@ function barisPapan(penuh) {
   const perDada = new Map(progres.map(p => [p.nomor_dada, p]));
   // Klasemen yang memimpin urutannya kalau ada — ia sudah berperingkat. Di
   // fase `progres` klasemen memang kosong, jadi urutannya jatuh ke nomor dada.
-  if (penuh && klasemen.length) {
-    return klasemen.map(k => ({ ...perDada.get(k.nomor_dada), ...k }));
+  if (klasemenTerbuka && klasemen.length) {
+    const jumlahGolongan = new Map();
+    const berperingkat = top10
+      ? klasemen.filter(k => {
+          if (k.peringkat === null || k.peringkat === undefined) return false;
+          const jumlah = jumlahGolongan.get(k.golongan) || 0;
+          if (jumlah >= 10) return false;
+          jumlahGolongan.set(k.golongan, jumlah + 1);
+          return true;
+        })
+      : klasemen;
+    return berperingkat.map(k => ({ ...perDada.get(k.nomor_dada), ...k }));
   }
   return [...progres].sort((a, b) => (a.nomor_dada ?? 1e9) - (b.nomor_dada ?? 1e9));
 }
@@ -416,7 +429,8 @@ function gambarTab(semua) {
 function gambarPapan() {
   if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
   const penuh = fase() === "penuh";
-  const semua = barisPapan(penuh);
+  const top10 = fase() === "top10";
+  const semua = barisPapan(penuh || top10, top10);
   const pos = (META && META.pos) || [];
   const komponen = (META && META.komponen) || [];
 
@@ -449,6 +463,27 @@ function gambarPapan() {
     const isi = !baris.length
       ? `<p class="keterangan tengah">Belum ada regu golongan ini yang bisa
            diperingkat.</p>`
+      : top10 ? `
+        <div class="gulir">
+          <table class="tabel ada-rank tabel-top-10">
+            <thead><tr>
+              <th class="rank-th">#</th>
+              <th class="dada-th">No<br>Dada</th>
+              <th class="regu-th">Regu</th>
+              <th>Organisasi</th>
+              <th>Total</th>
+            </tr></thead>
+            <tbody>${baris.map(b => `
+              <tr class="${b.peringkat && b.peringkat <= 3 ? "atas" : ""}">
+                <td class="rank-sel">${MEDALI[b.peringkat] || ""}${
+                  esc(String(b.peringkat))}</td>
+                <td class="dada">${esc(dada(b.nomor_dada))}</td>
+                <td class="regu">${esc(b.nama_regu)}</td>
+                <td class="sekolah-sel">${esc(b.nama_sekolah || "—")}</td>
+                <td class="total">${esc(angkaRapi(b.total))}</td>
+              </tr>`).join("")}</tbody>
+          </table>
+        </div>`
       : `
         ${!juara.length ? "" : `<div class="podium">${juara.map(k => `
           <div class="juara j${esc(String(k.peringkat))}">
@@ -580,7 +615,7 @@ function gambarPapan() {
 
     return `<div class="panel-gol kartu" data-gol="${esc(g)}"${
       g === golAktif ? "" : " hidden"}>
-        <h2 class="tengah">Klasemen sementara</h2>
+        <h2 class="tengah">${top10 ? "Top 10 sementara" : "Klasemen sementara"}</h2>
         ${isi}
       </div>`;
   }).join("");
@@ -712,12 +747,12 @@ function gambar() {
     `Live Score${META.edisi ? ` — ${META.edisi.name}` : ""}`;
   document.title = `Live Score — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
 
-  // Susunannya SAMA dengan layar panitia: kemajuan di atas, lalu tab
-  // golongan, lalu papan klasemen. Kotak cari sudah tidak ada — penyaring
-  // Organisasi di kepala kolom menggantikannya.
+  // Top 10 sengaja hanya membawa papan ringkas. Pada fase lain susunannya
+  // sama dengan layar panitia: kemajuan di atas, lalu tab golongan, lalu
+  // papan klasemen.
   isi.innerHTML = !mulai()
     ? gambarPra()
-    : gambarKelengkapan() + gambarPapan();
+    : (fase() === "top10" ? "" : gambarKelengkapan()) + gambarPapan();
 
   if (mulai()) pasangPapan();
   pasangKemajuan();
