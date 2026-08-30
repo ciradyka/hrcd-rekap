@@ -7529,11 +7529,11 @@ async function gambarLombaNilai(l) {
              panah mati di kiri-kanannya adalah dua tombol yang tidak pernah
              melakukan apa pun. -->
         <div class="foto-navigasi" id="v2-foto-nav" hidden>
-          <button type="button" class="foto-panah" data-foto-geser="-1"
-                  aria-label="Foto sebelumnya">&lsaquo;</button>
-          <span class="foto-hitung" id="v2-foto-hitung"></span>
-          <button type="button" class="foto-panah" data-foto-geser="1"
-                  aria-label="Foto berikutnya">&rsaquo;</button>
+          <button type="button" class="button button-secondary button-small foto-panah"
+                  data-foto-geser="-1" aria-label="Foto sebelumnya">&lsaquo;</button>
+          <span class="badge foto-hitung" id="v2-foto-hitung"></span>
+          <button type="button" class="button button-secondary button-small foto-panah"
+                  data-foto-geser="1" aria-label="Foto berikutnya">&rsaquo;</button>
         </div>
       </div>
       <button class="button button-primary" id="v2-simpan" type="button" disabled
@@ -7689,11 +7689,21 @@ async function gambarLombaNilai(l) {
       const url = peta[f.path];
       const kapan = f.diunggah_pada ? tanggalJam(f.diunggah_pada) : "";
       const judul = `Foto ${i + 1} dari ${milik.length}${kapan ? ` · ${kapan}` : ""}`;
-      return url
-        ? `<a class="foto-lembar" href="${esc(url)}" target="_blank" rel="noopener"
-              title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
-              loading="lazy"></a>`
-        : `<span class="foto-lembar foto-lembar-kosong">tautan gagal</span>`;
+      /* Silang hanya untuk baris yang PUNYA id. Baris hasil unggahan yang
+         daftarnya gagal dibaca ulang tidak punya id, dan tombol hapus yang
+         tidak tahu apa yang dihapusnya lebih baik tidak ada. */
+      const silang = f.id ? `
+        <button type="button" class="ubin-silang" data-hapus-foto="${esc(f.id)}"
+                title="Hapus foto ${i + 1}"
+                aria-label="Hapus foto ${i + 1}">${ikon("x")}</button>` : "";
+      return `<div class="foto-lembar">
+        ${url
+          ? `<a class="foto-tautan" href="${esc(url)}" target="_blank" rel="noopener"
+                title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
+                loading="lazy"></a>`
+          : `<span class="foto-tautan foto-lembar-kosong">tautan gagal</span>`}
+        ${silang}
+      </div>`;
     }).join("")));
 
     petakFoto.scrollLeft = 0;
@@ -7708,6 +7718,58 @@ async function gambarLombaNilai(l) {
     const ke = Math.max(0, Math.min(jml - 1,
       Math.round(petakFoto.scrollLeft / (petakFoto.clientWidth || 1))));
     if (ke !== fotoKe) { fotoKe = ke; perbaruiHitungFoto(); }
+  }, { signal: sinyal });
+
+  /** Membaca ulang daftar foto lomba ini dari server, lalu menggambarnya.
+   *
+   *  Dipakai sesudah mengunggah DAN sesudah menghapus. Sesudah mengunggah ia
+   *  punya alasan kedua: unggahFotoLembar tidak mengembalikan `id`, dan tanpa
+   *  id foto yang baru saja diambil tidak bisa dihapus lagi sampai layarnya
+   *  dibuka ulang. */
+  async function segarkanFotoLomba(dada) {
+    try {
+      const segar = await daftarFotoLembar(l.pos, dada);
+      fotoLomba = segar.filter(f => f.kode_lomba === l.kode);
+    } catch { return false; }
+    if (fotoKe >= fotoLomba.length) fotoKe = Math.max(0, fotoLomba.length - 1);
+    gambarStatusFoto();
+    await gambarPetakFoto();
+    return true;
+  }
+
+  /* ALASANNYA WAJIB, dan itu bukan formalitas: foto slip adalah bukti,
+     dipanggil justru ketika sebuah nilai dipertanyakan. Menghapusnya
+     menghapus kemampuan menjawab pertanyaan itu, dan tidak ada satu pun galat
+     yang muncul saat bukti hilang. RPC 0081 menolak alasan kosong; dialog ini
+     cuma menanyakannya sebelum perjalanan jaringan.
+
+     Kata-katanya SAMA PERSIS dengan dialog hapus foto di lembar pos lama —
+     dua layar yang menghapus benda yang sama tidak boleh menanyakannya dengan
+     dua kalimat berbeda. */
+  petakFoto.addEventListener("click", async (e) => {
+    const x = e.target.closest("[data-hapus-foto]");
+    if (!x || !regu) return;
+    e.preventDefault();
+    const petak = x.closest(".foto-lembar");
+    const ke = [...petakFoto.children].indexOf(petak) + 1;
+
+    const jawab = await dialog({
+      judul: `Hapus foto ${ke} ${l.nama}?`,
+      kartuHtml: "<p>Fotonya hilang dari daftar dan dari penyimpanan.</p>",
+      medan: [{ label: "Alasan menghapus", contoh: "misal: buram, difoto ulang" }],
+      labelAksi: "Hapus Foto",
+    });
+    if (jawab === null) return;
+
+    x.disabled = true;
+    try { await hapusFotoLembar(x.dataset.hapusFoto, jawab[0]); }
+    catch (err) {
+      x.disabled = false;
+      notif(`Foto tidak bisa dihapus: ${err.message}`, true);
+      return;
+    }
+    notif("Foto dihapus.");
+    await segarkanFotoLomba(Number(regu.nomor_dada));
   }, { signal: sinyal });
 
   navFoto.addEventListener("click", (e) => {
@@ -7781,13 +7843,17 @@ async function gambarLombaNilai(l) {
       try {
         statusFoto.textContent = `mengirim ${ukuranRapi(blob.size)}…`;
         const hasil = await unggahFotoLembar(l.pos, l.kode, l.nama, dada, blob);
-        // Disisipkan ke DEPAN: yang barusan difoto adalah yang paling ingin
-        // dilihat, dan menggesernya dari ujung kanan tiap kali adalah
-        // pekerjaan yang tidak menghasilkan apa pun.
-        fotoLomba = [{ path: hasil.path, diunggah_pada: new Date().toISOString() },
-                     ...(fotoLomba || [])];
-        gambarStatusFoto();
-        await gambarPetakFoto();
+        /* Dibaca ulang dari server, bukan sekadar disisipkan ke daftar di
+           layar: yang kembali dari unggahan cuma `path`, dan tombol hapus
+           butuh `id`. Kalau pembacaannya gagal — sinyal pos memang begitu —
+           barisnya tetap disisipkan supaya fotonya langsung terlihat; ia cuma
+           belum bisa dihapus sampai layarnya dibuka ulang. */
+        if (!(await segarkanFotoLomba(dada))) {
+          fotoLomba = [{ path: hasil.path, diunggah_pada: new Date().toISOString() },
+                       ...(fotoLomba || [])];
+          gambarStatusFoto();
+          await gambarPetakFoto();
+        }
       } catch (err) {
         statusFoto.textContent = `gagal — ${err.message}`;
         notif(`Foto ${dada3(dada)} gagal terkirim: ${err.message}`, true);

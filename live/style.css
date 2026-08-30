@@ -4366,7 +4366,14 @@ button.pill-number:hover { filter: brightness(.95); }
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
   background: var(--kartu); color: inherit; text-align: left;
 }
-.lomba-kotak:hover, .lomba-kotak:focus-visible { border-color: var(--utama); }
+.lomba-kotak:hover { border-color: var(--utama); }
+/* Garis fokus dipasang sendiri: aturan global hanya mengenai .button, input,
+   .option, dan .icon-button, dan kotak ini bukan salah satunya. Tanpa ini
+   yang berpindah dengan Tab tidak punya satu pun petunjuk di mana ia berada. */
+.lomba-kotak:focus-visible,
+.sw-bulat:focus-visible {
+  outline: 2px solid var(--utama); outline-offset: 2px;
+}
 .lomba-jenis { display: flex; flex: 0 0 auto; color: var(--tinta-lembut); }
 .lomba-nama { font-weight: 700; line-height: 1.2; }
 
@@ -4408,28 +4415,26 @@ button.pill-number:hover { filter: brightness(.95); }
   scrollbar-width: none;
 }
 .foto-geser::-webkit-scrollbar { display: none; }
-/* Panah dan penghitung. Sasaran sentuh 44px, dan penghitungnya di antara
-   keduanya supaya ketiganya terbaca sebagai satu alat. */
+/* Panah dan penghitung. Keduanya memakai komponen yang SUDAH ADA — `.button
+   .button-secondary .button-small` dan `.badge` — bukan bentuk baru: tombol
+   yang tidak terlihat seperti tombol lain di aplikasi ini harus dicoba dulu
+   sebelum dipercaya, dan itu ongkos yang dibayar tiap petugas baru. Ikut pula
+   gaya sentuh, hover, dan garis fokusnya tanpa satu baris tambahan. */
 .foto-navigasi {
-  grid-area: 4 / 1 / 5 / 3; margin-top: .4rem;
-  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  grid-area: 4 / 1 / 5 / 3; margin-top: .5rem;
+  display: flex; align-items: center; justify-content: center; gap: .8rem;
 }
-.foto-panah {
-  display: flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; padding: 0; line-height: 1;
-  border: 1px solid var(--garis); border-radius: 50%;
-  background: var(--kartu); color: var(--tinta); font-size: 1.5rem;
-}
-.foto-hitung {
-  min-width: 3.5rem; text-align: center;
-  font-weight: 700; font-variant-numeric: tabular-nums;
-}
+.foto-panah { min-width: 3.2rem; font-size: 1.4rem; line-height: 1; padding: .2rem .6rem; }
+.foto-hitung { min-width: 3.6rem; justify-content: center; font-variant-numeric: tabular-nums; }
+/* `position: relative` karena silangnya duduk DI ATAS fotonya. Anchor dan
+   tombol jadi bersaudara di dalamnya, bukan bersarang: <button> di dalam <a>
+   bukan HTML yang sah, dan tiap browser memperbaikinya dengan caranya sendiri. */
 .foto-lembar {
-  flex: 0 0 100%; scroll-snap-align: start;
-  display: flex; align-items: center; justify-content: center;
+  position: relative; flex: 0 0 100%; scroll-snap-align: start;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
   background: var(--kertas); overflow: hidden;
 }
+.foto-tautan { display: flex; align-items: center; justify-content: center; width: 100%; }
 /* `contain`, bukan `cover`: yang dibaca di sini tulisan tangan, dan sisi yang
    dipotong `cover` justru sering sisi yang memuat angkanya. */
 .foto-lembar img {
