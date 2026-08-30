@@ -7609,6 +7609,23 @@ async function gambarLombaNilai(l) {
     jeda = setTimeout(() => cariDanGambar(dada), 160);
   }, { signal: sinyal });
 
+  /* ISI KOTAK DIPILIH SAAT DIKETUK, jadi ketukan pertama MENGGANTI.
+     Sesudah menyimpan, nomor dadanya sengaja dibiarkan di kotaknya sebagai
+     keterangan siapa yang barusan disimpan — dan tanpa aturan ini, mengetik
+     nomor berikutnya akan MENYAMBUNG ke nomor lama: "010" lalu "7" jadi
+     "0107". Itu bukan nomor siapa pun, tapi "01" lalu "0" jadi "010" adalah
+     nomor yang SAH milik regu lain.
+
+     Lewat setTimeout dengan alasan yang sama dengan kotak nilai di lembar pos
+     lama: Safari iOS membatalkan select() yang dipanggil di dalam penanganan
+     focus itu sendiri. */
+  inp.addEventListener("focusin", () => {
+    if (!inp.value) return;
+    setTimeout(() => {
+      if (document.activeElement === inp) { try { inp.select(); } catch { /* abaikan */ } }
+    }, 0);
+  }, { signal: sinyal });
+
   inp.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
@@ -8040,10 +8057,31 @@ async function gambarLombaNilai(l) {
        dilempar sebagai galat di atas. */
     catatLomba(l, dada3(dada),
       `${nama}${ringkasan.length ? ` · ${ringkasan.join(" · ")}` : ""}`);
+
+    /* LAYARNYA TIDAK DIKOSONGKAN, dan itu yang menjaga posisi gulirnya.
+
+       Versi sebelumnya memanggil bersihkan() lalu inp.focus(): kartu regu,
+       kotak nilai, dan baris foto hilang sekaligus, halaman menyusut dari 929
+       ke 776 piksel — persis setinggi layar, jadi tidak bisa digulir sama
+       sekali — dan gulirannya jatuh ke 0. Petugas yang barusan menekan Simpan
+       di bagian bawah kartu terlempar ke atas setiap kali. Terukur, bukan
+       ditebak.
+
+       Yang tersisa sebagai bukti simpanan: pita notifikasi dan baris baru di
+       "Baru saja tersimpan". Keduanya sudah cukup, dan keduanya muncul tanpa
+       memindahkan apa pun.
+
+       Nomor dadanya juga dibiarkan. Menekan kotaknya memilih seluruh isinya
+       (lihat focusin di bawah), jadi mengetik nomor berikutnya tetap satu
+       gerakan — dan selama belum diketik, kartu regu di layar masih menyebut
+       siapa yang barusan disimpan. */
+    for (const b of baris) {
+      (regu.nilai ||= {})[b.kode] = { nilai_1: b.nilai_1, nilai_2: b.nilai_2 };
+    }
+    for (const kode of dihapus) delete (regu.nilai || {})[kode];
+
     tombol.dataset.jalan = "";
-    inp.value = "";
-    bersihkan();
-    inp.focus();
+    tombol.disabled = false;
     gambarRiwayatNilai();
     notif(`${dada3(dada)} tersimpan.`);
   }, { signal: sinyal });
