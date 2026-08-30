@@ -7696,22 +7696,31 @@ async function gambarLombaNilai(l) {
    memori di tengah acara.
    ------------------------------------------------------------------------ */
 
+/* SATU TOMBOL untuk Mulai DAN Berhenti, di satu tempat.
+   Dua tombol bersebelahan menuntut jempol berpindah di antara dua ketukan yang
+   jaraknya beberapa detik — dan yang kedua, ketukan berhenti, adalah ketukan
+   yang menentukan angkanya. Memindahkan jempol sambil menatap regu yang
+   mendekati garis adalah cara ketukan itu meleset.
+
+   Bahaya khas tombol yang berganti arti di bawah jempol — ketukan kedua yang
+   tidak sengaja langsung menjalankannya lagi — di sini terbatas: angka yang
+   barusan diukur SUDAH masuk ke kotak Waktu pada saat berhenti, jadi jam yang
+   telanjur jalan lagi tidak menghapusnya. Itulah sebabnya kotaknya diisi saat
+   berhenti dan bukan saat Simpan ditekan. */
 const panelStopwatchHtml = () => `
   <div class="stopwatch" id="v2-stopwatch">
     <output class="sw-angka" id="sw-angka">00:00.0</output>
+    <button type="button" class="button button-primary sw-jalan"
+            data-sw="jalan">Mulai</button>
     <div class="sw-tombol">
-      <button type="button" class="button button-primary" data-sw="mulai">Mulai</button>
-      <button type="button" class="button button-danger" data-sw="stop" disabled>Berhenti</button>
       <button type="button" class="button button-secondary" data-sw="ulang"
               title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
               disabled>Ulang</button>
-    </div>
-    <div class="sw-diskualifikasi">
-      <button type="button" class="button button-danger button-small" data-sw="dq"
+      <button type="button" class="button button-danger" data-sw="dq"
               >Diskualifikasi</button>
-      <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
-        menyelesaikan lomba, 0 poin.</span>
     </div>
+    <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
+      menyelesaikan lomba, 0 poin.</span>
   </div>`;
 
 /** Pasang stopwatch pada panel yang sudah tergambar.
@@ -7759,11 +7768,15 @@ function pasangStopwatch(wadah, kotakWaktu, sinyal) {
   // dilepas di sini. Keduanya digantungkan ke sinyal yang sama.
   sinyal.addEventListener("abort", berhentiTik, { once: true });
 
+  /* Tombolnya BERGANTI WARNA, bukan cuma berganti kata. Yang dibaca sambil
+     menatap lapangan adalah warnanya, dan hijau yang berarti "sedang jalan"
+     akan ditekan orang yang mengira ia berarti "mulai". */
   const perbaruiTombol = () => {
     const jalan = mulaiPada !== null;
-    tombol("mulai").disabled = jalan;
-    tombol("mulai").textContent = jalan ? "Berjalan" : (tertahan ? "Lanjut" : "Mulai");
-    tombol("stop").disabled = !jalan;
+    const b = tombol("jalan");
+    b.textContent = jalan ? "Berhenti" : (tertahan ? "Lanjut" : "Mulai");
+    b.classList.toggle("button-danger", jalan);
+    b.classList.toggle("button-primary", !jalan);
     tombol("ulang").disabled = jalan || !tertahan;
   };
 
@@ -7771,13 +7784,13 @@ function pasangStopwatch(wadah, kotakWaktu, sinyal) {
     const b = e.target.closest("[data-sw]");
     if (!b) return;
 
-    if (b.dataset.sw === "mulai" && mulaiPada === null) {
+    if (b.dataset.sw === "jalan" && mulaiPada === null) {
       mulaiPada = performance.now();
       // 100 ms: cukup rapat untuk menggerakkan persepuluh detik, cukup jarang
       // untuk tidak membebani HP yang juga sedang memegang layar ini.
       tik = setInterval(gambar, 100);
       gambar();
-    } else if (b.dataset.sw === "stop" && mulaiPada !== null) {
+    } else if (b.dataset.sw === "jalan") {
       tertahan = terbaca();
       mulaiPada = null;
       berhentiTik();

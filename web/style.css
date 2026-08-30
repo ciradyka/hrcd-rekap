@@ -4418,16 +4418,22 @@ button.pill-number:hover { filter: brightness(.95); }
   font-size: 2.6rem; font-weight: 800; line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
+/* Mulai/Berhenti selebar kartunya dan setinggi 64px: satu tombol, satu
+   tempat, dan sasaran sentuh yang tidak menuntut dilihat sebelum ditekan. */
+.sw-jalan {
+  width: 100%; min-height: 64px; margin-top: .5rem;
+  font-size: 1.3rem; font-weight: 800;
+}
+/* Ulang dan Diskualifikasi TIDAK berjajar dengan tombol jalan — mereka di
+   baris bawah, lebih kecil. Keduanya membatalkan sesuatu, dan jempol yang
+   meleset dari Berhenti ke Diskualifikasi menyimpan 0 poin untuk regu yang
+   menyelesaikan lomba. */
 .sw-tombol { display: flex; gap: .5rem; margin-top: .5rem; }
 .sw-tombol .button { flex: 1 1 0; min-width: 0; }
-/* Diskualifikasi duduk di BARIS SENDIRI, tidak berjajar dengan Berhenti.
-   Keduanya ditekan tergesa di detik yang sama pentingnya, dan jempol yang
-   meleset satu tombol menyimpan 0 poin untuk regu yang menyelesaikan lomba. */
-.sw-diskualifikasi {
-  display: flex; align-items: center; gap: .6rem;
-  margin-top: .6rem; flex-wrap: wrap;
+.sw-catatan {
+  display: block; margin-top: .5rem;
+  font-size: .85rem; font-weight: 700; color: var(--bahaya);
 }
-.sw-catatan { font-size: .85rem; font-weight: 700; color: var(--bahaya); }
 
 /* ---------- ubin foto lomba soal ---------- */
 
