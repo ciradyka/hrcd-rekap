@@ -4432,12 +4432,27 @@ button.pill-number:hover { filter: brightness(.95); }
 /* `position: relative` karena silangnya duduk DI ATAS fotonya. Anchor dan
    tombol jadi bersaudara di dalamnya, bukan bersarang: <button> di dalam <a>
    bukan HTML yang sah, dan tiap browser memperbaikinya dengan caranya sendiri. */
+/* TINGGINYA DIPATOK, bukan mengikuti gambarnya.
+
+   Foto pertama yang terlihat menentukan tinggi petak ini, jadi menghapus foto
+   nomor satu menaikkan foto nomor dua ke tempatnya — dengan perbandingan sisi
+   yang berbeda, tinggi yang berbeda, dan seluruh isi di bawahnya bergeser
+   tepat setelah petugas menekan sesuatu. Tinggi tetap membuat menghapus dan
+   menambah foto tidak memindahkan apa pun.
+
+   `contain` di gambarnya yang mengurus sisanya: potret memenuhi kotak,
+   lanskap diberi pita kosong di atas-bawah. Yang tidak boleh terjadi adalah
+   memotong sisi gambar, karena sisi yang terpotong sering sisi yang memuat
+   angkanya. */
 .foto-lembar {
-  position: relative; flex: 0 0 100%; scroll-snap-align: start;
+  position: relative; flex: 0 0 100%; height: 60vh; scroll-snap-align: start;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
   background: var(--kertas); overflow: hidden;
 }
-.foto-tautan { display: flex; align-items: center; justify-content: center; width: 100%; }
+.foto-tautan {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+}
 /* SILANGNYA TIDAK BERUBAH WARNA SAAT DISENTUH, berbeda dengan .ubin-silang di
    layar Foto Jawaban.
 
@@ -4459,11 +4474,9 @@ button.pill-number:hover { filter: brightness(.95); }
 /* `contain`, bukan `cover`: yang dibaca di sini tulisan tangan, dan sisi yang
    dipotong `cover` justru sering sisi yang memuat angkanya. */
 .foto-lembar img {
-  display: block; width: 100%; max-height: 60vh; object-fit: contain;
+  display: block; width: 100%; height: 100%; object-fit: contain;
 }
-.foto-lembar-kosong {
-  min-height: 8rem; font-size: .85rem; color: var(--tinta-lembut);
-}
+.foto-lembar-kosong { font-size: .85rem; color: var(--tinta-lembut); }
 
 /* ---------- kotak isian kriteria ---------- */
 
