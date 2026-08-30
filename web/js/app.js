@@ -41,7 +41,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba,
-         katalogLomba, stopwatchTeks, detikDariMs } from "./util.js";
+         katalogLomba, stopwatchTeks, detikDariMs,
+         bisaTombolAngka } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
@@ -7539,7 +7540,38 @@ async function gambarLombaNilai(l) {
     gambarIsian(r);
   }
 
-  /** Kotak isian kriteria lomba ini UNTUK GOLONGAN REGU INI.
+  /** Deretan tombol angka untuk satu kriteria.
+ *
+ *  KENAPA BUKAN KOTAK KETIK. Di pos, angka ini diketik sambil berdiri, sering
+ *  satu tangan, dengan papan angka HP yang menutupi separuh layar dan
+ *  mendorong sisanya ke atas. Satu ketukan menggantikan: menekan kotak,
+ *  menunggu papan ketik naik, mengetik, lalu menutupnya lagi.
+ *
+ *  Nilainya tetap tinggal di sebuah `<input>` tersembunyi ber-`data-kode`,
+ *  bukan di dataset tombolnya. Itu yang membuat bacaSel() — satu-satunya
+ *  pembaca isian di berkas ini, dan yang sama dipakai lembar pos lama —
+ *  tidak perlu tahu apa-apa tentang tombol: kotak kosong tetap berarti
+ *  "belum dinilai", dan aturan hapus-vs-abaikan di jalur simpan tetap
+ *  berlaku persis sama.
+ *
+ *  MENEKAN ANGKA YANG SEDANG TERPILIH MEMBATALKANNYA. Tanpa itu, angka yang
+ *  telanjur masuk ke regu yang salah tidak punya satu pun jalan untuk
+ *  dikosongkan lagi — dan mengosongkan adalah persis yang harus dilakukan,
+ *  karena menimpanya dengan 0 berarti mencatat nilai nol yang sah. */
+function selPilihanAngka(k, nilai) {
+  const n = nilai && nilai.nilai_1 !== null && nilai.nilai_1 !== undefined
+    ? Number(nilai.nilai_1) : null;
+  const min = Number(k.rentang_mentah_min), maks = Number(k.rentang_mentah_maks);
+  const angka = [];
+  for (let i = min; i <= maks; i += 1) angka.push(i);
+  return `<div class="pilih-angka" role="group" aria-label="${esc(k.name)}">
+    <input type="hidden" data-kode="${esc(k.kode)}" value="${n === null ? "" : esc(String(n))}">
+    ${angka.map(i => `<button type="button" class="angka-kotak" data-angka="${i}"
+        aria-pressed="${i === n ? "true" : "false"}">${i}</button>`).join("")}
+  </div>`;
+}
+
+/** Kotak isian kriteria lomba ini UNTUK GOLONGAN REGU INI.
    *
    *  varianUntuk() yang memilihnya, sama seperti layar lama — Tebak Simpul
    *  punya empat baris wahana dan regu ini cuma berhak atas satu. Lomba yang
@@ -7561,25 +7593,43 @@ async function gambarLombaNilai(l) {
 
     const nilai = r.nilai || {};
     wadah.hidden = false;
-    wadah.replaceChildren(h(dipakai.map(({ kol, k }) => `
-      <div class="isian-baris">
-        <label class="isian-nama" for="sel-${esc(k.kode)}">
-          ${esc(kol.nama)}<span class="isian-petunjuk">${esc(kol.petunjuk)}</span>
-        </label>
-        ${selKomponen(k, nilai[k.kode])}
-      </div>`).join("")));
+    wadah.replaceChildren(h(dipakai.map(({ kol, k }) => {
+      const tombol = bisaTombolAngka(k);
+      /* Nama kriteria jadi <label for> hanya kalau isiannya SATU kotak. Untuk
+         deretan tombol tidak ada satu sasaran yang benar — `for` yang menunjuk
+         tombol "0" akan memilih nol setiap kali namanya ditekan, dan nol
+         adalah nilai yang sah. Di sana namanya jadi teks biasa, dan yang
+         menyebutkan kelompoknya ke pembaca layar adalah aria-label di
+         .pilih-angka. */
+      return `
+      <div class="isian-baris${tombol ? " isian-pilihan" : ""}">
+        ${tombol
+          ? `<div class="isian-nama">${esc(kol.nama)}<span
+               class="isian-petunjuk">${esc(kol.petunjuk)}</span></div>
+             ${selPilihanAngka(k, nilai[k.kode])}`
+          : `<label class="isian-nama" for="sel-${esc(k.kode)}">
+               ${esc(kol.nama)}<span class="isian-petunjuk">${esc(kol.petunjuk)}</span>
+             </label>
+             ${selKomponen(k, nilai[k.kode])}`}
+      </div>`;
+    }).join("")));
 
     /* selKomponen menulis data-kode, bukan id — id-nya dipasang di sini
        supaya <label for> punya sasaran. Menekan nama kriterianya lalu
        mendarat di kotaknya adalah sasaran sentuh selebar barisnya, dan di HP
-       itulah yang membedakan kotak 32px dari baris 44px. */
+       itulah yang membedakan kotak 32px dari baris 44px. Kotak tersembunyi
+       milik deretan tombol dilewati: ia tidak bisa difokuskan, dan <label>
+       yang menunjuknya tidak melakukan apa pun. */
     dipakai.forEach(({ k }) => {
       const el = wadah.querySelector(`[data-kode="${CSS.escape(k.kode)}"]`);
-      if (el) el.id = `sel-${k.kode}`;
+      if (el && el.type !== "hidden") el.id = `sel-${k.kode}`;
     });
 
     const kunci = !!r.terkunci;
-    wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
+    // Tombol angkanya ikut dimatikan, bukan cuma <input>-nya. Kotak yang masih
+    // bisa ditekan tapi selalu ditolak adalah jebakan, dan penolakannya baru
+    // muncul sesudah petugas mengira angkanya sudah masuk.
+    wadah.querySelectorAll("input, .angka-kotak").forEach(el => { el.disabled = kunci; });
     tombol.disabled = kunci;
     tombol.textContent = kunci ? "TERGEMBOK" : "SIMPAN NILAI";
 
@@ -7606,6 +7656,19 @@ async function gambarLombaNilai(l) {
     // harus ikut membaca isi kotak YANG BARU, bukan kotak regu sebelumnya.
     segarkanStopwatch?.();
   }
+
+  /* Ketukan angka. Menekan angka yang SEDANG terpilih membatalkannya —
+     lihat selPilihanAngka(). */
+  wadah.addEventListener("click", (e) => {
+    const b = e.target.closest(".angka-kotak");
+    if (!b || b.disabled) return;
+    const grup = b.closest(".pilih-angka");
+    const simpanan = grup.querySelector("input[data-kode]");
+    const batal = b.getAttribute("aria-pressed") === "true";
+    grup.querySelectorAll(".angka-kotak").forEach(x =>
+      x.setAttribute("aria-pressed", String(!batal && x === b)));
+    simpanan.value = batal ? "" : b.dataset.angka;
+  }, { signal: sinyal });
 
   // Enter di kotak isian = simpan. Di sini ia memang aksi terakhir barisnya:
   // sesudah angkanya diketik, petugas tidak punya urusan lain dengan regu itu.
@@ -7739,10 +7802,16 @@ const panelStopwatchHtml = () => `
               title="Mulai" aria-label="Mulai">${ikon("play", "ikon sw-ikon")}</button>
     </div>
     <div class="sw-kendali sw-kendali-bawah">
-      <button type="button" class="sw-bulat sw-ulang" data-sw="ulang"
+      <!-- BERTULISAN, tidak berlambang, berbeda dengan play/stop di atasnya.
+           Play dan stop punya lambang yang sudah dikenal dari alat perekam
+           mana pun; reset tidak — panah melingkar dipakai juga untuk "muat
+           ulang", "putar ulang", dan "kembalikan", dan yang ini artinya
+           menghapus hitungan. Satu kata menyelesaikannya, dan tombol ini
+           ditekan sambil menatap layar, bukan sambil menatap lapangan. -->
+      <button type="button" class="button button-secondary button-small sw-ulang"
+              data-sw="ulang"
               title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
-              aria-label="Kembalikan penunjuk ke nol"
-              disabled>${ikon("rotate-ccw", "ikon sw-ikon")}</button>
+              disabled>Reset</button>
     </div>
     <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
       menyelesaikan lomba, 0 poin.</span>
