@@ -18,7 +18,9 @@
 # Selama status_acara.fase_live masih 'progres', v_klasemen_publik memang
 # mengembalikan nol baris dan v_progres_publik tidak memuat satu pun angka
 # nilai. Fase 'top10' hanya menerbitkan maksimal sepuluh regu eligible per
-# golongan beserta totalnya; fase 'penuh' menerbitkan papan lengkap.
+# golongan beserta totalnya; fase 'penuh' menerbitkan papan lengkap; fase
+# 'juara' menutup papan sepenuhnya dan menerbitkan daftar juara — tanpa satu
+# angka skor pun, karena kolomnya memang tidak ada di v_kejuaraan_publik.
 #
 # CRON 15 MENIT AKTIF HANYA 29 AGUSTUS 2026, 08:00-23:59 WIB. Cron memakai
 # UTC dan tidak punya kolom tahun, jadi jadwal memilih 01:00-16:45 UTC lalu
@@ -130,7 +132,8 @@ jobs:
 
           d = json.load(open('/tmp/rekap-utuh.json'))
           for k in ('dibuat_pada', 'fase', 'edisi', 'ringkas', 'pos',
-                    'komponen', 'kelengkapan', 'progres', 'klasemen'):
+                    'komponen', 'kelengkapan', 'progres', 'klasemen',
+                    'kejuaraan'):
               if k not in d:
                   sys.exit(f'kunci {k} hilang dari keluaran live_json.sql')
 
@@ -158,6 +161,28 @@ jobs:
           # Pagar kebocoran, dijaga di sini SEKALIGUS di view (0005/0026).
           if d['fase'] not in ('penuh', 'top10') and d['klasemen']:
               sys.exit('BOCOR: klasemen ikut tertulis pada fase yang tertutup')
+          # Daftar juara hanya pada fase 'juara' (0163), dan tidak pernah
+          # membawa satu angka skor pun. Kunci yang dilarang disebut satu per
+          # satu DAN apa pun yang bertipe angka ikut ditolak: penghargaan
+          # berikutnya bisa membawa kolom baru bernama lain, dan pagar yang
+          # cuma menyebut nama tidak akan melihatnya (CLAUDE.md 13.3).
+          # `nomor_dada` dikecualikan — ia identitas regu, sama terbukanya
+          # dengan namanya sendiri, dan sudah tercetak di punggung mereka.
+          if d['fase'] != 'juara' and d['kejuaraan']:
+              sys.exit('BOCOR: kejuaraan tertulis padahal fase belum juara')
+          for baris in d['kejuaraan']:
+              for kunci, isi in baris.items():
+                  if kunci in ('nomor_dada', 'urutan'):
+                      continue
+                  if isinstance(isi, bool) or isi is None:
+                      continue
+                  if isinstance(isi, (int, float)):
+                      sys.exit(f'BOCOR: angka {kunci} ikut ke daftar juara')
+          # Fase juara menutup papan, dan itu bagian dari janjinya: yang
+          # dilihat peserta di sana HANYA kejuaraan. Kedua view memang sudah
+          # menutup sendiri; kalau suatu hari tidak lagi, berhenti di sini.
+          if d['fase'] == 'juara' and (d['klasemen'] or d['progres']):
+              sys.exit('BOCOR: papan ikut tertulis pada fase juara')
           if d['fase'] == 'top10':
               per_golongan = {}
               for baris in d['klasemen']:
@@ -192,7 +217,8 @@ jobs:
                       if baris.get(kunci):
                           sys.exit(f'BOCOR: {kunci} per komponen tertulis padahal fase belum penuh')
 
-          rekap = {'progres': d['progres'], 'klasemen': d['klasemen']}
+          rekap = {'progres': d['progres'], 'klasemen': d['klasemen'],
+                   'kejuaraan': d['kejuaraan']}
           sidik = hashlib.sha256(json.dumps(
               rekap, sort_keys=True, separators=(',', ':'),
               default=str).encode('utf-8')).hexdigest()[:12]
@@ -227,7 +253,8 @@ jobs:
 
           import os
           print(f"fase={d['fase']} versi={sidik} regu={len(d['progres'])} "
-                f"klasemen={len(d['klasemen'])} pos={len(d['pos'])} "
+                f"klasemen={len(d['klasemen'])} juara={len(d['kejuaraan'])} "
+                f"pos={len(d['pos'])} "
                 f"live.json={os.path.getsize('live/live.json')}B "
                 f"rekap.json={os.path.getsize('live/rekap.json')}B")
           PY

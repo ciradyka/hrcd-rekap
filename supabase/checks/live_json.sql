@@ -67,5 +67,14 @@ select jsonb_pretty(jsonb_build_object(
 
   'klasemen', (select coalesce(jsonb_agg(to_jsonb(k)
                         order by k.golongan, k.peringkat, k.nomor_dada), '[]'::jsonb)
-               from v_klasemen_publik k)
+               from v_klasemen_publik k),
+
+  -- Daftar juara (0163). Nol baris di luar fase 'juara' — pagarnya di dalam
+  -- view, sama seperti kedua saudaranya di atas, jadi tidak ada cara
+  -- menerbitkannya lebih awal dengan salah menyunting berkas ini. Tidak ada
+  -- satu pun kolom skor di sana; yang terbit cuma nama penghargaan dan siapa
+  -- yang menerimanya.
+  'kejuaraan', (select coalesce(jsonb_agg(to_jsonb(j) order by j.urutan),
+                       '[]'::jsonb)
+                from v_kejuaraan_publik j)
 ));

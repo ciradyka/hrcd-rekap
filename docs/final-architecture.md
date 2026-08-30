@@ -6,10 +6,13 @@ dokumen ini, **dokumen ini yang benar** — keduanya catatan keputusan, ditulis
 sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
-sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0162`: angka
-tabel, view, RPC, policy, check dan pemicu DIHITUNG ULANG dari database, dan
-bagian 3 diperiksa terhadap layar. Isi bagian 2 sampai 9 selebihnya belum
-dibaca ulang baris demi baris terhadap `0119`-`0162`.
+sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0163`:
+angka tabel, view, RPC, policy, check dan pemicu DIHITUNG ULANG dari database
+sampai `0162`, dan bagian 3 diperiksa terhadap layar. `0163` — fase live
+kelima `juara` beserta `v_kejuaraan_publik` dan `hasil_kejuaraan_semua()` —
+mendarat sesudah penghitungan itu, jadi angka view dan fungsi di bagian 2
+kurang satu masing-masing. Isi bagian 2 sampai 9 selebihnya belum dibaca
+ulang baris demi baris terhadap `0119`-`0163`.
 
 Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
@@ -74,7 +77,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-162 migrasi, `0001` sampai `0162`, dijalankan berurutan tanpa lubang penomoran.
+163 migrasi, `0001` sampai `0163`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 

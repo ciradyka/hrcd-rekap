@@ -583,9 +583,6 @@ run supabase/migrations/0126_nama_regu_kapital.sql
 run tests/sql/85_nama_regu_kapital.sql
 run tests/sql/83_pembayaran_pilihan_pembina.sql
 run tests/sql/77_nama_anggota_regu.sql
-# Parse dan jalankan query yang benar-benar menjadi live.json setelah seluruh
-# migrasi. Ini menangkap view/kolom yang berganti sebelum workflow publish.
-run supabase/checks/live_json.sql
 # Reset data operasional harus mempertahankan seluruh master Asal Sekolah.
 # Ditaruh paling akhir karena cleanup memang mengosongkan pendaftaran, regu,
 # nilai, dan data operasional lain yang dipakai tes sebelumnya.
@@ -722,5 +719,19 @@ run supabase/migrations/0161_lebur_kembar_ejaan.sql
 run tests/sql/113_lebur_kembar_ejaan.sql
 run supabase/migrations/0162_lebur_smp_al_fadliliyah.sql
 run tests/sql/114_lebur_smp_al_fadliliyah.sql
+run supabase/migrations/0163_fase_juara.sql
+run tests/sql/115_fase_juara.sql
+
+# Parse dan jalankan query yang benar-benar menjadi live.json, SESUDAH
+# seluruh migrasi. Ini menangkap view atau kolom yang berganti sebelum
+# workflow publish menemukannya di produksi.
+#
+# Barisnya dulu duduk di antara 0126 dan 0127 dengan komentar yang sudah
+# berbunyi "setelah seluruh migrasi" — benar saat ditulis, lalu 37 migrasi
+# mendarat di bawahnya dan tidak ada yang memindahkannya. Yang menemukannya
+# 0163: view barunya lahir 37 baris SESUDAH query yang membacanya, jadi
+# run.sh berhenti pada 'relation v_kejuaraan_publik does not exist'. Kalau
+# ada migrasi baru, ia masuk di ATAS baris ini.
+run supabase/checks/live_json.sql
 
 echo "SEMUA TES LULUS"

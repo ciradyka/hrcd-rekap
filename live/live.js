@@ -120,7 +120,18 @@ let mengambil = false;  // penjaga supaya tidak dua permintaan sekaligus
 // Top 10 membuka lebih sedikit data daripada Live penuh. Karena fase database
 // hanya boleh memperketat berkas yang sudah terbit, urutannya berada di antara
 // Progress dan Live meskipun tombolnya ditaruh setelah Live di layar panitia.
-const URUT_FASE = { pra: 0, progres: 1, top10: 2, penuh: 3 };
+//
+// `juara` paling terbuka, dan itu benar walaupun berkasnya justru memuat
+// PALING SEDIKIT: yang diukur urutan ini bukan besar berkasnya melainkan
+// seberapa jauh isinya boleh dibuka. Daftar juara adalah kabar yang tidak
+// bisa ditarik kembali, jadi tidak ada fase lain yang boleh menampilkannya.
+//
+// Akibat yang perlu diketahui panitia: menurunkan saklar dari Juara ke Live
+// TIDAK mengembalikan papan. Berkas fase juara memang tidak memuat satu baris
+// klasemen pun, jadi yang tergambar papan kosong sampai rekap diterbitkan
+// ulang — persis aturan CLAUDE.md 14.3: mematikan seketika, menyalakan tetap
+// lewat penerbitan.
+const URUT_FASE = { pra: 0, progres: 1, top10: 2, penuh: 3, juara: 4 };
 // Fase database hanya memperketat isi berkas. Ia harus sempat menjawab sebelum
 // gambar pertama, tetapi tidak boleh menahan papan CDN lebih dari beberapa
 // detik ketika origin Supabase sedang sulit dijangkau.
@@ -544,6 +555,81 @@ function gambarTab(semua) {
   }).join("")}</div>`;
 }
 
+/* ---------------------------------------------------------------------------
+   Fase 'juara' — daftar juara, dan TIDAK ADA YANG LAIN.
+
+   Papan klasemen tidak digambar di sini bukan karena disembunyikan: berkas
+   yang terbit pada fase ini memang tidak memuat satu baris klasemen pun
+   (v_klasemen_publik dan v_progres_publik dua-duanya menutup di luar fasenya,
+   migrasi 0163). Yang sudah selesai adalah juaranya; urutan sementara tidak
+   lagi menjawab pertanyaan siapa pun.
+
+   TIDAK ADA SATU ANGKA SKOR di layar ini, dan itu juga bukan keputusan
+   tampilan — kolomnya tidak ada di berkasnya. Nomor dada tetap ditulis: ia
+   identitas regu, sudah tercetak di punggung mereka sejak pagi, dan tanpa itu
+   dua regu bernama mirip tidak bisa dibedakan dari kursi penonton.
+   ------------------------------------------------------------------------- */
+/** Satu penerima gelar: regu, sekolah, atau belum ada. */
+const penerimaJuara = (j) => {
+  if (j.nama_regu) return `
+    <strong>${esc(dada(j.nomor_dada))} · ${esc(j.nama_regu)}</strong>
+    <span class="keterangan">${esc(j.nama_sekolah || "")}</span>`;
+  if (j.nama_sekolah) return `<strong>${esc(j.nama_sekolah)}</strong>`;
+  return `<span class="keterangan">Belum ditentukan</span>`;
+};
+
+function gambarKejuaraan() {
+  const daftar = (REKAP && REKAP.kejuaraan) || [];
+  if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
+  if (!daftar.length) return `
+    <div class="kartu tengah">
+      <p class="keterangan">Daftar juara belum terbit.</p></div>`;
+
+  /* Label bagian dan pemotong awalannya SAMA dengan layar panitia — di sana
+     `nama_penghargaan` berbunyi "Penegak PA Juara I" dan judul kartunya sudah
+     menyebut golongannya, jadi yang tersisa di baris cuma "Juara I".
+     Nama golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini:
+     periksa_urutan_golongan.py yang menjaga daftar itu tetap satu. */
+  const gelarGolongan = (g) => ({
+    judul: GOLONGAN[g],
+    masuk: (j) => j.kode.startsWith(g + "_"),
+    label: (j) => j.nama_penghargaan.replace(GOLONGAN[g] + " ", ""),
+  });
+
+  const bagian = [
+    { judul: "Juara Umum", masuk: (j) => j.kode.startsWith("juara_umum"),
+      label: (j) => j.nama_penghargaan.replace(/^Juara Umum ?/, "") || "UMUM",
+      kelas: "juara-umum" },
+    ...URUT_GOLONGAN_PESERTA.map(gelarGolongan),
+    { judul: "Juara Kostum", masuk: (j) => j.kode.startsWith("kostum_"),
+      label: (j) => j.nama_penghargaan.replace(/^Juara Kostum /, "") },
+    { judul: "Juara Yel Yel", masuk: (j) => j.kode.startsWith("yel_yel_"),
+      label: (j) => j.nama_penghargaan.replace(/^Juara Yel Yel /, "") },
+    { judul: "Peserta Terfavorit", masuk: (j) => j.kode.startsWith("terfavorit_"),
+      label: (j) => j.nama_penghargaan.replace(/^Peserta Terfavorit /, "") },
+    { judul: "Penghargaan Khusus",
+      masuk: (j) => j.kode === "terjauh" || j.kode === "peserta_terbanyak",
+      label: (j) => j.nama_penghargaan },
+  ];
+
+  /* Kartu yang tidak kebagian satu baris pun DIBUANG, bukan digambar kosong.
+     Penghargaan pilihan panitia bisa saja tidak dipakai tahun ini, dan kartu
+     berjudul tanpa isi terbaca seperti hasil yang hilang. */
+  return bagian.map(b => {
+    const isi = daftar.filter(b.masuk);
+    if (!isi.length) return "";
+    return `
+    <div class="kartu kartu-juara ${b.kelas || ""}">
+      <h2>${esc(b.judul)}</h2>
+      <table class="tabel tabel-juara"><tbody>
+        ${isi.map(j => `
+          <tr><th>${esc(b.label(j))}</th>
+              <td>${penerimaJuara(j)}</td></tr>`).join("")}
+      </tbody></table>
+    </div>`;
+  }).join("");
+}
+
 function gambarPapan() {
   if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
   const penuh = fase() === "penuh";
@@ -861,21 +947,29 @@ function gambar() {
   const isi = document.getElementById("isi");
   if (!META) return;
 
+  /* Judulnya ikut berganti di fase juara. "Live Score" menjanjikan angka
+     yang berjalan; yang tergambar di bawahnya daftar yang sudah selesai. */
+  const namaLayar = fase() === "juara" ? "Kejuaraan" : "Live Score";
   document.getElementById("judul").textContent =
-    `Live Score${META.edisi ? ` — ${META.edisi.name}` : ""}`;
-  document.title = `Live Score — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
+    `${namaLayar}${META.edisi ? ` — ${META.edisi.name}` : ""}`;
+  document.title = `${namaLayar} — ${META.edisi ? META.edisi.name : "Hiking Rally Ciradyka"}`;
   const tombolCetak = document.getElementById("buka-cetak");
   if (tombolCetak) tombolCetak.hidden = fase() !== "penuh" || !REKAP;
 
-  // Top 10 sengaja hanya membawa papan ringkas. Pada fase lain susunannya
-  // sama dengan layar panitia: kemajuan di atas, lalu tab golongan, lalu
-  // papan klasemen.
+  // Top 10 sengaja hanya membawa papan ringkas, dan Juara tidak membawa papan
+  // sama sekali. Pada fase lain susunannya sama dengan layar panitia:
+  // kemajuan di atas, lalu tab golongan, lalu papan klasemen.
   isi.innerHTML = !mulai()
     ? gambarPra()
+    : fase() === "juara"
+    ? gambarKejuaraan()
     : (fase() === "top10" ? "" : gambarKelengkapan()) + gambarPapan();
 
-  if (mulai()) pasangPapan();
-  pasangKemajuan();
+  // pasangPapan() memasang pencarian sekolah dan tab golongan — dua hal yang
+  // tidak ada di layar juara. Memanggilnya di sana bukan sekadar mubazir:
+  // ia membaca elemen yang tidak digambar.
+  if (mulai() && fase() !== "juara") pasangPapan();
+  if (fase() !== "juara") pasangKemajuan();
   gambarSinkron();
   kunciTergambar = kunciGambar();
 }

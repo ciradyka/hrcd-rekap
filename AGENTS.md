@@ -582,10 +582,20 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 
 ## 14. Fase live
 
-1. **Tiga fase, dan artinya di layar peserta:**
+1. **Lima fase, dan artinya di layar peserta:**
    - `pra` — peserta tidak melihat apa pun selain ajakan mendaftar
    - `progres` — peserta melihat CENTANG per komponen, bukan nilainya
    - `penuh` — peserta melihat yang sama dengan panitia
+   - `top10` — peserta melihat maksimal sepuluh regu berperingkat per
+     golongan beserta totalnya, tanpa poin per pos (migrasi 0145)
+   - `juara` — papan diganti DAFTAR JUARA, dan tidak ada yang lain
+     (migrasi 0163)
+
+   Pasal ini berbunyi "Tiga fase" sampai 30 Agustus 2026, sementara `top10`
+   sudah hidup sejak 0145. Yang membaca daftar ini lalu menambah fase
+   berikutnya tidak punya alasan menduga ada fase keempat yang tidak
+   disebut — dan setiap fase yang tidak disebut adalah satu pagar "BOCOR"
+   yang tidak ikut diperiksa. Kalau fase bertambah lagi, tambahkan DI SINI.
 2. **Saklarnya di layar Live Score panitia**, hanya untuk pemegang
    `pengaturan`, lewat RPC `atur_fase_live`.
 3. **Mematikan seketika, menyalakan tetap lewat penerbitan.** Halaman peserta
@@ -604,6 +614,32 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 6. **`UPDATE` tanpa `WHERE` ditolak Supabase.** Ekstensi `safeupdate` aktif di
    produksi tapi TIDAK ada di database uji, jadi tes lokal bisa hijau
    sementara RPC-nya gagal di layar. Tulis `WHERE` yang memang berarti.
+7. **Fase `juara` menutup papan dengan sendirinya, bukan dengan JavaScript.**
+   `v_klasemen_publik` hanya membuka pada `penuh` dan `top10`,
+   `v_progres_publik` hanya pada `progres` dan `penuh`. Jadi berkas yang
+   terbit pada fase ini memuat daftar juara dan TIDAK memuat papan — pasal 4
+   dipenuhi tanpa satu pagar tambahan pun.
+8. **Daftar juara terbit TANPA satu angka skor**, dan itu keputusan pemilik
+   acara. `v_kejuaraan_publik` tidak punya kolom `total`, `poin_juara`,
+   maupun `jumlah_skor` — bukan disembunyikan tampilan, memang tidak ada.
+   Nomor dada tetap ikut: ia identitas regu, sudah tercetak di punggung
+   mereka sejak pagi. Pagar di `publish-live.yml` menolak APA PUN yang
+   bertipe angka di daftar itu selain nomor dada dan urutan, jadi kolom baru
+   bernama lain ikut tertangkap (pasal 13.3).
+9. **Menurunkan saklar dari Juara ke Live TIDAK mengembalikan papan.**
+   Berkas fase juara memang tidak memuat satu baris klasemen pun, dan pasal
+   3 melarang layar menampilkan lebih dari isi berkasnya — jadi yang
+   tergambar papan kosong sampai rekap diterbitkan ulang. Itu bukan bug; itu
+   pasal 3 bekerja. Yang perlu diketahui panitia: urutan kerjanya nyalakan
+   fasenya dulu, terbitkan sesudahnya, dan itu berlaku ke DUA arah.
+10. **Pagar hak daftar juara ada di SATU tempat, `hasil_kejuaraan()`**
+    (migrasi 0163). Penyusunnya — `hasil_kejuaraan_dasar()` dan
+    `hasil_kejuaraan_semua()` — sengaja tanpa `boleh('live_score')` di
+    dalamnya, karena penerbit tersambung sebagai pemilik database dan
+    `auth.uid()` di sana NULL: pagar di dalam penyusun membuat berkas terbit
+    berisi NOL penghargaan tanpa satu pun galat. Yang menjaga keduanya
+    tinggal `revoke all ... from public, anon, authenticated`. Jangan
+    memberi mereka grant, dan jangan memindahkan pagarnya kembali ke dalam.
 
 ---
 
