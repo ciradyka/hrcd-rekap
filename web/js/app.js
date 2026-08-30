@@ -4515,15 +4515,23 @@ async function layarInputPos() {
        Namanya tidak hilang, cuma pindah: `title` untuk kursor di layar lebar,
        `aria-label` di input untuk pembaca layar — dan aria-label-nya menyebut
        nama lombanya, karena "Kamera" saja tidak memberi tahu kamera yang
-       mana dari lima yang ada. */
+       mana dari lima yang ada.
+
+       TOMBOL "LIHAT" IKUT MASUK ke .f-aksi, tidak berdiri sebagai anak <li>
+       sendiri. Ketiganya adalah satu kelompok tombol di kanan baris, dan
+       barisnya sekarang grid dua kolom (lihat style.css) — satu area untuk
+       tombol, bukan tiga anak yang bisa terpisah sendiri-sendiri. Selama ia
+       di luar, baris yang sudah punya foto memuat nama + keterangan + Lihat
+       di baris pertama dan MENDORONG pasangan Kamera/Galeri turun ke baris
+       kedua. */
     const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => `
       <li data-kode="${esc(kode)}" data-nama="${esc(nama)}">
         <span class="f-nama">${esc(nama)}</span>
         <span class="f-jumlah" data-jumlah>${hitung[kode]
           ? `${esc(String(hitung[kode]))} foto` : "belum ada"}</span>
-        <button type="button" class="button button-mini" data-lihat
-          ${hitung[kode] ? "" : "hidden"}>Lihat</button>
         <span class="f-aksi">
+          <button type="button" class="button button-mini" data-lihat
+            ${hitung[kode] ? "" : "hidden"}>Lihat</button>
           <label class="button button-mini button-primary" title="Kamera">
             <input type="file" accept="image/*" capture="environment" multiple
                    hidden data-ambil
