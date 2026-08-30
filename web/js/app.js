@@ -5564,7 +5564,12 @@ async function layarLiveScore() {
         <span class="js-persen">${esc(String(persenSemua))}%</span>
         <span class="kr-panah" aria-hidden="true">▾</span>
       </button>
-      <div class="description">Update ${esc(tanggalJam(snapshot.dibuat_pada))}</div>
+      <div class="description toolbar-kanan">
+        <span>Update ${esc(tanggalJam(snapshot.dibuat_pada))}</span>
+        <button type="button" class="icon-button icon-button-inline"
+                id="refresh-live-score" aria-label="Refresh Live Score"
+                title="Refresh Live Score">${ikonRefresh}</button>
+      </div>
       <ul class="kemajuan" id="kemajuan-rinci">
         ${pos.map(p => {
           const s = persenPos(p);
@@ -5929,6 +5934,13 @@ async function layarLiveScore() {
       tombolKemajuan.classList.toggle("terbuka", buka);
     });
   }
+
+  /* Refresh diminta petugas, bukan berjalan sendiri. Menggambar ulang lewat
+     fungsi layar yang sama memastikan snapshot skor, status acara, dan cap
+     update berasal dari satu pemuatan baru. */
+  document.getElementById("refresh-live-score")?.addEventListener("click", () => {
+    layarLiveScore();
+  });
 
   /* Kepala tabel Live Score ada DUA baris, dan keduanya menempel di atas.
      Aturan umum `.data-table thead th` memaku semuanya di `top: 0`, jadi baris
