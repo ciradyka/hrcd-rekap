@@ -4628,6 +4628,22 @@ button.pill-number:hover { filter: brightness(.95); }
    regunya menempel ke kotak lomba di bawahnya dan keduanya terbaca sebagai
    satu blok — padahal yang satu identitas dan yang satu lagi nilai. */
 .cek-identitas { margin-bottom: .9rem; }
+.cek-kunci {
+  display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+  margin-top: .5rem;
+}
+.cek-kunci-ket { font-size: .85rem; color: var(--tinta-lembut); }
+/* Kotak isian per lomba, ditumpuk di tengah seperti di layar input — admin
+   yang berpindah antara dua layar tidak boleh menemui dua bentuk untuk satu
+   hal. Tombol simpannya di bawah kotaknya, bukan di ujung halaman: yang
+   dibetulkan satu lomba pada satu waktu. */
+.cek-isian {
+  display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  margin: .4rem 0 .2rem;
+}
+.cek-isian .isian-baris { border: 0; padding: 0; gap: .25rem; }
+.cek-isian .small-input { font-size: 1.4rem; min-height: 52px; }
+.cek-isian [data-simpan-lomba] { min-width: 8rem; }
 /* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
    angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
    antara keduanya. */
