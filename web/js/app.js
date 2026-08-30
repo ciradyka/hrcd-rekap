@@ -8060,30 +8060,30 @@ async function gambarLombaNilai(l) {
     catatLomba(l, dada3(dada),
       `${nama}${ringkasan.length ? ` · ${ringkasan.join(" · ")}` : ""}`);
 
-    /* LAYARNYA TIDAK DIKOSONGKAN, dan itu yang menjaga posisi gulirnya.
+    /* LAYARNYA DIKOSONGKAN DAN FOKUS KEMBALI KE KOTAK NOMOR DADA.
 
-       Versi sebelumnya memanggil bersihkan() lalu inp.focus(): kartu regu,
-       kotak nilai, dan baris foto hilang sekaligus, halaman menyusut dari 929
-       ke 776 piksel — persis setinggi layar, jadi tidak bisa digulir sama
-       sekali — dan gulirannya jatuh ke 0. Petugas yang barusan menekan Simpan
-       di bagian bawah kartu terlempar ke atas setiap kali. Terukur, bukan
-       ditebak.
+       Satu regu selesai berarti regu berikutnya sudah berdiri di depan
+       petugas, dan pekerjaan berikutnya SELALU sama: ketik nomor dadanya.
+       Mengembalikan layar ke keadaan itu menghemat dua gerakan per regu —
+       menggulir ke atas, lalu mengosongkan kotaknya — dikalikan ratusan regu
+       sepagi.
 
-       Yang tersisa sebagai bukti simpanan: pita notifikasi dan baris baru di
-       "Baru saja tersimpan". Keduanya sudah cukup, dan keduanya muncul tanpa
-       memindahkan apa pun.
+       INI PERNAH DIBALIK, dan pembalikannya dibatalkan; kedua kalinya
+       diputuskan pemilik acara. Yang membuatnya sempat terlihat salah:
+       halamannya menyusut dari 929 ke 776 piksel saat dikosongkan — persis
+       setinggi layar — jadi gulirannya jatuh ke 0 dan terbaca seperti layar
+       yang melompat sendiri. Ia memang melompat; lompatan itu yang diinginkan.
 
-       Nomor dadanya juga dibiarkan. Menekan kotaknya memilih seluruh isinya
-       (lihat focusin di bawah), jadi mengetik nomor berikutnya tetap satu
-       gerakan — dan selama belum diketik, kartu regu di layar masih menyebut
-       siapa yang barusan disimpan. */
-    for (const b of baris) {
-      (regu.nilai ||= {})[b.kode] = { nilai_1: b.nilai_1, nilai_2: b.nilai_2 };
-    }
-    for (const kode of dihapus) delete (regu.nilai || {})[kode];
-
+       YANG TIDAK BOLEH IKUT MELOMPAT adalah menghapus foto. Di sana petugas
+       sedang di tengah memeriksa, bukan menyelesaikan satu regu, dan tidak ada
+       "berikutnya" yang menunggu di atas layar. Karena itu segarkanFotoLomba()
+       hanya menggambar ulang petak fotonya dan tidak menyentuh apa pun di
+       luar itu — dan tinggi petaknya dipatok supaya jumlah foto yang berubah
+       tidak menggeser isi di bawahnya. */
     tombol.dataset.jalan = "";
-    tombol.disabled = false;
+    inp.value = "";
+    bersihkan();
+    inp.focus();
     gambarRiwayatNilai();
     notif(`${dada3(dada)} tersimpan.`);
   }, { signal: sinyal });
