@@ -129,7 +129,7 @@ function sinyalLayarBaru() {
 const putusSaatPindah = (sinyal, pengamat) =>
   sinyal.addEventListener("abort", () => pengamat.disconnect(), { once: true });
 
-const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [], nilai: [] };
+const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
 
 /* ---------------- kerangka ---------------- */
 
@@ -7250,6 +7250,28 @@ async function layarFoto() {
    ketukan, dan hanya bagi orang yang MENINGGALKAN layarnya — sepanjang shift
    petugas tidak pernah pergi dari sini. */
 
+/** "Baru saja tersimpan", SATU LARIK PER LOMBA.
+ *
+ *  Satu juri memegang satu lomba sepanjang pagi, dan yang ia perlu lihat di
+ *  bawah layarnya cuma regu yang BARU SAJA ia nilai — untuk menjawab "tadi
+ *  004 sudah masuk belum?" tanpa mengetik nomornya lagi.
+ *
+ *  Sebelumnya larik ini satu untuk seluruh lomba, jadi layar Bakiak
+ *  menuliskan baris Semaphore yang disimpan setengah jam sebelumnya oleh
+ *  orang yang sama di layar lain. Itu bukan sekadar keramaian: daftar yang
+ *  memuat lomba lain membuat "sudah masuk belum" terjawab SALAH, karena regu
+ *  yang tercantum di sana ternyata tercatat untuk lomba yang bukan ini.
+ *
+ *  Berkunci `kunci` katalog (pos + kode lomba), bukan kode lomba saja —
+ *  "kekompakan" dipakai PBB di Pos 4 dan Yel-Yel di Pos 5. */
+const terakhirLomba = new Map();
+
+const catatLomba = (l, apa, detail) => {
+  const daftar = terakhirLomba.get(l.kunci) || [];
+  daftar.unshift({ jam: jamMenit(new Date()), apa, detail });
+  terakhirLomba.set(l.kunci, daftar);
+};
+
 /** Katalog pos + komponen, dipegang seumur sesi.
  *
  *  Keduanya KONFIGURASI: diisi admin sebelum acara dan tidak berubah
@@ -7749,8 +7771,11 @@ function selPilihanAngka(k, nilai) {
       if (segar) poin = segar.nilai_pos;
     } catch { /* nilainya tetap tersimpan; angka ringkasnya saja yang absen */ }
 
-    catatTerakhir("nilai", dada3(dada),
-      `${nama} — ${l.nama}${poin === null ? "" : ` · ${angkaRapi(poin)} poin`}`);
+    // Nama lombanya tidak ikut ditulis: daftar ini sudah hanya berisi lomba
+    // ini, dan kepala layar di atasnya sudah menyebutkan namanya. Dua label
+    // untuk satu fakta tidak saling menguatkan (bagian 9.3).
+    catatLomba(l, dada3(dada),
+      `${nama}${poin === null ? "" : ` · ${angkaRapi(poin)} poin`}`);
     tombol.dataset.jalan = "";
     inp.value = "";
     bersihkan();
@@ -7760,7 +7785,7 @@ function selPilihanAngka(k, nilai) {
   }, { signal: sinyal });
 
   function gambarRiwayatNilai() {
-    const daftar = terakhir.nilai || [];
+    const daftar = terakhirLomba.get(l.kunci) || [];
     document.getElementById("v2-riwayat").replaceChildren(h(
       daftar.length ? `
         <div class="card">
@@ -8344,7 +8369,7 @@ async function gambarLombaSoal(l) {
       return;
     }
 
-    catatTerakhir("nilai", dada3(dada), `${r.nama_regu} — ${l.nama}`);
+    catatLomba(l, dada3(dada), r.nama_regu);
     notif(`${dada3(dada)} tersimpan beserta fotonya.`);
     buangUbin(u, el);
   }
