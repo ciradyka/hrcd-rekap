@@ -4600,29 +4600,69 @@ button.pill-number:hover { filter: brightness(.95); }
 
 /* ---------- cek nilai ---------- */
 
+/* Panah - nomor dada - panah. Nomor dadanya di TENGAH karena di situlah mata
+   mencarinya, dan panahnya cuma selebar jempol di kedua sisinya. */
 .cek-navigasi {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: stretch; justify-content: center;
   gap: .6rem; margin-top: .4rem;
 }
-.cek-posisi { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* `width: auto` WAJIB disebut: `.button` dasar memasang `width: 100%`, dan
+   `flex: 0 0 auto` tidak membatalkannya — basisnya jadi 100% lebar wadah, jadi
+   kedua panah memakan seluruh baris dan kotak nomor dadanya tersisa 28px.
+   Terukur di browser, bukan ditebak; `.button-small` menyebut hal yang sama
+   untuk alasan yang sama. */
+.cek-panah {
+  flex: 0 0 auto; width: auto; min-width: 3.4rem;
+  font-size: 1.5rem; line-height: 1; padding: .2rem .6rem;
+}
+.cek-dada {
+  flex: 1 1 auto; min-width: 0; max-width: 11rem; min-height: 46px;
+  text-align: center; font-size: 1.45rem; font-weight: 700;
+  letter-spacing: .05em; font-variant-numeric: tabular-nums;
+}
+.cek-posisi {
+  margin-top: .35rem; text-align: center;
+  font-size: .85rem; color: var(--tinta-lembut); font-variant-numeric: tabular-nums;
+}
+/* Kartu identitas regu diberi jarak ke blok lomba pertama. Tanpa ini nama
+   regunya menempel ke kotak lomba di bawahnya dan keduanya terbaca sebagai
+   satu blok — padahal yang satu identitas dan yang satu lagi nilai. */
+.cek-identitas { margin-bottom: .9rem; }
 /* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
    angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
    antara keduanya. */
 .cek-lomba { padding: .7rem 0; border-top: 1px solid var(--garis); }
 .cek-lomba:first-child { border-top: 0; padding-top: 0; }
-.cek-kepala {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: .8rem; flex-wrap: wrap;
-}
+/* Nama di atas, angkanya tepat di bawahnya, KEDUANYA RATA KIRI — lalu
+   fotonya. Sebelumnya angkanya didorong ke tepi kanan, jadi membandingkan
+   tulisan tangan di foto dengan angka yang diketik menuntut mata menyeberang
+   selebar layar dan turun; sekarang keduanya di satu kolom yang sama. */
+.cek-kepala { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; }
 .cek-nama { font-weight: 700; }
-.cek-angka { display: flex; gap: .9rem; flex-wrap: wrap; }
-.cek-butir { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cek-angka { display: flex; gap: .9rem; flex-wrap: wrap; align-items: baseline; }
+/* Angkanya sengaja besar: ia satu-satunya hal di kartu ini yang sedang
+   dibandingkan dengan sesuatu, dan pembandingnya tulisan tangan di foto
+   sebesar layar. */
+.cek-butir { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .cek-butir-nama {
   display: block; font-size: .75rem; font-weight: 400; color: var(--tinta-lembut);
 }
 .cek-kosong { font-size: .85rem; font-weight: 400; color: var(--tinta-lembut); }
+/* Foto SELEBAR KARTU, bukan petak kecil berjajar. Yang dibaca di sini tulisan
+   tangan — "JUMLAH KATA YANG BENAR: 1" — dan petak 7rem tidak menjawab
+   pertanyaan yang membuat orang membuka layar ini. Lebih dari satu foto
+   digeser ke samping, sama seperti di layar input.
+
+   `contain`, bukan `cover`: sisi yang dipotong `cover` justru sering sisi
+   yang memuat angkanya. */
 .cek-foto {
-  display: grid; gap: .5rem; margin-top: .5rem;
-  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  display: flex; gap: 0; margin-top: .5rem;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scrollbar-width: none;
 }
-.cek-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cek-foto::-webkit-scrollbar { display: none; }
+.cek-foto .fg-petak {
+  flex: 0 0 100%; height: 46vh; scroll-snap-align: start;
+  display: flex; align-items: center; justify-content: center;
+}
+.cek-foto img { display: block; width: 100%; height: 100%; object-fit: contain; }
