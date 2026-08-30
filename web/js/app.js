@@ -7237,11 +7237,17 @@ async function layarFoto() {
    sejak 0044, 0074, dan 0081; yang baru cuma susunan layarnya.
    ========================================================================= */
 
-/** Lomba yang sedang dibuka. Dipegang DI LUAR fungsi layarnya supaya kembali
- *  ke sini — dari Home, dari tombol Back, sesudah menyimpan — mendarat di
- *  lomba yang tadi dikerjakan. Petugas yang memegang satu lomba sepagian
- *  tidak boleh memilihnya ulang ratusan kali. */
-const lombaDipilih = { kunci: null };
+/* PILIHAN LOMBA TIDAK DIINGAT ANTAR KUNJUNGAN, dan itu yang membuat tombol
+   "Ganti Lomba" tidak perlu ada.
+
+   Versi pertama mengingatnya, supaya petugas yang memegang satu lomba sepagian
+   tidak memilihnya ulang ratusan kali — lalu butuh satu tombol di kepala tiap
+   layar untuk membatalkan ingatan itu. Tombol itu duduk di sana sepanjang pagi
+   demi pekerjaan yang dilakukan sekali.
+
+   Sekarang membuka `#/pos2` selalu mendarat di pemilih. Yang hilang cuma satu
+   ketukan, dan hanya bagi orang yang MENINGGALKAN layarnya — sepanjang shift
+   petugas tidak pernah pergi dari sini. */
 
 /** Katalog pos + komponen, dipegang seumur sesi.
  *
@@ -7291,16 +7297,25 @@ const posUntukAkun = (s, semuaPos) => {
 
 /** Kartu identitas regu, bentuk yang sama dipakai ketiga layar di bawah.
  *
- *  `nilai_pos` ikut disebut, dan itu bukan hiasan: ia satu-satunya angka di
- *  layar ini yang datang dari v_poin_pos, jadi ia yang membuktikan bahwa yang
- *  barusan disimpan memang sampai ke mesin skor — bukan cuma ke kotaknya. */
+ *  IDENTITAS SAJA — nomor dada, nama regu, sekolah, golongan. Kartu ini ada
+ *  untuk menjawab SATU pertanyaan: "nomor yang barusan saya ketik ini benar
+ *  regu yang berdiri di depan saya?" Itu echo-confirm, dan setiap baris lain
+ *  di dalamnya harus dilewati mata sebelum sampai ke jawabannya.
+ *
+ *  Versi pertama ikut menulis "Nilai Kepramukaan: 70 · 5/5 terisi". Keduanya
+ *  fakta yang benar dan keduanya tidak dipakai di sini: nilai pos adalah
+ *  JUMLAH seluruh lomba pos itu, bukan angka yang sedang diketik, dan hitungan
+ *  terisi menjawab pertanyaan lembar pos — "mana yang belum dikerjakan" —
+ *  yang tidak pernah ditanya orang yang sedang memegang satu regu di depannya
+ *  (bagian 9.6).
+ *
+ *  Gembok tetap ada, dan itu bukan pengecualian: ia satu-satunya keadaan yang
+ *  membuat kotak di bawahnya menolak diisi, jadi ia harus terbaca SEBELUM
+ *  petugas mengetik (bagian 9.4). */
 const kartuReguNilai = (r) => `
   <div class="card card-identity" style="margin:0">
     ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
     <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
-    <div class="detail">Nilai ${esc(r.nama_pos || "")}:
-      <strong>${esc(angkaRapi(r.nilai_pos))}</strong>
-      · ${esc(String(r.jumlah_terisi))}/${esc(String(r.jumlah_komponen))} terisi</div>
     ${r.terkunci ? `<div style="margin-top:.4rem">
       <span class="badge badge-gray">${ikon("lock")} tergembok</span></div>` : ""}
   </div>`;
@@ -7340,12 +7355,14 @@ async function layarInputPos2() {
     return;
   }
 
-  const pilih = katalog.find(l => l.kunci === lombaDipilih.kunci);
-  if (!pilih) { gambarPemilihLomba(katalog); return; }
+  gambarPemilihLomba(katalog);
+}
 
-  pasangKepala(judulLomba(pilih), pilih.jenis === "soal");
-  if (pilih.jenis === "soal") await gambarLombaSoal(pilih);
-  else await gambarLombaNilai(pilih);
+/** Buka satu lomba: kepala layarnya, lalu bentuk pengisiannya. */
+async function bukaLomba(l) {
+  pasangKepala(judulLomba(l), l.jenis === "soal");
+  if (l.jenis === "soal") await gambarLombaSoal(l);
+  else await gambarLombaNilai(l);
 }
 
 /** Kotak per lomba, DIKELOMPOKKAN PER POS.
@@ -7387,30 +7404,22 @@ function gambarPemilihLomba(katalog) {
   LAYAR.addEventListener("click", (e) => {
     const b = e.target.closest("[data-kunci]");
     if (!b) return;
-    lombaDipilih.kunci = b.dataset.kunci;
-    layarInputPos2();
+    const l = katalog.find(x => x.kunci === b.dataset.kunci);
+    if (l) bukaLomba(l);
   }, { signal: sinyalLayarBaru() });
 }
 
-/** Kepala layar tiap bentuk pengisian: nama lombanya, dan jalan kembali ke
- *  pemilih. Satu-satunya jalan kembali — memilih lomba tidak menambah entri
- *  riwayat browser, jadi tombol Back mendarat di layar SEBELUM layar ini. */
+/** Kepala layar tiap bentuk pengisian: nama lombanya, dan tidak lebih.
+ *
+ *  Judul bar di atas sudah menyebut hal yang sama, tapi ia hilang di HP saat
+ *  papan ketik naik dan halamannya tergulir; kartu ini ikut bergulir bersama
+ *  isinya. Yang dijawabnya satu pertanyaan yang mahal kalau salah — "angka
+ *  yang saya ketik ini masuk ke lomba mana?" */
 const kepalaLomba = (l) => `
   <div class="card baris-lomba">
-    <div>
-      <span class="lomba-pos">${esc(l.bayangan ? l.namaPos : `Pos ${l.pos}`)}</span>
-      <h2 class="lomba-judul">${esc(l.nama)}</h2>
-    </div>
-    <button type="button" class="button button-secondary button-small"
-            id="ganti-lomba">Ganti Lomba</button>
+    <span class="lomba-pos">${esc(l.bayangan ? l.namaPos : `Pos ${l.pos}`)}</span>
+    <h2 class="lomba-judul">${esc(l.nama)}</h2>
   </div>`;
-
-const pasangGantiLomba = (sinyal) => {
-  document.getElementById("ganti-lomba")?.addEventListener("click", () => {
-    lombaDipilih.kunci = null;
-    layarInputPos2();
-  }, { signal: sinyal });
-};
 
 /* ---------------------------------------------------------------------------
    BENTUK "nilai" DAN "waktu" — satu regu satu layar.
@@ -7444,8 +7453,6 @@ async function gambarLombaNilai(l) {
     </div>
     <div id="v2-riwayat"></div>
   `));
-
-  pasangGantiLomba(sinyal);
 
   const inp = document.getElementById("v2-dada");
   const kotakRegu = document.getElementById("v2-regu");
@@ -7710,17 +7717,20 @@ async function gambarLombaNilai(l) {
 const panelStopwatchHtml = () => `
   <div class="stopwatch" id="v2-stopwatch">
     <output class="sw-angka" id="sw-angka">00:00.0</output>
-    <button type="button" class="button button-primary sw-jalan"
-            data-sw="jalan">Mulai</button>
-    <div class="sw-tombol">
-      <button type="button" class="button button-secondary" data-sw="ulang"
+    <div class="sw-kendali">
+      <button type="button" class="sw-bulat sw-jalan" data-sw="jalan"
+              title="Mulai" aria-label="Mulai">${ikon("play", "ikon sw-ikon")}</button>
+      <button type="button" class="sw-bulat sw-ulang" data-sw="ulang"
               title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
-              disabled>Ulang</button>
-      <button type="button" class="button button-danger" data-sw="dq"
-              >Diskualifikasi</button>
+              aria-label="Kembalikan penunjuk ke nol"
+              disabled>${ikon("rotate-ccw", "ikon sw-ikon")}</button>
     </div>
-    <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
-      menyelesaikan lomba, 0 poin.</span>
+    <div class="sw-bawah">
+      <button type="button" class="button button-danger button-mini" data-sw="dq"
+              >Diskualifikasi</button>
+      <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
+        menyelesaikan lomba, 0 poin.</span>
+    </div>
   </div>`;
 
 /** Pasang stopwatch pada panel yang sudah tergambar.
@@ -7768,15 +7778,22 @@ function pasangStopwatch(wadah, kotakWaktu, sinyal) {
   // dilepas di sini. Keduanya digantungkan ke sinyal yang sama.
   sinyal.addEventListener("abort", berhentiTik, { once: true });
 
-  /* Tombolnya BERGANTI WARNA, bukan cuma berganti kata. Yang dibaca sambil
-     menatap lapangan adalah warnanya, dan hijau yang berarti "sedang jalan"
-     akan ditekan orang yang mengira ia berarti "mulai". */
+  /* Satu tombol, dua lambang: play saat diam, stop saat jalan — di tempat
+     yang sama. Warnanya ikut berganti, dan itu bukan hiasan: yang terbaca
+     sambil menatap lapangan adalah warnanya, dan hijau yang berarti "sedang
+     jalan" akan ditekan orang yang mengira ia berarti "mulai".
+
+     Nama untuk pembaca layar ikut berganti bersama lambangnya. Tombol ikon
+     yang aria-label-nya tetap "Mulai" sepanjang lomba adalah tombol yang
+     berbohong kepada satu-satunya orang yang tidak bisa melihat lambangnya. */
   const perbaruiTombol = () => {
     const jalan = mulaiPada !== null;
     const b = tombol("jalan");
-    b.textContent = jalan ? "Berhenti" : (tertahan ? "Lanjut" : "Mulai");
-    b.classList.toggle("button-danger", jalan);
-    b.classList.toggle("button-primary", !jalan);
+    const nama = jalan ? "Berhenti" : (tertahan ? "Lanjutkan" : "Mulai");
+    b.innerHTML = ikon(jalan ? "square" : "play", "ikon sw-ikon");
+    b.title = nama;
+    b.setAttribute("aria-label", nama);
+    b.classList.toggle("sw-berhenti", jalan);
     tombol("ulang").disabled = jalan || !tertahan;
   };
 
@@ -7885,8 +7902,6 @@ async function gambarLombaSoal(l) {
       <div class="grid-foto" id="v2-grid"></div>
     </div>
   `));
-
-  pasangGantiLomba(sinyal);
 
   const elGrid  = document.getElementById("v2-grid");
   const elBelum = document.getElementById("v2-belum");

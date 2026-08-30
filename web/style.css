@@ -4372,10 +4372,7 @@ button.pill-number:hover { filter: brightness(.95); }
 
 /* ---------- kepala layar satu lomba ---------- */
 
-.baris-lomba {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: .8rem; flex-wrap: wrap;
-}
+.baris-lomba { padding-top: .7rem; padding-bottom: .7rem; }
 .lomba-pos { display: block; font-size: .85rem; color: var(--tinta-lembut); }
 .lomba-judul { margin: 0; }
 
@@ -4418,22 +4415,41 @@ button.pill-number:hover { filter: brightness(.95); }
   font-size: 2.6rem; font-weight: 800; line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
-/* Mulai/Berhenti selebar kartunya dan setinggi 64px: satu tombol, satu
-   tempat, dan sasaran sentuh yang tidak menuntut dilihat sebelum ditekan. */
+/* Play/stop dan reset berdampingan di SATU kelompok, di tengah, tepat di
+   bawah penunjuknya — bentuk yang sama dengan alat perekam mana pun, jadi
+   tangannya tahu ke mana tanpa layarnya dibaca. */
+.sw-kendali {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1rem; margin-top: .6rem;
+}
+.sw-bulat {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 2px solid transparent; padding: 0;
+}
+/* Play/stop dua kali lebih besar daripada reset, dan itu perbedaan yang
+   dipakai: yang satu ditekan dua kali per regu sambil menatap lapangan, yang
+   satu lagi sesekali sambil menatap layar. */
 .sw-jalan {
-  width: 100%; min-height: 64px; margin-top: .5rem;
-  font-size: 1.3rem; font-weight: 800;
+  width: 76px; height: 76px;
+  background: var(--utama); color: #fff;
 }
-/* Ulang dan Diskualifikasi TIDAK berjajar dengan tombol jalan — mereka di
-   baris bawah, lebih kecil. Keduanya membatalkan sesuatu, dan jempol yang
-   meleset dari Berhenti ke Diskualifikasi menyimpan 0 poin untuk regu yang
-   menyelesaikan lomba. */
-.sw-tombol { display: flex; gap: .5rem; margin-top: .5rem; }
-.sw-tombol .button { flex: 1 1 0; min-width: 0; }
-.sw-catatan {
-  display: block; margin-top: .5rem;
-  font-size: .85rem; font-weight: 700; color: var(--bahaya);
+.sw-jalan.sw-berhenti { background: var(--bahaya); }
+.sw-jalan .sw-ikon { width: 34px; height: 34px; }
+.sw-ulang {
+  width: 52px; height: 52px;
+  background: var(--kartu); border-color: var(--garis); color: var(--tinta);
 }
+.sw-ulang:disabled { opacity: .45; cursor: not-allowed; }
+.sw-ulang .sw-ikon { width: 22px; height: 22px; }
+/* Diskualifikasi KECIL dan di baris bawah. Ia dipakai beberapa kali sepagi,
+   sementara play/stop dipakai dua kali per regu — tombol yang sama besar
+   dengan tetangganya menawarkan diri sesering tetangganya. Jempol yang
+   meleset ke sini menyimpan 0 poin untuk regu yang menyelesaikan lomba. */
+.sw-bawah {
+  display: flex; align-items: center; justify-content: center;
+  gap: .6rem; margin-top: .7rem; flex-wrap: wrap;
+}
+.sw-catatan { font-size: .85rem; font-weight: 700; color: var(--bahaya); }
 
 /* ---------- ubin foto lomba soal ---------- */
 

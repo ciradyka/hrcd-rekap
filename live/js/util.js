@@ -899,6 +899,21 @@ const IKON = {
     '<path d="M21.801 10A10 10 0 1 1 17 3.335" /> <path d="m9 11 3 3L22 4" />',
   "x":
     '<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',
+  /* Stopwatch di layar Input Nilai Pos v2. Ketiganya lambang yang sudah
+     dikenal dari alat perekam mana pun, jadi tombolnya tidak perlu dibaca —
+     dan itu inti gunanya di pos, tempat mata petugas ada di lapangan dan
+     bukan di layar.
+
+     Play dan stop sengaja BERISI, berbeda dengan ikon lain di berkas ini yang
+     semuanya bergaris. Segitiga bergaris pada ukuran tombol terbaca seperti
+     panah "berikutnya", dan bujur sangkar bergaris seperti kotak centang
+     kosong; keduanya lambang yang artinya justru ditentukan oleh isinya. */
+  "play":
+    '<path d="M7 4.2v15.6L19.4 12z" fill="currentColor" stroke-linejoin="round" />',
+  "square":
+    '<rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor" />',
+  "rotate-ccw":
+    '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" />',
   "chart-column":
     '<path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" />',
   "circle-check":
