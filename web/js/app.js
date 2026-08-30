@@ -7753,9 +7753,12 @@ async function gambarLombaNilai(l) {
     const petak = x.closest(".foto-lembar");
     const ke = [...petakFoto.children].indexOf(petak) + 1;
 
+    /* TANPA JUDUL DAN TANPA KALIMAT PENJELAS. Fotonya masih terlihat di atas
+       dialog ini, jadi "foto mana" sudah terjawab layar; dan medan berlabel
+       "Alasan menghapus" di atas tombol "Hapus Foto" sudah menyebutkan apa
+       yang akan terjadi. Judul yang mengulang keduanya cuma mendorong medan
+       isiannya turun — di HP, sampai ke bawah papan ketik (bagian 9.2). */
     const jawab = await dialog({
-      judul: `Hapus foto ${ke} ${l.nama}?`,
-      kartuHtml: "<p>Fotonya hilang dari daftar dan dari penyimpanan.</p>",
       medan: [{ label: "Alasan menghapus", contoh: "misal: buram, difoto ulang" }],
       labelAksi: "Hapus Foto",
     });
