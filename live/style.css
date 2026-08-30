@@ -2493,7 +2493,28 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    Kedua, di HP barisnya membungkus. Sebagai dua anak lepas, Kamera bisa
    tinggal di baris pertama sementara Galeri turun sendirian ke baris kedua —
    dua tombol yang sepasang tapi tidak terlihat sepasang. */
-.f-aksi { display: flex; gap: .4rem; align-items: center; flex-wrap: nowrap; }
+/* `margin-left: auto` supaya pasangan tombolnya berakhir di tepi kanan yang
+   SAMA di setiap baris, termasuk saat ia membungkus turun. Baris yang sudah
+   punya foto memuat "1 foto · 781 B" beserta tombol Lihat, dan di lebar HP
+   itu mendorong pasangannya ke baris kedua — tanpa aturan ini ia mendarat di
+   kiri sementara empat baris lain menaruhnya di kanan, dan kolomnya patah
+   tepat di baris yang berbeda dari yang lain.
+
+   Ia tidak bertabrakan dengan `:nth-last-child(2)` di atas: dua margin auto di
+   SATU baris membagi ruang kosongnya, dan yang lebih dulu — milik Lihat —
+   mengambil semuanya. Terukur di 600px dan 900px, jarak Lihat ke pasangannya
+   tetap 10px. */
+.f-aksi { display: flex; gap: .4rem; align-items: center; flex-wrap: nowrap;
+          margin-left: auto; }
+/* Tombol Kamera dan Galeri di dialog ini BERISI IKON SAJA — alasannya di
+   bukaFotoLembar(). Tanpa kata di dalamnya lebar .button-mini menyusut jadi
+   sekitar 32px, dan itu di bawah petak sentuh yang nyaman untuk jari; petugas
+   pos memakainya sambil berdiri, sering dengan tangan yang satunya memegang
+   lembar jawaban. 44px adalah ukuran yang dipakai dua-duanya di sini, jadi
+   meleset sedikit tetap mengenai tombol yang dimaksud — dan meleset ke tombol
+   SEBELAHNYA membuka kamera saat yang diminta galeri. */
+.f-aksi .button-mini { min-width: 44px; min-height: 40px; padding: .2rem; }
+.f-aksi .ikon { width: 1.3em; height: 1.3em; }
 /* Kamera dan Galeri di layar Foto Jawaban BERBAGI satu baris, tidak menumpuk.
    `.button` lebarnya 100%, jadi dua tombol di dalam .action-row masing-masing
    meminta selebar barisnya dan yang kedua terlempar ke baris berikutnya — dua
