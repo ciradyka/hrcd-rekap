@@ -4482,6 +4482,27 @@ async function layarInputPos() {
        memang harus dirender. Ditulis dengan html``, jalur SVG-nya tampil apa
        adanya sebagai teks hijau sepanjang tiga baris di dalam tombolnya.
        Yang datang dari luar tetap lewat esc() satu per satu. */
+
+    /* DUA TOMBOL, bukan satu. Yang membedakannya cuma `capture` di tombol
+       kiri, dan atribut itulah seluruh isi perbaikan ini.
+
+       `<input type="file" accept="image/*">` telanjang menyerahkan pilihannya
+       ke sistem: iOS memunculkan menu "Ambil Foto / Pustaka Foto / Pilih
+       Berkas", sedangkan sebagian HP Android langsung membuka galeri tanpa
+       menawarkan kamera sama sekali. Petugas pos yang mau memotret lembar di
+       depannya jadi harus keluar aplikasi, memotret lewat aplikasi kamera,
+       lalu kembali ke sini dan mencarinya di galeri.
+
+       `capture="environment"` membuka kamera belakang langsung — tapi ia juga
+       MENUTUP jalur galeri, jadi ia tidak bisa dipasang di satu-satunya
+       tombol: foto yang sudah terlanjur diambil di luar aplikasi tidak akan
+       bisa diunggah. Karena itu jalurnya dipisah jadi dua tombol yang namanya
+       menyebut tujuannya, dan pilihannya jadi sama di Android maupun iPhone.
+
+       `multiple` sengaja tetap ditulis di tombol Kamera walau kamera hanya
+       mengembalikan satu foto: pada peramban yang mengabaikan `capture` —
+       hampir semua peramban laptop — tombol itu jatuh kembali jadi pemilih
+       berkas biasa, dan di sana memilih banyak sekaligus tetap berguna. */
     const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => `
       <li data-kode="${esc(kode)}" data-nama="${esc(nama)}">
         <span class="f-nama">${esc(nama)}</span>
@@ -4489,9 +4510,16 @@ async function layarInputPos() {
           ? `${esc(String(hitung[kode]))} foto` : "belum ada"}</span>
         <button type="button" class="button button-mini" data-lihat
           ${hitung[kode] ? "" : "hidden"}>Lihat</button>
-        <label class="button button-mini button-primary">
-          <input type="file" accept="image/*" multiple hidden data-ambil>${ikon("camera")} Foto
-        </label>
+        <span class="f-aksi">
+          <label class="button button-mini button-primary">
+            <input type="file" accept="image/*" capture="environment" multiple
+                   hidden data-ambil>${ikon("camera")} Kamera
+          </label>
+          <label class="button button-mini button-secondary">
+            <input type="file" accept="image/*" multiple hidden data-ambil
+                   >${ikon("image")} Galeri
+          </label>
+        </span>
       </li>`).join("")}</ul>
 `;
 
@@ -6703,6 +6731,14 @@ async function layarFoto() {
   let nomorPos = terkunci ? Number(s.pos) : Number(posDinilai[0].nomor);
   let kodeLomba = null, namaLomba = null;
 
+  /* Kamera dan Galeri dipisah jadi dua tombol, alasannya lengkap di
+     bukaFotoLembar(): `capture` membuka kamera langsung tapi sekaligus
+     menutup jalur galeri, jadi satu tombol tidak bisa melayani keduanya.
+
+     Penjelasannya ditulis DI SINI dan bukan sebagai komentar HTML di dalam
+     template di bawah. Backtick di dalam komentar HTML itu MENUTUP template
+     literal-nya — berkasnya berhenti diparse dan seluruh app.js mati, tanpa
+     satu pun tanda selain layar putih. */
   LAYAR.replaceChildren(h(`
     <div class="card">
       <div class="baris-pilih">
@@ -6721,8 +6757,13 @@ async function layarFoto() {
       </div>
       <div class="action-row" id="foto-aksi" hidden>
         <label class="button button-primary">
-          <input type="file" accept="image/*" multiple hidden id="foto-ambil">
-          ${ikon("camera")} Pilih foto
+          <input type="file" accept="image/*" capture="environment" multiple
+                 hidden class="foto-ambil">
+          ${ikon("camera")} Kamera
+        </label>
+        <label class="button button-secondary">
+          <input type="file" accept="image/*" multiple hidden class="foto-ambil">
+          ${ikon("image")} Galeri
         </label>
         <span class="sub" id="foto-kuota"></span>
       </div>
@@ -6736,7 +6777,7 @@ async function layarFoto() {
   const elPos   = document.getElementById("foto-pos");
   const elLomba = document.getElementById("foto-lomba");
   const elAksi  = document.getElementById("foto-aksi");
-  const elAmbil = document.getElementById("foto-ambil");
+  const elAmbil = [...document.querySelectorAll(".foto-ambil")];
   const elGrid  = document.getElementById("foto-grid");
   const elBelum = document.getElementById("foto-belum");
   const elKuota = document.getElementById("foto-kuota");
@@ -7090,10 +7131,10 @@ async function layarFoto() {
     hitungUbin();
   }
 
-  elAmbil.addEventListener("change", async () => {
-    const berkas = [...(elAmbil.files || [])];
+  const terimaBerkas = async (inp) => {
+    const berkas = [...(inp.files || [])];
     // Dikosongkan supaya memilih berkas YANG SAMA lagi tetap memicu change.
-    elAmbil.value = "";
+    inp.value = "";
     if (!berkas.length || !kodeLomba) return;
 
     const kosong = elGrid.querySelector(".keterangan");
@@ -7123,7 +7164,11 @@ async function layarFoto() {
       if (k) elKuota.textContent =
         `${k.jumlah_foto} foto · ${ukuranRapi(k.total_bytes || 0)} terpakai`;
     } catch { /* Kuota cuma keterangan; gagal membacanya tidak menghalangi apa pun. */ }
-  });
+  };
+
+  // Kamera dan Galeri memakai penangan yang SAMA — yang berbeda cuma dari mana
+  // berkasnya datang, dan sesudah dipilih keduanya tidak bisa dibedakan lagi.
+  elAmbil.forEach(inp => inp.addEventListener("change", () => terimaBerkas(inp)));
 
   await isiLomba();
 }
