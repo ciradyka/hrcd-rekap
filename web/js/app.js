@@ -9108,6 +9108,13 @@ async function layarCekNilai() {
   let indeks = 0;
 
   LAYAR.replaceChildren(h(`
+    <!-- Pita antrean ada DI SINI JUGA, dan itu bukan kerapian: sejak layar ini
+         boleh mengubah nilai, simpanan dari sini bisa gagal karena jaringan
+         dan masuk antrean seperti di layar input. Tanpa elemen ini
+         gambarPitaAntrean() tidak menemukan sasarannya dan langsung keluar —
+         admin cuma menerima satu notifikasi yang lalu hilang, lalu tidak ada
+         satu pun tanda bahwa masih ada angka yang belum sampai. -->
+    <div id="pita-antrean"></div>
     <div class="card">
       <div class="baris-pilih">
         <div class="field">
@@ -9140,6 +9147,9 @@ async function layarCekNilai() {
     </div>
     <div id="cek-isi"></div>
   `));
+
+  gambarPitaAntrean();
+  kirimAntrean();
 
   const elPos = document.getElementById("cek-pos");
   const elDada = document.getElementById("cek-dada");
