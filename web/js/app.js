@@ -7751,9 +7751,10 @@ function gambarPemilihLomba(katalog) {
  *  papan ketik naik dan halamannya tergulir; kartu ini ikut bergulir bersama
  *  isinya. Yang dijawabnya satu pertanyaan yang mahal kalau salah — "angka
  *  yang saya ketik ini masuk ke lomba mana?" */
-const kepalaLomba = (l) => `
+const kepalaLomba = (l, tambahan = "") => `
   <div class="card baris-lomba">
     <h2 class="lomba-judul">${esc(l.nama)}</h2>
+    ${tambahan}
   </div>`;
 
 /* ---------------------------------------------------------------------------
@@ -7772,7 +7773,9 @@ async function gambarLombaNilai(l) {
 
   LAYAR.replaceChildren(h(`
     <div id="pita-antrean"></div>
-    ${kepalaLomba(l)}
+    ${kepalaLomba(l, `<button type="button"
+        class="button button-secondary button-small" id="v2-belum"
+        >Belum dinilai</button>`)}
     <div class="card" id="v2-kartu" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
         <label for="v2-dada">Nomor dada</label>
@@ -7884,6 +7887,70 @@ async function gambarLombaNilai(l) {
   const segarkanStopwatch = waktu
     ? pasangStopwatch(document.getElementById("v2-kartu"), wadah, kotakWaktu, sinyal)
     : null;
+
+  /* SIAPA YANG BELUM DINILAI DI LOMBA INI.
+   *
+   *  Menjelang tutup pos, pertanyaannya berbalik: bukan lagi "regu ini
+   *  nilainya berapa" melainkan "siapa yang terlewat". Tanpa daftar ini
+   *  jawabannya cuma bisa dicari dengan mengetik nomor dada satu per satu
+   *  sampai ketemu yang kosong — di lomba berisi ratusan regu itu bukan
+   *  pekerjaan yang bisa diselesaikan.
+   *
+   *  Dibaca saat DITEKAN, bukan ikut dimuat bersama layarnya: lembar satu pos
+   *  memuat ratusan baris, dan pertanyaan ini ditanyakan beberapa kali sepagi
+   *  — bukan setiap kali satu regu dinilai. Di jaringan pos, permintaan yang
+   *  tidak ditanya siapa pun tetap dibayar.
+   *
+   *  Yang lombanya tidak berlaku untuk golongan regu itu TIDAK ikut dihitung
+   *  belum dinilai. Regu Penggalang tidak pernah punya Tebak Simpul Penegak,
+   *  dan menuduhnya terlewat adalah alarm yang tidak bisa dipenuhi siapa pun. */
+  document.getElementById("v2-belum")?.addEventListener("click", async () => {
+    const b = document.getElementById("v2-belum");
+    b.disabled = true;
+    let lembar;
+    try { lembar = await lembarPos(l.pos); }
+    catch (err) { b.disabled = false; notif(err.message, true); return; }
+    b.disabled = false;
+
+    const belum = lembar.filter(r => {
+      const dipakai = l.kolom.map(kol => varianUntuk(kol, r.golongan)).filter(Boolean);
+      if (!dipakai.length) return false;
+      const nilai = r.nilai || {};
+      return dipakai.every(k => !nilai[k.kode]);
+    });
+
+    if (!belum.length) {
+      await dialog({ judul: `${l.nama} — semua sudah dinilai`,
+        kartuHtml: `<p class="description">Tidak ada regu yang terlewat.</p>`,
+        labelAksi: "Tutup", bacaSaja: true });
+      return;
+    }
+
+    /* Ditekan = nomornya masuk ke kotak isian. Daftar yang cuma bisa dibaca
+       memaksa petugas mengingat tiga angka lalu mengetiknya sendiri, dan
+       nomor dada yang salah ingat mendaratkan nilai di regu lain. */
+    const janji = dialog({
+      judul: `Belum dinilai · ${belum.length} regu`,
+      kartuHtml: `<ul class="daftar-belum">${belum.map(r => html`
+        <li><button type="button" data-dada="${r.nomor_dada}">
+          <span class="db-dada">${dada3(r.nomor_dada)}</span>
+          <span class="db-nama">${r.nama_regu}</span>
+          <span class="db-sekolah">${r.nama_sekolah}</span>
+        </button></li>`).join("")}</ul>`,
+      labelAksi: "Tutup", bacaSaja: true,
+    });
+
+    // dialog() menempelkan kartunya SINKRON, jadi pendengarnya boleh dipasang
+    // sebelum janjinya ditunggu.
+    document.querySelector(".dialog .daftar-belum")?.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-dada]");
+      if (!t) return;
+      document.querySelector(".dialog [data-batal]")?.click();
+      inp.value = t.dataset.dada;
+      inp.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await janji;
+  }, { signal: sinyal });
 
   inp.focus();
   gambarRiwayatNilai();
