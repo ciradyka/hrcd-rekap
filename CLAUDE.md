@@ -617,20 +617,39 @@ Guidance for Claude Code when working in this repository.
    `v_progres_publik` hanya pada `progres` dan `penuh`. Jadi berkas yang
    terbit pada fase ini memuat daftar juara dan TIDAK memuat papan — pasal 4
    dipenuhi tanpa satu pagar tambahan pun.
-8. **Daftar juara terbit TANPA satu angka skor**, dan itu keputusan pemilik
-   acara. `v_kejuaraan_publik` tidak punya kolom `total`, `poin_juara`,
-   maupun `jumlah_skor` — bukan disembunyikan tampilan, memang tidak ada.
-   Nomor dada tetap ikut: ia identitas regu, sudah tercetak di punggung
-   mereka sejak pagi. Pagar di `publish-live.yml` menolak APA PUN yang
-   bertipe angka di daftar itu selain nomor dada dan urutan, jadi kolom baru
-   bernama lain ikut tertangkap (pasal 13.3).
-9. **Menurunkan saklar dari Juara ke Live TIDAK mengembalikan papan.**
+8. **Daftar juara terbit BESERTA angkanya** — total skor tiap regu juara,
+   poin juara dan total skor enam besar untuk Juara Umum, jumlah regu
+   bernomor dada untuk Peserta Terbanyak. Sama persis dengan layar panitia
+   `#/kejuaraan`, dan memakai kelas yang sama (`.kejuaraan-skor`) supaya
+   angkanya jatuh di tempat yang sama di dua layar.
+
+   **Ini terbit tanpa angka sampai 30 Agustus 2026** (migrasi 0163), lalu
+   pemilik acara memutuskan sebaliknya (0164). Yang perlu dipahami dari
+   pergantian itu: yang menahan angka lomba sebelum diumumkan BUKAN
+   ketiadaan kolomnya, melainkan pagar fase. `v_kejuaraan_publik`
+   mengembalikan nol baris di luar fase `juara`, jadi sebelum pengumuman
+   tidak ada satu baris pun untuk dibaca siapa pun — dengan atau tanpa
+   kolom skor. Sesudah pengumuman, yang terbaca cuma angka yang memang baru
+   saja dibacakan di lapangan.
+
+   **Karena itu pagar fase sekarang SATU-SATUNYA lapisan**, dan ia yang
+   diuji paling keras: penjaga 0164 dan tes 116 dua-duanya MENGUBAH fasenya
+   lalu membaca ulang, bukan membaca definisi view-nya.
+9. **Pagar di `publish-live.yml` memakai DAFTAR IZIN kolom, bukan daftar
+   larangan.** Yang dulu menolak apa pun bertipe angka tidak bisa
+   dipertahankan sesudah 0164, dan menggantinya dengan daftar larangan akan
+   buta terhadap kolom baru bernama lain. Sekarang kolom yang TIDAK dikenal
+   yang menghentikan penerbitan — `hasil_kejuaraan()` duduk di atas
+   `pendaftaran`, satu tabel dengan nomor WA pembina, dan satu `select *`
+   yang kelewat lebar di masa depan berhenti di situ, bukan di HP peserta
+   (pasal 13.3).
+10. **Menurunkan saklar dari Juara ke Live TIDAK mengembalikan papan.**
    Berkas fase juara memang tidak memuat satu baris klasemen pun, dan pasal
    3 melarang layar menampilkan lebih dari isi berkasnya — jadi yang
    tergambar papan kosong sampai rekap diterbitkan ulang. Itu bukan bug; itu
    pasal 3 bekerja. Yang perlu diketahui panitia: urutan kerjanya nyalakan
    fasenya dulu, terbitkan sesudahnya, dan itu berlaku ke DUA arah.
-10. **Pagar hak daftar juara ada di SATU tempat, `hasil_kejuaraan()`**
+11. **Pagar hak daftar juara ada di SATU tempat, `hasil_kejuaraan()`**
     (migrasi 0163). Penyusunnya — `hasil_kejuaraan_dasar()` dan
     `hasil_kejuaraan_semua()` — sengaja tanpa `boleh('live_score')` di
     dalamnya, karena penerbit tersambung sebagai pemilik database dan

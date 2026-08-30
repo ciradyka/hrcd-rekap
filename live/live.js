@@ -577,22 +577,32 @@ function gambarTab(semua) {
    kiri, Penggalang di kanan, Juara Umum membentang di baris pertama. Kartu
    yang kelasnya salah mendarat di kotak milik kartu lain.
 
-   TIDAK ADA SATU ANGKA SKOR di layar ini, dan itu juga bukan keputusan
-   tampilan — kolomnya tidak ada di berkasnya. Nomor dada tetap ditulis: ia
-   identitas regu, sudah tercetak di punggung mereka sejak pagi, dan tanpa itu
-   dua regu bernama mirip tidak bisa dibedakan dari kursi penonton.
+   ANGKANYA IKUT, sama dengan layar panitia (0164). Yang menahan angka itu
+   sebelum juaranya diumumkan bukan ketiadaan kolomnya melainkan pagar fase:
+   di luar fase ini berkasnya tidak memuat satu baris juara pun, jadi tidak
+   ada yang bisa dibaca dari CDN dengan cara apa pun.
    ------------------------------------------------------------------------- */
 /** Satu penerima gelar: regu, sekolah, atau belum ada.
  *
- *  Bentuknya sama dengan nilai() di layar panitia dikurangi angkanya. Yang
- *  hilang cuma `.kejuaraan-skor` dan keterangan poin Juara Umum; pembungkus
- *  `.kejuaraan-isi` dan `.kejuaraan-nama` tetap, karena itu yang membuat nama
- *  regu dan nama sekolah bertumpuk rapi persis seperti di sana. */
+ *  Bentuknya SAMA PERSIS dengan nilai() di layar panitia, termasuk
+ *  `.kejuaraan-isi`, `.kejuaraan-nama`, dan `.kejuaraan-skor` — itu yang
+ *  membuat nama regu, nama sekolah, dan angkanya jatuh di tempat yang sama
+ *  di dua layar. Yang tidak ikut cuma tombol Ubah Juara, karena di sini
+ *  tidak ada yang bisa dipilih. */
+const skorJuara = (j) => j.total == null ? ""
+  : `<span class="kejuaraan-skor">${esc(angkaRapi(j.total))}</span>`;
+
 const penerimaJuara = (j) => {
   if (j.nama_regu) return `<div class="kejuaraan-isi"><div class="kejuaraan-nama">
     <strong>${esc(dada(j.nomor_dada))} · ${esc(j.nama_regu)}</strong>
-    <span class="description">${esc(j.nama_sekolah || "")}</span></div></div>`;
-  if (j.nama_sekolah) return `<strong>${esc(j.nama_sekolah)}</strong>`;
+    <span class="description">${esc(j.nama_sekolah || "")}</span></div>${skorJuara(j)}</div>`;
+  if (j.nama_sekolah) return `<strong>${esc(j.nama_sekolah)}</strong>${
+    j.kode.startsWith("juara_umum")
+      ? `<span class="description">${esc(angkaRapi(j.poin_juara))} poin juara · ${
+          esc(angkaRapi(j.jumlah_skor))} total skor (6 besar)</span>`
+      : j.kode === "peserta_terbanyak"
+        ? `<span class="description">${esc(angkaRapi(j.total))} regu bernomor dada</span>`
+        : ""}`;
   return `<span class="description">Belum ditentukan</span>`;
 };
 
