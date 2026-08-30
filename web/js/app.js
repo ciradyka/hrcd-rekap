@@ -7789,7 +7789,7 @@ async function gambarLombaNilai(l) {
              lebar barisnya, tombolnya hanya selebar tulisannya. -->
         <div class="dada-baris">
           <input type="text" id="v2-dada" class="besar" inputmode="numeric"
-                 autocomplete="off" placeholder="001">
+                 autocomplete="off" enterkeyhint="next" placeholder="001">
           ${waktu ? `<button type="button" class="button button-danger button-small sw-dq"
                   data-sw="dq">Diskualifikasi</button>` : ""}
         </div>
@@ -7840,10 +7840,8 @@ async function gambarLombaNilai(l) {
                   data-foto-geser="1" aria-label="Foto berikutnya">&rsaquo;</button>
         </div>
       </div>
-      <button class="button button-primary" id="v2-simpan" type="button" disabled
-              style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
-        SIMPAN NILAI
-      </button>
+      <button class="button button-primary v2-simpan-lekat" id="v2-simpan"
+              type="button" disabled>SIMPAN NILAI</button>
     </div>
     <div id="v2-riwayat"></div>
   `));
@@ -8149,6 +8147,24 @@ async function gambarLombaNilai(l) {
     }
     regu = r;
     kotakRegu.replaceChildren(h(kartuReguNilai(r)));
+
+    /* LENCANA "SUDAH DINILAI", dan ia menyebutkan angkanya.
+       Kotak yang sudah terisi memang sudah memperlihatkan angkanya, tetapi
+       juri yang mengetik cepat tidak membaca isi kotak — ia membaca kartu
+       regunya lalu langsung mengetik. Menimpa nilai orang lain harus jadi
+       tindakan sadar, dan satu lencana di tempat mata sudah berhenti lebih
+       murah daripada satu sengketa nilai. */
+    const sudah = l.kolom
+      .map(kol => varianUntuk(kol, r.golongan))
+      .filter(k => k && (r.nilai || {})[k.kode]);
+    if (sudah.length) {
+      const teks = sudah
+        .map(k => nilaiBagian(k, r.nilai[k.kode].nilai_1, r.nilai[k.kode].nilai_2).join(" / "))
+        .join(" · ");
+      kotakRegu.append(h(`<div class="cek-sudah">
+        <span class="badge badge-yellow">sudah dinilai · ${esc(teks)}</span></div>`));
+    }
+
     gambarIsian(r);
 
     /* Gembok TIDAK mematikan tombol foto. Mengunci berarti angkanya final;
@@ -8258,6 +8274,20 @@ async function gambarLombaNilai(l) {
       if (el) el.id = `sel-${k.kode}`;
     });
 
+    /* ISYARAT TOMBOL PAPAN KETIK. Rantai `10 → 3 →` sudah bekerja sejak
+       awal, tetapi tidak ada apa pun yang mengumumkannya: tombol pojok kanan
+       bawah papan angka Android berlabel panah generik, dan juri menggulir
+       lalu menekan SIMPAN NILAI ratusan kali per pagi tanpa tahu ada jalan
+       yang lebih pendek. `enterkeyhint` membuat tombol itu sendiri yang
+       mengatakannya — nol teks tambahan di layar.
+
+       Yang terakhir "done", sisanya "next", supaya labelnya cocok dengan apa
+       yang benar-benar terjadi saat ditekan (lihat penangan keydown). */
+    const kotakIsi = [...wadah.querySelectorAll("input")];
+    kotakIsi.forEach((el, i) => {
+      el.setAttribute("enterkeyhint", i === kotakIsi.length - 1 ? "done" : "next");
+    });
+
     const kunci = !!r.terkunci;
     wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
     tombol.disabled = kunci;
@@ -8289,9 +8319,27 @@ async function gambarLombaNilai(l) {
 
   // Enter di kotak isian = simpan. Di sini ia memang aksi terakhir barisnya:
   // sesudah angkanya diketik, petugas tidak punya urusan lain dengan regu itu.
+  /* ENTER BERPINDAH KE KOTAK BERIKUTNYA, dan hanya MENYIMPAN dari yang
+     terakhir.
+
+     Sebelumnya Enter di kotak mana pun langsung menyimpan. Untuk lomba
+     berkriteria satu itu benar — dan hampir semua lomba begitu, jadi
+     salahnya tidak pernah terlihat. Untuk Pembidaian yang punya LIMA
+     kriteria, menekan Enter sesudah kriteria pertama menyimpan satu angka
+     beserta empat kotak kosong, lalu mengosongkan layar untuk regu
+     berikutnya. Tidak ada galat, tidak ada yang merah: juri mengira ia
+     berpindah kolom, dan yang tersimpan cuma seperlima penilaiannya. */
   wadah.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
     e.preventDefault();
+    const kotak = [...wadah.querySelectorAll("input:not([disabled])")];
+    const i = kotak.indexOf(e.target);
+    if (i >= 0 && i < kotak.length - 1) {
+      const berikut = kotak[i + 1];
+      berikut.focus();
+      if (berikut.select) { try { berikut.select(); } catch { /* abaikan */ } }
+      return;
+    }
     if (!tombol.disabled) tombol.click();
   }, { signal: sinyal });
 
