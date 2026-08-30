@@ -12,6 +12,7 @@ import test from "node:test";
 const panitia = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 const peserta = await readFile(new URL("../live/live.js", import.meta.url), "utf8");
 const gaya = await readFile(new URL("../live/live.css", import.meta.url), "utf8");
+const gaya_panitia = await readFile(new URL("../live/style.css", import.meta.url), "utf8");
 const terbit = await readFile(
   new URL("../.github/workflows/publish-live.yml", import.meta.url), "utf8");
 const liveJson = await readFile(
@@ -109,19 +110,60 @@ test("label golongan diambil dari daftar bersama, tidak ditulis ulang", () => {
   // golongan yang diketik ulang di sini lolos pemeriksaannya.
   const blok = peserta.slice(peserta.indexOf("function gambarKejuaraan()"),
     peserta.indexOf("function gambarPapan()"));
-  assert.match(blok, /GOLONGAN\[g\]/);
+  assert.match(blok, /GOLONGAN\[kode\]/);
   assert.doesNotMatch(blok, /"Penegak PA"/);
 });
 
-test("gaya kejuaraan berdiri SESUDAH aturan .tabel", () => {
-  // `.tabel-juara th` dan `.tabel th` sama kekhususannya, jadi yang menang
-  // ditentukan urutan baris (CLAUDE.md 15.6). Di atas, aturannya tidak
-  // berlaku sedetik pun dan tidak ada yang memberi tahu.
-  const juara = gaya.indexOf(".tabel-juara th {");
-  const tabel = gaya.indexOf(".tabel th {");
-  assert.ok(tabel !== -1 && juara !== -1, "kedua selektor harus ada");
-  assert.ok(juara > tabel,
-    ".tabel-juara th ditulis sebelum .tabel th — aturannya tidak akan berlaku");
+test("susunannya kelas yang SAMA dengan layar panitia, bukan tiruan", () => {
+  // Seluruh aturannya hidup di style.css, dan halaman peserta memuat berkas
+  // yang sama. Menata ulang di live.css melahirkan salinan kedua atas tata
+  // letak yang sudah ada — dan salinan itu yang menyimpang diam-diam waktu
+  // penghargaannya bertambah.
+  const blok = peserta.slice(peserta.indexOf("function gambarKejuaraan()"),
+    peserta.indexOf("function gambarPapan()"));
+  for (const kelas of ["kejuaraan-bagian", "kejuaraan-umum",
+                       "kejuaraan-umum-penegak", "kejuaraan-penegak-pa",
+                       "kejuaraan-penegak-pi", "kejuaraan-umum-penggalang",
+                       "kejuaraan-penggalang-pa", "kejuaraan-penggalang-pi",
+                       "kejuaraan-kostum", "kejuaraan-yel-yel",
+                       "kejuaraan-terfavorit", "kejuaraan-khusus"]) {
+    assert.ok(blok.includes(kelas), `kelas ${kelas} hilang dari halaman peserta`);
+    // Pencocokan teks biasa, BUKAN RegExp yang dirakit dari template literal:
+    // di dalamnya `\b` adalah karakter backspace, bukan batas kata, jadi
+    // polanya tidak pernah cocok dan tesnya lulus tanpa memeriksa apa pun.
+    assert.ok(gaya_panitia.includes("." + kelas),
+      `kelas ${kelas} tidak punya aturan di style.css`);
+  }
+  assert.match(blok, /table table-kejuaraan/);
+  // live.css tidak boleh memuat tata letaknya sendiri lagi.
+  assert.doesNotMatch(gaya, /tabel-juara|kartu-juara/);
+});
+
+test("kotak cari panitia tidak ikut, jadi `kejuaraan-pilihan` ditinggalkan", () => {
+  // Kelas itu menata kartu yang berisi isian. Di halaman peserta tidak ada
+  // yang bisa dipilih, dan barisnya akan terbaca seperti isian yang menunggu.
+  // Dicari di daftar `bagian` saja, bukan di seluruh fungsi: komentar yang
+  // menjelaskan KENAPA kelas itu ditinggalkan tentu menyebut namanya.
+  const awal = peserta.indexOf("const bagian = [");
+  const bagian = peserta.slice(awal, peserta.indexOf("  ];", awal));
+  assert.doesNotMatch(bagian, /kejuaraan-pilihan/);
+});
+
+test("urutan kartunya mengikat grid style.css", () => {
+  // Blok @media (min-width:900px) memasang grid-column dan grid-row PER
+  // KELAS. Kartu yang urutannya tertukar mendarat di kotak milik kartu lain.
+  const blok = peserta.slice(peserta.indexOf("const bagian = ["),
+    peserta.indexOf("kejuaraan-pilihan` TIDAK ikut"));
+  const urut = ["kejuaraan-umum\"", "kejuaraan-umum-penegak",
+                "kejuaraan-penegak-pa", "kejuaraan-penegak-pi",
+                "kejuaraan-umum-penggalang", "kejuaraan-penggalang-pa",
+                "kejuaraan-penggalang-pi"];
+  let pos = -1;
+  for (const kelas of urut) {
+    const i = blok.indexOf(kelas);
+    assert.ok(i > pos, `${kelas} tidak pada urutannya`);
+    pos = i;
+  }
 });
 
 /* ------------------------------- migrasinya ----------------------------- */
