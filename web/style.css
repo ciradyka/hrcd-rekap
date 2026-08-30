@@ -4355,6 +4355,28 @@ button.pill-number:hover { filter: brightness(.95); }
    sampai ada yang diukur.
    ========================================================================== */
 
+/* ---------- pita antrean nilai ---------- */
+
+/* Duduk DI ATAS kartu kerjanya, di dalam aliran halaman — bukan melayang.
+   Bilah melayang harus berebut tempat dengan menu bawah HP, dengan
+   notifikasi, dan dengan papan ketik yang naik; ketiganya sudah punya
+   aturannya sendiri di berkas ini, dan pita ini tidak cukup penting untuk
+   menuntut aturan keempat. Yang dijaga cuma satu: ia tidak boleh bisa
+   dilewati mata, dan tempat di atas kartu memang sudah dilewati. */
+.pita-antrean {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .8rem; flex-wrap: wrap;
+  margin-bottom: .8rem; padding: .7rem .9rem;
+  border: 1px solid; border-radius: var(--radius-kecil);
+  font-size: .9rem;
+}
+.pita-tunda { border-color: var(--kuning); background: var(--kuning-muda); color: var(--kuning); }
+.pita-tolak { border-color: var(--bahaya); background: var(--bahaya-muda); color: var(--bahaya); }
+.pita-nomor {
+  margin-top: .25rem; font-weight: 700;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+
 /* ---------- pemilih lomba ---------- */
 
 /* auto-fill, bukan jumlah kolom yang dipatok: pos berisi satu lomba (Pos 4,
