@@ -4390,20 +4390,52 @@ button.pill-number:hover { filter: brightness(.95); }
 .foto-judul { grid-area: 1 / 1; font-weight: 700; }
 .foto-status { grid-area: 2 / 1; font-size: .82rem; color: var(--tinta-lembut); }
 .foto-aksi { grid-area: 1 / 2 / 3 / 3; display: flex; gap: .4rem; }
+/* Selebar kartunya dan digeser ke samping. `scroll-snap` supaya gesernya
+   berhenti tepat di satu foto; `overscroll-behavior-x: contain` supaya geseran
+   yang kelewat ujung tidak ikut menggeser halaman di belakangnya. */
+.foto-geser {
+  grid-area: 3 / 1 / 4 / 3; margin-top: .5rem;
+  display: flex; gap: .5rem;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+}
+.foto-lembar {
+  flex: 0 0 100%; scroll-snap-align: center;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  background: var(--kertas); overflow: hidden;
+}
+/* `contain`, bukan `cover`: yang dibaca di sini tulisan tangan, dan sisi yang
+   dipotong `cover` justru sering sisi yang memuat angkanya. */
+.foto-lembar img {
+  display: block; width: 100%; max-height: 60vh; object-fit: contain;
+}
+.foto-lembar-kosong {
+  min-height: 8rem; font-size: .85rem; color: var(--tinta-lembut);
+}
 
 /* ---------- kotak isian kriteria ---------- */
 
 .isian-lomba { display: flex; flex-direction: column; gap: .5rem; margin-top: .7rem; }
-/* Nama kriteria di kiri, kotaknya di kanan — bentuk blangko kertasnya, supaya
-   juri yang menyalin dari kertas ke layar tidak perlu mencari padanannya. */
+/* DITUMPUK DAN DI TENGAH, bukan nama di kiri dan kotak di kanan.
+
+   Sejajar dengan judul lombanya yang juga di tengah, dan itu yang membuat
+   ketiganya terbaca sebagai satu kolom yang menurun: lomba apa, yang dihitung
+   apa, angkanya berapa. Nama di tengah dengan kotak menempel tepi kanan
+   membaca seperti dua hal yang tidak berhubungan.
+
+   Bentuk kiri-kanan sebelumnya meniru blangko kertas. Yang dipinjam dari
+   kertas tetap ada — urutan dan katanya — tetapi lebar kertas bukan lebar
+   layar HP, dan di sana kolom kiri selebar tiga perempat layar untuk dua kata
+   cuma menjauhkan mata dari angkanya. */
 .isian-baris {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: .8rem; min-height: 48px; padding: .35rem .5rem;
+  display: flex; flex-direction: column; align-items: center;
+  gap: .35rem; padding: .55rem .5rem;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
 }
 .isian-nama {
-  display: flex; flex-direction: column;
-  flex: 1 1 auto; min-width: 0; font-weight: 700; line-height: 1.2;
+  display: flex; flex-direction: column; align-items: center;
+  max-width: 100%; font-weight: 700; line-height: 1.2; text-align: center;
 }
 .isian-petunjuk { font-size: .8rem; font-weight: 400; color: var(--tinta-lembut); }
 /* 48px, bukan tinggi bawaan .small-input: kotak ini diketik sambil berdiri,
@@ -4414,25 +4446,6 @@ button.pill-number:hover { filter: brightness(.95); }
   font-size: 1.15rem; font-weight: 700; text-align: center;
 }
 .isian-baris .checkbox { flex: 0 0 auto; }
-/* Baris berisi deretan tombol menumpuk ke bawah, bukan berdampingan: tiga
-   puluh enam tombol tidak muat di kolom kanan selebar kotak isian. */
-.isian-pilihan { flex-direction: column; align-items: stretch; }
-.isian-pilihan .isian-nama { flex: 0 0 auto; }
-/* Satu tombol per angka. `wrap`, bukan jumlah kolom yang dipatok: rentangnya
-   0-5 di Semaphore dan 0-35 di Kreativitas, dan keduanya memakai petak yang
-   sama. 48px adalah sasaran jempol yang tidak menuntut dilihat sebelum
-   ditekan — dan itulah seluruh gunanya menggantikan papan angka HP. */
-.pilih-angka { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .45rem; }
-.angka-kotak {
-  flex: 0 0 auto; min-width: 48px; min-height: 48px; padding: 0 .45rem;
-  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
-  background: var(--kartu); color: var(--tinta);
-  font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums;
-}
-.angka-kotak[aria-pressed="true"] {
-  background: var(--utama); border-color: var(--utama); color: #fff;
-}
-.angka-kotak:disabled { opacity: .45; cursor: not-allowed; }
 .isian-baris .pos-pasangan { flex: 0 0 auto; display: flex; align-items: center; gap: .3rem; }
 .isian-baris .pos-pasangan .small-input { width: 4rem; }
 
