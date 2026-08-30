@@ -213,8 +213,38 @@ Guidance for Claude Code when working in this repository.
    Before believing a merged migration is live, run
    `supabase/checks/status_migrasi.sql` through `apply-migration.yml`. It
    reports each migration's FINGERPRINT in the database — a constraint, a view
-   column, a fragment of a function body — and changes nothing. Names of files
-   cannot be checked, because nothing stores them.
+   column, a fragment of a function body, a row of configuration — and changes
+   nothing. Names of files cannot be checked, because nothing stores them.
+
+   **It covered ten migrations until 30 August 2026, while its own header
+   described it as a general check.** The other 152 were not examined at all
+   and it still reported green — the very shape of mistake section 13.3
+   describes. It now checks **111** and NAMES the **51** it cannot, so the
+   question stays open instead of being closed by silence.
+
+   **A migration with no fingerprint is not a problem.** It means nothing is
+   left to check: a younger migration rewrote its objects, or it only touched
+   operational data that "Bersihkan data" can wipe.
+
+   **`0102` reports BELUM in production, and that is the correct answer.** It
+   is one of the ten that never ran, and `0119` deliberately left its part out
+   because `0116` had already replaced `daftar_ulang_batch`. Do not "fix" it.
+
+   `tests/status_migrasi_check.sh` tests the checker itself, from BOTH
+   directions: after migration N its fingerprint must read ADA, and before
+   migration N it must read BELUM. The second direction is the one usually
+   missing — without it `select true` passes. Twenty fingerprints survived a
+   looser rule and were caught by that harness. It rebuilds the database 162
+   times, so it is deliberately not part of `tests/run.sh`.
+
+   **Production runs PostgreSQL 17.6; a laptop on 18.x will disagree with it
+   in ways that look like missing migrations.** PostgreSQL 18 records NOT NULL
+   constraints in `pg_constraint` and 17 does not, so 22 fingerprints built on
+   a PG18 laptop would have reported a false BELUM. Match the local server to
+   production's major version; where that is impossible, remember that
+   `pg_get_functiondef`, `pg_get_viewdef`, grant lists, and CRLF line endings
+   all differ between environments without anything being wrong. Section 0 of
+   the check prints `version()` for exactly this reason.
 
    **Re-running a skipped migration is not automatically safe.** Check first
    whether a younger migration already replaced any of its objects: running
