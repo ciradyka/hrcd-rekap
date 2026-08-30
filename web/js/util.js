@@ -1298,6 +1298,48 @@ export function stopwatchTeks(ms) {
  *  ditemukan belakangan waktu angkanya sudah masuk. */
 export const detikDariMs = (ms) => Math.round(Math.max(0, Number(ms) || 0) / 1000);
 
+/** Apakah jawaban `simpan_nilai_massal` boleh dibaca sebagai BERHASIL.
+ *
+ *  Dipisah ke sini karena ia satu-satunya hal yang berdiri antara "nilainya
+ *  masuk" dan "layar berkata nilainya masuk" — dan salah di sini tidak
+ *  menghasilkan galat apa pun, cuma angka yang hilang sambil semua orang
+ *  mengira sudah tersimpan. Yang begitu harus diuji mesin, bukan dicoba
+ *  tangan sekali lalu dipercaya selamanya.
+ *
+ *  DUA SYARAT, bukan satu. Versi pertama cuma mencari status `ditolak` —
+ *  pemeriksaan yang lebih sempit daripada masalahnya, bentuk yang sudah dua
+ *  kali menggigit repo ini (CLAUDE.md 13.3):
+ *
+ *    1. SETIAP baris harus berstatus `tersimpan`. Bukan "tidak ada yang
+ *       ditolak" — status ketiga yang lahir tahun depan ikut tertangkap.
+ *    2. JUMLAHNYA harus sama dengan yang dikirim. RPC mengembalikan satu
+ *       baris hasil per baris masuk; jawaban yang lebih pendek berarti ada
+ *       yang tidak diproses sama sekali.
+ *
+ *  `dariServer` memisahkan dua kegagalan yang penanganannya berlawanan.
+ *  Ditolak server berarti angkanya memang tidak boleh masuk — menunggu tidak
+ *  mengubah jawabannya, jadi ia TIDAK boleh masuk antrean kirim ulang.
+ *  Jawaban yang tidak lengkap adalah keanehan yang mungkin sementara, jadi ia
+ *  diperlakukan seperti gagal jaringan: diantre, karena arah yang aman adalah
+ *  mencoba lagi, bukan membuang angkanya. */
+export function periksaJawabSimpan(jumlahKirim, jawab) {
+  const daftar = Array.isArray(jawab) ? jawab : [];
+  /* findIndex, BUKAN find. Baris `null` di dalam jawaban memang cocok dengan
+     penyaringnya, tetapi find() mengembalikan nilai itu sendiri — dan `null`
+     bersifat falsy, jadi pagar `if (ditolak)` dilewati dan jawabannya terbaca
+     BERHASIL. Ditemukan tes di bawah, bukan di lapangan. */
+  const buruk = daftar.findIndex(x => !x || x.status !== "tersimpan");
+  if (buruk >= 0) {
+    const b = daftar[buruk];
+    return { ok: false, dariServer: true,
+             alasan: (b && b.alasan) || "nilai ditolak server" };
+  }
+  if (daftar.length !== jumlahKirim) {
+    return { ok: false, dariServer: false, alasan: "jawaban server tidak lengkap" };
+  }
+  return { ok: true };
+}
+
 /** Ringkas satu LOMBA untuk satu regu: berapa komponennya yang berlaku,
  *  berapa yang sudah ada isinya, dan jumlah nilainya.
  *

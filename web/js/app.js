@@ -42,7 +42,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba,
          katalogLomba, stopwatchTeks, detikDariMs,
-         petunjukKolom } from "./util.js";
+         petunjukKolom, periksaJawabSimpan } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
@@ -471,6 +471,19 @@ async function layarHome() {
     // Yang tetap wajib di-escape: nilai dari database. Di sini cuma `pos`.
     LAYAR.replaceChildren(h(`
       <div class="function-menu">
+        <!-- v2 BERDIRI PALING ATAS di papan juri, dan itu bukan urutan
+             alfabet: layar inilah yang dibuat untuk orang yang membaca papan
+             ini. Yang lama tetap ada di bawahnya karena hanya dari sana
+             blangko bisa dicetak.
+
+             Papan ini SEPENUHNYA TERPISAH dari papan meja di bawah, dan itu
+             yang membuat ubin baru gampang terlupa: ditambahkan di satu
+             tempat, dan akun juri — satu-satunya yang memakai layar itu —
+             tidak melihatnya sama sekali. Persis yang terjadi sampai baris
+             ini ditulis. -->
+        <a href="#/pos2">
+          <div class="function-name">${ikonKotak("clock", "mawar")} Input Nilai Pos v2</div>
+        </a>
         <a href="#/pos">
           <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos${
             sesi().pos != null && sesi().pos !== "" ? ` ${esc(sesi().pos)}` : ""}</div>
@@ -582,7 +595,7 @@ async function layarHome() {
       <a href="#/pos2">
         <div class="function-name">${ikonKotak("clock", "mawar")} Input Nilai Pos v2</div>
       </a>` : ""}
-      ${bolehLihat("pos") ? `
+      ${bolehLihat("pengaturan") ? `
       <a href="#/cek-nilai">
         <div class="function-name">${ikonKotak("circle-check", "zamrud")} Cek Nilai</div>
       </a>` : ""}
@@ -7296,18 +7309,12 @@ async function kirimAntrean() {
     for (const p of antreanTertunda()) {
       try {
         if (p.baris && p.baris.length) {
-          const hasil = await simpanNilaiPos(p.baris, p.pos);
-          const daftar = hasil || [];
-          const ditolak = daftar.find(x => x.status !== "tersimpan");
-          /* JUMLAHNYA IKUT DIPERIKSA, bukan cuma statusnya. RPC mengembalikan
-             satu baris hasil per baris yang dikirim; jawaban yang lebih
-             pendek berarti ada yang tidak diproses, dan menganggapnya sukses
-             adalah cara nilai hilang sambil layar berkata "tersimpan". */
-          if (ditolak || daftar.length !== p.baris.length) {
-            const e = new ErrorApi(ditolak
-              ? (ditolak.alasan || "nilai ditolak server")
-              : "jawaban server tidak lengkap");
-            e.dariServer = !!ditolak;
+          // Aturannya di util.js, diuji mesin — lihat periksaJawabSimpan().
+          const periksa = periksaJawabSimpan(p.baris.length,
+            await simpanNilaiPos(p.baris, p.pos));
+          if (!periksa.ok) {
+            const e = new ErrorApi(periksa.alasan);
+            e.dariServer = periksa.dariServer;
             throw e;
           }
           // Nilainya sudah mendarat. Dikosongkan supaya percobaan berikutnya
@@ -7464,22 +7471,12 @@ async function kirimNilaiRegu({ pos, kolom, regu, wadah, labelUntuk }) {
 
   try {
     if (baris.length) {
-      const jawab = await simpanNilaiPos(baris, pos);
-      const daftar = jawab || [];
-      /* SEMUA HARUS `tersimpan`, DAN JUMLAHNYA HARUS SAMA.
-         Yang dicari dulu cuma status `ditolak` — pemeriksaan yang lebih sempit
-         daripada masalahnya, bentuk yang sudah dua kali menggigit repo ini
-         (bagian 13.3). RPC mengembalikan satu baris hasil per baris yang
-         dikirim; jawaban yang lebih pendek berarti ada yang tidak diproses,
-         dan menganggapnya sukses adalah cara nilai hilang sambil layar berkata
-         "tersimpan". Status ketiga yang lahir tahun depan ikut tertangkap
-         tanpa menyentuh baris ini. */
-      const ditolak = daftar.find(x => x.status !== "tersimpan");
-      if (ditolak || daftar.length !== baris.length) {
-        const e = new ErrorApi(ditolak
-          ? (ditolak.alasan || "nilai ditolak server")
-          : "jawaban server tidak lengkap");
-        e.dariServer = !!ditolak;
+      // Aturannya di util.js, diuji mesin — lihat periksaJawabSimpan().
+      const periksa = periksaJawabSimpan(baris.length,
+        await simpanNilaiPos(baris, pos));
+      if (!periksa.ok) {
+        const e = new ErrorApi(periksa.alasan);
+        e.dariServer = periksa.dariServer;
         throw e;
       }
     }
@@ -9080,9 +9077,26 @@ async function gambarLombaSoal(l) {
 
 async function layarCekNilai() {
   const s = sesi();
-  if (!bolehLihat("pos")) {
+  /* HAK `pengaturan`, BUKAN `pos`.
+
+     Layar Input Nilai Pos v2 dipakai juri dan tim input per lomba; layar ini
+     dipakai admin server. Selama pagarnya `pos`, setiap juri bisa membukanya —
+     dan sejak layar ini boleh mengubah nilai dan MENGUNCI, itu berarti setiap
+     juri bisa mengunci nilai regu mana pun di posnya, termasuk lomba yang
+     bukan pegangannya.
+
+     `pengaturan` dipilih karena hanya admin yang mendapatkannya dari
+     paket_peran() — diperiksa di database, bukan diduga: juri_pos dan
+     koordinator_pos sama-sama cuma menerima `live_score` dan `pos`.
+     Presedennya pasal 13.4, "yang dulu hanya admin dipetakan ke pengaturan,
+     bukan ke fitur ubin yang namanya mirip".
+
+     Ini bukan kunci mati: matriks centang di layar Akun tetap bisa memberikan
+     `pengaturan` ke akun tertentu yang memang perlu, tanpa menyentuh kode. */
+  if (!bolehLihat("pengaturan")) {
     pasangKepala("Cek Nilai");
-    LAYAR.replaceChildren(h(kartuGalat("Akun ini tidak berhak membuka Cek Nilai.")));
+    LAYAR.replaceChildren(h(kartuGalat(
+      "Cek Nilai dipakai admin server. Akun ini tidak berhak membukanya.")));
     return;
   }
 
