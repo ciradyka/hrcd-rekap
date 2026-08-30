@@ -2460,40 +2460,72 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    dialog yang dibuka dari baris yang sama tidak boleh terasa seperti dua
    aplikasi berbeda. */
 .foto-lomba { list-style: none; margin: 0; padding: 0; }
+/* DUA KOLOM TETAP, bukan satu baris yang membungkus.
+ *
+ * Kiri: nama lomba dengan keterangannya di bawahnya. Kanan: ketiga tombol,
+ * SELALU di baris yang sama dengan namanya.
+ *
+ * Bentuk sebelumnya satu baris flex ber-`wrap`, dan empat hal berebut lebar
+ * yang sama: nama lomba, keterangan, Lihat, dan pasangan Kamera/Galeri. Di
+ * lebar HP keempatnya tidak muat begitu sebuah baris punya foto — keterangan
+ * "belum ada" berubah jadi "1 foto · 781 B" dan tombol Lihat ikut muncul —
+ * jadi pasangan tombolnya terlempar ke baris kedua. Hanya baris yang sudah
+ * punya foto, jadi daftarnya bergerigi: sebagian tombol di kanan atas,
+ * sebagian di bawah, berpindah tempat justru saat petugas sedang memakainya.
+ *
+ * Menaikkan lebarnya tidak bisa menyelesaikan itu — yang berubah panjangnya
+ * adalah keterangan, dan panjangnya baru diketahui sesudah unggahannya
+ * selesai. Grid memberi keterangan itu barisnya sendiri, jadi sepanjang apa
+ * pun ia tidak pernah lagi mendorong tombol. */
 .foto-lomba li {
-  display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem;
+  display: grid;
+  /* minmax(0, 1fr): tanpa batas bawah nol, kolom kiri menolak menyusut di
+     bawah lebar kata terpanjangnya dan nama lomba yang panjang mendorong
+     kolom tombol keluar tabel. */
+  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-areas: "nama aksi"
+                       "info aksi";
+  align-items: center; column-gap: .6rem; row-gap: .1rem;
   padding: .55rem 0; border-bottom: 1px solid var(--garis);
 }
 .foto-lomba li:last-child { border-bottom: 0; }
 .f-nama {
-  font-weight: 600; flex: 1 1 6rem; min-width: 0;
+  grid-area: nama; align-self: end;
+  font-weight: 600; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* Keadaan unggahan menumpang di tempat jumlah foto: "belum ada" ->
    "mengecilkan…" -> "mengirim 71 KB…" -> "1 foto · 71 KB". Satu tempat, satu
    kalimat — petugas tidak perlu mencari di mana kabarnya muncul. */
 .f-jumlah {
+  grid-area: info; align-self: start;
   color: var(--tinta-lembut); font-size: .82rem;
-  flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere;
+  min-width: 0; overflow-wrap: anywhere;
 }
-/* Tombol didorong ke kanan supaya kolomnya lurus walau nama lombanya pendek. */
-.foto-lomba li > :nth-last-child(2) { margin-left: auto; }
 /* <label> yang membungkus <input type=file> tersembunyi. Tanpa ini ia
    ditampilkan sebagai teks biasa, bukan sebagai tombol. */
 .foto-lomba label.button { display: inline-flex; align-items: center; cursor: pointer; }
-/* Kamera dan Galeri dibungkus SATU kotak, bukan diletakkan berdampingan
-   sebagai dua anak <li>. Dua sebabnya:
+/* KETIGA tombol satu kelompok — Lihat ikut di dalamnya, bukan berdiri sendiri
+   sebagai anak <li>. Sebagai anak lepas ia menempati kolom grid-nya sendiri
+   dan tempatnya berpindah begitu ia disembunyikan; sebagai anggota kelompok
+   ini, baris tanpa foto cuma kehilangan satu tombol dan dua sisanya tetap
+   di tepi kanan yang sama. */
+.f-aksi {
+  grid-area: aksi;
+  display: flex; gap: .4rem; align-items: center; flex-wrap: nowrap;
+}
+/* Kamera dan Galeri BERISI IKON SAJA — alasannya di bukaFotoLembar(). Tanpa
+   kata di dalamnya lebar .button-mini menyusut jadi sekitar 32px, dan itu di
+   bawah petak sentuh yang nyaman untuk jari; petugas pos memakainya sambil
+   berdiri, sering dengan tangan yang satunya memegang lembar jawaban. 44px
+   dipakai dua-duanya, jadi meleset sedikit tetap mengenai tombol yang
+   dimaksud — dan meleset ke tombol SEBELAHNYA membuka kamera saat yang
+   diminta galeri.
 
-   Pertama, `.foto-lomba li > :nth-last-child(2)` di atas mendorong tombol ke
-   kanan berdasarkan URUTAN. Menambah satu anak menggeser hitungannya, dan
-   yang terdorong jadi tombol Kamera — "Lihat" tertinggal menempel di nama
-   lombanya sendiri. Dengan pembungkus, jumlah anak <li> tetap empat dan
-   aturan itu tidak perlu disentuh.
-
-   Kedua, di HP barisnya membungkus. Sebagai dua anak lepas, Kamera bisa
-   tinggal di baris pertama sementara Galeri turun sendirian ke baris kedua —
-   dua tombol yang sepasang tapi tidak terlihat sepasang. */
-.f-aksi { display: flex; gap: .4rem; align-items: center; flex-wrap: nowrap; }
+   Hanya <label>, bukan seluruh .button-mini: "Lihat" di sebelahnya berisi
+   kata, dan padding .2rem akan menghimpitnya. */
+.f-aksi label.button { min-width: 44px; min-height: 40px; padding: .2rem; }
+.f-aksi .ikon { width: 1.3em; height: 1.3em; }
 /* Kamera dan Galeri di layar Foto Jawaban BERBAGI satu baris, tidak menumpuk.
    `.button` lebarnya 100%, jadi dua tombol di dalam .action-row masing-masing
    meminta selebar barisnya dan yang kedua terlempar ke baris berikutnya — dua

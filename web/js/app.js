@@ -4502,22 +4502,44 @@ async function layarInputPos() {
        `multiple` sengaja tetap ditulis di tombol Kamera walau kamera hanya
        mengembalikan satu foto: pada peramban yang mengabaikan `capture` —
        hampir semua peramban laptop — tombol itu jatuh kembali jadi pemilih
-       berkas biasa, dan di sana memilih banyak sekaligus tetap berguna. */
+       berkas biasa, dan di sana memilih banyak sekaligus tetap berguna.
+
+       IKON SAJA DI SINI, berbeda dengan layar Foto Jawaban yang menuliskan
+       katanya. Bukan karena tempatnya sempit — melainkan karena pasangan ini
+       BERULANG sekali per lomba. Lima "Kamera" dan lima "Galeri" bertumpuk di
+       satu dialog cuma dibaca pada pasangan pertama; sisanya jadi keramaian
+       yang mendorong tombolnya turun ke baris kedua di HP. Di layar Foto
+       Jawaban pasangannya cuma satu dan barisnya lapang, jadi katanya gratis
+       dan tetap ditulis.
+
+       Namanya tidak hilang, cuma pindah: `title` untuk kursor di layar lebar,
+       `aria-label` di input untuk pembaca layar — dan aria-label-nya menyebut
+       nama lombanya, karena "Kamera" saja tidak memberi tahu kamera yang
+       mana dari lima yang ada.
+
+       TOMBOL "LIHAT" IKUT MASUK ke .f-aksi, tidak berdiri sebagai anak <li>
+       sendiri. Ketiganya adalah satu kelompok tombol di kanan baris, dan
+       barisnya sekarang grid dua kolom (lihat style.css) — satu area untuk
+       tombol, bukan tiga anak yang bisa terpisah sendiri-sendiri. Selama ia
+       di luar, baris yang sudah punya foto memuat nama + keterangan + Lihat
+       di baris pertama dan MENDORONG pasangan Kamera/Galeri turun ke baris
+       kedua. */
     const isi = `<ul class="foto-lomba">${lomba.map(([kode, nama]) => `
       <li data-kode="${esc(kode)}" data-nama="${esc(nama)}">
         <span class="f-nama">${esc(nama)}</span>
         <span class="f-jumlah" data-jumlah>${hitung[kode]
           ? `${esc(String(hitung[kode]))} foto` : "belum ada"}</span>
-        <button type="button" class="button button-mini" data-lihat
-          ${hitung[kode] ? "" : "hidden"}>Lihat</button>
         <span class="f-aksi">
-          <label class="button button-mini button-primary">
+          <button type="button" class="button button-mini" data-lihat
+            ${hitung[kode] ? "" : "hidden"}>Lihat</button>
+          <label class="button button-mini button-primary" title="Kamera">
             <input type="file" accept="image/*" capture="environment" multiple
-                   hidden data-ambil>${ikon("camera")} Kamera
+                   hidden data-ambil
+                   aria-label="Foto ${esc(nama)} pakai kamera">${ikon("camera")}
           </label>
-          <label class="button button-mini button-secondary">
+          <label class="button button-mini button-secondary" title="Galeri">
             <input type="file" accept="image/*" multiple hidden data-ambil
-                   >${ikon("image")} Galeri
+                   aria-label="Foto ${esc(nama)} dari galeri">${ikon("image")}
           </label>
         </span>
       </li>`).join("")}</ul>
