@@ -9056,25 +9056,32 @@ async function layarCekNilai() {
               >${esc(judulPos(p))}</option>`).join("")}
           </select>
         </div>
-        <div class="field">
-          <label for="cek-lompat">Lompat ke nomor dada</label>
-          <input type="number" id="cek-lompat" class="small-input" inputmode="numeric"
-                 min="1" placeholder="misal: 042">
-        </div>
       </div>
+      <!-- PANAH, NOMOR DADA, PANAH — satu baris, dan kotak tengahnya sekaligus
+           jalan melompat. Sebelumnya ada dua alat untuk satu pekerjaan: kotak
+           "Lompat ke nomor dada" di atas, dan sepasang tombol "Sebelumnya /
+           Berikutnya" selebar setengah layar di bawahnya. Keduanya menjawab
+           "regu mana yang saya lihat sekarang", dan dua jawaban untuk satu
+           pertanyaan berarti petugas memilih dulu sebelum bergerak.
+
+           Panahnya sengaja tanpa kata. "Berikutnya ▶" selebar setengah layar
+           bukan sasaran sentuh yang lebih baik daripada panah 3rem — ia cuma
+           mendorong nomor dadanya keluar dari tengah, tempat mata mencarinya. -->
       <div class="cek-navigasi">
-        <button type="button" class="button button-secondary" id="cek-mundur"
-                >◀ Sebelumnya</button>
-        <span class="cek-posisi" id="cek-posisi"></span>
-        <button type="button" class="button button-secondary" id="cek-maju"
-                >Berikutnya ▶</button>
+        <button type="button" class="button button-secondary cek-panah"
+                id="cek-mundur" aria-label="Regu sebelumnya">&lsaquo;</button>
+        <input type="number" id="cek-dada" class="cek-dada" inputmode="numeric"
+               min="1" aria-label="Nomor dada yang sedang dilihat">
+        <button type="button" class="button button-secondary cek-panah"
+                id="cek-maju" aria-label="Regu berikutnya">&rsaquo;</button>
       </div>
+      <div class="cek-posisi" id="cek-posisi"></div>
     </div>
     <div id="cek-isi"></div>
   `));
 
   const elPos = document.getElementById("cek-pos");
-  const elLompat = document.getElementById("cek-lompat");
+  const elDada = document.getElementById("cek-dada");
   const elPosisi = document.getElementById("cek-posisi");
   const elIsi = document.getElementById("cek-isi");
   const elMundur = document.getElementById("cek-mundur");
@@ -9099,6 +9106,12 @@ async function layarCekNilai() {
       ? `${indeks + 1} / ${lembar.length}` : "0 / 0";
     elMundur.disabled = indeks <= 0;
     elMaju.disabled = indeks >= lembar.length - 1;
+    /* Kotaknya JANGAN ditimpa selagi diketik: petugas yang sedang mengetik
+       "04" untuk menuju 042 akan melihat ketikannya diganti nomor yang sedang
+       terbuka, di tengah ketikan. */
+    if (document.activeElement !== elDada) {
+      elDada.value = lembar.length ? String(lembar[indeks].nomor_dada) : "";
+    }
   }
 
   async function gambarRegu() {
@@ -9118,7 +9131,7 @@ async function layarCekNilai() {
        bertanda tangan butuh satu perjalanan jaringan per regu, dan layar yang
        kosong selama itu membuat petugas menekan "Berikutnya" dua kali. */
     elIsi.replaceChildren(h(`
-      ${kartuReguNilai(r)}
+      <div class="cek-identitas">${kartuReguNilai(r)}</div>
       <div class="card">
         ${daftar.map(l => {
           const dipakai = l.kolom
@@ -9139,6 +9152,12 @@ async function layarCekNilai() {
                   : html`<span class="cek-butir">${teks}</span>`;
               }).join("")
             : `<span class="cek-butir cek-kosong">belum dinilai</span>`;
+          /* Nama dan angkanya SATU BLOK di kiri, tepat di atas fotonya.
+             Sebelumnya angkanya didorong ke tepi kanan oleh
+             `justify-content: space-between`, jadi membandingkan tulisan
+             tangan di foto dengan angka yang diketik menuntut mata menyeberang
+             selebar layar dan turun — dua gerakan untuk satu perbandingan yang
+             dilakukan ratusan kali. */
           return `
             <section class="cek-lomba">
               <div class="cek-kepala">
@@ -9220,13 +9239,34 @@ async function layarCekNilai() {
     muatPos();
   }, { signal: sinyal });
 
-  elLompat.addEventListener("change", () => {
-    const cari = Number(elLompat.value);
-    if (!cari) return;
+  /** Melompat ke nomor yang diketik. Nomor yang tidak ada di pos ini
+   *  dikembalikan ke nomor yang sedang terbuka — kotak yang ditinggalkan
+   *  berisi nomor yang tidak sedang dilihat siapa pun berbohong tentang
+   *  layar di bawahnya. */
+  const lompat = () => {
+    const cari = Number(elDada.value);
     const i = lembar.findIndex(r => Number(r.nomor_dada) === cari);
-    if (i < 0) { notif(`Nomor ${dada3(cari)} tidak ada di pos ini.`, true); return; }
-    elLompat.value = "";
+    if (i < 0) {
+      notif(`Nomor ${dada3(cari)} tidak ada di pos ini.`, true);
+      elDada.value = lembar.length ? String(lembar[indeks].nomor_dada) : "";
+      return;
+    }
+    elDada.blur();
     ke(i);
+  };
+  elDada.addEventListener("change", lompat, { signal: sinyal });
+  elDada.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); lompat(); }
+  }, { signal: sinyal });
+  // Isi kotak dipilih saat diketuk, jadi nomor berikutnya tinggal diketik
+  // menimpa — aturan yang sama dengan kotak nomor dada di layar input.
+  elDada.addEventListener("focusin", () => {
+    if (!elDada.value) return;
+    setTimeout(() => {
+      if (document.activeElement === elDada) {
+        try { elDada.select(); } catch { /* abaikan */ }
+      }
+    }, 0);
   }, { signal: sinyal });
 
   await muatPos();
