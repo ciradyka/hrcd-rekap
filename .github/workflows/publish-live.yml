@@ -19,8 +19,10 @@
 # mengembalikan nol baris dan v_progres_publik tidak memuat satu pun angka
 # nilai. Fase 'top10' hanya menerbitkan maksimal sepuluh regu eligible per
 # golongan beserta totalnya; fase 'penuh' menerbitkan papan lengkap; fase
-# 'juara' menutup papan sepenuhnya dan menerbitkan daftar juara — tanpa satu
-# angka skor pun, karena kolomnya memang tidak ada di v_kejuaraan_publik.
+# 'juara' menutup papan sepenuhnya dan menerbitkan daftar juara beserta
+# angkanya. Yang menahan angka itu sebelum diumumkan bukan ketiadaan
+# kolomnya melainkan pagar fase: v_kejuaraan_publik mengembalikan nol baris
+# di luar fase 'juara' (0163, kolom skornya kembali di 0164).
 #
 # CRON 15 MENIT AKTIF HANYA 29 AGUSTUS 2026, 08:00-23:59 WIB. Cron memakai
 # UTC dan tidak punya kolom tahun, jadi jadwal memilih 01:00-16:45 UTC lalu
@@ -161,23 +163,28 @@ jobs:
           # Pagar kebocoran, dijaga di sini SEKALIGUS di view (0005/0026).
           if d['fase'] not in ('penuh', 'top10') and d['klasemen']:
               sys.exit('BOCOR: klasemen ikut tertulis pada fase yang tertutup')
-          # Daftar juara hanya pada fase 'juara' (0163), dan tidak pernah
-          # membawa satu angka skor pun. Kunci yang dilarang disebut satu per
-          # satu DAN apa pun yang bertipe angka ikut ditolak: penghargaan
-          # berikutnya bisa membawa kolom baru bernama lain, dan pagar yang
-          # cuma menyebut nama tidak akan melihatnya (CLAUDE.md 13.3).
-          # `nomor_dada` dikecualikan — ia identitas regu, sama terbukanya
-          # dengan namanya sendiri, dan sudah tercetak di punggung mereka.
+          # Daftar juara hanya pada fase 'juara' (0163). ITULAH pagarnya, dan
+          # sejak 0164 ia satu-satunya: angkanya sekarang memang ikut terbit,
+          # jadi tidak ada lapisan kedua di belakangnya. Sebelum juaranya
+          # diumumkan, view-nya mengembalikan nol baris dan tidak ada yang
+          # bisa dibaca siapa pun.
           if d['fase'] != 'juara' and d['kejuaraan']:
               sys.exit('BOCOR: kejuaraan tertulis padahal fase belum juara')
+          # Kolomnya DIDAFTAR, bukan dilarang satu per satu. Pagar lama
+          # menolak apa pun yang bertipe angka; itu tidak bisa dipertahankan
+          # sesudah 0164 dan menggantinya dengan daftar-larangan akan buta
+          # terhadap kolom baru bernama lain. Yang dipakai kebalikannya: kolom
+          # yang TIDAK dikenal menghentikan penerbitan. `hasil_kejuaraan()`
+          # duduk di atas `pendaftaran`, satu tabel dengan nomor WA pembina —
+          # satu `select *` yang kelewat lebar di masa depan berhenti di sini,
+          # bukan di HP peserta (CLAUDE.md 13.3).
+          KOLOM_JUARA = {'urutan', 'kode', 'nama_penghargaan', 'nomor_dada',
+                         'nama_regu', 'nama_sekolah', 'golongan',
+                         'total', 'poin_juara', 'jumlah_skor'}
           for baris in d['kejuaraan']:
-              for kunci, isi in baris.items():
-                  if kunci in ('nomor_dada', 'urutan'):
-                      continue
-                  if isinstance(isi, bool) or isi is None:
-                      continue
-                  if isinstance(isi, (int, float)):
-                      sys.exit(f'BOCOR: angka {kunci} ikut ke daftar juara')
+              asing = set(baris) - KOLOM_JUARA
+              if asing:
+                  sys.exit(f'BOCOR: kolom tak dikenal di daftar juara: {sorted(asing)}')
           # Fase juara menutup papan, dan itu bagian dari janjinya: yang
           # dilihat peserta di sana HANYA kejuaraan. Kedua view memang sudah
           # menutup sendiri; kalau suatu hari tidak lagi, berhenti di sini.

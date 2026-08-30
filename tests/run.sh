@@ -721,6 +721,8 @@ run supabase/migrations/0162_lebur_smp_al_fadliliyah.sql
 run tests/sql/114_lebur_smp_al_fadliliyah.sql
 run supabase/migrations/0163_fase_juara.sql
 run tests/sql/115_fase_juara.sql
+run supabase/migrations/0164_kejuaraan_publik_dengan_skor.sql
+run tests/sql/116_kejuaraan_publik_skor.sql
 
 # Parse dan jalankan query yang benar-benar menjadi live.json, SESUDAH
 # seluruh migrasi. Ini menangkap view atau kolom yang berganti sebelum

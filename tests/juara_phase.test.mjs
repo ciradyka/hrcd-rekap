@@ -19,6 +19,8 @@ const liveJson = await readFile(
   new URL("../supabase/checks/live_json.sql", import.meta.url), "utf8");
 const migrasi = await readFile(
   new URL("../supabase/migrations/0163_fase_juara.sql", import.meta.url), "utf8");
+const skor = await readFile(new URL(
+  "../supabase/migrations/0164_kejuaraan_publik_dengan_skor.sql", import.meta.url), "utf8");
 
 /* ------------------------------- saklar panitia ------------------------- */
 
@@ -47,13 +49,25 @@ test("berkas terbit hanya memuat daftar juara pada fasenya", () => {
   assert.match(terbit, /BOCOR: kejuaraan tertulis padahal fase belum juara/);
 });
 
-test("tidak satu pun angka boleh menumpang di daftar juara", () => {
-  // Pagar yang cuma menyebut nama kolom tidak melihat kolom baru bernama lain
-  // — bentuk kesalahan yang sama dengan CLAUDE.md 13.3. Nomor dada dan urutan
-  // dikecualikan: keduanya identitas dan susunan, bukan nilai.
-  assert.match(terbit, /if isinstance\(isi, \(int, float\)\):/);
-  assert.match(terbit, /BOCOR: angka \{kunci\} ikut ke daftar juara/);
-  assert.match(terbit, /if kunci in \('nomor_dada', 'urutan'\):/);
+test("kolom yang tidak dikenal menghentikan penerbitan", () => {
+  // Sejak 0164 angkanya memang ikut terbit, jadi pagar lama — tolak apa pun
+  // yang bertipe angka — tidak bisa dipertahankan. Yang menggantikannya
+  // DAFTAR IZIN, bukan daftar larangan: daftar larangan buta terhadap kolom
+  // baru bernama lain, dan hasil_kejuaraan() duduk di atas `pendaftaran`,
+  // satu tabel dengan nomor WA pembina (CLAUDE.md 13.3).
+  assert.match(terbit, /KOLOM_JUARA = \{/);
+  assert.match(terbit, /asing = set\(baris\) - KOLOM_JUARA/);
+  assert.match(terbit, /BOCOR: kolom tak dikenal di daftar juara/);
+  // Kolom skor memang termasuk yang diizinkan sekarang.
+  const daftar = terbit.slice(terbit.indexOf("KOLOM_JUARA = {"),
+    terbit.indexOf("for baris in d['kejuaraan']"));
+  for (const kolom of ["total", "poin_juara", "jumlah_skor"]) {
+    assert.ok(daftar.includes(`'${kolom}'`), `${kolom} tidak ada di KOLOM_JUARA`);
+  }
+  // Yang TIDAK pernah boleh ikut tetap di luar daftar.
+  for (const kolom of ["sumber", "regu_id", "kontak_wa"]) {
+    assert.ok(!daftar.includes(`'${kolom}'`), `${kolom} tidak boleh diizinkan`);
+  }
 });
 
 test("papan ikut ditutup pada fase juara", () => {
@@ -96,13 +110,27 @@ test("judul halaman ikut berganti jadi Kejuaraan", () => {
   assert.match(peserta, /const namaLayar = fase\(\) === "juara" \? "Kejuaraan" : "Live Score";/);
 });
 
-test("penggambarnya tidak menyentuh satu kolom skor pun", () => {
-  const blok = peserta.slice(peserta.indexOf("function gambarKejuaraan()"),
-    peserta.indexOf("function gambarPapan()"));
-  for (const kolom of ["total", "poin_juara", "jumlah_skor", "peringkat"]) {
-    assert.doesNotMatch(blok, new RegExp(`\\.${kolom}\\b`),
-      `gambarKejuaraan() membaca ${kolom}`);
-  }
+test("angkanya digambar dengan bentuk yang sama dengan layar panitia", () => {
+  // Satu kelas yang sama, `.kejuaraan-skor`, supaya angkanya jatuh di tempat
+  // yang sama di dua layar — aturannya cuma ada sekali, di style.css.
+  const blok = peserta.slice(peserta.indexOf("const skorJuara"),
+    peserta.indexOf("function gambarKejuaraan()"));
+  assert.match(blok, /kejuaraan-skor/);
+  assert.match(blok, /j\.total == null/);
+  assert.match(blok, /poin juara/);
+  assert.match(blok, /regu bernomor dada/);
+  // `peringkat` tetap TIDAK dibaca: urutan gelar sudah dibawa
+  // `nama_penghargaan`, dan kolom itu memang tidak ikut terbit.
+  assert.doesNotMatch(blok, /\.peringkat\b/);
+});
+
+test("jumlah skor enam besar ditulis dengan tanda kurung, di DUA layar", () => {
+  // Kalimatnya satu dan sama. Dua bunyi untuk satu fakta adalah persis yang
+  // dilarang repo ini, jadi layar panitia ikut berubah bersamanya.
+  assert.match(peserta, /total skor \(6 besar\)/);
+  assert.match(panitia, /total skor \(6 besar\)/);
+  assert.doesNotMatch(peserta, /total skor 6 besar/);
+  assert.doesNotMatch(panitia, /total skor 6 besar/);
 });
 
 test("label golongan diambil dari daftar bersama, tidak ditulis ulang", () => {
@@ -180,12 +208,17 @@ test("migrasi memindahkan pagar hak, bukan melonggarkannya", () => {
   assert.match(migrasi, /has_function_privilege\(\s*'anon', 'hasil_kejuaraan_semua\(\)', 'execute'\)/);
 });
 
-test("view publiknya berpagar fase dan tanpa kolom skor", () => {
-  const view = migrasi.slice(migrasi.indexOf("create view v_kejuaraan_publik"),
-    migrasi.indexOf("grant select on v_kejuaraan_publik"));
+test("view publiknya berpagar fase, dan pagar itu satu-satunya", () => {
+  // 0164 mengembalikan kolom skornya, jadi tidak ada lagi lapisan kedua di
+  // belakang pagar fase. Karena itu penjaga migrasinya menguji pagar itu
+  // dengan MENGUBAH fasenya, bukan dengan membaca definisinya.
+  const view = skor.slice(skor.indexOf("create view v_kejuaraan_publik"),
+    skor.indexOf("grant select on v_kejuaraan_publik"));
   assert.match(view, /where \(select fase_live from status_acara\) = 'juara'/);
   for (const kolom of ["total", "poin_juara", "jumlah_skor"]) {
-    assert.doesNotMatch(view, new RegExp(`\\b${kolom}\\b`),
-      `kolom ${kolom} ikut ke view publik`);
+    assert.ok(view.includes(kolom), `kolom ${kolom} belum kembali ke view publik`);
   }
+  assert.ok(!view.includes("sumber"), "kolom sumber tidak boleh ikut");
+  assert.match(skor, /update status_acara set fase_live = 'penuh'/);
+  assert.match(skor, /0164: daftar juara terbaca padahal fase masih penuh/);
 });

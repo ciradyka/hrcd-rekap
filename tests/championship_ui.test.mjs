@@ -68,7 +68,10 @@ test("Juara Umum menampilkan poin juara dan total skor", () => {
   assert.match(layar, /x\.poin_juara/);
   assert.match(layar, /x\.jumlah_skor/);
   assert.match(layar, /poin juara ·/);
-  assert.match(layar, /total skor 6 besar/);
+  // Tanda kurung, bukan tanpa. "2370 total skor 6 besar" terbaca seperti dua
+  // angka yang berhimpitan; "(6 besar)" memisahkan angkanya dari cakupannya.
+  // Kalimat yang sama dipakai halaman peserta — dijaga di juara_phase.test.mjs.
+  assert.match(layar, /total skor \(6 besar\)/);
 });
 
 test("menyimpan juara mengunci baris tanpa memuat ulang layar", () => {

@@ -6179,7 +6179,7 @@ async function layarKejuaraan() {
       <strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>
       <span class="description">${esc(x.nama_sekolah || "")}</span></div>${skor(x)}</div>`;
     if (x.nama_sekolah) return `<strong>${esc(x.nama_sekolah)}</strong>${x.kode.startsWith("juara_umum")
-      ? `<span class="description">${esc(angkaRapi(x.poin_juara))} poin juara · ${esc(angkaRapi(x.jumlah_skor))} total skor 6 besar</span>`
+      ? `<span class="description">${esc(angkaRapi(x.poin_juara))} poin juara · ${esc(angkaRapi(x.jumlah_skor))} total skor (6 besar)</span>`
       : x.kode === "peserta_terbanyak"
         ? `<span class="description">${esc(angkaRapi(x.total))} regu bernomor dada</span>` : ""}`;
     return `<span class="description">Belum ditentukan</span>`;
