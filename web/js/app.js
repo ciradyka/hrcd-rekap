@@ -7209,6 +7209,209 @@ async function layarFoto() {
   await isiLomba();
 }
 
+/* ================== ANTREAN NILAI YANG BELUM TERKIRIM =====================
+
+   MASALAH YANG DIPECAHKAN. Di pos, sinyal putus adalah keadaan biasa. Layar
+   Input Nilai Pos v2 mengosongkan dirinya setiap selesai satu regu, jadi
+   angka yang gagal terkirim tidak punya tempat tinggal di layar sama sekali —
+   petugas sudah pindah ke regu berikutnya, dan yang tersisa cuma satu
+   notifikasi merah yang hilang sendiri. Angka itu hilang tanpa jejak.
+
+   DI MANA ANTREANNYA TINGGAL: `localStorage` di HP petugas. Bukan di memori
+   halaman seperti lembar pos lama — di sana layarnya tidak pernah dikosongkan,
+   jadi barisnya sendiri yang jadi antrean. Di sini halamannya bisa dibuang
+   browser karena memori penuh, HP-nya bisa terkunci, tab-nya bisa tertutup;
+   ketiganya keadaan biasa di lapangan, dan ketiganya menghapus memori halaman.
+
+   APA YANG DIJANJIKAN, DAN APA YANG TIDAK. Yang dijanjikan: "terkirim begitu
+   halaman ini terbuka dan ada sinyal". BUKAN "pasti terkirim nanti" — dan
+   perbedaan itu bukan kehati-hatian berlebihan:
+
+     tab terbuka & terlihat   putaran 15 detik jalan
+     internet kembali         `online` menyala, dikirim seketika
+     tab di latar / terkunci  timer dicekik jadi ~sekali semenit lalu DIBEKUKAN
+     tab dibuang browser      tidak ada JS yang hidup sama sekali
+     dibuka lagi              antrean dibaca dari localStorage lalu dikirim
+
+   Tidak ada cara membuatnya benar-benar berjalan di latar belakang di sini:
+   situs ini aset statis tanpa service worker, dan Background Sync tidak ada
+   di Safari iOS — jadi menambahkan service worker pun tidak menutup lubangnya
+   untuk sebagian HP. Karena itu pitanya harus MENGGANGGU, bukan sopan: ia
+   satu-satunya yang memberi tahu petugas bahwa halaman ini masih harus
+   dibiarkan terbuka.
+
+   DUA KEADAAN, DAN INI YANG PALING MUDAH SALAH. Gagal jaringan boleh dicoba
+   ulang selamanya. Ditolak server TIDAK: `simpan_nilai_massal` menolak karena
+   nilainya di luar rentang, regunya tergembok, atau komponennya bukan untuk
+   golongan itu — tidak satu pun sembuh dengan menunggu. Mencoba ulang yang
+   ditolak berarti satu baris rusak menyumbat seluruh antrean di belakangnya,
+   selamanya, tanpa satu pun tanda. Jadi yang ditolak dikeluarkan dari putaran
+   dan ditampilkan sampai ada orang yang mengurusnya.
+   ========================================================================= */
+
+const KUNCI_ANTREAN = "hrcd_antrean_nilai";
+
+/** Isi antrean di memori. localStorage yang jadi salinan tahan-matinya. */
+let antreanNilai = (() => {
+  try {
+    const isi = JSON.parse(localStorage.getItem(KUNCI_ANTREAN) || "[]");
+    return Array.isArray(isi) ? isi : [];
+  } catch { return []; }
+})();
+
+let jamAntreanSinkron = null;
+let sedangKirimAntrean = false;
+
+/** Menulis ke localStorage TIDAK BOLEH menjatuhkan apa pun.
+ *
+ *  Ia melempar saat kuota penuh dan di mode penyamaran sebagian browser. Kalau
+ *  itu terjadi, antreannya tetap hidup di memori halaman — persis sebaik
+ *  lembar pos lama, tidak lebih buruk — dan pitanya tetap menyuruh halaman ini
+ *  dibiarkan terbuka. Yang tidak boleh terjadi: satu galat penyimpanan
+ *  membatalkan simpanan yang sebenarnya sudah aman. */
+function tulisAntrean() {
+  try { localStorage.setItem(KUNCI_ANTREAN, JSON.stringify(antreanNilai)); }
+  catch { /* antreannya tetap di memori; pitanya tetap memberi tahu */ }
+}
+
+const antreanTertunda = () => antreanNilai.filter(p => !p.ditolak);
+const antreanDitolak = () => antreanNilai.filter(p => p.ditolak);
+
+function antreanTambah(pekerjaan) {
+  antreanNilai.push(pekerjaan);
+  tulisAntrean();
+  gambarPitaAntrean();
+}
+
+/** Satu putaran kirim. Berhenti pada kegagalan PERTAMA yang bisa diulang —
+ *  kalau jaringannya mati, mencoba sisanya cuma memperpanjang penantian tanpa
+ *  satu pun peluang berhasil. */
+async function kirimAntrean() {
+  if (sedangKirimAntrean || !sesi() || !navigator.onLine) return;
+  if (!antreanTertunda().length) return;
+  sedangKirimAntrean = true;
+  let adaYangBerhasil = false;
+
+  try {
+    for (const p of antreanTertunda()) {
+      try {
+        if (p.baris && p.baris.length) {
+          const hasil = await simpanNilaiPos(p.baris, p.pos);
+          const daftar = hasil || [];
+          const ditolak = daftar.find(x => x.status !== "tersimpan");
+          /* JUMLAHNYA IKUT DIPERIKSA, bukan cuma statusnya. RPC mengembalikan
+             satu baris hasil per baris yang dikirim; jawaban yang lebih
+             pendek berarti ada yang tidak diproses, dan menganggapnya sukses
+             adalah cara nilai hilang sambil layar berkata "tersimpan". */
+          if (ditolak || daftar.length !== p.baris.length) {
+            const e = new ErrorApi(ditolak
+              ? (ditolak.alasan || "nilai ditolak server")
+              : "jawaban server tidak lengkap");
+            e.dariServer = !!ditolak;
+            throw e;
+          }
+          // Nilainya sudah mendarat. Dikosongkan supaya percobaan berikutnya
+          // tidak mengirimkannya lagi kalau penghapusan di bawah yang gagal.
+          p.baris = [];
+          tulisAntrean();
+        }
+        while (p.hapus && p.hapus.length) {
+          await hapusNilaiPos(p.dada, p.hapus[0], p.pos);
+          p.hapus.shift();
+          tulisAntrean();
+        }
+        antreanNilai = antreanNilai.filter(x => x !== p);
+        jamAntreanSinkron = new Date();
+        adaYangBerhasil = true;
+        tulisAntrean();
+      } catch (err) {
+        if (err && err.dariServer) {
+          // Ditolak server: menunggu tidak akan mengubah jawabannya.
+          p.ditolak = err.message;
+          tulisAntrean();
+          continue;
+        }
+        break;   // gagal jaringan: sisanya pun akan gagal sekarang
+      }
+    }
+  } finally {
+    sedangKirimAntrean = false;
+    gambarPitaAntrean();
+  }
+
+  if (adaYangBerhasil && !antreanTertunda().length) {
+    notif("Nilai yang tertunda sudah terkirim.");
+  }
+}
+
+/** Pita antrean, digambar ke `#pita-antrean` kalau layarnya menyediakannya.
+ *
+ *  DI DALAM ALIRAN HALAMAN, bukan melayang. Bilah melayang harus berebut
+ *  tempat dengan menu bawah HP, dengan notifikasi, dan dengan papan ketik yang
+ *  naik — tiga hal yang sudah punya aturannya sendiri di berkas ini. Pita ini
+ *  duduk di atas kartu kerjanya, tempat mata petugas memang sudah lewat. */
+function gambarPitaAntrean() {
+  const el = document.getElementById("pita-antrean");
+  if (!el) return;
+  const tunda = antreanTertunda();
+  const tolak = antreanDitolak();
+  if (!tunda.length && !tolak.length) { el.replaceChildren(); return; }
+
+  const nomor = (daftar) => daftar.map(p => dada3(p.dada)).join(", ");
+  const cap = jamAntreanSinkron
+    ? ` Terakhir terkirim ${jamMenit(jamAntreanSinkron)}.` : "";
+
+  el.replaceChildren(h(`
+    ${tunda.length ? `
+    <div class="pita-antrean pita-tunda">
+      <div>
+        <strong>${esc(String(tunda.length))} nilai belum terkirim</strong>
+        — jangan tutup halaman ini.${esc(cap)}
+        <div class="pita-nomor">${esc(nomor(tunda))}</div>
+      </div>
+      <button type="button" class="button button-secondary button-small"
+              id="antrean-kirim">Kirim sekarang</button>
+    </div>` : ""}
+    ${tolak.length ? `
+    <div class="pita-antrean pita-tolak">
+      <div>
+        <strong>${esc(String(tolak.length))} nilai ditolak server</strong>
+        — tidak akan terkirim sendiri.
+        <div class="pita-nomor">${tolak.map(p =>
+          `${esc(dada3(p.dada))}: ${esc(p.ditolak)}`).join("<br>")}</div>
+      </div>
+      <button type="button" class="button button-danger button-small"
+              id="antrean-buang">Buang</button>
+    </div>` : ""}`));
+
+  el.querySelector("#antrean-kirim")?.addEventListener("click", () => kirimAntrean());
+  el.querySelector("#antrean-buang")?.addEventListener("click", async () => {
+    /* Membuang berarti angka itu TIDAK PERNAH tercatat di mana pun. Sesudah
+       ini tidak ada satu pun jejaknya — bukan di database, bukan di HP ini.
+       Karena itu ditanya dulu, dengan angkanya disebutkan. */
+    const jawab = await dialog({
+      judul: `Buang ${antreanDitolak().length} nilai yang ditolak?`,
+      kartuHtml: `<p>Angkanya hilang sama sekali. Yang masih dibutuhkan harus
+        diketik ulang di layar ini.</p>`,
+      labelAksi: "Buang",
+    });
+    if (jawab === null) return;
+    antreanNilai = antreanTertunda();
+    tulisAntrean();
+    gambarPitaAntrean();
+    notif("Nilai yang ditolak dibuang.");
+  });
+}
+
+/* EMPAT PEMICU, dan semuanya perlu — masing-masing menutup keadaan yang tiga
+   lainnya tidak bisa. Putaran 15 detik menghentikan dirinya saat tab
+   tersembunyi: di sana ia dicekik jadi sekali semenit lalu dibekukan, jadi
+   yang tersisa cuma membakar baterai. `visibilitychange` yang menyalakannya
+   kembali — dan ia menyantol di pendengar yang sudah ada, yang memang tidak
+   menggambar ulang apa pun. */
+window.addEventListener("online", () => kirimAntrean());
+setInterval(() => { if (!document.hidden) kirimAntrean(); }, 15000);
+
 /* ========================= INPUT NILAI POS v2 =============================
 
    Layar Input Nilai Pos yang lama bertanya "kamu di pos mana?", lalu
@@ -7425,7 +7628,7 @@ function gambarPemilihLomba(katalog) {
     blok.isi.push(l);
   }
 
-  LAYAR.replaceChildren(h(perPos.map(b => `
+  LAYAR.replaceChildren(h(`<div id="pita-antrean"></div>` + perPos.map(b => `
     <div class="card">
       <h2>${esc(b.judul)}</h2>
       <div class="pilih-lomba">
@@ -7435,6 +7638,9 @@ function gambarPemilihLomba(katalog) {
           </button>`).join("")}
       </div>
     </div>`).join("")));
+
+  gambarPitaAntrean();
+  kirimAntrean();
 
   LAYAR.addEventListener("click", (e) => {
     const b = e.target.closest("[data-kunci]");
@@ -7470,6 +7676,7 @@ async function gambarLombaNilai(l) {
   const waktu = l.jenis === "waktu";
 
   LAYAR.replaceChildren(h(`
+    <div id="pita-antrean"></div>
     ${kepalaLomba(l)}
     <div class="card" id="v2-kartu" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
@@ -7545,6 +7752,9 @@ async function gambarLombaNilai(l) {
     </div>
     <div id="v2-riwayat"></div>
   `));
+
+  gambarPitaAntrean();
+  kirimAntrean();
 
   const inp = document.getElementById("v2-dada");
   const kotakRegu = document.getElementById("v2-regu");
@@ -8028,15 +8238,50 @@ async function gambarLombaNilai(l) {
     try {
       if (baris.length) {
         const hasil = await simpanNilaiPos(baris, l.pos);
-        // Server memeriksa ulang tiap baris dan menolaknya satu per satu;
-        // yang pertama ditolak sudah cukup menjelaskan apa yang salah.
-        const ditolak = (hasil || []).find(x => x.status === "ditolak");
-        if (ditolak) throw new ErrorApi(ditolak.alasan || "nilai ditolak server");
+        const daftar = hasil || [];
+        /* SEMUA HARUS `tersimpan`, DAN JUMLAHNYA HARUS SAMA.
+           Sebelumnya yang dicari cuma status `ditolak` — pemeriksaan yang
+           lebih sempit daripada masalahnya, bentuk yang sudah dua kali
+           menggigit repo ini (bagian 13.3). RPC mengembalikan satu baris
+           hasil per baris yang dikirim; jawaban yang lebih pendek berarti ada
+           yang tidak diproses, dan menganggapnya sukses adalah cara nilai
+           hilang sambil layar berkata "tersimpan". Status ketiga yang lahir
+           tahun depan juga ikut tertangkap tanpa menyentuh baris ini. */
+        const ditolak = daftar.find(x => x.status !== "tersimpan");
+        if (ditolak || daftar.length !== baris.length) {
+          const e = new ErrorApi(ditolak
+            ? (ditolak.alasan || "nilai ditolak server")
+            : "jawaban server tidak lengkap");
+          e.dariServer = !!ditolak;
+          throw e;
+        }
       }
       for (const kode of dihapus) await hapusNilaiPos(dada, kode, l.pos);
     } catch (err) {
-      notif(`Nomor Dada ${dada3(dada)}.\n${kapital(err.message)}`, true);
-      tombol.dataset.jalan = ""; tombol.disabled = false;
+      /* DITOLAK SERVER DAN GAGAL JARINGAN DIPERLAKUKAN BERBEDA.
+
+         Ditolak berarti angkanya memang tidak boleh masuk — di luar rentang,
+         regunya tergembok, komponennya bukan untuk golongan itu. Mengantrekan
+         yang begitu berarti menyimpan sesuatu yang tidak akan pernah diterima,
+         dan petugas berhak tahu SEKARANG selagi regunya masih di depannya.
+
+         Gagal jaringan sebaliknya: angkanya sah, cuma jalannya sedang putus.
+         Itu yang masuk antrean. Yang muncul BUKAN notifikasi hijau — pesannya
+         menyebut "BELUM terkirim", dan baris ini sengaja tidak dicatat ke
+         "Baru saja tersimpan" karena ia memang belum tersimpan. */
+      if (err && err.dariServer) {
+        notif(`Nomor Dada ${dada3(dada)}.\n${kapital(err.message)}`, true);
+        tombol.dataset.jalan = ""; tombol.disabled = false;
+        return;
+      }
+      antreanTambah({ pos: l.pos, dada, baris, hapus: [...dihapus],
+                      pada: new Date().toISOString() });
+      notif(`${dada3(dada)} BELUM terkirim — masuk antrean, `
+            + "dikirim otomatis saat ada sinyal.", true);
+      tombol.dataset.jalan = "";
+      inp.value = "";
+      bersihkan();
+      inp.focus();
       return;
     }
 
@@ -8297,6 +8542,7 @@ async function gambarLombaSoal(l) {
   const sinyal = sinyalLayarBaru();
 
   LAYAR.replaceChildren(h(`
+    <div id="pita-antrean"></div>
     ${kepalaLomba(l)}
     <div class="card">
       <div class="action-row">
@@ -8318,6 +8564,9 @@ async function gambarLombaSoal(l) {
       <div class="grid-foto" id="v2-grid"></div>
     </div>
   `));
+
+  gambarPitaAntrean();
+  kirimAntrean();
 
   const elGrid  = document.getElementById("v2-grid");
   const elBelum = document.getElementById("v2-belum");
@@ -9100,11 +9349,28 @@ window.addEventListener("afterprint", () => {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden || !sesi()) return;
   if (segarkanDiTempat) segarkanDiTempat();
+  // Antrean nilai ikut dicoba di sini, dan HANYA di sini ia bisa bangun lagi
+  // sesudah tab dibekukan: putaran 15 detiknya sengaja tidur saat tersembunyi.
+  // Ini tidak menggambar ulang apa pun, jadi pasal yang melarang penggambaran
+  // ulang pada visibilitychange tidak dilanggar.
+  kirimAntrean();
 });
 
 /** Baris lembar pos yang isinya belum sampai ke database. */
 const adaYangBelumTersimpan = () => !!document.querySelector(
   '#isi-tabel tr[data-keadaan="belum"], #isi-tabel tr[data-keadaan="gagal"]');
+
+/** Yang menahan TAB DITUTUP, dan sengaja lebih luas daripada yang menahan
+ *  PERPINDAHAN LAYAR.
+ *
+ *  Antrean nilai selamat dari perpindahan layar — ia tinggal di localStorage —
+ *  jadi menanyakannya tiap kali petugas menekan Home cuma mengajari orang
+ *  menutup kotak peringatan tanpa membacanya. Menutup tab lain persoalannya:
+ *  antreannya memang masih ada di HP, tetapi tidak ada satu pun JS yang hidup
+ *  untuk mengirimkannya sampai halaman ini dibuka lagi. Satu jeda di situ
+ *  sepadan. */
+const adaYangBelumTerkirim = () =>
+  adaYangBelumTersimpan() || antreanTertunda().length > 0;
 
 const bolehMeninggalkanNilai = () => !adaYangBelumTersimpan()
   || window.confirm("Ada nilai yang belum tersimpan. Tetap pindah layar?");
@@ -9113,7 +9379,7 @@ const bolehMeninggalkanNilai = () => !adaYangBelumTersimpan()
 // jejak. Browser hanya mengizinkan peringatan bawaannya, dan itu sudah cukup:
 // yang dibutuhkan cuma satu jeda sebelum tab-nya benar-benar tertutup.
 window.addEventListener("beforeunload", (e) => {
-  if (!adaYangBelumTersimpan()) return;
+  if (!adaYangBelumTerkirim()) return;
   e.preventDefault();
   e.returnValue = "";
 });
