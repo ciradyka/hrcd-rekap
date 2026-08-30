@@ -26,8 +26,8 @@
 -- daripada masalahnya lebih berbahaya daripada tidak ada pemeriksaan, karena ia
 -- menutup pertanyaannya.
 --
--- Sekarang keduanya disebutkan: 113 migrasi punya jejak yang diperiksa
--- (bagian 1), dan 49 tidak punya (bagian 2). Yang di bagian 2 bukan berarti
+-- Sekarang keduanya disebutkan: 111 migrasi punya jejak yang diperiksa
+-- (bagian 1), dan 51 tidak punya (bagian 2). Yang di bagian 2 bukan berarti
 -- belum diterapkan — berarti tidak ada yang tersisa untuk diperiksa.
 --
 -- DARI MANA JEJAKNYA DATANG, DAN KENAPA BOLEH DIPERCAYA
@@ -129,8 +129,8 @@ begin
    $c$select exists (select 1 from pg_constraint where conrelid = 'wahana'::regclass and conname = 'wahana_form_check' and position('CHECK ((form = ANY (ARRAY[''kecil_baik''::text, ''besar_baik''::text, ''biner''::text, ''benar_per_total''::text, ''benar_kurang_salah''::text, ''bertingkat''::text])))' in pg_get_constraintdef(oid)) > 0)$c$),
   ('0023', 'view v_lembar_pos: COALESCE(( SELECT jsonb_object_agg(w.kode, jsonb_build_obj',
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_lembar_pos' and position('COALESCE(( SELECT jsonb_object_agg(w.kode, jsonb_build_object(''nilai_1'', n.nilai_1, ''nilai_2'', n.nilai_2)) AS jsonb_object_agg' in definition) > 0)$c$),
-  ('0024', 'function uji/1: select hasil ->> ''kode_pembayaran'' from uji_kode where lab',
-   $c$select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'uji' and p.pronargs = 1 and position('select hasil ->> ''kode_pembayaran'' from uji_kode where label = p' in p.prosrc) > 0)$c$),
+  ('0024', 'constraint pos.pos_nomor_check: CHECK (((nomor >= 0) AND (nomor <= 20)))',
+   $c$select exists (select 1 from pg_constraint where conrelid = 'pos'::regclass and conname = 'pos_nomor_check' and position('CHECK (((nomor >= 0) AND (nomor <= 20)))' in pg_get_constraintdef(oid)) > 0)$c$),
   ('0028', 'view v_kelengkapan_pos: FROM ((v_pos p',
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kelengkapan_pos' and position('FROM ((v_pos p' in definition) > 0)$c$),
   ('0037', 'row wahana: petunjuk": null',
@@ -227,16 +227,12 @@ begin
    $c$select exists (select 1 from pg_constraint where conrelid = 'edisi'::regclass and conname = 'edisi_maks_eksternal_per_kloter_check' and position('CHECK ((maks_eksternal_per_kloter >= 1))' in pg_get_constraintdef(oid)) > 0)$c$),
   ('0093', 'row edisi: lompatan_kloter": 1',
    $c$select exists (select 1 from edisi t where position('lompatan_kloter": 1' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
-  ('0094', 'row sekolah: {"name": "Sekolah Uji FIFO 0092", "address": "Ciamis"}',
-   $c$select exists (select 1 from sekolah t where position('{"name": "Sekolah Uji FIFO 0092", "address": "Ciamis"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0096', 'view v_kelengkapan_pos: LEFT JOIN regu_ikut ri ON ((komponen_pos_golongan(p.nomor,',
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kelengkapan_pos' and position('LEFT JOIN regu_ikut ri ON ((komponen_pos_golongan(p.nomor, ri.golongan) > 0)))' in definition) > 0)$c$),
   ('0097', 'comment_fn konfirmasi_kontrak/2: Mencatat kontrak waktu satu regu. Boleh dari garis start (',
    $c$select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'konfirmasi_kontrak' and p.pronargs = 2 and position('Mencatat kontrak waktu satu regu. Boleh dari garis start (hak keberangkatan) maupun dari meja daftar ulang (hak daftar_ulang) — keduanya menanyakannya, dan sebelum 0058 keduanya satu peran.' in coalesce(obj_description(p.oid, 'pg_proc'), '')) > 0)$c$),
   ('0098', 'comment_fn pindah_kloter/3: Memindahkan regu secara manual dari meja registrasi atau g',
    $c$select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'pindah_kloter' and p.pronargs = 3 and position('Memindahkan regu secara manual dari meja registrasi atau garis start; hak cetak_kloter dan keberangkatan sama-sama membuka pintu.' in coalesce(obj_description(p.oid, 'pg_proc'), '')) > 0)$c$),
-  ('0099', 'acl foto_lembar: postgres=arwdDxtm/postgres,authenticated=r/postgres',
-   $c$select exists (select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname = 'foto_lembar' and position('postgres=arwdDxtm/postgres,authenticated=r/postgres' in coalesce(array_to_string(c.relacl, ','), '')) > 0)$c$),
   ('0100', 'view v_regu_ringkas: WHERE ((NOT r.is_cancelled) AND (d.status = ''lunas''::text)',
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_regu_ringkas' and position('WHERE ((NOT r.is_cancelled) AND (d.status = ''lunas''::text) AND (r.nomor_dada IS NOT NULL) AND boleh_apa_saja(VARIADIC ARRAY[''keberangkatan''::text, ''kedatangan''::text, ''daftar_ulang''::text, ''pengaturan''::text]))' in definition) > 0)$c$),
   ('0101', 'view v_kelengkapan_pos: WHERE ((p.jumlah_komponen > 0) AND (peran() IS NOT NULL))',
@@ -307,8 +303,8 @@ begin
    $c$select exists (select 1 from sekolah t where position('{"name": "SMAN 1 Sindangkasih", "address": "Jl. Raya Sindangkasih Cikoneng, Sindangkasih, Kec. Sindangkasih, Kabupaten Ciamis, Jawa Barat 46268, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0155', 'row sekolah: {"name": "SMA Terpadu Al-Mu''aawanah", "address": "Jl. KH. ',
    $c$select exists (select 1 from sekolah t where position('{"name": "SMA Terpadu Al-Mu''aawanah", "address": "Jl. KH. Ahmad Romli No. 26, Rajadesa, Kec. Rajadesa, Kabupaten Ciamis, Jawa Barat 46254, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
-  ('0156', 'row sekolah: {"name": "SMK LPS 1 Ciamis", "address": "Jl. R.E. Martadin',
-   $c$select exists (select 1 from sekolah t where position('{"name": "SMK LPS 1 Ciamis", "address": "Jl. R.E. Martadinata No. 23, Maleber, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46214, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
+  ('0156', 'row sekolah: {"name": "SMK LPS 2 Ciamis", "address": "Jl. R.E. Martadin',
+   $c$select exists (select 1 from sekolah t where position('{"name": "SMK LPS 2 Ciamis", "address": "Jl. R.E. Martadinata No. 23, Maleber, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46214, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0157', 'row sekolah: {"name": "MTsN 11 Ciamis"',
    $c$select exists (select 1 from sekolah t where position('{"name": "MTsN 11 Ciamis"' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0158', 'row sekolah: {"name": "SMK Al-Asyariah", "address": "Jl. Rancawiru Utam',
@@ -375,7 +371,9 @@ select nomor, berkas from (values
   ('0086', 'menaksir_sentimeter'),
   ('0088', 'daftar_ulang_lewati_kloter_berangkat'),
   ('0090', 'reset_event_times'),
+  ('0094', 'kloter_bisa_dicetak_ulang'),
   ('0095', 'lembar_pos_jawaban_benar'),
+  ('0099', 'anon_default_privileges'),
   ('0109', 'kontrak_waktu_tiga_pilihan'),
   ('0112', 'buang_v_klasemen_pratinjau'),
   ('0115', 'sekolah_baku_dua_baris'),
