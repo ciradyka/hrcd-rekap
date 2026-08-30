@@ -4393,14 +4393,39 @@ button.pill-number:hover { filter: brightness(.95); }
 /* Selebar kartunya dan digeser ke samping. `scroll-snap` supaya gesernya
    berhenti tepat di satu foto; `overscroll-behavior-x: contain` supaya geseran
    yang kelewat ujung tidak ikut menggeser halaman di belakangnya. */
+/* `gap: 0`, dan itu bukan selera: tombol panah menggeser sejauh clientWidth
+   tepat satu foto, dan jarak antar foto membuat perhitungan itu meleset makin
+   jauh setiap kali digeser. Yang memisahkan keduanya garis tepi masing-masing.
+
+   Penggulir bawaannya disembunyikan — di HP ia memang tidak pernah terlihat,
+   dan di laptop batang tipis di bawah foto terbaca seperti bagian gambarnya.
+   Yang menyatakan ada foto lain adalah penghitung dan panah di bawahnya. */
 .foto-geser {
   grid-area: 3 / 1 / 4 / 3; margin-top: .5rem;
-  display: flex; gap: .5rem;
+  display: flex; gap: 0;
   overflow-x: auto; overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.foto-geser::-webkit-scrollbar { display: none; }
+/* Panah dan penghitung. Sasaran sentuh 44px, dan penghitungnya di antara
+   keduanya supaya ketiganya terbaca sebagai satu alat. */
+.foto-navigasi {
+  grid-area: 4 / 1 / 5 / 3; margin-top: .4rem;
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+}
+.foto-panah {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0; line-height: 1;
+  border: 1px solid var(--garis); border-radius: 50%;
+  background: var(--kartu); color: var(--tinta); font-size: 1.5rem;
+}
+.foto-hitung {
+  min-width: 3.5rem; text-align: center;
+  font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .foto-lembar {
-  flex: 0 0 100%; scroll-snap-align: center;
+  flex: 0 0 100%; scroll-snap-align: start;
   display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
   background: var(--kertas); overflow: hidden;

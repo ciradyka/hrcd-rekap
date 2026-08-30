@@ -3583,7 +3583,11 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
  *  cadangannya sengaja tidak menjanjikan apa-apa. */
 function judulIsian(k) {
   if (k.judul_isian) return k.judul_isian;
-  if (k.satuan === "detik") return "Waktu tempuh";
+  // "Waktu", bukan "Waktu tempuh". Kotaknya sudah berdiri di layar lomba
+  // waktu, di bawah stopwatch, dengan keterangan "menit:detik" — tidak ada
+  // waktu lain yang mungkin dimaksud, jadi "tempuh" cuma satu kata lagi yang
+  // dilewati mata sebelum sampai ke angkanya (bagian 9.3).
+  if (k.satuan === "detik") return "Waktu";
   if (k.satuan === "meter") return "Hasil taksir";
   if (k.form === "biner") return "Kena / tidak";
   if (k.form === "benar_kurang_salah") return "Benar dan salah";
@@ -4294,7 +4298,7 @@ async function layarInputPos() {
     const sel = tr.querySelector(".pos-gembok");
     sel.replaceChildren(h(`<button type="button" class="gembok"
       data-gembok aria-pressed="${kunci}"
-      title="${kunci ? "Terkunci — buka gembok (admin)"
+      title="${kunci ? "Terkunci — buka kunci (admin)"
                      : "Kunci nilai"}">${
       ikon(kunci ? "lock" : "lock-open")}</button>`));
     sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
@@ -4329,7 +4333,7 @@ async function layarInputPos() {
     catch (err) { notif(`Gagal membuka: ${err.message}`, true); return; }
     tr.dataset.terkunci = "";
     gambarGembok(tr);
-    notif(`Gembok ${tiga} dibuka.`);
+    notif(`Kunci ${tiga} dibuka.`);
   }
 
   /** Riwayat perubahan nilai satu regu di pos ini.
@@ -4894,7 +4898,7 @@ async function layarInputPos() {
     // itu harus menjelaskan jalan keluarnya; putaran otomatis tetap diam agar
     // tidak menyemburkan notifikasi setiap 15 detik.
     if (tr.dataset.terkunci === "1") {
-      const pesan = "Nilai sudah digembok. Buka gembok sebelum mengirim ulang.";
+      const pesan = "Nilai sudah dikunci. Buka kunci sebelum mengirim ulang.";
       statusBaris(tr, "gagal", pesan);
       if (beriTahu) notif(pesanBaris(dada, pesan), true);
       return;
@@ -7340,7 +7344,7 @@ const kartuReguNilai = (r) => `
     ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
     <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
     ${r.terkunci ? `<div style="margin-top:.4rem">
-      <span class="badge badge-gray">${ikon("lock")} tergembok</span></div>` : ""}
+      <span class="badge badge-gray">${ikon("lock")} dikunci</span></div>` : ""}
   </div>`;
 
 /* ---------------------------------------------------------------------------
@@ -7515,6 +7519,22 @@ async function gambarLombaNilai(l) {
           </label>
         </span>
         <div class="foto-geser" id="v2-foto-petak" hidden></div>
+        <!-- TOMBOL, bukan cuma geser. Petak yang bisa digeser tidak
+             mengumumkan dirinya: yang terlihat cuma satu foto, dan foto kedua
+             baru ada kalau seseorang kebetulan menyapu layarnya. Penghitung
+             "1 / 2" yang menyatakan ada berapa, dan panahnya yang menyatakan
+             bisa dipindah — keduanya terbaca tanpa mencoba apa pun.
+
+             Hanya muncul kalau memang lebih dari satu foto. Satu foto dengan
+             panah mati di kiri-kanannya adalah dua tombol yang tidak pernah
+             melakukan apa pun. -->
+        <div class="foto-navigasi" id="v2-foto-nav" hidden>
+          <button type="button" class="foto-panah" data-foto-geser="-1"
+                  aria-label="Foto sebelumnya">&lsaquo;</button>
+          <span class="foto-hitung" id="v2-foto-hitung"></span>
+          <button type="button" class="foto-panah" data-foto-geser="1"
+                  aria-label="Foto berikutnya">&rsaquo;</button>
+        </div>
       </div>
       <button class="button button-primary" id="v2-simpan" type="button" disabled
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
@@ -7531,6 +7551,8 @@ async function gambarLombaNilai(l) {
   const barisFoto = document.getElementById("v2-foto");
   const statusFoto = document.getElementById("v2-foto-status");
   const petakFoto = document.getElementById("v2-foto-petak");
+  const navFoto = document.getElementById("v2-foto-nav");
+  const hitungFoto = document.getElementById("v2-foto-hitung");
   let regu = null;      // baris v_lembar_pos regu yang sedang terbuka
   let jeda = null;
 
@@ -7571,6 +7593,7 @@ async function gambarLombaNilai(l) {
     fotoLomba = null;
     petakFoto.hidden = true;
     petakFoto.replaceChildren();
+    navFoto.hidden = true;
     tombol.disabled = true;
     segarkanStopwatch?.();
   };
@@ -7623,10 +7646,35 @@ async function gambarLombaNilai(l) {
    *
    *  Tautan bertanda tangan diambil sekali untuk seluruh foto regu ini
    *  (tautanFotoBanyak), bukan satu permintaan per gambar. */
+  /** Foto keberapa yang sedang terlihat, dipegang SENDIRI dan bukan dihitung
+   *  ulang dari posisi gulirnya setiap kali.
+   *
+   *  Versi pertama membacanya dari `scrollLeft` di dalam penangan `scroll`,
+   *  dan itu menaruh seluruh penghitungnya di atas satu peristiwa yang tidak
+   *  dijamin datang: `scroll` dikirim pada frame berikutnya, jadi tab yang
+   *  sedang tidak menggambar tidak mengirimkannya sama sekali — terukur nol
+   *  kali walau `scrollLeft` benar-benar berpindah. Penghitung yang bertahan
+   *  di "1 / 3" sementara fotonya sudah berganti lebih buruk daripada tidak
+   *  ada penghitung.
+   *
+   *  Jadi tombolnya yang memindahkan angkanya, langsung. `scroll` tetap
+   *  didengar, tapi tugasnya cuma satu: menyamakan angka ini kalau yang
+   *  menggeser jari, bukan tombol. */
+  let fotoKe = 0;
+
+  const perbaruiHitungFoto = () => {
+    const jml = petakFoto.children.length;
+    hitungFoto.textContent = jml ? `${fotoKe + 1} / ${jml}` : "";
+    // Panah yang mati di ujung menyatakan "tidak ada lagi" tanpa satu kata.
+    navFoto.querySelector('[data-foto-geser="-1"]').disabled = fotoKe <= 0;
+    navFoto.querySelector('[data-foto-geser="1"]').disabled = fotoKe >= jml - 1;
+  };
+
   async function gambarPetakFoto() {
     if (!fotoLomba || !fotoLomba.length) {
       petakFoto.hidden = true;
       petakFoto.replaceChildren();
+      navFoto.hidden = true;
       return;
     }
     const milik = fotoLomba;
@@ -7647,7 +7695,29 @@ async function gambarLombaNilai(l) {
               loading="lazy"></a>`
         : `<span class="foto-lembar foto-lembar-kosong">tautan gagal</span>`;
     }).join("")));
+
+    petakFoto.scrollLeft = 0;
+    fotoKe = 0;
+    navFoto.hidden = milik.length < 2;
+    perbaruiHitungFoto();
   }
+
+  petakFoto.addEventListener("scroll", () => {
+    const jml = petakFoto.children.length;
+    if (!jml) return;
+    const ke = Math.max(0, Math.min(jml - 1,
+      Math.round(petakFoto.scrollLeft / (petakFoto.clientWidth || 1))));
+    if (ke !== fotoKe) { fotoKe = ke; perbaruiHitungFoto(); }
+  }, { signal: sinyal });
+
+  navFoto.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-foto-geser]");
+    if (!b || b.disabled) return;
+    const jml = petakFoto.children.length;
+    fotoKe = Math.max(0, Math.min(jml - 1, fotoKe + Number(b.dataset.fotoGeser)));
+    petakFoto.scrollTo({ left: fotoKe * petakFoto.clientWidth, behavior: "smooth" });
+    perbaruiHitungFoto();
+  }, { signal: sinyal });
 
   async function cariDanGambar(dada) {
     let r, foto;
@@ -7784,7 +7854,7 @@ async function gambarLombaNilai(l) {
     const kunci = !!r.terkunci;
     wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
     tombol.disabled = kunci;
-    tombol.textContent = kunci ? "TERGEMBOK" : "SIMPAN NILAI";
+    tombol.textContent = kunci ? "DIKUNCI" : "SIMPAN NILAI";
 
     /* Kotak waktu dirapikan dan ditandai merah saat DITINGGALKAN, aturan yang
        sama persis dengan lembar pos lama. "1:75" terbaca wajar oleh mata tapi
@@ -8300,7 +8370,7 @@ async function gambarLombaSoal(l) {
     const r = reguCache.get(dada);
     sasaran.className = `ubin-regu${r ? "" : " ubin-regu-salah"}`;
     sasaran.textContent = r
-      ? `${r.nama_regu}${r.terkunci ? " · tergembok" : ""}`
+      ? `${r.nama_regu}${r.terkunci ? " · dikunci" : ""}`
       : `${dada3(dada)} tidak dikenal`;
   }
 
@@ -8442,7 +8512,7 @@ async function gambarLombaSoal(l) {
     }
     if (r.terkunci) {
       tombol.disabled = false;
-      notif(`Nilai ${dada3(dada)} sudah digembok. Buka gembok dulu.`, true);
+      notif(`Nilai ${dada3(dada)} sudah dikunci. Buka kuncinya dulu.`, true);
       return;
     }
 
