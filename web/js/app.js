@@ -7381,9 +7381,15 @@ async function layarInputPos2() {
   gambarPemilihLomba(katalog);
 }
 
-/** Buka satu lomba: kepala layarnya, lalu bentuk pengisiannya. */
+/** Buka satu lomba: kepala layarnya, lalu bentuk pengisiannya.
+ *
+ *  Bar atas menyebut POS, kartu di bawahnya menyebut LOMBA. Keduanya dulu
+ *  menyebut lomba, jadi "Semaphore" tercetak dua kali beruntun sementara
+ *  nama pos — satu-satunya keterangan yang memberi tahu petugas ia sedang
+ *  melayani meja yang mana — tidak muncul di mana pun. */
 async function bukaLomba(l) {
-  pasangKepala(judulLomba(l), l.jenis === "soal");
+  pasangKepala(judulPos({ nomor: l.pos, name: l.namaPos, bayangan: l.bayangan }),
+               l.jenis === "soal");
   if (l.jenis === "soal") await gambarLombaSoal(l);
   else await gambarLombaNilai(l);
 }
@@ -7440,7 +7446,6 @@ function gambarPemilihLomba(katalog) {
  *  yang saya ketik ini masuk ke lomba mana?" */
 const kepalaLomba = (l) => `
   <div class="card baris-lomba">
-    <span class="lomba-pos">${esc(l.bayangan ? l.namaPos : `Pos ${l.pos}`)}</span>
     <h2 class="lomba-judul">${esc(l.nama)}</h2>
   </div>`;
 
@@ -7484,6 +7489,32 @@ async function gambarLombaNilai(l) {
       <div id="v2-regu" style="margin-top:.7rem"></div>
       ${waktu ? panelStopwatchHtml() : ""}
       <div id="v2-isian" class="isian-lomba" hidden></div>
+      <!-- FOTO JAWABAN DI SINI, sebelum tombol simpan.
+
+           Slip penilaian berpindah tangan dari pos ke kotak ke meja IT, dan
+           begitu hilang tidak ada apa pun yang bisa memulihkan angkanya
+           (migrasi 0047). Difoto di layar ini karena di sinilah fotonya
+           tertaut sendiri ke nomor dada dan lomba yang tepat — petugas baru
+           saja mengetik nomornya, dan lombanya adalah layar tempat ia berdiri.
+
+           SEBELUM tombol simpan, bukan sesudah: sesudah menekan Simpan
+           layarnya dikosongkan untuk regu berikutnya, dan foto yang belum
+           diambil pada saat itu tidak akan pernah diambil. -->
+      <div id="v2-foto" class="foto-nilai" hidden>
+        <span class="foto-judul">Foto Jawaban</span>
+        <span class="foto-status" id="v2-foto-status"></span>
+        <span class="foto-aksi">
+          <label class="button button-secondary button-small" title="Kamera">
+            <input type="file" accept="image/*" capture="environment" multiple
+                   hidden data-foto-ambil
+                   aria-label="Foto jawaban pakai kamera">${ikon("camera")}
+          </label>
+          <label class="button button-secondary button-small" title="Galeri">
+            <input type="file" accept="image/*" multiple hidden data-foto-ambil
+                   aria-label="Foto jawaban dari galeri">${ikon("image")}
+          </label>
+        </span>
+      </div>
       <button class="button button-primary" id="v2-simpan" type="button" disabled
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
         SIMPAN NILAI
@@ -7496,6 +7527,8 @@ async function gambarLombaNilai(l) {
   const kotakRegu = document.getElementById("v2-regu");
   const wadah = document.getElementById("v2-isian");
   const tombol = document.getElementById("v2-simpan");
+  const barisFoto = document.getElementById("v2-foto");
+  const statusFoto = document.getElementById("v2-foto-status");
   let regu = null;      // baris v_lembar_pos regu yang sedang terbuka
   let jeda = null;
 
@@ -7503,6 +7536,19 @@ async function gambarLombaNilai(l) {
      Ia lahir ulang setiap regu — digambar oleh gambarIsian() — sementara
      panel stopwatch terpasang sekali di awal. Memegang elemennya berarti
      stopwatch menulis ke kotak milik regu yang sudah lewat. */
+  /** Nama yang ditulis DI ATAS kotak atau deretan tombol satu kriteria.
+
+   *  Nama kriteria menang, KECUALI kalau ia cuma mengulang judul lombanya.
+   *  "Posisi Bidai" menyebutkan sesuatu yang tidak ada di judul "Pembidaian",
+   *  jadi ia bertahan; "Semaphore" di bawah kartu bertuliskan "Semaphore"
+   *  tidak menyebutkan apa pun (bagian 9.3) — dan sambil mengulang, ia
+   *  menyembunyikan satu-satunya hal yang tidak bisa ditebak dari layar:
+   *  bahwa 5 berarti lima kata BENAR, bukan nilai lima dari seratus.
+   *
+   *  Yang menggantikannya judulIsian(), fungsi yang sudah dipakai blangko
+   *  kertas — jadi kata di layar dan kata di kertas tidak bisa berbeda. */
+  const labelIsian = (kol, k) => (kol.nama === l.nama ? judulIsian(k) : kol.nama);
+
   const kotakWaktu = () => wadah.querySelector(".input-waktu");
   // Penyegar catatan diskualifikasi. null untuk lomba non-waktu, yang memang
   // tidak punya panel stopwatch sama sekali.
@@ -7518,6 +7564,8 @@ async function gambarLombaNilai(l) {
     kotakRegu.replaceChildren();
     wadah.replaceChildren();
     wadah.hidden = true;
+    barisFoto.hidden = true;
+    statusFoto.textContent = "";
     tombol.disabled = true;
     segarkanStopwatch?.();
   };
@@ -7545,9 +7593,32 @@ async function gambarLombaNilai(l) {
     if (pertama) { pertama.focus(); if (pertama.select) pertama.select(); }
   }, { signal: sinyal });
 
+  /** Berapa foto lomba ini yang sudah tertaut ke regu yang sedang terbuka.
+   *  null = permintaannya gagal, jadi jumlahnya tidak diketahui. */
+  let jumlahFoto = null;
+
+  const gambarStatusFoto = () => {
+    statusFoto.textContent = jumlahFoto === null
+      ? "jumlah foto tidak terbaca"
+      : (jumlahFoto ? `${jumlahFoto} foto` : "belum ada");
+  };
+
   async function cariDanGambar(dada) {
-    let r;
-    try { r = await lembarPosSatu(l.pos, dada); }
+    let r, foto;
+    try {
+      /* SATU perjalanan, bukan dua berurutan. Di pos jaringan sering putus,
+         dan dua permintaan berantai berarti dua kali peluang menunggu lama
+         untuk satu ketikan nomor dada.
+
+         Daftar fotonya boleh gagal sendiri tanpa menjatuhkan barisnya:
+         `null` berarti status fotonya TIDAK diketahui, dan itu berbeda dari
+         "belum ada foto". Menuliskan "belum ada" untuk permintaan yang gagal
+         adalah tuduhan terhadap pekerjaan yang mungkin sudah selesai. */
+      [r, foto] = await Promise.all([
+        lembarPosSatu(l.pos, dada),
+        daftarFotoLembar(l.pos, dada).catch(() => null),
+      ]);
+    }
     catch (e) { kotakRegu.replaceChildren(h(kartuGalat(e.message))); return; }
     if (Number(inp.value.trim()) !== dada) return;   // sudah diketik lagi
 
@@ -7560,7 +7631,48 @@ async function gambarLombaNilai(l) {
     regu = r;
     kotakRegu.replaceChildren(h(kartuReguNilai(r)));
     gambarIsian(r);
+
+    /* Gembok TIDAK mematikan tombol foto. Mengunci berarti angkanya final;
+       fotonya justru bukti untuk angka final itu, dan menolak bukti sesudah
+       putusan adalah urutan yang terbalik. */
+    barisFoto.hidden = false;
+    jumlahFoto = foto === null
+      ? null : foto.filter(f => f.kode_lomba === l.kode).length;
+    gambarStatusFoto();
   }
+
+  /* Diunggah SEKARANG, bukan ditahan sampai tombol Simpan.
+     Foto adalah bukti dan berdiri sendiri dari angkanya (0047): kalau
+     unggahannya gagal, yang gagal cuma fotonya, dan angkanya tetap boleh
+     disimpan. Menggabungkan keduanya di satu tombol berarti satu unggahan
+     yang putus di tengah menahan nilai yang sudah benar. */
+  barisFoto.addEventListener("change", async (e) => {
+    const inpFoto = e.target.closest("[data-foto-ambil]");
+    if (!inpFoto || !inpFoto.files || !inpFoto.files.length) return;
+    if (!regu) { notif("Ketik nomor dadanya dulu.", true); inpFoto.value = ""; return; }
+    const dada = Number(regu.nomor_dada);
+    const berkas = [...inpFoto.files];
+    // Dikosongkan supaya memilih berkas YANG SAMA lagi tetap memicu change —
+    // persis yang dilakukan orang sesudah unggahan pertama gagal.
+    inpFoto.value = "";
+
+    for (const f of berkas) {
+      let blob;
+      try {
+        statusFoto.textContent = "mengecilkan…";
+        blob = await kecilkanFoto(f);
+      } catch (err) { statusFoto.textContent = err.message; continue; }
+      try {
+        statusFoto.textContent = `mengirim ${ukuranRapi(blob.size)}…`;
+        await unggahFotoLembar(l.pos, l.kode, l.nama, dada, blob);
+        jumlahFoto = (jumlahFoto || 0) + 1;
+        gambarStatusFoto();
+      } catch (err) {
+        statusFoto.textContent = `gagal — ${err.message}`;
+        notif(`Foto ${dada3(dada)} gagal terkirim: ${err.message}`, true);
+      }
+    }
+  }, { signal: sinyal });
 
   /** Deretan tombol angka untuk satu kriteria.
  *
@@ -7626,11 +7738,12 @@ function selPilihanAngka(k, nilai) {
       return `
       <div class="isian-baris${tombol ? " isian-pilihan" : ""}">
         ${tombol
-          ? `<div class="isian-nama">${esc(kol.nama)}<span
+          ? `<div class="isian-nama">${esc(labelIsian(kol, k))}<span
                class="isian-petunjuk">${esc(kol.petunjuk)}</span></div>
              ${selPilihanAngka(k, nilai[k.kode])}`
           : `<label class="isian-nama" for="sel-${esc(k.kode)}">
-               ${esc(kol.nama)}<span class="isian-petunjuk">${esc(kol.petunjuk)}</span>
+               ${esc(labelIsian(kol, k))}<span
+                 class="isian-petunjuk">${esc(kol.petunjuk)}</span>
              </label>
              ${selKomponen(k, nilai[k.kode])}`}
       </div>`;
@@ -7710,7 +7823,7 @@ function selPilihanAngka(k, nilai) {
     }
 
     const lama = regu.nilai || {};
-    const baris = [], dihapus = [], takTerbaca = [];
+    const baris = [], dihapus = [], takTerbaca = [], ringkasan = [];
     for (const kol of l.kolom) {
       const k = varianUntuk(kol, regu.golongan);
       if (!k) continue;
@@ -7719,6 +7832,9 @@ function selPilihanAngka(k, nilai) {
       // Bukan dikirim, dan bukan pula dianggap kosong — angka lamanya tetap
       // di tempatnya sampai petugas membetulkan ketikannya.
       if (baru === TIDAK_SAH) { takTerbaca.push(kol.nama); continue; }
+      if (baru !== null) {
+        ringkasan.push(`${labelIsian(kol, k)} ${nilaiBagian(k, baru.nilai_1, baru.nilai_2).join(" / ")}`);
+      }
       const ada = lama[k.kode] || null;
       // Kotak dikosongkan padahal sebelumnya ada isinya = angka itu masuk ke
       // regu yang salah. Dihapus, bukan ditimpa nol.
@@ -7761,21 +7877,25 @@ function selPilihanAngka(k, nilai) {
       return;
     }
 
-    /* Angkanya dibaca ULANG dari database, bukan dihitung di layar: Nilai Pos
-       datang dari v_poin_pos dan tidak boleh punya mesin kedua yang bisa
-       berbeda pendapat dengannya. Gagal membacanya tidak membatalkan apa pun
-       — simpanannya sudah terjadi — jadi ia cuma tidak disebutkan. */
-    let poin = null;
-    try {
-      const segar = await lembarPosSatu(l.pos, dada);
-      if (segar) poin = segar.nilai_pos;
-    } catch { /* nilainya tetap tersimpan; angka ringkasnya saja yang absen */ }
+    /* YANG DITULIS ANGKA MENTAH YANG BARUSAN DIKETIK, BUKAN POIN.
+       Baris ini sempat berbunyi "50 poin" untuk regu yang baru saja diberi 0,
+       dan angkanya tidak salah — ia `nilai_pos`, JUMLAH seluruh lomba pos itu.
+       Jadi ia menjawab pertanyaan yang tidak ditanya siapa pun di sini, dengan
+       angka yang datang dari lomba lain, di layar yang justru dibuat supaya
+       satu juri tidak melihat lomba lain.
 
-    // Nama lombanya tidak ikut ditulis: daftar ini sudah hanya berisi lomba
-    // ini, dan kepala layar di atasnya sudah menyebutkan namanya. Dua label
-    // untuk satu fakta tidak saling menguatkan (bagian 9.3).
+       Angka mentah juga yang benar menurut pembagian kerjanya: petugas
+       lapangan mencatat data mentah dan tidak pernah menghitung poin
+       (alur-lomba.md 8.1) — itu sebabnya blangko kertasnya pun sengaja tidak
+       punya kolom Nilai Pos.
+
+       Sekaligus satu perjalanan jaringan hilang: lembarPosSatu() dipanggil
+       lagi sesudah simpan hanya untuk angka ini, di tempat yang paling sering
+       kehilangan sinyal. Yang membuktikan simpanannya mendarat tetap ada —
+       simpan_nilai_massal melaporkan status per baris, dan yang ditolak
+       dilempar sebagai galat di atas. */
     catatLomba(l, dada3(dada),
-      `${nama}${poin === null ? "" : ` · ${angkaRapi(poin)} poin`}`);
+      `${nama}${ringkasan.length ? ` · ${ringkasan.join(" · ")}` : ""}`);
     tombol.dataset.jalan = "";
     inp.value = "";
     bersihkan();
