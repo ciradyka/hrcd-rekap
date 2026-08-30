@@ -4502,6 +4502,25 @@ button.pill-number:hover { filter: brightness(.95); }
 }
 .foto-lembar-kosong { font-size: .85rem; color: var(--tinta-lembut); }
 
+/* Tombol simpan MENEMPEL di dasar layar selama kartunya lebih tinggi daripada
+   layar. Terukur di iframe 390x780: dengan foto, tombolnya berakhir di 1133px
+   sementara layarnya 776px — 357px di bawah lipatan; dan dengan papan ketik
+   terbuka (~340px) bahkan regu tanpa foto pun (605 > 436) menuntut menggulir.
+   Foto Jawaban tetap berada di ATASNYA dalam urutan dokumen; yang berubah cuma
+   tombolnya tidak ikut terdorong turun.
+
+   `bottom` diberi jarak untuk menu bawah HP yang setinggi 56px + safe area,
+   supaya keduanya tidak bertumpuk. */
+.v2-simpan-lekat {
+  position: sticky; bottom: .6rem; z-index: 5;
+  margin-top: .7rem; min-height: 60px; font-size: 1.2rem;
+  box-shadow: 0 4px 14px rgba(16, 24, 40, .18);
+}
+@media (max-width: 560px) {
+  .v2-simpan-lekat { bottom: calc(56px + env(safe-area-inset-bottom) + .5rem); }
+}
+.cek-sudah { margin-top: .5rem; }
+
 /* ---------- kotak isian kriteria ---------- */
 
 .isian-lomba { display: flex; flex-direction: column; gap: .5rem; margin-top: .7rem; }
