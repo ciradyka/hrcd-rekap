@@ -9165,6 +9165,20 @@ async function layarCekNilai() {
                 <span class="cek-angka">${angka}</span>
               </div>
               <div class="cek-foto" data-foto="${esc(l.kode)}"></div>
+              <!-- Panah dan penghitung, disembunyikan sampai lombanya
+                   benar-benar punya lebih dari satu foto. Petak yang bisa
+                   digeser tidak mengumumkan dirinya: yang terlihat cuma satu
+                   foto, dan foto kedua baru ada kalau seseorang kebetulan
+                   menyapu layarnya. Bentuknya sama persis dengan penggeser di
+                   layar input — dua layar yang menggeser benda yang sama tidak
+                   boleh memakai dua alat berbeda. -->
+              <div class="foto-navigasi" data-nav-foto="${esc(l.kode)}" hidden>
+                <button type="button" class="button button-secondary button-small foto-panah"
+                        data-cek-geser="-1" aria-label="Foto sebelumnya">&lsaquo;</button>
+                <span class="badge foto-hitung" data-hitung-foto></span>
+                <button type="button" class="button button-secondary button-small foto-panah"
+                        data-cek-geser="1" aria-label="Foto berikutnya">&rsaquo;</button>
+              </div>
             </section>`;
         }).join("")}
       </div>`));
@@ -9192,8 +9206,11 @@ async function layarCekNilai() {
 
     elIsi.querySelectorAll("[data-foto]").forEach(el => {
       const milik = foto.filter(f => f.kode_lomba === el.dataset.foto);
+      const nav = elIsi.querySelector(
+        `[data-nav-foto="${CSS.escape(el.dataset.foto)}"]`);
       if (!milik.length) {
         el.replaceChildren(h(`<span class="cek-kosong">belum difoto</span>`));
+        if (nav) nav.hidden = true;
         return;
       }
       el.replaceChildren(h(milik.map((f, i) => {
@@ -9205,7 +9222,51 @@ async function layarCekNilai() {
                 loading="lazy"></a>`
           : `<span class="fg-petak fg-kosong">tautan gagal</span>`;
       }).join("")));
+      if (nav) pasangGeserCek(el, nav);
     });
+  }
+
+  /** Panah dan penghitung untuk SATU petak foto.
+   *
+   *  Nomor fotonya dipegang di sini, bukan dihitung ulang dari `scrollLeft`
+   *  tiap kali dibutuhkan — pelajaran yang sama dengan penggeser di layar
+   *  input: peristiwa `scroll` dikirim pada frame berikutnya, jadi tab yang
+   *  sedang tidak menggambar tidak mengirimkannya sama sekali, dan penghitung
+   *  yang bertahan di "1 / 2" sementara fotonya sudah berganti lebih buruk
+   *  daripada tidak ada penghitung. `scroll` tetap didengar untuk menyamakan
+   *  angkanya kalau yang menggeser jari.
+   *
+   *  Pendengarnya dipasang pada elemen yang BARU dibuat setiap kali regunya
+   *  berganti; yang lama ikut terbuang bersama replaceChildren, dan sinyal
+   *  layar membersihkan sisanya saat layar ditinggalkan. */
+  function pasangGeserCek(petak, nav) {
+    const jml = petak.children.length;
+    nav.hidden = jml < 2;
+    if (jml < 2) return;
+
+    const hitung = nav.querySelector("[data-hitung-foto]");
+    let ke = 0;
+    const perbarui = () => {
+      hitung.textContent = `${ke + 1} / ${jml}`;
+      nav.querySelector('[data-cek-geser="-1"]').disabled = ke <= 0;
+      nav.querySelector('[data-cek-geser="1"]').disabled = ke >= jml - 1;
+    };
+
+    nav.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-cek-geser]");
+      if (!b || b.disabled) return;
+      ke = Math.max(0, Math.min(jml - 1, ke + Number(b.dataset.cekGeser)));
+      petak.scrollTo({ left: ke * petak.clientWidth, behavior: "smooth" });
+      perbarui();
+    }, { signal: sinyal });
+
+    petak.addEventListener("scroll", () => {
+      const baru = Math.max(0, Math.min(jml - 1,
+        Math.round(petak.scrollLeft / (petak.clientWidth || 1))));
+      if (baru !== ke) { ke = baru; perbarui(); }
+    }, { signal: sinyal });
+
+    perbarui();
   }
 
   const ke = (i) => {

@@ -4661,6 +4661,10 @@ button.pill-number:hover { filter: brightness(.95); }
   scroll-snap-type: x mandatory; scrollbar-width: none;
 }
 .cek-foto::-webkit-scrollbar { display: none; }
+/* Navigasinya menempel ke petak di atasnya, bukan mengambang di tengah
+   antara dua lomba — ia milik foto tepat di atasnya, dan di daftar berisi
+   lima lomba kepemilikan itu harus terbaca tanpa dihitung. */
+.cek-lomba .foto-navigasi { margin-top: .4rem; }
 .cek-foto .fg-petak {
   flex: 0 0 100%; height: 46vh; scroll-snap-align: start;
   display: flex; align-items: center; justify-content: center;
