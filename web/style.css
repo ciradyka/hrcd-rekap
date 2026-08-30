@@ -2481,6 +2481,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* <label> yang membungkus <input type=file> tersembunyi. Tanpa ini ia
    ditampilkan sebagai teks biasa, bukan sebagai tombol. */
 .foto-lomba label.button { display: inline-flex; align-items: center; cursor: pointer; }
+/* Kamera dan Galeri dibungkus SATU kotak, bukan diletakkan berdampingan
+   sebagai dua anak <li>. Dua sebabnya:
+
+   Pertama, `.foto-lomba li > :nth-last-child(2)` di atas mendorong tombol ke
+   kanan berdasarkan URUTAN. Menambah satu anak menggeser hitungannya, dan
+   yang terdorong jadi tombol Kamera — "Lihat" tertinggal menempel di nama
+   lombanya sendiri. Dengan pembungkus, jumlah anak <li> tetap empat dan
+   aturan itu tidak perlu disentuh.
+
+   Kedua, di HP barisnya membungkus. Sebagai dua anak lepas, Kamera bisa
+   tinggal di baris pertama sementara Galeri turun sendirian ke baris kedua —
+   dua tombol yang sepasang tapi tidak terlihat sepasang. */
+.f-aksi { display: flex; gap: .4rem; align-items: center; flex-wrap: nowrap; }
+/* Kamera dan Galeri di layar Foto Jawaban BERBAGI satu baris, tidak menumpuk.
+   `.button` lebarnya 100%, jadi dua tombol di dalam .action-row masing-masing
+   meminta selebar barisnya dan yang kedua terlempar ke baris berikutnya — dua
+   pita hijau-putih setinggi 46px yang memakan seluruh kartu. `flex: 1` membuat
+   keduanya membagi lebar yang ada; 8rem adalah dasar yang masih memuat ikon
+   beserta katanya, jadi di HP sempit mereka baru menumpuk saat memang perlu. */
+#foto-aksi > label.button { flex: 1 1 8rem; width: auto; }
 
 .badge-tombol {
   border: 0; font: inherit; cursor: pointer;

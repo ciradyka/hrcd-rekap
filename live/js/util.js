@@ -880,6 +880,13 @@ const IKON = {
     '<circle cx="12" cy="12" r="9" /> <path d="M12 7v5l3 2" />',
   "camera":
     '<path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /> <circle cx="12" cy="13" r="3" />',
+  // Pasangan "camera", dipakai di tombol Galeri. Dua tombol bersebelahan yang
+  // ikonnya sama-sama kamera membuat pilihannya harus dibaca kata demi kata,
+  // dan itu justru yang mau dihindari: petugas menuju yang bergambar kamera
+  // untuk memotret sekarang, dan yang bergambar foto untuk mengambil yang
+  // sudah ada.
+  "image":
+    '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /> <circle cx="9" cy="9" r="2" /> <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
   "lock":
     '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 10 0v4" />',
   "lock-open":
