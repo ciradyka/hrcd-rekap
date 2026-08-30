@@ -4372,9 +4372,24 @@ button.pill-number:hover { filter: brightness(.95); }
 
 /* ---------- kepala layar satu lomba ---------- */
 
-.baris-lomba { padding-top: .7rem; padding-bottom: .7rem; }
-.lomba-pos { display: block; font-size: .85rem; color: var(--tinta-lembut); }
+/* Nama lombanya DI TENGAH. Bar atas sudah menyebut posnya, jadi kartu ini
+   cuma memikul satu kata — dan kata itu yang menjawab "angka yang saya ketik
+   ini masuk ke lomba mana?", satu-satunya pertanyaan yang mahal kalau salah. */
+.baris-lomba { padding-top: .7rem; padding-bottom: .7rem; text-align: center; }
 .lomba-judul { margin: 0; }
+
+/* Foto Jawaban: judul di kiri, jumlahnya di bawahnya, dua tombol di kanan.
+   Bentuk yang sama dengan baris foto di dialog lembar pos lama, supaya
+   petugas yang pindah antara dua layar tidak perlu belajar dua bentuk. */
+.foto-nilai {
+  display: grid; grid-template-columns: 1fr max-content;
+  align-items: center; gap: .2rem .6rem; margin-top: .7rem;
+  padding: .5rem .6rem;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+}
+.foto-judul { grid-area: 1 / 1; font-weight: 700; }
+.foto-status { grid-area: 2 / 1; font-size: .82rem; color: var(--tinta-lembut); }
+.foto-aksi { grid-area: 1 / 2 / 3 / 3; display: flex; gap: .4rem; }
 
 /* ---------- kotak isian kriteria ---------- */
 
