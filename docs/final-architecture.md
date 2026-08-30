@@ -235,6 +235,8 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/keberangkatan` | Keberangkatan | ceklis hadir, kontrak waktu, pindah kloter, berangkatkan |
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
+| `#/pos2` | Input Nilai Pos v2 | pilih satu lomba lintas pos, lalu bentuk pengisiannya sendiri: stopwatch untuk lomba waktu, foto borongan + nilai untuk lomba soal, kotak per kriteria untuk sisanya |
+| `#/cek-nilai` | Cek Nilai | satu regu satu layar, next-next per nomor dada: foto slip di sebelah angka yang diketik darinya. Membaca saja |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos, lalu podium ENAM tempat per golongan (Juara 1-3 di satu baris, Harapan 1-3 di baris berikutnya) dan tabel rinci; saklar fase hanya untuk pemegang `pengaturan` |
 | `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Juara Umum dari poin juara, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Pangkalan Terjauh satu SEKOLAH untuk seluruh acara |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |

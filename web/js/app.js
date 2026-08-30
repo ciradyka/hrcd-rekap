@@ -40,7 +40,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
          jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
-         varianUntuk, kelompokLomba, ringkasLomba } from "./util.js";
+         varianUntuk, kelompokLomba, ringkasLomba,
+         katalogLomba, stopwatchTeks, detikDariMs } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
@@ -127,7 +128,7 @@ function sinyalLayarBaru() {
 const putusSaatPindah = (sinyal, pengamat) =>
   sinyal.addEventListener("abort", () => pengamat.disconnect(), { once: true });
 
-const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
+const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [], nilai: [] };
 
 /* ---------------- kerangka ---------------- */
 
@@ -575,6 +576,14 @@ async function layarHome() {
       ${bolehLihat("pos") ? `
       <a href="#/foto">
         <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
+      </a>` : ""}
+      ${bolehLihat("pos") ? `
+      <a href="#/pos2">
+        <div class="function-name">${ikonKotak("clock", "mawar")} Input Nilai Pos v2</div>
+      </a>` : ""}
+      ${bolehLihat("pos") ? `
+      <a href="#/cek-nilai">
+        <div class="function-name">${ikonKotak("circle-check", "zamrud")} Cek Nilai</div>
       </a>` : ""}
       ${bolehLihat("live_score") ? `
       <a href="#/live-score">
@@ -7195,6 +7204,1341 @@ async function layarFoto() {
   await isiLomba();
 }
 
+/* ========================= INPUT NILAI POS v2 =============================
+
+   Layar Input Nilai Pos yang lama bertanya "kamu di pos mana?", lalu
+   menggambar SELURUH lomba pos itu sebagai kolom di satu tabel selebar layar
+   dua kali. Bentuk itu benar untuk meja IT: di sana memang datang setumpuk
+   blangko satu pos sekaligus, dan mata petugas menyusuri kolom.
+
+   Di lapangan pertanyaannya lain. Satu petugas memegang SATU lomba selama
+   satu pagi — ia tidak menyalin apa pun, ia berdiri di sebelah lomba yang
+   sedang berjalan. Tabel 34 kolom di layar HP-nya adalah 33 kolom yang harus
+   digeser lewat sebelum sampai ke pekerjaannya. Jadi layar ini mulai dari
+   pemilih lomba lintas pos, lalu menggambar bentuk yang cocok untuk lomba
+   ITU SAJA — bentuknya ditentukan jenisLomba() di util.js, dari konfigurasi:
+
+     waktu   Bakiak, Lari Balok, Balap Karung. Ketik nomor dada, jalankan
+             stopwatch, hentikan, simpan. Stopwatch boleh mulai SEBELUM
+             nomornya diketik: regu berangkat lebih dulu daripada petugas
+             sempat mengetik tiga angka.
+     soal    Keagamaan, Kepramukaan, Kesehatan, Pengetahuan Umum, Logika.
+             Peserta menjawab di lembar soalnya sendiri, jadi yang ada di
+             tangan petugas setumpuk kertas — difoto borongan, lalu tiap
+             ubin foto diberi nomor dada DAN angkanya sekaligus.
+     nilai   sisanya. Ketik nomor dada, isi kotak tiap kriteria, simpan.
+
+   LAYAR LAMA TIDAK DIBUANG. Selama acara berjalan (bagian 17) meja IT masih
+   memakainya, dan blangko hanya bisa dicetak dari sana. Keduanya menulis
+   lewat pintu yang SAMA — simpan_nilai_massal — jadi tidak ada mesin nilai
+   kedua yang bisa berbeda pendapat dengan v_poin_pos.
+
+   TIDAK ADA MIGRASI DI SINI. Seluruh RPC yang dipakai layar ini sudah ada
+   sejak 0044, 0074, dan 0081; yang baru cuma susunan layarnya.
+   ========================================================================= */
+
+/** Lomba yang sedang dibuka. Dipegang DI LUAR fungsi layarnya supaya kembali
+ *  ke sini — dari Home, dari tombol Back, sesudah menyimpan — mendarat di
+ *  lomba yang tadi dikerjakan. Petugas yang memegang satu lomba sepagian
+ *  tidak boleh memilihnya ulang ratusan kali. */
+const lombaDipilih = { kunci: null };
+
+/** Katalog pos + komponen, dipegang seumur sesi.
+ *
+ *  Keduanya KONFIGURASI: diisi admin sebelum acara dan tidak berubah
+ *  sepanjang pagi. Menanyakannya lagi setiap kali "Ganti Lomba" ditekan
+ *  berarti dua perjalanan jaringan di tempat yang paling sering kehilangan
+ *  sinyal — dan yang dibayar dengan itu cuma jawaban yang sama persis. */
+const katalogPos = { edisi: null, pos: null, komponen: null };
+
+async function muatKatalogPos() {
+  if (katalogPos.edisi === EDISI.nomor) return katalogPos;
+  const [pos, komponen] = await Promise.all([
+    daftarPos(), komponenSemua(EDISI.nomor),
+  ]);
+  katalogPos.edisi = EDISI.nomor;
+  katalogPos.pos = pos;
+  katalogPos.komponen = komponen;
+  return katalogPos;
+}
+
+/** "Pos 2 — Bakiak". Pos bayangan memakai namanya sendiri, sama seperti
+ *  judulPos(): nomor pos bayangan tidak berarti apa-apa di lapangan. */
+const judulLomba = (l) =>
+  `${l.bayangan ? l.namaPos : `Pos ${l.pos}`} — ${l.nama}`;
+
+/** Ikon jenis pengisian, dipakai di kotak pemilih.
+ *
+ *  IKON SAJA, tanpa katanya. Yang dijawabnya cuma sekali — "kotak ini membuka
+ *  stopwatch atau kamera?" — dan sesudah kali pertama ia tinggal menambah teks
+ *  di kotak yang isinya sudah bernama (bagian 9.1). Namanya tetap ada di
+ *  `title` dan di label pembaca layar, jadi yang tidak bisa menebak ikonnya
+ *  tidak buntu. */
+const IKON_JENIS = { waktu: "clock", soal: "camera", nilai: "square-pen" };
+const NAMA_JENIS = { waktu: "stopwatch", soal: "foto jawaban", nilai: "kotak nilai" };
+
+/** Pos yang boleh dibuka akun ini.
+ *
+ *  Terkunci = punya kolom `pos`, BUKAN = berperan juri_pos — patokan yang
+ *  sama dengan layar Input Pos lama dan layar Foto Jawaban. Koordinator pos
+ *  tidak punya pos (bagian 13.2), jadi ia melihat kelimanya. */
+const posUntukAkun = (s, semuaPos) => {
+  const terkunci = s && s.pos != null && s.pos !== "";
+  return terkunci
+    ? semuaPos.filter(p => Number(p.nomor) === Number(s.pos))
+    : semuaPos;
+};
+
+/** Kartu identitas regu, bentuk yang sama dipakai ketiga layar di bawah.
+ *
+ *  `nilai_pos` ikut disebut, dan itu bukan hiasan: ia satu-satunya angka di
+ *  layar ini yang datang dari v_poin_pos, jadi ia yang membuktikan bahwa yang
+ *  barusan disimpan memang sampai ke mesin skor — bukan cuma ke kotaknya. */
+const kartuReguNilai = (r) => `
+  <div class="card card-identity" style="margin:0">
+    ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
+    <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
+    <div class="detail">Nilai ${esc(r.nama_pos || "")}:
+      <strong>${esc(angkaRapi(r.nilai_pos))}</strong>
+      · ${esc(String(r.jumlah_terisi))}/${esc(String(r.jumlah_komponen))} terisi</div>
+    ${r.terkunci ? `<div style="margin-top:.4rem">
+      <span class="badge badge-gray">${ikon("lock")} tergembok</span></div>` : ""}
+  </div>`;
+
+/* ---------------------------------------------------------------------------
+   LAYAR 1 — pemilih lomba, lalu bentuk pengisiannya.
+   ------------------------------------------------------------------------ */
+
+async function layarInputPos2() {
+  const s = sesi();
+  if (!bolehLihat("pos")) {
+    pasangKepala("Input Nilai Pos v2");
+    LAYAR.replaceChildren(h(html`
+      <div class="card">
+        <h2>Akun meja, bukan akun pos</h2>
+        <p class="description">Akun ${s.username} dipakai di meja. Input nilai
+           pos memakai akun posnya sendiri — hubungi koordinator.</p>
+      </div>`));
+    return;
+  }
+
+  pasangKepala("Input Nilai Pos v2", true);
+  LAYAR.replaceChildren(h(pemuat()));
+
+  const layarIni = location.hash;
+  let katalogMentah;
+  try { katalogMentah = await muatKatalogPos(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos2)); return; }
+  if (location.hash !== layarIni) return;
+
+  const katalog = katalogLomba(
+    posUntukAkun(s, katalogMentah.pos), katalogMentah.komponen);
+
+  if (!katalog.length) {
+    LAYAR.replaceChildren(h(`
+      <div class="card"><h2>Belum ada lomba berpenilaian</h2></div>`));
+    return;
+  }
+
+  const pilih = katalog.find(l => l.kunci === lombaDipilih.kunci);
+  if (!pilih) { gambarPemilihLomba(katalog); return; }
+
+  pasangKepala(judulLomba(pilih), pilih.jenis === "soal");
+  if (pilih.jenis === "soal") await gambarLombaSoal(pilih);
+  else await gambarLombaNilai(pilih);
+}
+
+/** Kotak per lomba, DIKELOMPOKKAN PER POS.
+ *
+ *  Lima belas kotak berderet tanpa kepala pos adalah lima belas nama yang
+ *  harus dibaca satu per satu; dengan kepala pos, petugas Pos 2 melompat ke
+ *  blok Pos 2 lalu membaca tiga. Akun yang terkunci ke satu pos cuma melihat
+ *  satu blok, dan kepalanya tetap berguna di sana — ia menyebut pos mana yang
+ *  dilayani akun ini, hal yang tidak tertulis di mana pun lagi di layar ini. */
+function gambarPemilihLomba(katalog) {
+  const perPos = [];
+  for (const l of katalog) {
+    let blok = perPos.find(b => b.pos === l.pos);
+    if (!blok) {
+      blok = {
+        pos: l.pos,
+        judul: l.bayangan ? l.namaPos : `Pos ${l.pos} — ${l.namaPos}`,
+        isi: [],
+      };
+      perPos.push(blok);
+    }
+    blok.isi.push(l);
+  }
+
+  LAYAR.replaceChildren(h(perPos.map(b => `
+    <div class="card">
+      <h2>${esc(b.judul)}</h2>
+      <div class="pilih-lomba">
+        ${b.isi.map(l => `
+          <button type="button" class="lomba-kotak" data-kunci="${esc(l.kunci)}"
+                  title="${esc(l.nama)} — ${esc(NAMA_JENIS[l.jenis])}">
+            <span class="lomba-jenis" aria-hidden="true">${ikon(IKON_JENIS[l.jenis])}</span>
+            <span class="lomba-nama">${esc(l.nama)}</span>
+            <span class="visually-hidden">${esc(NAMA_JENIS[l.jenis])}</span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("")));
+
+  LAYAR.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-kunci]");
+    if (!b) return;
+    lombaDipilih.kunci = b.dataset.kunci;
+    layarInputPos2();
+  }, { signal: sinyalLayarBaru() });
+}
+
+/** Kepala layar tiap bentuk pengisian: nama lombanya, dan jalan kembali ke
+ *  pemilih. Satu-satunya jalan kembali — memilih lomba tidak menambah entri
+ *  riwayat browser, jadi tombol Back mendarat di layar SEBELUM layar ini. */
+const kepalaLomba = (l) => `
+  <div class="card baris-lomba">
+    <div>
+      <span class="lomba-pos">${esc(l.bayangan ? l.namaPos : `Pos ${l.pos}`)}</span>
+      <h2 class="lomba-judul">${esc(l.nama)}</h2>
+    </div>
+    <button type="button" class="button button-secondary button-small"
+            id="ganti-lomba">Ganti Lomba</button>
+  </div>`;
+
+const pasangGantiLomba = (sinyal) => {
+  document.getElementById("ganti-lomba")?.addEventListener("click", () => {
+    lombaDipilih.kunci = null;
+    layarInputPos2();
+  }, { signal: sinyal });
+};
+
+/* ---------------------------------------------------------------------------
+   BENTUK "nilai" DAN "waktu" — satu regu satu layar.
+
+   Keduanya satu fungsi, dan itu disengaja: lomba waktu adalah lomba biasa
+   yang kebetulan punya satu kolom bersatuan detik, dan stopwatch cuma alat
+   pengisi kotak itu. Memisahkannya jadi dua layar berarti dua jalur simpan
+   untuk satu tabel — dan jalur kedua yang jarang dipakailah yang akan
+   ketinggalan waktu aturannya berubah.
+   ------------------------------------------------------------------------ */
+
+async function gambarLombaNilai(l) {
+  const sinyal = sinyalLayarBaru();
+  const waktu = l.jenis === "waktu";
+
+  LAYAR.replaceChildren(h(`
+    ${kepalaLomba(l)}
+    <div class="card" style="border-color:var(--utama)">
+      <div class="field" style="margin-bottom:0">
+        <label for="v2-dada">Nomor dada</label>
+        <input type="text" id="v2-dada" class="besar" inputmode="numeric"
+               autocomplete="off" placeholder="001">
+      </div>
+      <div id="v2-regu" style="margin-top:.7rem"></div>
+      ${waktu ? panelStopwatchHtml() : ""}
+      <div id="v2-isian" class="isian-lomba" hidden></div>
+      <button class="button button-primary" id="v2-simpan" type="button" disabled
+              style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
+        SIMPAN NILAI
+      </button>
+    </div>
+    <div id="v2-riwayat"></div>
+  `));
+
+  pasangGantiLomba(sinyal);
+
+  const inp = document.getElementById("v2-dada");
+  const kotakRegu = document.getElementById("v2-regu");
+  const wadah = document.getElementById("v2-isian");
+  const tombol = document.getElementById("v2-simpan");
+  let regu = null;      // baris v_lembar_pos regu yang sedang terbuka
+  let jeda = null;
+
+  /* Kotak waktunya dicari LAGI tiap kali dipakai, tidak dipegang.
+     Ia lahir ulang setiap regu — digambar oleh gambarIsian() — sementara
+     panel stopwatch terpasang sekali di awal. Memegang elemennya berarti
+     stopwatch menulis ke kotak milik regu yang sudah lewat. */
+  const kotakWaktu = () => wadah.querySelector(".input-waktu");
+  // Penyegar catatan diskualifikasi. null untuk lomba non-waktu, yang memang
+  // tidak punya panel stopwatch sama sekali.
+  const segarkanStopwatch = waktu ? pasangStopwatch(wadah, kotakWaktu, sinyal) : null;
+
+  inp.focus();
+  gambarRiwayatNilai();
+
+  const bersihkan = () => {
+    regu = null;
+    kotakRegu.replaceChildren();
+    wadah.replaceChildren();
+    wadah.hidden = true;
+    tombol.disabled = true;
+    segarkanStopwatch?.();
+  };
+
+  inp.addEventListener("input", () => {
+    clearTimeout(jeda);
+    const dada = Number(inp.value.trim());
+    // Begitu angkanya berubah, hasil lookup lama tidak boleh dipakai lagi —
+    // pagar yang sama dengan layar Kedatangan, dan alasannya sama: tanpa ini
+    // ketukan cepat menyimpan nilai atas nama regu SEBELUMNYA.
+    if (!regu || Number(regu.nomor_dada) !== dada) bersihkan();
+    if (!dada) return;
+    jeda = setTimeout(() => cariDanGambar(dada), 160);
+  }, { signal: sinyal });
+
+  inp.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    /* Enter di kotak nomor dada TIDAK menyimpan. Di layar Kedatangan ia boleh,
+       karena di sana tidak ada apa pun lagi yang harus diisi sesudah nomornya;
+       di sini kotak nilainya justru belum disentuh, dan Enter yang menyimpan
+       akan mengirim baris kosong. Jadi ia memindahkan fokus ke kotak pertama —
+       gerakan yang sama dengan Tab, tanpa melepas tangan dari papan angka. */
+    const pertama = wadah.querySelector("input:not([disabled])");
+    if (pertama) { pertama.focus(); if (pertama.select) pertama.select(); }
+  }, { signal: sinyal });
+
+  async function cariDanGambar(dada) {
+    let r;
+    try { r = await lembarPosSatu(l.pos, dada); }
+    catch (e) { kotakRegu.replaceChildren(h(kartuGalat(e.message))); return; }
+    if (Number(inp.value.trim()) !== dada) return;   // sudah diketik lagi
+
+    if (!r) {
+      bersihkan();
+      kotakRegu.replaceChildren(h(kartuGalat(
+        `Nomor ${dada3(dada)} tidak ada di lembar ${judulLomba(l)}.`)));
+      return;
+    }
+    regu = r;
+    kotakRegu.replaceChildren(h(kartuReguNilai(r)));
+    gambarIsian(r);
+  }
+
+  /** Kotak isian kriteria lomba ini UNTUK GOLONGAN REGU INI.
+   *
+   *  varianUntuk() yang memilihnya, sama seperti layar lama — Tebak Simpul
+   *  punya empat baris wahana dan regu ini cuma berhak atas satu. Lomba yang
+   *  tidak punya varian untuk golongan itu bukan konfigurasi rusak: lomba
+   *  lapangan memang tidak berlaku untuk regu Intern (migrasi 0091). */
+  function gambarIsian(r) {
+    const dipakai = l.kolom
+      .map(kol => ({ kol, k: varianUntuk(kol, r.golongan) }))
+      .filter(x => x.k);
+
+    if (!dipakai.length) {
+      wadah.hidden = true;
+      wadah.replaceChildren();
+      tombol.disabled = true;
+      kotakRegu.append(h(kartuGalat(
+        `${l.nama} bukan untuk ${GOLONGAN_LABEL[r.golongan] || r.golongan}.`)));
+      return;
+    }
+
+    const nilai = r.nilai || {};
+    wadah.hidden = false;
+    wadah.replaceChildren(h(dipakai.map(({ kol, k }) => `
+      <div class="isian-baris">
+        <label class="isian-nama" for="sel-${esc(k.kode)}">
+          ${esc(kol.nama)}<span class="isian-petunjuk">${esc(kol.petunjuk)}</span>
+        </label>
+        ${selKomponen(k, nilai[k.kode])}
+      </div>`).join("")));
+
+    /* selKomponen menulis data-kode, bukan id — id-nya dipasang di sini
+       supaya <label for> punya sasaran. Menekan nama kriterianya lalu
+       mendarat di kotaknya adalah sasaran sentuh selebar barisnya, dan di HP
+       itulah yang membedakan kotak 32px dari baris 44px. */
+    dipakai.forEach(({ k }) => {
+      const el = wadah.querySelector(`[data-kode="${CSS.escape(k.kode)}"]`);
+      if (el) el.id = `sel-${k.kode}`;
+    });
+
+    const kunci = !!r.terkunci;
+    wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
+    tombol.disabled = kunci;
+    tombol.textContent = kunci ? "TERGEMBOK" : "SIMPAN NILAI";
+
+    /* Kotak waktu dirapikan dan ditandai merah saat DITINGGALKAN, aturan yang
+       sama persis dengan lembar pos lama. "1:75" terbaca wajar oleh mata tapi
+       bukan waktu mana pun; tanpa penanda ia berakhir sebagai angka yang tidak
+       pernah tersimpan, tanpa satu pun tanda merah. */
+    const jam = kotakWaktu();
+    if (jam) {
+      jam.addEventListener("focusout", () => {
+        const detik = detikSah(jam.value);
+        if (!jam.value.trim()) jam.removeAttribute("aria-invalid");
+        else if (detik === null) jam.setAttribute("aria-invalid", "true");
+        else { jam.value = detikTeks(detik); jam.removeAttribute("aria-invalid"); }
+      }, { signal: sinyal });
+      jam.addEventListener("input", () => {
+        if (detikSah(jam.value) !== null || !jam.value.trim()) {
+          jam.removeAttribute("aria-invalid");
+        }
+      }, { signal: sinyal });
+    }
+
+    // Kotaknya baru saja lahir kembali: catatan diskualifikasi dan tombolnya
+    // harus ikut membaca isi kotak YANG BARU, bukan kotak regu sebelumnya.
+    segarkanStopwatch?.();
+  }
+
+  // Enter di kotak isian = simpan. Di sini ia memang aksi terakhir barisnya:
+  // sesudah angkanya diketik, petugas tidak punya urusan lain dengan regu itu.
+  wadah.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+    e.preventDefault();
+    if (!tombol.disabled) tombol.click();
+  }, { signal: sinyal });
+
+  tombol.addEventListener("click", async () => {
+    if (!regu || tombol.dataset.jalan === "1") return;
+    // Jaring kedua: yang disimpan HARUS regu yang nomornya sedang terlihat di
+    // kotak isian, bukan sisa lookup sebelumnya.
+    if (Number(regu.nomor_dada) !== Number(inp.value.trim())) {
+      notif("Nomor berubah — tunggu detailnya muncul dulu.", true);
+      return;
+    }
+
+    const lama = regu.nilai || {};
+    const baris = [], dihapus = [], takTerbaca = [];
+    for (const kol of l.kolom) {
+      const k = varianUntuk(kol, regu.golongan);
+      if (!k) continue;
+      const baru = bacaSel(wadah, k);
+      // Kotak berisi sesuatu yang tidak terbaca: JANGAN disentuh sama sekali.
+      // Bukan dikirim, dan bukan pula dianggap kosong — angka lamanya tetap
+      // di tempatnya sampai petugas membetulkan ketikannya.
+      if (baru === TIDAK_SAH) { takTerbaca.push(kol.nama); continue; }
+      const ada = lama[k.kode] || null;
+      // Kotak dikosongkan padahal sebelumnya ada isinya = angka itu masuk ke
+      // regu yang salah. Dihapus, bukan ditimpa nol.
+      if (baru === null) { if (ada) dihapus.push(k.kode); continue; }
+      const samaSaja = ada
+        && Number(ada.nilai_1) === baru.nilai_1
+        && (ada.nilai_2 === null || ada.nilai_2 === undefined
+              ? null : Number(ada.nilai_2)) === baru.nilai_2;
+      if (!samaSaja) {
+        baris.push({ nomor_dada: Number(regu.nomor_dada), kode: k.kode,
+                     nilai_1: baru.nilai_1, nilai_2: baru.nilai_2 });
+      }
+    }
+
+    if (takTerbaca.length) {
+      notif(`${takTerbaca.join(", ")}: isinya bukan angka/waktu yang bisa `
+            + "dibaca. Angka lamanya TIDAK diubah.", true);
+      return;
+    }
+    if (!baris.length && !dihapus.length) {
+      notif("Tidak ada angka yang berubah.", true);
+      return;
+    }
+
+    tombol.dataset.jalan = "1"; tombol.disabled = true;
+    const dada = Number(regu.nomor_dada);
+    const nama = regu.nama_regu;
+    try {
+      if (baris.length) {
+        const hasil = await simpanNilaiPos(baris, l.pos);
+        // Server memeriksa ulang tiap baris dan menolaknya satu per satu;
+        // yang pertama ditolak sudah cukup menjelaskan apa yang salah.
+        const ditolak = (hasil || []).find(x => x.status === "ditolak");
+        if (ditolak) throw new ErrorApi(ditolak.alasan || "nilai ditolak server");
+      }
+      for (const kode of dihapus) await hapusNilaiPos(dada, kode, l.pos);
+    } catch (err) {
+      notif(`Nomor Dada ${dada3(dada)}.\n${kapital(err.message)}`, true);
+      tombol.dataset.jalan = ""; tombol.disabled = false;
+      return;
+    }
+
+    /* Angkanya dibaca ULANG dari database, bukan dihitung di layar: Nilai Pos
+       datang dari v_poin_pos dan tidak boleh punya mesin kedua yang bisa
+       berbeda pendapat dengannya. Gagal membacanya tidak membatalkan apa pun
+       — simpanannya sudah terjadi — jadi ia cuma tidak disebutkan. */
+    let poin = null;
+    try {
+      const segar = await lembarPosSatu(l.pos, dada);
+      if (segar) poin = segar.nilai_pos;
+    } catch { /* nilainya tetap tersimpan; angka ringkasnya saja yang absen */ }
+
+    catatTerakhir("nilai", dada3(dada),
+      `${nama} — ${l.nama}${poin === null ? "" : ` · ${angkaRapi(poin)} poin`}`);
+    tombol.dataset.jalan = "";
+    inp.value = "";
+    bersihkan();
+    inp.focus();
+    gambarRiwayatNilai();
+    notif(`${dada3(dada)} tersimpan.`);
+  }, { signal: sinyal });
+
+  function gambarRiwayatNilai() {
+    const daftar = terakhir.nilai || [];
+    document.getElementById("v2-riwayat").replaceChildren(h(
+      daftar.length ? `
+        <div class="card">
+          <h2 style="font-size:1rem;color:var(--tinta-lembut)">
+            Baru saja tersimpan (${daftar.length})</h2>
+          <table class="table">${daftar.slice(0, 12).map(b => html`
+            <tr><td class="angka">${b.apa}</td><td>${b.detail}</td></tr>`).join("")}
+          </table>
+        </div>` : ""));
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   STOPWATCH
+
+   Dipisah dari layarnya karena ia punya satu aturan yang gampang hilang saat
+   disisipkan di tengah fungsi lain: JAMNYA HARUS BERHENTI saat layarnya
+   ditinggalkan. setInterval yang terus berdetak di atas DOM yang sudah lepas
+   dari halaman tidak menunjukkan gejala apa pun — sampai satu HP kehabisan
+   memori di tengah acara.
+   ------------------------------------------------------------------------ */
+
+const panelStopwatchHtml = () => `
+  <div class="stopwatch" id="v2-stopwatch">
+    <output class="sw-angka" id="sw-angka">00:00.0</output>
+    <div class="sw-tombol">
+      <button type="button" class="button button-primary" data-sw="mulai">Mulai</button>
+      <button type="button" class="button button-danger" data-sw="stop" disabled>Berhenti</button>
+      <button type="button" class="button button-secondary" data-sw="ulang"
+              title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
+              disabled>Ulang</button>
+    </div>
+    <div class="sw-diskualifikasi">
+      <button type="button" class="button button-danger button-small" data-sw="dq"
+              >Diskualifikasi</button>
+      <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
+        menyelesaikan lomba, 0 poin.</span>
+    </div>
+  </div>`;
+
+/** Pasang stopwatch pada panel yang sudah tergambar.
+ *
+ *  `kotakWaktu` sebuah FUNGSI, bukan elemen — alasannya di pemanggilnya.
+ *  Mengembalikan fungsi penyegar catatan diskualifikasi, karena kotaknya
+ *  digambar ulang tiap regu dan panel ini tidak ikut tahu kapan. */
+function pasangStopwatch(wadah, kotakWaktu, sinyal) {
+  const panel = document.getElementById("v2-stopwatch");
+  const angka = document.getElementById("sw-angka");
+  const catatan = document.getElementById("sw-catatan");
+  const tombol = (nama) => panel.querySelector(`[data-sw="${nama}"]`);
+
+  /* Catatan hanya muncul saat kotaknya BENAR-BENAR berisi 00:00.
+     Kalimat tetap yang selalu terpampang akan dibaca ratusan kali per shift
+     untuk keadaan yang terjadi beberapa kali sepagi (bagian 9.1); yang
+     dibutuhkan justru sebaliknya — ia harus muncul persis pada saat akibatnya
+     berlaku, karena "00:00" sendiri tidak menyebutkan angka 0 poin di mana
+     pun (bagian 9.4). */
+  const perbaruiCatatan = () => {
+    const kotak = kotakWaktu();
+    catatan.hidden = !kotak || detikSah(kotak.value) !== 0;
+    // Diskualifikasi mati selama belum ada regu di layar, atau selama nilainya
+    // tergembok. Tombol yang bisa ditekan tapi tidak melakukan apa pun adalah
+    // tombol yang mengajari orang bahwa layar ini kadang tidak menjawab.
+    tombol("dq").disabled = !kotak || kotak.disabled;
+  };
+  wadah.addEventListener("input", perbaruiCatatan, { signal: sinyal });
+  wadah.addEventListener("focusout", perbaruiCatatan, { signal: sinyal });
+
+  /* performance.now(), BUKAN Date.now(): jam sistem HP bisa dikoreksi NTP di
+     tengah lomba, dan koreksi satu detik ke belakang membuat stopwatch
+     berjalan mundur. performance.now() monoton menurut definisinya. */
+  let mulaiPada = null;   // null = tidak sedang berjalan
+  let tertahan = 0;       // milidetik yang sudah terkumpul dari putaran lalu
+  let tik = null;
+
+  const terbaca = () =>
+    tertahan + (mulaiPada === null ? 0 : performance.now() - mulaiPada);
+
+  const gambar = () => { angka.textContent = stopwatchTeks(terbaca()); };
+
+  const berhentiTik = () => { clearInterval(tik); tik = null; };
+  // Satu saklar mengurus dua hal: pendengar dilepas AbortController, jamnya
+  // dilepas di sini. Keduanya digantungkan ke sinyal yang sama.
+  sinyal.addEventListener("abort", berhentiTik, { once: true });
+
+  const perbaruiTombol = () => {
+    const jalan = mulaiPada !== null;
+    tombol("mulai").disabled = jalan;
+    tombol("mulai").textContent = jalan ? "Berjalan" : (tertahan ? "Lanjut" : "Mulai");
+    tombol("stop").disabled = !jalan;
+    tombol("ulang").disabled = jalan || !tertahan;
+  };
+
+  panel.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sw]");
+    if (!b) return;
+
+    if (b.dataset.sw === "mulai" && mulaiPada === null) {
+      mulaiPada = performance.now();
+      // 100 ms: cukup rapat untuk menggerakkan persepuluh detik, cukup jarang
+      // untuk tidak membebani HP yang juga sedang memegang layar ini.
+      tik = setInterval(gambar, 100);
+      gambar();
+    } else if (b.dataset.sw === "stop" && mulaiPada !== null) {
+      tertahan = terbaca();
+      mulaiPada = null;
+      berhentiTik();
+      gambar();
+      /* Angkanya masuk ke kotak isian SEKARANG, bukan nanti saat Simpan
+         ditekan. Kotak itulah satu-satunya sumber waktu menyimpan, dan
+         petugas harus bisa melihat — lalu membetulkan — angka yang akan
+         benar-benar tersimpan sebelum menekan apa pun. */
+      const kotak = kotakWaktu();
+      if (kotak && !kotak.disabled) {
+        kotak.value = detikTeks(detikDariMs(tertahan));
+        kotak.removeAttribute("aria-invalid");
+      }
+    } else if (b.dataset.sw === "ulang" && mulaiPada === null) {
+      /* KOTAK WAKTU SENGAJA TIDAK IKUT DIKOSONGKAN.
+         "Ulang" disiapkan untuk regu berikutnya, dan yang sudah terukur belum
+         tentu sudah tersimpan — regu yang jalannya diulang justru biasanya
+         diketahui SESUDAH angkanya dicatat. Mengosongkan keduanya berarti satu
+         ketukan tidak sengaja menghapus satu-satunya salinan angka yang tidak
+         bisa diukur ulang. */
+      tertahan = 0;
+      gambar();
+    } else if (b.dataset.sw === "dq") {
+      /* DISKUALIFIKASI = WAKTU 00:00, bukan kolom sendiri.
+         Migrasi 0147 sudah menetapkan artinya: waktu nol di Pos 2 berarti
+         regu tidak menyelesaikan lomba, dan tangga poin ketiga lomba waktu
+         memuat {sampai: 0, poin: 0} tepat untuk itu. Menyimpan penanda kedua
+         di tempat lain berarti dua sumber untuk satu keadaan, dan yang kedua
+         tidak dilihat v_poin_pos sama sekali.
+
+         Waktu terbesar TIDAK bisa dipakai sebagai gantinya: tingkat terakhir
+         berbunyi {sampai: 100000, poin: 20}, jadi regu yang didiskualifikasi
+         justru pulang membawa 20 poin.
+
+         Jamnya dihentikan dulu kalau masih berjalan — regu yang
+         didiskualifikasi di tengah jalan adalah keadaan yang biasa, dan
+         stopwatch yang terus berdetak di belakang angka 00:00 membingungkan
+         petugas berikutnya yang melihat layar ini. */
+      if (mulaiPada !== null) { tertahan = terbaca(); mulaiPada = null; berhentiTik(); }
+      tertahan = 0;
+      gambar();
+      const kotak = kotakWaktu();
+      if (kotak && !kotak.disabled) {
+        kotak.value = detikTeks(0);
+        kotak.removeAttribute("aria-invalid");
+      }
+    }
+    perbaruiCatatan();
+    perbaruiTombol();
+  }, { signal: sinyal });
+
+  gambar();
+  perbaruiTombol();
+  return perbaruiCatatan;
+}
+
+/* ---------------------------------------------------------------------------
+   BENTUK "soal" — foto borongan, nomor dada dan angkanya menyusul.
+
+   Bentuknya meminjam layar Foto Jawaban (migrasi 0074): kertasnya difoto di
+   pos, jauh sebelum ada kesempatan mengetik nomor dada. Yang ditambahkan di
+   sini SATU kotak — angkanya — supaya foto dan nilainya masuk bersama, dari
+   kertas yang sama, dalam satu ketukan.
+
+   Kenapa itu penting: memisahkan keduanya berarti kertas yang sama harus
+   dibaca dua kali, sekali untuk difoto dan sekali lagi untuk diketik
+   angkanya — dan di antara keduanya tumpukannya sudah berpindah tangan.
+   ------------------------------------------------------------------------ */
+
+async function gambarLombaSoal(l) {
+  const sinyal = sinyalLayarBaru();
+
+  LAYAR.replaceChildren(h(`
+    ${kepalaLomba(l)}
+    <div class="card">
+      <div class="action-row">
+        <label class="button button-primary">
+          <input type="file" accept="image/*" capture="environment" multiple
+                 hidden class="v2-ambil" aria-label="Foto lembar jawaban pakai kamera">
+          ${ikon("camera")} Kamera
+        </label>
+        <label class="button button-secondary">
+          <input type="file" accept="image/*" multiple hidden class="v2-ambil"
+                 aria-label="Foto lembar jawaban dari galeri">
+          ${ikon("image")} Galeri
+        </label>
+        <span class="sub" id="v2-kuota"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Belum dihubungkan <span class="badge" id="v2-belum">0</span></h2>
+      <div class="grid-foto" id="v2-grid"></div>
+    </div>
+  `));
+
+  pasangGantiLomba(sinyal);
+
+  const elGrid  = document.getElementById("v2-grid");
+  const elBelum = document.getElementById("v2-belum");
+  const elKuota = document.getElementById("v2-kuota");
+
+  let nomorLokal = 0;
+  const ubin = new Map();          // kunci -> keadaan ubin
+  const diketik = new Map();       // kunci -> { dada, nilai: [] } yang sedang diketik
+  /* Regu yang sudah pernah dicari, TERMASUK yang tidak ketemu (null).
+     Satu tumpukan lembar soal berisi puluhan nomor yang diketik berulang kali
+     saat petugas membetulkan ketikannya; tanpa ingatan ini tiap ketukan mundur
+     memanggil server lagi, di jaringan pos. */
+  const reguCache = new Map();
+
+  const jam = (iso) => (iso ? jamMenit(iso) : "");
+
+  const hitungUbin = () => {
+    elBelum.textContent = String(elGrid.querySelectorAll(".ubin-foto").length);
+  };
+
+  /* Nama berkas dipendekkan DI TENGAH, bukan di ujung. "IMG_20260221_084512"
+     dan "IMG_20260221_084530" berbeda di enam huruf TERAKHIR, dan potongan
+     yang membuang ekornya membuat dua berkas berbeda terbaca sama persis. */
+  function namaRingkas(nama) {
+    const t = String(nama || "");
+    if (t.length <= 22) return t;
+    return `${t.slice(0, 11)}…${t.slice(-10)}`;
+  }
+
+  /** Kotak angka lomba ini.
+   *
+   *  Ditandai `data-kol` (nomor urut kolom), BUKAN `data-kode`. Kode wahana
+   *  yang benar baru diketahui sesudah golongan regunya terbaca — Keagamaan
+   *  punya baris umum DAN baris Intern — dan kotak yang terlanjur menyandang
+   *  kode yang salah adalah nilai yang mendarat di kolom orang lain. */
+  const kotakNilai = (nilai) => l.kolom.map((kol, i) => {
+    const k = kol.varian[0];
+    return `<input type="number" class="small-input" inputmode="numeric" step="1"
+      min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
+      data-kol="${i}" value="${esc(String((nilai || [])[i] ?? ""))}"
+      placeholder="${esc(k.judul_isian || kol.nama)}"
+      aria-label="${esc(kol.nama)} — ${esc(kol.petunjuk)}">`;
+  }).join("");
+
+  function isiUbin(u) {
+    const bisaSimpan = u.keadaan === "siap";
+    const bisaBatal = u.keadaan === "antre" || u.keadaan === "jalan" || u.keadaan === "gagal";
+    const t = diketik.get(u.kunci) || {};
+    return `
+      <div class="ubin-atas">
+        <button type="button" class="ubin-gambar" data-lihat
+          ${u.url ? `style="background-image:url(&quot;${esc(u.url)}&quot;)"` : ""}
+          title="Buka foto">${u.url ? "" : `<span class="keterangan">Lihat</span>`}</button>
+        ${bisaBatal ? `
+        <button type="button" class="ubin-silang" data-batal
+          aria-label="Batalkan ${esc(u.nama || "unggahan")}"
+          title="Batalkan">${ikon("x")}</button>` : ""}
+      </div>
+      <figcaption>
+        <span class="f-berkas" title="${esc(u.nama || "")}">${esc(namaRingkas(u.nama))}</span>
+        <span class="f-status ${esc(u.keadaan)}">${esc(u.status || "")}</span>
+        ${bisaSimpan ? `
+          <div class="ubin-isian">
+            <input type="number" class="small-input" inputmode="numeric" min="1"
+                   placeholder="No dada" data-dada aria-label="Nomor dada"
+                   value="${esc(String(t.dada ?? ""))}">
+            ${kotakNilai(t.nilai)}
+          </div>
+          <span class="ubin-regu" data-regu></span>
+          <button type="button" class="button button-mini button-primary"
+                  data-taut>Simpan</button>` : ""}
+        ${u.keadaan === "gagal" ? `
+          <button type="button" class="button button-mini" data-ulang>Ulangi</button>` : ""}
+      </figcaption>`;
+  }
+
+  /** Gambar ulang SATU ubin, bukan seluruh petak. Kotak di ubin lain —
+   *  beserta angka dan kursor di dalamnya — tidak boleh ikut tersentuh hanya
+   *  karena satu unggahan selesai. */
+  function perbarui(u) {
+    const pilih = `[data-kunci="${CSS.escape(u.kunci)}"]`;
+    let el = elGrid.querySelector(pilih);
+    if (!el) {
+      /* Elemennya DICARI LAGI dari DOM sesudah append, tidak dipegang dari
+         hasil h(). h() mengembalikan DocumentFragment, dan seluruh isinya
+         PINDAH ke DOM begitu ditempelkan — menulis innerHTML ke cangkang yang
+         tersisa tidak melempar galat apa pun, ia cuma menghasilkan ubin kosong
+         selamanya, tanpa satu baris pun di konsol. */
+      elGrid.append(h(`<figure class="ubin-foto" data-kunci="${esc(u.kunci)}"></figure>`));
+      el = elGrid.querySelector(pilih);
+      if (!el) return;
+      pengamat.observe(el);
+    }
+    el.dataset.keadaan = u.keadaan;
+    if (u.path) el.dataset.path = u.path;
+    if (u.fotoId) el.dataset.id = u.fotoId;
+
+    // Kotak yang sedang diketik JANGAN dibongkar: menggantinya di tengah
+    // ketikan memindahkan kursor ke ujung dan menutup papan ketik di HP.
+    if (el.contains(document.activeElement)
+        && document.activeElement.matches("input")) {
+      const st = el.querySelector(".f-status");
+      if (st) { st.textContent = u.status || ""; st.className = `f-status ${u.keadaan}`; }
+      return;
+    }
+    el.innerHTML = isiUbin(u);
+    gambarEcho(el);
+  }
+
+  /* Thumbnail dari server diambil saat ubinnya masuk layar, bukan dua ratus
+     link bertanda tangan sekaligus di awal. Satu pengamat untuk seumur
+     layar. */
+  const pengamat = new IntersectionObserver((masuk) => {
+    for (const e of masuk) {
+      if (!e.isIntersecting) continue;
+      pengamat.unobserve(e.target);
+      const u = ubin.get(e.target.dataset.kunci);
+      if (u && !u.url && u.path) gambarUbin(u);
+    }
+  }, { rootMargin: "200px" });
+  putusSaatPindah(sinyal, pengamat);
+
+  async function gambarUbin(u) {
+    try {
+      const url = await tautanFoto(u.path);
+      if (!url) return;
+      u.url = url;
+      const tombol = elGrid.querySelector(`[data-kunci="${CSS.escape(u.kunci)}"] .ubin-gambar`);
+      if (tombol) {
+        tombol.style.backgroundImage = `url("${url}")`;
+        tombol.querySelector(".keterangan")?.remove();
+      }
+    } catch { /* Ubin tanpa gambar tetap bisa diberi nomor — itu yang penting. */ }
+  }
+
+  /** Nama regu di bawah kotak nomor dada — echo-confirm sebelum simpan.
+   *
+   *  Tanpa ini satu digit salah ketik memindahkan seluruh lembar jawaban ke
+   *  regu lain, dan tidak ada apa pun di layar yang membantahnya: dua nomor
+   *  dada sama-sama tiga angka dan sama-sama sah. */
+  async function gambarEcho(el) {
+    const kotak = el.querySelector("[data-dada]");
+    const sasaran = el.querySelector("[data-regu]");
+    if (!kotak || !sasaran) return;
+    const dada = Number(kotak.value);
+    if (!Number.isInteger(dada) || dada <= 0) {
+      sasaran.className = "ubin-regu";
+      sasaran.textContent = "";
+      return;
+    }
+
+    if (!reguCache.has(dada)) {
+      sasaran.textContent = "mencari…";
+      try { reguCache.set(dada, await lembarPosSatu(l.pos, dada)); }
+      catch { sasaran.textContent = ""; return; }
+    }
+    // Nomornya bisa sudah berubah selagi permintaannya di jalan.
+    if (Number(kotak.value) !== dada) return;
+    const r = reguCache.get(dada);
+    sasaran.className = `ubin-regu${r ? "" : " ubin-regu-salah"}`;
+    sasaran.textContent = r
+      ? `${r.nama_regu}${r.terkunci ? " · tergembok" : ""}`
+      : `${dada3(dada)} tidak dikenal`;
+  }
+
+  /** Foto yang sudah di server tapi belum bernomor dada.
+   *
+   *  MENAMBAH, tidak menggambar ulang: ubin yang sudah ada dibiarkan apa
+   *  adanya, beserta angka yang sedang diketik di dalamnya. */
+  async function muatBelum({ bersihkan = false } = {}) {
+    if (bersihkan) {
+      for (const u of ubin.values()) if (u.url && u.lokal) URL.revokeObjectURL(u.url);
+      ubin.clear();
+      diketik.clear();
+      elGrid.replaceChildren(h(pemuat()));
+    }
+    let daftar;
+    try { daftar = await daftarFotoBelumTaut(l.pos, l.kode); }
+    catch (e) {
+      if (bersihkan) elGrid.replaceChildren(h(`<p class="keterangan">${esc(e.message)}</p>`));
+      else notif(`Daftar foto tidak terbaca: ${e.message}`, true);
+      return;
+    }
+    if (sinyal.aborted) return;
+
+    elGrid.querySelector(".pemuat")?.remove();
+    elGrid.querySelector(".keterangan")?.remove();
+
+    const sudah = new Set([...ubin.values()].map(u => u.fotoId).filter(Boolean));
+    for (const f of daftar) {
+      if (sudah.has(f.id)) continue;
+      const u = {
+        kunci: f.id, fotoId: f.id, path: f.path, url: null, lokal: false,
+        nama: `Pukul ${jam(f.diunggah_pada)}`,
+        status: ukuranRapi(f.ukuran_bytes || 0), keadaan: "siap",
+        nilaiTersimpan: false,
+      };
+      ubin.set(u.kunci, u);
+      perbarui(u);
+    }
+
+    hitungUbin();
+    if (!elGrid.querySelector(".ubin-foto")) {
+      elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+    }
+  }
+
+  const buangUbin = (u, el) => {
+    if (u.url && u.lokal) URL.revokeObjectURL(u.url);
+    ubin.delete(u.kunci);
+    diketik.delete(u.kunci);
+    el.remove();
+    hitungUbin();
+    if (!elGrid.querySelector(".ubin-foto")) {
+      elGrid.replaceChildren(h(`<p class="keterangan">Tidak ada.</p>`));
+    }
+  };
+
+  // Tiap ketukan disimpan di peta, bukan ditunggu sampai kotaknya
+  // ditinggalkan: petugas berpindah dari kotak langsung ke kamera, dan `blur`
+  // yang tidak pernah terjadi berarti angka yang tidak pernah tersimpan.
+  elGrid.addEventListener("input", (e) => {
+    const el = e.target.closest(".ubin-foto");
+    if (!el) return;
+    const t = diketik.get(el.dataset.kunci) || { dada: "", nilai: [] };
+    if (e.target.matches("[data-dada]")) t.dada = e.target.value;
+    else if (e.target.matches("[data-kol]")) {
+      t.nilai[Number(e.target.dataset.kol)] = e.target.value;
+    }
+    diketik.set(el.dataset.kunci, t);
+
+    if (e.target.matches("[data-dada]")) {
+      clearTimeout(jedaEcho);
+      jedaEcho = setTimeout(() => gambarEcho(el), 200);
+    }
+  }, { signal: sinyal });
+  let jedaEcho = null;
+
+  elGrid.addEventListener("click", async (e) => {
+    const el = e.target.closest(".ubin-foto");
+    if (!el) return;
+    const u = ubin.get(el.dataset.kunci);
+    if (!u) return;
+
+    /* Silang hanya ADA selagi fotonya belum sampai di server. Sesudah itu
+       tidak ada yang bisa dibatalkan dari sini: bucket `lembar` tidak punya
+       policy hapus sama sekali, dan itu disengaja sejak 0047 ("tombol hapus
+       pada backup adalah cara backup itu hilang"). */
+    if (e.target.closest("[data-batal]")) { u.keadaan = "batal"; buangUbin(u, el); return; }
+    if (e.target.closest("[data-ulang]")) { await kerjakan(u); return; }
+
+    if (e.target.closest("[data-lihat]")) {
+      // Jendelanya dibuka SEBELUM await. Dibuka sesudahnya, browser HP
+      // menganggapnya popup yang tidak diminta pengguna dan memblokirnya.
+      const jendela = window.open("", "_blank");
+      try {
+        const url = u.url || (u.path ? await tautanFoto(u.path) : null);
+        if (jendela && url) jendela.location = url; else if (jendela) jendela.close();
+      } catch (err) {
+        if (jendela) jendela.close();
+        notif(`Foto tidak bisa dibuka: ${err.message}`, true);
+      }
+      return;
+    }
+
+    const taut = e.target.closest("[data-taut]");
+    if (taut) await simpanUbin(u, el, taut);
+  }, { signal: sinyal });
+
+  /** SATU ketukan menyimpan DUA hal: angkanya, lalu tautan fotonya.
+   *
+   *  Urutannya bukan selera. Nilai lebih dulu, karena kalau ia gagal tidak ada
+   *  apa pun yang berubah dan ubinnya tinggal dicoba lagi. Kalau justru
+   *  tautannya yang gagal, angkanya sudah aman di database dan yang tersisa
+   *  cuma foto yang belum bernomor — persis keadaan yang layar ini memang
+   *  dibuat untuk menanganinya.
+   *
+   *  `nilaiTersimpan` menjaga percobaan kedua tidak menulis ulang angka yang
+   *  sama. Menulis ulang tidak salah hasilnya, tapi ia menambah satu baris
+   *  riwayat yang tidak mengubah apa-apa — dan riwayat nilai adalah yang
+   *  dibaca orang justru saat sebuah angka dipertanyakan. */
+  async function simpanUbin(u, el, tombol) {
+    const kotakDada = el.querySelector("[data-dada]");
+    const dada = Number(kotakDada ? kotakDada.value : "");
+    if (!Number.isInteger(dada) || dada <= 0) {
+      notif("Nomor dada harus angka.", true);
+      kotakDada?.focus();
+      return;
+    }
+
+    tombol.disabled = true;
+    let r = reguCache.get(dada);
+    if (r === undefined) {
+      try { r = await lembarPosSatu(l.pos, dada); reguCache.set(dada, r); }
+      catch (err) { tombol.disabled = false; notif(err.message, true); return; }
+    }
+    if (!r) {
+      tombol.disabled = false;
+      notif(`Nomor ${dada3(dada)} tidak ada di lembar ${judulLomba(l)}.`, true);
+      return;
+    }
+    if (r.terkunci) {
+      tombol.disabled = false;
+      notif(`Nilai ${dada3(dada)} sudah digembok. Buka gembok dulu.`, true);
+      return;
+    }
+
+    const baris = [], diluarGolongan = [], takTerbaca = [];
+    l.kolom.forEach((kol, i) => {
+      const kotak = el.querySelector(`[data-kol="${i}"]`);
+      if (!kotak) return;
+      const k = varianUntuk(kol, r.golongan);
+      if (!k) { if (kotak.value.trim()) diluarGolongan.push(kol.nama); return; }
+      /* validity.badInput: kotak angka yang berisi ketikan yang tidak bisa
+         diurai browser — "2 5", "25e" — melaporkan `value` KOSONG sambil tetap
+         MENAMPILKAN teksnya. Tanpa pagar ini ia terbaca sebagai kotak kosong,
+         dan yang tersimpan cuma tautan fotonya. */
+      if (kotak.validity && kotak.validity.badInput) { takTerbaca.push(kol.nama); return; }
+      const v = kotak.value.trim();
+      if (v === "") return;
+      baris.push({ nomor_dada: dada, kode: k.kode, nilai_1: Number(v), nilai_2: null });
+    });
+
+    if (takTerbaca.length) {
+      tombol.disabled = false;
+      notif(`${takTerbaca.join(", ")}: isinya bukan angka yang bisa dibaca.`, true);
+      return;
+    }
+    if (diluarGolongan.length) {
+      tombol.disabled = false;
+      notif(`${diluarGolongan.join(", ")} bukan untuk `
+            + `${GOLONGAN_LABEL[r.golongan] || r.golongan}.`, true);
+      return;
+    }
+    if (!baris.length && !u.nilaiTersimpan) {
+      tombol.disabled = false;
+      notif("Nilainya belum diisi.", true);
+      el.querySelector("[data-kol]")?.focus();
+      return;
+    }
+
+    try {
+      if (!u.nilaiTersimpan && baris.length) {
+        const hasil = await simpanNilaiPos(baris, l.pos);
+        const ditolak = (hasil || []).find(x => x.status === "ditolak");
+        if (ditolak) throw new ErrorApi(ditolak.alasan || "nilai ditolak server");
+        u.nilaiTersimpan = true;
+      }
+      await tautkanFoto(u.fotoId, dada, "tangan");
+    } catch (err) {
+      tombol.disabled = false;
+      notif(`${dada3(dada)}: ${err.message}`, true);
+      return;
+    }
+
+    catatTerakhir("nilai", dada3(dada), `${r.nama_regu} — ${l.nama}`);
+    notif(`${dada3(dada)} tersimpan beserta fotonya.`);
+    buangUbin(u, el);
+  }
+
+  /** Ukuran ASLI -> ukuran terkirim, ditulis di ubinnya. Bukan hiasan:
+   *  pengecilan di HP adalah satu-satunya yang menjaga kuota tetap cukup
+   *  (migrasi 0047), dan kalau ia gagal diam-diam di satu merek HP yang
+   *  ketahuan cuma "kuota habis di tengah acara". */
+  const hemat = (asli, jadi) => `${ukuranRapi(asli)} → ${ukuranRapi(jadi)}`;
+
+  async function kerjakan(u) {
+    if (!ubin.has(u.kunci)) return;          // sudah dibatalkan
+    u.keadaan = "jalan";
+    try {
+      u.status = "mengecilkan…"; perbarui(u);
+      const blob = await kecilkanFoto(u.berkas);
+      if (!ubin.has(u.kunci)) return;
+      /* Pagar terakhir sebelum jaringan dipakai. Bucket menolak apa pun di
+         atas 1 MB, dan penolakan itu datang sebagai galat HTTP yang tidak
+         menjelaskan apa-apa ke petugas. */
+      if (blob.size > 1024 * 1024) {
+        throw new Error(`masih ${ukuranRapi(blob.size)}, di atas batas 1 MB`);
+      }
+      u.status = `mengirim ${hemat(u.berkas.size, blob.size)}…`; perbarui(u);
+      const hasil = await unggahFotoMasuk(l.pos, l.kode, l.nama, blob);
+      if (!ubin.has(u.kunci)) return;
+      u.fotoId = hasil.id;
+      u.path = hasil.path;
+      u.keadaan = "siap";
+      u.status = hemat(u.berkas.size, blob.size);
+    } catch (err) {
+      u.keadaan = "gagal";
+      u.status = err.message;
+    }
+    perbarui(u);
+    hitungUbin();
+  }
+
+  const terimaBerkas = async (inp) => {
+    const berkas = [...(inp.files || [])];
+    // Dikosongkan supaya memilih berkas YANG SAMA lagi tetap memicu change —
+    // persis yang dilakukan orang setelah unggahan pertama gagal.
+    inp.value = "";
+    if (!berkas.length) return;
+    elGrid.querySelector(".keterangan")?.remove();
+
+    const baru = [];
+    for (const f of berkas) {
+      const u = {
+        kunci: `lokal-${++nomorLokal}`, fotoId: null, path: null, lokal: true,
+        url: URL.createObjectURL(f), berkas: f, nama: f.name || "foto",
+        status: "menunggu…", keadaan: "antre", nilaiTersimpan: false,
+      };
+      ubin.set(u.kunci, u);
+      baru.push(u);
+      perbarui(u);
+    }
+    hitungUbin();
+
+    // Satu per satu, bukan serentak. Unggahan paralel dari HP di sinyal
+    // lapangan saling menggerus dan menabrak batas waktu bersama-sama.
+    for (const u of baru) if (ubin.has(u.kunci)) await kerjakan(u);
+
+    await muatBelum();
+    try {
+      const k = await kuotaFoto();
+      if (k) elKuota.textContent =
+        `${k.jumlah_foto} foto · ${ukuranRapi(k.total_bytes || 0)} terpakai`;
+    } catch { /* Kuota cuma keterangan; gagal membacanya tidak menghalangi apa pun. */ }
+  };
+
+  // Kamera dan Galeri memakai penangan yang SAMA — yang berbeda cuma dari mana
+  // berkasnya datang, dan sesudah dipilih keduanya tidak bisa dibedakan lagi.
+  document.querySelectorAll(".v2-ambil").forEach(inp =>
+    inp.addEventListener("change", () => terimaBerkas(inp), { signal: sinyal }));
+
+  await muatBelum({ bersihkan: true });
+}
+
+/* ============================== CEK NILAI ================================
+
+   Satu regu satu layar: foto slipnya di sebelah angka yang diketik DARI slip
+   itu. Yang dijawabnya cuma satu pertanyaan — "angka ini memang angka yang
+   tertulis di kertasnya?" — dan itu pertanyaan yang tidak bisa dijawab di
+   layar mana pun yang sudah ada: lembar pos memperlihatkan angkanya tanpa
+   gambarnya, layar Foto Jawaban memperlihatkan gambarnya tanpa angkanya.
+
+   MEMBACA SAJA. Tidak ada satu pun kotak isian di sini, dan itu disengaja:
+   yang memeriksa bukan yang mengetik — itu seluruh guna memeriksa — dan
+   tangan yang bisa membetulkan sambil membaca adalah tangan yang akhirnya
+   membetulkan angka yang sebenarnya sudah benar. Yang ditemukan dibawa ke
+   layar Input Nilai Pos.
+   ======================================================================== */
+
+async function layarCekNilai() {
+  const s = sesi();
+  if (!bolehLihat("pos")) {
+    pasangKepala("Cek Nilai");
+    LAYAR.replaceChildren(h(kartuGalat("Akun ini tidak berhak membuka Cek Nilai.")));
+    return;
+  }
+
+  pasangKepala("Cek Nilai", true);
+  LAYAR.replaceChildren(h(pemuat()));
+
+  const layarIni = location.hash;
+  let katalogMentah;
+  try { katalogMentah = await muatKatalogPos(); }
+  catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarCekNilai)); return; }
+  if (location.hash !== layarIni) return;
+
+  const posBoleh = posUntukAkun(s, katalogMentah.pos)
+    .filter(p => Number(p.jumlah_komponen) > 0);
+  if (!posBoleh.length) {
+    LAYAR.replaceChildren(h(`<div class="card"><h2>Belum ada pos berpenilaian</h2></div>`));
+    return;
+  }
+
+  const sinyal = sinyalLayarBaru();
+  let nomorPos = Number(posBoleh[0].nomor);
+  let lembar = [];      // seluruh regu bernomor dada di pos ini
+  let indeks = 0;
+
+  LAYAR.replaceChildren(h(`
+    <div class="card">
+      <div class="baris-pilih">
+        <div class="field">
+          <label for="cek-pos">Pos</label>
+          <select id="cek-pos" class="select-small" ${posBoleh.length < 2 ? "disabled" : ""}>
+            ${posBoleh.map(p => `<option value="${esc(p.nomor)}"
+              >${esc(judulPos(p))}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label for="cek-lompat">Lompat ke nomor dada</label>
+          <input type="number" id="cek-lompat" class="small-input" inputmode="numeric"
+                 min="1" placeholder="misal: 042">
+        </div>
+      </div>
+      <div class="cek-navigasi">
+        <button type="button" class="button button-secondary" id="cek-mundur"
+                >◀ Sebelumnya</button>
+        <span class="cek-posisi" id="cek-posisi"></span>
+        <button type="button" class="button button-secondary" id="cek-maju"
+                >Berikutnya ▶</button>
+      </div>
+    </div>
+    <div id="cek-isi"></div>
+  `));
+
+  const elPos = document.getElementById("cek-pos");
+  const elLompat = document.getElementById("cek-lompat");
+  const elPosisi = document.getElementById("cek-posisi");
+  const elIsi = document.getElementById("cek-isi");
+  const elMundur = document.getElementById("cek-mundur");
+  const elMaju = document.getElementById("cek-maju");
+
+  /** Lomba pos yang sedang dibuka, dari katalog yang sudah di tangan. */
+  const lombaPos = () => katalogLomba(
+    katalogMentah.pos.filter(p => Number(p.nomor) === nomorPos),
+    katalogMentah.komponen);
+
+  async function muatPos() {
+    elIsi.replaceChildren(h(pemuat()));
+    try { lembar = await lembarPos(nomorPos); }
+    catch (e) { elIsi.replaceChildren(kartuGagalMuat(e.message, muatPos)); return; }
+    if (sinyal.aborted) return;
+    indeks = 0;
+    await gambarRegu();
+  }
+
+  function perbaruiNavigasi() {
+    elPosisi.textContent = lembar.length
+      ? `${indeks + 1} / ${lembar.length}` : "0 / 0";
+    elMundur.disabled = indeks <= 0;
+    elMaju.disabled = indeks >= lembar.length - 1;
+  }
+
+  async function gambarRegu() {
+    perbaruiNavigasi();
+    if (!lembar.length) {
+      elIsi.replaceChildren(h(`<div class="card"><p class="keterangan">Belum ada
+        regu yang menerima nomor dada.</p></div>`));
+      return;
+    }
+
+    const r = lembar[indeks];
+    const dada = Number(r.nomor_dada);
+    const daftar = lombaPos();
+    const nilai = r.nilai || {};
+
+    /* Kerangkanya digambar LEBIH DULU, fotonya menyusul. Tautan foto
+       bertanda tangan butuh satu perjalanan jaringan per regu, dan layar yang
+       kosong selama itu membuat petugas menekan "Berikutnya" dua kali. */
+    elIsi.replaceChildren(h(`
+      ${kartuReguNilai(r)}
+      <div class="card">
+        ${daftar.map(l => {
+          const dipakai = l.kolom
+            .map(kol => ({ kol, k: varianUntuk(kol, r.golongan) }))
+            .filter(x => x.k);
+          // Lomba yang tidak berlaku untuk golongan regu ini tidak digambar
+          // sama sekali. Barisnya bukan "kosong" — ia memang bukan urusan
+          // regu ini, dan baris kosong di daftar periksa menuntut dijawab.
+          if (!dipakai.length) return "";
+          const terisi = dipakai.filter(x => nilai[x.k.kode]);
+          const angka = terisi.length
+            ? dipakai.map(({ kol, k }) => {
+                const v = nilai[k.kode];
+                const teks = v ? nilaiBagian(k, v.nilai_1, v.nilai_2).join(" / ") : "–";
+                return dipakai.length > 1
+                  ? html`<span class="cek-butir"><span
+                      class="cek-butir-nama">${kol.nama}</span>${teks}</span>`
+                  : html`<span class="cek-butir">${teks}</span>`;
+              }).join("")
+            : `<span class="cek-butir cek-kosong">belum dinilai</span>`;
+          return `
+            <section class="cek-lomba">
+              <div class="cek-kepala">
+                <span class="cek-nama">${esc(l.nama)}</span>
+                <span class="cek-angka">${angka}</span>
+              </div>
+              <div class="cek-foto" data-foto="${esc(l.kode)}"></div>
+            </section>`;
+        }).join("")}
+      </div>`));
+
+    let foto = [];
+    try { foto = await daftarFotoLembar(nomorPos, dada); }
+    catch { foto = null; }
+    // Nomornya bisa sudah berpindah selagi permintaannya di jalan.
+    if (sinyal.aborted || Number((lembar[indeks] || {}).nomor_dada) !== dada) return;
+
+    if (foto === null) {
+      /* null = status fotonya TIDAK diketahui, dan itu berbeda dari "tidak
+         ada foto". Menuliskan "belum difoto" untuk permintaan yang gagal
+         adalah tuduhan terhadap pekerjaan yang mungkin sudah selesai. */
+      elIsi.querySelectorAll("[data-foto]").forEach(el => {
+        el.replaceChildren(h(`<span class="cek-kosong">foto tidak terbaca</span>`));
+      });
+      return;
+    }
+
+    let peta = {};
+    try { peta = await tautanFotoBanyak(foto.map(f => f.path)); }
+    catch { peta = {}; }
+    if (sinyal.aborted || Number((lembar[indeks] || {}).nomor_dada) !== dada) return;
+
+    elIsi.querySelectorAll("[data-foto]").forEach(el => {
+      const milik = foto.filter(f => f.kode_lomba === el.dataset.foto);
+      if (!milik.length) {
+        el.replaceChildren(h(`<span class="cek-kosong">belum difoto</span>`));
+        return;
+      }
+      el.replaceChildren(h(milik.map((f, i) => {
+        const url = peta[f.path];
+        const judul = `Foto ${i + 1}${f.diunggah_pada ? ` · ${tanggalJam(f.diunggah_pada)}` : ""}`;
+        return url
+          ? `<a class="fg-petak" href="${esc(url)}" target="_blank" rel="noopener"
+                title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
+                loading="lazy"></a>`
+          : `<span class="fg-petak fg-kosong">tautan gagal</span>`;
+      }).join("")));
+    });
+  }
+
+  const ke = (i) => {
+    if (i < 0 || i >= lembar.length || i === indeks) return;
+    indeks = i;
+    gambarRegu();
+  };
+
+  elMundur.addEventListener("click", () => ke(indeks - 1), { signal: sinyal });
+  elMaju.addEventListener("click", () => ke(indeks + 1), { signal: sinyal });
+
+  /* Panah kiri-kanan menggerakkan halaman juga. Petugas yang membandingkan
+     dua ratus regu menekan "Berikutnya" dua ratus kali, dan memindahkan
+     tangan ke tetikus setiap kali adalah pekerjaan yang tidak menghasilkan
+     apa pun. Dimatikan selagi fokus ada di kotak isian: di sana panah
+     memindahkan kursor, dan halaman yang berpindah sendiri saat orang
+     membetulkan ketikannya lebih buruk daripada tidak ada pintasan. */
+  const panahNavigasi = (e) => {
+    if (e.target.matches("input, select, textarea")) return;
+    if (e.key === "ArrowLeft") ke(indeks - 1);
+    else if (e.key === "ArrowRight") ke(indeks + 1);
+  };
+  // Satu baris dengan opsinya, bukan dipecah: tests/screen_listener_cleanup
+  // memeriksa BARIS yang memuat window.addEventListener, dan pendengar layar
+  // yang signal-nya jatuh ke baris berikutnya terbaca olehnya sebagai
+  // pendengar tanpa signal.
+  window.addEventListener("keydown", panahNavigasi, { signal: sinyal });
+
+  elPos.addEventListener("change", () => {
+    nomorPos = Number(elPos.value);
+    muatPos();
+  }, { signal: sinyal });
+
+  elLompat.addEventListener("change", () => {
+    const cari = Number(elLompat.value);
+    if (!cari) return;
+    const i = lembar.findIndex(r => Number(r.nomor_dada) === cari);
+    if (i < 0) { notif(`Nomor ${dada3(cari)} tidak ada di pos ini.`, true); return; }
+    elLompat.value = "";
+    ke(i);
+  }, { signal: sinyal });
+
+  await muatPos();
+}
+
 const RUTE = {
   "#/home": layarHome,
   "#/foto": layarFoto,
@@ -7205,6 +8549,8 @@ const RUTE = {
   "#/keberangkatan": layarKeberangkatan,
   "#/finish": layarFinish,
   "#/pos": layarInputPos,
+  "#/pos2": layarInputPos2,
+  "#/cek-nilai": layarCekNilai,
   "#/live-score": layarLiveScore,
   "#/kejuaraan": layarKejuaraan,
   "#/pengaturan-kloter": layarPengaturanKloter,

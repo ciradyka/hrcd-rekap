@@ -4332,3 +4332,141 @@ button.pill-number:hover { filter: brightness(.95); }
   min-height: 52px; font-size: 1.25rem; font-weight: 700;
 }
 .ubin-foto figcaption .button { width: 100%; }
+
+/* ============================================================================
+   INPUT NILAI POS v2 + CEK NILAI
+
+   Tata letak saja. Yang dijaga di sini cuma tiga hal yang kalau salah membuat
+   layarnya tidak bisa dipakai, bukan yang membuatnya bagus:
+
+     1. sasaran sentuh — kotak nilai dan tombol stopwatch ditekan sambil
+        berdiri, sering dengan satu tangan;
+     2. angka yang tidak bergoyang — `tabular-nums` pada stopwatch dan pada
+        angka Cek Nilai, karena lebar digit yang berubah tiap persepuluh detik
+        membuat penunjuknya bergeser di bawah mata yang sedang membacanya;
+     3. tidak ada yang meluap keluar kartunya di lebar HP.
+
+   Penyetelan lebar kolom per rentang (bagian 15) sengaja BELUM dikerjakan:
+   tidak satu pun layar di sini berupa tabel data, jadi aturan itu tidak
+   berlaku. Kalau nanti ada, ukur dulu di browser — jangan menambah aturan
+   sampai ada yang diukur.
+   ========================================================================== */
+
+/* ---------- pemilih lomba ---------- */
+
+/* auto-fill, bukan jumlah kolom yang dipatok: pos berisi satu lomba (Pos 4,
+   Pos 5) dan pos berisi lima (Pos 1) memakai petak yang sama. */
+.pilih-lomba {
+  display: grid; gap: .6rem;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+.lomba-kotak {
+  display: flex; align-items: center; gap: .55rem;
+  min-height: 56px; padding: .6rem .8rem;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  background: var(--kartu); color: inherit; text-align: left;
+}
+.lomba-kotak:hover, .lomba-kotak:focus-visible { border-color: var(--utama); }
+.lomba-jenis { display: flex; flex: 0 0 auto; color: var(--tinta-lembut); }
+.lomba-nama { font-weight: 700; line-height: 1.2; }
+
+/* ---------- kepala layar satu lomba ---------- */
+
+.baris-lomba {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .8rem; flex-wrap: wrap;
+}
+.lomba-pos { display: block; font-size: .85rem; color: var(--tinta-lembut); }
+.lomba-judul { margin: 0; }
+
+/* ---------- kotak isian kriteria ---------- */
+
+.isian-lomba { display: flex; flex-direction: column; gap: .5rem; margin-top: .7rem; }
+/* Nama kriteria di kiri, kotaknya di kanan — bentuk blangko kertasnya, supaya
+   juri yang menyalin dari kertas ke layar tidak perlu mencari padanannya. */
+.isian-baris {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .8rem; min-height: 48px; padding: .35rem .5rem;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+}
+.isian-nama {
+  display: flex; flex-direction: column;
+  flex: 1 1 auto; min-width: 0; font-weight: 700; line-height: 1.2;
+}
+.isian-petunjuk { font-size: .8rem; font-weight: 400; color: var(--tinta-lembut); }
+/* 48px, bukan tinggi bawaan .small-input: kotak ini diketik sambil berdiri,
+   dan yang dipakai di lembar pos lama duduk di dalam tabel yang memang
+   dikerjakan sambil duduk di meja IT. */
+.isian-baris .small-input {
+  flex: 0 0 auto; width: 7rem; min-height: 48px;
+  font-size: 1.15rem; font-weight: 700; text-align: center;
+}
+.isian-baris .checkbox { flex: 0 0 auto; }
+.isian-baris .pos-pasangan { flex: 0 0 auto; display: flex; align-items: center; gap: .3rem; }
+.isian-baris .pos-pasangan .small-input { width: 4rem; }
+
+/* ---------- stopwatch ---------- */
+
+.stopwatch {
+  margin-top: .7rem; padding: .6rem;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+}
+/* tabular-nums: tanpanya lebar angka berubah tiap persepuluh detik dan
+   seluruh penunjuk bergeser di bawah mata yang sedang membacanya. */
+.sw-angka {
+  display: block; text-align: center;
+  font-size: 2.6rem; font-weight: 800; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.sw-tombol { display: flex; gap: .5rem; margin-top: .5rem; }
+.sw-tombol .button { flex: 1 1 0; min-width: 0; }
+/* Diskualifikasi duduk di BARIS SENDIRI, tidak berjajar dengan Berhenti.
+   Keduanya ditekan tergesa di detik yang sama pentingnya, dan jempol yang
+   meleset satu tombol menyimpan 0 poin untuk regu yang menyelesaikan lomba. */
+.sw-diskualifikasi {
+  display: flex; align-items: center; gap: .6rem;
+  margin-top: .6rem; flex-wrap: wrap;
+}
+.sw-catatan { font-size: .85rem; font-weight: 700; color: var(--bahaya); }
+
+/* ---------- ubin foto lomba soal ---------- */
+
+/* Kotak nomor dada dan kotak nilai MENUMPUK, tidak bersebelahan. Alasannya
+   sama dengan kotak nomor dada di layar Foto Jawaban, dan di sini berlaku dua
+   kali lipat: dua kotak bersebelahan di petak selebar 130px menyisakan ~60px
+   untuk masing-masing. */
+.ubin-isian { display: flex; flex-direction: column; gap: .35rem; }
+.ubin-regu {
+  font-size: .8rem; line-height: 1.2; min-height: 1.2em;
+  color: var(--tinta-lembut); overflow-wrap: anywhere;
+}
+.ubin-regu-salah { color: var(--bahaya); font-weight: 700; }
+
+/* ---------- cek nilai ---------- */
+
+.cek-navigasi {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .6rem; margin-top: .4rem;
+}
+.cek-posisi { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
+   angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
+   antara keduanya. */
+.cek-lomba { padding: .7rem 0; border-top: 1px solid var(--garis); }
+.cek-lomba:first-child { border-top: 0; padding-top: 0; }
+.cek-kepala {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: .8rem; flex-wrap: wrap;
+}
+.cek-nama { font-weight: 700; }
+.cek-angka { display: flex; gap: .9rem; flex-wrap: wrap; }
+.cek-butir { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cek-butir-nama {
+  display: block; font-size: .75rem; font-weight: 400; color: var(--tinta-lembut);
+}
+.cek-kosong { font-size: .85rem; font-weight: 400; color: var(--tinta-lembut); }
+.cek-foto {
+  display: grid; gap: .5rem; margin-top: .5rem;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+}
+.cek-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }

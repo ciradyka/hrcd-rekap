@@ -175,6 +175,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "select nomor_dada, kode_lomba from v_foto_lembar "
                     "where pos = %s",
                     (p.get("pos") or 0,), uid=p.get("uid")))
+            elif u.path == "/foto-lembar":
+                # Foto satu regu di satu pos, terbaru dulu — dipakai dialog
+                # Foto Jawaban di lembar pos dan layar Cek Nilai. Rute ini
+                # sempat TIDAK ADA di sini sementara web/js/api.js sudah
+                # memanggilnya, jadi kedua layar itu tidak bisa dibuka di
+                # laptop sama sekali (CLAUDE.md 17.6).
+                self._kirim(200, q(
+                    "select * from v_foto_lembar "
+                    "where pos = %s and nomor_dada = %s "
+                    "order by diunggah_pada desc",
+                    (p.get("pos") or 0, p.get("dada") or 0), uid=p.get("uid")))
             elif u.path == "/foto-belum-taut":
                 # nomor_dada NULL = foto borongan yang belum ditautkan (0074).
                 self._kirim(200, q(
