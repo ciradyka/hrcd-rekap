@@ -26,7 +26,7 @@
 -- daripada masalahnya lebih berbahaya daripada tidak ada pemeriksaan, karena ia
 -- menutup pertanyaannya.
 --
--- Sekarang keduanya disebutkan: 111 migrasi punya jejak yang diperiksa
+-- Sekarang keduanya disebutkan: 112 migrasi punya jejak yang diperiksa
 -- (bagian 1), dan 51 tidak punya (bagian 2). Yang di bagian 2 bukan berarti
 -- belum diterapkan — berarti tidak ada yang tersisa untuk diperiksa.
 --
@@ -35,7 +35,7 @@
 -- Tidak ditulis tangan satu per satu, dan tidak ditebak. Database dibangun dari
 -- nol mengikuti urutan `tests/run.sh`, dan katalog beserta tabel konfigurasinya
 -- dipotret sesudah SETIAP migrasi. Sebuah potongan baru diterima jadi jejak
--- kalau ia lolos dua syarat, diuji terhadap seluruh 163 potret:
+-- kalau ia lolos dua syarat, diuji terhadap seluruh 164 potret:
 --
 --   1. TIDAK ada di SATU PUN potret sebelum migrasinya — jadi ia memang lahir
 --      dari migrasi itu, bukan dari yang lebih tua;
@@ -289,8 +289,14 @@ begin
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_klasemen' and position('FROM closing_regu c' in definition) > 0)$c$),
   ('0144', 'view v_klasemen_publik: t.golongan',
    $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_klasemen_publik' and position('t.golongan' in definition) > 0)$c$),
-  ('0145', 'constraint status_acara.status_acara_fase_live_check: CHECK ((fase_live = ANY (ARRAY[''pra''::text, ''progres''::tex',
-   $c$select exists (select 1 from pg_constraint where conrelid = 'status_acara'::regclass and conname = 'status_acara_fase_live_check' and position('CHECK ((fase_live = ANY (ARRAY[''pra''::text, ''progres''::text, ''penuh''::text, ''top10''::text])))' in pg_get_constraintdef(oid)) > 0)$c$),
+  -- Jejak 0145 dulu constraint fase-nya sendiri, dan 0163 menulis ulang
+  -- constraint itu untuk menyelipkan 'juara' — jejaknya lalu melapor BELUM
+  -- untuk migrasi yang jelas-jelas sudah jalan. Yang dipakai sekarang
+  -- `urutan_top` di v_klasemen_publik: sama-sama lahir dari 0145, dan 0163
+  -- tidak menyentuhnya. Pelajaran umumnya: jangan menjejaki objek yang
+  -- memang dibuat untuk ditulis ulang setiap ada keadaan baru.
+  ('0145', 'view v_klasemen_publik: urutan_top',
+   $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_klasemen_publik' and position('urutan_top' in definition) > 0)$c$),
   ('0146', 'constraint cache_live_score.cache_live_score_pkey: PRIMARY KEY (tunggal)',
    $c$select exists (select 1 from pg_constraint where conrelid = 'cache_live_score'::regclass and conname = 'cache_live_score_pkey' and position('PRIMARY KEY (tunggal)' in pg_get_constraintdef(oid)) > 0)$c$),
   ('0150', 'view v_kejuaraan: poin_juara',
@@ -314,7 +320,9 @@ begin
   ('0160', 'row sekolah: {"name": "MTs Ma''arif Darulhikam", "address": "Cieurih, Ke',
    $c$select exists (select 1 from sekolah t where position('{"name": "MTs Ma''arif Darulhikam", "address": "Cieurih, Kec. Cipaku, Kabupaten Ciamis, Jawa Barat 46252, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0161', 'row sekolah: {"name": "SMPN Satu Atap 1 Banjarsari", "address": "Banjar',
-   $c$select exists (select 1 from sekolah t where position('{"name": "SMPN Satu Atap 1 Banjarsari", "address": "Banjaranyar, Kec. Banjaranyar, Kabupaten Ciamis, Jawa Barat 46384, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$)
+   $c$select exists (select 1 from sekolah t where position('{"name": "SMPN Satu Atap 1 Banjarsari", "address": "Banjaranyar, Kec. Banjaranyar, Kabupaten Ciamis, Jawa Barat 46384, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
+  ('0163', 'view v_kejuaraan_publik ada',
+   $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kejuaraan_publik')$c$)
 ) as t(nomor, jejak, cek)
   loop
     begin
