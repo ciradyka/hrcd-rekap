@@ -38,7 +38,7 @@ const halaman = await readFile(new URL("../live/index.html", import.meta.url), "
 const BERKAS = {
   "live.js": { versi: 19, sidik: "3a694d058cbc" },
   "live.css": { versi: 7, sidik: "3edc52a93ca9" },
-  "style.css": { versi: 18, sidik: "1fd2a5ed262c" },
+  "style.css": { versi: 19, sidik: "a7b86d101671" },
 };
 
 const sidikIsi = (teks) =>
