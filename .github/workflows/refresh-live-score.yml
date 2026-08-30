@@ -3,8 +3,34 @@ name: Refresh Live Score cache
 on:
   workflow_dispatch:
   schedule:
-    # 08:00-23:59 WIB pada hari lomba. GitHub cron memakai UTC.
-    - cron: '*/5 1-16 29 8 *'
+    # 06:00-18:59 WIB pada hari lomba, tiap 10 menit. GitHub cron memakai
+    # UTC, dan 06:00 WIB jatuh pada 23:00 UTC HARI SEBELUMNYA — itu sebabnya
+    # ada dua baris, bukan satu.
+    #
+    # UKURANNYA DARI DATA, bukan perkiraan. Setelah edisi XXXVII,
+    # supabase/checks/lalu_lintas.sql menghitung penulisan per jam dari
+    # tabel `history`:
+    #
+    #   06:00  137      12:00  2016  <- puncak
+    #   07:00  169      13:00  1754
+    #   08:00  589      14:00   726
+    #   09:00 1057      15:00   196
+    #   10:00 1278      17:00    51
+    #   11:00 1557      19:00    38
+    #
+    # Jendela lama 08:00-23:59 salah di KEDUA ujungnya: ia melewatkan 306
+    # penulisan sebelum jam delapan, lalu terus jalan sampai tengah malam
+    # padahal penulisan terakhir jam tujuh malam. Snapshot terakhir edisi
+    # kemarin tercatat 23:55 — empat jam sesudah apa pun berubah.
+    #
+    # Lima menit juga terlalu rapat: papan ini milik PANITIA, ditonton
+    # belasan orang, dan tiap penyegaran menghitung ulang lalu menulis
+    # ulang payload 587 kB berisi 273 baris. Sejak #730 layarnya punya
+    # tombol refresh sendiri, jadi yang butuh angka detik itu menekannya.
+    #
+    # 83 run jadi ~40.
+    - cron: '*/10 23 28 8 *'
+    - cron: '*/10 0-11 29 8 *'
 
 concurrency:
   group: refresh-live-score
@@ -19,7 +45,14 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [ "$EVENT_NAME" != "schedule" ] || [[ "$(date -u '+%Y-%m-%dT%H:%M')" =~ ^2026-08-29T(0[1-9]|1[0-6]): ]]; then
+          # Cron tidak punya kolom tahun, jadi penjaga inilah yang menolak
+          # setiap jadwal di luar tanggal lomba. Dua jendela, sama dengan
+          # dua baris cron di atas: 23:00 UTC 28 Agustus (= 06:00 WIB) dan
+          # 00:00-11:59 UTC 29 Agustus (= 07:00-18:59 WIB).
+          SEKARANG="$(date -u '+%Y-%m-%dT%H:%M')"
+          if [ "$EVENT_NAME" != "schedule" ] \
+             || [[ "$SEKARANG" =~ ^2026-08-28T23: ]] \
+             || [[ "$SEKARANG" =~ ^2026-08-29T(0[0-9]|1[01]): ]]; then
             echo "aktif=true" >> "$GITHUB_OUTPUT"
           else
             echo "aktif=false" >> "$GITHUB_OUTPUT"
