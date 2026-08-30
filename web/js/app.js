@@ -42,7 +42,7 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba,
          katalogLomba, stopwatchTeks, detikDariMs,
-         bisaTombolAngka } from "./util.js";
+         petunjukKolom } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
@@ -7514,6 +7514,7 @@ async function gambarLombaNilai(l) {
                    aria-label="Foto jawaban dari galeri">${ikon("image")}
           </label>
         </span>
+        <div class="foto-geser" id="v2-foto-petak" hidden></div>
       </div>
       <button class="button button-primary" id="v2-simpan" type="button" disabled
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
@@ -7529,6 +7530,7 @@ async function gambarLombaNilai(l) {
   const tombol = document.getElementById("v2-simpan");
   const barisFoto = document.getElementById("v2-foto");
   const statusFoto = document.getElementById("v2-foto-status");
+  const petakFoto = document.getElementById("v2-foto-petak");
   let regu = null;      // baris v_lembar_pos regu yang sedang terbuka
   let jeda = null;
 
@@ -7566,6 +7568,9 @@ async function gambarLombaNilai(l) {
     wadah.hidden = true;
     barisFoto.hidden = true;
     statusFoto.textContent = "";
+    fotoLomba = null;
+    petakFoto.hidden = true;
+    petakFoto.replaceChildren();
     tombol.disabled = true;
     segarkanStopwatch?.();
   };
@@ -7593,15 +7598,56 @@ async function gambarLombaNilai(l) {
     if (pertama) { pertama.focus(); if (pertama.select) pertama.select(); }
   }, { signal: sinyal });
 
-  /** Berapa foto lomba ini yang sudah tertaut ke regu yang sedang terbuka.
-   *  null = permintaannya gagal, jadi jumlahnya tidak diketahui. */
-  let jumlahFoto = null;
+  /** Foto lomba ini yang sudah tertaut ke regu yang sedang terbuka.
+   *  null = permintaannya gagal, jadi keadaannya tidak diketahui — berbeda
+   *  dari larik kosong, yang berarti benar-benar belum ada. */
+  let fotoLomba = null;
 
   const gambarStatusFoto = () => {
-    statusFoto.textContent = jumlahFoto === null
-      ? "jumlah foto tidak terbaca"
-      : (jumlahFoto ? `${jumlahFoto} foto` : "belum ada");
+    statusFoto.textContent = fotoLomba === null
+      ? "foto tidak terbaca"
+      : (fotoLomba.length ? `${fotoLomba.length} foto` : "belum ada");
   };
+
+  /** Petak foto: SELEBAR KARTUNYA, satu foto satu layar penuh.
+   *
+   *  Yang dilihat di sini tulisan tangan di slip penilaian, dan petak kecil
+   *  tidak menjawab pertanyaan yang membuat orang membukanya — "angka di
+   *  kertas ini benar-benar 3 atau 8?". Jadi lebarnya penuh dan tingginya
+   *  dibiarkan sampai 60% layar.
+   *
+   *  Lebih dari satu foto DIGESER ke samping, bukan ditumpuk ke bawah:
+   *  ditumpuk, foto kedua mendorong tombol SIMPAN NILAI keluar layar, dan
+   *  tombol itu yang paling sering ditekan di kartu ini. `scroll-snap`
+   *  membuat gesernya berhenti tepat di satu foto, bukan di antara dua.
+   *
+   *  Tautan bertanda tangan diambil sekali untuk seluruh foto regu ini
+   *  (tautanFotoBanyak), bukan satu permintaan per gambar. */
+  async function gambarPetakFoto() {
+    if (!fotoLomba || !fotoLomba.length) {
+      petakFoto.hidden = true;
+      petakFoto.replaceChildren();
+      return;
+    }
+    const milik = fotoLomba;
+    let peta = {};
+    try { peta = await tautanFotoBanyak(milik.map(f => f.path)); }
+    catch { peta = {}; }
+    // Regunya bisa sudah berganti selagi tanda tangannya di jalan.
+    if (fotoLomba !== milik) return;
+
+    petakFoto.hidden = false;
+    petakFoto.replaceChildren(h(milik.map((f, i) => {
+      const url = peta[f.path];
+      const kapan = f.diunggah_pada ? tanggalJam(f.diunggah_pada) : "";
+      const judul = `Foto ${i + 1} dari ${milik.length}${kapan ? ` · ${kapan}` : ""}`;
+      return url
+        ? `<a class="foto-lembar" href="${esc(url)}" target="_blank" rel="noopener"
+              title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
+              loading="lazy"></a>`
+        : `<span class="foto-lembar foto-lembar-kosong">tautan gagal</span>`;
+    }).join("")));
+  }
 
   async function cariDanGambar(dada) {
     let r, foto;
@@ -7636,9 +7682,9 @@ async function gambarLombaNilai(l) {
        fotonya justru bukti untuk angka final itu, dan menolak bukti sesudah
        putusan adalah urutan yang terbalik. */
     barisFoto.hidden = false;
-    jumlahFoto = foto === null
-      ? null : foto.filter(f => f.kode_lomba === l.kode).length;
+    fotoLomba = foto === null ? null : foto.filter(f => f.kode_lomba === l.kode);
     gambarStatusFoto();
+    gambarPetakFoto();
   }
 
   /* Diunggah SEKARANG, bukan ditahan sampai tombol Simpan.
@@ -7664,9 +7710,14 @@ async function gambarLombaNilai(l) {
       } catch (err) { statusFoto.textContent = err.message; continue; }
       try {
         statusFoto.textContent = `mengirim ${ukuranRapi(blob.size)}…`;
-        await unggahFotoLembar(l.pos, l.kode, l.nama, dada, blob);
-        jumlahFoto = (jumlahFoto || 0) + 1;
+        const hasil = await unggahFotoLembar(l.pos, l.kode, l.nama, dada, blob);
+        // Disisipkan ke DEPAN: yang barusan difoto adalah yang paling ingin
+        // dilihat, dan menggesernya dari ujung kanan tiap kali adalah
+        // pekerjaan yang tidak menghasilkan apa pun.
+        fotoLomba = [{ path: hasil.path, diunggah_pada: new Date().toISOString() },
+                     ...(fotoLomba || [])];
         gambarStatusFoto();
+        await gambarPetakFoto();
       } catch (err) {
         statusFoto.textContent = `gagal — ${err.message}`;
         notif(`Foto ${dada3(dada)} gagal terkirim: ${err.message}`, true);
@@ -7674,36 +7725,21 @@ async function gambarLombaNilai(l) {
     }
   }, { signal: sinyal });
 
-  /** Deretan tombol angka untuk satu kriteria.
- *
- *  KENAPA BUKAN KOTAK KETIK. Di pos, angka ini diketik sambil berdiri, sering
- *  satu tangan, dengan papan angka HP yang menutupi separuh layar dan
- *  mendorong sisanya ke atas. Satu ketukan menggantikan: menekan kotak,
- *  menunggu papan ketik naik, mengetik, lalu menutupnya lagi.
- *
- *  Nilainya tetap tinggal di sebuah `<input>` tersembunyi ber-`data-kode`,
- *  bukan di dataset tombolnya. Itu yang membuat bacaSel() — satu-satunya
- *  pembaca isian di berkas ini, dan yang sama dipakai lembar pos lama —
- *  tidak perlu tahu apa-apa tentang tombol: kotak kosong tetap berarti
- *  "belum dinilai", dan aturan hapus-vs-abaikan di jalur simpan tetap
- *  berlaku persis sama.
- *
- *  MENEKAN ANGKA YANG SEDANG TERPILIH MEMBATALKANNYA. Tanpa itu, angka yang
- *  telanjur masuk ke regu yang salah tidak punya satu pun jalan untuk
- *  dikosongkan lagi — dan mengosongkan adalah persis yang harus dilakukan,
- *  karena menimpanya dengan 0 berarti mencatat nilai nol yang sah. */
-function selPilihanAngka(k, nilai) {
-  const n = nilai && nilai.nilai_1 !== null && nilai.nilai_1 !== undefined
-    ? Number(nilai.nilai_1) : null;
-  const min = Number(k.rentang_mentah_min), maks = Number(k.rentang_mentah_maks);
-  const angka = [];
-  for (let i = min; i <= maks; i += 1) angka.push(i);
-  return `<div class="pilih-angka" role="group" aria-label="${esc(k.name)}">
-    <input type="hidden" data-kode="${esc(k.kode)}" value="${n === null ? "" : esc(String(n))}">
-    ${angka.map(i => `<button type="button" class="angka-kotak" data-angka="${i}"
-        aria-pressed="${i === n ? "true" : "false"}">${i}</button>`).join("")}
-  </div>`;
-}
+  /* DULU DI SINI ADA DERETAN TOMBOL ANGKA, satu tombol per nilai, dan ia
+     dibuang setelah dicoba di lapangan.
+
+     Alasan membuatnya masuk akal di atas kertas: papan angka HP menutupi
+     separuh layar, jadi satu ketukan menggantikan empat. Yang tidak terlihat
+     sebelum dipakai adalah harganya — Kreativitas Yel-Yel 0-35 jadi tiga baris
+     berisi tiga puluh enam petak yang harus DICARI dengan mata satu per satu,
+     dan empat kriteria di satu layar menjadikannya dinding. Mengetik "27"
+     ternyata lebih cepat daripada menemukan 27 di antara 36 petak yang
+     seragam, dan lebih sulit salah.
+
+     Jadi kalau ide ini muncul lagi: ia sudah dicoba, dan yang mematikannya
+     bukan jumlah ketukan melainkan waktu mencari. Kalau tetap ingin dicoba
+     ulang, batasi pada rentang yang benar-benar kecil (0-5) dan ukur di
+     lapangan, bukan di layar laptop. */
 
 /** Kotak isian kriteria lomba ini UNTUK GOLONGAN REGU INI.
    *
@@ -7727,44 +7763,26 @@ function selPilihanAngka(k, nilai) {
 
     const nilai = r.nilai || {};
     wadah.hidden = false;
-    wadah.replaceChildren(h(dipakai.map(({ kol, k }) => {
-      const tombol = bisaTombolAngka(k);
-      /* Nama kriteria jadi <label for> hanya kalau isiannya SATU kotak. Untuk
-         deretan tombol tidak ada satu sasaran yang benar — `for` yang menunjuk
-         tombol "0" akan memilih nol setiap kali namanya ditekan, dan nol
-         adalah nilai yang sah. Di sana namanya jadi teks biasa, dan yang
-         menyebutkan kelompoknya ke pembaca layar adalah aria-label di
-         .pilih-angka. */
-      return `
-      <div class="isian-baris${tombol ? " isian-pilihan" : ""}">
-        ${tombol
-          ? `<div class="isian-nama">${esc(labelIsian(kol, k))}<span
-               class="isian-petunjuk">${esc(kol.petunjuk)}</span></div>
-             ${selPilihanAngka(k, nilai[k.kode])}`
-          : `<label class="isian-nama" for="sel-${esc(k.kode)}">
-               ${esc(labelIsian(kol, k))}<span
-                 class="isian-petunjuk">${esc(kol.petunjuk)}</span>
-             </label>
-             ${selKomponen(k, nilai[k.kode])}`}
-      </div>`;
-    }).join("")));
+    wadah.replaceChildren(h(dipakai.map(({ kol, k }) => `
+      <div class="isian-baris">
+        <label class="isian-nama" for="sel-${esc(k.kode)}">
+          ${esc(labelIsian(kol, k))}<span
+            class="isian-petunjuk">${esc(petunjukKolom(k))}</span>
+        </label>
+        ${selKomponen(k, nilai[k.kode])}
+      </div>`).join("")));
 
     /* selKomponen menulis data-kode, bukan id — id-nya dipasang di sini
        supaya <label for> punya sasaran. Menekan nama kriterianya lalu
        mendarat di kotaknya adalah sasaran sentuh selebar barisnya, dan di HP
-       itulah yang membedakan kotak 32px dari baris 44px. Kotak tersembunyi
-       milik deretan tombol dilewati: ia tidak bisa difokuskan, dan <label>
-       yang menunjuknya tidak melakukan apa pun. */
+       itulah yang membedakan kotak 32px dari baris 44px. */
     dipakai.forEach(({ k }) => {
       const el = wadah.querySelector(`[data-kode="${CSS.escape(k.kode)}"]`);
-      if (el && el.type !== "hidden") el.id = `sel-${k.kode}`;
+      if (el) el.id = `sel-${k.kode}`;
     });
 
     const kunci = !!r.terkunci;
-    // Tombol angkanya ikut dimatikan, bukan cuma <input>-nya. Kotak yang masih
-    // bisa ditekan tapi selalu ditolak adalah jebakan, dan penolakannya baru
-    // muncul sesudah petugas mengira angkanya sudah masuk.
-    wadah.querySelectorAll("input, .angka-kotak").forEach(el => { el.disabled = kunci; });
+    wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
     tombol.disabled = kunci;
     tombol.textContent = kunci ? "TERGEMBOK" : "SIMPAN NILAI";
 
@@ -7791,19 +7809,6 @@ function selPilihanAngka(k, nilai) {
     // harus ikut membaca isi kotak YANG BARU, bukan kotak regu sebelumnya.
     segarkanStopwatch?.();
   }
-
-  /* Ketukan angka. Menekan angka yang SEDANG terpilih membatalkannya —
-     lihat selPilihanAngka(). */
-  wadah.addEventListener("click", (e) => {
-    const b = e.target.closest(".angka-kotak");
-    if (!b || b.disabled) return;
-    const grup = b.closest(".pilih-angka");
-    const simpanan = grup.querySelector("input[data-kode]");
-    const batal = b.getAttribute("aria-pressed") === "true";
-    grup.querySelectorAll(".angka-kotak").forEach(x =>
-      x.setAttribute("aria-pressed", String(!batal && x === b)));
-    simpanan.value = batal ? "" : b.dataset.angka;
-  }, { signal: sinyal });
 
   // Enter di kotak isian = simpan. Di sini ia memang aksi terakhir barisnya:
   // sesudah angkanya diketik, petugas tidak punya urusan lain dengan regu itu.
