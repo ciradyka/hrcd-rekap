@@ -7437,11 +7437,26 @@ async function gambarLombaNilai(l) {
 
   LAYAR.replaceChildren(h(`
     ${kepalaLomba(l)}
-    <div class="card" style="border-color:var(--utama)">
+    <div class="card" id="v2-kartu" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
         <label for="v2-dada">Nomor dada</label>
-        <input type="text" id="v2-dada" class="besar" inputmode="numeric"
-               autocomplete="off" placeholder="001">
+        <!-- DISKUALIFIKASI DUDUK DI SINI, sejauh mungkin dari tombol berhenti.
+
+             Tempatnya tidak dipilih karena maknanya berdekatan dengan nomor
+             dada — melainkan karena JARAK adalah satu-satunya pengaman yang
+             bekerja saat orang menekan tergesa. Selama ia bertetangga dengan
+             play/stop, jempol yang meleset sekali menyimpan 0 poin untuk regu
+             yang menyelesaikan lomba, dan tidak ada satu pun galat yang
+             muncul saat itu terjadi.
+
+             Kotaknya sendiri tetap yang pertama dijangkau: ia mengisi sisa
+             lebar barisnya, tombolnya hanya selebar tulisannya. -->
+        <div class="dada-baris">
+          <input type="text" id="v2-dada" class="besar" inputmode="numeric"
+                 autocomplete="off" placeholder="001">
+          ${waktu ? `<button type="button" class="button button-danger button-small sw-dq"
+                  data-sw="dq">Diskualifikasi</button>` : ""}
+        </div>
       </div>
       <div id="v2-regu" style="margin-top:.7rem"></div>
       ${waktu ? panelStopwatchHtml() : ""}
@@ -7468,7 +7483,9 @@ async function gambarLombaNilai(l) {
   const kotakWaktu = () => wadah.querySelector(".input-waktu");
   // Penyegar catatan diskualifikasi. null untuk lomba non-waktu, yang memang
   // tidak punya panel stopwatch sama sekali.
-  const segarkanStopwatch = waktu ? pasangStopwatch(wadah, kotakWaktu, sinyal) : null;
+  const segarkanStopwatch = waktu
+    ? pasangStopwatch(document.getElementById("v2-kartu"), wadah, kotakWaktu, sinyal)
+    : null;
 
   inp.focus();
   gambarRiwayatNilai();
@@ -7720,29 +7737,30 @@ const panelStopwatchHtml = () => `
     <div class="sw-kendali">
       <button type="button" class="sw-bulat sw-jalan" data-sw="jalan"
               title="Mulai" aria-label="Mulai">${ikon("play", "ikon sw-ikon")}</button>
+    </div>
+    <div class="sw-kendali sw-kendali-bawah">
       <button type="button" class="sw-bulat sw-ulang" data-sw="ulang"
               title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
               aria-label="Kembalikan penunjuk ke nol"
               disabled>${ikon("rotate-ccw", "ikon sw-ikon")}</button>
     </div>
-    <div class="sw-bawah">
-      <button type="button" class="button button-danger button-mini" data-sw="dq"
-              >Diskualifikasi</button>
-      <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
-        menyelesaikan lomba, 0 poin.</span>
-    </div>
+    <span class="sw-catatan" id="sw-catatan" hidden>Waktu 00:00 — tidak
+      menyelesaikan lomba, 0 poin.</span>
   </div>`;
 
-/** Pasang stopwatch pada panel yang sudah tergambar.
+/** Pasang stopwatch pada kartu yang sudah tergambar.
+ *
+ *  `kartu`, bukan panel stopwatch-nya: Diskualifikasi sengaja duduk jauh dari
+ *  play/stop — di sebelah kotak nomor dada — jadi ketiga tombol yang diurus
+ *  fungsi ini tidak lagi berbagi satu induk selain kartunya.
  *
  *  `kotakWaktu` sebuah FUNGSI, bukan elemen — alasannya di pemanggilnya.
  *  Mengembalikan fungsi penyegar catatan diskualifikasi, karena kotaknya
  *  digambar ulang tiap regu dan panel ini tidak ikut tahu kapan. */
-function pasangStopwatch(wadah, kotakWaktu, sinyal) {
-  const panel = document.getElementById("v2-stopwatch");
+function pasangStopwatch(kartu, wadah, kotakWaktu, sinyal) {
   const angka = document.getElementById("sw-angka");
   const catatan = document.getElementById("sw-catatan");
-  const tombol = (nama) => panel.querySelector(`[data-sw="${nama}"]`);
+  const tombol = (nama) => kartu.querySelector(`[data-sw="${nama}"]`);
 
   /* Catatan hanya muncul saat kotaknya BENAR-BENAR berisi 00:00.
      Kalimat tetap yang selalu terpampang akan dibaca ratusan kali per shift
@@ -7797,7 +7815,7 @@ function pasangStopwatch(wadah, kotakWaktu, sinyal) {
     tombol("ulang").disabled = jalan || !tertahan;
   };
 
-  panel.addEventListener("click", (e) => {
+  kartu.addEventListener("click", (e) => {
     const b = e.target.closest("[data-sw]");
     if (!b) return;
 
