@@ -720,5 +720,7 @@ run supabase/migrations/0160_kode_pos_dan_nama_tersisa.sql
 run tests/sql/112_kode_pos_dan_nama_tersisa.sql
 run supabase/migrations/0161_lebur_kembar_ejaan.sql
 run tests/sql/113_lebur_kembar_ejaan.sql
+run supabase/migrations/0162_lebur_smp_al_fadliliyah.sql
+run tests/sql/114_lebur_smp_al_fadliliyah.sql
 
 echo "SEMUA TES LULUS"

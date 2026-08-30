@@ -859,18 +859,33 @@ lewat dua baris yang akan bertabrakan kalau seseorang mencobanya.
 
 ### 13.6 Keadaan sekarang (29 Agustus 2026)
 
-**515 baris `sekolah` di produksi, seluruhnya beralamat lengkap dengan kode
+**514 baris `sekolah` di produksi, seluruhnya beralamat lengkap dengan kode
 pos.** Nol alamat kosong, nol yang bentuknya cacat, nol kunci kembar, nol nama
-tanpa jenjang. Dari 515 itu, 210 terkurasi (bagian 11) dan sisanya dari
+tanpa jenjang. Dari 514 itu, 210 terkurasi (bagian 11) dan sisanya dari
 direktori.
 
-Satu pertanyaan sengaja dibiarkan terbuka: `SMP Al-Fadliliyah Darussalam` tidak
-ada di Data Referensi, dan `MTs Al-Fadliliyah Darussalam` (NPSN 20211978)
-beralamat sama. Keduanya setingkat Penggalang, jadi tidak ada di data yang bisa
-memutuskan apakah itu SMP yang belum terdaftar atau salah ketik. `0160`
-mencetak pertanyaannya lewat `raise notice` tiap kali dijalankan.
+### 13.7 Kalau datanya habis, yang tersisa orang yang tahu
 
-### 13.7 Migrasi dan tesnya
+`SMP Al-Fadliliyah Darussalam` tidak ada di Data Referensi, dan
+`MTs Al-Fadliliyah Darussalam` (NPSN 20211978) beralamat sama dan setingkat
+sama. Bisa jadi SMP yang memang ada tetapi belum terdaftar, bisa jadi salah
+ketik untuk MTs-nya — dan **tidak ada di data yang bisa memutuskan**, karena
+yang biasanya memutuskan adalah NPSN dan di sini NPSN-nya justru tidak ada.
+
+`0160` mengisi alamatnya tetapi sengaja tidak meleburnya, dan mencetak
+pertanyaannya lewat `raise notice` tiap kali dijalankan. Pemilik acara menjawab
+**30 Agustus 2026: yang dimaksud MTs-nya**, dan `0162` meleburkannya.
+
+Pola ini yang layak ditiru, bukan jawabannya. Peleburan memindahkan
+`pendaftaran.sekolah_id`; tebakan yang salah memindahkan regu sungguhan ke
+sekolah yang salah — tidak melempar galat, tidak terlihat di layar mana pun,
+dan baru ketahuan waktu piagam dicetak dengan nama yang keliru. Jadi migrasinya
+mengerjakan bagian yang pasti (alamatnya), menahan bagian yang tidak pasti, dan
+**membawa pertanyaannya keluar** ke tempat yang pasti terbaca. Yang tidak boleh
+adalah menebak diam-diam, atau membiarkan pertanyaannya hilang di antara
+catatan lain.
+
+### 13.8 Migrasi dan tesnya
 
 | Berkas | Isi |
 | --- | --- |
@@ -879,10 +894,11 @@ mencetak pertanyaannya lewat `raise notice` tiap kali dijalankan.
 | `0159_lebur_kembar_direktori.sql` | 4 kembar bawaan impor + kode pos Banjaranyar |
 | `0160_kode_pos_dan_nama_tersisa.sql` | 297 kode pos + 4 nama tanpa jenjang |
 | `0161_lebur_kembar_ejaan.sql` | 2 kembar ejaan + nama Satu Atap |
+| `0162_lebur_smp_al_fadliliyah.sql` | SMP dilebur ke MTs-nya, atas jawaban pemilik acara |
 | `supabase/checks/sekolah_kembar.sql` | pemeriksa enam aturan, hanya membaca |
-| `tests/sql/109`–`113` | tesnya, satu per migrasi |
+| `tests/sql/109`–`114` | tesnya, satu per migrasi |
 
-Kelima migrasi memotret `regu`, `nilai_mentah`, `closing_regu`, dan
+Keenam migrasi memotret `regu`, `nilai_mentah`, `closing_regu`, dan
 `pendaftaran` di awal lalu membandingkannya di akhir. Itu bukan kehati-hatian
 berlebihan: peleburan memindahkan `pendaftaran.sekolah_id`, dan seluruh
 pekerjaan ini dikerjakan **selama acara berjalan** (CLAUDE.md bagian 17).
