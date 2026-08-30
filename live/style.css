@@ -4399,6 +4399,25 @@ button.pill-number:hover { filter: brightness(.95); }
   font-size: 1.15rem; font-weight: 700; text-align: center;
 }
 .isian-baris .checkbox { flex: 0 0 auto; }
+/* Baris berisi deretan tombol menumpuk ke bawah, bukan berdampingan: tiga
+   puluh enam tombol tidak muat di kolom kanan selebar kotak isian. */
+.isian-pilihan { flex-direction: column; align-items: stretch; }
+.isian-pilihan .isian-nama { flex: 0 0 auto; }
+/* Satu tombol per angka. `wrap`, bukan jumlah kolom yang dipatok: rentangnya
+   0-5 di Semaphore dan 0-35 di Kreativitas, dan keduanya memakai petak yang
+   sama. 48px adalah sasaran jempol yang tidak menuntut dilihat sebelum
+   ditekan — dan itulah seluruh gunanya menggantikan papan angka HP. */
+.pilih-angka { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .45rem; }
+.angka-kotak {
+  flex: 0 0 auto; min-width: 48px; min-height: 48px; padding: 0 .45rem;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  background: var(--kartu); color: var(--tinta);
+  font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.angka-kotak[aria-pressed="true"] {
+  background: var(--utama); border-color: var(--utama); color: #fff;
+}
+.angka-kotak:disabled { opacity: .45; cursor: not-allowed; }
 .isian-baris .pos-pasangan { flex: 0 0 auto; display: flex; align-items: center; gap: .3rem; }
 .isian-baris .pos-pasangan .small-input { width: 4rem; }
 
@@ -4444,12 +4463,7 @@ button.pill-number:hover { filter: brightness(.95); }
 }
 .sw-jalan.sw-berhenti { background: var(--bahaya); }
 .sw-jalan .sw-ikon { width: 34px; height: 34px; }
-.sw-ulang {
-  width: 52px; height: 52px;
-  background: var(--kartu); border-color: var(--garis); color: var(--tinta);
-}
 .sw-ulang:disabled { opacity: .45; cursor: not-allowed; }
-.sw-ulang .sw-ikon { width: 22px; height: 22px; }
 .sw-catatan {
   display: block; margin-top: .7rem; text-align: center;
   font-size: .85rem; font-weight: 700; color: var(--bahaya);

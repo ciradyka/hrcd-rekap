@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { jenisLomba, katalogLomba, stopwatchTeks, detikDariMs }
+import { jenisLomba, katalogLomba, stopwatchTeks, detikDariMs, bisaTombolAngka }
   from "../web/js/util.js";
 
 /** Baris `wahana` seperti yang dikirim komponenSemua(). */
@@ -157,4 +157,47 @@ test("detik yang disimpan dibulatkan, bukan dipotong", () => {
   assert.equal(detikDariMs(30500), 31);
   assert.equal(detikDariMs(0), 0);
   assert.equal(detikDariMs(-100), 0);
+});
+
+/* -------------------------------------------------------------------------
+   bisaTombolAngka — kriteria mana yang diisi dengan menekan, bukan mengetik.
+   ---------------------------------------------------------------------- */
+
+// Seluruh rentang yang benar-benar dipakai edisi XXXVII, dari yang tersempit
+// sampai yang terlebar. Kalau salah satunya jatuh ke kotak ketik, satu lomba
+// kembali menuntut papan angka HP di tengah lapangan tanpa ada yang tahu.
+test("seluruh rentang lomba edisi ini digambar sebagai tombol", () => {
+  for (const [nama, maks] of [
+    ["Semaphore", 5], ["Tebak Simpul Penegak", 10], ["Kim Lihat", 10],
+    ["Keagamaan", 10], ["Logika", 20], ["Posisi Bidai", 15],
+    ["Kecepatan dan Kerja Sama", 20], ["Diagnosis", 25],
+    ["Gerakan Dasar", 30], ["Kreativitas", 35],
+  ]) {
+    assert.equal(bisaTombolAngka(w({ rentang_mentah_maks: maks })), true, nama);
+  }
+});
+
+// Menaksir menulis SELISIH dalam sentimeter, jadi rentangnya 0-99999999.
+// Tanpa pagar ini layar mencoba menggambar seratus juta tombol.
+test("Menaksir tetap kotak ketik", () => {
+  assert.equal(
+    bisaTombolAngka(w({ kode: "menaksir", rentang_mentah_maks: 99999999 })), false);
+});
+
+test("bentuk yang sudah punya cara pengisiannya sendiri tidak diganti", () => {
+  assert.equal(bisaTombolAngka(w({ form: "biner" })), false);
+  assert.equal(bisaTombolAngka(w({ form: "benar_kurang_salah" })), false);
+  assert.equal(bisaTombolAngka(w({ satuan: "detik", rentang_mentah_maks: 3600 })), false);
+  assert.equal(bisaTombolAngka(w({ satuan: "meter" })), false);
+});
+
+// Rentang yang tidak masuk akal tidak boleh menghasilkan larik kosong atau
+// putaran yang tidak pernah berhenti di selPilihanAngka().
+test("rentang rusak jatuh ke kotak ketik, bukan ke tombol", () => {
+  assert.equal(bisaTombolAngka(
+    w({ rentang_mentah_min: 5, rentang_mentah_maks: 2 })), false);
+  assert.equal(bisaTombolAngka(
+    w({ rentang_mentah_min: 0, rentang_mentah_maks: null })), false);
+  assert.equal(bisaTombolAngka(
+    w({ rentang_mentah_min: 0.5, rentang_mentah_maks: 5 })), false);
 });

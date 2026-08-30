@@ -1280,6 +1280,46 @@ export function stopwatchTeks(ms) {
  *  ditemukan belakangan waktu angkanya sudah masuk. */
 export const detikDariMs = (ms) => Math.round(Math.max(0, Number(ms) || 0) / 1000);
 
+/** Angka terbanyak yang masih pantas digambar sebagai deretan tombol.
+ *
+ *  Empat puluh satu tombol (0-40) muat dalam enam baris di layar HP, dan
+ *  seluruh lomba edisi ini berada di bawahnya — yang terlebar Kreativitas
+ *  Yel-Yel, 0-35. Yang di atasnya cuma Menaksir, yang rentangnya 0-99999999
+ *  karena ia menulis SELISIH dalam sentimeter; menggambarnya sebagai tombol
+ *  bukan pilihan yang lebih buruk, melainkan pilihan yang mustahil.
+ *
+ *  Angkanya dipatok di sini, bukan diturunkan dari daftar lomba: tahun depan
+ *  panitia mengubah rentangnya lewat layar Akun, dan aturan yang menyebut nama
+ *  lomba akan menggambar dinding tombol untuk lomba yang tidak disangka. */
+export const MAKS_TOMBOL_ANGKA = 41;
+
+/** Bisakah komponen ini digambar sebagai deretan tombol angka?
+ *
+ *  Bentuk lain sudah punya cara pengisian yang tidak menuntut mengetik atau
+ *  tidak bisa diganti: centang sudah satu ketukan, waktu diisi stopwatch,
+ *  meter dan benar/salah punya bentuknya sendiri. Yang tersisa — dan yang
+ *  benar-benar diketik angka demi angka di lapangan — adalah kotak angka
+ *  polos milik hampir semua kriteria juri dan seluruh lomba soal. */
+export function bisaTombolAngka(k) {
+  if (k.form === "biner" || k.form === "benar_kurang_salah") return false;
+  if (k.satuan === "detik" || k.satuan === "meter") return false;
+
+  /* KOSONG DIPERIKSA SEBELUM Number(), dan itu bukan kerapian.
+     `Number(null)` dan `Number("")` sama-sama 0 — bilangan bulat yang sah —
+     jadi komponen yang batas atasnya belum diisi akan lolos sebagai rentang
+     0 sampai 0 dan digambar sebagai SATU tombol berbunyi "0". Petugas lalu
+     menekannya, karena itu satu-satunya yang ada, dan yang tersimpan nol
+     untuk kriteria yang sebenarnya bernilai sampai 30. Tidak ada galat di
+     mana pun: nol adalah nilai yang sah. */
+  const bulat = (v) =>
+    v !== null && v !== undefined && v !== "" && Number.isInteger(Number(v));
+  if (!bulat(k.rentang_mentah_min) || !bulat(k.rentang_mentah_maks)) return false;
+
+  const min = Number(k.rentang_mentah_min), maks = Number(k.rentang_mentah_maks);
+  return maks >= min && maks - min + 1 <= MAKS_TOMBOL_ANGKA;
+}
+
+
 /** Ringkas satu LOMBA untuk satu regu: berapa komponennya yang berlaku,
  *  berapa yang sudah ada isinya, dan jumlah nilainya.
  *
