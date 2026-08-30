@@ -1165,6 +1165,106 @@ export function kelompokLomba(kolom) {
   return urut;
 }
 
+/** BENTUK PENGISIAN satu lomba — inilah yang menentukan layar mana yang
+ *  digambar Input Nilai Pos v2 untuk lomba itu.
+ *
+ *  Tiga bentuk, dan ketiganya dikenali dari KONFIGURASI, bukan dari nama:
+ *
+ *    "waktu"  seluruh komponennya bersatuan detik. Bakiak, Lari Balok,
+ *             Balap Karung — satu regu berjalan, satu angka dicatat, dan
+ *             angka itu datang dari stopwatch yang dipegang petugas.
+ *    "soal"   seluruh komponennya `type = 'soal'`. Peserta menjawab di lembar
+ *             soalnya sendiri (CLAUDE.md 11.3), jadi yang ada di tangan
+ *             petugas adalah setumpuk kertas — difoto borongan lebih dulu,
+ *             nomor dada dan angkanya ditulis belakangan.
+ *    "nilai"  sisanya. Juri menilai regu yang ada di depannya dan menulis
+ *             tiap kriteria di satu blangko: Semaphore, Pembidaian, PBB,
+ *             Yel-Yel, KIM, Menaksir, Tebak Simpul.
+ *
+ *  Dikenali dari `satuan` dan `type` — kolom database yang diisi panitia —
+ *  dan BUKAN dari daftar nama lomba di sini. Daftar nama berarti lomba baru
+ *  tahun depan jatuh ke bentuk yang salah tanpa satu pun galat, dan yang
+ *  menemukannya petugas yang sudah berdiri di posnya.
+ *
+ *  `every` atas larik kosong bernilai true, jadi jumlah kolomnya diperiksa
+ *  lebih dulu: lomba tanpa komponen bukan lomba waktu.
+ */
+export function jenisLomba(lomba) {
+  const w = (lomba.kolom || []).map(kol => kol.varian[0]).filter(Boolean);
+  if (!w.length) return "nilai";
+  if (w.every(k => k.satuan === "detik")) return "waktu";
+  if (w.every(k => k.type === "soal")) return "soal";
+  return "nilai";
+}
+
+/** SELURUH lomba SELURUH pos sebagai satu daftar datar — "Pos 1 — Semaphore",
+ *  "Pos 2 — Bakiak", dan seterusnya.
+ *
+ *  Input Nilai Pos v2 memulai dari pertanyaan yang berbeda dengan layar lama.
+ *  Yang lama bertanya "kamu di pos mana?" lalu menggambar seluruh lomba pos
+ *  itu sebagai kolom; yang baru bertanya "kamu sedang menilai lomba apa?",
+ *  karena satu petugas di lapangan memegang SATU lomba pada satu waktu, bukan
+ *  satu pos. Jadi pos dan lomba diratakan jadi satu daftar pilihan.
+ *
+ *  `kunci` menggabungkan pos dan kode lomba. Kode lomba sendiri TIDAK cukup
+ *  jadi kunci: ia datang dari komponen pertama lomba itu (lihat
+ *  kelompokLomba), dan tidak ada apa pun yang menjamin dua pos tidak memakai
+ *  kode yang sama — "kekompakan" sudah dipakai PBB di Pos 4 dan Yel-Yel di
+ *  Pos 5 hari ini juga.
+ *
+ *  Pos tanpa komponen dilewati. Pos 0 Keberangkatan dan Pos 6 Kedatangan
+ *  adalah garis start dan garis finish; yang dicatat di sana waktu, lewat
+ *  layarnya sendiri.
+ */
+export function katalogLomba(daftarPos, komponen) {
+  const hasil = [];
+  for (const p of daftarPos || []) {
+    const milik = (komponen || []).filter(k => Number(k.pos) === Number(p.nomor));
+    if (!milik.length) continue;
+    for (const l of kelompokLomba(kolomPos(milik))) {
+      hasil.push({
+        pos: Number(p.nomor),
+        namaPos: p.name,
+        bayangan: !!p.bayangan,
+        kode: l.kode,
+        nama: l.nama,
+        kolom: l.kolom,
+        jenis: jenisLomba(l),
+        kunci: `${Number(p.nomor)}:${l.kode}`,
+      });
+    }
+  }
+  return hasil;
+}
+
+/** Bacaan stopwatch: "00:12.4".
+ *
+ *  Persepuluh detik ikut ditampilkan SELAGI BERJALAN, walaupun yang tersimpan
+ *  selalu detik bulat (migrasi 0059). Bukan hiasan: angka yang bergerak
+ *  adalah satu-satunya tanda bahwa stopwatch-nya memang jalan, dan pada layar
+ *  yang cuma berubah sekali sedetik petugas menekan Mulai dua kali.
+ *
+ *  Bentuk menitnya sama dengan kotak isian waktu di seluruh sistem —
+ *  detikTeks() yang menuliskannya — supaya angka di stopwatch dan angka di
+ *  kotak di bawahnya tidak perlu diterjemahkan di kepala. */
+export function stopwatchTeks(ms) {
+  const aman = Math.max(0, Number(ms) || 0);
+  return `${detikTeks(Math.floor(aman / 1000))}.${Math.floor(aman / 100) % 10}`;
+}
+
+/** Detik BULAT yang akan disimpan dari sebuah bacaan stopwatch.
+ *
+ *  DIBULATKAN, bukan dipotong. Tangga poin Pos 2 berbunyi "sampai 30 detik
+ *  100 poin", dan regu yang menyentuh garis pada 30,6 detik memang lebih
+ *  lambat dari 30 detik — memotongnya jadi 30 memberi poin penuh untuk waktu
+ *  yang tidak dicapai. Selisihnya cuma muncul pada regu yang persis di batas,
+ *  dan justru regu itulah yang paling mungkin protes.
+ *
+ *  Layar tetap menuliskan bacaan mentahnya di sebelah angka yang akan
+ *  disimpan, jadi pembulatan ini terlihat sebelum tombol ditekan — bukan
+ *  ditemukan belakangan waktu angkanya sudah masuk. */
+export const detikDariMs = (ms) => Math.round(Math.max(0, Number(ms) || 0) / 1000);
+
 /** Ringkas satu LOMBA untuk satu regu: berapa komponennya yang berlaku,
  *  berapa yang sudah ada isinya, dan jumlah nilainya.
  *
