@@ -907,6 +907,9 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   box-shadow: 0 10px 40px rgba(0,0,0,.3);
 }
 .dialog h2 { margin-bottom: .8rem; }
+/* Tanpa <h2>, isi pertama dialog naik ke tepi atas dan bertemu silang tutup
+   yang duduk di pojok kanan. Padding ini yang memberinya jalan. */
+.dialog-tanpa-judul { padding-top: 2.6rem; }
 .notification { display: flex; align-items: center; gap: .7rem; }
 .notification-close {
   display: inline-flex; align-items: center; justify-content: center;
@@ -4435,6 +4438,24 @@ button.pill-number:hover { filter: brightness(.95); }
   background: var(--kertas); overflow: hidden;
 }
 .foto-tautan { display: flex; align-items: center; justify-content: center; width: 100%; }
+/* SILANGNYA TIDAK BERUBAH WARNA SAAT DISENTUH, berbeda dengan .ubin-silang di
+   layar Foto Jawaban.
+
+   Yang menjawab ketukannya adalah dialog konfirmasi yang muncul di atasnya,
+   dan tombol yang ikut memerah di belakang dialog terbaca seperti sudah
+   menghapus sesuatu — padahal belum, dan mungkin tidak jadi. Di HP warnanya
+   juga MENEMPEL: `:hover` bertahan sesudah jari diangkat, jadi merahnya
+   tinggal di sana sampai layar disentuh di tempat lain.
+
+   Garis fokus tetap ada, cuma bentuknya berganti jadi outline — yang
+   berpindah dengan Tab tetap butuh tahu di mana ia berada. */
+.foto-lembar .ubin-silang:hover,
+.foto-lembar .ubin-silang:focus-visible {
+  background: rgba(255, 255, 255, .92); color: var(--tinta);
+}
+.foto-lembar .ubin-silang:focus-visible {
+  outline: 2px solid var(--utama); outline-offset: 2px;
+}
 /* `contain`, bukan `cover`: yang dibaca di sini tulisan tangan, dan sisi yang
    dipotong `cover` justru sering sisi yang memuat angkanya. */
 .foto-lembar img {

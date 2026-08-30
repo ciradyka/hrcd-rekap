@@ -674,6 +674,17 @@ export function notif(pesan, galat = false) {
  *  adalah tiga tombol besar — tombol keempat bertuliskan "Tutup" berdiri
  *  sejajar ketiganya dan terbaca seperti pilihan keempat. Silang di pojok
  *  tidak pernah salah dibaca sebagai aksi. */
+/* JUDUL BOLEH KOSONG, dan h2-nya benar-benar tidak digambar. esc() atas nilai
+   kosong mengembalikan string kosong, jadi tanpa pagar itu yang tersisa sebuah
+   h2 kosong bermargin bawah — sejalur ruang putih yang tidak menjelaskan apa
+   pun. Yang memakainya: dialog yang seluruh isinya sudah bernama sendiri, mis.
+   satu medan berlabel "Alasan menghapus" di atas tombol "Hapus Foto", yang
+   tidak butuh judul mengulang keduanya (CLAUDE.md 9.2).
+
+   Catatan ini ditulis DI SINI dan bukan sebagai komentar HTML di dalam
+   template di bawah: satu backtick di dalam komentar itu MENUTUP template
+   literal-nya, dan seluruh util.js berhenti diparse. Versi pertama catatan ini
+   memuat esc(undefined) dalam kutip miring dan melakukan persis itu. */
 export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan",
                          bacaSaja = false, silangSaja = false, pasang = null }) {
   return new Promise(resolve => {
@@ -681,10 +692,10 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
     document.body.appendChild(wadah);
     const el = document.body.lastElementChild;
     el.innerHTML = `
-      <div class="dialog">
+      <div class="dialog${judul ? "" : " dialog-tanpa-judul"}">
         <button class="dialog-silang" data-batal type="button"
           aria-label="Tutup">&times;</button>
-        <h2 style="padding-right:2.2rem">${esc(judul)}</h2>
+        ${judul ? `<h2 style="padding-right:2.2rem">${esc(judul)}</h2>` : ""}
         ${kartuHtml}
         ${medan.map((m, i) => `
           <div class="field">
