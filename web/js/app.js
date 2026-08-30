@@ -7300,15 +7300,20 @@ async function muatKatalogPos() {
 const judulLomba = (l) =>
   `${l.bayangan ? l.namaPos : `Pos ${l.pos}`} — ${l.nama}`;
 
-/** Ikon jenis pengisian, dipakai di kotak pemilih.
- *
- *  IKON SAJA, tanpa katanya. Yang dijawabnya cuma sekali — "kotak ini membuka
- *  stopwatch atau kamera?" — dan sesudah kali pertama ia tinggal menambah teks
- *  di kotak yang isinya sudah bernama (bagian 9.1). Namanya tetap ada di
- *  `title` dan di label pembaca layar, jadi yang tidak bisa menebak ikonnya
- *  tidak buntu. */
-const IKON_JENIS = { waktu: "clock", soal: "camera", nilai: "square-pen" };
-const NAMA_JENIS = { waktu: "stopwatch", soal: "foto jawaban", nilai: "kotak nilai" };
+/* KOTAK PEMILIH TIDAK BERIKON, dan ketiadaannya disengaja.
+
+   Sempat ada lambang jenis pengisian di depan tiap nama — jam untuk lomba
+   waktu, kamera untuk lomba soal, pena untuk sisanya. Niatnya menjawab
+   "kotak ini membuka stopwatch atau kamera?" tanpa satu kata pun.
+
+   Yang tidak diperhitungkan: pertanyaan itu tidak pernah ditanya. Juri
+   membuka lomba yang ia pegang, dan ia sudah tahu lombanya diisi bagaimana
+   sebelum menyentuh layar — ia berdiri di sebelahnya sepagian. Jadi lambangnya
+   cuma satu benda lagi di kiri tiap nama yang harus dilewati mata, di petak
+   yang isinya memang cuma perlu dibaca namanya (bagian 9.1 dan 9.9).
+
+   Kalau ide ini muncul lagi: ia sudah dicoba dan dibuang atas permintaan
+   pemilik acara. */
 
 /** Pos yang boleh dibuka akun ini.
  *
@@ -7425,11 +7430,8 @@ function gambarPemilihLomba(katalog) {
       <h2>${esc(b.judul)}</h2>
       <div class="pilih-lomba">
         ${b.isi.map(l => `
-          <button type="button" class="lomba-kotak" data-kunci="${esc(l.kunci)}"
-                  title="${esc(l.nama)} — ${esc(NAMA_JENIS[l.jenis])}">
-            <span class="lomba-jenis" aria-hidden="true">${ikon(IKON_JENIS[l.jenis])}</span>
+          <button type="button" class="lomba-kotak" data-kunci="${esc(l.kunci)}">
             <span class="lomba-nama">${esc(l.nama)}</span>
-            <span class="visually-hidden">${esc(NAMA_JENIS[l.jenis])}</span>
           </button>`).join("")}
       </div>
     </div>`).join("")));

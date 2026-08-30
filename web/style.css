@@ -4363,11 +4363,14 @@ button.pill-number:hover { filter: brightness(.95); }
   display: grid; gap: .6rem;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
 }
+/* Isinya tinggal nama lombanya, jadi diletakkan di TENGAH kotak — nama
+   pendek yang rata kiri di petak selebar 11rem meninggalkan lahan kosong di
+   kanan yang terbaca seperti ada sesuatu yang hilang di sana. */
 .lomba-kotak {
-  display: flex; align-items: center; gap: .55rem;
+  display: flex; align-items: center; justify-content: center;
   min-height: 56px; padding: .6rem .8rem;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
-  background: var(--kartu); color: inherit; text-align: left;
+  background: var(--kartu); color: inherit; text-align: center;
 }
 .lomba-kotak:hover { border-color: var(--utama); }
 /* Garis fokus dipasang sendiri: aturan global hanya mengenai .button, input,
@@ -4377,7 +4380,6 @@ button.pill-number:hover { filter: brightness(.95); }
 .sw-bulat:focus-visible {
   outline: 2px solid var(--utama); outline-offset: 2px;
 }
-.lomba-jenis { display: flex; flex: 0 0 auto; color: var(--tinta-lembut); }
 .lomba-nama { font-weight: 700; line-height: 1.2; }
 
 /* ---------- kepala layar satu lomba ---------- */
