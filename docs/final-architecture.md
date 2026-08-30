@@ -236,7 +236,7 @@ SPA satu berkas dengan rute hash, di `web/js/app.js`. Butuh login.
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
 | `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
 | `#/pos2` | Input Nilai Pos v2 | pilih satu lomba lintas pos, lalu bentuk pengisiannya sendiri: stopwatch untuk lomba waktu, foto borongan + nilai untuk lomba soal, kotak per kriteria untuk sisanya |
-| `#/cek-nilai` | Cek Nilai | satu regu satu layar, next-next per nomor dada: foto slip di sebelah angka yang diketik darinya. Membaca saja |
+| `#/cek-nilai` | Cek Nilai | satu regu satu layar, `‹ nomor dada ›` per regu: foto slip di sebelah angka yang diketik darinya, dan angkanya boleh dibetulkan serta dikunci di tempat. Pemegang `pengaturan` — dipakai admin server, bukan juri |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos, lalu podium ENAM tempat per golongan (Juara 1-3 di satu baris, Harapan 1-3 di baris berikutnya) dan tabel rinci; saklar fase hanya untuk pemegang `pengaturan` |
 | `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Juara Umum dari poin juara, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Pangkalan Terjauh satu SEKOLAH untuk seluruh acara |
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
@@ -249,12 +249,48 @@ sumber hak yang sebenarnya adalah baris `akun_hak`, dibaca database lewat
 `boleh(fitur)` dan dibaca SPA lewat `bolehLihat(fitur)`. Karena itu dua akun
 dengan peran sama boleh memiliki menu berbeda setelah centangnya disesuaikan.
 
+Dua layar penilaian sengaja dipisah PERAN, bukan cuma tampilan. `#/pos2`
+dipagari `pos` dan dipakai juri beserta tim input per lomba; `#/cek-nilai`
+dipagari `pengaturan` dan dipakai admin server. Pemisahan itu yang membuat
+layar pemeriksa boleh mengubah nilai: yang memeriksa memang bukan yang
+mengetik. Selama Cek Nilai masih dipagari `pos`, setiap juri bisa mengunci
+nilai regu mana pun di posnya — termasuk lomba yang bukan pegangannya.
+
 `juri_pos` wajib membawa satu nomor `pos`; pagar tulis membatasinya ke pos itu.
 `koordinator_pos` mendapat paket hak yang sama tetapi kolom `pos` wajib kosong,
 sehingga `pos_saya()` bernilai NULL dan ia bisa menangani seluruh pos. Membaca
 data operasional dasar tetap dibuka untuk semua panitia aktif; tindakan yang
 mengubah data selalu menuntut hak fiturnya. Nama lama `meja` dan
 `operator_pos` tidak lagi sah sejak migrasi `0058`.
+
+### Antrean nilai di HP petugas
+
+Sejak layar `#/pos2` ada, **nilai yang gagal terkirim karena jaringan tidak
+hilang dan juga tidak langsung masuk database**: ia duduk di `localStorage`
+HP petugas sampai ada kesempatan mengirimkannya. Ini mengubah satu hal yang
+biasanya boleh dianggap benar begitu saja — bahwa apa yang ada di database
+adalah seluruh yang sudah dinilai. Selama sebuah pita kuning masih tampil di
+layar seseorang, ada angka yang sudah ditulis juri tetapi belum ada di mana
+pun selain HP itu.
+
+Yang perlu diketahui siapa pun yang membaca rekap saat acara berjalan:
+
+- **Jaminannya "terkirim begitu halaman itu terbuka dan ada sinyal"**, bukan
+  "pasti terkirim nanti". Situs ini aset statis tanpa service worker, dan
+  Background Sync tidak ada di Safari iOS — jadi tidak ada yang berjalan saat
+  halamannya tertutup.
+- **Antreannya terikat pada HP itu.** Kalau HP-nya tidak pernah dibuka lagi,
+  tidak ada orang lain yang bisa mengirimkan angkanya.
+- Karena itu pitanya menyuruh halamannya dibiarkan terbuka, dan menutup tab
+  dengan antrean berisi memunculkan peringatan bawaan browser.
+
+Yang **ditolak server** — di luar rentang, regu tergembok, komponen bukan
+untuk golongan itu — TIDAK diantre: menunggu tidak mengubah jawabannya, dan
+satu baris rusak akan menyumbat antrean di belakangnya. Ia dilaporkan merah
+saat itu juga, selagi regunya masih di depan petugas.
+
+Yang gagal tidak pernah terlihat berhasil: notifikasinya berbunyi "BELUM
+terkirim" dan barisnya tidak dicatat ke daftar "Baru saja tersimpan".
 
 ### Layar Input Pos
 
