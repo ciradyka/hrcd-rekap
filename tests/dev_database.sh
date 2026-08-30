@@ -85,13 +85,33 @@ run tests/sql/00_harness.sql
 #
 # Keduanya tidak meninggalkan DDL yang dipakai siapa pun: tabel sementaranya
 # dibuang sendiri di ujung berkasnya, dan sisanya INSERT dan UPDATE.
+#
+# 0157-0162 DITUNDA karena keempat migrasi peleburan sekolah di dalamnya
+# MELEMPAR EXCEPTION saat pasangannya timpang, dan di glob pasangan itu
+# memang selalu timpang. Nama yang DIBUANG lahir di 0157 — impor direktori
+# 309 sekolah, tanpa pagar edisi, jadi ia berjalan penuh di glob. Nama yang
+# DISIMPAN lahir di 0129-0132, dan keempatnya sudah ditunda ke ujung.
+# Akibatnya 0159 menemukan "SMP Islam Terpadu Muhammad Danu Fathahillah"
+# tanpa "SMP IT MD Fathahillah", lalu berhenti dengan
+# "pasangan peleburan salah" — dan bersamanya seluruh migrasi sesudahnya.
+# Sejak 0159 mendarat, tidak ada satu pun layar yang bisa dibuka di laptop
+# (CLAUDE.md 17.6), dan galatnya berbunyi seperti data yang salah, bukan
+# seperti urutan yang salah.
+#
+# Ketiganya aman ditunda: 0157-0162 hanya menyentuh BARIS tabel `sekolah`
+# — tidak satu pun DDL — dan tidak ada migrasi di antara mereka dan
+# seed.sql yang membacanya. Keenamnya sudah dijalankan lagi di ujung
+# berkas ini, urut nomor, sesudah 0129-0132 membuat sekolah pendaftaran.
 LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
              0129_impor_pendaftaran_xxxvii 0130_bukti_transfer_link_drive
              0131_impor_pendaftaran_xxxvii_susulan
              0132_impor_pendaftaran_xxxvii_lanjutan
              0133_kelas_organisasi_regu 0134_kelas_organisasi_tanpa_simbol
              0137_riwayat_pendaftaran 0138_riwayat_pelaku_kosong
-             0146_cache_live_score 0147_waktu_nol_pos_2"
+             0146_cache_live_score 0147_waktu_nol_pos_2
+             0157_direktori_sekolah_ciamis 0158_rapikan_alamat_direktori
+             0159_lebur_kembar_direktori 0160_kode_pos_dan_nama_tersisa
+             0161_lebur_kembar_ejaan 0162_lebur_smp_al_fadliliyah"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
