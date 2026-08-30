@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { jenisLomba, katalogLomba, stopwatchTeks, detikDariMs }
+import { jenisLomba, katalogLomba, stopwatchTeks, detikDariMs, periksaJawabSimpan }
   from "../web/js/util.js";
 
 /** Baris `wahana` seperti yang dikirim komponenSemua(). */
@@ -158,3 +158,78 @@ test("detik yang disimpan dibulatkan, bukan dipotong", () => {
   assert.equal(detikDariMs(0), 0);
   assert.equal(detikDariMs(-100), 0);
 });
+
+/* -------------------------------------------------------------------------
+   periksaJawabSimpan — satu-satunya hal yang berdiri antara "nilainya masuk"
+   dan "layar berkata nilainya masuk".
+
+   Salah di sini tidak menghasilkan galat apa pun: angkanya hilang sambil
+   semua orang mengira sudah tersimpan. Itu sebabnya ia diuji mesin dan bukan
+   dicoba tangan sekali lalu dipercaya selamanya.
+   ---------------------------------------------------------------------- */
+
+const ok = (n) => Array.from({ length: n }, () => ({ status: "tersimpan" }));
+
+test("semua tersimpan dan jumlahnya sama = berhasil", () => {
+  assert.deepEqual(periksaJawabSimpan(1, ok(1)), { ok: true });
+  assert.deepEqual(periksaJawabSimpan(5, ok(5)), { ok: true });
+});
+
+// Ditolak server tidak boleh diantre: menunggu tidak mengubah jawabannya, dan
+// satu baris rusak akan menyumbat antrean di belakangnya selamanya.
+test("satu baris ditolak = gagal, dan gagalnya DARI SERVER", () => {
+  const j = periksaJawabSimpan(2,
+    [{ status: "tersimpan" }, { status: "ditolak", alasan: "di luar rentang" }]);
+  assert.equal(j.ok, false);
+  assert.equal(j.dariServer, true);
+  assert.equal(j.alasan, "di luar rentang");
+});
+
+test("ditolak tanpa alasan tetap punya kalimat", () => {
+  const j = periksaJawabSimpan(1, [{ status: "ditolak" }]);
+  assert.equal(j.ok, false);
+  assert.equal(j.dariServer, true);
+  assert.match(j.alasan, /ditolak/);
+});
+
+// Yang menangkap status ketiga yang lahir tahun depan tanpa menyentuh kode.
+test("status yang tidak dikenal diperlakukan sebagai gagal", () => {
+  const j = periksaJawabSimpan(1, [{ status: "tertunda" }]);
+  assert.equal(j.ok, false);
+  assert.equal(j.dariServer, true);
+});
+
+// RPC mengembalikan satu baris hasil per baris masuk. Jawaban yang lebih
+// pendek berarti ada yang tidak diproses sama sekali.
+test("jawaban lebih pendek daripada yang dikirim = gagal", () => {
+  const j = periksaJawabSimpan(3, ok(2));
+  assert.equal(j.ok, false);
+  assert.match(j.alasan, /tidak lengkap/);
+});
+
+test("jawaban lebih panjang juga gagal", () => {
+  assert.equal(periksaJawabSimpan(1, ok(2)).ok, false);
+});
+
+// Jawaban tidak lengkap adalah keanehan yang mungkin sementara, jadi ia
+// diantre seperti gagal jaringan — arah yang aman adalah mencoba lagi, bukan
+// membuang angkanya.
+test("jawaban tidak lengkap BUKAN dari server, jadi boleh diantre", () => {
+  assert.equal(periksaJawabSimpan(3, ok(2)).dariServer, false);
+});
+
+test("jawaban kosong atau bukan larik = gagal, bukan berhasil", () => {
+  for (const buruk of [null, undefined, [], {}, "tersimpan", 0]) {
+    assert.equal(periksaJawabSimpan(1, buruk).ok, false, JSON.stringify(buruk));
+  }
+});
+
+// Larik berisi null pernah lolos `x.status !== "tersimpan"` sebagai lemparan
+// TypeError, bukan sebagai penolakan; yang dilempar di tengah putaran kirim
+// akan terbaca sebagai gagal jaringan dan diantre selamanya.
+test("baris null di dalam jawaban tidak melempar", () => {
+  const j = periksaJawabSimpan(2, [{ status: "tersimpan" }, null]);
+  assert.equal(j.ok, false);
+  assert.equal(j.dariServer, true);
+});
+
