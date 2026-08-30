@@ -4409,8 +4409,34 @@ button.pill-number:hover { filter: brightness(.95); }
 /* Nama lombanya DI TENGAH. Bar atas sudah menyebut posnya, jadi kartu ini
    cuma memikul satu kata — dan kata itu yang menjawab "angka yang saya ketik
    ini masuk ke lomba mana?", satu-satunya pertanyaan yang mahal kalau salah. */
-.baris-lomba { padding-top: .7rem; padding-bottom: .7rem; text-align: center; }
-.lomba-judul { margin: 0; }
+.baris-lomba {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .8rem; padding-top: .7rem; padding-bottom: .7rem;
+}
+/* Judulnya tetap di TENGAH kartunya walau ada tombol di kanan: `flex: 1` di
+   kedua sisi tombol akan memindahkannya, jadi yang dipakai margin otomatis di
+   kiri judul dan tombol yang lebarnya sendiri di kanan. */
+.baris-lomba .lomba-judul { margin: 0 auto; }
+.baris-lomba .button { flex: 0 0 auto; }
+
+/* Daftar regu yang belum dinilai. Satu baris satu tombol selebar dialog —
+   yang ditekan sambil berdiri, dan nomor dada di kiri berbaris lurus supaya
+   mata menyusurinya tanpa membaca namanya lebih dulu. */
+.daftar-belum { list-style: none; margin: 0; padding: 0;
+  max-height: 55vh; overflow-y: auto; }
+.daftar-belum li { margin-bottom: .4rem; }
+.daftar-belum button {
+  display: grid; grid-template-columns: max-content 1fr; gap: .1rem .7rem;
+  width: 100%; min-height: 52px; padding: .5rem .7rem; text-align: left;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  background: var(--kartu); color: inherit;
+}
+.daftar-belum button:hover { border-color: var(--utama); }
+.daftar-belum button:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.db-dada { grid-area: 1 / 1 / 3 / 2; align-self: center;
+  font-weight: 800; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.db-nama { font-weight: 700; line-height: 1.2; }
+.db-sekolah { font-size: .8rem; color: var(--tinta-lembut); line-height: 1.2; }
 
 /* Foto Jawaban: judul di kiri, jumlahnya di bawahnya, dua tombol di kanan.
    Bentuk yang sama dengan baris foto di dialog lembar pos lama, supaya
