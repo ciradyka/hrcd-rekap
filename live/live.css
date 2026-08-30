@@ -266,43 +266,6 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
 }
 .tombol:hover { background: #004d43; }
 
-/* ---------- kejuaraan (fase juara) ---------- */
-/* DI BAWAH seluruh aturan `.tabel`, dan itu bukan soal kerapian berkas.
-   `.tabel-juara th` dan `.tabel th` sama kekhususannya — satu kelas dan satu
-   elemen — jadi yang menang cuma ditentukan urutan baris (CLAUDE.md 15.6).
-   Ditaruh di atas, tiga aturan di bawah ini tidak berlaku sedetik pun dan
-   tidak ada yang memberi tahu. */
-
-/* Dua kolom: nama gelar di kiri selebar isinya, penerimanya mengisi sisa
-   baris. `width: 1%` dengan `nowrap` membuat "Juara I" sampai "Harapan III"
-   berbaris lurus dari baris ke baris, dan nama sekolah yang panjang
-   membungkus DI DALAM kolomnya sendiri alih-alih menggeser kolom kiri tiap
-   baris — pola yang sama dengan kartu HP di CLAUDE.md 15.7. */
-.tabel-juara { white-space: normal; }
-.tabel-juara th {
-  width: 1%; white-space: nowrap; vertical-align: top;
-  padding: .55rem .9rem .55rem 0;
-  /* Bukan kepala tabel yang perlu ikut tergulir: di sini `th` adalah LABEL
-     baris, dan `position: sticky` warisan `.tabel th` membuatnya menempel
-     di puncak layar satu per satu saat halaman digulir. */
-  position: static; background: none;
-  border-bottom: 1px solid var(--garis);
-}
-.tabel-juara td { padding: .55rem 0; }
-/* Nama sekolah turun ke barisnya sendiri di bawah nama regu, bukan mengalir
-   di sebelahnya: yang dicari mata di daftar ini nama regu, dan nama sekolah
-   yang berbaris di kanannya mendorong nama regu ke tempat berbeda tiap
-   baris. `.kartu .keterangan` memberinya margin bawah .7rem — itu jarak
-   antar-kartu, bukan antar-baris. */
-.tabel-juara .keterangan { display: block; margin: .1rem 0 0; }
-.tabel-juara tbody tr:last-child th,
-.tabel-juara tbody tr:last-child td { border-bottom: 0; }
-/* Juara Umum satu-satunya yang ditonjolkan, dan cuma dengan garis di tepi
-   kiri — bukan blok warna. Ia dibaca sekali lalu tidak dicari lagi; yang
-   dicari orang berkali-kali gelar golongannya sendiri. */
-.kartu-juara.juara-umum { border-left: 4px solid var(--utama); }
-.kartu-juara.juara-umum h2 { color: var(--utama); }
-
 @media print {
   /* Satu golongan harus selesai di satu A4. Margin 6mm masih aman untuk
      printer kantor (tepi 4-5mm tidak tercetak), sementara font 7pt adalah

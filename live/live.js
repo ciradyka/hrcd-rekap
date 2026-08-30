@@ -564,70 +564,95 @@ function gambarTab(semua) {
    migrasi 0163). Yang sudah selesai adalah juaranya; urutan sementara tidak
    lagi menjawab pertanyaan siapa pun.
 
+   SUSUNANNYA SAMA PERSIS DENGAN LAYAR PANITIA #/kejuaraan, sampai ke nama
+   kelasnya — `kejuaraan-bagian`, `kejuaraan-umum`, `kejuaraan-penegak-pa`,
+   dan seterusnya. Itu bukan kebetulan dan bukan tiruan: seluruh aturannya
+   hidup di `style.css`, dan halaman ini memuat berkas yang SAMA (lihat
+   index.html). Menata ulang sendiri di live.css akan melahirkan salinan
+   kedua atas tata letak yang sudah ada — dan salinan kedua itu yang
+   menyimpang diam-diam waktu penghargaannya bertambah.
+
+   Urutan kartunya pun mengikat, bukan selera: blok `@media (min-width:900px)`
+   di style.css memasang grid-column dan grid-row PER KELAS — Penegak di kolom
+   kiri, Penggalang di kanan, Juara Umum membentang di baris pertama. Kartu
+   yang kelasnya salah mendarat di kotak milik kartu lain.
+
    TIDAK ADA SATU ANGKA SKOR di layar ini, dan itu juga bukan keputusan
    tampilan — kolomnya tidak ada di berkasnya. Nomor dada tetap ditulis: ia
    identitas regu, sudah tercetak di punggung mereka sejak pagi, dan tanpa itu
    dua regu bernama mirip tidak bisa dibedakan dari kursi penonton.
    ------------------------------------------------------------------------- */
-/** Satu penerima gelar: regu, sekolah, atau belum ada. */
+/** Satu penerima gelar: regu, sekolah, atau belum ada.
+ *
+ *  Bentuknya sama dengan nilai() di layar panitia dikurangi angkanya. Yang
+ *  hilang cuma `.kejuaraan-skor` dan keterangan poin Juara Umum; pembungkus
+ *  `.kejuaraan-isi` dan `.kejuaraan-nama` tetap, karena itu yang membuat nama
+ *  regu dan nama sekolah bertumpuk rapi persis seperti di sana. */
 const penerimaJuara = (j) => {
-  if (j.nama_regu) return `
+  if (j.nama_regu) return `<div class="kejuaraan-isi"><div class="kejuaraan-nama">
     <strong>${esc(dada(j.nomor_dada))} · ${esc(j.nama_regu)}</strong>
-    <span class="keterangan">${esc(j.nama_sekolah || "")}</span>`;
+    <span class="description">${esc(j.nama_sekolah || "")}</span></div></div>`;
   if (j.nama_sekolah) return `<strong>${esc(j.nama_sekolah)}</strong>`;
-  return `<span class="keterangan">Belum ditentukan</span>`;
+  return `<span class="description">Belum ditentukan</span>`;
 };
 
 function gambarKejuaraan() {
-  const daftar = (REKAP && REKAP.kejuaraan) || [];
   if (!REKAP) return `<div class="kartu tengah"><p class="keterangan">Memuat…</p></div>`;
+  const daftar = REKAP.kejuaraan || [];
   if (!daftar.length) return `
     <div class="kartu tengah">
       <p class="keterangan">Daftar juara belum terbit.</p></div>`;
 
-  /* Label bagian dan pemotong awalannya SAMA dengan layar panitia — di sana
-     `nama_penghargaan` berbunyi "Penegak PA Juara I" dan judul kartunya sudah
-     menyebut golongannya, jadi yang tersisa di baris cuma "Juara I".
-     Nama golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini:
+  /* Nama golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini —
      periksa_urutan_golongan.py yang menjaga daftar itu tetap satu. */
-  const gelarGolongan = (g) => ({
-    judul: GOLONGAN[g],
-    masuk: (j) => j.kode.startsWith(g + "_"),
-    label: (j) => j.nama_penghargaan.replace(GOLONGAN[g] + " ", ""),
-  });
+  const gelarGolongan = (kode, kelas) => [
+    GOLONGAN[kode], (j) => j.kode.startsWith(kode + "_"),
+    (j) => j.nama_penghargaan.replace(GOLONGAN[kode] + " ", ""), kelas];
 
   const bagian = [
-    { judul: "Juara Umum", masuk: (j) => j.kode.startsWith("juara_umum"),
-      label: (j) => j.nama_penghargaan.replace(/^Juara Umum ?/, "") || "UMUM",
-      kelas: "juara-umum" },
-    ...URUT_GOLONGAN_PESERTA.map(gelarGolongan),
-    { judul: "Juara Kostum", masuk: (j) => j.kode.startsWith("kostum_"),
-      label: (j) => j.nama_penghargaan.replace(/^Juara Kostum /, "") },
-    { judul: "Juara Yel Yel", masuk: (j) => j.kode.startsWith("yel_yel_"),
-      label: (j) => j.nama_penghargaan.replace(/^Juara Yel Yel /, "") },
-    { judul: "Peserta Terfavorit", masuk: (j) => j.kode.startsWith("terfavorit_"),
-      label: (j) => j.nama_penghargaan.replace(/^Peserta Terfavorit /, "") },
-    { judul: "Penghargaan Khusus",
-      masuk: (j) => j.kode === "terjauh" || j.kode === "peserta_terbanyak",
-      label: (j) => j.nama_penghargaan },
+    ["Juara Umum", (j) => j.kode === "juara_umum",
+      (j) => j.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
+    ["Juara Umum Penegak", (j) => j.kode === "juara_umum_penegak",
+      () => "PENEGAK", "kejuaraan-umum-penegak"],
+    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa"),
+    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi"),
+    ["Juara Umum Penggalang", (j) => j.kode === "juara_umum_penggalang",
+      () => "PENGGALANG", "kejuaraan-umum-penggalang"],
+    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa"),
+    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi"),
+    ["Juara Kostum", (j) => j.kode.startsWith("kostum_"),
+      (j) => j.nama_penghargaan.replace(/^Juara Kostum /, ""),
+      "kejuaraan-kostum"],
+    ["Juara Yel Yel", (j) => j.kode.startsWith("yel_yel_"),
+      (j) => j.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel"],
+    ["Peserta Terfavorit", (j) => j.kode.startsWith("terfavorit_"),
+      (j) => j.nama_penghargaan.replace(/^Peserta Terfavorit /, ""),
+      "kejuaraan-terfavorit"],
+    ["Penghargaan Khusus",
+      (j) => j.kode === "terjauh" || j.kode === "peserta_terbanyak",
+      (j) => j.nama_penghargaan, "kejuaraan-khusus"],
   ];
 
-  /* Kartu yang tidak kebagian satu baris pun DIBUANG, bukan digambar kosong.
-     Penghargaan pilihan panitia bisa saja tidak dipakai tahun ini, dan kartu
-     berjudul tanpa isi terbaca seperti hasil yang hilang. */
-  return bagian.map(b => {
-    const isi = daftar.filter(b.masuk);
-    if (!isi.length) return "";
-    return `
-    <div class="kartu kartu-juara ${b.kelas || ""}">
-      <h2>${esc(b.judul)}</h2>
-      <table class="tabel tabel-juara"><tbody>
-        ${isi.map(j => `
-          <tr><th>${esc(b.label(j))}</th>
-              <td>${penerimaJuara(j)}</td></tr>`).join("")}
-      </tbody></table>
-    </div>`;
-  }).join("");
+  /* `kejuaraan-pilihan` TIDAK ikut, dan itu satu-satunya kelas panitia yang
+     sengaja ditinggalkan: ia menata kartu yang berisi KOTAK CARI, dan di sini
+     tidak ada yang bisa dipilih. Memakainya membuat baris terbaca seperti
+     isian yang menunggu diisi. */
+  return `<div class="kejuaraan-bagian">
+    ${bagian.map(([judul, masuk, label, kelas]) => {
+      const isi = daftar.filter(masuk);
+      /* Kartu tanpa satu baris pun DIBUANG, bukan digambar kosong. Kalau
+         penghargaan pilihan tahun ini tidak dipakai, kartu berjudul tanpa isi
+         terbaca seperti hasil yang hilang. */
+      if (!isi.length) return "";
+      return `
+      <section class="card ${kelas}"><h2>${esc(judul)}</h2>
+        <table class="table data-table table-kejuaraan"><tbody>
+          ${isi.map(j => `<tr><th>${esc(label(j))}</th>
+            <td>${penerimaJuara(j)}</td></tr>`).join("")}
+        </tbody></table>
+      </section>`;
+    }).join("")}
+  </div>`;
 }
 
 function gambarPapan() {
