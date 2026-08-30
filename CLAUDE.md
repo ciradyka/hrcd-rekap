@@ -246,6 +246,11 @@ Guidance for Claude Code when working in this repository.
    all differ between environments without anything being wrong. Section 0 of
    the check prints `version()` for exactly this reason.
 
+   Matching costs nothing: `tests/run.sh`, `tests/dev_database.sh` and
+   `tests/status_migrasi_check.sh` all take `PSQL` and `PGPORT`, so a server on
+   production's major version can sit beside an existing one on another port
+   and neither has to be removed.
+
    **Re-running a skipped migration is not automatically safe.** Check first
    whether a younger migration already replaced any of its objects: running
    the old file now would roll those back. That is why `0119` deliberately
