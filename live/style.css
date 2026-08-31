@@ -5079,8 +5079,8 @@ button.pill-number:hover { filter: brightness(.95); }
    kotak besar. Lomba berkriteria banyak mengecil di aturan berikutnya, karena
    di sana lima kotak harus muat berjajar. */
 .cek-isian .small-input {
-  font-size: 1.5rem; min-height: 54px;
-  width: 100%; min-width: 0; max-width: 8rem;
+  font-size: 1.6rem; min-height: 58px;
+  width: 100%; min-width: 0; max-width: 9.5rem;
 }
 /* Lomba berkriteria BANYAK: kotaknya lebih kecil, karena lima kotak harus
    muat berjajar di satu kolom. Satu kriteria tetap besar — di sana tidak ada

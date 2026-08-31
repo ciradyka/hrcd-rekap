@@ -10367,20 +10367,48 @@ async function layarCekNilai() {
    *  dikembalikan ke nomor yang sedang terbuka — kotak yang ditinggalkan
    *  berisi nomor yang tidak sedang dilihat siapa pun berbohong tentang
    *  layar di bawahnya. */
-  const lompat = () => {
+  const lompat = (tutupPapanKetik) => {
     const cari = Number(elDada.value);
+    if (!cari) return;
     const i = lembar.findIndex(r => Number(r.nomor_dada) === cari);
     if (i < 0) {
       notif(`Nomor ${dada3(cari)} tidak ada di pos ini.`, true);
       elDada.value = lembar.length ? dada3(lembar[indeks].nomor_dada) : "";
       return;
     }
-    elDada.blur();
+    if (tutupPapanKetik) elDada.blur();
     ke(i);
   };
-  elDada.addEventListener("change", lompat, { signal: sinyal });
+  /* MENCARI SAMBIL DIKETIK, bukan menunggu Enter — dan di HP itu bukan
+     kenyamanan melainkan syarat.
+
+     Papan ketik angka iPhone TIDAK PUNYA tombol Enter. Selama layar ini cuma
+     mendengar `change` dan Enter, satu-satunya cara memicunya adalah mengetuk
+     ke tempat lain di layar, dan tidak ada apa pun yang memberitahukan itu:
+     nomornya sudah tertulis di kotak, papan ketiknya masih terbuka, dan
+     layarnya tidak bergerak. Dilaporkan begitu, 1 September 2026 — "ketika
+     dipilih 100 tidak muncul", dengan kotak berisi 100 dan layar masih di
+     regu 002.
+
+     Kedua kotak nomor dada lain (layar input dan Finish) sudah lama mencari
+     sambil diketik. Layar ini yang tertinggal.
+
+     DITUNDA 400 ms: "1", "10", "100" adalah tiga keadaan, dan dua yang
+     pertama akan menggambar ulang layar beserta memuat fotonya untuk regu
+     yang bukan tujuan siapa pun.
+
+     TIDAK menutup papan ketik, tidak seperti jalur Enter. Petugas yang masih
+     mengetik angka ketiganya tidak boleh kehilangan papan ketiknya di angka
+     kedua. */
+  let jedaLompat = null;
+  elDada.addEventListener("input", () => {
+    clearTimeout(jedaLompat);
+    jedaLompat = setTimeout(() => lompat(false), 400);
+  }, { signal: sinyal });
+  elDada.addEventListener("change", () => { clearTimeout(jedaLompat); lompat(true); },
+    { signal: sinyal });
   elDada.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); lompat(); }
+    if (e.key === "Enter") { e.preventDefault(); clearTimeout(jedaLompat); lompat(true); }
   }, { signal: sinyal });
   // Isi kotak dipilih saat diketuk, jadi nomor berikutnya tinggal diketik
   // menimpa — aturan yang sama dengan kotak nomor dada di layar input.
