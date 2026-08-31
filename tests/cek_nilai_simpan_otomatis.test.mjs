@@ -83,14 +83,29 @@ test("kuning dan hijau tidak jadi satu-satunya pembeda", () => {
     "penanda tersimpan bukan centang");
   assert.match(app, /sel\.title = "Belum tersimpan";/,
     "keadaannya tidak disebut dengan kata untuk pembaca layar");
-  assert.match(css, /\.cek-status\[data-keadaan="belum"\],\s*\r?\n\.cek-status\[data-keadaan="menyimpan"\] \{ color: var\(--kuning\); \}/,
-    "penanda belum tersimpan tidak lagi kuning");
-  assert.match(css, /\.cek-status\[data-keadaan="tersimpan"\] \{ color: var\(--hijau\); \}/,
-    "penanda tersimpan tidak lagi hijau");
+  // Warnanya datang dari kelas `.badge-*` yang SAMA dengan lembar pos, bukan
+  // ditulis ulang di sini: dua tempat yang masing-masing menulis "kuning"
+  // suatu hari tidak sepakat kuning yang mana.
+  assert.match(app, /belum: "badge-yellow", menyimpan: "badge-yellow",/,
+    "penanda belum tersimpan tidak lagi memakai pil kuning lembar pos");
+  assert.match(app, /tersimpan: "badge-green", gagal: "badge-red"/,
+    "penanda tersimpan tidak lagi memakai pil hijau lembar pos");
+  assert.doesNotMatch(css, /\.cek-status\[data-keadaan="[^"]+"\] \{ color:/,
+    "warna penanda ditulis ulang di CSS — seharusnya datang dari .badge-*");
+});
+
+test("gembok tergembok HIJAU, sama dengan lembar pos", () => {
+  // Alasannya sudah ditulis di lembar pos: gembok tertutup berarti "sudah
+  // diperiksa dan benar", sekelas dengan centang hijau di sebelahnya. Merah
+  // akan membacanya sebagai galat, padahal ia justru keadaan yang dituju.
+  assert.match(css, /\.cek-gembok\.tergembok \{ color: var\(--utama\); \}/,
+    "gembok tertutup tidak lagi hijau — merah membacanya sebagai galat");
+  assert.match(app, /class="gembok cek-gembok"/,
+    "gembok Cek Nilai tidak lagi memakai kelas .gembok yang sama dengan lembar pos");
 });
 
 test("lebar penanda dipatok supaya barisnya tidak berjoget", () => {
-  assert.match(css, /\.cek-status \{[\s\S]{0,200}min-width: 28px;/,
+  assert.match(css, /\.cek-status \{[\s\S]{0,200}min-width: 30px;/,
     "lebar penanda tidak dipatok — kotak isian bergeser tiap kali penandanya "
     + "berganti, dan baris yang berjoget saat mengetik terbaca seperti layar "
     + "yang salah");
