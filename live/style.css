@@ -3445,29 +3445,25 @@ button.pill-number:hover { filter: brightness(.95); }
   }
   /* Nomor garis ditulis EKSPLISIT, sama seperti Meja Pembayaran — bentuk `-1`
      di sana membuat isinya balik ke kolom pertama dan bertumpuk. */
-  /* TANGGAL DI ATAS KODE BAYAR, dan regunya pindah ke bawah nama sekolah.
-     Susunannya tetap TIGA baris — menaruh tanggal di barisnya sendiri
-     selebar kartu akan menambah baris keempat dan mengembalikan tinggi yang
-     baru saja dihemat. Pasangan kanannya terbaca wajar: sekolah, lalu berapa
-     regu yang ia kirim. */
-  .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"]       { grid-area: 1 / 1; }
+  /* TANGGAL TIDAK DIGAMBAR SAMA SEKALI DI KARTU HP.
+     Ia sempat diletakkan di atas kode bayar dan diredupkan, dan itu masih
+     terlalu banyak: satu pendaftaran dicari lewat kodenya atau sekolahnya,
+     tidak pernah lewat jamnya, dan di layar 430px tiap baris yang tidak
+     dicari siapa pun mengambil satu kartu dari yang muat sekaligus.
+
+     Tabel di layar lebar TETAP memuatnya — di sana ia tidak menghalangi
+     apa pun, dan pertanyaan "pendaftaran ini masuk kapan" memang ditanyakan
+     sesekali, dari laptop. */
+  .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"]       { display: none; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Kode Bayar"]    { grid-area: 1 / 1; }
   .table-peserta tbody tr[data-baris] > td[data-label="Asal Sekolah"]  { grid-area: 1 / 2; }
-  .table-peserta tbody tr[data-baris] > td[data-label="Kode Bayar"]    { grid-area: 2 / 1; }
-  .table-peserta tbody tr[data-baris] > td[data-label="Regu"]          { grid-area: 2 / 2; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Regu"]          { grid-area: 2 / 1; }
   .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"] { grid-area: 3 / 1; }
   .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"]      { grid-area: 3 / 2; }
   /* Tombol regu rata KIRI di kolomnya, bukan di tengah: kolom pertama dipatok
      lebar kode pembayaran, dan tombol yang mengambang di tengahnya tidak
      sejajar dengan apa pun di atas maupun di bawahnya. */
   .table-peserta tbody tr[data-baris] > td[data-label="Regu"] { text-align: left; }
-  /* TIPIS: kecil, tidak tebal, dan warnanya lembut. Ia berdiri tepat di atas
-     kode pembayaran yang tebal dan berhuruf mesin ketik — kalau bobotnya
-     sepadan, keduanya berebut jadi baris pertama yang dibaca, padahal yang
-     dicari orang di layar ini kodenya. */
-  .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"] {
-    font-size: .72rem; font-weight: 400; color: var(--tinta-lembut);
-    line-height: 1.2;
-  }
   /* Kotak isian MENGISI selnya. Aturan kembarnya sudah ada, tapi terkurung di
      blok `min-width: 901px` — jadi di rentang kartu kotaknya memakai lebar
      bawaan <input> (~180px), meluap keluar selnya yang 118px, dan menimpa
