@@ -28,8 +28,11 @@ test("lomba bersatuan detik adalah lomba waktu", () => {
   assert.equal(jenisLomba(lomba(w({ kode: "bakiak", satuan: "detik" }))), "waktu");
 });
 
-test("lomba bertipe soal adalah lomba soal", () => {
-  assert.equal(jenisLomba(lomba(w({ kode: "logika", type: "soal" }))), "soal");
+// Bentuk "soal" sudah dibuang 1 September 2026: lomba soal tulis memakai layar
+// yang sama dengan Semaphore. Tesnya dibalik, bukan dihapus — yang perlu
+// dijaga justru bahwa `type = 'soal'` TIDAK lagi melahirkan bentuk sendiri.
+test("lomba bertipe soal memakai bentuk nilai, sama seperti Semaphore", () => {
+  assert.equal(jenisLomba(lomba(w({ kode: "logika", type: "soal" }))), "nilai");
 });
 
 test("lomba juri berkriteria banyak jatuh ke bentuk nilai", () => {
@@ -121,7 +124,7 @@ test("jenis pengisian ikut di tiap baris katalog", () => {
         kode_lomba: "bakiak", sort_order: 1 }),
   ]);
   assert.deepEqual(k.map(l => [l.nama, l.jenis]),
-    [["Semaphore", "nilai"], ["Logika", "soal"], ["Bakiak", "waktu"]]);
+    [["Semaphore", "nilai"], ["Logika", "nilai"], ["Bakiak", "waktu"]]);
 });
 
 test("katalog kosong tidak melempar", () => {
