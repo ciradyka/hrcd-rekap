@@ -4934,7 +4934,6 @@ button.pill-number:hover { filter: brightness(.95); }
    penukaran yang salah arah. */
 .cek-baris-aksi { display: flex; align-items: center; justify-content: center; gap: .15rem; }
 .cek-status, .cek-gembok { flex: 0 0 auto; }
-.cek-gembok { color: var(--tinta-lembut); }
 
 /* KABAR, BUKAN TOMBOL. Angkanya disimpan sendiri begitu diubah; yang tersisa
    cuma memberi tahu sudah sampai database atau belum.
@@ -4950,20 +4949,24 @@ button.pill-number:hover { filter: brightness(.95); }
    Lebarnya dipatok supaya kotak isian di sebelahnya tidak bergeser tiap kali
    penandanya berganti — baris yang berjoget saat mengetik terbaca seperti
    layar yang salah. */
+/* Warnanya datang dari `.badge-yellow` / `.badge-green` / `.badge-red` yang
+   dipasang JavaScript — kelas yang sama persis dengan lembar pos, bukan warna
+   yang ditulis ulang di sini. Menuliskannya ulang berarti dua tempat yang
+   suatu hari tidak sepakat soal "kuning yang mana".
+
+   Yang tersisa di sini cuma ukurannya: lebarnya dipatok supaya kotak isian di
+   sebelahnya tidak bergeser tiap kali penandanya berganti. Baris yang berjoget
+   saat mengetik terbaca seperti layar yang salah. */
 .cek-status {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 28px; height: 28px;
-  font-size: 1.2rem; font-weight: 800; line-height: 1;
-  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  min-width: 30px; min-height: 26px; padding: .2rem .4rem;
+  line-height: 1;
 }
-.cek-status[data-keadaan="belum"],
-.cek-status[data-keadaan="menyimpan"] { color: var(--kuning); }
-.cek-status[data-keadaan="tersimpan"] { color: var(--hijau); }
-.cek-status[data-keadaan="gagal"] {
-  color: var(--bahaya); cursor: pointer;
-  border-radius: var(--radius-kecil);
-}
-.cek-status[data-keadaan="gagal"]:hover { background: var(--bahaya-muda); }
+/* Kosong = tidak ada apa-apa yang perlu dikatakan. Tanpa ini pil kosong tetap
+   memakan tempat dan terbaca seperti penanda yang gagal digambar. */
+.cek-status:empty { min-width: 30px; background: none; padding: 0; }
+.cek-status[data-keadaan="gagal"] { cursor: pointer; }
+.cek-status[data-keadaan="gagal"]:hover { filter: brightness(.94); }
 
 /* TERGEMBOK: kotaknya jadi abu-abu, lambang simpannya pudar.
    Dua isyarat untuk satu keadaan, dan keduanya perlu — kotak abu-abu
@@ -4976,11 +4979,11 @@ button.pill-number:hover { filter: brightness(.95); }
   color: var(--tinta-lembut);
   cursor: not-allowed;
 }
-/* Tergembok memerah, dan itu bukan peringatan melainkan KEADAAN: merah di
-   sistem ini dipakai untuk yang menghentikan, dan gembok tertutup memang
-   menghentikan penyimpanan. */
-.cek-gembok.tergembok { color: var(--bahaya); }
-.cek-gembok.tergembok:hover { background: var(--bahaya-muda); }
+/* Tergembok HIJAU, bukan merah — aturan yang sama dengan lembar pos, dan
+   alasannya sudah ditulis di sana: gembok tertutup berarti "sudah diperiksa
+   dan benar", sekelas dengan centang hijau di sebelahnya. Merah akan
+   membacanya sebagai galat, padahal ia justru keadaan yang dituju. */
+.cek-gembok.tergembok { color: var(--utama); }
 /* Belum lengkap dipucatkan, bukan disembunyikan: yang menekan perlu tahu
    gemboknya ADA dan kenapa ia belum bisa dipakai — judulnya menyebut berapa
    kriteria yang masih kosong. */
@@ -5024,20 +5027,19 @@ button.pill-number:hover { filter: brightness(.95); }
    antara keduanya. */
 .cek-lomba { padding: .7rem 0; border-top: 1px solid var(--garis); }
 .cek-lomba:first-child { border-top: 0; padding-top: 0; }
-/* Nama di atas, angkanya tepat di bawahnya, KEDUANYA RATA KIRI — lalu
-   fotonya. Sebelumnya angkanya didorong ke tepi kanan, jadi membandingkan
-   tulisan tangan di foto dengan angka yang diketik menuntut mata menyeberang
-   selebar layar dan turun; sekarang keduanya di satu kolom yang sama. */
-.cek-kepala { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; }
-.cek-nama { font-weight: 700; }
-.cek-angka { display: flex; gap: .9rem; flex-wrap: wrap; align-items: baseline; }
-/* Angkanya sengaja besar: ia satu-satunya hal di kartu ini yang sedang
-   dibandingkan dengan sesuatu, dan pembandingnya tulisan tangan di foto
-   sebesar layar. */
-.cek-butir { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.cek-butir-nama {
-  display: block; font-size: .75rem; font-weight: 400; color: var(--tinta-lembut);
-}
+/* Judul lomba DI TENGAH, sejajar dengan kotak isian dan fotonya yang juga di
+   tengah kolomnya. Rata kiri membuat judulnya berdiri sendirian di satu sisi
+   sementara semua yang menjelaskannya berdiri di tengah. */
+.cek-kepala { display: flex; flex-direction: column; align-items: center; gap: .15rem; }
+.cek-nama { font-weight: 700; text-align: center; }
+
+/* `.cek-angka` DULU DIDEFINISIKAN DUA KALI di berkas ini, dan yang belakangan
+   menang tanpa suara (CLAUDE.md 15.6). Yang kedua milik versi lama layar ini —
+   angka baca-saja berukuran besar, bersama `.cek-butir` — dan markup-nya sudah
+   tidak ada lagi di app.js sejak kotak isian menggantikannya. Sisa aturannya
+   diam-diam membalikkan pembungkus kotak isian dari kolom jadi baris, dan itu
+   baru terlihat pada lomba berkriteria banyak (Pembidaian, lima kotak).
+   Dibuang, bukan ditimpa. */
 .cek-kosong { font-size: .85rem; font-weight: 400; color: var(--tinta-lembut); }
 /* Foto SELEBAR KARTU, bukan petak kecil berjajar. Yang dibaca di sini tulisan
    tangan — "JUMLAH KATA YANG BENAR: 1" — dan petak 7rem tidak menjawab

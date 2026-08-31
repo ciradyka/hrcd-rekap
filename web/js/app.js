@@ -9849,7 +9849,7 @@ async function layarCekNilai() {
                      kalau ia LUPA menekannya. -->
                 <div class="cek-baris-aksi">
                   <span class="cek-status" data-status="${esc(l.kode)}"></span>
-                  <button type="button" class="icon-button cek-gembok"
+                  <button type="button" class="gembok cek-gembok"
                           data-gembok="${esc(l.kode)}"></button>
                 </div>
               </div>
@@ -10205,6 +10205,17 @@ async function layarCekNilai() {
     const sel = elIsi.querySelector(`[data-status="${CSS.escape(kode)}"]`);
     if (!sel) return;
     sel.dataset.keadaan = keadaan || "";
+    /* Pil `.badge` yang SAMA dengan lembar pos — kuning, hijau, merah. Dua
+       layar yang menceritakan hal yang sama tidak boleh memakai dua bentuk
+       berbeda: panitia yang berpindah di antara keduanya sepanjang pagi
+       harus bisa membacanya tanpa belajar dua kali.
+
+       Kelas dasarnya dipasang ulang tiap kali, bukan ditambah-kurang satu
+       per satu: penanda yang pernah merah lalu jadi hijau tidak boleh
+       menyisakan sisa kelas lamanya. */
+    const pil = { belum: "badge-yellow", menyimpan: "badge-yellow",
+                  tersimpan: "badge-green", gagal: "badge-red" }[keadaan];
+    sel.className = "cek-status" + (pil ? ` badge ${pil}` : "");
     if (keadaan === "belum" || keadaan === "menyimpan") {
       sel.textContent = "\u2026";
       sel.title = "Belum tersimpan";
