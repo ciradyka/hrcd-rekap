@@ -13,7 +13,7 @@ kelima `juara` beserta `v_kejuaraan_publik` dan `hasil_kejuaraan_semua()` —
 mendarat sesudah penghitungan itu, jadi angka view dan fungsi di bagian 2
 kurang satu masing-masing; `0164` menulis ulang view yang sama untuk
 membawa kolom skornya dan tidak mengubah jumlahnya. Disegarkan lagi
-31 Agustus 2026 sampai migrasi `0167`, dan cakupannya SEMPIT: yang
+31 Agustus 2026 sampai migrasi `0168`, dan cakupannya SEMPIT: yang
 diperiksa hanya jumlah migrasi beserta bagian singgahan `cache_live_score`
 di bawah. `0165` menambah satu fungsi, `minta_segarkan_live_score()`,
 dan `0166` menambah satu view (`v_lomba_pos`) beserta dua fungsi
@@ -21,8 +21,12 @@ dan `0166` menambah satu view (`v_lomba_pos`) beserta dua fungsi
 menjadikan gembok nilai PER LOMBA; `0167` menambah satu kolom
 (`foto_lembar.putaran`) dan satu fungsi (`putar_foto_lembar()`) supaya foto
 slip yang terlanjur masuk miring bisa diputar tanpa menyentuh berkasnya —
-sehingga angka view dan fungsi di bagian 2 kurang satu dan empat. Isi bagian 2 sampai 9
-selebihnya belum dibaca ulang baris demi baris terhadap `0119`-`0167`.
+sehingga angka view dan fungsi di bagian 2 kurang satu dan empat. `0168` tidak
+mengubah satu pun angka itu: ia hanya membetulkan dua kolom konfigurasi pada
+baris `menaksir` (`judul_isian` jadi "Hasil Taksir", `petunjuk` jadi
+"(meter)"), menyusul 0085 yang membalik arti angka yang diketik tetapi
+meninggalkan judulnya. Isi bagian 2 sampai 9
+selebihnya belum dibaca ulang baris demi baris terhadap `0119`-`0168`.
 
 Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
@@ -87,7 +91,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-167 migrasi, `0001` sampai `0167`, dijalankan berurutan tanpa lubang penomoran.
+168 migrasi, `0001` sampai `0168`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 

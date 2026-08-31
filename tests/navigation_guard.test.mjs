@@ -18,7 +18,11 @@ test("router memeriksa nilai belum tersimpan sebelum mengganti layar", () => {
   const pagar = router.indexOf("!bolehMeninggalkanNilai()");
   const batal = router.indexOf("history.replaceState");
   const bongkar = router.indexOf("segarkanDiTempat = null");
-  const gambar = router.indexOf("RUTE[location.hash]");
+  // `RUTE[` saja, bukan `RUTE[location.hash]`: sejak rute boleh berbuntut
+  // (`#/pos2/1:semaphore`) yang dicari tabel itu `pangkalRute(location.hash)`.
+  // Penanda yang memuat argumennya diam-diam berhenti ketemu, `indexOf`
+  // mengembalikan -1, dan pagar "sesudah pemeriksaan" jadi selalu benar.
+  const gambar = router.indexOf("RUTE[");
   assert.ok(pagar >= 0 && pagar < bongkar && pagar < gambar,
     "router membongkar layar sebelum meminta keputusan");
   assert.ok(batal > pagar && batal < bongkar,
