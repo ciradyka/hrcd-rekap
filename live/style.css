@@ -4932,7 +4932,7 @@ button.pill-number:hover { filter: brightness(.95); }
    berdiri di baris sendiri, dan tinggi yang dimakannya diambil dari foto — di
    layar yang seluruh gunanya membandingkan angka dengan tulisan tangan, itu
    penukaran yang salah arah. */
-.cek-baris-aksi { display: flex; align-items: center; justify-content: center; gap: .5rem; }
+.cek-baris-aksi { display: flex; align-items: center; justify-content: center; gap: .15rem; }
 .cek-status, .cek-gembok { flex: 0 0 auto; }
 .cek-gembok { color: var(--tinta-lembut); }
 
@@ -5000,13 +5000,25 @@ button.pill-number:hover { filter: brightness(.95); }
    pertama. */
 .cek-isian {
   display: flex; align-items: center; justify-content: center;
-  gap: .5rem; margin: .4rem 0 .2rem;
+  gap: .35rem; margin: .4rem 0 .2rem;
 }
-/* Kotak isian yang menyusut, bukan lambangnya. Lambang 34px yang mengecil
-   berhenti bisa disentuh; kotak yang mengecil masih terbaca. */
-.cek-angka { display: flex; flex-direction: column; gap: .35rem; min-width: 0; flex: 1; }
+/* Kotak isian TIDAK melebar mengisi kolomnya. `flex: 1` di sini mendorong
+   penanda dan gembok ke tepi kanan yang jauh, dan mata harus menyeberangi
+   kolom kosong untuk membaca apakah angkanya sudah tersimpan — padahal
+   keduanya menceritakan angka yang sama.
+
+   Ketiganya sekarang berdempet dan berdiri di tengah kolomnya. Yang menyusut
+   tetap kotaknya, bukan lambangnya: lambang 28px yang mengecil berhenti bisa
+   disentuh, kotak yang mengecil masih terbaca. */
+.cek-angka {
+  display: flex; flex-direction: column; gap: .35rem;
+  flex: 0 1 auto; min-width: 0;
+}
 .cek-isian .isian-baris { border: 0; padding: 0; gap: .25rem; }
-.cek-isian .small-input { font-size: 1.4rem; min-height: 52px; width: 100%; }
+.cek-isian .small-input {
+  font-size: 1.4rem; min-height: 52px;
+  width: 100%; min-width: 0; max-width: 6.5rem;
+}
 /* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
    angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
    antara keduanya. */
