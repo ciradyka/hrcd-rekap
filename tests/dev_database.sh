@@ -109,13 +109,15 @@ LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
              0133_kelas_organisasi_regu 0134_kelas_organisasi_tanpa_simbol
              0137_riwayat_pendaftaran 0138_riwayat_pelaku_kosong
              0146_cache_live_score 0147_waktu_nol_pos_2
+             0165_refresh_live_score_dari_layar
              0157_direktori_sekolah_ciamis 0158_rapikan_alamat_direktori
              0159_lebur_kembar_direktori 0160_kode_pos_dan_nama_tersisa
-             0161_lebur_kembar_ejaan 0162_lebur_smp_al_fadliliyah"
+             0161_lebur_kembar_ejaan 0162_lebur_smp_al_fadliliyah
+             0166_gembok_per_lomba 0167_putaran_foto"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
-       0076_bidai_dan_lomba_soal 0091_intern_golongan
+       0076_bidai_dan_lomba_soal 0087_kim_dua_lomba 0091_intern_golongan
        0093_configure_fifo_capacity 0105_expand_kloter_capacity
        0118_jeda_kloter_maksimal"
 
@@ -249,6 +251,26 @@ run supabase/migrations/0024_komponen_pos.sql
 #     (`where lomba = 'Pembidaian'`) menemukan kelima barisnya dan jumlah 100
 #     itu benar-benar diperiksa. Tanpa 0054 ia melapor "Pembidaian tidak ada di
 #     database ini" dan penjaganya diam.
+#   * 0087 harus SESUDAH 0054, dan ini ikatan yang paling mudah terlewat
+#     karena arahnya TERBALIK dari yang lain. Yang lain ada di daftar ini
+#     supaya sesuatu DIKERJAKAN; 0087 ada di sini supaya sesuatu DIBATALKAN.
+#     0054 mengisi `lomba` untuk baris ber-kode `kim_`, dan 0087 justru
+#     mengosongkannya lagi karena Kim Lihat dan Kim Cium adalah dua lomba
+#     terpisah, bukan dua kriteria satu lomba. Di glob urutannya benar; di
+#     sini 0054 dijalankan ULANG sesudahnya, jadi tanpa baris ini ia memasang
+#     kembali `lomba = 'KIM'` yang sudah dikosongkan produksi.
+#
+#     Diamnya sempurna: `kode_lomba` tetap terpisah (0087 sudah lewat di
+#     glob), seluruh tes lulus, dan yang berbeda dari produksi cuma satu hal
+#     — KIM tergambar sebagai SATU lomba berkriteria dua. Itu terbawa ke
+#     laporan: pengukuran tata letak Cek Nilai 31 Agustus 2026 menyebut
+#     "KIM, 2 kriteria" sebagai fakta tentang produksi, padahal produksi
+#     punya dua lomba berkriteria satu dan dua kolom foto terpisah.
+#
+#     Pelajaran yang lebih luas daripada KIM: sebuah migrasi di daftar ULANG
+#     dijalankan DI LUAR urutan nomornya, jadi ia bisa membatalkan migrasi
+#     yang lebih muda. Sebelum menambahkan satu ke daftar ini, cari migrasi
+#     sesudahnya yang menyentuh kolom yang sama.
 #   * 0091 harus SESUDAH 0076 agar lima komponen Soal Tulis yang disalin untuk
 #     Intern sudah ada. 0093 menyiapkan 60 kloter setelah edisi aktif lahir;
 #     0105 menambah headroom-nya menjadi 75, dan ia HARUS ikut diulang di
@@ -348,6 +370,24 @@ run supabase/migrations/0138_riwayat_pelaku_kosong.sql
 run supabase/migrations/0146_cache_live_score.sql
 run supabase/migrations/0147_waktu_nol_pos_2.sql
 
+# 0165 ditunda karena alasan yang SAMA dengan 0146, satu tingkat di atasnya:
+# barisnya yang terakhir memanggil `segarkan_cache_live_score()` — fungsi yang
+# baru lahir di 0146, dan 0146 sendiri ditunda ke sini. Di glob panggilan itu
+# berbunyi 'function ... does not exist' dan skripnya BERHENTI, jadi 0166 dan
+# 0167 tidak pernah dijalankan dan tidak ada satu pun layar yang bisa dibuka
+# di laptop (CLAUDE.md 17.6).
+#
+# Aman ditunda: yang ditinggalkannya cuma satu fungsi
+# `minta_segarkan_live_score()`, dan tidak ada migrasi mana pun sesudahnya
+# yang memanggilnya — diperiksa 1 September 2026.
+#
+# INI PELAJARAN YANG BERULANG, bukan kejadian sekali. Sebuah migrasi ditunda
+# ke ujung berkas ini, lalu migrasi BARU yang memakai buatannya ditulis
+# kemudian oleh orang yang tidak tahu penundaan itu ada. Yang perlu diperiksa
+# saat menulis migrasi yang memanggil fungsi migrasi lama: apakah yang
+# membuatnya ada di LEWATI_DULU di atas?
+run supabase/migrations/0165_refresh_live_score_dari_layar.sql
+
 # 0154 DIJALANKAN ULANG PALING AKHIR, karena ia membetulkan baris `sekolah`
 # yang baru lahir di 0129-0132. Di glob ia berjalan jauh sebelum keempat
 # migrasi impor itu, jadi tidak menemukan satu baris pun untuk dilebur maupun
@@ -364,5 +404,43 @@ run supabase/migrations/0159_lebur_kembar_direktori.sql
 run supabase/migrations/0160_kode_pos_dan_nama_tersisa.sql
 run supabase/migrations/0161_lebur_kembar_ejaan.sql
 run supabase/migrations/0162_lebur_smp_al_fadliliyah.sql
+
+# 0166 DAN 0167 PALING AKHIR, dan sebabnya bukan isinya melainkan 0091.
+#
+# 0091 ada di daftar ULANG di atas, dan di antara isinya ada
+# `create or replace view v_lembar_pos` dengan daftar kolom versi 0091. 0166
+# menambahkan kolom `lomba_terkunci` ke view itu; menjalankan 0091 sesudahnya
+# berarti MENGHAPUS kolom, dan PostgreSQL menolaknya mentah-mentah:
+# "cannot drop columns from view". Skripnya berhenti di situ.
+#
+# Ini bukan kekhususan 0166. `create or replace view` TIDAK BISA menyusutkan
+# view, jadi migrasi mana pun di daftar ULANG yang menyusun ulang sebuah view
+# akan menabrak migrasi lebih muda yang menambah kolom ke view yang sama.
+# Obatnya selalu sama: jalankan yang lebih muda SESUDAH daftar ULANG selesai,
+# bukan di glob.
+#
+# Ada untungnya sekalian, dan ini yang selama ini diam: 0091 juga menimpa
+# BADAN v_lembar_pos dengan versi 0091, membuang perbaikan 0095 (jawaban
+# benar) tanpa satu pun galat karena daftar kolomnya kebetulan sama. Menaruh
+# 0166 di sini memasang kembali definisi terakhirnya, jadi dev memakai view
+# yang sama dengan produksi.
+run supabase/migrations/0166_gembok_per_lomba.sql
+run supabase/migrations/0167_putaran_foto.sql
+
+# ============================================================================
+# BENTUK LOMBA HARUS SAMA DENGAN PRODUKSI, dan itu diperiksa, bukan dipercaya.
+#
+# Daftar ULANG di atas menjalankan migrasi DI LUAR urutan nomornya, jadi satu
+# migrasi di daftar itu bisa membatalkan migrasi yang lebih muda tanpa satu pun
+# galat. Persis itu yang terjadi pada KIM sampai 1 September 2026: 0054 diulang
+# sesudah 0087 dan memasang kembali `lomba = 'KIM'`, dan selama itu dev
+# menggambar KIM sebagai satu lomba berkriteria dua sementara produksi punya
+# dua lomba dengan dua kolom foto terpisah.
+#
+# HANYA DI SINI, tidak di tests/run.sh. Database tes memakai konfigurasi edisi
+# lama dengan sengaja, jadi berkas ini satu-satunya tempat konfigurasi produksi
+# benar-benar disusun ulang — dan karena itu satu-satunya tempat bentuknya bisa
+# ditanyakan dengan jujur. Alasan lengkapnya di ujung tests/run.sh.
+run tests/dev/bentuk_lomba_produksi.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"

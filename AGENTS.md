@@ -384,14 +384,28 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    more penilaian. Most of the system only ever modelled two — `pos` and
    `wahana` — and every place that treats a wahana as a lomba is wrong in the
    same way.
-2. **Pos 3 has three lomba, not seven.**
+2. **Pos 3 has four lomba, not seven.**
    - **Pembidaian** — Diagnosis dan Penanganan Awal `0–25`, Teknik Bidai
      `0–25`, Kecepatan dan Kerja Sama `0–20`, Posisi Bidai `0–15`, Kerapihan
      dan Kebersihan `0–15`. They sum to 100, and **that sum is what must be
      preserved** if the weights are rebalanced again — it is what sets
      Pembidaian's weight against every other lomba (migration `0076`).
-   - **KIM** — KIM Lihat `0–10`, KIM Cium `0–10`
+   - **Kim Lihat** — `0–10`
+   - **Kim Cium** — `0–10`
    - **Logika** — 20 soal, enter the number correct `0–20`, 5 points each
+
+   **Kim Lihat and Kim Cium are two lomba, not two criteria of one** (migration
+   `0087`), and this clause said "three lomba — **KIM** — KIM Lihat, KIM Cium"
+   until 1 September 2026, long after 0087 had shipped. In the field a regu
+   does ten Lihat questions, then ten Cium questions, each on its own answer
+   sheet filled in by the PESERTA — the same shape as Tebak Simpul, not the
+   judge-fills-columns shape of Pembidaian. So they need two blangko, two
+   photo columns, and two `kode_lomba` (`kim-lihat`, `kim-cium`).
+
+   **The photo column is the reason this matters more than tidiness.** Photos
+   key on `kode_lomba`. One key for both lomba means one column holding two
+   different answer sheets, and nobody notices until a nilai is disputed and
+   the sheet that should settle it is the wrong one.
 3. **A soal lomba takes ONE number: how many answers were correct.** The form
    is `benar_per_total` and the points are `poin_maks × benar / total_soal` —
    so "5 points per correct answer" is written as `poin_maks` 50 over 10 soal,
@@ -420,7 +434,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    Kekompakan `0–30`, Kerapihan `0–20`.
 5. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
    Semangat `0–20`, Penampilan `0–20`.
-6. **One lomba is one form per lomba.** Pos 3 prints three blangko masters,
+6. **One lomba is one form per lomba.** Pos 3 prints four blangko masters,
    not seven; Pos 4 prints one, not four. A regu is judged once at a lomba and the
    judge writes every criterion on the sheet in front of them — a sheet per
    criterion would have the same regu handed five pieces of paper at one
