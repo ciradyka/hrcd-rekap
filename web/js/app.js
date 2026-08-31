@@ -2899,11 +2899,12 @@ function siapkanCetakKloter(dipakai, bentuk = "staging", planning = new Map()) {
 
     const baris = v.isi.map(r => bentuk === "staging"
       ? html`
-        <tr><td class="kotak"></td>
-            <td class="dada">${dada3(r.nomor_dada)}</td>
+        <tr><td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}${r.sisipan ? " ★" : ""}</td>
             <td>${r.nama_sekolah}</td>
-            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`
+            <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td>
+            <td class="kotak-kontrak"></td>
+            <td class="kotak"></td></tr>`
       : html`
         <tr><td class="dada">${dada3(r.nomor_dada)}</td>
             <td>${r.nama_regu}</td>
@@ -2923,11 +2924,22 @@ function siapkanCetakKloter(dipakai, bentuk = "staging", planning = new Map()) {
            · <span style="white-space:nowrap">Jam sebenarnya: ________</span><br>
            <span style="white-space:nowrap">Petugas: ________________</span></p>
         <table class="print-table">
-          <!-- Hadir di kolom PALING KIRI, sejajar dengan tombol centang di
-               layar Keberangkatan. Petugas memegang kertas ini di satu tangan
-               dan HP di tangan lain; kalau kotak centangnya di ujung yang
-               berlawanan, matanya menyeberangi seluruh baris tiap regu. -->
-          <thead><tr><th class="kotak">Hadir</th><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th></tr></thead>
+          <!-- DUA KOLOM YANG DITULISI, BERDAMPINGAN DI UJUNG KANAN:
+               Kontrak Waktu lalu Hadir.
+
+               Hadir dulu berada di kolom PALING KIRI, dan alasannya ditulis
+               di tempat ini: petugas memegang kertas di satu tangan dan HP di
+               tangan lain, jadi kotak centang di ujung yang berlawanan
+               membuat matanya menyeberangi seluruh baris tiap regu. Alasan
+               itu berdiri selama Hadir SATU-SATUNYA yang ditulisi.
+
+               Sekarang ada dua. Menaruh yang satu di ujung kiri dan yang lain
+               di ujung kanan membuat tangan menyeberangi baris DUA KALI per
+               regu — lebih mahal daripada yang dihemat aturan lama.
+               Berdampingan, keduanya terisi dalam satu gerakan.
+
+               Keputusan pemilik acara, 31 Agustus 2026. -->
+          <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th class="kotak-kontrak">Kontrak Waktu</th><th class="kotak">Hadir</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
         ${adaSisipan ? `<p class="insert-note">★ = regu sisipan, ditambahkan setelah kertas ini dicetak.</p>` : ""}
