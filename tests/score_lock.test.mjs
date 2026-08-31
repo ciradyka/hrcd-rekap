@@ -1,6 +1,16 @@
 // ============================================================================
 // hrcd-rekap : tests/score_lock.test.mjs
-// Gembok tidak boleh mendahului penyimpanan nilai Input Pos.
+// Gembok tidak boleh mendahului penyimpanan nilai.
+//
+// GEMBOKNYA PINDAH, ATURANNYA TIDAK. Sejak 0166 menggembok hanya terjadi di
+// layar Cek Nilai, per LOMBA — layar Input Pos cuma menampilkan lambangnya.
+// Sebabnya: yang menggembok menyatakan "angka ini sudah dicocokkan dengan foto
+// slipnya", dan pencocokan itu tidak terjadi di layar Input Pos, yang memang
+// tidak memperlihatkan fotonya.
+//
+// Dua aturan di bawah karena itu diuji di tempat barunya, bukan dibuang:
+// menggembok yang belum lengkap MEMBLOKIR juri yang belum sempat memasukkan
+// sisanya, dan membuka gembok tidak boleh menuntut dialog.
 // ============================================================================
 
 import assert from "node:assert/strict";
@@ -9,30 +19,47 @@ import test from "node:test";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 
-test("gembok hanya dipasang setelah nilai terkonfirmasi di database", () => {
-  const awal = app.indexOf("async function ubahGembok(tr) {");
-  const akhir = app.indexOf("await bukaKunciNilaiPos", awal);
-  assert.notEqual(awal, -1, "ubahGembok tidak ditemukan");
-  assert.notEqual(akhir, -1, "cabang mengunci tidak ditemukan");
-  const kunci = app.slice(awal, akhir);
+/** Penangan gembok di layar Cek Nilai — satu-satunya tempat menggembok. */
+const gembokCek = (() => {
+  const awal = app.indexOf('const tombol = e.target.closest("[data-gembok]");');
+  const akhir = app.indexOf("const ke = (i) => {", awal);
+  assert.ok(awal >= 0 && akhir > awal, "penangan gembok Cek Nilai tidak ditemukan");
+  return app.slice(awal, akhir);
+})();
 
-  const pagar = kunci.indexOf('tr.dataset.keadaan !== "tersimpan"');
-  const panggil = kunci.indexOf("await kunciNilaiPos");
-  assert.ok(pagar >= 0 && pagar < panggil,
-    "kunciNilaiPos dipanggil sebelum keadaan tersimpan diperiksa");
-  assert.match(kunci,
-    /Number\(tr\.dataset\.terisi\) !== Number\(tr\.dataset\.komponen\)/,
-    "baris dengan nilai yang belum lengkap masih bisa digembok");
+test("gembok hanya dipasang setelah lomba itu LENGKAP", () => {
+  const pagar = gembokCek.indexOf("terisi !== dipakai.length");
+  const panggil = gembokCek.indexOf("await kunciNilaiPos");
+  assert.ok(pagar >= 0, "kelengkapan lomba tidak diperiksa sebelum menggembok");
+  assert.ok(pagar < panggil,
+    "kunciNilaiPos dipanggil sebelum kelengkapan lombanya diperiksa");
+  // Kelengkapan dihitung dari komponen yang BERLAKU untuk golongan regu ini —
+  // kriteria yang memang bukan urusannya tidak boleh ikut menahan gembok.
+  assert.match(gembokCek, /varianUntuk\(kol, r\.golongan\)/,
+    "kelengkapan dihitung tanpa memperhatikan golongan regu");
+});
+
+test("menggembok dan membukanya menyebut LOMBANYA", () => {
+  assert.match(gembokCek, /kunciNilaiPos\(dada, nomorPos, kode\)/,
+    "menggembok tidak menyebut lomba — gemboknya kembali per pos");
+  assert.match(gembokCek, /bukaKunciNilaiPos\(dada, nomorPos, kode, /,
+    "membuka gembok tidak menyebut lomba");
 });
 
 test("membuka gembok tidak meminta konfirmasi", () => {
-  const awal = app.indexOf("async function ubahGembok(tr) {");
-  const akhir = app.indexOf("function bukaRiwayat", awal);
-  const gembok = app.slice(awal, akhir);
-  assert.doesNotMatch(gembok, /await dialog\(/,
+  assert.doesNotMatch(gembokCek, /await dialog\(/,
     "membuka gembok masih menampilkan dialog konfirmasi");
-  assert.match(gembok, /await bukaKunciNilaiPos\(/,
+  assert.match(gembokCek, /await bukaKunciNilaiPos\(/,
     "membuka gembok tidak memanggil API");
+});
+
+test("layar Input Pos tidak lagi bisa menggembok", () => {
+  // Lambangnya tetap digambar — barisnya mati, dan tanpa lambang petugas cuma
+  // melihat kotak yang tidak bisa diketik tanpa satu pun keterangan kenapa.
+  assert.doesNotMatch(app, /async function ubahGembok\(/,
+    "layar Input Pos masih punya jalan menggembok sendiri");
+  assert.match(app, /class="gembok gembok-tanda"/,
+    "lambang gembok hilang dari layar Input Pos — baris mati tanpa keterangan");
 });
 
 test("Ulangi pada baris terkunci memberi alasan, bukan diam", () => {
