@@ -5005,22 +5005,45 @@ button.pill-number:hover { filter: brightness(.95); }
   display: flex; align-items: center; justify-content: center;
   gap: .35rem; margin: .4rem 0 .2rem;
 }
-/* Kotak isian TIDAK melebar mengisi kolomnya. `flex: 1` di sini mendorong
-   penanda dan gembok ke tepi kanan yang jauh, dan mata harus menyeberangi
-   kolom kosong untuk membaca apakah angkanya sudah tersimpan — padahal
-   keduanya menceritakan angka yang sama.
+/* KRITERIA BERJAJAR KE KANAN, TIDAK ADA YANG TURUN KE BAWAH — bentuk yang
+   sama dengan lembar pos, tempat tiap kriteria punya kolomnya sendiri.
 
-   Ketiganya sekarang berdempet dan berdiri di tengah kolomnya. Yang menyusut
-   tetap kotaknya, bukan lambangnya: lambang 28px yang mengecil berhenti bisa
-   disentuh, kotak yang mengecil masih terbaca. */
+   Sebabnya bukan kerapian: yang ditumpuk ke bawah mendorong FOTO turun, dan
+   foto itulah alasan layar ini ada. Pembidaian lima kriteria bertumpuk
+   memakan lima kali tinggi satu kotak, seluruhnya diambil dari gambar yang
+   sedang dicocokkan dengan angkanya.
+
+   `nowrap`: kalau ruangnya kurang, yang mengalah LEBAR KOTAKNYA, bukan
+   susunannya. Satu kriteria yang membungkus ke baris kedua mengembalikan
+   persis masalah yang dihilangkan aturan ini, dan ia akan terjadi diam-diam
+   di pos tertentu saja.
+
+   Kotaknya juga TIDAK melebar mengisi kolomnya (`flex: 0 1 auto` pada
+   pembungkusnya): `flex: 1` mendorong penanda dan gembok ke tepi kanan yang
+   jauh, dan mata harus menyeberangi kolom kosong untuk membaca apakah
+   angkanya sudah tersimpan — padahal keduanya menceritakan angka yang sama. */
 .cek-angka {
-  display: flex; flex-direction: column; gap: .35rem;
+  display: flex; flex-direction: row; flex-wrap: nowrap;
+  align-items: flex-end; gap: .3rem;
   flex: 0 1 auto; min-width: 0;
 }
-.cek-isian .isian-baris { border: 0; padding: 0; gap: .25rem; }
+.cek-isian .isian-baris {
+  border: 0; padding: 0; gap: .15rem;
+  flex: 1 1 0; min-width: 0;
+}
+/* Nama kriteria mengecil dan boleh membungkus: ia yang paling panjang
+   ("Diagnosis dan Penanganan Awal") dan paling jarang dibaca ulang — yang
+   dibaca berkali-kali angkanya. */
+.cek-isian .isian-nama { font-size: .7rem; line-height: 1.15; }
 .cek-isian .small-input {
   font-size: 1.4rem; min-height: 52px;
   width: 100%; min-width: 0; max-width: 6.5rem;
+}
+/* Lomba berkriteria BANYAK: kotaknya lebih kecil, karena lima kotak harus
+   muat berjajar di satu kolom. Satu kriteria tetap besar — di sana tidak ada
+   yang berebut tempat. */
+.cek-angka:has(.isian-baris + .isian-baris) .small-input {
+  font-size: 1.05rem; min-height: 44px; max-width: none;
 }
 /* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
    angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
