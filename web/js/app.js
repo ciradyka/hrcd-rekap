@@ -5521,22 +5521,270 @@ function layarButuhEdisi(judul) {
     async () => { try { EDISI = await infoEdisi(); } catch {} arahkan(); }));
 }
 
-/** Satu sel Live Score: POIN AKHIR komponen itu, bukan angka mentahnya.
+/** Kepala kolom pos untuk tabel rekap — SATU entri per pos, dua baris kepala
+ *  masing-masing. Dipakai papan Live Score DAN cetakannya.
  *
- *  Angka mentah tidak bisa dibandingkan antar kolom — "4" di Semaphore, "8.55"
- *  di Menaksir, dan "01:14" di Bakiak adalah tiga satuan yang berbeda, dan
- *  tidak satu pun menyebut sumbangannya ke Total di ujung baris. Papan ini
- *  dibaca justru oleh orang yang tidak memegang tangga poin tiap lomba:
- *  pembina, peserta, dan panitia yang bukan juri lomba itu.
+ *  Mengembalikan larik, bukan dua string jadi, karena kertas memerlukan
+ *  kelompoknya utuh: 29 kolom tidak muat di satu lembar A4 dan pembelahannya
+ *  harus jatuh di ANTARA pos, tidak pernah di tengah-tengah pos. Papan di
+ *  layar merangkainya kembali dengan join("") dan mendapat bentuk yang sama
+ *  seperti sebelumnya.
  *
- *  Angkanya datang JADI dari `v_rekap_penuh.poin` (migrasi 0107). Layar tidak
- *  menghitungnya sendiri — alasannya sama dengan Nilai Pos di layar Input Pos:
+ *  Sepasang mutlak dengan selPosRegu() di bawah. Yang satu memutuskan berapa
+ *  <th> yang digambar, yang lain berapa <td> — dan aturannya sama-sama
+ *  bergantung pada "pos ini punya lebih dari satu lomba atau tidak". Kalau
+ *  keduanya pernah berbeda pendapat, seluruh tabel bergeser satu kolom tanpa
+ *  satu pun galat: nilai Pos 2 tercetak di bawah judul Pos 3, dan kertas itu
+ *  terlihat benar sampai ada yang mencocokkannya dengan layar. `lebar` di tiap
+ *  entri adalah angka yang menyatukan keduanya.
+ *
+ *  Kolom "Nilai" per pos hanya digambar kalau posnya memuat LEBIH DARI SATU
+ *  lomba. Pos 4 cuma punya PBB dan Pos 5 cuma punya Yel-Yel: di sana
+ *  "PBB 82 | Nilai 82" adalah angka yang sama dua kali, bersebelahan. */
+const kepalaPosRekap = (posKolom) => posKolom.map(p => {
+  const satuLomba = p.lomba.length === 1;
+  const lebar = p.lomba.length + (satuLomba ? 0 : 1);
+  return {
+    lebar,
+    atas: `<th colspan="${lebar}" class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`,
+    bawah: p.lomba.map((l, i) =>
+      `<th class="pos-kol${satuLomba && i === p.lomba.length - 1
+        ? " rekap-batas" : ""}">${esc(l.nama)}</th>`).join("")
+      + (satuLomba ? "" : `<th class="pos-kol rekap-batas">Nilai</th>`),
+  };
+});
+
+/** Sel kolom pos untuk SATU regu — dipakai papan Live Score DAN cetakannya.
+ *
+ *  Mengembalikan TEKS beserta penandanya, bukan HTML jadi: papan membungkus
+ *  lomba yang tidak berlaku dengan <span class="sel-mati"> supaya ia pudar di
+ *  antara angka, sedangkan kertas cukup mencetak tanda hubungnya — pucat di
+ *  kertas yang difotokopi justru hilang (CLAUDE.md 8.4).
+ *
+ *  Satu tempat, karena dua salinan aturan "lomba mana yang berlaku untuk
+ *  golongan ini" persis bentuk kegagalan yang sudah terjadi di sistem ini
+ *  (CLAUDE.md 11.9, dan varianUntuk() di util.js ditulis untuk alasan yang
+ *  sama). Salinan yang menyimpang tidak menggagalkan apa pun — ia cuma
+ *  membuat layar dan kertas saling membantah di depan pembina yang sedang
+ *  memegang keduanya.
+ *
+ *  `berlaku === 0` berarti lomba itu memang bukan untuk golongan regu ini,
+ *  BUKAN berarti nilainya belum masuk. Poin per KOMPONEN (0107) mengisi sel
+ *  lomba, poin per POS mengisi kolom Nilai di ujung tiap kelompok — dua hal
+ *  berbeda, dua kunci berbeda (`pos.kode` lawan `pos`).
+ *
+ *  Yang keluar POIN AKHIR komponennya, bukan angka mentahnya. Angka mentah
+ *  tidak bisa dibandingkan antar kolom — "4" di Semaphore, "8.55" di Menaksir,
+ *  dan "01:14" di Bakiak adalah tiga satuan berbeda, dan tidak satu pun
+ *  menyebut sumbangannya ke Total di ujung baris. Papan dan kertas ini justru
+ *  dibaca orang yang tidak memegang tangga poin tiap lomba: pembina, peserta,
+ *  dan panitia yang bukan juri lomba itu.
+ *
+ *  Angkanya datang JADI dari `v_rekap_penuh.poin` (migrasi 0107). Tidak ada
+ *  yang dihitung di sini — alasannya sama dengan Nilai Pos di layar Input Pos:
  *  mesin skor kedua adalah mesin skor yang suatu hari berbeda pendapat dengan
  *  yang pertama.
  *
- *  Kosong berarti komponennya belum dinilai. Nol yang SUDAH dinilai tetap
+ *  Sel kosong berarti komponennya belum dinilai. Nol yang SUDAH dinilai tetap
  *  tergambar "0" — itu angka, bukan ketiadaan. */
-const selPoin = (v) => esc(angkaRapi(v));
+function selPosRegu(k, posKolom, rekapDada) {
+  const rk = rekapDada.get(k.nomor_dada) || {};
+  const poinKomponen = rk.poin || {};
+  const poin = k.poin_per_pos || {};
+  return posKolom.flatMap(p => {
+    const satuLomba = p.lomba.length === 1;
+    const sel = p.lomba.map((l, i) => {
+      const r = ringkasLomba(l, k.golongan, p.nomor, poinKomponen);
+      const batas = satuLomba && i === p.lomba.length - 1;
+      if (!r.berlaku) return { teks: "–", mati: true, batas };
+      return { teks: r.terisi ? angkaRapi(r.jumlah) : "–", batas };
+    });
+    if (!satuLomba) {
+      const v = poin[String(p.nomor)];
+      sel.push({ teks: v === undefined ? "–" : angkaRapi(v),
+                 nilai: true, batas: true });
+    }
+    return sel;
+  });
+}
+
+/** Berapa KOLOM NILAI yang muat di satu lembar, di luar empat kolom identitas
+ *  dan kolom Total yang selalu ikut.
+ *
+ *  DIUKUR DI BROWSER atas data 143 regu, bukan ditaksir (CLAUDE.md 15.9 dan
+ *  15.11). Pada 12 kolom nilai satu lembar berisi 17 kolom, dan lebar
+ *  min-content-nya \u2014 selebar-sempitnya tabel itu bisa menjadi dengan setiap
+ *  nama sudah membungkus di spasinya \u2014 terukur 222,7mm dari 281mm yang
+ *  tersedia (A4 melintang 297mm dikurangi margin 8mm dua sisi). Sisa 58mm,
+ *  dan sisa itulah yang membuat nama regu dan sekolah TIDAK PERNAH dipatah
+ *  di tengah kata.
+ *
+ *  Angka ini tidak boleh dinaikkan tanpa diukur ulang. Seluruh 29 kolom dalam
+ *  satu lembar pernah dicoba dan lebar min-content-nya 347,7mm \u2014 lebih 66mm
+ *  dari kertasnya, jadi sepertiga kanan tabel terpotong. Yang menghabiskannya
+ *  kepala kolom, bukan angkanya: "Pengetahuan Umum", "Kepramukaan",
+ *  "Berangkat" adalah kata yang tidak bisa dipatahkan, dan 7pt adalah BATAS
+ *  BAWAH huruf (CLAUDE.md 8.6). Kalau kolomnya bertambah lagi tahun depan,
+ *  yang bertambah lembarnya \u2014 bukan yang berkurang ukuran hurufnya. */
+const KOLOM_NILAI_PER_LEMBAR = 12;
+
+/** Blok cetak Rekap Nilai \u2014 isinya kolom yang SAMA dengan papan Live Score,
+ *  lewat kepalaPosRekap() dan selPosRegu() yang sama.
+ *
+ *  SATU BAGIAN PER GOLONGAN, bukan satu tabel campuran. Keempat golongan
+ *  berlomba terpisah (CLAUDE.md bagian 11), dan peringkat di kolom # adalah
+ *  peringkat DI DALAM golongannya \u2014 satu tabel campuran akan mencetak empat
+ *  baris bernomor 1 tanpa satu pun keterangan kenapa. Urutan bagiannya
+ *  URUT_GOLONGAN, sama dengan tab di layar dan dengan corong saat juara
+ *  diumumkan. Golongan karena itu TIDAK jadi kolom ke-30: ia judul bagian,
+ *  tempat ia terbaca sekali per halaman alih-alih diulang di tiap baris.
+ *
+ *  TIAP GOLONGAN DIBELAH LAGI JADI BEBERAPA LEMBAR, sebanyak yang diperlukan
+ *  KOLOM_NILAI_PER_LEMBAR di atas. Pembelahannya selalu jatuh DI ANTARA pos,
+ *  tidak pernah di tengah-tengah pos: kepala "Pos 3 \u00b7 P3K" membentang di atas
+ *  kolom-kolomnya, dan pos yang terbelah dua lembar akan mencetak kepala itu
+ *  dua kali di atas separuh kolomnya masing-masing.
+ *
+ *  Empat kolom identitas dan kolom Total ADA DI SETIAP LEMBAR. Itu yang
+ *  membuat tiap lembar berdiri sendiri: kertas ini beredar sebagai lembaran
+ *  lepas, dan lembar tanpa nomor dada tidak bisa dicocokkan dengan apa pun,
+ *  sementara Total adalah angka yang paling sering dicari di lembar mana pun.
+ *
+ *  Kolom perjalanan \u2014 kontrak, kloter, berangkat, datang, anggota, penalti \u2014
+ *  ikut sebagai satu kelompok utuh di belakang pos terakhir, dan urutan itu
+ *  yang membuatnya berguna: Penalti selalu dibaca dengan pertanyaan "dari
+ *  mana", dan jawabannya persis kolom-kolom di sebelahnya.
+ *
+ *  Nama regu dan sekolah MEMBUNGKUS, tidak dipotong: nama yang terpotong
+ *  kehilangan gunanya sebagai cek silang, sementara baris yang tingginya tidak
+ *  rata cuma tidak enak dilihat. Kertas ini DIBACA, bukan ditulisi \u2014 garis
+ *  pandang mendatar yang dijaga lembar pos (CLAUDE.md 8) tidak sedang
+ *  dipertaruhkan di sini.
+ *
+ *  Yang tercetak persis yang tergambar: `baris` datang dari klasemen layar,
+ *  jadi ia sudah tersaring ke regu yang SUDAH BERANGKAT dan sudah terurut.
+ *  Kertas yang diam-diam berbeda dari layar yang tombolnya baru saja ditekan
+ *  adalah kertas yang salah. Buka ulang layar untuk mengambil nilai terbaru.
+ *
+ *  Mengembalikan jumlah baris yang benar-benar masuk cetakan, supaya
+ *  pemanggilnya bisa menolak membuka dialog cetak untuk nol baris \u2014 kertas
+ *  kosong yang keluar dari printer tidak menjelaskan apa pun. */
+function siapkanCetakRekap({ judul, baris, posKolom, rekapDada }) {
+  document.getElementById("cetakan")?.remove();
+  const dicetak = tanggalJam(new Date().toISOString());
+  const kepalaPos = kepalaPosRekap(posKolom);
+
+  const isiGolongan = URUT_GOLONGAN
+    .map(g => [g, baris.filter(k => k.golongan === g)])
+    .filter(([, isi]) => isi.length);
+  const jumlah = isiGolongan.reduce((n, isi) => n + isi[1].length, 0);
+  if (!jumlah) return 0;
+
+  /* Empat kolom identitas, sama di setiap lembar. Angka peringkatnya saja,
+     TANPA medali: medali di papan adalah emoji, dan emoji di kertas keluar
+     sebagai gambar berwarna atau kotak kosong tergantung printer dan fon yang
+     ada di alat itu \u2014 dua hal yang tidak diketahui saat kertasnya dibangun.
+     Angkanya sendiri sudah menyebut peringkatnya. */
+  const kepalaIdentitas = `
+    <th rowspan="2">#</th>
+    <th rowspan="2">No Dada</th>
+    <th rowspan="2">Regu</th>
+    <th rowspan="2" class="rekap-batas">Organisasi</th>`;
+  const selIdentitas = (k) => `
+    <td class="text-center">${esc(String(k.peringkat ?? ""))}</td>
+    <td class="text-center">${esc(dada3(k.nomor_dada))}</td>
+    <td>${esc(k.nama_regu)}</td>
+    <td class="rekap-batas">${esc(k.nama_sekolah)}</td>`;
+  const selTotal = (k) =>
+    `<td class="text-center"><strong>${esc(angkaRapi(k.total))}</strong></td>`;
+
+  /* KELOMPOK KOLOM \u2014 satu per pos, lalu satu untuk perjalanan. `lebar` adalah
+     angka yang menjaga kepala dan badan tetap sepasang; ia datang dari
+     kepalaPosRekap() untuk pos, dan diketik sekali di sini untuk perjalanan.
+
+     Sel pos diiris dari selPosRegu() memakai `lebar` yang sama, jadi tidak ada
+     tempat kedua yang memutuskan kolom mana milik pos mana. */
+  const KELOMPOK = [
+    ...kepalaPos.map((kp, i) => {
+      const mulai = kepalaPos.slice(0, i).reduce((n, x) => n + x.lebar, 0);
+      return {
+        lebar: kp.lebar, atas: kp.atas, bawah: kp.bawah,
+        sel: (k) => selPosRegu(k, posKolom, rekapDada)
+          .slice(mulai, mulai + kp.lebar)
+          .map(sel => `<td class="text-center${sel.batas ? " rekap-batas" : ""}">${
+            esc(sel.teks)}</td>`).join(""),
+      };
+    }),
+    {
+      lebar: 6,
+      atas: `
+        <th rowspan="2">Kontrak</th>
+        <th rowspan="2">Kloter</th>
+        <th rowspan="2">Berangkat</th>
+        <th rowspan="2">Datang</th>
+        <th rowspan="2">Anggota</th>
+        <th rowspan="2" class="rekap-batas">Penalti</th>`,
+      bawah: "",
+      sel: (k) => {
+        const rk = rekapDada.get(k.nomor_dada) || {};
+        return `
+          <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
+          <td class="text-center">${esc(rk.kloter ?? "\u2014")}</td>
+          <td class="text-center">${esc(rk.jam_berangkat
+            ? jamMenit(rk.jam_berangkat) : "\u2014")}</td>
+          <td class="text-center">${esc(rk.jam_datang
+            ? jamMenit(rk.jam_datang) : "\u2014")}</td>
+          <td class="text-center">${esc(rk.anggota_hadir ?? "\u2014")}</td>
+          <td class="text-center rekap-batas">${esc(angkaRapi(
+            Number(k.penalti_waktu) + Number(k.penalti_checkout)
+            + Number(k.penalti_anggota)))}</td>`;
+      },
+    },
+  ];
+
+  /* Dimasukkan ke lembar secara berurutan, kelompok demi kelompok utuh.
+     Satu kelompok yang sendirian sudah melebihi jatah tetap mendapat
+     lembarnya sendiri \u2014 membelahnya di tengah pos akan mencetak kepala pos
+     yang sama di dua lembar, dan itu lebih membingungkan daripada satu lembar
+     yang agak lebih penuh. */
+  const LEMBAR = [];
+  for (const kel of KELOMPOK) {
+    const akhir = LEMBAR[LEMBAR.length - 1];
+    if (akhir && akhir.lebar + kel.lebar <= KOLOM_NILAI_PER_LEMBAR) {
+      akhir.lebar += kel.lebar;
+      akhir.kelompok.push(kel);
+    } else {
+      LEMBAR.push({ lebar: kel.lebar, kelompok: [kel] });
+    }
+  }
+
+  const halaman = isiGolongan.flatMap(([g, isi]) =>
+    LEMBAR.map((lembar, i) => `
+    <section class="print-page rekap-cetak">
+      <h1>REKAP NILAI \u00b7 ${esc(judul)} \u00b7 ${esc(GOLONGAN_LABEL[g] || g)}</h1>
+      <!-- "Lembar 1/2" ditulis di tiap halaman karena kertas ini berpindah
+           tangan sebagai lembaran lepas. Lembar kedua yang berdiri sendiri
+           tanpa penanda terbaca seperti rekap yang kehilangan separuh
+           kolomnya. -->
+      <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} \u00b7
+         ${esc(String(isi.length))} regu \u00b7 Lembar ${i + 1}/${LEMBAR.length}
+         \u00b7 Dicetak ${esc(dicetak)}</p>
+      <table class="print-table">
+        <thead>
+          <tr>${kepalaIdentitas}${lembar.kelompok.map(x => x.atas).join("")}
+              <th rowspan="2">Total</th></tr>
+          <tr>${lembar.kelompok.map(x => x.bawah).join("")}</tr>
+        </thead>
+        <tbody>
+          ${isi.map(k => `<tr>${selIdentitas(k)}${
+            lembar.kelompok.map(x => x.sel(k)).join("")}${selTotal(k)}</tr>`).join("")}
+        </tbody>
+      </table>
+    </section>`)).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout">${halaman}</div>`));
+  return jumlah;
+}
 
 /* Dibatalkan tiap kali layar Live Score dibuka lagi: panel penyaring hidup di
    <body>, jadi tidak ada yang membuangnya saat pindah layar. */
@@ -5715,6 +5963,7 @@ async function layarLiveScore() {
       lomba: kelompokLomba(kolomPos(komponen.filter(k => k.pos === p.nomor))),
     }));
   const rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
+  const kepalaPos = kepalaPosRekap(posKolom);
   /* KEEMPAT golongan selalu digambar, dengan urutan tetap — bukan hanya yang
      kebetulan sudah punya baris.
      Empat golongan berlomba TERPISAH: masing-masing punya juara sendiri, dan
@@ -5841,8 +6090,7 @@ async function layarLiveScore() {
                        memuat LEBIH DARI SATU lomba. Pos 4 cuma punya PBB dan
                        Pos 5 cuma punya Yel-Yel: di sana "PBB 82 | Nilai 82"
                        adalah angka yang sama dua kali, bersebelahan. -->
-                  ${posKolom.map(p => `<th colspan="${p.lomba.length + (p.lomba.length > 1 ? 1 : 0)}"
-                    class="rekap-batas">Pos ${esc(String(p.nomor))} · ${esc(p.name)}</th>`).join("")}
+                  ${kepalaPos.map(x => x.atas).join("")}
                   <!-- Lima kolom perjalanan mendahului Penalti, dan urutan
                        itu yang membuatnya berguna: Penalti selalu dibaca
                        dengan pertanyaan "dari mana", dan jawabannya persis
@@ -5865,49 +6113,27 @@ async function layarLiveScore() {
                        "0 – 5" di bawah kolom berisi 80 justru membantahnya.
                        Rentangnya tetap ada di layar Input Pos dan di
                        Rekapitulasi, tempat ia memang menjawab pertanyaan. -->
-                  ${posKolom.map(p => {
-                    const satuLomba = p.lomba.length === 1;
-                    return p.lomba.map((l, i) =>
-                      `<th class="pos-kol${satuLomba && i === p.lomba.length - 1
-                        ? " rekap-batas" : ""}">${esc(l.nama)}</th>`).join("")
-                      + (satuLomba ? "" : `<th class="pos-kol rekap-batas">Nilai</th>`);
-                  }).join("")}
+                  ${kepalaPos.map(x => x.bawah).join("")}
                 </tr>
               </thead>
               <tbody>
                 ${baris.map(k => {
                   const rk = rekapDada.get(k.nomor_dada) || {};
-                  // Poin per KOMPONEN (0107) untuk sel lomba, poin per POS
-                  // untuk kolom Nilai di ujung tiap kelompok. Dua hal berbeda,
-                  // dua kunci berbeda — `pos.kode` lawan `pos`.
-                  const poinKomponen = rk.poin || {};
-                  const poin = k.poin_per_pos || {};
                   return `
                   <tr data-sekolah="${esc(k.nama_sekolah || "")}">
                     <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat ?? ""))}</span></td>
                     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
                     <td>${esc(k.nama_regu)}</td>
                     <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
-                    ${posKolom.map(p => {
-                      const satuLomba = p.lomba.length === 1;
-                      return p.lomba.map((l, i) => {
-                        // Satu lomba bisa punya baris wahana berbeda per
-                        // golongan; yang berlaku untuk regu INI yang dibaca.
-                        // `berlaku === 0` berarti lomba ini memang bukan untuk
-                        // golongannya — bukan berarti nilainya belum masuk.
-                        const r = ringkasLomba(l, k.golongan, p.nomor, poinKomponen);
-                        const batas = satuLomba && i === p.lomba.length - 1
-                          ? " rekap-batas" : "";
-                        if (!r.berlaku)
-                          return `<td class="text-center${batas}"><span class="sel-mati">–</span></td>`;
-                        return `<td class="text-center${batas}">${
-                          r.terisi ? selPoin(r.jumlah) : "–"}</td>`;
-                      }).join("")
-                      + (satuLomba ? ""
-                        : `<td class="text-center pos-nilai rekap-batas">${
-                            poin[String(p.nomor)] === undefined
-                              ? "–" : esc(angkaRapi(poin[String(p.nomor)]))}</td>`);
-                    }).join("")}
+                    <!-- Satu lomba bisa punya baris wahana berbeda per golongan;
+                         yang berlaku untuk regu INI yang dibaca. Aturannya
+                         duduk di selPosRegu(), bersama kepalaPosRekap() —
+                         kertas rekap memakai keduanya juga. -->
+                    ${selPosRegu(k, posKolom, rekapDada).map(sel =>
+                      `<td class="text-center${sel.nilai ? " pos-nilai" : ""}${
+                        sel.batas ? " rekap-batas" : ""}">${
+                        sel.mati ? `<span class="sel-mati">${esc(sel.teks)}</span>`
+                                 : esc(sel.teks)}</td>`).join("")}
                     <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
                     <td class="text-center">${esc(rk.kloter ?? "—")}</td>
                     <td class="text-center">${esc(rk.jam_berangkat
@@ -5942,6 +6168,26 @@ async function layarLiveScore() {
   // Tab pertama yang sudah ada isinya, supaya layar tidak terbuka pada
   // golongan kosong ketika golongan lain justru sudah penuh.
   const golAktif = GOL.find(g => jumlahGol[g] > 0) || GOL[0];
+
+  /* Dua tombol cetak, TANPA judul kartu dan TANPA paragraf penjelas: nama
+     tombolnya sudah menyebut apa yang keluar dari printer (CLAUDE.md 9.2 dan
+     9.9). Tempatnya di atas tab golongan, bukan di dalam panel golongan —
+     kertasnya memuat KEEMPAT golongan sekaligus, jadi tombol yang duduk di
+     dalam satu tab akan terbaca seperti "cetak tab ini saja".
+
+     Ikut hilang bersama papannya waktu belum ada regu yang bisa diperingkat:
+     tombol cetak di atas papan kosong cuma bisa menghasilkan kertas kosong. */
+  const cetakRekap = !klasemen.length ? "" : `
+    <div class="card">
+      <div class="option-row">
+        <button class="button button-primary" id="cetak-rekap-sekolah" type="button">
+          ${ikon("printer")} Rekap Nilai per Sekolah
+        </button>
+        <button class="button button-primary" id="cetak-rekap-semua" type="button">
+          ${ikon("printer")} Rekap Nilai Semua
+        </button>
+      </div>
+    </div>`;
 
   const tab = !klasemen.length ? "" : `
     <div class="tab-golongan" role="tablist" aria-label="Golongan">
@@ -5989,8 +6235,103 @@ async function layarLiveScore() {
      layar besar terbaca seperti hasil — dan itu yang diumumkan orang. */
   LAYAR.replaceChildren(h(`
     ${kemajuan}
+    ${cetakRekap}
     ${tab}
     ${papan}`));
+
+  /* ---- Cetak Rekap Nilai ----
+
+     `window.print()` HARUS tetap berada dalam giliran event tap: Safari
+     iPhone memblokirnya bila ada `await` lebih dulu, karena sesudah itu
+     panggilannya tidak lagi dianggap berasal langsung dari pengguna. Itu
+     yang membentuk kedua alur di bawah, dan yang paling terasa di alur per
+     sekolah — dialog pemilih TIDAK di-await lalu dicetak sesudahnya.
+     Sebaliknya, klik pada nama sekolah ITU SENDIRI yang membangun cetakan
+     dan memanggil print(), masih di dalam giliran tap-nya sendiri. */
+  const cetak = (judul, baris) => {
+    if (!siapkanCetakRekap({ judul, baris, posKolom, rekapDada })) {
+      notif("Tidak ada regu yang bisa dicetak.", true);
+      return;
+    }
+    window.print();
+  };
+
+  document.getElementById("cetak-rekap-semua")
+    ?.addEventListener("click", () => cetak("SEMUA REGU", klasemen));
+
+  document.getElementById("cetak-rekap-sekolah")?.addEventListener("click", () => {
+    /* Daftarnya dibangun dari KLASEMEN, bukan dari seluruh sekolah peserta.
+       Sekolah yang regunya belum satu pun berangkat tidak punya baris untuk
+       dicetak, dan menawarkannya cuma menghasilkan kertas kosong beserta
+       pertanyaan kenapa. Jumlah regunya ikut tertulis supaya petugas melihat
+       lebih dulu berapa baris yang akan keluar. */
+    const perSekolah = new Map();
+    for (const k of klasemen) {
+      const nm = k.nama_sekolah || "";
+      perSekolah.set(nm, (perSekolah.get(nm) || 0) + 1);
+    }
+    const daftar = [...perSekolah.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], "id"));
+
+    dialog({
+      judul: "Rekap Nilai per Sekolah",
+      /* Satu tombol per sekolah, bukan pilihan yang harus disusul tombol
+         Cetak: menekan namanya SUDAH menyatakan maksudnya, dan tombol kedua
+         cuma menambah satu ketukan pada layar yang dipakai sambil berdiri
+         (CLAUDE.md 9.2). Kotak carinya ada karena 23 sekolah hari ini masih
+         bisa disapu mata dan ratusan tahun depan tidak — bentuknya sama
+         dengan saringan sekolah di tabel, yang sudah dipakai orang di meja
+         ini tanpa diberi tahu.
+
+         Penandanya `data-sekolah-cetak`, BUKAN `data-sekolah`: nama yang
+         kedua sudah dipakai baris tabel di layar yang SAMA untuk saringan
+         sekolah. closest() di bawah memang tidak akan pernah menemukan baris
+         itu — pendengarnya duduk di dalam dialog dan barisnya di luar — tapi
+         satu nama untuk dua arti di satu layar adalah perangkap yang menunggu
+         pembaca berikutnya.
+
+         Catatan ini ditulis DI SINI dan bukan sebagai komentar HTML di dalam
+         template di bawah, dengan alasan yang sama seperti catatan dialog() di
+         util.js: satu backtick di dalam komentar itu MENUTUP template
+         literal-nya, dan seluruh app.js berhenti diparse. Versi pertama
+         catatan ini mengutip nama penandanya dalam kutip miring dan melakukan
+         persis itu. */
+      kartuHtml: `
+        <input type="search" class="cari-sekolah-cetak"
+               placeholder="Ketik nama sekolah…" aria-label="Cari sekolah">
+        <div class="daftar-cetak-sekolah">
+          ${daftar.map(([nm, n]) => `
+            <button type="button" class="button pilih-sekolah-cetak"
+                    data-sekolah-cetak="${esc(nm)}">
+              <span>${esc(nm)}</span>
+              <span class="tab-hitung">${esc(String(n))}</span>
+            </button>`).join("")}
+        </div>`,
+      silangSaja: true,
+      pasang: (el, tutup) => {
+        const cari = el.querySelector(".cari-sekolah-cetak");
+        cari?.addEventListener("input", () => {
+          const q = cari.value.trim().toLowerCase();
+          el.querySelectorAll("[data-sekolah-cetak]").forEach(b => {
+            b.hidden = q.length > 0
+              && !b.dataset.sekolahCetak.toLowerCase().includes(q);
+          });
+        });
+        el.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-sekolah-cetak]");
+          if (!b) return;
+          const nm = b.dataset.sekolahCetak;
+          // Ditutup DULU, lalu dicetak — keduanya di dalam giliran tap yang
+          // sama, jadi print() tetap sah di iPhone. Urutannya bukan selera:
+          // dialognya `position: fixed`, dan @media print membuang .overlay,
+          // tapi yang tertinggal terbuka akan menyambut petugas lagi begitu
+          // dialog cetak browser ditutup.
+          tutup(null);
+          cetak(nm, klasemen.filter(k => (k.nama_sekolah || "") === nm));
+        });
+      },
+    });
+  });
 
   /* Diperbarui DI TEMPAT, bukan dengan menggambar ulang layar.
      layarLiveScore() menarik snapshot dan status, lalu menggambar ulang
