@@ -162,6 +162,29 @@ function pasangKepala(judul, lebar = false) {
   const nav = document.getElementById("bottom-nav");
   if (nav) {
     nav.hidden = !s;
+    /* TINGGI MENU BAWAH DIUKUR, TIDAK DITEBAK.
+
+       Yang menempel di atas menu ini — tombol SIMPAN NILAI dan pesan notifikasi
+       — dulu memesan tempat sebanyak `56px`. Angka itu `min-height` SATU ITEM
+       menu, bukan tinggi menunya: isinya (ikon 1.9rem + jarak + label .72rem +
+       padding) melewatinya, dan terukur di Chrome 430px menunya 65.4px. Jadi
+       tombol yang seharusnya berhenti 8px di atas menu justru menembusnya
+       1.4px, dan di layar sungguhan keduanya terbaca menempel.
+
+       Menaikkan tebakannya cuma memindahkan tanggal kedaluwarsanya: tingginya
+       ikut ukuran huruf peranti dan safe area, yang berbeda antar HP. Yang
+       benar mengukurnya — sama seperti `--kepala` di bawah, yang ada karena
+       alasan yang sama persis.
+
+       `padding-bottom: env(safe-area-inset-bottom)` ada DI DALAM menunya, jadi
+       angka ini sudah memuatnya; yang memakainya tidak boleh menambahkan
+       `env()` lagi. */
+    if (!nav.hidden) {
+      const tinggiNav = Math.round(nav.getBoundingClientRect().height);
+      if (tinggiNav > 0) {
+        document.documentElement.style.setProperty("--nav-bawah", `${tinggiNav}px`);
+      }
+    }
     const diHome = location.hash === "#/home" || location.hash === "";
     document.getElementById("nav-home")
       .setAttribute("aria-current", diHome ? "page" : "false");
@@ -8164,10 +8187,9 @@ function gambarPemilihLomba(katalog) {
  *  papan ketik naik dan halamannya tergulir; kartu ini ikut bergulir bersama
  *  isinya. Yang dijawabnya satu pertanyaan yang mahal kalau salah — "angka
  *  yang saya ketik ini masuk ke lomba mana?" */
-const kepalaLomba = (l, tambahan = "") => `
+const kepalaLomba = (l) => `
   <div class="card baris-lomba">
     <h2 class="lomba-judul">${esc(l.nama)}</h2>
-    ${tambahan}
   </div>`;
 
 /* ---------------------------------------------------------------------------
@@ -8186,9 +8208,7 @@ async function gambarLombaNilai(l) {
 
   LAYAR.replaceChildren(h(`
     <div id="pita-antrean"></div>
-    ${kepalaLomba(l, `<button type="button"
-        class="button button-secondary button-small" id="v2-belum"
-        >Belum dinilai</button>`)}
+    ${kepalaLomba(l)}
     <div class="card" id="v2-kartu" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
         <label for="v2-dada">Nomor dada</label>
@@ -8300,70 +8320,6 @@ async function gambarLombaNilai(l) {
   const segarkanStopwatch = waktu
     ? pasangStopwatch(document.getElementById("v2-kartu"), wadah, kotakWaktu, sinyal)
     : null;
-
-  /* SIAPA YANG BELUM DINILAI DI LOMBA INI.
-   *
-   *  Menjelang tutup pos, pertanyaannya berbalik: bukan lagi "regu ini
-   *  nilainya berapa" melainkan "siapa yang terlewat". Tanpa daftar ini
-   *  jawabannya cuma bisa dicari dengan mengetik nomor dada satu per satu
-   *  sampai ketemu yang kosong — di lomba berisi ratusan regu itu bukan
-   *  pekerjaan yang bisa diselesaikan.
-   *
-   *  Dibaca saat DITEKAN, bukan ikut dimuat bersama layarnya: lembar satu pos
-   *  memuat ratusan baris, dan pertanyaan ini ditanyakan beberapa kali sepagi
-   *  — bukan setiap kali satu regu dinilai. Di jaringan pos, permintaan yang
-   *  tidak ditanya siapa pun tetap dibayar.
-   *
-   *  Yang lombanya tidak berlaku untuk golongan regu itu TIDAK ikut dihitung
-   *  belum dinilai. Regu Penggalang tidak pernah punya Tebak Simpul Penegak,
-   *  dan menuduhnya terlewat adalah alarm yang tidak bisa dipenuhi siapa pun. */
-  document.getElementById("v2-belum")?.addEventListener("click", async () => {
-    const b = document.getElementById("v2-belum");
-    b.disabled = true;
-    let lembar;
-    try { lembar = await lembarPos(l.pos); }
-    catch (err) { b.disabled = false; notif(err.message, true); return; }
-    b.disabled = false;
-
-    const belum = lembar.filter(r => {
-      const dipakai = l.kolom.map(kol => varianUntuk(kol, r.golongan)).filter(Boolean);
-      if (!dipakai.length) return false;
-      const nilai = r.nilai || {};
-      return dipakai.every(k => !nilai[k.kode]);
-    });
-
-    if (!belum.length) {
-      await dialog({ judul: `${l.nama} — semua sudah dinilai`,
-        kartuHtml: `<p class="description">Tidak ada regu yang terlewat.</p>`,
-        labelAksi: "Tutup", bacaSaja: true });
-      return;
-    }
-
-    /* Ditekan = nomornya masuk ke kotak isian. Daftar yang cuma bisa dibaca
-       memaksa petugas mengingat tiga angka lalu mengetiknya sendiri, dan
-       nomor dada yang salah ingat mendaratkan nilai di regu lain. */
-    const janji = dialog({
-      judul: `Belum dinilai · ${belum.length} regu`,
-      kartuHtml: `<ul class="daftar-belum">${belum.map(r => html`
-        <li><button type="button" data-dada="${r.nomor_dada}">
-          <span class="db-dada">${dada3(r.nomor_dada)}</span>
-          <span class="db-nama">${r.nama_regu}</span>
-          <span class="db-sekolah">${r.nama_sekolah}</span>
-        </button></li>`).join("")}</ul>`,
-      labelAksi: "Tutup", bacaSaja: true,
-    });
-
-    // dialog() menempelkan kartunya SINKRON, jadi pendengarnya boleh dipasang
-    // sebelum janjinya ditunggu.
-    document.querySelector(".dialog .daftar-belum")?.addEventListener("click", (e) => {
-      const t = e.target.closest("[data-dada]");
-      if (!t) return;
-      document.querySelector(".dialog [data-batal]")?.click();
-      inp.value = t.dataset.dada;
-      inp.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    await janji;
-  }, { signal: sinyal });
 
   inp.focus();
   gambarRiwayatNilai();
@@ -8628,22 +8584,6 @@ async function gambarLombaNilai(l) {
     regu = r;
     kotakRegu.replaceChildren(h(kartuReguNilai(r)));
 
-    /* LENCANA "SUDAH DINILAI", dan ia menyebutkan angkanya.
-       Kotak yang sudah terisi memang sudah memperlihatkan angkanya, tetapi
-       juri yang mengetik cepat tidak membaca isi kotak — ia membaca kartu
-       regunya lalu langsung mengetik. Menimpa nilai orang lain harus jadi
-       tindakan sadar, dan satu lencana di tempat mata sudah berhenti lebih
-       murah daripada satu sengketa nilai. */
-    const sudah = l.kolom
-      .map(kol => varianUntuk(kol, r.golongan))
-      .filter(k => k && (r.nilai || {})[k.kode]);
-    if (sudah.length) {
-      const teks = sudah
-        .map(k => nilaiBagian(k, r.nilai[k.kode].nilai_1, r.nilai[k.kode].nilai_2).join(" / "))
-        .join(" · ");
-      kotakRegu.append(h(`<div class="cek-sudah">
-        <span class="badge badge-yellow">sudah dinilai · ${esc(teks)}</span></div>`));
-    }
 
     gambarIsian(r);
 
