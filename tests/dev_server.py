@@ -56,6 +56,7 @@ RPC = {
     "batal_ceklis_berangkat":["p_nomor_dada"],
     "koreksi_jam_berangkat": ["p_kloter", "p_jam", "p_alasan"],
     "minta_segarkan_live_score": [],
+    "putar_foto_lembar":     ["p_id", "p_putaran"],
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
     "hapus_nilai_pos":       ["p_nomor_dada", "p_kode", "p_pos"],
     "kunci_nilai_pos":       ["p_nomor_dada", "p_pos", "p_lomba"],

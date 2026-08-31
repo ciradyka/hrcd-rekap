@@ -823,7 +823,20 @@ const TARGET_BYTES = 150 * 1024;
 export async function kecilkanFoto(file) {
   let gambar;
   try {
-    gambar = await createImageBitmap(file);
+    /* `imageOrientation: "from-image"` — dan tanpa itu foto slip dari HP
+       masuk MIRING, permanen.
+
+       Kamera HP hampir tidak pernah memutar pikselnya; ia menyimpan foto apa
+       adanya lalu menitipkan arah tegaknya di tag EXIF. createImageBitmap()
+       bawaannya MENGABAIKAN tag itu, dan kanvas di bawah menulis ulang
+       gambarnya jadi JPEG baru tanpa EXIF sama sekali. Jadi miringnya bukan
+       ditampilkan — ia TERPANGGANG ke dalam berkasnya, dan tidak ada layar
+       yang bisa membatalkannya lagi.
+
+       Foto yang sudah terlanjur tersimpan sebelum baris ini tetap miring;
+       itu yang ditangani `foto_lembar.putaran` (migrasi 0167). Baris ini
+       menghentikan yang baru. */
+    gambar = await createImageBitmap(file, { imageOrientation: "from-image" });
   } catch {
     throw new Error("Berkas ini tidak bisa dibaca sebagai gambar. Coba foto ulang.");
   }
@@ -965,7 +978,15 @@ const IKON = {
   "settings":
     '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" />',
   "square-pen":
-    '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /> <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />'
+    '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /> <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />',
+  // Disket. Lambangnya sudah lama tidak dikenali sebagai benda oleh yang
+  // memakainya, tapi ia tetap lambang "simpan" yang paling terbaca di layar
+  // mana pun — sama seperti gagang telepon untuk "telepon".
+  "save":
+    '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /> <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /> <path d="M7 3v4a1 1 0 0 0 1 1h7" />',
+  // Panah memutar searah jarum jam: foto diputar 90 derajat tiap ketukan.
+  "rotate-cw":
+    '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" />'
 };
 
 /** Satu ikon garis, siap ditempel ke template. Nama yang tidak dikenal

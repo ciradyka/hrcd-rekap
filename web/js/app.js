@@ -22,7 +22,7 @@ import {
   rentangNomorDada,
   komponenSemua, rekapPenuh, kelengkapanPos, cacheLiveScore,
   riwayatNilai, riwayatPendaftaran,
-  kunciNilaiPos, bukaKunciNilaiPos,
+  kunciNilaiPos, bukaKunciNilaiPos, putarFotoLembar,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
   hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
@@ -9814,6 +9814,14 @@ async function layarCekNilai() {
               <div class="cek-kepala">
                 <span class="cek-nama">${esc(l.nama)}</span>
               </div>
+              <!-- SATU BARIS: kotak isian, lambang simpan, lambang gembok.
+                   Sebelumnya tombol "Simpan" selebar kolomnya berdiri di baris
+                   sendiri di bawah angkanya, dan tinggi yang dimakannya diambil
+                   dari foto — di layar yang seluruh gunanya membandingkan
+                   angka dengan tulisan tangan, itu penukaran yang salah arah.
+
+                   Ketiganya berurutan sesuai cara dipakainya: baca angkanya,
+                   betulkan kalau perlu, simpan, lalu gembok. -->
               <div class="cek-isian" data-isian="${esc(l.kode)}">
                 ${angka}
                 <!-- GEMBOK DI SEBELAH NILAINYA, dan cukup lambangnya saja.
@@ -9827,9 +9835,11 @@ async function layarCekNilai() {
                      Judulnya tetap ada untuk pembaca layar dan untuk yang
                      menahan kursor di atasnya. -->
                 <div class="cek-baris-aksi">
-                  <button type="button" class="button button-primary button-small"
-                          data-simpan-lomba="${esc(l.kode)}">Simpan</button>
-                  <button type="button" class="icon-button icon-button-inline cek-gembok"
+                  <button type="button" class="icon-button cek-simpan"
+                          data-simpan-lomba="${esc(l.kode)}"
+                          title="Simpan ${esc(l.nama)}"
+                          aria-label="Simpan ${esc(l.nama)}">${ikon("save")}</button>
+                  <button type="button" class="icon-button cek-gembok"
                           data-gembok="${esc(l.kode)}"></button>
                 </div>
               </div>
@@ -9900,15 +9910,87 @@ async function layarCekNilai() {
       el.replaceChildren(h(milik.map((f, i) => {
         const url = peta[f.path];
         const judul = `Foto ${i + 1}${f.diunggah_pada ? ` · ${tanggalJam(f.diunggah_pada)}` : ""}`;
-        return url
-          ? `<a class="fg-petak" href="${esc(url)}" target="_blank" rel="noopener"
-                title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
-                loading="lazy"></a>`
-          : `<span class="fg-petak fg-kosong">tautan gagal</span>`;
+        if (!url) return `<span class="fg-petak fg-kosong">tautan gagal</span>`;
+        /* Sudutnya dibawa `data-putar`, bukan gaya sebaris: yang memutar CSS,
+           dan CSS perlu tahu 90/270 supaya bisa MENUKAR lebar dengan tinggi.
+           Gambar yang cuma diputar tanpa ditukar ukurannya meluap keluar
+           petaknya — separuh slipnya hilang, dan itu kebalikan dari gunanya.
+
+           Tombol putarnya DI DALAM petak, bukan di bawahnya: ia milik foto
+           tepat di belakangnya, dan di kolom berisi dua foto kepemilikan itu
+           harus terbaca tanpa dihitung. */
+        return `<div class="fg-petak" data-putar="${esc(String(f.putaran || 0))}">
+            <a class="fg-buka" href="${esc(url)}" target="_blank" rel="noopener"
+               title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
+               loading="lazy"></a>
+            <button type="button" class="icon-button fg-putar"
+                    data-putar-foto="${esc(f.id)}"
+                    title="Putar 90°" aria-label="Putar foto 90 derajat"
+              >${ikon("rotate-cw")}</button>
+          </div>`;
       }).join("")));
       if (nav) pasangGeserCek(el, nav);
+      ukurPetak(el);
     });
   }
+
+  /** Ukuran petak foto, dituliskan ke CSS.
+   *
+   *  Putaran 90 dan 270 menukar lebar dengan tinggi, dan CSS tidak bisa
+   *  membaca ukuran elemen sendiri — jadi diukur di sini. Tingginya berubah
+   *  mengikuti tinggi layar (tata letak satu-layar mengambil sisa ruang),
+   *  jadi angka tetap apa pun akan benar di satu ukuran saja.
+   *
+   *  Diukur ulang saat petaknya berubah ukuran; pengamatnya dilepas bersama
+   *  sinyal layar. */
+  function ukurPetak(wadah) {
+    const pasang = () => wadah.querySelectorAll(".fg-petak").forEach(pt => {
+      const k = pt.getBoundingClientRect();
+      pt.style.setProperty("--petak-w", `${Math.round(k.width)}px`);
+      pt.style.setProperty("--petak-h", `${Math.round(k.height)}px`);
+    });
+    pasang();
+    const pengamat = new ResizeObserver(pasang);
+    pengamat.observe(wadah);
+    putusSaatPindah(sinyal, pengamat);
+  }
+
+  /* Memutar foto. Sudutnya DISIMPAN (0167), jadi sekali diputar ia tegak
+     untuk siapa pun dan di layar mana pun — bukan cuma sampai pindah regu.
+
+     Petaknya diputar SEKETIKA, sebelum jawaban server datang: memutar adalah
+     gerakan yang diulang sambil membaca, dan menunggu jaringan tiap ketukan
+     membuatnya terasa rusak. Kalau server menolak, sudutnya dikembalikan dan
+     galatnya disebut.
+
+     Satu pendengar di wadahnya, bukan satu per tombol: petaknya dibuang dan
+     dibuat lagi tiap kali regunya berganti, dan pendengar yang menempel
+     padanya ikut menumpuk. */
+  elIsi.addEventListener("click", async (e) => {
+    const tombol = e.target.closest("[data-putar-foto]");
+    if (!tombol) return;
+    // Petaknya memuat <a> yang membuka foto penuh; tanpa ini memutar ikut
+    // membuka tab baru.
+    e.preventDefault();
+    e.stopPropagation();
+    if (tombol.disabled) return;
+
+    const petak = tombol.closest(".fg-petak");
+    const lama = Number(petak.dataset.putar) || 0;
+    const baru = (lama + 90) % 360;
+    petak.dataset.putar = String(baru);
+    tombol.disabled = true;
+    try {
+      const jadi = await putarFotoLembar(tombol.dataset.putarFoto, baru);
+      // Server yang menormalkan; angkanya dipakai apa adanya supaya layar dan
+      // database tidak pernah berbeda pendapat soal sudut yang berlaku.
+      if (jadi !== null && jadi !== undefined) petak.dataset.putar = String(jadi);
+    } catch (err) {
+      petak.dataset.putar = String(lama);
+      notif(err.message, true);
+    }
+    tombol.disabled = false;
+  }, { signal: sinyal });
 
   /** Kotak isian dan tombol simpan mati saat nilainya terkunci.
    *

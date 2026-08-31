@@ -4925,13 +4925,31 @@ button.pill-number:hover { filter: brightness(.95); }
    regunya menempel ke kotak lomba di bawahnya dan keduanya terbaca sebagai
    satu blok — padahal yang satu identitas dan yang satu lagi nilai. */
 .cek-identitas { margin-bottom: .9rem; }
-/* Gembok per lomba: Simpan dan gembok berdampingan, di bawah kotak nilainya.
-   Gemboknya cukup lambang — yang membedakan terkunci dari tidak adalah
-   BENTUKNYA, tertutup atau terbuka, dan kata "Kunci Nilai" lima kali di satu
-   layar mengajarkan satu hal yang dipelajari sekali (CLAUDE.md 9.1). */
-.cek-baris-aksi { display: flex; align-items: center; gap: .4rem; }
-.cek-baris-aksi [data-simpan-lomba] { flex: 1; }
-.cek-gembok { flex: 0 0 auto; color: var(--tinta-lembut); }
+/* SATU BARIS: kotak isian, lambang simpan, lambang gembok — berurutan sesuai
+   cara dipakainya (baca angkanya, betulkan, simpan, gembok).
+
+   Keduanya cukup lambang. Tombol "Simpan" bertulisan selebar kolomnya dulu
+   berdiri di baris sendiri, dan tinggi yang dimakannya diambil dari foto — di
+   layar yang seluruh gunanya membandingkan angka dengan tulisan tangan, itu
+   penukaran yang salah arah. */
+.cek-baris-aksi { display: flex; align-items: center; justify-content: center; gap: .5rem; }
+.cek-simpan, .cek-gembok { flex: 0 0 auto; }
+.cek-simpan { color: var(--utama); }
+.cek-simpan:hover:not(:disabled) { background: var(--utama-muda); }
+.cek-gembok { color: var(--tinta-lembut); }
+
+/* TERGEMBOK: kotaknya jadi abu-abu, lambang simpannya pudar.
+   Dua isyarat untuk satu keadaan, dan keduanya perlu — kotak abu-abu
+   mengatakan "tidak bisa diketik", lambang simpan yang pudar mengatakan
+   "tidak ada yang bisa disimpan". Gemboknya sendiri TIDAK dipudarkan: ia
+   satu-satunya jalan keluar dari keadaan ini, dan tombol pudar terbaca
+   seperti tombol mati. */
+.cek-isian input:disabled {
+  background: var(--garis);
+  color: var(--tinta-lembut);
+  cursor: not-allowed;
+}
+.cek-simpan:disabled { opacity: .3; cursor: not-allowed; }
 /* Tergembok memerah, dan itu bukan peringatan melainkan KEADAAN: merah di
    sistem ini dipakai untuk yang menghentikan, dan gembok tertutup memang
    menghentikan penyimpanan. */
@@ -4994,6 +5012,52 @@ button.pill-number:hover { filter: brightness(.95); }
   display: flex; align-items: center; justify-content: center;
 }
 .cek-foto img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* ---- PUTARAN FOTO ----
+
+   Kamera HP menyimpan foto apa adanya dan menitipkan arah tegaknya di EXIF;
+   kompresi unggahan dulu mengabaikannya, jadi sebagian slip terpanggang
+   miring. Sudut putarnya disimpan per foto (migrasi 0167) dan DITERAPKAN DI
+   SINI — berkasnya tidak pernah disentuh.
+
+   90 dan 270 MENUKAR LEBAR DENGAN TINGGI, dan itu bagian yang mudah terlewat:
+   gambar yang cuma diberi `rotate(90deg)` tetap diukur browser memakai kotak
+   aslinya, jadi sesudah diputar ia meluap keluar petaknya dan separuh slipnya
+   hilang. Karena itu ukurannya ditukar lebih dulu — lebarnya jadi tinggi
+   petak, tingginya jadi lebar petak — lalu diputar dari titik tengahnya.
+
+   `--petak-w` dan `--petak-h` diisi JavaScript lewat ResizeObserver: tinggi
+   petak berubah mengikuti tinggi layar (tata letak satu-layar mengambil sisa
+   ruang), jadi angka tetap apa pun akan benar di satu ukuran saja. */
+.fg-petak { position: relative; }
+.fg-buka { display: block; width: 100%; height: 100%; }
+.cek-foto .fg-buka img { width: 100%; height: 100%; object-fit: contain; }
+
+.fg-petak[data-putar="90"] .fg-buka img,
+.fg-petak[data-putar="270"] .fg-buka img {
+  width: var(--petak-h, 100%);
+  height: var(--petak-w, 100%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.fg-petak[data-putar="90"] .fg-buka img  { transform: translate(-50%, -50%) rotate(90deg); }
+.fg-petak[data-putar="180"] .fg-buka img { transform: rotate(180deg); }
+.fg-petak[data-putar="270"] .fg-buka img { transform: translate(-50%, -50%) rotate(270deg); }
+
+/* Tombol putar mengambang di pojok petaknya. Latar putih separuh tembus,
+   bukan ikon telanjang: slip adalah kertas putih, dan lambang abu-abu di
+   atasnya hilang sama sekali. */
+.fg-putar {
+  position: absolute; right: .3rem; bottom: .3rem; z-index: 2;
+  min-width: 34px; min-height: 34px;
+  background: rgba(255, 255, 255, .86);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
+  color: var(--tinta);
+}
+.fg-putar:hover:not(:disabled) { background: #fff; }
+.fg-putar .ikon { width: 1.05rem; height: 1.05rem; }
 
 /* ---------------------------------------------------------------------------
    CEK NILAI DI LAPTOP: SATU LAYAR, SEBANYAK MUNGKIN FOTO, TANPA MENGGULIR.
