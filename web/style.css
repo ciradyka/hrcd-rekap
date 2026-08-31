@@ -3406,6 +3406,72 @@ button.pill-number:hover { filter: brightness(.95); }
   }
   .table-bayar tbody tr[data-baris] > td:last-child { grid-area: 3 / 1 / auto / 4; }
 
+  /* ---------- KARTU HP DATA PESERTA ----------
+
+     BENTUKNYA MENIRU MEJA PEMBAYARAN, dan itu keputusan sadar: dua layar yang
+     menampilkan daftar pendaftaran yang sama tidak boleh menuntut dibaca
+     dengan dua cara. Kode pembayaran di kiri, sekolah di kanan, lalu satu
+     baris keterangan, lalu isian.
+
+     YANG DIBUANG LABEL KOLOMNYA. Kartu ini sebelumnya menuliskan "Tanggal:",
+     "Kode Bayar:", "Asal Sekolah:", "Regu:", "Contact Person:" dan
+     "WhatsApp:" — enam label untuk enam nilai, dan di layar 430px keenamnya
+     memakan lebih banyak tempat daripada nilai yang mereka namai. Satu kartu
+     jadi setinggi separuh layar, dan tiga kartu tidak muat sekaligus di layar
+     yang seluruh gunanya MEMBANDINGKAN pendaftaran.
+
+     Tanpa label pun kartunya tidak kabur, dengan alasan yang sama seperti
+     Meja Pembayaran: kode pembayaran bentuknya khas (huruf mesin ketik,
+     selalu diawali HRCD), sekolah satu-satunya nama tebal, tombol regu
+     menyebut satuannya sendiri, dan kedua kotak isian sudah menyebut dirinya
+     lewat contoh isian ("misal: Bu Rina", "misal: 08123456789") — yang satu
+     jelas nama orang, yang satu jelas nomor.
+
+     Tanggalnya DIREDUPKAN, bukan dibuang: ia satu-satunya yang menjawab
+     "pendaftaran ini masuk kapan" saat dua sekolah senama berdampingan, tapi
+     ia tidak pernah jadi alasan orang membuka layar ini. */
+  .data-table.table-peserta tbody tr[data-baris] > td[data-label]::before { content: none; }
+  .table-peserta tbody tr[data-baris] {
+    display: grid;
+    /* Kolom pertama DIPATOK, tidak `max-content` seperti Meja Pembayaran.
+       Bedanya karena kartu ini memuat KOTAK ISIAN, dan lebar bawaan sebuah
+       <input> ikut menentukan `max-content` kolomnya: terukur di 430px
+       kolomnya melar jadi 252px dan sisa kartunya tinggal 69px — nama sekolah,
+       tanggal, dan nomor WA semuanya terjepit. 9rem cukup untuk kode
+       pembayaran (terukur 118px) dan tidak bergantung pada isi sel mana pun. */
+    grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    gap: .25rem .7rem;
+    align-items: center;
+  }
+  /* Nomor garis ditulis EKSPLISIT, sama seperti Meja Pembayaran — bentuk `-1`
+     di sana membuat isinya balik ke kolom pertama dan bertumpuk. */
+  .table-peserta tbody tr[data-baris] > td[data-label="Kode Bayar"]    { grid-area: 1 / 1; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Asal Sekolah"]  { grid-area: 1 / 2; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Regu"]          { grid-area: 2 / 1; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"]       { grid-area: 2 / 2; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"] { grid-area: 3 / 1; }
+  .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"]      { grid-area: 3 / 2; }
+  /* Tombol regu rata KIRI di kolomnya, bukan di tengah: kolom pertama dipatok
+     lebar kode pembayaran, dan tombol yang mengambang di tengahnya tidak
+     sejajar dengan apa pun di atas maupun di bawahnya. */
+  .table-peserta tbody tr[data-baris] > td[data-label="Regu"] { text-align: left; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"] {
+    font-size: .8rem; color: var(--tinta-lembut);
+  }
+  /* Kotak isian MENGISI selnya. Aturan kembarnya sudah ada, tapi terkurung di
+     blok `min-width: 901px` — jadi di rentang kartu kotaknya memakai lebar
+     bawaan <input> (~180px), meluap keluar selnya yang 118px, dan menimpa
+     kolom sebelahnya. Terukur di 430px sebelum baris ini ada. */
+  .table-peserta tbody tr[data-baris] .small-input {
+    width: 100%; min-width: 0;
+    /* RATA KIRI dua-duanya. `.small-input` menengahkan isinya karena kelas itu
+       lahir untuk kotak ANGKA di dalam tabel nilai; nomor WA yang mengambang
+       di tengah kotak selebar 173px tidak sejajar dengan satu pun tepi lain di
+       kartu ini, dan tepi kiri yang lurus dari atas ke bawah adalah seluruh
+       alasan bentuk kartu ini ditiru dari Meja Pembayaran. */
+    text-align: left;
+  }
+
   /* KARTU LEBAR (640px ke atas, tapi masih kartu): semuanya SATU BARIS, dan
      hanya tombolnya turun.
 
