@@ -958,6 +958,28 @@ export const simpanKejuaraanTerjauh = (sekolahId) =>
 
 const BUCKET = "lembar";
 
+/* GUDANG BERKAS DEV. Dev server menyimpan byte-nya di direktori sementara dan
+   melayaninya kembali lewat /storage/<path> — lihat keterangan panjangnya di
+   tests/dev_server.py.
+
+   Sampai 1 September 2026 mode dev membuang gambarnya dan mengembalikan peta
+   tautan KOSONG, jadi tidak satu pun foto pernah tergambar di laptop dan
+   seluruh alur gambar — menggeser, memutar, mengurutkan, menghapus — tidak
+   pernah dijalankan sekali pun di luar produksi.
+
+   Ketiganya hanya berjalan saat `K.mode === "dev"`. Di produksi tidak ada
+   satu baris pun di bawah ini yang tersentuh. */
+const gudangDev = (path) => `${K.devUrl}/storage/${path.split("/").map(encodeURIComponent).join("/")}`;
+
+async function simpanGudangDev(path, blob) {
+  await fetch(gudangDev(path), { method: "POST", body: blob });
+}
+
+async function hapusGudangDev(path) {
+  try { await fetch(gudangDev(path), { method: "DELETE" }); }
+  catch { /* berkas yatim di direktori sementara tidak merugikan siapa pun */ }
+}
+
 /** Nama objek di bucket. Prefiks pertama WAJIB `pos<n>` — itulah yang dipagari
  *  policy storage.objects, dan RPC catat_foto_lembar menolak path yang tidak
  *  cocok dengan posnya. */
@@ -977,8 +999,11 @@ export async function unggahFotoLembar(pos, kodeLomba, namaLomba, nomorDada, blo
   const path = namaObjekFoto(pos, kodeLomba, nomorDada);
 
   if (K.mode === "dev") {
-    // Dev server tidak punya Storage. Barisnya tetap dicatat supaya alur
-    // layarnya bisa dicoba tanpa Supabase.
+    // Gambarnya DISIMPAN, bukan dibuang: tanpa byte-nya layar Cek Nilai dan
+    // dialog Foto Jawaban tidak menggambar apa pun, dan keduanya tidak bisa
+    // diperiksa di laptop. Urutannya sama dengan produksi — gambar dulu,
+    // baris sesudahnya — supaya yang diuji alur yang sama.
+    await simpanGudangDev(path, blob);
     await rpc("catat_foto_lembar", {
       p_nomor_dada: nomorDada, p_pos: pos, p_kode_lomba: kodeLomba,
       p_nama_lomba: namaLomba, p_path: path, p_ukuran: blob.size,
@@ -1051,7 +1076,8 @@ export async function fotoLembarPos(pos) {
  *  URL tetap — dan itu memang yang diinginkan: link yang tidak kedaluwarsa
  *  akan beredar di WhatsApp selamanya. Satu jam cukup untuk melihatnya. */
 export async function tautanFoto(path) {
-  if (K.mode === "dev") return null;
+  if (!path) return null;
+  if (K.mode === "dev") return gudangDev(path);
   await pastikanSesiSegar();
   const j = await kirim(`${K.supabaseUrl}/storage/v1/object/sign/${BUCKET}/${path}`, {
     method: "POST",
@@ -1072,7 +1098,10 @@ export async function tautanFoto(path) {
  *  sebabnya pemanggil lama harus membuka jendela kosong lebih dulu lalu
  *  mengisinya belakangan. */
 export async function tautanFotoBanyak(paths) {
-  if (K.mode === "dev" || !paths.length) return {};
+  if (!paths.length) return {};
+  if (K.mode === "dev") {
+    return Object.fromEntries(paths.map(p => [p, gudangDev(p)]));
+  }
   await pastikanSesiSegar();
   const j = await kirim(`${K.supabaseUrl}/storage/v1/object/sign/${BUCKET}`, {
     method: "POST",
@@ -1102,7 +1131,11 @@ export async function tautanFotoBanyak(paths) {
  *  gagal" padahal fotonya memang sudah hilang cuma membuatnya menekan lagi. */
 export async function hapusFotoLembar(id, alasan) {
   const path = await rpc("hapus_foto_lembar", { p_id: id, p_alasan: alasan });
-  if (K.mode === "dev") return path;
+  if (K.mode === "dev") {
+    // Urutannya sama dengan produksi di bawah: baris dulu, objek sesudahnya.
+    if (path) await hapusGudangDev(path);
+    return path;
+  }
   if (path) {
     try {
       await pastikanSesiSegar();
@@ -1167,6 +1200,7 @@ export async function unggahFotoMasuk(pos, kodeLomba, namaLomba, blob) {
   };
 
   if (K.mode === "dev") {
+    await simpanGudangDev(path, blob);
     const id = await rpc("catat_foto_masuk", argumen);
     return { id, path, ukuran: blob.size };
   }

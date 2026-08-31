@@ -13,10 +13,14 @@
 # Siapkan db-nya sekali dengan: bash tests/dev_database.sh
 # ============================================================================
 
+import hashlib
 import json
 import http.server
 import os
+import struct
+import tempfile
 import urllib.parse
+import zlib
 
 import psycopg2
 import psycopg2.extras
@@ -39,6 +43,65 @@ DSN = " ".join([
 ])
 PORT = 8787
 
+# ============================================================================
+# GUDANG BERKAS TIRUAN — supaya FOTO bisa dibuka di laptop.
+#
+# Sampai 1 September 2026 tidak bisa: tautanFotoBanyak() mengembalikan peta
+# kosong begitu modenya "dev", jadi tidak satu pun foto pernah mendapat URL
+# dan SELURUH jalur gambar — menggeser, memutar, mengurutkan, menghapus —
+# tidak pernah berjalan sekali pun di luar produksi. Dua kali dalam satu hari
+# itu menghalangi perbaikan yang terpaksa dikirim tanpa pernah dilihat
+# layarnya (CLAUDE.md 17.2).
+#
+# Yang dibutuhkan sederhana: tempat menaruh byte dan cara mengambilnya lagi.
+# BUKAN di dalam repo — berkas uji tidak boleh mengotori pohon kerja — jadi di
+# direktori sementara milik sistem. Isinya boleh hilang kapan saja: barisnya
+# ada di database, dan yang kehilangan bytenya digantikan gambar contoh.
+# ============================================================================
+GUDANG = os.path.join(tempfile.gettempdir(), "hrcd-dev-storage")
+
+
+def _jalur_gudang(path):
+    """Path objek -> berkas di disk, dengan nama yang tidak bisa keluar dari
+    GUDANG. Memakai nama aslinya apa adanya akan mengizinkan '../..'."""
+    kunci = hashlib.sha256(path.encode()).hexdigest()
+    return os.path.join(GUDANG, kunci)
+
+
+def _png_contoh(path):
+    """Gambar pengganti untuk objek yang barisnya ada tapi bytenya tidak —
+    baris lama, atau database yang dibangun ulang sesudah gudangnya terhapus.
+
+    Bukan kotak kosong: warnanya diturunkan dari path, jadi dua foto berbeda
+    TERLIHAT berbeda dan urutannya bisa diperiksa dengan mata. Ada pita gelap
+    di seperempat atas supaya PUTARAN 90/180/270 ikut terlihat — gambar
+    simetris tidak bisa membuktikan apa pun soal putaran.
+
+    Tegak 3:4, sama seperti slip yang difoto panitia.
+
+    Byte-nya ditulis sebagai ANGKA, bukan escape: berkas ini pernah rusak
+    karena satu "backslash-x-nol-nol" berubah jadi byte nol sungguhan saat
+    disunting lewat perkakas, dan Python menolak berkas yang memuatnya dengan
+    galat yang tidak menyebut barisnya."""
+    w, h = 240, 320
+    n = int(hashlib.sha256(path.encode()).hexdigest()[:6], 16)
+    warna = bytes((120 + n % 100, 120 + (n >> 8) % 100, 120 + (n >> 16) % 100))
+    gelap = bytes((40, 40, 40))
+    saring = bytes((0,))          # filter "None" di awal tiap baris PNG
+    baris = [saring + (gelap if y < h // 4 else warna) * w for y in range(h)]
+    mentah = b"".join(baris)
+
+    def bagian(tipe, data):
+        c = tipe + data
+        return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+
+    tanda = bytes((137, 80, 78, 71, 13, 10, 26, 10))
+    return (tanda
+            + bagian(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+            + bagian(b"IDAT", zlib.compress(mentah))
+            + bagian(b"IEND", b""))
+
+
 # Argumen yang bertipe text[] di Postgres, bukan jsonb. Dipisah karena
 # keduanya sampai ke sini sebagai list JSON yang sama persis.
 # Argumen yang tujuannya ARRAY Postgres — apa pun jenis elemennya. Namanya
@@ -49,6 +112,28 @@ PORT = 8787
 # TIDAK PERNAH berhasil di laptop, dan tidak ada yang tahu karena jawabannya
 # cuma muncul sebagai notifikasi merah yang lewat.
 ARRAY_PG = {"p_anggota", "p_kloter"}
+
+# Cast eksplisit per nama argumen. Postgres TIDAK meng-coerce literal
+# bertipe bebas menjadi smallint/uuid/timestamptz saat memilih overload
+# fungsi, jadi tanpa cast panggilannya gagal dengan "function ... does not
+# exist" — kalimat yang terbaca seperti migrasi yang belum jalan, padahal
+# fungsinya ada.
+#
+# Daftar ini pernah tertinggal DUA KALI dalam satu hari: `p_kloter` membuat
+# "Simpan waktu cetak" tidak pernah berhasil di laptop, dan `p_putaran`
+# membuat tombol putar foto diam-diam mengembalikan sudutnya. Karena itu
+# sekarang ada _periksa_cast() di bawah, yang membandingkan daftar ini dengan
+# tanda tangan fungsi yang SUNGGUHAN ada di database setiap kali server
+# dinyalakan.
+CAST_ARG = {
+    "p_baris": "::jsonb", "p_nomor": "::jsonb", "p_pos": "::smallint",
+    "p_menit": "::smallint", "p_kloter": "::smallint",
+    "p_anggota_hadir": "::smallint", "p_jumlah": "::smallint",
+    "p_regu": "::uuid", "p_jam": "::timestamptz",
+    "p_jam_datang": "::timestamptz", "p_id": "::uuid",
+    "p_putaran": "::smallint", "p_sekolah": "::uuid", "p_foto_id": "::uuid",
+    "p_regu_id": "::uuid", "p_anggota": "::text[]",
+}
 
 # RPC yang boleh dipanggil layar, beserta urutan argumennya.
 RPC = {
@@ -112,19 +197,56 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.end_headers()
         self.wfile.write(raw)
 
     def do_OPTIONS(self):
         self._kirim(204, {})
 
+    def do_DELETE(self):
+        """Hapus objek gudang. Berkas yang memang tidak ada bukan kegagalan —
+        yang diminta pemanggil adalah keadaan 'tidak ada lagi', dan itu sudah
+        tercapai."""
+        u = urllib.parse.urlparse(self.path)
+        if not u.path.startswith("/storage/"):
+            return self._kirim(404, {"message": "tidak ada"})
+        path = urllib.parse.unquote(u.path[len("/storage/"):])
+        try:
+            os.remove(_jalur_gudang(path))
+        except FileNotFoundError:
+            pass
+        return self._kirim(200, {"path": path})
+
     def _badan(self):
         n = int(self.headers.get("Content-Length") or 0)
         return json.loads(self.rfile.read(n) or b"{}")
 
+    def _kirim_gambar(self, isi, tipe="image/png"):
+        self.send_response(200)
+        self.send_header("Content-Type", tipe)
+        self.send_header("Content-Length", str(len(isi)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        # Tanpa ini browser memakai salinan lamanya sesudah foto diputar atau
+        # diganti, dan yang tergambar bukan yang baru saja disimpan.
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(isi)
+
     # ------------------------------------------------------------------ GET
     def do_GET(self):
+        # Berkas gudang dilayani SEBELUM rute JSON: ia bukan API, dan
+        # jawabannya bukan JSON.
+        if self.path.startswith("/storage/"):
+            path = urllib.parse.unquote(self.path[len("/storage/"):].split("?")[0])
+            berkas = _jalur_gudang(path)
+            if os.path.exists(berkas):
+                with open(berkas, "rb") as f:
+                    return self._kirim_gambar(f.read(), "image/jpeg")
+            # Barisnya ada tapi bytenya tidak. Gambar contoh, bukan 404: yang
+            # sedang diuji tata letak dan alurnya, dan kotak rusak menghentikan
+            # keduanya lebih awal daripada yang perlu.
+            return self._kirim_gambar(_png_contoh(path))
         u = urllib.parse.urlparse(self.path)
         p = dict(urllib.parse.parse_qsl(u.query))
         try:
@@ -373,6 +495,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
     # ----------------------------------------------------------------- POST
     def do_POST(self):
         u = urllib.parse.urlparse(self.path)
+        # Unggahan gudang: bytenya mentah, bukan JSON, jadi ia ditangani
+        # sebelum _badan() dipanggil.
+        if u.path.startswith("/storage/"):
+            path = urllib.parse.unquote(u.path[len("/storage/"):])
+            n = int(self.headers.get("Content-Length") or 0)
+            os.makedirs(GUDANG, exist_ok=True)
+            with open(_jalur_gudang(path), "wb") as f:
+                f.write(self.rfile.read(n))
+            return self._kirim(200, {"path": path, "ukuran": n})
         try:
             if u.path == "/login":
                 b = self._badan()
@@ -499,11 +630,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     nilai.append(v)
                 # Postgres tidak meng-coerce integer->smallint saat memilih
                 # overload fungsi — cast eksplisit per jenis argumen.
-                CAST = {"p_baris": "::jsonb", "p_nomor": "::jsonb", "p_pos": "::smallint",
-                        "p_menit": "::smallint", "p_kloter": "::smallint",
-                        "p_anggota_hadir": "::smallint", "p_jumlah": "::smallint",
-                        "p_regu": "::uuid", "p_jam": "::timestamptz",
-                        "p_jam_datang": "::timestamptz", "p_id": "::uuid"}
+                CAST = dict(CAST_ARG)
                 if nama == "tandai_kloter_dicetak":
                     CAST = {**CAST, "p_kloter": "::smallint[]"}
                 tanda = ", ".join("%s" + CAST.get(k, "") for k in urutan)
@@ -524,6 +651,58 @@ class Handler(http.server.BaseHTTPRequestHandler):
         print(f"[dev] {self.address_string()} {fmt % args}")
 
 
+def _periksa_cast():
+    """Bandingkan CAST_ARG dengan tanda tangan fungsi yang SUNGGUHAN ada di
+    database, lalu berteriak kalau ada yang tertinggal.
+
+    Ini ada karena dua kerusakan yang bentuknya sama persis dan dua-duanya
+    diam: satu argumen smallint atau uuid tanpa cast membuat Postgres tidak
+    menemukan overload-nya, dan pesannya berbunyi "function ... does not
+    exist" — kalimat yang mengarahkan pembacanya ke migrasi, bukan ke berkas
+    ini. Yang satu membuat "Simpan waktu cetak" tidak pernah berhasil, yang
+    satu lagi membuat tombol putar foto mengembalikan sudutnya sendiri.
+
+    TIDAK mematikan server. Yang dicetak peringatan, karena database yang
+    belum lengkap migrasinya juga akan memicunya, dan menolak menyala di situ
+    menghalangi satu-satunya alat untuk membetulkannya."""
+    perlu = ("smallint", "uuid", "timestamp", "date", "interval", "jsonb", "[]")
+    try:
+        with psycopg2.connect(DSN) as conn, conn.cursor() as cur:
+            cur.execute(r"""
+                select p.proname, an.nama, at.tipe
+                from pg_proc p
+                join pg_namespace n on n.oid = p.pronamespace and n.nspname = 'public',
+                     lateral unnest(p.proargnames) with ordinality as an(nama, i),
+                     lateral unnest(string_to_array(
+                         pg_get_function_identity_arguments(p.oid), ', ')
+                     ) with ordinality as at(tipe, j)
+                where an.i = at.j and an.nama like 'p\_%'
+            """)
+            tipe = {}
+            for fungsi, nama, tanda in cur.fetchall():
+                tipe.setdefault(fungsi, {})[nama] = tanda
+    except Exception as e:                       # noqa: BLE001
+        print(f"  (cast tidak diperiksa: {e})", flush=True)
+        return
+
+    kurang = []
+    for fungsi, args in RPC.items():
+        for a in args:
+            t = tipe.get(fungsi, {}).get(a)
+            if t and any(k in t for k in perlu) and a not in CAST_ARG:
+                kurang.append(f"{fungsi}({a} {t.split(' ', 1)[-1]})")
+    if kurang:
+        print("  PERINGATAN: argumen RPC tanpa cast di CAST_ARG:", flush=True)
+        for k in sorted(kurang):
+            print(f"    {k}", flush=True)
+        print("  Panggilannya akan gagal dengan 'function ... does not exist'.",
+              flush=True)
+    else:
+        print(f"  cast RPC lengkap ({len(RPC)} fungsi diperiksa)", flush=True)
+
+
 if __name__ == "__main__":
     print(f"dev server hrcd-rekap -> http://127.0.0.1:{PORT}  (db hrcd_dev @ 55432)")
+    print(f"  gudang berkas: {GUDANG}")
+    _periksa_cast()
     http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
