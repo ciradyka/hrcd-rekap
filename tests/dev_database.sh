@@ -441,6 +441,10 @@ run supabase/migrations/0167_putaran_foto.sql
 # lama dengan sengaja, jadi berkas ini satu-satunya tempat konfigurasi produksi
 # benar-benar disusun ulang — dan karena itu satu-satunya tempat bentuknya bisa
 # ditanyakan dengan jujur. Alasan lengkapnya di ujung tests/run.sh.
+#
+# PENJAGANYA SENDIRI DIUJI DUA ARAH oleh tests/dev/bentuk_lomba_check.sh: ia
+# menyuntikkan lima kerusakan di dalam transaksi lalu membatalkannya, dan
+# menuntut kelimanya DITOLAK. Tanpa arah kedua, `select true` juga lulus.
 run tests/dev/bentuk_lomba_produksi.sql
 
 echo "hrcd_dev siap — akun: admin.ciradyka / meja1hrcd37 / pos1hrcd37 (password bebas di dev)"
