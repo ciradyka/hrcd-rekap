@@ -730,6 +730,25 @@ run tests/sql/118_gembok_per_lomba.sql
 run supabase/migrations/0167_putaran_foto.sql
 run tests/sql/119_putaran_foto.sql
 
+# tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
+# perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.
+#
+# Ia memeriksa bentuk lomba KONFIGURASI PRODUKSI — Pembidaian lima kriteria,
+# PBB empat, Yel-Yel empat, KIM dua lomba terpisah. Database di sini memakai
+# konfigurasi edisi LAMA dengan sengaja (Kompas, Poros Bumi, PBB di Pos 2, KIM
+# di Pos 4), karena itulah yang menguji migrasinya terhadap data yang sudah
+# berisi. Memaksakan bentuk produksi di sini cuma akan memaksa fixture-nya
+# berbohong.
+#
+# Yang menjalankannya tests/dev_database.sh, satu-satunya yang menyusun ulang
+# konfigurasi produksi.
+#
+# Karena itu ia duduk di tests/dev/, BUKAN tests/sql/. Pagar di kepala berkas
+# ini menuntut setiap tests/sql/*.sql muncul pada sebuah baris `run`, dan
+# tuntutan itu benar — sebuah berkas SQL yang diam-diam tidak pernah
+# dijalankan persis kerusakan yang dijaganya. Yang salah bukan pagarnya
+# melainkan tempat berkasnya.
+
 # Parse dan jalankan query yang benar-benar menjadi live.json, SESUDAH
 # seluruh migrasi. Ini menangkap view atau kolom yang berganti sebelum
 # workflow publish menemukannya di produksi.
