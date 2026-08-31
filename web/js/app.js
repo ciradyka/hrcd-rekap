@@ -8151,6 +8151,28 @@ async function layarInputPos2() {
     return;
   }
 
+  /* LOMBA YANG SEDANG DIBUKA DITULIS DI ALAMATNYA — `#/pos2/2:bakiak`.
+
+     Sebelumnya memilih lomba cuma mengganti isi layar, jadi alamatnya tetap
+     `#/pos2` dan tombol Back HP melompat ke Home: petugas yang salah menekan
+     Semaphore harus menempuh Home -> Input Nilai Pos v2 untuk kembali ke
+     daftar yang baru saja ia tinggalkan.
+
+     Sekarang pemilih dan lomba adalah dua alamat, jadi Back mengembalikan
+     pemilihnya — perilaku yang tidak perlu diajarkan ke siapa pun. Kuncinya
+     `pos:kode` (katalogLomba), dan kode lomba datang dari database, jadi ia
+     di-encode. */
+  const ekor = ekorRute(layarIni);
+  if (ekor) {
+    const l = katalog.find(x => x.kunci === ekor);
+    if (l) { await bukaLomba(l); return; }
+    // Kunci yang tidak dikenal — bookmark dari edisi lain, atau konfigurasi
+    // yang berubah sejak alamatnya disimpan. Pemilihnya digambar, dan
+    // alamatnya dirapikan tanpa menambah entri Back palsu.
+    history.replaceState(null, "", "#/pos2");
+    hashLayar = "#/pos2";
+  }
+
   gambarPemilihLomba(katalog);
 }
 
@@ -8206,8 +8228,10 @@ function gambarPemilihLomba(katalog) {
   LAYAR.addEventListener("click", (e) => {
     const b = e.target.closest("[data-kunci]");
     if (!b) return;
-    const l = katalog.find(x => x.kunci === b.dataset.kunci);
-    if (l) bukaLomba(l);
+    // Yang membuka lombanya arahkan(), bukan baris ini: satu jalur saja yang
+    // menggambar layar lomba, dan jalur itu sama entah petugas menekan
+    // kotaknya, menekan Back, atau membuka alamatnya langsung.
+    location.hash = `#/pos2/${encodeURIComponent(b.dataset.kunci)}`;
   }, { signal: sinyalLayarBaru() });
 }
 
@@ -10424,6 +10448,25 @@ async function layarCekNilai() {
   await muatPos();
 }
 
+/* ALAMAT BOLEH BERBUNTUT: `#/pos2/2:bakiak`.
+
+   Satu-satunya yang memakainya hari ini Input Nilai Pos v2, dan alasannya
+   tombol Back: pemilih lomba dan lomba yang terbuka harus jadi DUA entri
+   riwayat, kalau tidak Back melompat ke layar sebelum `#/pos2` sama sekali.
+
+   Ditulis sebagai fungsi, BUKAN `const`, karena layarInputPos2() memanggilnya
+   dari atas berkas ini. Deklarasi fungsi terangkat; `const` tidak, dan yang
+   didapat cuma ReferenceError saat layarnya dibuka (bagian 17.3). */
+function pangkalRute(hash) {
+  return hash.split("/").slice(0, 2).join("/");
+}
+
+/** Bagian sesudah pangkalnya, sudah di-decode. "" kalau tidak ada. */
+function ekorRute(hash) {
+  const potong = hash.indexOf("/", 2);
+  return potong < 0 ? "" : decodeURIComponent(hash.slice(potong + 1));
+}
+
 const RUTE = {
   "#/home": layarHome,
   "#/foto": layarFoto,
@@ -10480,7 +10523,7 @@ async function arahkan() {
   // hashchange, jadi fungsi ini berjalan sekali lagi; `return` menahannya
   // supaya layarnya tidak digambar dua kali.
   if (location.hash === "#/akun") { location.hash = "#/account"; return; }
-  (RUTE[location.hash] || layarHome)();
+  (RUTE[pangkalRute(location.hash)] || layarHome)();
 }
 
 // Tiga aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
