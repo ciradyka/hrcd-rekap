@@ -9751,8 +9751,17 @@ async function layarCekNilai() {
              dilakukan ratusan kali. */
           return `
             <section class="cek-lomba">
+              <!-- CEKLIS DI SEBELAH KANAN JUDUL, dan judulnya TETAP di tengah.
+                   Ketiga selnya disusun 1fr auto 1fr, jadi lebar penandanya
+                   tidak ikut menentukan di mana judulnya jatuh — kalau
+                   keduanya sekadar didempetkan di tengah, judulnya bergeser
+                   ke kiri saat penandanya muncul, dan bergeser lagi saat
+                   berganti dari titik-titik ke centang. Judul yang berjoget
+                   tiap kali nilai disimpan terbaca seperti layar yang salah.
+                   -->
               <div class="cek-kepala">
                 <span class="cek-nama">${esc(l.nama)}</span>
+                <span class="cek-status" data-status="${esc(l.kode)}"></span>
               </div>
               <!-- SATU BARIS: kotak isian, lambang simpan, lambang gembok.
                    Sebelumnya tombol "Simpan" selebar kolomnya berdiri di baris
@@ -9763,6 +9772,14 @@ async function layarCekNilai() {
                    Ketiganya berurutan sesuai cara dipakainya: baca angkanya,
                    betulkan kalau perlu, simpan, lalu gembok. -->
               <div class="cek-isian" data-isian="${esc(l.kode)}">
+                <!-- CERMIN GEMBOK. Kotak isian hanya benar-benar di tengah
+                     kalau kedua sisinya memesan tempat yang sama; dengan
+                     gembok di kanan saja, kotaknya terdorong ke kiri sebanyak
+                     separuh lebar gembok. Selebar gemboknya, tak terlihat, dan
+                     bukan sekadar jarak kosong: lebarnya datang dari aturan
+                     yang sama dengan gemboknya, jadi keduanya tidak bisa
+                     berselisih suatu hari. -->
+                <span class="cek-imbang" aria-hidden="true"></span>
                 <!-- Kotak isian dibungkus supaya lambang di sebelahnya berdiri
                      di kanan SELURUH kelompoknya, bukan di kanan kotak
                      terakhir. Pembidaian punya lima kriteria bertumpuk; tanpa
@@ -9787,11 +9804,8 @@ async function layarCekNilai() {
                      tombol yang tidak pernah perlu ditekan, dan tombol seperti
                      itu justru membuat orang ragu apakah angkanya tersimpan
                      kalau ia LUPA menekannya. -->
-                <div class="cek-baris-aksi">
-                  <span class="cek-status" data-status="${esc(l.kode)}"></span>
-                  <button type="button" class="gembok cek-gembok"
-                          data-gembok="${esc(l.kode)}"></button>
-                </div>
+                <button type="button" class="gembok cek-gembok"
+                        data-gembok="${esc(l.kode)}"></button>
               </div>
               <div class="cek-foto" data-foto="${esc(l.kode)}"></div>
               <!-- Panah dan penghitung, disembunyikan sampai lombanya
