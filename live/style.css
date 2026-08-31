@@ -4980,3 +4980,119 @@ button.pill-number:hover { filter: brightness(.95); }
   display: flex; align-items: center; justify-content: center;
 }
 .cek-foto img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* ---------------------------------------------------------------------------
+   CEK NILAI DI LAPTOP: SATU LAYAR, SEBANYAK MUNGKIN FOTO, TANPA MENGGULIR.
+
+   Layar ini dipakai untuk MENGECEK — mata melompat dari angka yang diketik ke
+   tulisan tangan di fotonya, lomba demi lomba, ratusan kali. Satu kolom
+   menurun memaksa gerakan yang membunuh pekerjaan itu: terukur di 1440x820
+   dengan Pos 1 (lima lomba, lima foto), halamannya 3239px sementara layarnya
+   820px — harus menggulir 2419px, dan yang terlihat tanpa menggulir CUMA SATU
+   FOTO dari lima.
+
+   Di sini lomba dijejer MENYAMPING dan tingginya dikunci ke layar, jadi
+   kelimanya terlihat sekaligus dan tidak ada yang perlu digulir.
+
+   Kenapa 1000px, bukan 561px seperti ambang HP yang lain: di bawah itu lima
+   kolom masing-masing sempit sekali, dan foto selebar 150px tidak menjawab
+   pertanyaan yang membuat orang membuka layar ini. Di HP dan tablet sempit,
+   satu kolom menurun tetap bentuk yang benar — di sana menggulir memang
+   satu-satunya cara, dan fotonya besar.
+   --------------------------------------------------------------------------- */
+@media (min-width: 1000px) {
+  /* Setinggi layar, dan lebar penuh: `wide` mematoknya 1080px, dan patokan itu
+     yang menentukan berapa kolom muat. `--kepala` diukur JavaScript, karena
+     tinggi header berubah mengikuti panjang nama akun. */
+  .isi.cek {
+    max-width: none;
+    height: calc(100dvh - var(--kepala, 52px));
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    padding: .6rem .8rem;
+    overflow: hidden;
+  }
+  /* Kartu kendali (pilih pos + navigasi) dan identitas regu dirampingkan:
+     tiap piksel yang mereka pakai diambil dari tinggi foto. */
+  .isi.cek > .card { margin-bottom: 0; padding: .55rem .8rem; flex: 0 0 auto; }
+  .isi.cek .cek-identitas { margin-bottom: 0; }
+
+  /* Kendali dan identitas SEBARIS, bukan bertumpuk. Dua blok bertumpuk di
+     atas memakan ~170px; sebaris ~90px, dan selisihnya jatuh ke foto. */
+  .isi.cek .baris-pilih { margin: 0; }
+  .isi.cek .cek-navigasi { margin: 0; }
+  .isi.cek .cek-posisi { margin: 0; }
+  /* `.isi.cek > .card`, BUKAN `:first-of-type`. Saudara pertama di dalam
+     .isi adalah <div id="pita-antrean">, dan `div:first-of-type` menunjuk
+     DIA — bukan kartu ini — jadi aturannya tidak pernah mengenai apa pun dan
+     kartunya tetap `display: block` setinggi 163px. Terukur di browser, bukan
+     dibaca (CLAUDE.md 15.9 dan 15.12). Wadah lomba tidak ikut kena karena ia
+     bersarang di dalam #cek-isi, bukan anak langsung .isi. */
+  .isi.cek > .card {
+    display: flex; align-items: end; gap: 1rem 1.4rem; flex-wrap: wrap;
+  }
+  /* Identitas regu ikut sebaris, bukan blok sendiri di bawahnya: dua blok
+     bertumpuk memakan 304px dari 762px yang ada, dan seluruh selisihnya
+     jatuh ke tinggi foto. */
+  .isi.cek .cek-identitas { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .isi.cek .cek-identitas .card-identity {
+    flex: 1 1 auto; padding: .5rem .8rem; margin-bottom: 0;
+  }
+  .isi.cek .cek-identitas .card-identity .nama { font-size: 1.1rem; }
+  .isi.cek .cek-identitas .card-identity .detail { font-size: .85rem; }
+  .isi.cek .cek-kunci { margin-top: 0; flex: 0 0 auto; }
+
+  #cek-isi { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .6rem; }
+  /* Wadah lomba mengisi sisa tinggi, dan ISINYA yang menyesuaikan — bukan
+     sebaliknya. `min-height: 0` wajib: anak flex bawaannya tidak boleh
+     menyusut di bawah tinggi isinya, dan tanpa itu wadah ini mendorong
+     halaman jadi lebih tinggi daripada layar, persis yang sedang diperbaiki. */
+  #cek-isi > .card {
+    flex: 1; min-height: 0; margin-bottom: 0; padding: .7rem;
+    display: grid;
+    /* 185px, bukan 230px. Diukur: pada 230px lima lomba Pos 1 TIDAK muat di
+       laptop 1024px, gridnya membungkus jadi dua baris, dan tinggi yang
+       dibagi dua membuat fotonya runtuh jadi 35px — tidak terbaca sama
+       sekali, dan justru kebalikan dari yang diminta layar ini.
+
+       170px, bukan 185: pada 185 kelima kolom plus empat celah berjumlah
+       976px dari ~976px yang tersedia di laptop 1024 — persis di ambangnya,
+       dan ia tetap membungkus. Angka pertama minmax cuma BATAS BAWAH; `1fr`
+       yang melebarkan kolomnya di layar besar, jadi menurunkannya tidak
+       mengecilkan apa pun di 1440 atau 1920. Terukur, bukan ditaksir. */
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: .8rem;
+    /* Katup pengaman, bukan keadaan biasa: lomba berkriteria banyak
+       (Pembidaian, lima kotak) bisa melebihi tinggi layar di layar pendek.
+       Yang menggulir kemudian kotak lombanya, bukan seluruh halaman. */
+    overflow: auto;
+  }
+  /* Garis pemisah jadi TEGAK, karena lombanya sekarang bersebelahan.
+     Garis mendatar di antara kolom yang berjajar memisahkan hal yang salah. */
+  .isi.cek .cek-lomba {
+    padding: 0 0 0 .8rem;
+    border-top: 0;
+    border-left: 1px solid var(--garis);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .isi.cek .cek-lomba:first-child { padding-left: 0; border-left: 0; }
+  /* Kotak isian dirampingkan: 52px x lima kriteria memakan tinggi yang
+     seluruhnya diambil dari foto. Tetap di atas 16px supaya iOS tidak
+     memaksa zoom saat kotaknya disentuh (aturan di kepala berkas ini). */
+  .isi.cek .cek-isian { margin: .3rem 0; gap: .35rem; }
+  .isi.cek .cek-isian .small-input { font-size: 1.15rem; min-height: 42px; }
+  .isi.cek .cek-isian [data-simpan-lomba] { min-width: 0; width: 100%; }
+
+  /* FOTO MENGISI SISA TINGGI KOLOMNYA. Inilah yang membuat "sebanyak mungkin"
+     berarti sesuatu: tingginya tidak dipatok angka tetap melainkan apa pun
+     yang tersisa sesudah nama, kotak isian, dan tombolnya. */
+  /* `min-height` di sini adalah PAGAR, bukan ukuran: kalau suatu tahun
+     lombanya bertambah sampai gridnya tetap membungkus, foto yang runtuh
+     jadi puluhan piksel tidak menjawab apa pun. Di bawah pagar ini yang
+     mengalah wadahnya — ia menggulir (overflow: auto di atas) — dan fotonya
+     tetap terbaca. */
+  .isi.cek .cek-foto { flex: 1; min-height: 150px; margin-top: .3rem; }
+  .isi.cek .cek-foto .fg-petak { height: 100%; }
+  .isi.cek .cek-lomba .foto-navigasi { margin-top: .25rem; flex: 0 0 auto; }
+}
