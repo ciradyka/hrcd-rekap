@@ -9823,7 +9823,11 @@ async function layarCekNilai() {
                    Ketiganya berurutan sesuai cara dipakainya: baca angkanya,
                    betulkan kalau perlu, simpan, lalu gembok. -->
               <div class="cek-isian" data-isian="${esc(l.kode)}">
-                ${angka}
+                <!-- Kotak isian dibungkus supaya lambang di sebelahnya berdiri
+                     di kanan SELURUH kelompoknya, bukan di kanan kotak
+                     terakhir. Pembidaian punya lima kriteria bertumpuk; tanpa
+                     pembungkus ini lambangnya ikut turun ke baris kelima. -->
+                <div class="cek-angka">${angka}</div>
                 <!-- GEMBOK DI SEBELAH NILAINYA, dan cukup lambangnya saja.
                      Alurnya: panitia melihat foto slip di bawah, mencocokkan
                      dengan angka di atasnya, lalu mengetuk gembok. Kata
