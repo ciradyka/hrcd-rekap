@@ -1173,6 +1173,11 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .print-table .dada { font-size: 15pt; font-weight: 800; text-align: center; width: 15mm; }
   /* Kolom centang kehadiran diisi tangan di lapangan. */
   .print-table .kotak { width: 18mm; }
+  /* Kontrak waktu juga ditulis tangan, dan butuh lebih lega daripada satu
+     centang: yang masuk ke sini "3,5 jam" atau "09:10" dalam tulisan tangan
+     yang buru-buru, di garis start, sambil berdiri. Tetap PUTIH dan kosong —
+     tidak ada contoh isian yang dicetak di dalamnya (CLAUDE.md 8.7). */
+  .print-table .kotak-kontrak { width: 26mm; }
 
   /* Lembar papan/barak: jam perkiraan harus terbaca dari jarak berdiri. */
   .jam-besar { font-size: 18pt; font-weight: 800; margin: .3rem 0 .6rem; }
