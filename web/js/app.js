@@ -4326,46 +4326,30 @@ async function layarInputPos() {
     tr.classList.toggle("baris-terkunci", kunci);
     tr.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
 
+    /* LAMBANG, BUKAN TOMBOL — sejak 0166 menggembok pindah seluruhnya ke layar
+       Cek Nilai, per lomba (keputusan pemilik acara, 31 Agustus 2026).
+
+       Kenapa dipindah: yang menggembok menyatakan "angka ini sudah dicocokkan
+       dengan foto slipnya", dan pencocokan itu tidak terjadi di sini — layar
+       ini tidak memperlihatkan fotonya. Juri yang menggembok dari sini
+       menyatakan sesuatu yang tidak bisa ia lihat.
+
+       Lambangnya TETAP DIGAMBAR, dan justru itu gunanya sekarang: barisnya
+       mati, dan tanpa lambang gembok petugas cuma melihat kotak yang tidak
+       bisa diketik tanpa satu pun keterangan kenapa. Yang hilang cuma
+       kemampuan mengetuknya.
+
+       `terkunci` di baris ini berarti "ADA lomba pos ini yang tergembok"
+       (0166 pasal 4). Lebih menahan daripada perlu, dan itu memang arah yang
+       benar: menahan yang boleh diubah cuma merepotkan, meloloskan yang sudah
+       diverifikasi menghapus pekerjaan orang. */
     const sel = tr.querySelector(".pos-gembok");
-    sel.replaceChildren(h(`<button type="button" class="gembok"
-      data-gembok aria-pressed="${kunci}"
-      title="${kunci ? "Terkunci — buka kunci (admin)"
-                     : "Kunci nilai"}">${
-      ikon(kunci ? "lock" : "lock-open")}</button>`));
-    sel.querySelector("[data-gembok]").addEventListener("click", () => ubahGembok(tr));
+    sel.replaceChildren(h(`<span class="gembok gembok-tanda"
+      title="${kunci ? "Terkunci di Cek Nilai — buka di sana"
+                     : "Belum dikunci"}"
+      aria-label="${kunci ? "terkunci" : "belum dikunci"}">${
+      ikon(kunci ? "lock" : "lock-open")}</span>`));
   };
-
-  /** Mengunci, atau langsung membukanya kembali. */
-  async function ubahGembok(tr) {
-    const dada = Number(tr.dataset.dada);
-    const kunci = tr.dataset.terkunci === "1";
-    const tiga = dada3(dada);
-
-    if (!kunci) {
-      // Gembok hanya boleh mengesahkan SEMUA angka yang sudah dibaca kembali
-      // dari database. `jumlah_komponen` sudah memperhitungkan golongan regu,
-      // jadi sel yang memang tidak berlaku tidak ikut menahan gembok.
-      if (tr.dataset.keadaan !== "tersimpan"
-          || Number(tr.dataset.terisi) !== Number(tr.dataset.komponen)) {
-        notif(`Nilai ${tiga} belum lengkap. Isi semuanya dan tunggu tanda ✓.`, true);
-        return;
-      }
-      try { await kunciNilaiPos(dada, pos.nomor); }
-      catch (err) { notif(`Gagal mengunci: ${err.message}`, true); return; }
-      tr.dataset.terkunci = "1";
-      gambarGembok(tr);
-      notif(`Nilai ${tiga} dikunci.`);
-      return;
-    }
-
-    // RPC lama masih menyimpan alasan di riwayat. Teks tetap ini menjaga
-    // jejak pembukaan tanpa memaksa petugas melewati dialog konfirmasi.
-    try { await bukaKunciNilaiPos(dada, pos.nomor, "Dibuka dari Input Nilai Pos"); }
-    catch (err) { notif(`Gagal membuka: ${err.message}`, true); return; }
-    tr.dataset.terkunci = "";
-    gambarGembok(tr);
-    notif(`Kunci ${tiga} dibuka.`);
-  }
 
   /** Riwayat perubahan nilai satu regu di pos ini.
    *
@@ -8064,13 +8048,19 @@ const posUntukAkun = (s, semuaPos) => {
  *
  *  Gembok tetap ada, dan itu bukan pengecualian: ia satu-satunya keadaan yang
  *  membuat kotak di bawahnya menolak diisi, jadi ia harus terbaca SEBELUM
- *  petugas mengetik (bagian 9.4). */
+ *  petugas mengetik (bagian 9.4).
+ *
+ *  Sejak 0166 ia menyebut BERAPA lomba, bukan sekadar "dikunci". Gembok kini
+ *  per lomba: "dikunci" pada regu yang satu dari lima lombanya tergembok
+ *  membaca seperti seluruh nilainya beku, dan petugas berhenti mengetik yang
+ *  sebenarnya masih boleh diisi. */
 const kartuReguNilai = (r) => `
   <div class="card card-identity" style="margin:0">
     ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
     <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
-    ${r.terkunci ? `<div style="margin-top:.4rem">
-      <span class="badge badge-gray">${ikon("lock")} dikunci</span></div>` : ""}
+    ${(r.lomba_terkunci || []).length ? `<div style="margin-top:.4rem">
+      <span class="badge badge-gray">${ikon("lock")} ${
+        esc(String(r.lomba_terkunci.length))} lomba dikunci</span></div>` : ""}
   </div>`;
 
 /* ---------------------------------------------------------------------------
@@ -8778,7 +8768,16 @@ async function gambarLombaNilai(l) {
       el.setAttribute("enterkeyhint", i === kotakIsi.length - 1 ? "done" : "next");
     });
 
-    const kunci = !!r.terkunci;
+    /* Gembok LOMBA INI, bukan gembok posnya (0166). Layar ini menampilkan
+       satu lomba pada satu waktu, jadi `r.terkunci` — yang berarti "ada lomba
+       pos ini yang tergembok" — akan mematikan lomba yang justru belum
+       diperiksa siapa pun.
+
+       `lomba_terkunci` datang dari v_lembar_pos. Baris lama yang belum
+       membawanya jatuh ke larik kosong, bukan ke "semuanya terkunci": yang
+       menegakkan tetap server, dan layar yang mengunci sendiri karena datanya
+       belum sampai lebih membingungkan daripada layar yang membiarkannya. */
+    const kunci = (r.lomba_terkunci || []).includes(l.kode);
     wadah.querySelectorAll("input").forEach(el => { el.disabled = kunci; });
     tombol.disabled = kunci;
     tombol.textContent = kunci ? "DIKUNCI" : "SIMPAN NILAI";
@@ -9778,9 +9777,10 @@ async function layarCekNilai() {
        bertanda tangan butuh satu perjalanan jaringan per regu, dan layar yang
        kosong selama itu membuat petugas menekan "Berikutnya" dua kali. */
     elIsi.replaceChildren(h(`
-      <div class="cek-identitas">${kartuReguNilai(r)}
-        <div class="cek-kunci" id="cek-kunci"></div>
-      </div>
+      <!-- Tidak ada lagi blok gembok di kartu identitas: gemboknya sekarang
+           duduk di sebelah nilai tiap lomba, tempat keputusannya benar-benar
+           diambil. -->
+      <div class="cek-identitas">${kartuReguNilai(r)}</div>
       <div class="card">
         ${daftar.map(l => {
           const dipakai = l.kolom
@@ -9816,8 +9816,22 @@ async function layarCekNilai() {
               </div>
               <div class="cek-isian" data-isian="${esc(l.kode)}">
                 ${angka}
-                <button type="button" class="button button-primary button-small"
-                        data-simpan-lomba="${esc(l.kode)}">Simpan</button>
+                <!-- GEMBOK DI SEBELAH NILAINYA, dan cukup lambangnya saja.
+                     Alurnya: panitia melihat foto slip di bawah, mencocokkan
+                     dengan angka di atasnya, lalu mengetuk gembok. Kata
+                     "Kunci Nilai" di sebelah tiap angka akan diulang lima
+                     kali di satu layar untuk satu hal yang dipelajari sekali
+                     (CLAUDE.md 9.1); yang membedakan terkunci dari tidak
+                     adalah BENTUK gemboknya, tertutup atau terbuka.
+
+                     Judulnya tetap ada untuk pembaca layar dan untuk yang
+                     menahan kursor di atasnya. -->
+                <div class="cek-baris-aksi">
+                  <button type="button" class="button button-primary button-small"
+                          data-simpan-lomba="${esc(l.kode)}">Simpan</button>
+                  <button type="button" class="icon-button icon-button-inline cek-gembok"
+                          data-gembok="${esc(l.kode)}"></button>
+                </div>
               </div>
               <div class="cek-foto" data-foto="${esc(l.kode)}"></div>
               <!-- Panah dan penghitung, disembunyikan sampai lombanya
@@ -9901,11 +9915,23 @@ async function layarCekNilai() {
    *  Kotak yang masih bisa diketik tapi selalu ditolak adalah jebakan, dan
    *  penolakannya baru muncul sesudah admin mengetik angka yang ia kira
    *  tersimpan. Yang menegakkan tetap server; ini supaya ia tahu lebih dulu. */
+  /** Lomba mana saja yang tergembok untuk regu yang sedang terbuka.
+   *
+   *  `lomba_terkunci` datang dari v_lembar_pos (0166). Baris lama yang belum
+   *  membawanya jatuh ke larik kosong — bukan ke "semuanya terkunci": layar
+   *  yang mengunci semuanya karena datanya belum sampai lebih membingungkan
+   *  daripada layar yang membiarkannya, dan yang menegakkan tetap server. */
+  const lombaTerkunci = () => new Set(
+    (lembar.length && lembar[indeks].lomba_terkunci) || []);
+
   function matikanSaatTerkunci() {
     if (!lembar.length) return;
-    const kunci = !!lembar[indeks].terkunci;
-    elIsi.querySelectorAll(".cek-isian input, [data-simpan-lomba]")
-      .forEach(el => { el.disabled = kunci; });
+    const kunci = lombaTerkunci();
+    elIsi.querySelectorAll("[data-isian]").forEach(wadah => {
+      const mati = kunci.has(wadah.dataset.isian);
+      wadah.querySelectorAll("input, [data-simpan-lomba]")
+        .forEach(el => { el.disabled = mati; });
+    });
   }
 
   /** Panah dan penghitung untuk SATU petak foto.
@@ -9963,60 +9989,99 @@ async function layarCekNilai() {
    *  yang belum lengkap. Pemeriksaan di sini cuma supaya admin tahu SEBELUM
    *  menekan, bukan sesudah ditolak — dan angkanya dibaca dari baris yang
    *  sama yang menggambar layar ini, jadi keduanya tidak bisa berselisih. */
+  /** Gembok tiap lomba: satu lambang di sebelah nilainya.
+   *
+   *  Digambar ulang di tempat, bukan lewat gambarRegu(): panitia sedang
+   *  menatap foto di tengah layar, dan menggambar ulang seluruh layar
+   *  melempar gulirannya.
+   *
+   *  KELENGKAPAN DIPERIKSA PER LOMBA, dan pemeriksaan itu ada di sini karena
+   *  tidak ada yang melakukannya di tempat lain: kunci_nilai_pos() memeriksa
+   *  hak dan keberadaan regunya, TIDAK kelengkapannya. Akibat menggembok
+   *  terlalu awal bukan sekadar data setengah jadi — lomba yang tergembok
+   *  ditolak simpan_nilai_massal, jadi ia MEMBLOKIR juri yang belum sempat
+   *  memasukkan kriteria sisanya. */
   function gambarKunci() {
-    const el = document.getElementById("cek-kunci");
-    if (!el || !lembar.length) return;
+    if (!lembar.length) return;
     const r = lembar[indeks];
-    const kunci = !!r.terkunci;
-    el.replaceChildren(h(`
-      <button type="button" class="button ${kunci ? "button-danger" : "button-secondary"} button-small"
-              id="cek-ubah-kunci">${kunci ? "Buka Kunci" : "Kunci Nilai"}</button>
-      <span class="cek-kunci-ket">${kunci
-        ? "Nilainya tidak bisa diubah selama terkunci."
-        : esc(`${r.jumlah_terisi}/${r.jumlah_komponen} komponen terisi`)}</span>`));
+    const kunci = lombaTerkunci();
 
-    el.querySelector("#cek-ubah-kunci").addEventListener("click", async () => {
-      const dada = Number(r.nomor_dada);
-      const tiga = dada3(dada);
-      const tombol = el.querySelector("#cek-ubah-kunci");
+    elIsi.querySelectorAll("[data-gembok]").forEach(tombol => {
+      const kode = tombol.dataset.gembok;
+      const l = lombaPos().find(x => x.kode === kode);
+      if (!l) return;
+      const tergembok = kunci.has(kode);
+      // Komponen lomba INI yang berlaku untuk golongan regu ini.
+      const dipakai = l.kolom
+        .map(kol => varianUntuk(kol, r.golongan)).filter(Boolean);
+      const terisi = dipakai.filter(k => (r.nilai || {})[k.kode] !== undefined).length;
+      const lengkap = dipakai.length > 0 && terisi === dipakai.length;
 
-      /* MENGUNCI NILAI YANG BELUM LENGKAP DITOLAK DI SINI, karena tidak ada
-         yang menolaknya di tempat lain: kunci_nilai_pos() memeriksa hak dan
-         keberadaan regunya, TIDAK kelengkapannya — diperiksa langsung pada
-         definisi fungsinya, bukan diduga. Aturannya selama ini hanya hidup di
-         layar lembar pos, dan layar ini akan melewatinya diam-diam.
-
-         Akibatnya bukan sekadar data setengah jadi: baris yang terkunci
-         ditolak simpan_nilai_massal, jadi mengunci lebih awal MEMBLOKIR juri
-         yang belum sempat memasukkan lomba sisanya. */
-      if (!kunci && Number(r.jumlah_terisi) !== Number(r.jumlah_komponen)) {
-        notif(`Nilai ${tiga} belum lengkap — baru ${r.jumlah_terisi} dari `
-              + `${r.jumlah_komponen} komponen. Mengunci sekarang membuat juri `
-              + "tidak bisa memasukkan sisanya.", true);
-        return;
-      }
-
-      tombol.disabled = true;
-      try {
-        if (kunci) {
-          /* Alasan tetap, tanpa dialog — keputusan yang sama dengan lembar pos
-             lama: jejak pembukaan tetap tercatat di riwayat tanpa memaksa
-             admin melewati satu kotak lagi. */
-          await bukaKunciNilaiPos(dada, nomorPos, "Dibuka dari Cek Nilai");
-          notif(`Kunci ${tiga} dibuka.`);
-        } else {
-          await kunciNilaiPos(dada, nomorPos);
-          notif(`Nilai ${tiga} dikunci.`);
-        }
-      } catch (err) {
-        tombol.disabled = false;
-        notif(err.message, true);
-        return;
-      }
-      await segarkanBaris(dada);
-      gambarRegu();
-    }, { signal: sinyal });
+      tombol.innerHTML = ikon(tergembok ? "lock" : "lock-open");
+      /* SELALU dihidupkan lagi. Penangan di bawah mematikannya selama
+         permintaan berjalan dan hanya menghidupkannya kembali saat GAGAL —
+         jadi tanpa baris ini gembok yang berhasil dipasang tidak akan pernah
+         bisa dibuka lagi tanpa memuat ulang layar. Ditemukan dengan menekan
+         gemboknya dua kali di layar sungguhan; tesnya lulus, parse-nya lulus,
+         dan tidak ada satu pun galat (CLAUDE.md 17.3). */
+      tombol.disabled = false;
+      tombol.classList.toggle("tergembok", tergembok);
+      tombol.classList.toggle("belum-lengkap", !tergembok && !lengkap);
+      tombol.title = tergembok
+        ? `${l.nama} terkunci — ketuk untuk membuka`
+        : lengkap ? `Kunci ${l.nama}`
+        : `${l.nama} baru ${terisi} dari ${dipakai.length} kriteria terisi`;
+      tombol.setAttribute("aria-label", tombol.title);
+      tombol.setAttribute("aria-pressed", String(tergembok));
+    });
   }
+
+  /* Satu pendengar untuk seluruh gembok, dipasang sekali di wadahnya — bukan
+     satu pendengar per tombol yang dipasang ulang tiap kali regunya berganti.
+     Tombolnya dibuang dan dibuat lagi oleh gambarRegu(); pendengar yang
+     menempel padanya ikut menumpuk. */
+  elIsi.addEventListener("click", async (e) => {
+    const tombol = e.target.closest("[data-gembok]");
+    if (!tombol || tombol.disabled || !lembar.length) return;
+    const r = lembar[indeks];
+    const kode = tombol.dataset.gembok;
+    const l = lombaPos().find(x => x.kode === kode);
+    if (!l) return;
+    const dada = Number(r.nomor_dada);
+    const tergembok = lombaTerkunci().has(kode);
+
+    if (!tergembok) {
+      const dipakai = l.kolom.map(kol => varianUntuk(kol, r.golongan)).filter(Boolean);
+      const terisi = dipakai.filter(k => (r.nilai || {})[k.kode] !== undefined).length;
+      if (!dipakai.length || terisi !== dipakai.length) {
+        notif(`${l.nama} belum lengkap — baru ${terisi} dari ${dipakai.length} `
+              + "kriteria terisi. Mengunci sekarang membuat juri tidak bisa "
+              + "memasukkan sisanya.", true);
+        return;
+      }
+    }
+
+    tombol.disabled = true;
+    try {
+      if (tergembok) {
+        /* Alasan tetap, tanpa dialog — keputusan yang sama dengan lembar pos
+           lama: jejak pembukaan tetap tercatat di riwayat tanpa memaksa
+           panitia melewati satu kotak lagi. */
+        await bukaKunciNilaiPos(dada, nomorPos, kode, "Dibuka dari Cek Nilai");
+        notif(`Kunci ${l.nama} ${dada3(dada)} dibuka.`);
+      } else {
+        await kunciNilaiPos(dada, nomorPos, kode);
+        notif(`${l.nama} ${dada3(dada)} dikunci.`);
+      }
+    } catch (err) {
+      notif(err.message, true);
+      tombol.disabled = false;
+      return;
+    }
+    await segarkanBaris(dada);
+    gambarKunci();
+    matikanSaatTerkunci();
+  }, { signal: sinyal });
 
   /** Membaca ulang satu baris lembar pos sesudah nilainya berubah.
    *

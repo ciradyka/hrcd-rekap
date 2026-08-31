@@ -758,16 +758,24 @@ export async function komponenSemua(edisi) {
     `&order=pos.asc,sort_order.asc`);
 }
 
-/** Gembok: menyatakan nilai satu regu di satu pos sudah selesai (0043).
- *  Operator pos memakai posnya sendiri; admin dan meja wajib menyebut pos. */
-export const kunciNilaiPos = (nomorDada, pos) =>
-  rpc("kunci_nilai_pos", { p_nomor_dada: nomorDada, p_pos: pos });
+/** Gembok: menyatakan satu LOMBA satu regu sudah diperiksa (0043, per lomba
+ *  sejak 0166).
+ *
+ *  Per lomba, bukan per pos, karena yang diperiksa satu lomba pada satu waktu:
+ *  panitia Cek Nilai melihat foto slipnya di sebelah angka yang diketik, dan
+ *  kalau cocok ia mengetuk gembok di sebelah angka itu. Pos 1 karena itu punya
+ *  lima gembok.
+ *
+ *  `lomba` adalah kunci tetap dari kelompokLomba().kode — kunci yang sama
+ *  dengan yang dipakai foto slip, bukan `wahana.kode`. */
+export const kunciNilaiPos = (nomorDada, pos, lomba) =>
+  rpc("kunci_nilai_pos", { p_nomor_dada: nomorDada, p_pos: pos, p_lomba: lomba });
 
-/** Membuka gembok. ADMIN SAJA, dan wajib beralasan — bentuk yang sama dengan
+/** Membuka gembok satu lomba. Wajib beralasan — bentuk yang sama dengan
  *  batalkan_tanda_cetak, karena keduanya membatalkan pernyataan "sudah final". */
-export const bukaKunciNilaiPos = (nomorDada, pos, alasan) =>
+export const bukaKunciNilaiPos = (nomorDada, pos, lomba, alasan) =>
   rpc("buka_kunci_nilai_pos",
-      { p_nomor_dada: nomorDada, p_pos: pos, p_alasan: alasan });
+      { p_nomor_dada: nomorDada, p_pos: pos, p_lomba: lomba, p_alasan: alasan });
 
 /** Riwayat perubahan nilai satu regu di satu pos — siapa mengubah apa, kapan.
  *
