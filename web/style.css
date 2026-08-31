@@ -4933,10 +4933,37 @@ button.pill-number:hover { filter: brightness(.95); }
    layar yang seluruh gunanya membandingkan angka dengan tulisan tangan, itu
    penukaran yang salah arah. */
 .cek-baris-aksi { display: flex; align-items: center; justify-content: center; gap: .5rem; }
-.cek-simpan, .cek-gembok { flex: 0 0 auto; }
-.cek-simpan { color: var(--utama); }
-.cek-simpan:hover:not(:disabled) { background: var(--utama-muda); }
+.cek-status, .cek-gembok { flex: 0 0 auto; }
 .cek-gembok { color: var(--tinta-lembut); }
+
+/* KABAR, BUKAN TOMBOL. Angkanya disimpan sendiri begitu diubah; yang tersisa
+   cuma memberi tahu sudah sampai database atau belum.
+
+     titik-titik KUNING  belum tersimpan (baru diketik, atau sedang di jalan)
+     centang HIJAU       sudah tersimpan
+     seru MERAH          gagal — ketuk untuk mengulang
+
+   Kuning dan hijau sengaja tidak jadi SATU-SATUNYA pembeda: bentuknya pun
+   berbeda (titik-titik lawan centang), jadi yang sulit membedakan merah dari
+   hijau tetap bisa membacanya. Judulnya menyebutkannya dengan kata.
+
+   Lebarnya dipatok supaya kotak isian di sebelahnya tidak bergeser tiap kali
+   penandanya berganti — baris yang berjoget saat mengetik terbaca seperti
+   layar yang salah. */
+.cek-status {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px;
+  font-size: 1.2rem; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cek-status[data-keadaan="belum"],
+.cek-status[data-keadaan="menyimpan"] { color: var(--kuning); }
+.cek-status[data-keadaan="tersimpan"] { color: var(--hijau); }
+.cek-status[data-keadaan="gagal"] {
+  color: var(--bahaya); cursor: pointer;
+  border-radius: var(--radius-kecil);
+}
+.cek-status[data-keadaan="gagal"]:hover { background: var(--bahaya-muda); }
 
 /* TERGEMBOK: kotaknya jadi abu-abu, lambang simpannya pudar.
    Dua isyarat untuk satu keadaan, dan keduanya perlu — kotak abu-abu
@@ -4949,7 +4976,6 @@ button.pill-number:hover { filter: brightness(.95); }
   color: var(--tinta-lembut);
   cursor: not-allowed;
 }
-.cek-simpan:disabled { opacity: .3; cursor: not-allowed; }
 /* Tergembok memerah, dan itu bukan peringatan melainkan KEADAAN: merah di
    sistem ini dipakai untuk yang menghentikan, dan gembok tertutup memang
    menghentikan penyimpanan. */

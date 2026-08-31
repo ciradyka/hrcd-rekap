@@ -9838,11 +9838,17 @@ async function layarCekNilai() {
 
                      Judulnya tetap ada untuk pembaca layar dan untuk yang
                      menahan kursor di atasnya. -->
+                <!-- TIDAK ADA TOMBOL SIMPAN. Angkanya disimpan sendiri
+                     begitu diubah, dan yang tersisa cuma KABAR: titik-titik
+                     kuning berarti belum sampai ke database, centang hijau
+                     berarti sudah.
+
+                     Tombol simpan pada layar yang menyimpan sendiri adalah
+                     tombol yang tidak pernah perlu ditekan, dan tombol seperti
+                     itu justru membuat orang ragu apakah angkanya tersimpan
+                     kalau ia LUPA menekannya. -->
                 <div class="cek-baris-aksi">
-                  <button type="button" class="icon-button cek-simpan"
-                          data-simpan-lomba="${esc(l.kode)}"
-                          title="Simpan ${esc(l.nama)}"
-                          aria-label="Simpan ${esc(l.nama)}">${ikon("save")}</button>
+                  <span class="cek-status" data-status="${esc(l.kode)}"></span>
                   <button type="button" class="icon-button cek-gembok"
                           data-gembok="${esc(l.kode)}"></button>
                 </div>
@@ -9879,6 +9885,7 @@ async function layarCekNilai() {
       });
     });
     gambarKunci();
+    statusAwal();
     matikanSaatTerkunci();
 
     let foto = [];
@@ -10015,8 +10022,7 @@ async function layarCekNilai() {
     const kunci = lombaTerkunci();
     elIsi.querySelectorAll("[data-isian]").forEach(wadah => {
       const mati = kunci.has(wadah.dataset.isian);
-      wadah.querySelectorAll("input, [data-simpan-lomba]")
-        .forEach(el => { el.disabled = mati; });
+      wadah.querySelectorAll("input").forEach(el => { el.disabled = mati; });
     });
   }
 
@@ -10181,45 +10187,148 @@ async function layarCekNilai() {
     } catch { /* angkanya sudah tersimpan; yang basi cuma ringkasannya */ }
   }
 
-  /* Simpan per lomba, bukan satu tombol untuk seluruh regu. Yang dibetulkan
-     admin satu lomba pada satu waktu — ia baru saja membandingkannya dengan
-     fotonya — dan tombol di ujung halaman menuntut menggulir melewati empat
-     lomba lain yang tidak sedang dipersoalkan. */
-  elIsi.addEventListener("click", async (e) => {
-    const b = e.target.closest("[data-simpan-lomba]");
-    if (!b || b.disabled || !lembar.length) return;
-    const r = lembar[indeks];
-    const l = lombaPos().find(x => x.kode === b.dataset.simpanLomba);
-    const wadah = elIsi.querySelector(
-      `[data-isian="${CSS.escape(b.dataset.simpanLomba)}"]`);
-    if (!l || !wadah) return;
+  /** Kabar keadaan satu lomba: sudah sampai database atau belum.
+   *
+   *  Kosakatanya SAMA dengan lembar pos (statusBaris di layar Input Pos), dan
+   *  itu disengaja: dua layar yang menceritakan hal yang sama tidak boleh
+   *  memakai dua lambang berbeda.
+   *
+   *    belum      titik-titik KUNING  diketik, belum dikirim
+   *    menyimpan  titik-titik KUNING  sedang di jalan
+   *    tersimpan  centang HIJAU       sudah masuk database
+   *    gagal      seru MERAH          tidak sampai; ketuk untuk mengulang
+   *
+   *  `belum` dan `menyimpan` sengaja terlihat SAMA bagi yang membacanya.
+   *  Bedanya cuma soal teknis — sudah dikirim atau belum — dan yang
+   *  ditanyakan panitia satu: "angka ini sudah aman atau belum?" */
+  function statusLomba(kode, keadaan, pesan) {
+    const sel = elIsi.querySelector(`[data-status="${CSS.escape(kode)}"]`);
+    if (!sel) return;
+    sel.dataset.keadaan = keadaan || "";
+    if (keadaan === "belum" || keadaan === "menyimpan") {
+      sel.textContent = "\u2026";
+      sel.title = "Belum tersimpan";
+    } else if (keadaan === "tersimpan") {
+      sel.textContent = "\u2713";
+      sel.title = "Sudah tersimpan";
+    } else if (keadaan === "gagal") {
+      sel.textContent = "!";
+      sel.title = pesan || "Gagal menyimpan \u2014 ketuk untuk mengulang";
+    } else {
+      sel.textContent = "";
+      sel.title = "";
+    }
+  }
 
-    b.disabled = true;
-    const jawab = await kirimNilaiRegu({ pos: nomorPos, kolom: l.kolom, regu: r, wadah });
-    b.disabled = false;
+  /** Keadaan awal tiap lomba, dibaca dari angka yang memang ada di database.
+   *
+   *  Lomba yang seluruh kriterianya terisi ditandai TERSIMPAN; yang kosong
+   *  tidak ditandai apa-apa. Menandai yang kosong dengan centang akan
+   *  mengatakan "aman" tentang sesuatu yang belum ada. */
+  function statusAwal() {
+    if (!lembar.length) return;
+    const r = lembar[indeks];
+    lombaPos().forEach(l => {
+      const dipakai = l.kolom.map(kol => varianUntuk(kol, r.golongan)).filter(Boolean);
+      const terisi = dipakai.filter(k => (r.nilai || {})[k.kode] !== undefined).length;
+      statusLomba(l.kode, dipakai.length && terisi === dipakai.length ? "tersimpan" : "");
+    });
+  }
+
+  /** Menyimpan satu lomba. Dipanggil sendiri saat angkanya berubah — tidak ada
+   *  tombol simpan lagi.
+   *
+   *  Yang mengirim tetap kirimNilaiRegu(), satu pintu bersama layar input:
+   *  keempat aturannya (kotak tak terbaca tidak menyentuh angka lama, kotak
+   *  kosong berarti hapus, angka yang sama tidak dikirim ulang, gagal jaringan
+   *  masuk antrean) berlaku sama di sini karena memang kode yang sama. */
+  const sedangSimpan = new Set();
+  async function simpanLomba(kode) {
+    if (!lembar.length || sedangSimpan.has(kode)) return;
+    const r = lembar[indeks];
+    const l = lombaPos().find(x => x.kode === kode);
+    const wadah = elIsi.querySelector(`[data-isian="${CSS.escape(kode)}"]`);
+    if (!l || !wadah) return;
+    // Lomba yang tergembok tidak dikirim sama sekali: server akan menolaknya,
+    // dan penolakan yang bisa dihindari lebih baik tidak dibuat.
+    if (lombaTerkunci().has(kode)) return;
+
+    sedangSimpan.add(kode);
+    statusLomba(kode, "menyimpan");
+    let jawab;
+    try {
+      jawab = await kirimNilaiRegu({ pos: nomorPos, kolom: l.kolom, regu: r, wadah });
+    } finally {
+      sedangSimpan.delete(kode);
+    }
 
     if (jawab.hasil === "takTerbaca") {
+      statusLomba(kode, "gagal", `${jawab.nama.join(", ")}: bukan angka yang bisa dibaca`);
       notif(`${jawab.nama.join(", ")}: isinya bukan angka/waktu yang bisa `
             + "dibaca. Angka lamanya TIDAK diubah.", true);
       return;
     }
-    if (jawab.hasil === "kosong") { notif("Tidak ada angka yang berubah.", true); return; }
+    if (jawab.hasil === "kosong") {
+      // Tidak ada yang berubah — bukan galat, dan bukan pula kabar. Diam.
+      statusAwal();
+      return;
+    }
     if (jawab.hasil === "ditolak") {
+      statusLomba(kode, "gagal", jawab.pesan);
       notif(`${dada3(r.nomor_dada)}.\n${kapital(jawab.pesan)}`, true);
       return;
     }
     if (jawab.hasil === "antre") {
+      // Masih titik-titik kuning, karena memang belum sampai. Pita antrean di
+      // atas layar yang menceritakan sisanya.
+      statusLomba(kode, "belum");
       notif(`${dada3(r.nomor_dada)} BELUM terkirim — masuk antrean, `
             + "dikirim otomatis saat ada sinyal.", true);
       gambarPitaAntrean();
       return;
     }
-    notif(`${dada3(r.nomor_dada)} ${l.nama} tersimpan.`);
-    /* Barisnya dibaca ulang, tapi layarnya TIDAK digambar ulang: admin sedang
-       menatap foto di tengah halaman, dan menggambar ulang melempar
-       gulirannya. Yang perlu ikut berubah cuma tombol gemboknya. */
+    statusLomba(kode, "tersimpan");
+    /* Barisnya dibaca ulang, tapi layarnya TIDAK digambar ulang: panitia
+       sedang menatap foto, dan menggambar ulang melempar gulirannya. Yang
+       perlu ikut berubah cuma gemboknya — kelengkapan lomba menentukan boleh
+       tidaknya digembok. */
     await segarkanBaris(Number(r.nomor_dada));
     gambarKunci();
+  }
+
+  /* SIMPAN SENDIRI SAAT DIUBAH, dengan pola yang sama persis dengan lembar
+     pos — dan ketiga pendengarnya perlu, bukan satu:
+
+       input     menandai kuning sejak KETUKAN PERTAMA. Di antara mengetik dan
+                 meninggalkan kotak bisa lewat semenit, dan selama itu angkanya
+                 cuma ada di layar.
+       change    menyimpan saat kotaknya ditinggalkan dengan isi yang berbeda.
+       focusout  jaring pengaman: mengetik ulang angka yang SAMA memicu `input`
+                 tapi tidak selalu memicu `change`, jadi tanpa ini penanda
+                 kuningnya menggantung selamanya. */
+  elIsi.addEventListener("input", (e) => {
+    const wadah = e.target.closest("[data-isian]");
+    if (wadah) statusLomba(wadah.dataset.isian, "belum");
+  }, { signal: sinyal });
+
+  elIsi.addEventListener("change", (e) => {
+    const wadah = e.target.closest("[data-isian]");
+    if (wadah) simpanLomba(wadah.dataset.isian);
+  }, { signal: sinyal });
+
+  elIsi.addEventListener("focusout", (e) => {
+    const wadah = e.target.closest("[data-isian]");
+    if (!wadah) return;
+    const sel = elIsi.querySelector(`[data-status="${CSS.escape(wadah.dataset.isian)}"]`);
+    if (sel && sel.dataset.keadaan === "belum") simpanLomba(wadah.dataset.isian);
+  }, { signal: sinyal });
+
+  /* Penanda GAGAL bisa diketuk untuk mengulang. Satu-satunya keadaan yang
+     menuntut tindakan, dan tanpa jalan mengulang panitia harus mengetik ulang
+     angka yang sudah benar di layarnya. */
+  elIsi.addEventListener("click", (e) => {
+    const sel = e.target.closest(".cek-status");
+    if (sel && sel.dataset.keadaan === "gagal") simpanLomba(sel.dataset.status);
   }, { signal: sinyal });
 
   const ke = (i) => {

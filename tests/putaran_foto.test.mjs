@@ -90,11 +90,9 @@ test("90 dan 270 MENUKAR lebar dengan tinggi", () => {
     "ukuran petak tidak diukur ke CSS — putaran 90 tidak punya angka");
 });
 
-test("keadaan tergembok: kotak abu-abu, lambang simpan pudar, gembok TIDAK", () => {
+test("keadaan tergembok terbaca dari kotaknya, dan gembok TIDAK dipudarkan", () => {
   assert.match(css, /\.cek-isian input:disabled \{[\s\S]{0,120}background: var\(--garis\);/,
     "kotak isian tidak lagi jadi abu-abu saat tergembok");
-  assert.match(css, /\.cek-simpan:disabled \{ opacity: \.3; cursor: not-allowed; \}/,
-    "lambang simpan tidak lagi pudar saat tergembok");
   // Gemboknya sendiri tidak boleh dipudarkan: ia satu-satunya jalan keluar
   // dari keadaan ini, dan tombol pudar terbaca seperti tombol mati.
   assert.doesNotMatch(css, /\.cek-gembok:disabled \{[^}]*opacity/,
