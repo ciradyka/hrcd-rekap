@@ -5104,12 +5104,25 @@ button.pill-number:hover { filter: brightness(.95); }
    Nilai kriteria selalu dua digit (Pembidaian 0-25, PBB 0-30), jadi ruang yang
    dibebaskan padding memang jatuh ke angkanya. */
 .cek-angka:has(.isian-baris + .isian-baris) .small-input {
-  font-size: 1.35rem; min-height: 52px; max-width: none;
+  font-size: 1.5rem; min-height: 56px; max-width: none;
   padding-left: .25rem; padding-right: .25rem;
 }
 /* Jarak antar kotak dirapatkan di baris berkriteria banyak: .3rem x 4 celah
    adalah 19px yang seluruhnya diambil dari kotaknya. */
 .cek-angka:has(.isian-baris + .isian-baris) { gap: .15rem; }
+
+/* BARIS BERKRITERIA BANYAK MEMAKAI SELURUH LEBAR KARTU: cerminnya dibuang.
+   Cermin itu ada supaya kotak TUNGGAL jatuh tepat di tengah — kedua sisi
+   memesan lebar yang sama. Untuk lima kotak yang sudah memenuhi barisnya
+   "di tengah" tidak berarti apa-apa, sementara 32px + celahnya adalah 37px
+   yang seluruhnya bisa jatuh ke kotaknya. Terukur di 430px: 54px jadi 62px
+   hanya dari ini. */
+.cek-isian:has(.isian-baris + .isian-baris) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.cek-isian:has(.isian-baris + .isian-baris) > .cek-imbang { display: none; }
+.cek-isian:has(.isian-baris + .isian-baris) > .cek-angka { grid-column: 1; }
+.cek-isian:has(.isian-baris + .isian-baris) > .cek-gembok { grid-column: 2; }
 /* Satu garis per lomba, bukan satu kartu per lomba: yang dibandingkan
    angka dengan gambarnya SENDIRI, dan kartu bertumpuk memaksa menggulir di
    antara keduanya. */
@@ -5155,6 +5168,14 @@ button.pill-number:hover { filter: brightness(.95); }
   scroll-snap-type: x mandatory; scrollbar-width: none;
 }
 .cek-foto::-webkit-scrollbar { display: none; }
+
+/* KARTU DAFTAR LOMBA DIRAMPINGKAN DI HP. Padding 18px di kiri dan kanan
+   adalah 37px yang diambil dari lima kotak Pembidaian dan dari lebar fotonya —
+   dua hal yang justru jadi alasan layar ini dibuka. Di layar lebar padding itu
+   tidak menghalangi apa pun, jadi yang berubah cuma rentang HP. */
+@media (max-width: 560px) {
+  #cek-isi > .card { padding-left: .5rem; padding-right: .5rem; }
+}
 /* Navigasinya menempel ke petak di atasnya, bukan mengambang di tengah
    antara dua lomba — ia milik foto tepat di atasnya, dan di daftar berisi
    lima lomba kepemilikan itu harus terbaca tanpa dihitung. */
