@@ -1014,7 +1014,13 @@ export async function unggahFotoLembar(pos, kodeLomba, namaLomba, nomorDada, blo
 export const putarFotoLembar = (id, putaran) =>
   rpc("putar_foto_lembar", { p_id: id, p_putaran: putaran });
 
-/** Foto satu regu di satu pos, terbaru dulu. */
+/** Foto satu regu di satu pos, YANG PERTAMA DIUNGGAH LEBIH DULU.
+ *
+ *  Urutannya `desc` sampai 1 September 2026, dan itu keliru begitu satu lomba
+ *  punya lebih dari satu lembar: yang difoto berurutan halaman 1 lalu halaman
+ *  2, dan menampilkan yang terbaru dulu membalik halamannya. Petugas yang
+ *  mencocokkan nilai dengan lembar jawaban membaca halaman 2 sebagai halaman
+ *  pertama. */
 export async function daftarFotoLembar(pos, nomorDada) {
   if (K.mode === "dev") {
     return baca(`/foto-lembar?pos=${encodeURIComponent(pos)}` +
@@ -1023,7 +1029,7 @@ export async function daftarFotoLembar(pos, nomorDada) {
   return baca(null,
     `v_foto_lembar?pos=eq.${encodeURIComponent(pos)}` +
     `&nomor_dada=eq.${encodeURIComponent(nomorDada)}` +
-    `&select=*&order=diunggah_pada.desc`);
+    `&select=*&order=diunggah_pada.asc`);
 }
 
 /** Foto slip SELURUH regu di satu pos, sekali ambil.

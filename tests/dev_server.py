@@ -178,7 +178,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "where pos = %s",
                     (p.get("pos") or 0,), uid=p.get("uid")))
             elif u.path == "/foto-lembar":
-                # Foto satu regu di satu pos, terbaru dulu — dipakai dialog
+                # Foto satu regu di satu pos, yang pertama diunggah lebih
+                # dulu (halaman 1 sebelum halaman 2) — dipakai dialog
                 # Foto Jawaban di lembar pos dan layar Cek Nilai. Rute ini
                 # sempat TIDAK ADA di sini sementara web/js/api.js sudah
                 # memanggilnya, jadi kedua layar itu tidak bisa dibuka di
@@ -186,7 +187,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select * from v_foto_lembar "
                     "where pos = %s and nomor_dada = %s "
-                    "order by diunggah_pada desc",
+                    "order by diunggah_pada asc",
                     (p.get("pos") or 0, p.get("dada") or 0), uid=p.get("uid")))
             elif u.path == "/foto-belum-taut":
                 # nomor_dada NULL = foto borongan yang belum ditautkan (0074).
