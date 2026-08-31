@@ -667,9 +667,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Di HP, pesan ini muncul TEPAT DI ATAS bar bawah, hampir selebar layar.
 
    Sebelumnya ia pil sempit di `bottom: 1.2rem` — yaitu DI BELAKANG bar Home /
-   Setelan / Keluar, yang tingginya 56px dan menempel di dasar layar. Pesan
-   terpenting di aplikasi ini ("nomor dada sudah dipakai regu lain") separuh
-   tertutup tombol Keluar.
+   Setelan / Keluar yang menempel di dasar layar. Pesan terpenting di aplikasi
+   ini ("nomor dada sudah dipakai regu lain") separuh tertutup tombol Keluar.
+
+   `--nav-bawah` DIUKUR JavaScript tiap kali layar berganti; 66px cuma cadangan
+   sebelum ukuran pertama masuk. Angka mati 56px yang dipakai di sini dulu
+   adalah `min-height` satu item menu, bukan tinggi menunya — terukur 65.4px —
+   jadi pesannya berhenti 2.6px di atas menu, yaitu menempel.
    
    Selebar layar bukan soal selera: pesannya menyebut DAFTAR nomor, dan pil
    yang menyempit ke lebar isinya memecah daftar itu jadi dua baris pendek di
@@ -677,7 +681,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 @media (max-width: 560px) {
   .notification {
     left: .75rem; right: .75rem; transform: none; max-width: none;
-    bottom: calc(56px + env(safe-area-inset-bottom) + .75rem);
+    bottom: calc(var(--nav-bawah, 66px) + .75rem);
   }
   .notification-close { margin-left: auto; }
 }
@@ -4635,33 +4639,10 @@ button.pill-number:hover { filter: brightness(.95); }
    cuma memikul satu kata — dan kata itu yang menjawab "angka yang saya ketik
    ini masuk ke lomba mana?", satu-satunya pertanyaan yang mahal kalau salah. */
 .baris-lomba {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: .8rem; padding-top: .7rem; padding-bottom: .7rem;
+  display: flex; align-items: center; justify-content: center;
+  padding-top: .7rem; padding-bottom: .7rem;
 }
-/* Judulnya tetap di TENGAH kartunya walau ada tombol di kanan: `flex: 1` di
-   kedua sisi tombol akan memindahkannya, jadi yang dipakai margin otomatis di
-   kiri judul dan tombol yang lebarnya sendiri di kanan. */
-.baris-lomba .lomba-judul { margin: 0 auto; }
-.baris-lomba .button { flex: 0 0 auto; }
 
-/* Daftar regu yang belum dinilai. Satu baris satu tombol selebar dialog —
-   yang ditekan sambil berdiri, dan nomor dada di kiri berbaris lurus supaya
-   mata menyusurinya tanpa membaca namanya lebih dulu. */
-.daftar-belum { list-style: none; margin: 0; padding: 0;
-  max-height: 55vh; overflow-y: auto; }
-.daftar-belum li { margin-bottom: .4rem; }
-.daftar-belum button {
-  display: grid; grid-template-columns: max-content 1fr; gap: .1rem .7rem;
-  width: 100%; min-height: 52px; padding: .5rem .7rem; text-align: left;
-  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
-  background: var(--kartu); color: inherit;
-}
-.daftar-belum button:hover { border-color: var(--utama); }
-.daftar-belum button:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
-.db-dada { grid-area: 1 / 1 / 3 / 2; align-self: center;
-  font-weight: 800; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
-.db-nama { font-weight: 700; line-height: 1.2; }
-.db-sekolah { font-size: .8rem; color: var(--tinta-lembut); line-height: 1.2; }
 
 /* Foto Jawaban: judul di kiri, jumlahnya di bawahnya, dua tombol di kanan.
    Bentuk yang sama dengan baris foto di dialog lembar pos lama, supaya
@@ -4760,8 +4741,9 @@ button.pill-number:hover { filter: brightness(.95); }
    Foto Jawaban tetap berada di ATASNYA dalam urutan dokumen; yang berubah cuma
    tombolnya tidak ikut terdorong turun.
 
-   `bottom` diberi jarak untuk menu bawah HP yang setinggi 56px + safe area,
-   supaya keduanya tidak bertumpuk. */
+   `bottom` diberi jarak untuk menu bawah HP, dan tingginya DIUKUR — lihat
+   `--nav-bawah` di pasangKepala(). Angka mati 56px yang dipakai di sini dulu
+   adalah `min-height` satu item menu, bukan tinggi menunya. */
 /* KARTUNYA HARUS `overflow: visible`, dan tanpa itu tombol di bawah menutupi
    kotak Nomor dada.
 
@@ -4795,9 +4777,8 @@ button.pill-number:hover { filter: brightness(.95); }
   box-shadow: 0 4px 14px rgba(16, 24, 40, .18);
 }
 @media (max-width: 560px) {
-  .v2-simpan-lekat { bottom: calc(56px + env(safe-area-inset-bottom) + .5rem); }
+  .v2-simpan-lekat { bottom: calc(var(--nav-bawah, 66px) + .6rem); }
 }
-.cek-sudah { margin-top: .5rem; }
 
 /* ---------- kotak isian kriteria ---------- */
 
