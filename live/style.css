@@ -4877,36 +4877,52 @@ button.pill-number:hover { filter: brightness(.95); }
 
 /* ---------- kotak isian kriteria ---------- */
 
-/* SATU KOLOM DI HP SEMPIT, MENYAMPING BEGITU ADA TEMPAT.
+/* MENYAMPING SEBANYAK YANG MUAT, DAN LIMA-LIMANYA SEBARIS BEGITU MUAT.
 
    Pembidaian punya lima kriteria. Ditumpuk lurus ke bawah kelimanya setinggi
-   596px — lebih tinggi daripada ruang yang tersisa di HP sesudah kepala layar
-   dan kartu regu, jadi kotak terakhir dan tombol SIMPAN tidak pernah terlihat
+   596px — lebih tinggi daripada ruang yang tersisa sesudah kepala layar dan
+   kartu regu, jadi kotak terakhir dan tombol SIMPAN tidak pernah terlihat
    bersamaan, dan petugas menggulir bolak-balik di antara keduanya.
 
-   `minmax(9.5rem, 1fr)` DIUKUR, bukan ditaksir (bagian 15.9 dan 15.11).
-   9.5rem = 152px, dan yang menentukan angkanya BUKAN nama kriteria yang
-   panjang — nama boleh membungkus — melainkan isi terlebar yang bisa masuk
-   satu kotak: sepasang kotak benar/salah 4rem berjarak .3rem, plus padding
-   .5rem di dua sisi, = 149px. Di bawah itu isinya meluap keluar kotaknya,
-   karena track yang sudah dipatok `1fr` tidak melar mengikuti isinya.
+   FLEX, BUKAN GRID, dan itu bukan selera. Versi pertama memakai
+   `grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr))`, dan pada
+   lebar kartu 696px — yang dipakai layar panitia di HP mode desktop maupun
+   di laptop — track 152px cuma muat empat: empat kotak berjajar lalu SATU
+   menggantung sendirian selebar seperempat di baris kedua.
 
-   Terukur di browser atas markup Pembidaian sungguhan, lebar 320-1200px:
+   Dua hal yang diperbaiki flex sekaligus:
 
-     320-360px   1 kolom   596px
-     390-430px   2 kolom   400px
-     560-600px   3 kolom   264px
-     700-760px   4 kolom   264px
-     >= 900px    5 kolom   128px
+     * Patokannya `flex-basis`, jadi kotaknya boleh MENYUSUT sampai selebar
+       isinya (130px: kotak angka 7rem + padding .5rem dua sisi + garis).
+       Lima kotak muat mulai 5x130+4x8 = 682px, dan 696px melewatinya —
+       dengan grid ambangnya 5x152+32 = 792px, yang tidak pernah tercapai.
+     * Kalau memang tidak muat, kotak yang tersisa di baris terakhir MELAR
+       memenuhi barisnya (`flex-grow: 1`), bukan berdiri seperempat lebar di
+       pojok kiri. Baris terakhir yang penuh terbaca sebagai baris, bukan
+       sebagai sisa.
+
+   `min-width: auto` bawaan flex item yang menjaga isinya tidak pernah
+   meluap: kotak berhenti menyusut di lebar isinya sendiri, jadi bentuk
+   isian terlebar pun — sepasang kotak benar/salah 4rem berjarak .3rem —
+   aman tanpa satu angka pun ditulis untuknya di sini.
+
+   Terukur di browser (bagian 15.9) atas markup Pembidaian sungguhan. Lebar di
+   bawah ini lebar KARTUNYA, bukan lebar layar — di layar panitia 696px:
+
+     <= 243px    1+1+1+1+1   596px
+     283-353px   2+2+1       381px
+     423-543px   3+2         245px
+     623-665px   4+1         245px
+     >= 683px    5           147px
 
    Tidak ada penggulir mendatar dan tidak ada isi yang meluap di satu lebar
    pun — termasuk pada dua bentuk isian yang tidak dipakai edisi ini tetapi
    CSS-nya masih hidup: pasangan benar/salah dan kotak centang. */
 .isian-lomba {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  display: flex; flex-wrap: wrap;
   gap: .5rem; margin-top: .7rem;
 }
+.isian-lomba > .isian-baris { flex: 1 1 8rem; }
 /* DITUMPUK DAN DI TENGAH, bukan nama di kiri dan kotak di kanan.
 
    Sejajar dengan judul lombanya yang juga di tengah, dan itu yang membuat
@@ -4918,8 +4934,15 @@ button.pill-number:hover { filter: brightness(.95); }
    kertas tetap ada — urutan dan katanya — tetapi lebar kertas bukan lebar
    layar HP, dan di sana kolom kiri selebar tiga perempat layar untuk dua kata
    cuma menjauhkan mata dari angkanya. */
+/* `space-between` supaya kotak angkanya rata satu garis.
+
+   Kotak sebaris tingginya sudah sama sendiri (flex item melar setinggi baris),
+   tapi isinya mengalir dari atas — jadi nama satu baris, dua baris, dan tiga
+   baris menaruh kotak angkanya di tiga ketinggian berbeda. Mata yang menyapu
+   lima kotak jadi naik-turun mencari kotak berikutnya. */
 .isian-baris {
   display: flex; flex-direction: column; align-items: center;
+  justify-content: space-between;
   gap: .35rem; padding: .55rem .5rem;
   border: 1px solid var(--garis); border-radius: var(--radius-kecil);
 }
