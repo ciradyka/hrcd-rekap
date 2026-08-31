@@ -1006,6 +1006,14 @@ export async function unggahFotoLembar(pos, kodeLomba, namaLomba, nomorDada, blo
   return { path, ukuran: blob.size };
 }
 
+/** Putar satu foto slip. Sudutnya DISIMPAN (migrasi 0167); berkasnya tidak
+ *  disentuh, yang memutar layar saat menggambar.
+ *
+ *  Mengembalikan sudut yang berlaku sesudahnya — database yang menormalkan,
+ *  jadi 360 kembali sebagai 0 dan layar tidak perlu menghitung sendiri. */
+export const putarFotoLembar = (id, putaran) =>
+  rpc("putar_foto_lembar", { p_id: id, p_putaran: putaran });
+
 /** Foto satu regu di satu pos, terbaru dulu. */
 export async function daftarFotoLembar(pos, nomorDada) {
   if (K.mode === "dev") {
