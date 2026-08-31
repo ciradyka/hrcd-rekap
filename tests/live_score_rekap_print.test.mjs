@@ -230,3 +230,47 @@ test("bagian rekap mengalir, tidak memaksa satu halaman masing-masing", () => {
   assert.match(css, /\.rekap-cetak \.print-table thead \{ display: table-header-group; \}/,
     "kepala tabel tidak diulang saat satu bagian terbelah antar halaman");
 });
+
+test("kolom identitas dipatok, sama di setiap bagian", () => {
+  // Bagian 1 dan Bagian 2 adalah DUA TABEL TERPISAH; di bawah `auto` masing-
+  // masing mengukur dari isinya sendiri dan kolom yang sama tidak berbaris —
+  // terukur Regu 38,1mm lawan 43,8mm sebelum patokan ini.
+  assert.match(css, /\.rekap-cetak \.print-table \{ table-layout: fixed; \}/,
+    "tabel rekap kembali `auto` — lebar kolom identitas akan berbeda antar bagian");
+
+  // Angkanya datang dari pengukuran kata tunggal terpanjang tiap kolom, dan
+  // pembagiannya sempit di KEDUA ujung: menaikkan kolom nama mematahkan
+  // "Kepramukaan" di kepala pos, menurunkannya mematahkan "RANGGAYUNAN".
+  // Jangan ubah tanpa mengukur ulang keduanya.
+  const patokan = [
+    ["th:nth-child(1)", "2%"],
+    ["th:nth-child(2)", "3.3%"],
+    ["th:nth-child(3)", "7.4%"],
+    ["th:nth-child(4)", "7.4%"],
+    ["th:last-child", "3.4%"],
+  ];
+  for (const [sel, lebar] of patokan) {
+    const baris = `.rekap-cetak .print-table > thead > tr:first-child > ${sel} `
+      + `{ width: ${lebar}; }`;
+    assert.ok(css.includes(baris),
+      `patokan lebar hilang atau berubah tanpa diukur ulang: ${baris}`);
+  }
+
+  // Rantai anak, bukan selektor keturunan: patokan ini tidak boleh bocor ke
+  // baris kepala kedua maupun ke sel badan (CLAUDE.md 15.5).
+  assert.doesNotMatch(css, /\.rekap-cetak \.print-table th:nth-child\(\d\) \{ width:/,
+    "patokan lebar memakai selektor keturunan — ia akan mengenai baris kepala "
+    + "kedua dan sel badan juga");
+});
+
+test("kepala kolom cetak boleh membungkus, melawan .pos-kol", () => {
+  // `.pos-kol { white-space: nowrap }` duduk DI LUAR @media print — ia ditulis
+  // untuk papan Live Score di layar — dan karena itu ikut terbawa ke kertas.
+  // Tanpa pembatalan ini "Pengetahuan Umum" dan "Semaphore" MELUAP menimpa
+  // kolom sebelahnya di bawah `fixed`.
+  assert.ok(css.includes(
+    ".rekap-cetak .print-table th { white-space: normal; overflow-wrap: break-word; }"),
+    "kepala kolom cetak kembali menolak membungkus");
+  assert.match(css, /\.pos-kol \{[\s\S]{0,140}white-space: nowrap;/,
+    "`.pos-kol` tidak lagi nowrap — periksa apakah pembatalan di atas masih perlu");
+});

@@ -1786,6 +1786,81 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      ditulis lagi karena aturan layarnya duduk di luar @media print. */
   .rekap-cetak .print-table th.rekap-batas,
   .rekap-cetak .print-table td.rekap-batas { border-right-width: 1.5pt; }
+
+  /* ---- KOLOM IDENTITAS DIPATOK, SAMA DI SETIAP BAGIAN ----
+
+     Bagian 1 dan Bagian 2 adalah DUA TABEL TERPISAH, dan `table-layout: auto`
+     mengukur masing-masing dari isinya sendiri. Hasilnya kolom yang sama tidak
+     berbaris: terukur Regu 38,1mm di Bagian 1 lawan 43,8mm di Bagian 2, dan
+     Organisasi 39,1 lawan 45,1. Yang membacanya menyusuri satu regu dari
+     bagian atas ke bagian bawah, dan tepi kolom yang berpindah memutus garis
+     pandang itu.
+
+     Sebabnya bukan datanya melainkan tetangganya: kepala kolom Bagian 1
+     ("Pengetahuan Umum", "Balap Karung") lebih lebar daripada kepala Bagian 2,
+     jadi sisa untuk nama lebih sedikit di sana. Karena itu yang dipatok kolom
+     identitasnya, dan yang MENGALAH kolom pos di tengah — persis seperti tabel
+     Meja Pembayaran di layar, tempat kolom pertama dan terakhir dipertemukan
+     dan yang di antaranya dibiarkan berbeda (CLAUDE.md 15.2).
+
+     `fixed`, bukan `auto`: di bawah `auto` lebar yang dipatok cuma usulan, dan
+     isi yang lebih lebar tetap mendorongnya. Di bawah `fixed` patokannya
+     mengikat, dan yang tidak dipatok membagi rata sisanya.
+
+     HANYA BARIS KEPALA PERTAMA yang menentukan lebar di bawah `fixed`
+     (CLAUDE.md 15.5), dan di baris itu kolom pos berupa sel ber-colspan —
+     jadi kedua belas kolom pos membagi rata sisa 60%. Rantai anak dipakai
+     supaya patokan ini tidak bocor ke baris kepala kedua maupun ke badan.
+
+     ANGKANYA DARI PENGUKURAN, dan yang diukur KATA TUNGGAL TERPANJANG di
+     tiap kolom — karena kata itulah yang tidak bisa dibungkus, dan yang akan
+     dipatah di tengah kalau kolomnya kurang. Diukur atas data 143 regu:
+
+       kepala pos  "Kepramukaan"  16,7mm   (lalu "Pengetahuan" ~16,5)
+       Regu        "RANGGAYUNAN"  18,7mm
+       Organisasi  "Al-Mu'aawanah" 18,2mm
+       Total       "Total"        ~10mm
+
+     Dari 281mm yang tersedia: 2,8 + 4,2 + 7,5 + 7,5 + 3,8 = 25,8% dipatok, dan
+     74,2% sisanya dibagi dua belas kolom pos = 6,18% masing-masing. Semua di
+     atas kebutuhannya, jadi tidak ada satu kata pun yang dipatah:
+
+       #           2,8%   7,9mm
+       No Dada     4,2%  11,8mm
+       Regu        7,5%  21,1mm
+       Organisasi  7,5%  21,1mm
+       Total       3,8%  10,7mm
+       tiap pos    6,18% 17,4mm
+
+     Pembagiannya sempit di kedua ujung, dan itu memang batasnya: 8% untuk
+     nama membuat kolom pos 17,0mm dan "Kepramukaan" (15,5mm isi) dipatah;
+     7% membuat kolom nama 19,7mm dan "RANGGAYUNAN" (18,7mm) yang dipatah.
+     Jangan menggeser angka ini tanpa mengukur ulang KEDUA sisinya.
+
+     DUA BELAS adalah jumlah kolom pos HARI INI (Pos 1 enam, Pos 2 enam di
+     Bagian 1; Pos 3 empat + PBB + Yel-Yel + enam perjalanan di Bagian 2).
+     Kalau lomba bertambah tahun depan, jatah per kolom mengecil sendiri —
+     ukur ulang kata terpanjangnya sebelum menganggapnya masih muat. */
+  .rekap-cetak .print-table { table-layout: fixed; }
+  .rekap-cetak .print-table > thead > tr:first-child > th:nth-child(1) { width: 2%; }
+  .rekap-cetak .print-table > thead > tr:first-child > th:nth-child(2) { width: 3.3%; }
+  .rekap-cetak .print-table > thead > tr:first-child > th:nth-child(3) { width: 7.4%; }
+  .rekap-cetak .print-table > thead > tr:first-child > th:nth-child(4) { width: 7.4%; }
+  .rekap-cetak .print-table > thead > tr:first-child > th:last-child { width: 3.4%; }
+  /* KEPALA KOLOM HARUS BOLEH MEMBUNGKUS, dan ini bukan aturan mubazir.
+
+     `.pos-kol { white-space: nowrap }` duduk DI LUAR `@media print` — ia
+     ditulis untuk papan Live Score di layar, tempat kolom memang tidak boleh
+     patah — dan karena itu ia ikut terbawa ke kertas. Akibatnya "Pengetahuan
+     Umum" dan "Balap Karung" menolak membungkus: di bawah `auto` mereka
+     melebarkan kolomnya sampai tabelnya tidak muat, dan di bawah `fixed`
+     mereka MELUAP menimpa kolom sebelahnya. Terlihat di cetakan: "Semaphore"
+     menabrak "Tebak Simpul", "Pengetahuan U" menabrak "Nilai".
+
+     Kekhususan (0,2,1) mengalahkan `.pos-kol` (0,1,0), jadi ia menang tanpa
+     bergantung pada urutan berkas (CLAUDE.md 15.12). `overflow-wrap` menyusul
+     untuk kata tunggal yang tetap lebih lebar dari kolomnya. */
+  .rekap-cetak .print-table th { white-space: normal; overflow-wrap: break-word; }
 }
 
 @page { margin: 12mm; }
