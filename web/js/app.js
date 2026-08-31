@@ -2607,6 +2607,40 @@ async function layarKeberangkatan() {
 
 /* ============================ CETAK DAFTAR KLOTER ======================== */
 
+/** Kotak nomor dada MENAMPILKAN tiga digit sambil diketik: 1 jadi 001, 10
+ *  jadi 010 — bentuk yang sama dengan angka yang tercetak di dada peserta dan
+ *  di seluruh layar lain, yang sudah lama lewat dada3().
+ *
+ *  YANG BERUBAH CUMA TAMPILANNYA. Setiap pembaca kotak ini memakai
+ *  `Number(value)`, dan `Number("001")` tetap 1 — tidak ada satu pun
+ *  pencarian, penyimpanan, atau perbandingan yang perlu tahu soal ini.
+ *
+ *  Nomor Intern empat digit tidak dipotong: dada3() melewatkan apa pun di atas
+ *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000.
+ *
+ *  ANGKA NOL MENGOSONGKAN KOTAKNYA, dan itu bukan kebetulan melainkan
+ *  syarat supaya kotaknya masih bisa dikosongkan. Tanpa itu "001" yang
+ *  dihapus satu huruf jadi "00", dibaca 0, lalu dipasang kembali jadi "000" —
+ *  dan petugas tidak akan pernah bisa menghapus isinya. Tidak ada nomor dada
+ *  0, jadi tidak ada yang hilang.
+ *
+ *  Kursornya dikembalikan ke ujung karena mengubah `value` memindahkannya ke
+ *  awal, dan huruf berikutnya akan mendarat di depan angkanya. */
+function pasangDada3(el, sinyal) {
+  const rapikan = () => {
+    const angka = el.value.replace(/\D/g, "");
+    if (!angka) return;
+    const n = Number(angka);
+    const baru = n === 0 ? "" : dada3(n);
+    if (baru === el.value) return;
+    el.value = baru;
+    try { el.setSelectionRange(baru.length, baru.length); } catch { /* abaikan */ }
+  };
+  const opsi = sinyal ? { signal: sinyal } : undefined;
+  el.addEventListener("input", rapikan, opsi);
+  el.addEventListener("change", rapikan, opsi);
+}
+
 async function layarCetakKloter() {
   pasangKepala("Daftar Kloter");
   LAYAR.replaceChildren(h(pemuat()));
@@ -3036,6 +3070,7 @@ function layarFinish() {
   `));
 
   const inp = document.getElementById("dada");
+  pasangDada3(inp);
   const kotak = document.getElementById("kartu-regu");
   const tombol = document.getElementById("sampai");
   const inpJam = pasangKotakJam("jam");
@@ -8281,6 +8316,7 @@ async function gambarLombaNilai(l) {
   kirimAntrean();
 
   const inp = document.getElementById("v2-dada");
+  pasangDada3(inp, sinyal);
   const kotakRegu = document.getElementById("v2-regu");
   const wadah = document.getElementById("v2-isian");
   const tombol = document.getElementById("v2-simpan");
@@ -9624,8 +9660,12 @@ async function layarCekNilai() {
       <div class="cek-navigasi">
         <button type="button" class="button button-secondary cek-panah"
                 id="cek-mundur" aria-label="Regu sebelumnya">&lsaquo;</button>
-        <input type="number" id="cek-dada" class="cek-dada" inputmode="numeric"
-               min="1" aria-label="Nomor dada yang sedang dilihat">
+        <!-- type=text, BUKAN number: kotak number membuang nol di depan
+             apa pun yang ditulis ke dalamnya, jadi "001" mustahil tergambar
+             di sana. inputmode tetap numeric supaya papan ketik HP tetap
+             angka. -->
+        <input type="text" id="cek-dada" class="cek-dada" inputmode="numeric"
+               autocomplete="off" aria-label="Nomor dada yang sedang dilihat">
         <button type="button" class="button button-secondary cek-panah"
                 id="cek-maju" aria-label="Regu berikutnya">&rsaquo;</button>
       </div>
@@ -9663,6 +9703,7 @@ async function layarCekNilai() {
 
   const elPos = document.getElementById("cek-pos");
   const elDada = document.getElementById("cek-dada");
+  pasangDada3(elDada, sinyal);
   const elPosisi = document.getElementById("cek-posisi");
   const elIsi = document.getElementById("cek-isi");
   const elMundur = document.getElementById("cek-mundur");
@@ -9691,7 +9732,7 @@ async function layarCekNilai() {
        "04" untuk menuju 042 akan melihat ketikannya diganti nomor yang sedang
        terbuka, di tengah ketikan. */
     if (document.activeElement !== elDada) {
-      elDada.value = lembar.length ? String(lembar[indeks].nomor_dada) : "";
+      elDada.value = lembar.length ? dada3(lembar[indeks].nomor_dada) : "";
     }
   }
 
@@ -10331,7 +10372,7 @@ async function layarCekNilai() {
     const i = lembar.findIndex(r => Number(r.nomor_dada) === cari);
     if (i < 0) {
       notif(`Nomor ${dada3(cari)} tidak ada di pos ini.`, true);
-      elDada.value = lembar.length ? String(lembar[indeks].nomor_dada) : "";
+      elDada.value = lembar.length ? dada3(lembar[indeks].nomor_dada) : "";
       return;
     }
     elDada.blur();
