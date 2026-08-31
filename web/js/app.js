@@ -2836,39 +2836,34 @@ async function layarCetakKloter() {
     // kertas yang salah, dan yang memegangnya peserta.
     siapkanCetakKloter(semuaKloter, bentuk, planning);
     window.print();
-    tanyaWaktuCetak(semuaKloter.map(([n]) => Number(n)));
+    catatWaktuCetak(semuaKloter.map(([n]) => Number(n)));
   }
 
-  /** Pertanyaan sesudah mencetak: kertasnya keluar atau tidak. Waktu cetak
-   *  adalah catatan cetak terakhir, bukan gembok — kloter yang sama selalu
-   *  bisa dicetak lagi (CLAUDE.md 12.1).
+  /** Waktu cetak dicatat SENDIRI, tanpa bertanya.
    *
-   *  DIALOG SENDIRI, BUKAN `confirm()` BAWAAN BROWSER, dan itu bukan soal
-   *  selera. `confirm()` MEMBLOKIR utas utama halaman sampai dijawab. Di
-   *  iPhone `window.print()` tidak menahan JavaScript: lembar cetak iOS baru
-   *  mulai menggambar preview-nya sesudah baris itu lewat, jadi `confirm()`
-   *  yang menyusul mengunci utas yang sedang dipakai menggambar — lembar
-   *  cetaknya berhenti di "Loading Preview…" selamanya, dan pertanyaannya
-   *  sendiri tertutup di belakangnya. Cetak kwitansi dan blangko pos tidak
-   *  pernah kena karena keduanya berhenti tepat sesudah `window.print()`.
+   *  Dulu ada dialog "Kertasnya sudah keluar?" supaya catatannya cuma ditulis
+   *  kalau kertasnya benar-benar keluar. Yang dibeli ketelitian itu tidak
+   *  sebanding harganya: TIDAK ADA SATU LAYAR PUN yang membaca `dicetak_pada`,
+   *  dan sejak 0066 ia tidak lagi memagari apa pun — pengacakan otomatis cuma
+   *  melihat `jam_berangkat` (CLAUDE.md 12.3). Jadi pertanyaannya menghentikan
+   *  petugas yang sedang mencetak demi ketelitian sebuah catatan yang tidak
+   *  pernah dibaca siapa pun.
    *
-   *  `dialog()` cuma menempelkan elemen di halaman lalu mengembalikan Promise,
-   *  jadi utasnya bebas. Overlay-nya sudah `display: none` di @media print,
-   *  jadi ia tidak ikut tercetak. */
-  async function tanyaWaktuCetak(nomor) {
-    const jawab = await dialog({
-      judul: "Kertasnya sudah keluar?",
-      kartuHtml: html`<div class="card card-identity" style="margin-bottom:.8rem">
-        <div class="nama">${String(nomor.length)} kloter</div>
-      </div>`,
-      labelAksi: "Simpan waktu cetak",
-    });
-    if (!jawab) return;
-    try {
-      const n = await tandaiKloterDicetak(nomor);
-      notif(`Waktu cetak ${n} kloter disimpan.`);
-      layarCetakKloter();
-    } catch (err) { notif(err.message, true); }
+   *  Akibat yang diterima: kloter yang lembar cetaknya dibatalkan tetap
+   *  tercatat pernah dicetak. Itu catatan yang keliru, bukan pekerjaan yang
+   *  rusak — mencetak ulang selalu boleh (CLAUDE.md 12.1).
+   *
+   *  Sesudah `window.print()`, bukan sebelumnya: di iPhone lembar cetak baru
+   *  mulai menggambar preview-nya sesudah baris itu lewat, dan apa pun yang
+   *  menahan utas di sana membuatnya berhenti di "Loading Preview..." selamanya.
+   *  Panggilan ini tidak menahan utas, tapi urutannya tetap dipertahankan.
+   *
+   *  Gagalnya tetap bersuara. Catatan yang tidak dibaca layar mana pun toh
+   *  masih ditanyakan orang ("kloter 12 dicetak jam berapa?"), dan gagal
+   *  menulis yang benar-benar diam tidak pernah bisa diperbaiki. */
+  async function catatWaktuCetak(nomor) {
+    try { await tandaiKloterDicetak(nomor); }
+    catch (err) { notif(`Waktu cetak tidak tersimpan: ${err.message}`, true); }
   }
 
   document.getElementById("cetak-petugas").addEventListener("click", () => cetak("staging"));
