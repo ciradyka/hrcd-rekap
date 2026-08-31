@@ -12,8 +12,12 @@ sampai `0162`, dan bagian 3 diperiksa terhadap layar. `0163` — fase live
 kelima `juara` beserta `v_kejuaraan_publik` dan `hasil_kejuaraan_semua()` —
 mendarat sesudah penghitungan itu, jadi angka view dan fungsi di bagian 2
 kurang satu masing-masing; `0164` menulis ulang view yang sama untuk
-membawa kolom skornya dan tidak mengubah jumlahnya. Isi bagian 2 sampai 9
-selebihnya belum dibaca ulang baris demi baris terhadap `0119`-`0164`.
+membawa kolom skornya dan tidak mengubah jumlahnya. Disegarkan lagi
+31 Agustus 2026 sampai migrasi `0165`, dan cakupannya SEMPIT: yang
+diperiksa hanya jumlah migrasi beserta bagian singgahan `cache_live_score`
+di bawah. `0165` menambah satu fungsi, `minta_segarkan_live_score()`,
+sehingga angka fungsi di bagian 2 kurang satu lagi. Isi bagian 2 sampai 9
+selebihnya belum dibaca ulang baris demi baris terhadap `0119`-`0165`.
 
 Dua diagram menemani dokumen ini dan digambar dari tree yang sama:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
@@ -78,7 +82,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-164 migrasi, `0001` sampai `0164`, dijalankan berurutan tanpa lubang penomoran.
+165 migrasi, `0001` sampai `0165`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -105,6 +109,14 @@ seluruh papan Live Score, disegarkan `segarkan_cache_live_score()`. Layar Live
 Score dan layar Kejuaraan membacanya alih-alih menjalankan ulang seluruh rantai
 skor untuk tiap panitia yang membuka layar. Menghapus isinya tidak menghilangkan
 satu nilai pun; yang hilang cuma kecepatannya sampai disegarkan lagi.
+
+Dua jalan menyegarkannya, dan keduanya perlu. Cron `refresh-live-score.yml`
+menjaga hari lomba tiap sepuluh menit; tombol Refresh di layar Live Score
+memanggil `minta_segarkan_live_score()` (migrasi `0165`) saat diminta.
+Sampai `0165` hanya ada jalan pertama, dan cron itu sengaja mati di luar
+tanggal lomba — jadi di luar dua hari itu tombol Refresh membaca ulang
+snapshot beku yang sama tanpa satu pun galat. Terukur: penyegaran terakhir
+29 Agustus 16:55 UTC, dilaporkan panitia 31 Agustus.
 
 Duapuluh enam tabel seluruhnya, dan keduapuluh enamnya menyalakan RLS.
 

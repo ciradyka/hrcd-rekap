@@ -723,6 +723,8 @@ run supabase/migrations/0163_fase_juara.sql
 run tests/sql/115_fase_juara.sql
 run supabase/migrations/0164_kejuaraan_publik_dengan_skor.sql
 run tests/sql/116_kejuaraan_publik_skor.sql
+run supabase/migrations/0165_refresh_live_score_dari_layar.sql
+run tests/sql/117_refresh_live_score_dari_layar.sql
 
 # Parse dan jalankan query yang benar-benar menjadi live.json, SESUDAH
 # seluruh migrasi. Ini menangkap view atau kolom yang berganti sebelum
