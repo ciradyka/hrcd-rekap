@@ -1718,6 +1718,35 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   @page rekap-cetak { size: A4 landscape; margin: 8mm; }
   .rekap-cetak { page: rekap-cetak; }
 
+  /* ---- BAGIAN REKAP MENGALIR, TIDAK MEMAKSA HALAMAN BARU ----
+
+     Aturan umum `.print-page` memaksa satu bagian satu halaman, dan untuk
+     daftar kloter itu memang yang diinginkan: tiap petugas garis start
+     memegang kertasnya sendiri. Untuk rekap ia menghambur-hamburkan kertas.
+     Terukur: mencetak MA IPHI Pamarican — satu regu — menghasilkan DUA
+     halaman yang masing-masing terisi 12%.
+
+     Di sini bagian-bagiannya dibiarkan mengalir, jadi satu sekolah kecil
+     keluar satu halaman dan yang besar memakai sebanyak yang memang perlu.
+
+     Selektornya `.print-page.rekap-cetak`, bukan `.rekap-cetak` saja. Aturan
+     yang dibatalkan berkekhususan (0,1,0) dan menang lewat urutan berkas;
+     mengandalkan urutan berarti aturan ini berhenti bekerja begitu ada yang
+     memindahkan blok (CLAUDE.md 15.12). Dua kelas = (0,2,0), menang tanpa
+     bergantung pada letak. */
+  .print-page.rekap-cetak { break-after: auto; page-break-after: auto; }
+  /* Jarak antar bagian yang kini berbagi halaman. Tanpa ini kepala bagian
+     kedua menempel pada garis penutup tabel di atasnya dan terbaca seperti
+     bagian dari tabel yang sama. */
+  .rekap-cetak + .rekap-cetak { margin-top: 7mm; }
+  /* Judul tidak boleh tertinggal sendirian di kaki halaman sementara tabelnya
+     pindah ke halaman berikutnya. */
+  .rekap-cetak h1,
+  .rekap-cetak .lembar-kepala { break-after: avoid; page-break-after: avoid; }
+  /* Kepala tabel diulang di tiap halaman waktu satu bagian terbelah — tabel
+     29 kolom tanpa kepala di halaman kedua tidak bisa dibaca sama sekali. */
+  .rekap-cetak .print-table thead { display: table-header-group; }
+
   .rekap-cetak h1 { font-size: 11pt; margin-bottom: .2rem; }
   .rekap-cetak .lembar-kepala { font-size: 8pt; margin: 0; }
   .rekap-cetak .print-table { margin-top: 3pt; }

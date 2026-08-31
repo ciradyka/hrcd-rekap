@@ -125,8 +125,10 @@ test("kolom dibelah antar-lembar, selalu di ANTARA pos", () => {
     "kolom Total tidak ada di kepala tiap lembar");
   assert.match(cetakan, /\}\$\{selTotal\(k\)\}<\/tr>/,
     "kolom Total tidak ada di badan tiap lembar");
-  assert.match(cetakan, /Lembar \$\{i \+ 1\}\/\$\{LEMBAR\.length\}/,
-    "halaman tidak menyebut lembar keberapa dari berapa");
+  // "Bagian", bukan "Lembar": bagian-bagiannya mengalir dan bisa berbagi satu
+  // halaman kertas, jadi menyebutnya lembar akan membohongi yang memegangnya.
+  assert.match(cetakan, /Bagian \$\{i \+ 1\}\/\$\{LEMBAR\.length\}/,
+    "halaman tidak menyebut bagian keberapa dari berapa");
 });
 
 test("satu bagian per golongan, bukan satu tabel campuran", () => {
@@ -208,4 +210,23 @@ test("kertas A4 melintang dan hurufnya tidak di bawah 7pt", () => {
     assert.ok(Number(tebal) >= 0.75,
       `garis ${tebal}pt di bawah batas 0,75pt (CLAUDE.md 8.5)`);
   }
+});
+
+
+test("bagian rekap mengalir, tidak memaksa satu halaman masing-masing", () => {
+  // Terukur: mencetak sekolah bersatu regu menghasilkan DUA halaman yang
+  // masing-masing terisi 12% sebelum perbaikan ini.
+  assert.match(css,
+    /\.print-page\.rekap-cetak \{ break-after: auto; page-break-after: auto; \}/,
+    "bagian rekap masih memaksa halaman baru masing-masing");
+  // Dua kelas, bukan satu: aturan yang dibatalkan berkekhususan sama dan
+  // menang lewat urutan berkas (CLAUDE.md 15.12).
+  assert.doesNotMatch(css, /^\s*\.rekap-cetak \{ break-after: auto/m,
+    "pembatalannya bergantung pada urutan berkas, bukan kekhususan");
+  assert.match(css, /\.rekap-cetak \+ \.rekap-cetak \{ margin-top: 7mm; \}/,
+    "tidak ada jarak antar bagian yang berbagi halaman");
+  assert.match(css, /\.rekap-cetak \.lembar-kepala \{ break-after: avoid/,
+    "judul bagian bisa tertinggal sendirian di kaki halaman");
+  assert.match(css, /\.rekap-cetak \.print-table thead \{ display: table-header-group; \}/,
+    "kepala tabel tidak diulang saat satu bagian terbelah antar halaman");
 });

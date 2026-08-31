@@ -5639,8 +5639,11 @@ const KOLOM_NILAI_PER_LEMBAR = 12;
  *  diumumkan. Golongan karena itu TIDAK jadi kolom ke-30: ia judul bagian,
  *  tempat ia terbaca sekali per halaman alih-alih diulang di tiap baris.
  *
- *  TIAP GOLONGAN DIBELAH LAGI JADI BEBERAPA LEMBAR, sebanyak yang diperlukan
- *  KOLOM_NILAI_PER_LEMBAR di atas. Pembelahannya selalu jatuh DI ANTARA pos,
+ *  TIAP GOLONGAN DIBELAH LAGI JADI BEBERAPA BAGIAN, sebanyak yang diperlukan
+ *  KOLOM_NILAI_PER_LEMBAR di atas. Bagian adalah potongan KOLOM, bukan
+ *  potongan kertas: bagian-bagiannya MENGALIR, jadi sekolah bersatu regu
+ *  keluar satu halaman berisi dua bagian bertumpuk, bukan dua halaman yang
+ *  masing-masing terisi 12% (terukur, dan itu keluhan yang memperbaikinya). Pembelahannya selalu jatuh DI ANTARA pos,
  *  tidak pernah di tengah-tengah pos: kepala "Pos 3 \u00b7 P3K" membentang di atas
  *  kolom-kolomnya, dan pos yang terbelah dua lembar akan mencetak kepala itu
  *  dua kali di atas separuh kolomnya masing-masing.
@@ -5762,12 +5765,17 @@ function siapkanCetakRekap({ judul, baris, posKolom, rekapDada }) {
     LEMBAR.map((lembar, i) => `
     <section class="print-page rekap-cetak">
       <h1>REKAP NILAI \u00b7 ${esc(judul)} \u00b7 ${esc(GOLONGAN_LABEL[g] || g)}</h1>
-      <!-- "Lembar 1/2" ditulis di tiap halaman karena kertas ini berpindah
-           tangan sebagai lembaran lepas. Lembar kedua yang berdiri sendiri
-           tanpa penanda terbaca seperti rekap yang kehilangan separuh
-           kolomnya. -->
+      <!-- "Bagian 1/2", BUKAN "Lembar 1/2". Bagian-bagian ini mengalir dan
+           bisa berbagi satu halaman kertas: sekolah bersatu regu keluar satu
+           halaman, bukan dua yang masing-masing terisi 12%. Menyebutnya
+           lembar akan membohongi yang memegangnya — ia mencari lembar kedua
+           yang tidak pernah keluar dari printer.
+
+           Penandanya tetap ditulis karena kertas ini berpindah tangan sebagai
+           lembaran lepas: bagian kedua yang berdiri sendiri tanpa penanda
+           terbaca seperti rekap yang kehilangan separuh kolomnya. -->
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} \u00b7
-         ${esc(String(isi.length))} regu \u00b7 Lembar ${i + 1}/${LEMBAR.length}
+         ${esc(String(isi.length))} regu \u00b7 Bagian ${i + 1}/${LEMBAR.length}
          \u00b7 Dicetak ${esc(dicetak)}</p>
       <table class="print-table">
         <thead>
