@@ -729,6 +729,11 @@ run supabase/migrations/0166_gembok_per_lomba.sql
 run tests/sql/118_gembok_per_lomba.sql
 run supabase/migrations/0167_putaran_foto.sql
 run tests/sql/119_putaran_foto.sql
+# 0168 mengubah satu baris konfigurasi (`wahana.judul_isian` Menaksir). Di
+# database uji `menaksir` tidak ada, jadi UPDATE-nya melapor dilewati — sama
+# seperti 0035, 0038 dan 0039 di atas. Yang menjalankannya dengan konfigurasi
+# produksi tests/dev_database.sh.
+run supabase/migrations/0168_judul_isian_menaksir.sql
 
 # tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
 # perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.
