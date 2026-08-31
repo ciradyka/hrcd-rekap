@@ -1051,6 +1051,44 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 }
 .isi-filter input { width: 1rem; height: 1rem; }
 
+/* ---- Pemilih sekolah di dialog Cetak Rekap Nilai ----
+
+   Satu tombol selebar dialog per sekolah, digulir di dalam kotaknya sendiri.
+   `max-height` dipatok supaya tombol silang di pojok dan kotak carinya tidak
+   terdorong keluar layar begitu daftarnya panjang: 23 sekolah hari ini muat,
+   ratusan tahun depan tidak, dan yang pertama hilang dari layar justru kotak
+   cari yang dibutuhkan untuk memendekkannya.
+
+   Nama di kiri, jumlah regu di kanan — `space-between`, bukan dua kolom grid.
+   Nama sekolah panjangnya berbeda-beda dan boleh membungkus; angkanya selalu
+   satu atau dua digit dan tetap menempel di tepi kanan, jadi mata menyusurinya
+   lurus ke bawah dari baris ke baris. */
+/* Kotak carinya TIDAK memakai `.small-input`. Kelas itu berarti "kotak angka
+   di dalam tabel": `input.small-input` mematoknya 4,5rem dan meratakan isinya
+   ke tengah, jadi contoh isian "Ketik nama sekolah…" terpotong jadi "Ketik"
+   di kotak selebar tujuh huruf. Bentuknya disamakan dengan `.cari-filter`
+   milik saringan sekolah di tabel — pekerjaannya memang sama, dan orang di
+   meja ini sudah memakainya. */
+.cari-sekolah-cetak {
+  width: 100%; box-sizing: border-box; margin-top: .6rem;
+  padding: .45rem .6rem; border: 2px solid #9aa3ad; border-radius: 6px;
+  font-size: .9rem; font-family: inherit; background: #fff; color: #1c2430;
+}
+.cari-sekolah-cetak:focus {
+  outline: none; border-color: #00695c; box-shadow: 0 0 0 3px rgba(0,105,92,.18);
+}
+
+.daftar-cetak-sekolah {
+  display: flex; flex-direction: column; gap: .35rem;
+  max-height: 46vh; overflow-y: auto; margin-top: .6rem;
+}
+.daftar-cetak-sekolah .button[hidden] { display: none; }
+.pilih-sekolah-cetak {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .6rem; text-align: left; width: 100%; margin: 0;
+}
+.pilih-sekolah-cetak > span:first-child { flex: 1; }
+
 .kepala-klasemen { display: flex; align-items: center; gap: .5rem; margin: 0 0 .8rem; }
 .kepala-klasemen h2 { margin: 0; text-align: center; }
 .kepala-klasemen .sisi { flex: 1; display: flex; }
@@ -1644,6 +1682,81 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   /* Nama regu dan sekolah boleh membungkus di kertas — halaman punya lebar
      tetap, dan yang harus mengalah adalah teks, bukan kotak isiannya. */
   .print-table td { overflow-wrap: break-word; }
+
+  /* ---- REKAP NILAI: A4 MELINTANG, DUA LEMBAR PER GOLONGAN ----
+
+     Kertas ini DIBACA, bukan ditulisi, dan itu yang memisahkannya dari lembar
+     pos beberapa blok di atas. Lembar pos menjaga tinggi baris tetap rata
+     karena mata menyusuri mendatar dari nomor dada ke kotak yang akan ditulisi;
+     di sini tidak ada yang ditulisi, jadi nama yang membungkus cuma tidak enak
+     dilihat — sementara nama yang DIPOTONG kehilangan gunanya sebagai cek
+     silang. Karena itu tabelnya `auto`, bukan `fixed`: lebar diserahkan ke
+     isinya, dan yang terpanjang yang menentukan.
+
+     KENAPA DUA LEMBAR, dengan angka yang diukur di browser atas data 143 regu
+     (CLAUDE.md 15.9 dan 15.11), bukan ditaksir:
+
+       tersedia            281mm   (A4 melintang 297mm, margin 8mm dua sisi)
+       29 kolom, min-content 347,7mm   -> lebih 66mm, sepertiga kanan terpotong
+       23 kolom "Nilai"      261,8mm   -> sisa 19mm
+       11 kolom "Perjalanan" 112,5mm   -> sisa 168mm
+
+     min-content adalah selebar-sempitnya tabel itu bisa menjadi dengan setiap
+     nama sudah membungkus sehabis-habisnya. Jadi 347,7mm bukan lebar yang bisa
+     ditawar dengan mengatur persentase kolom — ia LANTAI-nya, dan lantainya
+     lebih tinggi daripada kertasnya.
+
+     Yang menghabiskannya kepala kolom, bukan angkanya: "Pengetahuan Umum",
+     "Kepramukaan", "Berangkat" adalah kata yang tidak bisa dipatahkan, dan
+     7pt adalah BATAS BAWAH huruf (CLAUDE.md 8.6) — di bawah itu fotokopi
+     menutup lubang huruf a, e, dan o. Kalau suatu tahun kolomnya bertambah
+     lagi, yang dibelah lembarnya — bukan ukuran hurufnya.
+
+     Padding 1,5pt dan huruf besar yang dimatikan berasal dari hitungan yang
+     sama: "BERANGKAT" di 7pt butuh ~15mm, "Berangkat" ~12mm, dan selisih 3mm
+     itu langsung jatuh ke kolom nama. */
+  @page rekap-cetak { size: A4 landscape; margin: 8mm; }
+  .rekap-cetak { page: rekap-cetak; }
+
+  .rekap-cetak h1 { font-size: 11pt; margin-bottom: .2rem; }
+  .rekap-cetak .lembar-kepala { font-size: 8pt; margin: 0; }
+  .rekap-cetak .print-table { margin-top: 3pt; }
+  /* Padding 1pt/1,5pt, bukan 1,5pt/2pt. Selisihnya 1pt per kolom, dan pada 17
+     kolom itu 6mm — diukur, dan itulah yang memindahkan lembar terlebar dari
+     284,7mm (terpotong) ke dalam kertas. */
+  .rekap-cetak .print-table th,
+  .rekap-cetak .print-table td {
+    font-size: 7pt; padding: 1pt 1.5pt; line-height: 1.15;
+  }
+  /* Huruf besar dimatikan untuk lebarnya, dan tebalnya yang menggantikan
+     tugasnya memisahkan kepala dari isi. Garis bawah tebal tetap ada dari
+     aturan `.print-table th` umum. */
+  .rekap-cetak .print-table th { text-transform: none; text-align: center; }
+  /* Sel ANGKA tidak boleh membungkus: "01:14" yang patah jadi dua baris
+     membaca seperti dua angka.
+
+     KEPALA KOLOM justru HARUS boleh membungkus, dan itu bukan selera:
+     dengan `nowrap` di kepala, lembar terlebar terukur 305,7mm dari 281mm
+     yang tersedia — "Pengetahuan Umum" dan "Balap Karung" sendirian memaksa
+     kolomnya selebar kalimatnya. Membungkus di spasinya membawanya ke
+     222,7mm. Kepala tabel memang dua baris, jadi tingginya sudah ada.
+
+     Keduanya dipisahkan lewat kelas, bukan lewat nth-child — nomor kolomnya
+     bergeser setiap kali sebuah lomba ditambahkan tahun depan (CLAUDE.md
+     15.5). */
+  .rekap-cetak .print-table td.text-center { white-space: nowrap; }
+  /* `break-word` dan BUKAN `anywhere`. Keduanya terbaca mirip dan hasilnya
+     berlawanan: `anywhere` ikut mengecilkan lebar min-content kolomnya, jadi
+     tabel `auto` memberi kolom Regu dan Organisasi hanya 14mm dan memotong
+     297 kata di tengah — "SINDANGKA/SIH". Diukur, bukan dibaca (CLAUDE.md
+     15.9). `break-word` menahan lebar kolomnya di kata terpanjang, jadi nama
+     hanya membungkus di spasi. */
+  .rekap-cetak .print-table td { overflow-wrap: break-word; }
+  /* Batas antar-pos: garis tegak yang lebih tebal, bukan raster (bagian 8.2).
+     Di layar `.rekap-batas` sudah punya arti yang sama; di kertas ia harus
+     ditulis lagi karena aturan layarnya duduk di luar @media print. */
+  .rekap-cetak .print-table th.rekap-batas,
+  .rekap-cetak .print-table td.rekap-batas { border-right-width: 1.5pt; }
 }
 
 @page { margin: 12mm; }
