@@ -4679,6 +4679,33 @@ button.pill-number:hover { filter: brightness(.95); }
 
    `bottom` diberi jarak untuk menu bawah HP yang setinggi 56px + safe area,
    supaya keduanya tidak bertumpuk. */
+/* KARTUNYA HARUS `overflow: visible`, dan tanpa itu tombol di bawah menutupi
+   kotak Nomor dada.
+
+   `.card { overflow-x: auto }` berlaku untuk SEMUA kartu, dan menurut aturan
+   CSS `overflow-y` ikut menjadi `auto` begitu `overflow-x` bukan `visible`.
+   Kartu Input Pos v2 karena itu diam-diam menjadi scroll container — dan
+   `position: sticky` menempel pada scrollport TERDEKAT, yaitu kartu itu
+   sendiri, bukan layar.
+
+   Akibatnya persis kebalikan dari yang dimaksud. Selama regu belum dipilih
+   kartunya pendek, jadi tombol yang seharusnya turun ke dasar LAYAR malah
+   dijepit ke dasar KARTU — naik ke atas, menimpa kotak Nomor dada. Terukur
+   di iframe 390px: kotaknya 183–239, tombolnya mulai 197. Empat puluh dua
+   piksel menutupi kotak yang justru harus diketik lebih dulu, dan petugas
+   tidak bisa memasukkan satu nilai pun.
+
+   Ini jebakan yang SAMA dengan yang sudah tercatat di layar Kejuaraan
+   (`.kejuaraan-bagian .card { overflow: visible }`), muncul lagi lewat gejala
+   yang sama sekali berbeda. Kartu ini tidak memuat tabel lebar, jadi gunting
+   mendatar itu memang tidak pernah ia butuhkan.
+
+   Yang diperbaiki KARTUNYA, bukan tombolnya. Mengganti `sticky` jadi `static`
+   juga menghilangkan tumpang tindihnya, tapi sekaligus membuang gunanya:
+   dengan foto terpasang tombolnya berakhir 357px di bawah lipatan, dan dengan
+   papan ketik terbuka bahkan regu tanpa foto pun menuntut menggulir. */
+#v2-kartu { overflow: visible; }
+
 .v2-simpan-lekat {
   position: sticky; bottom: .6rem; z-index: 5;
   margin-top: .7rem; min-height: 60px; font-size: 1.2rem;
