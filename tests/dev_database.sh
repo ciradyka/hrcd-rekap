@@ -119,7 +119,8 @@ ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
        0076_bidai_dan_lomba_soal 0087_kim_dua_lomba 0091_intern_golongan
        0093_configure_fifo_capacity 0105_expand_kloter_capacity
-       0118_jeda_kloter_maksimal 0168_judul_isian_menaksir"
+       0118_jeda_kloter_maksimal 0168_judul_isian_menaksir
+       0169_judul_isian_soal"
 
 # Yang dilewati WAJIB dijalankan lagi di suatu tempat. Kalau tidak, ia tidak
 # dijalankan sama sekali — kerusakan yang sama dengan berhenti di 0011, dan
@@ -282,6 +283,9 @@ run supabase/migrations/0024_komponen_pos.sql
 #     Urutannya sesudah 0093 dan sebelum 0118, sama dengan nomornya di
 #     tests/run.sh: 0093 membuat 60, 0105 menaikkannya jadi 75, lalu
 #     assert 0118 memeriksa sebaran jamnya atas jumlah yang benar.
+#   * 0169 harus SESUDAH 0076 dan 0091, karena keduanya yang memasang
+#     `judul_isian = 'Benar'` pada baris soal — 0076 untuk kelimanya, 0091
+#     untuk salinan Intern-nya. Alasan yang sama persis dengan 0168 di bawah.
 #   * 0168 harus SESUDAH 0039, dan itu satu-satunya alasan ia ada di daftar
 #     ini. 0039 memasang judul isian Menaksir "Selisih Taksir" dan 0168
 #     menggantinya dengan "Hasil Taksir"; di glob urutannya benar, tapi 0039

@@ -734,6 +734,11 @@ run tests/sql/119_putaran_foto.sql
 # seperti 0035, 0038 dan 0039 di atas. Yang menjalankannya dengan konfigurasi
 # produksi tests/dev_database.sh.
 run supabase/migrations/0168_judul_isian_menaksir.sql
+# 0169 mengosongkan `judul_isian` lima lomba soal supaya layar menurunkan
+# "Jumlah benar" sendiri. Berbeda dengan 0168 di atas, ia MENGENAI sesuatu di
+# sini: 0076 dijalankan lebih dulu, jadi kesepuluh baris soal ada dan angkanya
+# dilaporkan lewat notice.
+run supabase/migrations/0169_judul_isian_soal.sql
 
 # tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
 # perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.

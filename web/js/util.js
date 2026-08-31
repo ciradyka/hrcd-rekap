@@ -1222,23 +1222,26 @@ export function kelompokLomba(kolom) {
 /** BENTUK PENGISIAN satu lomba — inilah yang menentukan layar mana yang
  *  digambar Input Nilai Pos v2 untuk lomba itu.
  *
- *  Tiga bentuk, dan ketiganya dikenali dari KONFIGURASI, bukan dari nama:
+ *  Dua bentuk, dan keduanya dikenali dari KONFIGURASI, bukan dari nama:
  *
  *    "waktu"  seluruh komponennya bersatuan detik. Bakiak, Lari Balok,
  *             Balap Karung — satu regu berjalan, satu angka dicatat, dan
  *             angka itu datang dari stopwatch yang dipegang petugas.
- *    "soal"   seluruh komponennya `type = 'soal'`. Peserta menjawab di lembar
- *             soalnya sendiri (CLAUDE.md 11.3), jadi yang ada di tangan
- *             petugas adalah setumpuk kertas — difoto borongan lebih dulu,
- *             nomor dada dan angkanya ditulis belakangan.
- *    "nilai"  sisanya. Juri menilai regu yang ada di depannya dan menulis
- *             tiap kriteria di satu blangko: Semaphore, Pembidaian, PBB,
- *             Yel-Yel, KIM, Menaksir, Tebak Simpul.
+ *    "nilai"  sisanya, TERMASUK lomba soal tulis. Satu regu satu layar:
+ *             ketik nomor dada, isi kotaknya, foto slipnya, simpan.
  *
- *  Dikenali dari `satuan` dan `type` — kolom database yang diisi panitia —
- *  dan BUKAN dari daftar nama lomba di sini. Daftar nama berarti lomba baru
- *  tahun depan jatuh ke bentuk yang salah tanpa satu pun galat, dan yang
- *  menemukannya petugas yang sudah berdiri di posnya.
+ *  Dikenali dari `satuan` — kolom database yang diisi panitia — dan BUKAN
+ *  dari daftar nama lomba di sini. Daftar nama berarti lomba baru tahun depan
+ *  jatuh ke bentuk yang salah tanpa satu pun galat, dan yang menemukannya
+ *  petugas yang sudah berdiri di posnya.
+ *
+ *  BENTUK KETIGA "soal" SUDAH TIDAK ADA. Lomba ber-`type = 'soal'` — Keagamaan,
+ *  Kepramukaan, Kesehatan, Pengetahuan Umum, Logika — dulu punya layarnya
+ *  sendiri: setumpuk kertas difoto borongan lebih dulu, nomor dada dan
+ *  angkanya diketik belakangan, satu ubin per foto. Keputusan pemilik acara
+ *  1 September 2026: semuanya memakai bentuk yang sama dengan Semaphore, satu
+ *  regu satu layar dengan kotak "Jumlah benar". Foto borongan tetap ada di
+ *  layar Foto Jawaban, yang memang dibuat untuk itu (migrasi 0074).
  *
  *  `every` atas larik kosong bernilai true, jadi jumlah kolomnya diperiksa
  *  lebih dulu: lomba tanpa komponen bukan lomba waktu.
@@ -1247,7 +1250,6 @@ export function jenisLomba(lomba) {
   const w = (lomba.kolom || []).map(kol => kol.varian[0]).filter(Boolean);
   if (!w.length) return "nilai";
   if (w.every(k => k.satuan === "detik")) return "waktu";
-  if (w.every(k => k.type === "soal")) return "soal";
   return "nilai";
 }
 
