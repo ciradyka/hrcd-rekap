@@ -617,6 +617,34 @@ export async function statusAcara() {
   return Array.isArray(d) ? d[0] : d;
 }
 
+/** Tombol Refresh layar Live Score: MINTA DATABASE MENGHITUNG ULANG, lalu
+ *  kembalikan cap waktu snapshot yang berlaku sesudahnya.
+ *
+ *  DUDUK DI BAWAH statusAcara(), bukan di atasnya bersama aturFaseLive() yang
+ *  sama-sama soal Live Score. Sebabnya di tes: dev_live_phase_route mengiris
+ *  aturFaseLive() SAMPAI statusAcara() lalu melarang kata K-titik-mode muncul
+ *  di dalam irisan itu, jadi fungsi apa pun yang disisipkan di antara keduanya
+ *  ikut terbaca sebagai badan aturFaseLive \u2014 termasuk komentarnya.
+ *
+ *  Tanpa ini tombolnya cuma membaca ulang `cache_live_score`, dan yang mengisi
+ *  tabel itu satu-satunya adalah cron `refresh-live-score.yml` yang sengaja
+ *  hanya hidup pada tanggal lomba. Di luar dua hari itu angkanya tidak pernah
+ *  berubah, dan tidak ada satu pun galat — membaca snapshot beku memang
+ *  berhasil. Terukur: penyegaran terakhir 29 Agustus 16:55 UTC, dilaporkan
+ *  panitia 31 Agustus.
+ *
+ *  Pagarnya di database (migrasi 0165), bukan di sini: hak `live_score`,
+ *  ambang 5 detik untuk penekanan berbarengan, dan kunci supaya belasan HP
+ *  tidak menghitung hal yang sama sekaligus.
+ *
+ *  Lewat pembungkus `rpc()` yang sama di dev dan produksi, tanpa cabang
+ *  `K.mode`. Cabang seperti itu berarti yang dijalankan panitia bukan jalur
+ *  yang pernah dicoba siapa pun di laptop — dan `tests/dev_server.py` memang
+ *  menyediakan rutenya, jadi tidak ada yang perlu dipintas. */
+export async function segarkanLiveScore() {
+  return rpc("minta_segarkan_live_score", {});
+}
+
 /** Angka penalti edisi aktif — dipakai layar finish untuk menunjukkan apakah
  *  selisih jam kertas vs laptop benar-benar mengubah penalti. */
 export async function infoPenalti() {

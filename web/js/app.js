@@ -27,7 +27,7 @@ import {
   hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
-  aturFaseLive,
+  aturFaseLive, segarkanLiveScore,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
   hapusFotoLembar, tautanBukti,
@@ -5790,6 +5790,21 @@ function siapkanCetakRekap({ judul, baris, posKolom, rekapDada }) {
    <body>, jadi tidak ada yang membuangnya saat pindah layar. */
 let pengendaliFilterSekolah = null;
 
+/* Golongan yang sedang dibuka, dan posisi guliran, DIINGAT melewati gambar
+   ulang Refresh.
+
+   Keduanya di luar layarLiveScore() karena fungsi itu menggambar ulang
+   seluruh papan dari nol tiap kali dipanggil. Tanpa ingatan ini Refresh
+   melempar panitia kembali ke tab golongan pertama dan ke puncak halaman \u2014
+   dan yang menekan Refresh justru sedang MEMBACA satu baris di tengah tabel,
+   biasanya sesudah menyimpan nilai regu itu.
+
+   `null` berarti belum ada yang dipilih, dan itu beda dari "memilih golongan
+   pertama": golongan yang diingat dipakai HANYA kalau ia masih punya baris,
+   supaya papan tidak terbuka pada tab kosong. */
+let golonganLiveScore = null;
+let guliranLiveScore = null;
+
 /** Satu request yang putus tidak boleh merobohkan seluruh papan.
  *
  *  Live Score menarik snapshot skor dan status acara. Di koneksi lapangan,
@@ -6167,7 +6182,9 @@ async function layarLiveScore() {
     GOL.map(g => [g, klasemen.filter(k => k.golongan === g).length]));
   // Tab pertama yang sudah ada isinya, supaya layar tidak terbuka pada
   // golongan kosong ketika golongan lain justru sudah penuh.
-  const golAktif = GOL.find(g => jumlahGol[g] > 0) || GOL[0];
+  const golAktif =
+    (golonganLiveScore && jumlahGol[golonganLiveScore] > 0 && golonganLiveScore)
+    || GOL.find(g => jumlahGol[g] > 0) || GOL[0];
 
   /* Dua tombol cetak, TANPA judul kartu dan TANPA paragraf penjelas: nama
      tombolnya sudah menyebut apa yang keluar dari printer (CLAUDE.md 9.2 dan
@@ -6356,8 +6373,35 @@ async function layarLiveScore() {
   /* Refresh diminta petugas, bukan berjalan sendiri. Menggambar ulang lewat
      fungsi layar yang sama memastikan snapshot skor, status acara, dan cap
      update berasal dari satu pemuatan baru. */
-  document.getElementById("refresh-live-score")?.addEventListener("click", () => {
-    layarLiveScore();
+  /* Refresh MEMINTA DATABASE MENGHITUNG ULANG lebih dulu, baru menggambar
+     ulang. Menggambar ulang saja cuma membaca `cache_live_score` yang sama:
+     yang mengisi tabel itu satu-satunya cron `refresh-live-score.yml`, dan
+     cron itu sengaja hanya hidup pada tanggal lomba (CLAUDE.md 16.9 \u2014 cron
+     adalah tagihan berjalan, jendelanya tidak dilebarkan). Di luar dua hari
+     itu tombolnya menggambar ulang angka yang sama persis, tanpa satu pun
+     galat, karena membaca snapshot beku memang berhasil.
+
+     GAMBAR ULANG TETAP DIJALANKAN WALAU PENGHITUNGAN GAGAL. Snapshot lama
+     masih berguna dan cap waktunya jujur (itu keputusan 0146); yang tidak
+     boleh terjadi adalah tombol yang tidak melakukan apa-apa lalu diam.
+
+     Tombolnya dimatikan selama bekerja. Penghitungan bisa memakan detik, dan
+     tanpa ini panitia menekannya tiga kali \u2014 yang ditahan ambang 5 detik di
+     database, tapi tetap terasa seperti tombol rusak. */
+  document.getElementById("refresh-live-score")?.addEventListener("click", async (e) => {
+    const tombol = e.currentTarget;
+    // Diingat SEBELUM apa pun digambar ulang, dan dipulihkan sesudahnya.
+    guliranLiveScore = window.scrollY;
+    tombol.disabled = true;
+    tombol.classList.add("berputar");
+    try {
+      await segarkanLiveScore();
+    } catch (err) {
+      notif(err.message, true);
+    }
+    // Tidak perlu menyalakan tombolnya lagi: layarLiveScore() menggambar
+    // tombol yang baru sama sekali.
+    await layarLiveScore();
   });
 
   /* Kepala tabel Live Score ada DUA baris, dan keduanya menempel di atas.
@@ -6529,12 +6573,24 @@ async function layarLiveScore() {
     });
   });
 
+  /* Guliran dipulihkan DI SINI, sesudah seluruh papan tergambar \u2014 termasuk
+     tabelnya, yang menentukan tinggi halaman. Memulihkannya lebih awal tidak
+     bekerja: halaman yang belum setinggi posisi tujuan membuat browser
+     menahan guliran di batas yang ada saat itu. */
+  if (guliranLiveScore !== null) {
+    const ke = guliranLiveScore;
+    guliranLiveScore = null;
+    requestAnimationFrame(() => window.scrollTo(0, ke));
+  }
+
   const bilah = LAYAR.querySelector(".tab-golongan");
   if (bilah) {
     bilah.addEventListener("click", (e) => {
       const b = e.target.closest("[data-gol]");
       if (!b) return;
       const pilih = b.dataset.gol;
+      // Diingat supaya Refresh berikutnya membuka tab yang sama.
+      golonganLiveScore = pilih;
       bilah.querySelectorAll("[data-gol]").forEach(x =>
         x.setAttribute("aria-selected", String(x.dataset.gol === pilih)));
       LAYAR.querySelectorAll(".panel-gol").forEach(pn => {
