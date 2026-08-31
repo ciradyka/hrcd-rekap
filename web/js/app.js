@@ -182,6 +182,12 @@ function pasangKepala(judul, lebar = false) {
   document.title = `${judul} — ${namaAcara()}`;
   LAYAR.classList.toggle("wide", lebar === true);
   LAYAR.classList.toggle("lembar", lebar === "lembar");
+  /* "cek" = layar Cek Nilai: setinggi layar, tanpa gulir, foto berjajar.
+     Ikut di-toggle di SINI bersama dua yang lain, bukan dipasang sendiri di
+     layarnya — supaya ia ikut mati waktu pindah ke layar mana pun. Kelas yang
+     dipasang di layarnya sendiri akan tertinggal dan membuat layar berikutnya
+     terpotong setinggi viewport. */
+  LAYAR.classList.toggle("cek", lebar === "cek");
   if (s) document.getElementById("siapa").textContent =
     `${s.username} · ${EDISI ? EDISI.name : ""}`;
 }
@@ -9632,7 +9638,7 @@ async function layarCekNilai() {
     return;
   }
 
-  pasangKepala("Cek Nilai", true);
+  pasangKepala("Cek Nilai", "cek");
   LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
@@ -9693,6 +9699,30 @@ async function layarCekNilai() {
     </div>
     <div id="cek-isi"></div>
   `));
+
+  /* Tinggi header DIUKUR, tidak ditebak. Tata letak satu-layar di style.css
+     memakai `calc(100dvh - var(--kepala))`, dan header ini tumbuh sebaris
+     lagi kalau nama akun panjang atau layarnya sempit — angka tetap apa pun
+     akan benar di satu ukuran dan meninggalkan celah atau memotong foto di
+     ukuran lain.
+
+     Diukur ulang saat lebarnya berubah, karena di situ pula pembungkusan
+     headernya berubah. Pengamatnya dilepas saat pindah layar.
+
+     MEMAKAI `sinyal` YANG SUDAH ADA, bukan memanggil sinyalLayarBaru() lagi:
+     fungsi itu MEMBATALKAN sinyal sebelumnya sebelum memberi yang baru.
+     Panggilan kedua di layar yang sama membatalkan sinyal layar itu sendiri,
+     dan muatPos() lalu berhenti di `if (sinyal.aborted) return` — layarnya
+     menggantung di "Memuat…" selamanya, tanpa satu pun galat. */
+  const kepalaEl = document.getElementById("kepala");
+  if (kepalaEl) {
+    const ukurKepala = () => LAYAR.style.setProperty(
+      "--kepala", `${Math.round(kepalaEl.getBoundingClientRect().height)}px`);
+    ukurKepala();
+    const pengamatKepala = new ResizeObserver(ukurKepala);
+    pengamatKepala.observe(kepalaEl);
+    putusSaatPindah(sinyal, pengamatKepala);
+  }
 
   gambarPitaAntrean();
   kirimAntrean();
