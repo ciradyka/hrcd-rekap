@@ -41,7 +41,14 @@ PORT = 8787
 
 # Argumen yang bertipe text[] di Postgres, bukan jsonb. Dipisah karena
 # keduanya sampai ke sini sebagai list JSON yang sama persis.
-ARRAY_TEKS = {"p_anggota"}
+# Argumen yang tujuannya ARRAY Postgres — apa pun jenis elemennya. Namanya
+# dulu ARRAY_TEKS dan isinya hanya "p_anggota", jadi `p_kloter` (smallint[])
+# ikut di-json.dumps dan Postgres menolaknya dengan "malformed array literal"
+# — persis kerusakan yang komentar di bawah sudah menjelaskan, cuma daftarnya
+# yang kurang satu. Akibatnya "Simpan waktu cetak" di layar Daftar Kloter
+# TIDAK PERNAH berhasil di laptop, dan tidak ada yang tahu karena jawabannya
+# cuma muncul sebagai notifikasi merah yang lewat.
+ARRAY_PG = {"p_anggota", "p_kloter"}
 
 # RPC yang boleh dipanggil layar, beserta urutan argumennya.
 RPC = {
@@ -478,14 +485,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 nilai = []
                 for k in urutan:
                     v = args.get(k)
-                    # Daftar yang tujuannya text[] diteruskan sebagai LIST
-                    # Python — psycopg2 mengubahnya jadi array Postgres. Kalau
-                    # ikut di-json.dumps seperti jsonb, yang sampai ke fungsi
-                    # teks '["a","b"]' dan Postgres menolaknya dengan
+                    # Daftar yang tujuannya array Postgres diteruskan sebagai
+                    # LIST Python — psycopg2 mengubahnya jadi array Postgres.
+                    # Kalau ikut di-json.dumps seperti jsonb, yang sampai ke
+                    # fungsi teks '["a","b"]' dan Postgres menolaknya dengan
                     # "malformed array literal". PostgREST di produksi memang
                     # sudah memetakannya sendiri; yang perlu diajari cuma
                     # tiruan ini.
-                    if isinstance(v, list) and k in ARRAY_TEKS:
+                    if isinstance(v, list) and k in ARRAY_PG:
                         pass
                     elif isinstance(v, (dict, list)):
                         v = json.dumps(v)
