@@ -980,6 +980,22 @@ const IKON = {
     '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />',
   "id-card":
     '<path d="M16 10h2" /> <path d="M16 14h2" /> <path d="M6.17 15a3 3 0 0 1 5.66 0" /> <circle cx="9" cy="11" r="2" /> <rect x="2" y="5" width="20" height="14" rx="2" />',
+  // Dua orang, dipakai ubin Data Peserta. Sebelumnya ubin itu memakai
+  // "id-card" — kartu yang SAMA PERSIS dengan ubin Daftar Ulang tepat di
+  // bawahnya, jadi dua ubin bersebelahan bergambar sama. Yang dibuka Data
+  // Peserta memang daftar ORANG, bukan satu kartu.
+  "users":
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" />',
+  // Papan jalan berpena, dipakai ubin Input Nilai Pos v2. Sebelumnya JAM —
+  // sisa dari masa layar itu memang stopwatch. Sekarang ia layar isian nilai
+  // per lomba, dan jam di ubinnya menjanjikan layar yang tidak ada.
+  "clipboard-pen":
+    '<rect width="8" height="4" x="8" y="2" rx="1" /> <path d="M10.4 12.6a2 2 0 0 1 3 3L8 21l-4 1 1-4Z" /> <path d="M16 4h2a2 2 0 0 1 2 2v4" /> <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5.5" />',
+  // Daftar bercentang, dipakai ubin Cek Nilai. Sebelumnya "circle-check" —
+  // sama persis dengan ubin Kedatangan, dan dua ubin bergambar sama di satu
+  // papan menghapus seluruh guna gambarnya.
+  "list-checks":
+    '<path d="M11 6h9" /> <path d="M11 12h9" /> <path d="M11 18h9" /> <path d="m3 6 1.5 1.5L7 5" /> <path d="m3 12 1.5 1.5L7 11" /> <path d="m3 18 1.5 1.5L7 17" />',
   "list-ordered":
     '<path d="M11 5h10" /> <path d="M11 12h10" /> <path d="M11 19h10" /> <path d="M4 4h1v5" /> <path d="M4 9h2" /> <path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02" />',
   "log-out":

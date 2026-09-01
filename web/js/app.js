@@ -511,14 +511,14 @@ async function layarHome() {
              tidak melihatnya sama sekali. Persis yang terjadi sampai baris
              ini ditulis. -->
         <a href="#/pos2">
-          <div class="function-name">${ikonKotak("clock", "mawar")} Input Nilai Pos v2</div>
+          <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Pos v2</div>
         </a>
         <a href="#/pos">
           <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos${
             sesi().pos != null && sesi().pos !== "" ? ` ${esc(sesi().pos)}` : ""}</div>
         </a>
         <a href="#/foto">
-          <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban Sekaligus</div>
+          <div class="function-name">${ikonKotak("camera", "mawar")} Foto Jawaban Sekaligus</div>
         </a>
         ${bolehLihat("live_score") ? `
         <a href="#/live-score">
@@ -586,7 +586,7 @@ async function layarHome() {
            berada DI DALAM template literal, dan satu backtick menutupnya.) -->
       ${bolehLihat("pendaftaran") ? `
       <a href="#/data-peserta">
-        <div class="function-name">${ikonKotak("id-card", "toska")} Data Peserta</div>
+        <div class="function-name">${ikonKotak("users", "sian")} Data Peserta</div>
       </a>` : ""}
       ${bolehLihat("pembayaran") ? `
       <a href="#/pembayaran">
@@ -594,7 +594,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("daftar_ulang") ? `
       <a href="#/daftar-ulang">
-        <div class="function-name">${ikonKotak("id-card", "ungu")} Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
+        <div class="function-name">${ikonKotak("id-card", "magenta")} Daftar Ulang ${lencana(r ? r.lunas_belum_nomor : null)}</div>
       </a>` : ""}
       ${bolehLihat("cetak_kloter") ? `
       <a href="#/cetak-kloter">
@@ -602,7 +602,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("keberangkatan") ? `
       <a href="#/keberangkatan">
-        <div class="function-name">${ikonKotak("flag", "jingga")} Keberangkatan ${
+        <div class="function-name">${ikonKotak("flag", "merah")} Keberangkatan ${
           kemajuan(r ? r.regu_berangkat : null, r ? r.regu_siap : null)}</div>
       </a>` : ""}
       ${bolehLihat("kedatangan") ? `
@@ -618,15 +618,15 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/foto">
-        <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban Sekaligus</div>
+        <div class="function-name">${ikonKotak("camera", "mawar")} Foto Jawaban Sekaligus</div>
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/pos2">
-        <div class="function-name">${ikonKotak("clock", "mawar")} Input Nilai Pos v2</div>
+        <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Pos v2</div>
       </a>` : ""}
       ${bolehLihat("pengaturan") ? `
       <a href="#/cek-nilai">
-        <div class="function-name">${ikonKotak("circle-check", "zamrud")} Cek Nilai</div>
+        <div class="function-name">${ikonKotak("list-checks", "lumut")} Cek Nilai</div>
       </a>` : ""}
       ${bolehLihat("live_score") ? `
       <a href="#/live-score">

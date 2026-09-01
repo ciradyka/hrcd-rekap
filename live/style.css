@@ -4381,15 +4381,38 @@ button.pill-number:hover { filter: brightness(.95); }
 }
 .ikon-kotak .ikon { width: 1.2rem; height: 1.2rem; }
 
-.i-biru   { background: #e7f0fd; color: #1a56db; }
-.i-hijau  { background: #e4f6ec; color: #067647; }
-.i-ungu   { background: #f0eafe; color: #6941c6; }
-.i-toska  { background: #dff2f0; color: #00695c; }
-.i-jingga { background: #fdefe0; color: #b54708; }
-.i-zamrud { background: #e2f7f0; color: #047857; }
-.i-emas   { background: #fdf3dc; color: #a16207; }
-.i-nila   { background: #e9ecfc; color: #3538cd; }
-.i-mawar  { background: #fce9ee; color: #c01048; }
+/* EMPAT BELAS UBIN, EMPAT BELAS WARNA — dan itu batasnya, bukan kebetulan.
+   Papan Home admin memuat empat belas ubin sekaligus, jadi warna yang dipakai
+   dua kali menghapus gunanya sendiri: yang dituju jempol berhenti bisa
+   disebut "yang hijau".
+
+   Sebelum ini tujuh warna melayani empat belas ubin — dan tiga di antaranya
+   HIJAU yang nyaris sama (#067647, #047857, #00695c), jadi Data Peserta,
+   Pembayaran, Daftar Kloter, Kedatangan dan Cek Nilai terbaca sebagai satu
+   kelompok yang sama. Dilaporkan begitu, 1 September 2026.
+
+   Nadanya dijaga sama untuk semuanya — latar tint pucat, ikon versi pekat
+   dari warna yang sama — supaya kotaknya terbaca sebagai satu benda. Yang
+   berbeda hanya RONA-nya, dan jaraknya dipilih supaya dua ubin bertetangga di
+   papan tidak pernah berdekatan rona. */
+.i-biru    { background: #e7f0fd; color: #1a56db; }
+.i-sian    { background: #ddf2f7; color: #0e7490; }
+.i-hijau   { background: #e4f6ec; color: #067647; }
+.i-magenta { background: #fbe8fb; color: #a21caf; }
+.i-toska   { background: #dff2f0; color: #00695c; }
+.i-merah   { background: #fdeceb; color: #b42318; }
+.i-zamrud  { background: #e2f7f0; color: #047857; }
+.i-nila    { background: #e9ecfc; color: #3538cd; }
+.i-mawar   { background: #fce9ee; color: #c01048; }
+.i-ungu    { background: #f0eafe; color: #6941c6; }
+.i-lumut   { background: #eef6df; color: #4d7c0f; }
+.i-emas    { background: #fdf3dc; color: #a16207; }
+.i-jingga  { background: #fdefe0; color: #b54708; }
+/* Abu untuk ALAT, bukan untuk meja: Kalkulator Keberangkatan tidak menjaga
+   satu pun data, ia menghitung. Kelas ini sudah dipakai app.js sebelum
+   ditulis di sini, jadi selama itu ubinnya tergambar TANPA kotak sama sekali
+   — ikon telanjang di antara tiga belas ikon berkotak. */
+.i-abu     { background: #eef0f3; color: #475467; }
 
 /* Di kertas semua tint hilang — CLAUDE.md 8.4 melarang abu dan raster, dan
    latar berwarna yang difotokopi jadi kotoran. Ikonnya sendiri tidak dicetak
