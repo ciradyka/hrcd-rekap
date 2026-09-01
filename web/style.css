@@ -2685,6 +2685,25 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   border: 1px solid var(--garis); border-radius: 8px; background: var(--kertas);
 }
 .foto-galeri img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Sudut putarnya (migrasi 0167), alasan yang sama dengan .foto-lembar di
+   bawah: yang sudah ditegakkan di Cek Nilai harus tegak di sini juga.
+
+   Caranya pun sama — 90 dan 270 MENUKAR lebar dengan tinggi lewat `cqh`/`cqw`.
+   Versi pertama memakai satu `scale(4/3)`, karena petaknya `aspect-ratio: 3/4`
+   dan angkanya kelihatan bisa dihitung di kepala. Ia meleset 3px: rasio itu
+   berlaku untuk KOTAK LUAR, dan garis 1px di tiap sisi membuat kotak isinya
+   137x183, bukan 3:4 persis. Terukur, bukan dibaca (bagian 15.9) — dan
+   pelajarannya bukan angkanya kurang teliti melainkan menghitung sendiri apa
+   yang bisa ditanyakan ke kotaknya. */
+.foto-galeri .fg-petak { container-type: size; }
+.foto-galeri li[data-putar="90"] img,
+.foto-galeri li[data-putar="270"] img {
+  position: absolute; left: 50%; top: 50%;
+  width: 100cqh; height: 100cqw;
+}
+.foto-galeri li[data-putar="90"] img  { transform: translate(-50%, -50%) rotate(90deg); }
+.foto-galeri li[data-putar="180"] img { transform: rotate(180deg); }
+.foto-galeri li[data-putar="270"] img { transform: translate(-50%, -50%) rotate(270deg); }
 .fg-kosong {
   display: flex; align-items: center; justify-content: center;
   font-size: .8rem; color: var(--tinta-lembut); text-align: center;
@@ -4827,6 +4846,31 @@ button.pill-number:hover { filter: brightness(.95); }
 .foto-lembar img {
   display: block; width: 100%; height: 100%; object-fit: contain;
 }
+/* SUDUT PUTARNYA IKUT DI SINI JUGA (migrasi 0167).
+
+   Keputusan pemiliknya berbunyi "sekali diputar, foto itu tegak untuk siapa
+   pun, besok maupun DI LAYAR LAIN" — dan sampai baris ini ditulis cuma Cek
+   Nilai yang memutarnya. Petugas yang menegakkan slip di sana tetap melihatnya
+   miring di layar tempat ia mengetik angkanya, yaitu justru layar yang paling
+   sering membuka foto itu.
+
+   90 dan 270 MENUKAR lebar dengan tinggi. Gambar yang cuma diputar tanpa
+   ditukar ukurannya meluap keluar petaknya dan separuh slipnya terpotong —
+   kebalikan dari gunanya.
+
+   Satuannya `cqh`/`cqw`, bukan `--petak-w`/`--petak-h` yang dipakai Cek Nilai.
+   Di sana tinggi petaknya ditentukan sisa ruang layar, jadi hanya JavaScript
+   yang tahu angkanya; di sini petaknya 100% x 60vh — CSS sudah tahu keduanya,
+   dan satu container query menggantikan satu ResizeObserver. */
+.foto-lembar { container-type: size; }
+.foto-lembar[data-putar="90"] img,
+.foto-lembar[data-putar="270"] img {
+  position: absolute; left: 50%; top: 50%;
+  width: 100cqh; height: 100cqw;
+}
+.foto-lembar[data-putar="90"] img  { transform: translate(-50%, -50%) rotate(90deg); }
+.foto-lembar[data-putar="180"] img { transform: rotate(180deg); }
+.foto-lembar[data-putar="270"] img { transform: translate(-50%, -50%) rotate(270deg); }
 .foto-lembar-kosong { font-size: .85rem; color: var(--tinta-lembut); }
 
 /* Tombol simpan MENEMPEL di dasar layar selama kartunya lebih tinggi daripada
