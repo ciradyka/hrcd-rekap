@@ -2306,7 +2306,26 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
      Di bawah 900px ia sudah jadi kartu dan seluruh angka di sini tidak
      berlaku. */
-  .table-peserta { table-layout: fixed; min-width: 980px; }
+  /* `min-width` 858px, DITURUNKAN DARI AMBANGNYA, bukan dipilih.
+
+     Ambang blok ini 941px, dan di lebar itu pembungkus tabelnya 858px —
+     sisanya, 83px, dimakan padding layar dan padding kartu. Jadi 858 adalah
+     tabel TERSEMPIT yang mungkin ada di rentang ini, dan mematoknya di situ
+     berarti patokan ini tidak pernah menjadi penyebab penggulir mendatar.
+
+     Angkanya sempat 980px, dan itu 122px lebih lebar daripada yang muat: di
+     941-1062px tabelnya dipaksa melebihi pembungkusnya, jadi Data Peserta
+     menggulir ke samping dan kolom WhatsApp berada di luar layar. Yang
+     menariknya bukan bahwa angkanya salah melainkan bahwa dokumen di repo ini
+     sudah menuliskan aturannya lebih dulu — "kalau kolom ditambah, min-width
+     naik, dan ambang ini harus ikut naik" — lalu aturannya sendiri dilanggar
+     tanpa ada yang menyadarinya, karena satu-satunya yang bisa melihatnya
+     adalah mengukur di browser (bagian 15.9).
+
+     Terukur, 941-1200px: tanpa penggulir mendatar dan tanpa satu sel pun yang
+     isinya meluap. Kalau ambangnya kelak digeser, angka ini ikut: ia selalu
+     ambang dikurangi 83. */
+  .table-peserta { table-layout: fixed; min-width: 858px; }
 
   .table-peserta > thead > tr > th:nth-child(1) { width: 16%; }
   .table-peserta > thead > tr > th:nth-child(2) { width: 13%; }
