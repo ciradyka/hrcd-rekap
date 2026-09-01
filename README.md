@@ -19,12 +19,20 @@ Gambaran lengkapnya di `docs/final-architecture.md`.
 | `docs/rancangan-b.md` | Cetak biru implementasi yang dipakai membangun | Catatan keputusan |
 | `docs/runbook-sekolah.md` | Cara membakukan daftar sekolah dari tulisan pembina | Berlaku |
 | `docs/sekolah-belum-tuntas.md` | Sekolah yang alamatnya masih perlu ditanyakan | Daftar kerja |
-| `docs/arsitektur-hrcd.svg` | Diagram lapisan teknis — Cloudflare, Supabase, penerbitan rekap | Berlaku |
-| `docs/alur-hrcd.svg` | Diagram alur acara — pendaftaran sampai klasemen | Berlaku |
+| `docs/arsitektur-hrcd.svg` | Diagram lapisan teknis — Cloudflare, Supabase, penerbitan rekap | **Basi** — capnya "sampai migrasi 0153" |
+| `docs/alur-hrcd.svg` | Diagram alur acara — pendaftaran sampai klasemen | Basi — "4 golongan", sejak `0091` enam |
+
+Kedua SVG belum digambar ulang sejak 30 Agustus 2026, dan angkanya jangan
+dipercaya sebelum dihitung ulang: `arsitektur-hrcd.svg` menghitung 153 migrasi
+(sekarang 169) dan capnya menyebut empat fase live tanpa `juara`, sementara
+`alur-hrcd.svg` masih menulis "4 golongan dinilai terpisah" padahal Intern PA
+dan Intern PI menjadikannya enam sejak `0091`. Bentuk lapisan dan urutan
+alurnya sendiri masih betul — yang basi angkanya.
 
 `desain-sistem.md` dan `rancangan-b.md` merekam **keputusan pada saat itu**,
-bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 42
-komentar di kode — tersebar di migrasi, tes, dan SPA — menunjuk ke nomor
+bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 61
+komentar di kode — tersebar di 32 berkas: migrasi, tes, SPA, workflow,
+gateway, dan berkas konfigurasi Cloudflare — menunjuk ke nomor
 bagiannya (`rancangan-b.md 11.9`, `bagian 4`, dan seterusnya). Kalau isinya
 berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 
@@ -35,26 +43,36 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 ├── docs/                     # spesifikasi, catatan keputusan, arsitektur
 ├── web/                      # SPA statis — layar panitia (panitia-hrcd37)
 │   ├── index.html            # layar panitia (butuh login)
-│   ├── js/                   # api.js, app.js, util.js
+│   ├── js/                   # api.js, app.js, util.js, dan dua modul murni
+│   │                         # hitung: departure-calculator.mjs dan
+│   │                         # nomor-dada-series.mjs
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
 │   └── wrangler.toml         # deploy Workers static assets
 ├── live/                     # situs PESERTA (hrcd37) — Worker TERPISAH:
 │   ├── daftar.html           # form pendaftaran publik
-│   ├── index.html            # rekap live (cari sekolah → centang per pos)
-│   ├── live.json             # ±1 KB: fase + versi, INI yang di-poll tiap menit
-│   ├── rekap.json            # baris regu + klasemen, diambil sekali per versi
+│   ├── index.html            # papan Live Score peserta; isinya ikut fase
+│   ├── live.json             # ±1 KB: fase, versi, ringkasan, dan kemajuan
+│   │                         # input per pos — INI yang di-poll tiap menit
+│   ├── rekap.json            # baris regu + klasemen + daftar juara,
+│   │                         # diambil sekali per versi
 │   ├── live.js, live.css     # halaman rekap — tidak ada di web/
 │   ├── js/daftar.js          # logika form pendaftaran — tidak ada di web/
+│   ├── js/school-search.mjs  # pencocokan nama sekolah — tidak ada di web/
 │   └── config.js, style.css, js/api.js, js/util.js
 │                             # SALINAN dari web/ — jangan diedit di sini,
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0153
-│   ├── checks/               # SQL manual — flow_test & cleanup_smoke MENGUBAH
-│   │                         # data; live_json.sql dipakai Publish rekap live
+│   ├── migrations/           # skema database, urut 0001..0169
+│   ├── checks/               # 30 SQL manual, dan 12 di antaranya MENGUBAH
+│   │                         # data (flow_test, cleanup_data_uji,
+│   │                         # cleanup_smoke, seed_data_uji, kloter_dari_stok,
+│   │                         # simulasi_end_to_end, atur_fase_live, …) — baca
+│   │                         # kepala berkasnya dulu. live_json.sql dipakai
+│   │                         # Publish rekap live; status_migrasi.sql melapor
+│   │                         # migrasi mana yang jejaknya ada di produksi
 │   └── seed.sql              # konfigurasi edisi + baris wajib
 ├── scripts/                  # provision_accounts.py, change_password.py,
 │                             # set_shared_password.py, delete_storage_objects.py
@@ -62,14 +80,19 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │                             # periksa_impor.py, periksa_sekolah.py,
 │                             # periksa_urutan_golongan.py, normalize_sekolah.py,
 │                             # pratinjau_cetak.py, seed_regu_uji.py,
-│                             # simulasi_end_to_end.py
+│                             # simulasi_end_to_end.py, dan data/ —
+│                             # sekolah_nama.json + sekolah_alamat.json
 ├── tests/
 │   ├── sql/                  # harness + tes constraint, alur, skor, kloter, rekap
 │   ├── run.sh                # jalankan semuanya di database lokal
 │   ├── dev_database.sh       # siapkan database hrcd_dev untuk dicoba manual
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
 │   ├── static_server.py      # penyaji web/ tanpa cache
-│   └── concurrency_test.py   # uji daftar ulang serentak dari banyak meja
+│   ├── concurrency_test.py   # uji daftar ulang serentak dari banyak meja
+│   ├── *.test.mjs            # 85 berkas tes layar + modul (node --test)
+│   └── status_migrasi_check.sh
+│                             # menguji jejak status_migrasi.sql dua arah;
+│                             # lambat, sengaja di luar run.sh
 ├── .github/workflows/        # 10 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
 └── AGENTS.md                 # aturan sama dengan CLAUDE.md (judul + pembuka beda)
@@ -77,7 +100,11 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 
 ## Menjalankan tes
 
-Butuh PostgreSQL 16 (lokal atau portable, tanpa Supabase):
+Butuh PostgreSQL (lokal atau portable, tanpa Supabase) — pakai **17**, versi
+mayor yang sama dengan produksi (17.6). Tes SQL sendiri lulus di 16, dan itu
+yang dipakai container CI, tetapi katalog Postgres berbeda antar versi mayor:
+di laptop 18.x `supabase/checks/status_migrasi.sql` melaporkan 22 sidik jari
+BELUM padahal migrasinya sudah masuk (CLAUDE.md pasal 7.8).
 
 ```bash
 PSQL=/path/ke/psql PGPORT=55432 PGPASSWORD=... bash tests/run.sh
@@ -107,9 +134,12 @@ ada yang menjalankannya di mana pun.**
 Untuk mencoba layarnya (butuh tiga terminal):
 
 ```bash
-bash tests/dev_database.sh     # siapkan database hrcd_dev
-python tests/dev_server.py     # tiruan Supabase di :8787
-python tests/static_server.py  # layar panitia di :8788 (tanpa cache)
+# siapkan database hrcd_dev
+PSQL=/path/ke/psql PGPORT=5432 PGPASSWORD=... bash tests/dev_database.sh
+# tiruan Supabase di :8787
+PGPORT=5432 PGPASSWORD=... python tests/dev_server.py
+# layar panitia di :8788 (tanpa cache)
+python tests/static_server.py
 ```
 
 Sebelum membuka `:8788`, ganti `mode: "supabase"` jadi `mode: "dev"` di
@@ -156,10 +186,25 @@ gh workflow run "Apply migration to Supabase" --ref main \
 Atau dari HP: **Actions → Apply migration to Supabase → Run workflow**. Pastikan
 log-nya mencetak `MIGRASI BERHASIL`.
 
-Merge juga TIDAK men-deploy folder `live/`. Situs peserta — form pendaftaran
-dan rekap live — hanya terbit lewat **Actions → Publish rekap live**, termasuk
-kalau yang berubah cuma `daftar.html`. Yang otomatis terbit tiap push ke `main`
-hanya `web/`, lewat koneksi Git Cloudflare.
+Tidak ada yang mencatat migrasi mana yang sudah diterapkan, jadi berkas yang
+tidak pernah dijalankan gagal diam-diam — sepuluh pernah begitu, dan yang
+menemukannya pembina yang pendaftarannya ditolak enam hari kemudian. Sebelum
+percaya sebuah migrasi sudah hidup, jalankan pemeriksanya lewat workflow yang
+sama — `-f berkas=supabase/checks/status_migrasi.sql`. Ia melapor jejak tiap
+migrasi di database dan tidak mengubah apa pun.
+
+Situs peserta — form pendaftaran dan rekap live — hanya terbit lewat
+**Publish rekap live**: workflow itu menulis ulang `live.json` dan `rekap.json`
+dari database dulu, baru men-deploy folder `live/`. Karena itu project `hrcd37`
+di Cloudflare tidak boleh tersambung Git. Ia sudah ikut jalan sendiri saat push
+ke `main` menyentuh `live/**`, jadi merge yang cuma mengubah `daftar.html` pun
+menerbitkannya; tombol Run workflow tetap ada untuk menerbitkan ulang tanpa
+mengubah satu berkas pun.
+
+Layar panitia punya DUA jalur, dan keduanya jalan tiap push ke `main` yang
+menyentuh `web/**`: koneksi Git Cloudflare, dan workflow **Deploy layar
+panitia**. Yang kedua ditambahkan karena build di dashboard pernah menggantung
+lebih dari empat puluh menit tanpa meninggalkan jejak apa pun di GitHub.
 
 ## Kontribusi
 

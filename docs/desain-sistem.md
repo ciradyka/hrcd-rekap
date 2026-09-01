@@ -10,7 +10,12 @@
 > blok keputusan di bagian 8, catatan di bagian 7.1, dan tanda **Selesai** di
 > bagian 9. Maka kalimat di bagian 4 seperti "Cloudflare Pages", "tanpa server
 > custom", `FOR UPDATE SKIP LOCKED`, atau tabel `riwayat` menggambarkan RENCANA
-> saat itu — beberapa di antaranya memang berubah saat dibangun.
+> saat itu — beberapa di antaranya memang berubah saat dibangun, dan DUA tidak
+> pernah dibangun sama sekali: **Realtime** (bagian 4.1 poin 2 — tidak ada satu
+> langganan pun di `web/js/`; layar panitia menyegarkan diri dengan polling
+> berkala, rekap peserta lewat penerbitan berkas) dan **Google Sheets sebagai
+> jendela baca** (bagian 8.1 beserta blok keputusan di bagian 8 — tidak ada
+> tombol export CSV di layar mana pun).
 >
 > **Untuk keadaan sistem sekarang, baca `final-architecture.md`.**
 
@@ -40,11 +45,11 @@ Ringkasan dari `alur-lomba.md` — setiap kandidat dipetakan ke daftar ini:
 | R4 | Kloter otomatis FIFO saat itu juga: 5 Eksternal + 3 Intern, 75 kloter dengan headroom untuk perkiraan 300+50 regu; set manual tanpa batas |
 | R5 | Layar garis start: antrean 4 tahap, konfirmasi kontrak waktu, jam berangkat per kloter + ceklis per regu |
 | R6 | Input nilai per pos: link + akun/password sendiri per pos; input manual **dan** upload massal Excel/CSV dengan layar preview yang memvalidasi |
-| R7 | Mesin skor yang bisa dikonfigurasi panitia tanpa programmer: 5 bentuk konversi, bobot pos, rumus penalti, pengurangan lain |
+| R7 | Mesin skor yang bisa dikonfigurasi panitia tanpa programmer: 6 bentuk konversi, bobot pos, rumus penalti, pengurangan lain |
 | R8 | Meja closing: jam datang **diketik manual dan bisa di-edit**, bukan timestamp server |
 | R9 | Dashboard pemantau: pos mana sudah input untuk regu mana |
-| R10 | Klasemen 4 golongan terpisah, seri dipecah dengan selisih menit |
-| R11 | Cetak lembar nilai per pos, terisi identitas regu, setelah daftar ulang tutup |
+| R10 | Klasemen per golongan terpisah (empat saat ditulis; enam sejak `0091` menambahkan Intern PA dan Intern PI), seri dipecah dengan selisih menit |
+| R11 | Cetak lembar nilai: blangko **per lomba** yang sengaja KOSONG (master A5 yang difotokopi), plus form tabel per pos berisi identitas regu sebagai cadangan — dicetak lebih dulu, sebelum pendaftaran ditutup |
 | R12 | Penempatan barak dihitung sistem (ruangan + kapasitas, 1 sekolah 1 ruangan diutamakan) |
 | R13 | Riwayat perubahan: siapa mengubah apa, kapan |
 | R14 | Meja bisa berubah fungsi tanpa admin |
@@ -290,9 +295,14 @@ kloter, validasi upload — semuanya berjalan di browser.
 | Kecepatan layar | Lambat (1–4 dtk) | Cepat | Cepat | **Paling cepat** |
 | Titik gagal khas | Kuota eksekusi + salah edit | Lupa keep-alive + bus factor SQL | Tebing kuota baca | Hardware + manusia |
 
-Semua kandidat berbagi satu batas yang sama pada R7: lima bentuk konversi yang
-sudah dienumerasi bisa diubah panitia sendiri, tetapi bentuk rumus yang **benar-
-benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
+Semua kandidat berbagi satu batas yang sama pada R7: bentuk konversi yang sudah
+dienumerasi bisa diubah panitia sendiri, tetapi bentuk rumus yang **benar-benar
+baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
+
+> **Penanda hasil.** Terbukti persis begitu: lima bentuk saat dokumen ini
+> ditulis, dan `bertingkat` menyusul sebagai yang keenam lewat migrasi `0022` —
+> ditambahkan pemilik, di kode (`hitung_poin` bertambah satu argumen), bukan
+> oleh panitia di layar konfigurasi.
 
 ### 7.1 Dua kebutuhan yang ditambahkan setelah dokumen ini ditulis
 
@@ -320,9 +330,13 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
 > jujur Kandidat A di bagian 8.3 (ketiga permintaan terbaru terbukti bisa
 > dilakukan Sheets), panitia memilih B secara eksplisit, dengan satu syarat
 > yang dipegang sebagai kebutuhan keras: **UI/UX harus mudah — panitia bisa
-> diajari selama tampilannya mudah.** Google Sheets tidak dibuang: ia tetap
-> hidup sebagai jendela baca (bagian 8.1). Frontend di Cloudflare
-> (bagian 8.2). Rancangan detail menyusul di `rancangan-b.md`.
+> diajari selama tampilannya mudah.** Google Sheets waktu itu tidak dibuang:
+> ia dipertahankan sebagai jendela baca (bagian 8.1) — **tetapi bagian itu
+> tidak pernah dibangun.** Tidak ada tombol export CSV di layar mana pun dan
+> tidak ada satu baris Sheets di kode; yang akhirnya memenuhi janji "tampilan
+> Excel" adalah bentuk tabel layar panitia sendiri, yang sengaja meniru
+> spreadsheet. Frontend di Cloudflare (bagian 8.2). Rancangan detail menyusul
+> di `rancangan-b.md`.
 
 > Catatan riwayat: revisi sebelumnya sempat salah mencatat "panitia mencoret
 > Kandidat A" — panitia tidak pernah mencoretnya; keputusan baru diambil
@@ -367,6 +381,12 @@ benar baru** tetap butuh pemilik menyentuh kode — di kandidat mana pun.
    tahunan disimpan sebagai spreadsheet yang bisa dibuka selamanya tanpa
    sistem berjalan. Panitia tidak kehilangan tampilan Excel-nya; mereka hanya
    berhenti menjadikannya tempat kebenaran data.
+
+   > **Penanda hasil: poin 4 ini rencana yang tidak jadi.** Export CSV/Sheets
+   > tidak ada di layar mana pun (`rancangan-b.md` menjadwalkannya ke Tahap 4),
+   > dan tempel-dari-Excel juga belum dibangun (`alur-lomba.md` 8.6). Yang
+   > akhirnya memenuhi kebutuhan "tampilan Excel" ada di blok keputusan
+   > bagian 8.
 
 ### 8.2 Cloudflare vs Vercel untuk frontend statis
 
