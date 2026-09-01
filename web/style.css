@@ -3151,16 +3151,29 @@ button.pill-number:hover { filter: brightness(.95); }
   .table-toolbar { flex-direction: column; align-items: stretch; }
   .table-count { text-align: right; }
 
-  /* KETIGA CHIP SATU BARIS. Dengan label panjang mereka membungkus jadi dua
-     baris — dan baris kedua yang cuma berisi "Semua" terbaca seperti tombol
-     yang berdiri sendiri, bukan seperti pilihan ketiga dari tiga.
+  /* CHIP TETAP SATU BARIS. Baris kedua yang cuma berisi "Semua" terbaca
+     seperti tombol yang berdiri sendiri, bukan seperti pilihan terakhir dari
+     empat — itu yang dihindari `nowrap` sejak awal, dan itu masih benar.
 
-     `nowrap` saja tidak cukup: chipnya akan meluap keluar kartu. Yang
-     memuatkannya label pendek — "Belum lengkap" jadi "Belum". Kata yang
-     dibuang bisa ditebak dari kolom yang sedang disaring, dan chip yang
-     menyala tetap menyebut keadaannya. */
+     YANG BERUBAH cuma batas bawah perasannya. `min-width: 0` membiarkan chip
+     diperas sampai kotak isinya NOL, dan tulisan yang tidak muat tidak ikut
+     mengecil — ia tercetak menembus padding kanannya. Terlihat di lembar
+     Input Pos, yang punya EMPAT chip tanpa label pendek: "Lengkap" dan
+     "Semua" menabrak tepi chipnya sendiri. Dilaporkan begitu, 1 September
+     2026.
+
+     `min-content` = selebar KATA TERPANJANG di dalamnya, jadi label dua kata
+     boleh membungkus di dalam chipnya ("Belum" di atas "Input") sementara
+     kata tunggal tidak pernah dipaksa lebih sempit daripada dirinya sendiri.
+     Terukur di 393px: keempat chip berjumlah 286px dari 345px yang ada, jadi
+     barisnya tetap satu. Meja Pembayaran dan Meja Daftar Ulang tidak berubah
+     sama sekali — label pendeknya sudah jauh lebih sempit daripada batas
+     ini. */
   .filter-row { flex-wrap: nowrap; }
-  .filter-row .option-small { flex: 1 1 auto; min-width: 0; padding-left: .5rem; padding-right: .5rem; }
+  .filter-row .option-small {
+    flex: 1 1 auto; min-width: min-content;
+    padding-left: .5rem; padding-right: .5rem;
+  }
   .saring-panjang { display: none; }
   .saring-pendek  { display: inline; }
 
@@ -5180,7 +5193,13 @@ button.pill-number:hover { filter: brightness(.95); }
    Nomor dadanya tetap ditulis walaupun kotak navigasi di atasnya sudah
    memuatnya besar-besar: yang satu apa yang DIKETIK, yang satu apa yang
    DITEMUKAN, dan seluruh guna kartu ini membandingkan keduanya. */
-.card-identity.identitas-sebaris { padding: .45rem .6rem; line-height: 1.3; }
+/* RATA TENGAH, sejajar dengan nomor dada besar di kotak navigasi tepat di
+   atasnya dan dengan judul lomba di kartu bawahnya — ketiganya menjawab
+   pertanyaan yang sama dan mata membacanya berurutan dari atas ke bawah di
+   satu garis. Rata kiri membuat yang tengah sendiri melompat ke tepi. */
+.card-identity.identitas-sebaris {
+  padding: .45rem .6rem; line-height: 1.3; text-align: center;
+}
 .identitas-sebaris .nama    { font-size: 1rem; font-weight: 800; }
 .identitas-sebaris .detail  { font-size: .85rem; margin-top: 0; }
 /* DI HP GOLONGANNYA DIBUANG, dan ia yang dibuang karena ia yang paling sedikit
