@@ -3419,8 +3419,14 @@ button.pill-number:hover { filter: brightness(.95); }
   .table-daftar-ulang tbody tr[data-baris] {
     display: grid;
     grid-template-columns: max-content 1fr;
-    gap: .2rem .8rem;
+    gap: .1rem .8rem;
     align-items: baseline;
+    /* Lebih rapat daripada kartu lain di berkas ini, dan itu karena isinya
+       memang lebih sedikit: dua keterangan pendek dan satu tombol. Terukur
+       sebelum dirampingkan, 111px untuk dua baris tulisan — dan di layar yang
+       memuat puluhan baris antrean, tinggi yang tidak membawa apa-apa berarti
+       satu sekolah lebih sedikit yang terlihat sekaligus. */
+    padding: .5rem .7rem; margin-bottom: .5rem;
   }
   /* Label kolom dibuang — kekhususannya harus menandingi aturan label umum
      (0,4,2), yang punya `.data-table` dan `:not([data-label=""])`. */
@@ -3437,11 +3443,21 @@ button.pill-number:hover { filter: brightness(.95); }
   }
   /* Nomor dada lalu tombol, masing-masing melintang penuh, dalam urutan itu. */
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada {
-    grid-area: 2 / 1 / auto / 3; width: auto; white-space: normal; margin-top: .35rem;
+    grid-area: 2 / 1 / auto / 3; width: auto; white-space: normal; margin-top: .1rem;
   }
   .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar {
-    grid-area: 3 / 1 / auto / 3; width: auto; white-space: normal; margin-top: .35rem;
+    grid-area: 3 / 1 / auto / 3; width: auto; white-space: normal; margin-top: .25rem;
   }
+  /* SEL KOSONG DIBUANG, bukan dibiarkan setinggi paddingnya. "Tukar nomor
+     rusak…" cuma ada pada baris yang SUDAH punya nomor dada, jadi pada baris
+     antrean — yang paling banyak jumlahnya — selnya kosong dan tetap memakan
+     13px di kaki tiap kartu: 4px isi ditambah jarak di atasnya. Empat belas
+     kartu di layar berarti hampir 200px yang tidak membawa apa pun.
+
+     `:empty` bekerja di sini karena template-nya menulis `>${tombolTukar}<`
+     tanpa spasi — satu spasi saja sudah jadi simpul teks dan `:empty`
+     berhenti cocok. */
+  .table-daftar-ulang tbody tr[data-baris] > td.kol-tukar:empty { display: none; }
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .pill-row,
   .table-daftar-ulang tbody tr[data-baris] > td.kol-dada .sub {
     display: flex; flex-wrap: wrap; gap: .3rem; justify-content: flex-start;
