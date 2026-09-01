@@ -8107,15 +8107,29 @@ const posUntukAkun = (s, semuaPos) => {
  *  Sejak 0166 ia menyebut BERAPA lomba, bukan sekadar "dikunci". Gembok kini
  *  per lomba: "dikunci" pada regu yang satu dari lima lombanya tergembok
  *  membaca seperti seluruh nilainya beku, dan petugas berhenti mengetik yang
- *  sebenarnya masih boleh diisi. */
-const kartuReguNilai = (r) => `
+ *  sebenarnya masih boleh diisi.
+ *
+ *  `ringkas` MEMBUANG KEDUANYA — barisnya jadi satu, dan penanda gembok
+ *  hilang. Dipakai Cek Nilai, dan hanya di sana, karena di layar itu tiap
+ *  lomba sudah membawa gemboknya sendiri tepat di sebelah angkanya: penanda
+ *  "1 lomba dikunci" di kartu ini mengulang sesuatu yang tergambar dua
+ *  sentimeter di bawahnya (bagian 9.3), dan tinggi yang dimakannya diambil
+ *  dari foto slip. Layar Input Nilai Pos v2 TIDAK memakainya — di sana satu
+ *  lomba terbuka pada satu waktu, jadi "berapa lomba pos ini yang sudah
+ *  tergembok" memang tidak terbaca di tempat lain. */
+const kartuReguNilai = (r, { ringkas = false } = {}) => (ringkas ? `
+  <div class="card card-identity identitas-sebaris" style="margin:0">
+    ${html`<span class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</span><span
+      class="detail"> · ${r.nama_sekolah} · ${
+      GOLONGAN_LABEL[r.golongan] || r.golongan}</span>`}
+  </div>` : `
   <div class="card card-identity" style="margin:0">
     ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
     <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
     ${(r.lomba_terkunci || []).length ? `<div style="margin-top:.4rem">
       <span class="badge badge-gray">${ikon("lock")} ${
         esc(String(r.lomba_terkunci.length))} lomba dikunci</span></div>` : ""}
-  </div>`;
+  </div>`);
 
 /* ---------------------------------------------------------------------------
    LAYAR 1 — pemilih lomba, lalu bentuk pengisiannya.
@@ -9183,11 +9197,16 @@ async function layarCekNilai() {
          admin cuma menerima satu notifikasi yang lalu hilang, lalu tidak ada
          satu pun tanda bahwa masih ada angka yang belum sampai. -->
     <div id="pita-antrean"></div>
-    <div class="card">
+    <div class="card cek-kendali">
+      <!-- DROPDOWN SAJA, tanpa label "Pos" di atasnya. Isi kotaknya sudah
+           berbunyi "Pos 5 — Yel-Yel", jadi labelnya mengulang kata yang
+           terbaca di dalam kotak yang ia labeli (bagian 9.3) — dan barisnya
+           memakan 23px yang di HP diambil langsung dari tinggi foto.
+           Atribut aria-label menggantikannya untuk pembaca layar. -->
       <div class="baris-pilih">
         <div class="field">
-          <label for="cek-pos">Pos</label>
-          <select id="cek-pos" class="select-small" ${posBoleh.length < 2 ? "disabled" : ""}>
+          <select id="cek-pos" class="select-small" aria-label="Pos"
+                  ${posBoleh.length < 2 ? "disabled" : ""}>
             ${posBoleh.map(p => `<option value="${esc(p.nomor)}"
               >${esc(judulPos(p))}</option>`).join("")}
           </select>
@@ -9215,7 +9234,11 @@ async function layarCekNilai() {
         <button type="button" class="button button-secondary cek-panah"
                 id="cek-maju" aria-label="Regu berikutnya">&rsaquo;</button>
       </div>
-      <div class="cek-posisi" id="cek-posisi"></div>
+      <!-- TIDAK ADA "7 / 181". Berapa nomor yang sudah dilewati bukan
+           pertanyaan yang ditanya orang yang sedang mencocokkan satu regu,
+           dan kedua ujung daftarnya sudah terbaca dari panah yang mati.
+           Barisnya memakan 20px, dan di HP tiap piksel di atas layar ini
+           diambil dari tinggi foto slip. -->
     </div>
     <div id="cek-isi"></div>
   `));
@@ -9250,7 +9273,6 @@ async function layarCekNilai() {
   const elPos = document.getElementById("cek-pos");
   const elDada = document.getElementById("cek-dada");
   pasangDada3(elDada, sinyal);
-  const elPosisi = document.getElementById("cek-posisi");
   const elIsi = document.getElementById("cek-isi");
   const elMundur = document.getElementById("cek-mundur");
   const elMaju = document.getElementById("cek-maju");
@@ -9270,8 +9292,6 @@ async function layarCekNilai() {
   }
 
   function perbaruiNavigasi() {
-    elPosisi.textContent = lembar.length
-      ? `${indeks + 1} / ${lembar.length}` : "0 / 0";
     elMundur.disabled = indeks <= 0;
     elMaju.disabled = indeks >= lembar.length - 1;
     /* Kotaknya JANGAN ditimpa selagi diketik: petugas yang sedang mengetik
@@ -9282,6 +9302,11 @@ async function layarCekNilai() {
     }
   }
 
+  /* Nomor gambar yang sedang berlaku. Dua ketukan panah beruntun berarti dua
+     gambarRegu() berjalan bersamaan, dan yang lebih tua tidak boleh
+     membereskan apa pun milik yang lebih muda. */
+  let gambarKe = 0;
+
   async function gambarRegu() {
     perbaruiNavigasi();
     if (!lembar.length) {
@@ -9290,10 +9315,73 @@ async function layarCekNilai() {
       return;
     }
 
+    const iniGambar = ++gambarKe;
     const r = lembar[indeks];
     const dada = Number(r.nomor_dada);
     const daftar = lombaPos();
     const nilai = r.nilai || {};
+
+    /* ================================================================
+       GULIRAN BERTAHAN SAAT PINDAH REGU — dan yang menjaganya BUKAN
+       menyimpan lalu memulihkan angkanya, melainkan menahan TINGGI
+       halamannya.
+
+       Yang terjadi tanpa ini, terukur di iframe 393x700 dengan Pos 5:
+       halaman 1016px, petugas menggulir ke 300 untuk melihat foto slip,
+       lalu menekan panah. replaceChildren menggambar kerangka yang
+       petak fotonya masih KOSONG, halamannya menyusut jadi 700 — tepat
+       setinggi layar — dan browser menjepit guliran ke 0 karena tidak
+       ada lagi yang bisa digulir. 60 ms kemudian fotonya datang dan
+       halamannya kembali 1016, tetapi gulirannya sudah telanjur di
+       atas. Jadi tiap satu regu berikutnya menuntut satu guliran lagi,
+       dan layar ini dipakai ratusan kali sepagi.
+
+       Menyimpan lalu memulihkan angkanya — cara papan Live Score —
+       tidak dipakai di sini karena ia MENGEDIP: di lapangan tautan
+       foto bertanda tangan bisa memakan setengah detik, dan setengah
+       detik melompat ke atas lalu turun lagi terbaca seperti layar
+       yang salah gambar. Halaman yang tidak pernah memendek tidak
+       perlu dipulihkan sama sekali.
+
+       HANYA SAAT HALAMANNYA MEMANG SEDANG DIGULIR. Di tata letak satu
+       layar (>= 1000px) `.isi.cek` setinggi layar dan `overflow:
+       hidden`, jadi guliran halaman selalu 0 — dan `min-height` di
+       sana justru merusak: #cek-isi anak flex ber-`min-height: 0`
+       yang memang HARUS boleh menyusut, dan mematoknya mendorong
+       halaman jadi lebih tinggi daripada layar, persis yang sudah
+       pernah diperbaiki di blok CSS-nya.
+
+       Yang menggulir di rentang itu kotak lombanya sendiri
+       (`#cek-isi > .card { overflow: auto }`), dan kotak itu DIBUANG
+       oleh replaceChildren — jadi ia yang disimpan lalu dipasang lagi.
+       Tingginya di sana tidak bergantung pada foto (fotonya `flex: 1`),
+       jadi memulihkannya seketika sudah benar dan tidak mengedip.
+
+       DUA LANGKAH, dan keduanya perlu — masing-masing sendirian
+       terukur MELESET:
+
+         1. patok #cek-isi setinggi ukurannya yang lama. Meleset 16px,
+            karena margin bawah kartu terakhir RUNTUH keluar dari
+            #cek-isi selama tingginya auto lalu terserap ke dalam
+            begitu min-height memaksanya. Tinggi elemennya sama,
+            tinggi halamannya tidak.
+         2. ukur sisa kekurangannya dari halamannya sendiri, lalu
+            tambahkan. Ini yang tidak bisa berdiri sendiri: tanpa
+            langkah 1 kerangkanya lebih pendek daripada layar, dan
+            `scrollHeight` berhenti di tinggi layar — 700, bukan 400 —
+            jadi yang terbaca cuma 198px kurang dari 498px yang
+            sebenarnya, dan tambalannya masih pendek.
+
+       Sesudah langkah 1 halamannya paling meleset selebar satu margin
+       yang runtuh, jadi lantai layar tidak lagi mengaburkan
+       pengukuran dan langkah 2 menutupnya persis.
+       ================================================================ */
+    const halaman = document.scrollingElement;
+    const gulirHalaman = halaman.scrollTop;
+    const tinggiHalaman = halaman.scrollHeight;
+    const tinggiIsi = Math.round(elIsi.getBoundingClientRect().height);
+    const kotakLama = elIsi.querySelector(":scope > .card");
+    const gulirKotak = kotakLama ? kotakLama.scrollTop : 0;
 
     /* Kerangkanya digambar LEBIH DULU, fotonya menyusul. Tautan foto
        bertanda tangan butuh satu perjalanan jaringan per regu, dan layar yang
@@ -9302,7 +9390,7 @@ async function layarCekNilai() {
       <!-- Tidak ada lagi blok gembok di kartu identitas: gemboknya sekarang
            duduk di sebelah nilai tiap lomba, tempat keputusannya benar-benar
            diambil. -->
-      <div class="cek-identitas">${kartuReguNilai(r)}</div>
+      <div class="cek-identitas">${kartuReguNilai(r, { ringkas: true })}</div>
       <div class="card">
         ${daftar.map(l => {
           const dipakai = l.kolom
@@ -9408,6 +9496,23 @@ async function layarCekNilai() {
         }).join("")}
       </div>`));
 
+    /* Halaman ditambal setinggi semula lalu gulirannya dikembalikan — dan
+       semuanya masih di dalam SATU tugas yang sama dengan replaceChildren di
+       atas, jadi browser tidak pernah sempat menggambar keadaan pendeknya.
+       Yang terlihat cuma hasil akhirnya: angka barunya, di tempat mata sudah
+       berada. */
+    if (gulirHalaman > 0) {
+      elIsi.style.minHeight = `${tinggiIsi}px`;
+      const kurang = tinggiHalaman - halaman.scrollHeight;
+      if (kurang > 0) elIsi.style.minHeight = `${tinggiIsi + kurang}px`;
+      halaman.scrollTop = gulirHalaman;
+    }
+    // Kotak lombanya baru — guliran di dalamnya dipasang lagi (lihat catatan
+    // panjang di atas). Di HP nilainya selalu 0 dan barisnya tidak berbuat apa
+    // pun; yang menggulir di sana halamannya.
+    const kotakBaru = elIsi.querySelector(":scope > .card");
+    if (kotakBaru && gulirKotak) kotakBaru.scrollTop = gulirKotak;
+
     /* <label for> butuh id, dan selKomponen menulis data-kode saja. Dipasang
        di sini, sesudah barisnya berdiri. */
     daftar.forEach(l => {
@@ -9424,6 +9529,23 @@ async function layarCekNilai() {
     statusAwal();
     matikanSaatTerkunci();
 
+    /* Fotonya menyusul, dan begitu ia mendarat halamannya boleh kembali
+       setinggi isinya sendiri. `iniGambar` menjaga supaya gambar yang sudah
+       didahului penggantinya tidak melepaskan patokan milik pengganti itu —
+       dua ketukan panah beruntun membuat keduanya berjalan bersamaan. */
+    try { await gambarFoto(dada); }
+    finally { if (iniGambar === gambarKe) elIsi.style.minHeight = ""; }
+  }
+
+  /** Foto slip tiap lomba, dipasang sesudah kerangkanya berdiri.
+   *
+   *  Terpisah dari gambarRegu() supaya patokan tinggi di sana bisa dilepas
+   *  lewat SATU `finally`: jalur keluar di bawah ada tiga — permintaannya
+   *  gagal, layarnya ditinggalkan, nomornya sudah berpindah — dan tiga baris
+   *  pelepasan yang harus diingat satu per satu adalah baris yang suatu hari
+   *  terlewat, meninggalkan halaman yang tingginya terkunci di angka regu
+   *  sebelumnya. */
+  async function gambarFoto(dada) {
     let foto = [];
     try { foto = await daftarFotoLembar(nomorPos, dada); }
     catch { foto = null; }
