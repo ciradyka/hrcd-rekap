@@ -809,17 +809,16 @@ export async function riwayatPendaftaran(kode) {
     "&select=*&order=changed_at.desc,id.desc");
 }
 
-/** Kelengkapan input per pos — satu baris per pos, bukan per regu.
- *
- *  Sengaja agregat: layar memanggilnya tiap 20 detik, dan menarik 300 × 5
- *  baris hanya untuk menghitungnya sendiri di browser adalah pekerjaan yang
- *  sudah bisa dilakukan database dalam satu query. Daftar regu yang belum
- *  lengkap TIDAK perlu diambil terpisah — `v_rekap_penuh` sudah membawa
- *  nilai tiap komponen, jadi layar bisa menyaringnya dari data yang sama. */
-export async function kelengkapanPos() {
-  if (K.mode === "dev") return baca("/kelengkapan-pos");
-  return baca(null, "v_kelengkapan_pos?select=*&order=pos.asc");
-}
+/* `v_rekap_penuh` dan `v_kelengkapan_pos` TIDAK punya pembungkus sendiri lagi.
+   Keduanya lahir untuk layar Rekapitulasi, yang dihapus 27 Agustus 2026 (#606),
+   dan sejak itu tidak ada satu layar pun yang membacanya langsung — yang
+   membacanya `cache_live_score` di database, dan di mode dev jalur di bawah
+   ini yang menirunya. Pembungkus tanpa layar terbaca seperti fitur yang masih
+   hidup (tes unused_batch_api). Kedua view-nya sendiri tetap ada dan tetap
+   dipakai; yang dibuang cuma pintu client-nya.
+
+   Rute `/rekap-penuh` dan `/kelengkapan-pos` di tests/dev_server.py KARENA ITU
+   tetap ada: yang memanggilnya sekarang tiruan snapshot di bawah. */
 
 /** Snapshot privat untuk papan Live Score panitia.
  *
@@ -838,17 +837,6 @@ export async function cacheLiveScore() {
     "cache_live_score?select=dibuat_pada,data&tunggal=eq.true");
   if (!d.length) throw new ErrorApi("Cache Live Score belum tersedia.");
   return { dibuat_pada: d[0].dibuat_pada, ...d[0].data };
-}
-
-/** Rekapitulasi lengkap seluruh regu × seluruh pos — layar #/rekap.
- *
- *  Hanya admin dan meja: view-nya sendiri yang menolak operator pos, karena
- *  RLS akan memotong nilai_mentah pos lain dan Nilai Total-nya jadi salah
- *  (lihat kepala migrasi 0027). ~300 baris, dimuat sekali lalu disaring dan
- *  diurutkan di browser — pola yang sama dengan seluruh layar meja. */
-export async function rekapPenuh() {
-  if (K.mode === "dev") return baca("/rekap-penuh");
-  return baca(null, "v_rekap_penuh?select=*&order=nomor_dada.asc");
 }
 
 /** Seluruh regu + nilai yang sudah tersimpan untuk satu pos. Satu permintaan

@@ -20,7 +20,7 @@ import {
   koreksiJamBerangkat,
   daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
   rentangNomorDada,
-  komponenSemua, rekapPenuh, kelengkapanPos, cacheLiveScore,
+  komponenSemua, cacheLiveScore,
   riwayatNilai, riwayatPendaftaran,
   kunciNilaiPos, bukaKunciNilaiPos, putarFotoLembar,
   unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
