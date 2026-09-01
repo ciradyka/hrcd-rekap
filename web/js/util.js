@@ -724,7 +724,22 @@ export function dialog({ judul, kartuHtml = "", medan = [], labelAksi = "Simpan"
       if (m.tipe === "jam") jamPasang[i] = pasangKotakJam(`dlg-${i}`);
     });
 
-    const tutup = hasil => { el.remove(); resolve(hasil); };
+    /* PINDAH LAYAR MENUTUP DIALOG, dan itu bukan kerapian.
+
+       Dialog ini menempel di `document.body`, bukan di dalam #layar — ia harus,
+       karena ia menutupi seluruh layar. Akibatnya `LAYAR.replaceChildren()`
+       yang menggambar layar berikutnya TIDAK menyentuhnya: petugas yang
+       membuka Foto Jawaban di Input Nilai Pos lalu menekan Back mendarat di
+       layar berikutnya dengan overlay layar penuh milik layar sebelumnya masih
+       terpasang di atasnya, lengkap dengan `pointer-events`. Membukanya dua
+       kali menumpuk dua.
+
+       Batal, bukan sekadar dibuang: yang memanggil sedang `await` di baris
+       berikutnya, dan `null` sudah berarti "dibatalkan" bagi semuanya. Elemen
+       yang cuma dihapus meninggalkan janji yang tidak pernah selesai. */
+    const pergi = new AbortController();
+    const tutup = hasil => { pergi.abort(); el.remove(); resolve(hasil); };
+    window.addEventListener("hashchange", () => tutup(null), { signal: pergi.signal });
     if (pasang) pasang(el, tutup);
     el.querySelector("[data-batal]")?.addEventListener("click", () => tutup(null));
     el.addEventListener("click", e => { if (e.target === el) tutup(null); });
