@@ -104,6 +104,12 @@ yang dipakai container CI, tetapi katalog Postgres berbeda antar versi mayor:
 di laptop 18.x `supabase/checks/status_migrasi.sql` melaporkan 22 sidik jari
 BELUM padahal migrasinya sudah masuk (CLAUDE.md pasal 7.8).
 
+Yang dihitung versi **server**-nya, bukan `psql` yang dipakai memanggilnya:
+klien 18 menyambung ke server 17 tanpa masalah, dan `select version()` tetap
+menjawab 17. Jadi kalau satu-satunya `psql` yang bisa dijalankan di laptop
+kebetulan versi lain, `PSQL=` boleh menunjuk ke sana selama `PGPORT=` menunjuk
+ke server 17.
+
 ```bash
 PSQL=/path/ke/psql PGPORT=55432 PGPASSWORD=... bash tests/run.sh
 ```
