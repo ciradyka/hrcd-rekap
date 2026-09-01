@@ -8120,8 +8120,8 @@ const posUntukAkun = (s, semuaPos) => {
 const kartuReguNilai = (r, { ringkas = false } = {}) => (ringkas ? `
   <div class="card card-identity identitas-sebaris" style="margin:0">
     ${html`<span class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</span><span
-      class="detail"> · ${r.nama_sekolah} · ${
-      GOLONGAN_LABEL[r.golongan] || r.golongan}</span>`}
+      class="detail"> · ${r.nama_sekolah}<span class="identitas-golongan"> · ${
+      GOLONGAN_LABEL[r.golongan] || r.golongan}</span></span>`}
   </div>` : `
   <div class="card card-identity" style="margin:0">
     ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
