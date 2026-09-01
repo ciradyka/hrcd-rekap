@@ -280,9 +280,18 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    `0118`), bukan di kode.
 7. Konsekuensi bagi sistem: layar keberangkatan harus menampilkan **beberapa
    kloter sekaligus dalam status berbeda**, bukan satu kloter per layar.
-8. **Ada 3 staging.** Verifikasi kehadiran regu dilakukan **di staging**, bukan
-   di garis start: setelah masuk staging, peserta cukup menunggu sampai
-   benar-benar diberangkatkan.
+8. **Tiga kloter selalu siap, di dua titik tunggu.** Kloter berikutnya berdiri
+   di garis start (Pemberangkatan), dua sesudahnya menunggu di Staging 1 dan
+   Staging 2, dan sisanya masih di upacara — susunan yang sama dengan
+   CLAUDE.md pasal 10.3. Verifikasi kehadiran regu dilakukan **di titik
+   tunggunya**, bukan saat ia sampai di garis start: begitu masuk staging,
+   peserta cukup menunggu sampai benar-benar diberangkatkan.
+
+   Pasal ini berbunyi "Ada 3 staging" sampai 2 September 2026 — tiga titik
+   tunggu DI LUAR garis start, jadi empat kloter siap sekaligus — sementara
+   pasal 10.3 menyebut namanya satu per satu dan hanya menemukan tiga posisi.
+   Tidak ada apa pun di kode yang bisa memutuskan mana yang benar; pemilik
+   acara memilih yang tiga.
 9. **Panitia kertas dan panitia laptop duduk bersebelahan**, dan urutan
    kerjanya searah:
    1. Panitia **kertas** mencentang semua regu yang berangkat, menulis tangan
