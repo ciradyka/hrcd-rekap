@@ -26,9 +26,18 @@
 -- daripada masalahnya lebih berbahaya daripada tidak ada pemeriksaan, karena ia
 -- menutup pertanyaannya.
 --
--- Sekarang keduanya disebutkan: 112 migrasi punya jejak yang diperiksa
--- (bagian 1), dan 51 tidak punya (bagian 2). Yang di bagian 2 bukan berarti
--- belum diterapkan — berarti tidak ada yang tersisa untuk diperiksa.
+-- Sekarang keduanya disebutkan: 116 migrasi punya jejak yang diperiksa
+-- (bagian 1), dan 53 tidak punya (bagian 2). 116 + 53 = 169, yaitu SELURUH
+-- migrasi yang ada — dan angka itu yang harus dijaga tiap kali berkas migrasi
+-- baru mendarat. Yang di bagian 2 bukan berarti belum diterapkan — berarti
+-- tidak ada yang tersisa untuk diperiksa.
+--
+-- Pernah tidak begitu: sampai 2 September 2026 kedua daftar berhenti di 0163,
+-- jadi 0164-0169 tidak disebut di mana pun dan pemeriksanya melapor hijau atas
+-- enam migrasi yang tidak pernah dilihatnya — bentuk kesalahan yang sama, satu
+-- edisi lebih muda. Nomor yang tidak ada di kedua daftar TIDAK muncul sebagai
+-- BELUM; ia tidak muncul sama sekali, dan itulah yang membuatnya sulit
+-- terlihat.
 --
 -- DARI MANA JEJAKNYA DATANG, DAN KENAPA BOLEH DIPERCAYA
 --
@@ -322,7 +331,15 @@ begin
   ('0161', 'row sekolah: {"name": "SMPN Satu Atap 1 Banjarsari", "address": "Banjar',
    $c$select exists (select 1 from sekolah t where position('{"name": "SMPN Satu Atap 1 Banjarsari", "address": "Banjaranyar, Kec. Banjaranyar, Kabupaten Ciamis, Jawa Barat 46384, Indonesia"}' in (to_jsonb(t) - 'id' - 'created_at' - 'updated_at' - 'dibuat_pada' - 'edisi' - 'sekolah_id')::text) > 0)$c$),
   ('0163', 'view v_kejuaraan_publik ada',
-   $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kejuaraan_publik')$c$)
+   $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kejuaraan_publik')$c$),
+  ('0164', 'view v_kejuaraan_publik: poin_juara di DAFTAR SELECT-nya, bukan cuma di tanda tangan fungsinya',
+   $c$select exists (select 1 from pg_views where schemaname = 'public' and viewname = 'v_kejuaraan_publik' and position('    poin_juara,' in definition) > 0)$c$),
+  ('0165', 'function minta_segarkan_live_score ada',
+   $c$select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'minta_segarkan_live_score')$c$),
+  ('0166', 'constraint nilai_terkunci.nilai_terkunci_pkey: PRIMARY KEY (regu_id, pos, kode_lomba)',
+   $c$select exists (select 1 from pg_constraint where conrelid = 'nilai_terkunci'::regclass and conname = 'nilai_terkunci_pkey' and position('PRIMARY KEY (regu_id, pos, kode_lomba)' in pg_get_constraintdef(oid)) > 0)$c$),
+  ('0167', 'constraint foto_lembar.foto_lembar_putaran_check: CHECK ((putaran = ANY (ARRAY[0, 90, 180, 270])))',
+   $c$select exists (select 1 from pg_constraint where conrelid = 'foto_lembar'::regclass and conname = 'foto_lembar_putaran_check' and position('CHECK ((putaran = ANY (ARRAY[0, 90, 180, 270])))' in pg_get_constraintdef(oid)) > 0)$c$)
 ) as t(nomor, jejak, cek)
   loop
     begin
@@ -403,7 +420,9 @@ select nomor, berkas from (values
   ('0148', 'juara_umum_berdasarkan_poin'),
   ('0149', 'juara_umum_tanpa_poin_di_bawah'),
   ('0151', 'skor_juara_umum_enam_besar'),
-  ('0162', 'lebur_smp_al_fadliliyah')
+  ('0162', 'lebur_smp_al_fadliliyah'),
+  ('0168', 'judul_isian_menaksir'),
+  ('0169', 'judul_isian_soal')
 ) as t(nomor, berkas)
 order by nomor;
 
