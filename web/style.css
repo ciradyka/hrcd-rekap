@@ -3216,18 +3216,31 @@ button.pill-number:hover { filter: brightness(.95); }
     z-index: 40;
   }
   .bottom-nav[hidden] { display: none; }
+  /* DIRAMPINGKAN dari 64px jadi 50px, dan yang dibayar dengan itu bukan
+     kenyamanan menekan: 50px masih di atas 44px, batas sasaran sentuh yang
+     dipakai iOS maupun Android, dan lebar tiap tombolnya seperempat layar —
+     yang menentukan meleset atau tidak justru lebar itu, bukan tingginya.
+
+     Yang dibeli: 14px dari bar plus 16px dari ruang di bawah halaman,
+     30px yang jatuh ke isi layar di setiap layar HP sekaligus. Di Cek Nilai
+     ia jatuh ke tinggi foto slip; di meja pembayaran ia satu baris tabel
+     lagi sebelum harus menggulir. */
   .bottom-nav-item {
     flex: 1;
-    display: flex; flex-direction: column; align-items: center; gap: .15rem;
-    padding: .45rem .2rem; min-height: 56px;
+    display: flex; flex-direction: column; align-items: center; gap: .1rem;
+    padding: .3rem .2rem; min-height: 48px;
     border: 0; background: none; font-family: inherit;
-    color: var(--tinta-lembut); font-size: .72rem; font-weight: 600;
+    color: var(--tinta-lembut); font-size: .7rem; font-weight: 600;
+    /* Label satu kata, jadi tinggi barisnya tidak perlu ruang untuk baris
+       kedua yang tidak akan pernah ada. 1.5 bawaan menyisakan 5px kosong di
+       atas dan di bawah "Home". */
+    line-height: 1.15;
     cursor: pointer;
   }
   .bottom-nav-icon {
-    font-size: 1.3rem; line-height: 1;
+    font-size: 1rem; line-height: 1;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 2.6rem; height: 1.9rem; border-radius: 999px;
+    width: 2.2rem; height: 1.6rem; border-radius: 999px;
   }
 
   /* Satu warna per tujuan. Tiga ikon abu-abu sebaris menuntut label dibaca
@@ -3257,9 +3270,9 @@ button.pill-number:hover { filter: brightness(.95); }
      berakhir 3px DI BAWAH tepi atas bar. Di browser desktop insetnya nol dan
      jaraknya 31px, jadi cacat ini tidak pernah muncul waktu diukur di laptop.
 
-     6rem itu sendiri: tinggi bar 65px + jarak baca. Kalau tinggi bar diubah,
-     angka ini ikut. */
-  .isi { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+     5rem itu sendiri: tinggi bar 51px + jarak baca ~29px. Kalau tinggi bar
+     diubah, angka ini ikut — dulu 6rem waktu barnya 65px. */
+  .isi { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
 }
 
 /* ============================================================================
@@ -5108,14 +5121,46 @@ button.pill-number:hover { filter: brightness(.95); }
   text-align: center; font-size: 1.45rem; font-weight: 700;
   letter-spacing: .05em; font-variant-numeric: tabular-nums;
 }
-.cek-posisi {
-  margin-top: .35rem; text-align: center;
-  font-size: .85rem; color: var(--tinta-lembut); font-variant-numeric: tabular-nums;
-}
+/* KARTU KENDALI DIRAMPINGKAN DI SELURUH RENTANG, bukan cuma di laptop.
+   Padding kartu bawaan 1.15rem atas dan bawah adalah 37px yang di HP diambil
+   langsung dari tinggi foto slip — dan foto slip itulah satu-satunya alasan
+   layar ini dibuka. Yang di dalamnya cuma satu dropdown dan sebaris panah,
+   keduanya sudah punya tinggi sentuhnya sendiri (46px), jadi tidak ada yang
+   menyusut karenanya. */
+.cek-kendali { padding: .6rem .8rem; }
+.cek-kendali .baris-pilih .field { margin-bottom: .5rem; }
+.cek-kendali .cek-navigasi { margin-top: 0; }
+
 /* Kartu identitas regu diberi jarak ke blok lomba pertama. Tanpa ini nama
    regunya menempel ke kotak lomba di bawahnya dan keduanya terbaca sebagai
    satu blok — padahal yang satu identitas dan yang satu lagi nilai. */
-.cek-identitas { margin-bottom: .9rem; }
+.cek-identitas { margin-bottom: .5rem; }
+
+/* IDENTITAS SEBARIS — "007 · RANCAKA · MA PUI Cijantung · Penegak PA".
+   Dua baris bertumpuk plus padding kartu penuh memakan 93px di HP, dan di
+   layar yang seluruh gunanya membandingkan angka dengan tulisan tangan di
+   foto, tinggi itu diambil dari fotonya.
+
+   `inline` dan bukan flex: yang diminta satu KALIMAT, dan kalimat yang tidak
+   muat harus membungkus di sela kata mana pun — bukan patah di batas dua
+   kotak flex, yang menyisakan separuh baris kosong sebelum nama sekolahnya
+   turun utuh ke baris kedua. Nama sekolah terpanjang di data sungguhan tetap
+   membungkus dengan rapi karena titik pemisahnya ikut mengalir.
+
+   UKURANNYA DIUKUR, BUKAN DITAKSIR (bagian 15.9 dan 15.11). Di iframe 393px —
+   lebar HP yang dipakai panitia — isi kartunya 333px, dan
+   "007 · RANCAKA · MA PUI Cijantung · Penegak PA" menuntut 328px pada 1rem
+   tebal + 0.85rem biasa. Pada ukuran sebelumnya (1.05 dan 0.9) ia menuntut
+   347px dan membungkus. Nama sekolah yang lebih panjang tetap turun ke baris
+   kedua, dan itu memang yang diminta: sebaris KALAU BISA, bukan dipaksa
+   sebaris sampai hurufnya tidak terbaca.
+
+   Nomor dadanya tetap ditulis walaupun kotak navigasi di atasnya sudah
+   memuatnya besar-besar: yang satu apa yang DIKETIK, yang satu apa yang
+   DITEMUKAN, dan seluruh guna kartu ini membandingkan keduanya. */
+.card-identity.identitas-sebaris { padding: .45rem .6rem; line-height: 1.3; }
+.identitas-sebaris .nama    { font-size: 1rem; font-weight: 800; }
+.identitas-sebaris .detail  { font-size: .85rem; margin-top: 0; }
 /* SATU BARIS: kotak isian, lambang simpan, lambang gembok — berurutan sesuai
    cara dipakainya (baca angkanya, betulkan, simpan, gembok).
 
@@ -5460,7 +5505,7 @@ button.pill-number:hover { filter: brightness(.95); }
      atas memakan ~170px; sebaris ~90px, dan selisihnya jatuh ke foto. */
   .isi.cek .baris-pilih { margin: 0; }
   .isi.cek .cek-navigasi { margin: 0; }
-  .isi.cek .cek-posisi { margin: 0; }
+  .isi.cek .cek-kendali .baris-pilih .field { margin-bottom: 0; }
   /* `.isi.cek > .card`, BUKAN `:first-of-type`. Saudara pertama di dalam
      .isi adalah <div id="pita-antrean">, dan `div:first-of-type` menunjuk
      DIA — bukan kartu ini — jadi aturannya tidak pernah mengenai apa pun dan
