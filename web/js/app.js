@@ -518,7 +518,7 @@ async function layarHome() {
             sesi().pos != null && sesi().pos !== "" ? ` ${esc(sesi().pos)}` : ""}</div>
         </a>
         <a href="#/foto">
-          <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
+          <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban Sekaligus</div>
         </a>
         ${bolehLihat("live_score") ? `
         <a href="#/live-score">
@@ -618,7 +618,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/foto">
-        <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban</div>
+        <div class="function-name">${ikonKotak("camera", "biru")} Foto Jawaban Sekaligus</div>
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/pos2">
@@ -7293,8 +7293,8 @@ async function layarAkun() {
    yang tidak terlihat adalah antrean yang tidak pernah dikerjakan.
    ========================================================================= */
 async function layarFoto() {
-  if (!EDISI) { layarButuhEdisi("Foto Jawaban"); return; }
-  pasangKepala("Foto Jawaban", true);
+  if (!EDISI) { layarButuhEdisi("Foto Jawaban Sekaligus"); return; }
+  pasangKepala("Foto Jawaban Sekaligus", true);
   LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
