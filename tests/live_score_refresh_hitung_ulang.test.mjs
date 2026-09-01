@@ -13,7 +13,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+// AKHIRAN BARIS DINORMALKAN, alasan yang sama dengan
+// tests/live_asset_version.test.mjs: checkout di Windows memberi CRLF dan di
+// Linux LF, sementara penanda `gambar` di bawah memuat pergantian baris DI
+// TENGAHNYA. Tanpa ini ia cuma ketemu di satu jenis mesin, dan satu alat yang
+// menulis ulang app.js dengan LF sudah cukup membuatnya berhenti ketemu —
+// lalu `pulih > gambar` menilai -1 dan pagarnya berhenti menjaga apa pun.
+const app = (await readFile(new URL("../web/js/app.js", import.meta.url), "utf8"))
+  .replace(/\r\n/g, "\n");
 const api = await readFile(new URL("../web/js/api.js", import.meta.url), "utf8");
 const cron = await readFile(
   new URL("../.github/workflows/refresh-live-score.yml", import.meta.url), "utf8");
@@ -62,7 +69,7 @@ test("Refresh tidak melempar panitia ke tab lain atau ke puncak halaman", () => 
   // Guliran dipulihkan SESUDAH papan tergambar: halaman yang belum setinggi
   // posisi tujuan membuat browser menahan guliran di batas yang ada saat itu.
   const pulih = app.indexOf("requestAnimationFrame(() => window.scrollTo(0, ke))");
-  const gambar = app.indexOf("LAYAR.replaceChildren(h(`\r\n    ${kemajuan}");
+  const gambar = app.indexOf("LAYAR.replaceChildren(h(`\n    ${kemajuan}");
   assert.ok(pulih > 0, "guliran tidak pernah dipulihkan");
   assert.ok(gambar > 0 && pulih > gambar,
     "guliran dipulihkan sebelum papannya tergambar");
