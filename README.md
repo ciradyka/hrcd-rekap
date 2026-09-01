@@ -19,15 +19,13 @@ Gambaran lengkapnya di `docs/final-architecture.md`.
 | `docs/rancangan-b.md` | Cetak biru implementasi yang dipakai membangun | Catatan keputusan |
 | `docs/runbook-sekolah.md` | Cara membakukan daftar sekolah dari tulisan pembina | Berlaku |
 | `docs/sekolah-belum-tuntas.md` | Sekolah yang alamatnya masih perlu ditanyakan | Daftar kerja |
-| `docs/arsitektur-hrcd.svg` | Diagram lapisan teknis — Cloudflare, Supabase, penerbitan rekap | **Basi** — capnya "sampai migrasi 0153" |
-| `docs/alur-hrcd.svg` | Diagram alur acara — pendaftaran sampai klasemen | Basi — "4 golongan", sejak `0091` enam |
+| `docs/arsitektur-hrcd.svg` | Diagram lapisan teknis — Cloudflare, Supabase, penerbitan rekap | Berlaku — cap `0169` |
+| `docs/alur-hrcd.svg` | Diagram alur acara — pendaftaran sampai klasemen | Berlaku |
 
-Kedua SVG belum digambar ulang sejak 30 Agustus 2026, dan angkanya jangan
-dipercaya sebelum dihitung ulang: `arsitektur-hrcd.svg` menghitung 153 migrasi
-(sekarang 169) dan capnya menyebut empat fase live tanpa `juara`, sementara
-`alur-hrcd.svg` masih menulis "4 golongan dinilai terpisah" padahal Intern PA
-dan Intern PI menjadikannya enam sejak `0091`. Bentuk lapisan dan urutan
-alurnya sendiri masih betul — yang basi angkanya.
+Angka di `arsitektur-hrcd.svg` dihitung dari database, bukan dikira-kira, dan
+capnya menyebut sampai migrasi berapa ia berlaku. Kalau cap itu tertinggal jauh
+dari `supabase/migrations/`, angkanya jangan dipercaya sebelum dihitung ulang —
+itulah gunanya cap itu ada.
 
 `desain-sistem.md` dan `rancangan-b.md` merekam **keputusan pada saat itu**,
 bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 61

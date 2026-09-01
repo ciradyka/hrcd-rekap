@@ -43,11 +43,12 @@ kelima lomba soal tulis kini diisi seperti Semaphore: satu regu satu layar,
 satu kotak "Jumlah benar", foto per regu. Foto borongan tetap ada, tapi hanya
 di layar Foto Jawaban.
 
-Dua diagram menemani dokumen ini, dan `arsitektur-hrcd.svg` TERTINGGAL dari
-tree: cap di kakinya berbunyi "sampai migrasi 0153" dan angka di sebelahnya —
-26 tabel · 68 check · 27 pemicu · 153 migrasi — dihitung 30 Agustus 2026.
-Jumlah migrasinya sekarang 169; jangan memercayai yang lain sebelum dihitung
-ulang. `alur-hrcd.svg` tidak memuat angka yang bisa basi. Yang tergambar:
+Dua diagram menemani dokumen ini, dan keduanya digambar dari tree yang sama:
+cap di kaki `arsitektur-hrcd.svg` berbunyi "sampai migrasi 0169", dan angka di
+sebelahnya — 26 tabel · 69 check · 27 pemicu · 169 migrasi · 33 view · 28 RPC ·
+48 policy — dihitung dari database, bukan dikira-kira. Cap itu ada supaya
+pembaca berikutnya bisa melihat sendiri kalau ia sudah tertinggal. Yang
+tergambar:
 [`arsitektur-hrcd.svg`](arsitektur-hrcd.svg) — lapisan teknisnya, dan
 [`alur-hrcd.svg`](alur-hrcd.svg) — alur acaranya dari pendaftaran sampai
 klasemen. Keduanya SVG, jadi teksnya bisa dicari dan angkanya bisa dibetulkan
