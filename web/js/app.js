@@ -4686,7 +4686,8 @@ async function layarInputPos() {
           const ke = daftar.length - i;            // terbaru dulu, jadi dihitung mundur
           const kapan = f.diunggah_pada ? tanggalJam(f.diunggah_pada) : "";
           const judul = `Foto ${ke} ${namaLomba}${kapan ? ` · ${kapan}` : ""}`;
-          return `<li data-id="${esc(f.id)}" data-ke="${esc(String(ke))}">
+          return `<li data-id="${esc(f.id)}" data-ke="${esc(String(ke))}"
+                      data-putar="${esc(String(f.putaran || 0))}">
             ${url
               ? `<a class="fg-petak" href="${esc(url)}" target="_blank" rel="noopener"
                     title="${esc(judul)}">
@@ -8507,7 +8508,7 @@ async function gambarLombaNilai(l) {
         <button type="button" class="ubin-silang" data-hapus-foto="${esc(f.id)}"
                 title="Hapus foto ${i + 1}"
                 aria-label="Hapus foto ${i + 1}">${ikon("x")}</button>` : "";
-      return `<div class="foto-lembar">
+      return `<div class="foto-lembar" data-putar="${esc(String(f.putaran || 0))}">
         ${url
           ? `<a class="foto-tautan" href="${esc(url)}" target="_blank" rel="noopener"
                 title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
