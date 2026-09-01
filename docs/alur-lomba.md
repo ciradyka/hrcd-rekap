@@ -5,7 +5,7 @@ Ciradyka (HRCD) sebagai dasar perancangan sistem `hrcd-rekap`.
 
 Isinya adalah hasil penjelasan panitia, bukan rancangan teknis. Keputusan
 teknologi sudah diambil dan sudah berjalan, tetapi perbandingan dan alasannya
-sengaja tidak dibahas di sini — lihat bagian 13.5 dan `final-architecture.md`.
+sengaja tidak dibahas di sini — lihat bagian 13.6 dan `final-architecture.md`.
 
 > **Penting:** aturan penilaian **berubah setiap tahun**. Semua angka di dokumen
 > ini adalah konfigurasi edisi berjalan, bukan spesifikasi permanen. Lihat
@@ -45,9 +45,20 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 4. Skala peserta konsisten di kisaran 300 regu, dengan batas atas sekitar 500.
 5. Sistem terbagi menjadi **dua wajah yang terpisah**:
    - **Aplikasi panitia** — satu link yang sama untuk semua panitia, dengan
-     akses yang dibedakan per akun (bagian 8.8).
+     akses yang dibedakan per akun (bagian 8.10).
    - **Tampilan live untuk peserta** — halaman publik tanpa login, berisi
-     **klasemen penuh empat golongan**, dibuka **bertahap**: selama lomba
+     **klasemen empat golongan Eksternal** (Intern tidak masuk papan), dibuka
+     **bertahap** lewat lima fase: `pra`, `progres` (centang per pos tanpa
+     satu angka nilai pun, ditambah kloter, kontrak waktu, jam berangkat, dan
+     jam datang regu itu sendiri, supaya jamnya bisa dicocokkan sebelum
+     hasilnya final), `penuh`, `top10` (maksimal sepuluh regu berperingkat per
+     golongan, migrasi `0145`), dan `juara` (papan diganti daftar juara,
+     migrasi `0163`). Nilai dan peringkat **disajikan statis dan diperbarui
+     berkala** — ratusan HP penonton tidak boleh bisa membebani jalur input
+     panitia. Yang dibaca LANGSUNG dari database cuma dua hal yang tidak
+     memuat satu nilai pun: fase yang sedang berlaku (migrasi `0070`) dan
+     jumlah pendaftar selama fase `pra`. Keduanya hanya boleh MEMPERKETAT
+     tampilan, tidak pernah menampilkan lebih dari isi berkas yang terbit.
      hanya progres tanpa angka nilai — centang per pos, ditambah kloter,
      kontrak waktu, jam berangkat, dan jam datang regu itu sendiri, supaya
      jamnya bisa dicocokkan sebelum hasilnya final — nilai dan peringkat
@@ -61,11 +72,19 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    bukan per individu.
 2. Satu regu bersifat seragam: satu golongan dan satu jenis kelamin. Sekolah
    yang mengirim 2 regu misalnya mengirim 5 Penggalang PA dan 5 Penggalang PI.
-3. Terdapat **empat klasemen yang dinilai terpisah**:
+3. Terdapat **enam klasemen yang dinilai terpisah** (migrasi `0091`):
    - Penegak PA (SMA, putra)
    - Penegak PI (SMA, putri)
    - Penggalang PA (SMP, putra)
    - Penggalang PI (SMP, putri)
+   - Intern PA (tuan rumah, putra)
+   - Intern PI (tuan rumah, putri)
+
+   Keempat golongan Eksternal dinilai penuh. Regu **Intern** semuanya berasal
+   dari satu sekolah — tuan rumah — dan hanya dinilai dari lima lomba soal
+   tulis ditambah ketepatan waktu; lomba lapangan, penalti tanpa checkout,
+   penalti anggota, dan nilai pos terlewat tidak berlaku bagi mereka. Papan
+   peserta pun hanya memuat keempat golongan Eksternal.
 4. Sebuah regu memakai **dua identitas secara berurutan**:
    - **Kode pembayaran** — terbit **saat pendaftaran** dan terikat pada seluruh
      regu dalam satu batch (bagian 3). Menjadi referensi saat membayar, lalu —
@@ -80,13 +99,22 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    sebagai kemudahan: sekolah yang mengirim 10 regu tidak perlu mengisi form 10
    kali. Satu pengisian mendaftarkan beberapa regu sekaligus dalam satu batch,
    dan sistem tetap memperlakukan tiap regu sebagai baris tersendiri (poin 3).
-2. Urutan pertanyaan di form:
+2. Urutan pertanyaan di form. **Yang pertama ditanyakan jenis pesertanya —
+   Eksternal atau Internal** (migrasi `0091`, `0133`). Jalur Internal berbeda
+   di tiga tempat: sekolahnya sudah terisi sendiri — SMAN 1 Ciamis, tuan
+   rumah — dan tidak bisa diganti, pertanyaan menginap tidak muncul sama
+   sekali, dan tiap regunya justru mengisi kelas atau organisasi asalnya.
+   Sesudah itu:
    1. **Asal sekolah.** Ketikan dicocokkan ke database sekolah — jika sekolahnya
       dikenal, muncul sebagai pilihan dropdown otomatis; jika tidak ada, diisi
       manual (dan sekolah baru itu masuk ke database).
    2. **Konfirmasi alamat.** Jika sekolah dipilih dari database, alamatnya
-      ditampilkan agar pendaftar memastikan sekolah yang dimaksud benar —
-      penting karena banyak sekolah bernama sama di kota berbeda.
+      ditampilkan agar pendaftar memastikan sekolah yang dimaksud benar.
+      Alamat itu **hanya untuk dilihat**: sejak migrasi `0061` kunci sekolah
+      adalah `kunci_sekolah(nama)`, jadi alamat yang diketik pembina tidak
+      melahirkan baris sekolah baru dan tidak menimpa alamat kurasi. Dua
+      sekolah senama di tempat berbeda dibedakan di dalam NAMANYA sendiri —
+      `MAN 3 Ciamis` dan `MAN 3 Tasikmalaya` — karena NPSN-nya berbeda.
    3. **Butuh penginapan?** Jawaban ya memasukkan seluruh batch ke skema
       penempatan barak (bagian 11).
    4. **Mendaftarkan berapa regu?** — tidak pernah diketik. Pendaftar menaikkan
@@ -109,6 +137,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    6. **Satu Contact Person** untuk keseluruhan batch: nama (wajib) dan nomor
       WhatsApp. Namanya disimpan sebagai `pendaftaran.nama_kontak` dan itulah
       yang dipanggil panitia saat menghubungi sekolah.
+   7. **Pembayaran** — transfer atau tunai, dipilih pembina di form itu juga
+      dan wajib diisi (migrasi `0121`, `0122`). Yang memilih transfer
+      MENGUNGGAH foto buktinya; berkasnya masuk bucket privat `bukti`, dan
+      tanpa bukti itu pendaftarannya tidak bisa dikirim.
 3. Setelah dikirim, sistem **memecah batch menjadi satu baris per regu** —
    5 regu menjadi 5 baris — yang tetap terikat pada satu tagihan bersama.
 4. Begitu form dikirim, terbit **kode pembayaran yang terikat pada regu-regu
@@ -126,9 +158,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 7. **Tidak ada pengembalian dana.** Regu yang batal setelah membayar tidak
    digantikan, dan kloternya tetap berjalan dengan jumlah regu berkurang.
 8. Konsekuensi bagi sistem: perlu **master data sekolah** (nama + alamat) yang
-   tumbuh dari tahun ke tahun — sumber dropdown otomatis di form, dan sekaligus
-   kunci penyebaran kloter per sekolah (bagian 5) serta penempatan barak
-   (bagian 11).
+   tumbuh dari tahun ke tahun — sumber dropdown otomatis di form, identitas
+   pendaftaran, dan dasar penempatan barak (bagian 11). **Sekolah tidak lagi
+   memengaruhi kloter**: sejak migrasi `0092` penempatan otomatis murni FIFO
+   berkuota jenis regu (bagian 5.4).
 
 ## 4. Daftar ulang
 
@@ -146,14 +179,21 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    atau tertinggal di kardus lain — jadi sistem tidak boleh menebak nomor
    mana yang tersedia secara fisik. Urutannya: petugas menyebut regu ini
    nomornya ini, lalu sistem memastikan nomor itu ada di stok, belum
-   dipensiunkan, dan belum dipakai regu lain. Nomor yang sudah dipakai
-   ditolak dengan pesan, bukan diterima diam-diam.
+   dipensiunkan, belum dipakai regu lain, dan **berada di deret yang benar**.
+   Nomor yang sudah dipakai ditolak dengan pesan, bukan diterima diam-diam.
+
+   **Ada DUA deret** (migrasi `0116`): Eksternal 1–500, Intern 1001–1250. Kain
+   kedua set sama-sama bertulis 001, jadi kain Intern bertulis 001 diketik
+   1001 — dan yang tampil di seluruh layar, kertas, dan papan peserta adalah
+   1001, bukan terjemahan yang cuma hidup di satu layar.
 6. **Pengisian nomor dada dilakukan sekaligus per sekolah**, bukan satu regu
    satu kali. Sekolah dengan 10 regu mengisi 10 nomor dada dalam satu
-   transaksi di meja. Ini menjadi dasar pembagian kloter — lihat bagian 5.
+   transaksi di meja. Urutan selesainya transaksi itulah yang menentukan
+   kloternya — lihat bagian 5.4. Sekolahnya sendiri tidak menentukan apa pun.
 7. **Kloternya tetap ditentukan sistem** (bagian 5.3). Yang manual hanya
-   nomor dadanya; penyebaran kloter justru tidak boleh diserahkan ke petugas
-   karena bertumpu pada keadaan seluruh sekolah, bukan satu meja saja.
+   nomor dadanya; urutan FIFO dan kuota 5 Eksternal + 3 Intern dijaga di dalam
+   `daftar_ulang_batch`, bukan oleh petugas satu meja yang tidak bisa melihat
+   apa yang baru saja terisi di meja sebelah.
 8. **Peserta wajib mengonfirmasi datanya sendiri, termasuk nomor dada,
    sebelum kertas dicetak.** Yang dikonfirmasi: nama regu, asal sekolah,
    golongan, dan nomor dada tiap regu.
@@ -182,8 +222,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    nomor dadanya, tidak ada yang bisa ditunjukkan selain riwayat perubahan di
    `history`, dan riwayat itu mencatat panitia yang mengetik — bukan peserta
    yang mengiyakan.
-9. Setelah daftar ulang ditutup, **lembar penilaian dicetak** untuk dibagikan ke
-   petugas lapangan (bagian 8.8).
+9. **Lembar penilaian tidak menunggu daftar ulang ditutup.** Blangko per lomba
+   kosong, jadi ia master yang bisa dicetak kapan saja lalu difotokopi; lembar
+   cadangan justru sengaja dicetak LEBIH DULU, sebelum pendaftaran ditutup,
+   supaya regu yang menyusul tetap punya barisnya (bagian 8.8).
 
 ## 5. Kloter dan kontrak waktu
 
@@ -200,7 +242,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 6. Set manual tidak memiliki batas kuota atau jumlah; ini sengaja agar petugas
    dapat mencatat keadaan lapangan apa adanya.
 7. Perkiraan waktu K1–K75 dibagi merata sepanjang 07:00–10:00, sekitar dua
-   setengah menit antar-kloter untuk jumlah tersebut.
+   setengah menit antar-kloter untuk jumlah tersebut — tetapi jendela itu
+   **batas atas, bukan perintah menyebar** (migrasi `0118`). Jaraknya diambil
+   yang lebih kecil antara pembagian rata dan `edisi.interval_berangkat_menit`
+   (5 menit, keputusan pemilik acara), supaya dua kloter tidak dijadwalkan
+   berjarak tiga jam hanya karena kloternya sedikit.
 8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
    dan putri, dapat berangkat dalam kloter yang sama; hanya Intern dan Eksternal
    yang mempunyai kuota otomatis terpisah.
@@ -229,8 +275,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    memasukkannya ke sistem.
 5. Saat keberangkatan, panitia menceklis **per nomor dada** bahwa regu tersebut
    benar-benar berangkat.
-6. Jarak antar keberangkatan kloter biasanya **3–5 menit**. Angka pastinya belum
-   ditetapkan — lihat bagian 13.
+6. Jarak antar keberangkatan kloter **paling banyak 5 menit** — ditetapkan
+   pemilik acara dan disimpan di `edisi.interval_berangkat_menit` (migrasi
+   `0118`), bukan di kode.
 7. Konsekuensi bagi sistem: layar keberangkatan harus menampilkan **beberapa
    kloter sekaligus dalam status berbeda**, bukan satu kloter per layar.
 8. **Ada 3 staging.** Verifikasi kehadiran regu dilakukan **di staging**, bukan
@@ -269,8 +316,10 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 ## 7. Rute dan pos
 
 1. Terdapat **5 pos utama** di sepanjang rute (Pos 1–5), masing-masing dengan
-   soal dan wahana yang berbeda. Susunan XXXVII: 1 Kepramukaan, 2 Halang
-   Rintang, 3 P3K, 4 PBB, 5 Yel-Yel.
+   lombanya sendiri. Susunan XXXVII: 1 Kepramukaan, 2 Halang
+   Rintang, 3 P3K, 4 PBB, 5 Yel-Yel. **Soal kertas hanya masuk di Pos 1, 2,
+   dan 3** (migrasi `0076`); Pos 4 dan Pos 5 masing-masing satu lomba saja,
+   tanpa soal.
 
    **Pos 0 dan Pos 6 bukan pos penilaian.** Keduanya tempat yang sama —
    garis start dan garis finish — dan peserta menyebutnya Pos 0 saat berangkat,
@@ -304,10 +353,19 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    Ia bukan cabang tersendiri di kode: sebuah baris di tabel `pos` bertanda
    `bayangan`, dengan komponen penilaiannya sendiri, dan bobotnya diatur
    seperti pos mana pun. Yang membedakan hanya kata di judul layar dan di
-   kertas. Nomor posnya melanjutkan pos utama — pos bayangan pertama bernomor
-   6.
-3. Di setiap pos utama ada dua hal yang dinilai, dan **keduanya berasal dari
-   tempat yang berbeda**:
+   kertas. Nomor posnya melanjutkan pos utama, dan nomor mana yang bebas
+   ditentukan tata letak edisi itu — di XXXVII nomor 6 SUDAH dipakai garis
+   finish (`Kedatangan`, migrasi `0032`), jadi pos bayangan pertama tidak bisa
+   bernomor 6.
+
+   **Edisi XXXVII sendiri tidak memuat satu pun pos bayangan yang dinilai.**
+   Baris `Kostum` dari XXXVI dibuang bersama migrasi `0032`/`0033`, dan
+   nomornya dipakai garis finish. Yang tersisa di lapangan cuma tempat
+   pengambilan kertas soal ("Alur peserta di satu pos", butir 4); mesin
+   penilaiannya tetap ada dan siap dipakai lagi kalau edisi berikutnya
+   memakainya.
+3. Di pos yang menerima soal — Pos 1, 2, dan 3 di edisi XXXVII — ada dua hal
+   yang dinilai, dan **keduanya berasal dari tempat yang berbeda**:
    - **Wahana** — tantangan fisik seperti merangkak, berlari, atau memanjat,
      berbeda-beda tergantung pos. Dikerjakan **dan** dinilai di pos itu juga.
    - **Soal kertas** — diambil regu di **pos bayangan tepat sebelum pos ini**,
@@ -444,9 +502,10 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    ke nomor dada dan lomba yang tepat. Alasannya di bagian 8.5.
 4. **Pos bayangan tidak menahan regu.** Yang terjadi di sana cuma pengambilan
    kertas; regu tidak dinilai wahana apa pun dan langsung melanjutkan
-   perjalanan. Penilaian yang melekat pada pos bayangan — kostum, kekompakan,
-   kesopanan — berjalan dengan mengamati regu yang lewat, bukan dengan
-   menghentikannya (butir 2 di atas).
+   perjalanan. Kalau edisinya memang memasang penilaian pada pos bayangan —
+   kostum, kekompakan, kesopanan — penilaian itu berjalan dengan mengamati
+   regu yang lewat, bukan dengan menghentikannya (butir 2 di atas). Edisi
+   XXXVII tidak memasangnya sama sekali (bagian 7.2).
 5. **Yang dibawa regu keluar dari Pos 1 adalah kertas soal Pos 2.** Regu yang
    berjalan tanpa kertas soal berarti ada yang terlewat di Pos Bayangan 2, dan
    itu baru ketahuan di pos berikutnya ketika ia tidak punya apa-apa untuk
@@ -472,7 +531,8 @@ Jalur lomba    tiap lomba punya jurinya sendiri
       tersebut (Tebak Simpul Penggalang `0–5`, Penegak `0–10`).
    5. Kertas dimasukkan ke **kotak penilaian** di pos itu.
    6. Kotaknya diserahkan ke tim IT untuk diinput.
-   7. Tim IT **mengurutkan kertasnya menurut nomor dada**, 001 sampai 500,
+   7. Tim IT **mengurutkan kertasnya menurut nomor dada** — 001 sampai 500
+      untuk Eksternal, lalu 1001 sampai 1250 untuk Intern (migrasi `0116`) —
       lalu memasukkannya berurutan.
 
    Bentuk ini bukan selera, melainkan tuntutan dua hal yang terjadi bersamaan.
@@ -483,7 +543,7 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    lalu disalin belakangan. Salinan itulah yang hilang.
 
    Dan satu regu **tidak pernah selesai di semua lomba pada saat yang sama**.
-   Lembar berisi 30 regu baru bisa berpindah setelah baris terakhir terisi;
+   Lembar berisi 40 regu baru bisa berpindah setelah baris terakhir terisi;
    kertas per regu berpindah begitu regunya selesai.
 
 4. **Nomor dada adalah kepala kertas itu, bukan salah satu kolomnya.** Seluruh
@@ -536,17 +596,27 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    muncul satu kali pun di seluruh migrasi itu. Tidak ada jalur dari foto ke
    nilai, bahkan kalau suatu hari ada yang menginginkannya.
 
-   Penautan otomatis pun berhenti kalau ragu: slip menyebut nomor dada DAN
-   nama regu, dan kalau keduanya tidak menunjuk regu yang sama, fotonya
-   ditinggal belum tertaut untuk diputuskan orang. Foto yang tertaut ke regu
-   yang salah bukan sekadar tidak berguna — ia bukti yang membantah nilai yang
-   benar.
+   **Penautan otomatis BELUM DIBANGUN.** `cara_taut = 'mesin'` hidup di
+   constraint migrasi `0074`, tetapi tidak ada satu layar pun yang pernah
+   menuliskannya: `tautkanFoto()` berdefault `"tangan"` dan satu-satunya
+   pemanggilnya mengirim `"tangan"` secara eksplisit. Aturan berikut berlaku
+   KALAU KELAK jalur itu dibangun, bukan gambaran yang sudah berjalan — dan
+   batasnya tetap sah sekarang: penautan otomatis berhenti kalau ragu, slip
+   menyebut nomor dada DAN nama regu, dan kalau keduanya tidak menunjuk regu
+   yang sama fotonya ditinggal belum tertaut untuk diputuskan orang. Foto yang
+   tertaut ke regu yang salah bukan sekadar tidak berguna — ia bukti yang
+   membantah nilai yang benar.
 
    Tombolnya kamera di tiap baris lembar Input Pos; gambarnya masuk bucket
    privat `lembar` sesudah dikecilkan jadi abu-abu 1400px di HP, ~70 KB
    per foto.
-6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, lewat layar
-   Input Pos — satu regu satu baris, tersimpan sendiri tanpa tombol Simpan.
+6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, lewat dua
+   layar yang menulis lewat pintu yang sama (`simpan_nilai_massal`):
+   **Input Nilai Pos** — satu tabel selebar pos, satu regu satu baris,
+   tersimpan sendiri tanpa tombol Simpan, dipakai meja IT dan satu-satunya
+   tempat blangko bisa dicetak — dan **Input Nilai Pos v2**, yang mulai dari
+   pemilih lomba lintas pos lalu menggambar satu regu satu layar dengan tombol
+   SIMPAN NILAI, dipakai juri yang memegang satu lomba sepagian.
 
    **Upload massal BELUM DIBANGUN.** Rencananya masih berdiri dan RPC-nya
    sudah menerimanya (`simpan_nilai_massal` sudah punya `p_sumber = 'upload'`
@@ -564,7 +634,8 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    regu hanya form tabel cadangan; **blangko per lomba sengaja kosong**, karena
    regu datang ke pos dengan urutan acak dan slip yang sudah bernama harus
    dicari dulu di tumpukan 500 lembar sebelum bisa dipakai. Di blangko, nomor
-   dada ditulis tangan petugas di kotak besar pojok kiri atas. Kolomnya tidak pernah ditulis tangan di berkas mana pun — ia
+   dada ditulis tangan petugas di kotak besar pojok kiri atas. Kolomnya tidak
+   pernah ditulis tangan di berkas mana pun — ia
    lahir dari tabel `wahana`, sehingga kertas tahun depan ikut berubah sendiri
    begitu konfigurasi penilaiannya diganti.
 
@@ -573,12 +644,15 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    | Bentuk | Isi | Dipakai |
    | --- | --- | --- |
    | **Form per lomba** | **A5 melintang**, satu lomba, **satu regu** | di wahana, lalu masuk kotak (poin 3) |
-   | **Form tabel per pos** | satu halaman, semua lomba, 30 regu | **cadangan** — slip habis atau sinyal mati |
+   | **Form tabel per pos** | satu halaman, semua lomba, 40 regu | **cadangan** — slip habis atau sinyal mati |
    | **Form tabel per pos online** | layar Input Pos | tim IT memasukkan isi kotak |
 
    **Form per lomba adalah bentuk yang paling banyak dicetak, dan jumlahnya
-   besar.** 500 regu di pos berisi tiga lomba berarti **1.500 kertas untuk Pos
-   1 saja**. Karena itu yang dicetak dari layar adalah **master**-nya, bukan
+   besar.** Pos 1 memuat lima lomba, tetapi hanya tiga yang berblangko —
+   **lomba soal tulis tidak punya blangko sama sekali**, karena peserta
+   menjawab di lembar soalnya sendiri dan lembar itulah yang dikumpulkan. Jadi
+   500 regu di Pos 1 tetap berarti **1.500 kertas untuk pos itu saja**. Karena
+   itu yang dicetak dari layar adalah **master**-nya, bukan
    tumpukannya: satu halaman per lomba, lalu diperbanyak dengan mesin
    fotokopi. Ukurannya **A5 melintang** — separuh A4 dipotong mendatar,
    sehingga mesin fotokopi mana pun dapat menggandakannya 2-up ke A4 dan
@@ -643,8 +717,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    bertambah satu: kertas yang hanya memuat satu lomba tidak punya cukup bahan
    untuk menghitungnya.
 
-9. Sebuah **server pemantau** menampilkan status kelengkapan input — pos mana
-   yang sudah menyetor dan pos mana yang belum.
+9. **Cincin kelengkapan di layar Live Score** menampilkan status input per pos
+   — berapa persen regu yang nilainya sudah lengkap di pos itu, dari
+   `v_kelengkapan_pos`. Tidak ada server pemantau tersendiri.
 10. **Satu link untuk semua panitia, akses dibedakan per akun.** Setiap akun
    hanya melihat dan menyentuh bagiannya sendiri:
 
@@ -678,31 +753,42 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 1. **Aturan penilaian berubah setiap tahun.** Sistem harus dapat diubah tanpa
    mengubah kode. Yang berikut ini adalah konfigurasi edisi berjalan, bukan
    aturan tetap.
-2. **Yang setara adalah LOMBA, bukan pos.** Satuan penilaian adalah lomba, dan
-   tiap lomba bernilai maksimum **100**. Maksimum sebuah pos karena itu bukan
-   angka tetap melainkan hasil hitungan:
+2. **Yang setara adalah LOMBA, bukan pos.** Satuan penilaian adalah lomba.
+   Lomba lapangan bernilai maksimum **100**; kelima lomba soal tulis yang
+   dipasang migrasi `0076` sengaja **setengahnya — 50** (Logika 100, karena
+   soalnya 20). Maksimum sebuah pos karena itu bukan angka tetap melainkan
+   hasil hitungan:
 
    ```
-   maksimum pos = 100 × jumlah lomba di pos itu
+   maksimum pos = jumlah poin maksimum seluruh lomba di pos itu
    ```
 
-   Pos berisi tiga lomba bernilai 300; pos berisi satu lomba bernilai 100; pos
-   berisi lima lomba bernilai 500. Tidak ada batas atas yang perlu dijaga —
-   angkanya mengikuti apa pun yang panitia susun tahun itu.
+   Pos berisi tiga lomba lapangan bernilai 300; pos berisi satu lomba bernilai
+   100; pos berisi tiga lomba lapangan ditambah dua lomba soal bernilai 400.
+   Tidak ada batas atas yang perlu dijaga — angkanya mengikuti apa pun yang
+   panitia susun tahun itu.
 
    Edisi XXXVII kebetulan begini:
 
    | Pos | Lomba | Maksimum |
    | --- | --- | --- |
-   | 1 Kepramukaan | Semaphore, Tebak Simpul, Menaksir | 300 |
-   | 2 Halang Rintang | Bakiak, Lari Balok, Balap Karung | 300 |
-   | 3 P3K | Bidai, Kim Lihat, Kim Cium | 300 |
+   | 1 Kepramukaan | Semaphore, Tebak Simpul, Menaksir (100 masing-masing) + Keagamaan, Kepramukaan (50) | 400 |
+   | 2 Halang Rintang | Bakiak, Lari Balok, Balap Karung (100 masing-masing) + Kesehatan, Pengetahuan Umum (50) | 400 |
+   | 3 P3K | Pembidaian, Kim Lihat, Kim Cium, Logika (100 masing-masing) | 400 |
    | 4 PBB | PBB | 100 |
    | 5 Yel-Yel | Yel-Yel | 100 |
 
-   Akibatnya nyata dan disengaja: regu yang sempurna di Pos 1 mendapat 300,
-   yang sempurna di PBB mendapat 100 — Pos 1 tiga kali lebih menentukan
+   Akibatnya nyata dan disengaja: regu yang sempurna di Pos 1 mendapat 400,
+   yang sempurna di PBB mendapat 100 — Pos 1 empat kali lebih menentukan
    peringkat. Itu bukan ketimpangan, melainkan cara menghitung yang mengikuti
+   POIN seluruh lomba yang benar-benar dikerjakan regu di sana: Pos 1 punya
+   lima lomba, dua di antaranya bernilai 50.
+
+   **Bobot setengah lomba soal juga disengaja** dan diputuskan pemilik acara
+   (migrasi `0076`): menaikkan `poin_maks` jadi 100 tetap membuat "satu benar
+   5 poin" benar, karena rumusnya membagi dengan `total_soal` — jadi godaan
+   "membetulkannya" nyata. Jangan, kecuali pemilik acara berkata lain. Itu
+   bukan ketimpangan, melainkan cara menghitung yang mengikuti
    jumlah lomba yang benar-benar dikerjakan regu di sana.
 
    Satu hal yang perlu diperhatikan saat menyusun pos tahun depan: **memindah
@@ -722,7 +808,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    waktu lebih kecil terhadap targetnya menempati peringkat lebih tinggi.
    Selisih sebenarnya tetap dicatat bertanda sampai satuan menit supaya layar
    dapat menjelaskan apakah regu datang terlalu cepat atau terlambat.
-5. Peringkat dihitung **terpisah untuk keempat golongan** (bagian 2.3).
+5. Peringkat dihitung **terpisah untuk keenam golongan** (bagian 2.3) —
+   `rank() over (partition by golongan ...)`. Regu yang belum tercatat tiba
+   tidak diperingkat sama sekali (migrasi `0143`).
 6. Yang wajib dapat dikonfigurasi ulang setiap tahun:
    - Daftar pos dan bobotnya
    - Rumus konversi data mentah menjadi poin, per wahana dan per soal
@@ -771,6 +859,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 
 ### Pengurangan lain di luar penalti waktu
 
+Ketiga pengurangan di bawah **tidak berlaku bagi regu Intern** (migrasi
+`0091`): mereka hanya menerima poin lomba soal tulis dikurangi penalti waktu.
+
 7. **Belum tercatat tiba** di meja Kedatangan: tetap ditampilkan di Live Score
    tanpa peringkat, **tidak dapat masuk enam besar**, dan tidak dikenai
    pengurangan skor.
@@ -814,9 +905,10 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 
 ## 13. Yang belum diputuskan
 
-1. **Skema wahana dan interval keberangkatan.** Ditunda sebagai analisis
-   tersendiri; akan dibahas terpisah bersama panitia. Interval biasanya 3–5
-   menit, tetapi angkanya belum ditetapkan.
+1. **Skema wahana.** Ditunda sebagai analisis tersendiri; akan dibahas
+   terpisah bersama panitia. Interval keberangkatan sendiri **sudah
+   ditetapkan**: paling banyak 5 menit, di `edisi.interval_berangkat_menit`
+   (migrasi `0118`, bagian 6.6).
 
    Kerangka perhitungan yang akan dipakai nanti, dicatat di sini agar siap
    dipakai. Kapasitas sebuah pos adalah `jumlah jalur / batas waktu wahana`
@@ -835,12 +927,12 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    Data yang diperlukan untuk analisis ini, per pos: berapa regu dapat
    mengerjakan wahana secara serentak, dan berapa batas waktu pengerjaannya.
 
-   Besar lompatan kloter (bagian 5.6) juga ditentukan di analisis yang sama,
-   karena bergantung pada interval keberangkatan.
-2. **Angka rumus konversi data mentah menjadi poin.** Bentuk-bentuknya sudah
-   selesai dirancang dan berjalan; yang belum ditentukan tinggal angkanya
-   untuk edisi berjalan. Panitia menegaskan **semua kombinasi mungkin
-   terjadi**, dan keenam bentuk berikut sudah terpasang:
+
+2. **Bentuk rumus konversi data mentah menjadi poin.** Bentuknya sudah selesai
+   dirancang dan berjalan, dan angka XXXVII-nya sudah terpasang serta
+   dikonfirmasi panitia (migrasi `0035`, `0036`, `0076`, `0085`, `0086`).
+   Panitia menegaskan **semua kombinasi mungkin terjadi**, dan keenam bentuk
+   berikut sudah terpasang:
 
    | Bentuk | Contoh data mentah |
    | --- | --- |
@@ -854,8 +946,8 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    Karena bentuknya bisa berubah tiap tahun dan tiap wahana, konfigurasi
    konversi dirancang luwes untuk menampung semuanya: keenam bentuk di atas
    ada di fungsi `hitung_poin()`, dan tiap komponen pos diatur lewat satu
-   baris konfigurasi, bukan lewat kode. Angka yang terpasang sekarang adalah
-   angka HRCD XXXVI sebagai titik awal.
+   baris konfigurasi, bukan lewat kode. Angka HRCD XXXVI sempat jadi titik
+   awal, tetapi seluruhnya sudah diganti angka XXXVII.
 3. **Arti singkatan `IMPK`.** Muncul di contoh lembar nilai yang dulu tertulis
    di bagian 8, dan tidak pernah dijelaskan siapa pun. Contohnya sendiri sudah
    diganti — format kertas sekarang lahir dari tabel `wahana`, bukan dari
@@ -865,17 +957,25 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    ```
    No Dada - Nama Regu - Nama Sekolah - Golongan | Penilaian (Ikuti Skala) | IMPK (benar = v) - Nilai Pos 3
    ```
-4. **Apakah foto berkala tetap diwajibkan setelah kertas berpindah fisik**
-   (bagian 8.5). Alur kotak penilaian membuat foto bukan lagi jalur utama,
+4. **Siapa yang bertanggung jawab atas kotak penilaian sejak pos tutup sampai
+   isinya masuk sistem.** Alur kotak penilaian membuat foto bukan lagi jalur
+   utama, tetapi kotak yang hilang atau tertinggal di pos adalah satu-satunya
+   cara nilai lenyap tanpa jejak — dan itu justru risiko yang dulu dihindari
+   dengan tidak memindahkan kertas sama sekali.
+
+   Pertanyaan fotonya sendiri **sudah terjawab** (bagian 8.5): slip difoto di
+   meja IT sambil nilainya diketik (migrasi `0047`), dan foto borongan di pos
+   punya jalan pulang lewat layar Foto Jawaban (migrasi `0074`).
    tetapi kotak yang hilang atau tertinggal di pos adalah satu-satunya cara
    nilai lenyap tanpa jejak — dan itu justru risiko yang dulu dihindari dengan
    tidak memindahkan kertas sama sekali. Kalau foto tidak diwajibkan, perlu
    disepakati siapa yang bertanggung jawab atas kotak sejak pos tutup sampai
    isinya masuk sistem.
-5. **Satu pembacaan pada bagian 10 yang belum dipastikan:**
-   - Pengurangan −20 karena anggota tidak lengkap — apakah dihitung per orang
-     yang hilang (2 orang berarti −40) atau tetap −20 berapa pun jumlahnya?
-     Dokumen ini mengasumsikan per orang.
+5. **Pengurangan −20 karena anggota tidak lengkap dihitung PER ORANG di
+   sistem** — `(5 - anggota_hadir) * penalti_per_anggota_hilang` di
+   `v_total_skor`, jadi 2 orang hilang berarti −40. Bentuk itu sudah berjalan
+   sejak migrasi `0005`; yang masih menunggu jawaban pemilik acara cuma apakah
+   memang itu yang dimaksudkan.
 6. **Teknologi yang dipakai: SUDAH DIPUTUSKAN dan sudah berjalan.** Panitia
    memilih Kandidat B — Supabase + frontend statis di Cloudflare — dengan
    syarat keras UI/UX harus mudah diajarkan. Google Sheets sempat direncanakan

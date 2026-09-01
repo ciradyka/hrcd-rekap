@@ -65,7 +65,7 @@ Totalnya 1.254 baris peserta.
 
 1. **Nama kelas** — `X MIPA 1`, `12 ips 4`, `10 IPS 5` (71 nama, 126 baris).
    Hanya muncul di XXXV dan XXXVI, dan itu petunjuknya: ini kontingen **tuan
-   rumah**, SMA Negeri 1 Ciamis (`docs/alur-lomba.md` bagian 34), yang menulis
+   rumah**, SMA Negeri 1 Ciamis (`docs/alur-lomba.md` bagian 1.2), yang menulis
    kelasnya alih-alih sekolahnya. Tidak ada yang hilang dengan membuangnya —
    SMAN 1 Ciamis sudah ada di daftar dengan namanya sendiri.
 2. **Organisasi dan ekstrakurikuler** — OSIS, MPK, KIR, FORSA, Nuansa,
@@ -149,7 +149,7 @@ berpasangan, dan urutannya penting — "biasa diucapkan" duluan.
 ### Yang menentukan sekolah itu satu atau dua adalah NPSN — bukan namanya
 
 Nama boleh sama; NPSN tidak pernah. **NPSN dicek hanya kalau benar-benar
-ragu** — bukan untuk 189 sekolah satu per satu, tapi untuk yang namanya
+ragu** — bukan untuk 209 sekolah satu per satu, tapi untuk yang namanya
 mencurigakan mirip. Begitu dua NPSN berbeda, itu dua sekolah, titik, dan
 tidak ada kesamaan alamat atau ejaan yang mengubahnya.
 
@@ -187,7 +187,9 @@ Nama resmi yang berbeda tetap disimpan di kolom `nama_resmi`
 `sekolah_alamat.json`, jadi tidak ada yang hilang.
 
 Hasil: **1.102 baris peserta → 201 klaster**, dari 326 tulisan mentah.
-Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah**.
+Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah** —
+angka putaran pertama, atas empat edisi lama saja. Pendaftaran XXXVII
+menambahkannya jadi **209**; keadaan hari ini ada di bagian 11.
 
 ---
 
@@ -480,35 +482,48 @@ mirip dan petunjuk yang lebih baik.
 | Berkas | Isi |
 | --- | --- |
 | `tools/normalize_sekolah.py` | langkah 2–5: baca Excel, buang non-sekolah, bakukan, kelompokkan |
-| `tools/data/sekolah_nama.json` | 189 sekolah: nama baku, semua ejaan, jumlah peserta, petunjuk alamat |
+| `tools/data/sekolah_nama.json` | 209 sekolah: nama baku, semua ejaan, jumlah peserta, petunjuk alamat |
 | `tools/data/sekolah_alamat.json` | hasil pencarian alamat: NPSN, jalan, desa, kecamatan, kabupaten, kode pos, keyakinan, sumber |
-| `tools/periksa_sekolah.py` | penjaga: kedua berkas di atas masih saling cocok, dan bentuk isiannya masih menuruti bagian 7 dan 8 |
-| [`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md) | daftar kerja: 21 sekolah yang belum bisa dipakai, kenapa, dan apa yang ditanyakan ke pembinanya |
+| `tools/periksa_sekolah.py` | penjaga: kedua berkas di atas masih saling cocok, bentuk isiannya masih menuruti bagian 7 dan 8, dan `sekolah-belum-tuntas.md` memuat persis baris yang keyakinannya belum `tinggi` |
+| [`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md) | daftar kerja: 19 baris yang keyakinannya belum `tinggi`, kenapa, dan apa yang ditanyakan ke pembinanya |
 
 Jalankan `normalize_sekolah.py` dari direktori berisi keempat berkas `.xlsx`.
-`periksa_sekolah.py` jalan dari mana saja, dan ikut jalan di CI lewat
-`shared-files.yml` — bagian 7 sudah membuktikan daftar yang tidak diperiksa
-mesin akan menyimpang tanpa suara.
+Keluarannya `sekolah.json` di direktori itu juga, **bukan**
+`tools/data/sekolah_nama.json` — bandingkan dulu, baru salin.
+
+`periksa_sekolah.py` jalan dari mana saja: `python tools/periksa_sekolah.py`.
+Ia juga satu langkah di `shared-files.yml`, tapi workflow itu
+`workflow_dispatch` saja dan tidak jalan sendiri (CLAUDE.md bagian 16.5) —
+jalankan di laptop sebelum membuka PR. Bagian 7 sudah membuktikan daftar yang
+tidak diperiksa mesin akan menyimpang tanpa suara.
 
 ---
 
-## 11. Keadaan sekarang (17 Agustus 2026)
+## 11. Keadaan daftar kurasi (30 Agustus 2026)
 
-**189 sekolah, 188 sudah punya alamat.** 169 berkeyakinan `tinggi`, 178 lengkap
-dengan kode pos, tersebar di 24 kabupaten/kota. Berkas alamatnya berisi 190
-baris, bukan 189 — lihat catatan SMK Bhakti Kencana di bawah.
+**209 sekolah, semuanya sudah punya alamat.** 191 berkeyakinan `tinggi`, 19
+`sedang`, dan seluruhnya lengkap dengan kode pos, tersebar di 24
+kabupaten/kota. Berkas alamatnya berisi 210 baris, bukan 209 — lihat catatan
+SMK Bhakti Kencana di bawah.
 
-Dua belas baris masih tanpa kode pos: dua sekolah yang memang belum ketemu, dan
-sepuluh yang angkanya bertabrakan antar sumber (lihat bagian 9) — dikosongkan,
-bukan ditebak.
+Bagian ini soal kedua berkas JSON. Keadaan tabel `sekolah` di produksi ada di
+bagian 13.6.
 
-Yang berkeyakinan `sedang` hampir semuanya bukan soal sekolahnya, melainkan
-soal **kode posnya**: identitas dan alamat jalan sudah dari Data Referensi
-Kemendikdasmen, tapi halaman itu memang tidak memuat kolom kode pos, jadi
-angkanya datang dari cermin Dapodik atau direktori kode pos per desa. Contoh
-paling jelas `SMPN 1 Purwadadi`: satu direktori menulis 46385, satu lagi 46380,
-dan yang 46385 salah satunya data sekolahnya sendiri — jadi 46385 yang dipakai,
-dengan keyakinan `sedang` dan alasannya ditulis di `catatan`.
+Tidak ada lagi baris tanpa kode pos. Yang dulu dikosongkan karena angkanya
+bertabrakan antar sumber (lihat bagian 9) sudah dipastikan lewat direktori kode
+pos per desa; dua baris yang angkanya masih disengketakan tetap terpasang dan
+terdaftar di [`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md) bagian C.
+
+Dari 19 yang berkeyakinan `sedang`, **dua belas soal sekolahnya sendiri** —
+dua kandidat yang sama-sama meyakinkan, atau nama yang tidak ada di Dapodik —
+dan tinggal **dua** yang soal kode posnya; lima sisanya sudah beres dan tinggal
+labelnya. Pembagiannya ada di
+[`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md) bagian A, C, dan D.
+
+Contoh yang soal kode pos, `SMPN 1 Purwadadi`: satu direktori menulis 46385,
+satu lagi 46380, dan yang 46385 salah satunya data sekolahnya sendiri — jadi
+46385 yang dipakai, dengan keyakinan `sedang` dan alasannya ditulis di
+`catatan`.
 
 Dari tiga belas yang tersisa di putaran pertama, **sebelas selesai**, dan
 tujuh di antaranya selesai tanpa pencarian baru sama sekali: petunjuknya sudah
@@ -529,8 +544,9 @@ ada di `sekolah_nama.json` sejak awal, hanya tidak pernah sampai ke agennya
 | SMPN 1 Purwadadi | **Ciamis**, NPSN 20252422 — bukan yang di Subang |
 | MTsN Rajadesa | MTsN 13 Ciamis, Jl. Cipancur No. 06. NPSN 20278700 |
 
-**Dua sisanya tidak akan selesai dengan mencari lebih keras.** Keduanya sudah
-disisir dari sisi alamat, bukan cuma dari sisi nama, dan buntu:
+**Dua sekolah tidak pernah ketemu, dan barisnya sudah dibuang** — keputusan
+pemilik acara, 30 Agustus 2026. Keduanya sudah disisir dari sisi alamat, bukan
+cuma dari sisi nama, dan buntu:
 
 - **SMK Nusantara 1 Bekasi** — Jl. Kapten Tendean tidak ada di Bekasi, dan
   tidak ada sekolah menengah di Jl. Kapten Tendean Jakarta Selatan. Kelima SMK
@@ -539,12 +555,20 @@ disisir dari sisi alamat, bukan cuma dari sisi nama, dan buntu:
   SMPN 5 Banjarsari di Desa Kalijaya, Kec. Banjaranyar, tapi namanya tidak
   cocok, jadi sengaja tidak diisikan.
 
-Yang dibutuhkan satu pertanyaan ke pembinanya — dan bukan cuma dua ini.
-Seluruh 21 baris yang keyakinannya belum `tinggi` sudah didaftar di
+Yang dibutuhkan satu pertanyaan ke pembinanya. Seluruh **19** baris yang
+keyakinannya belum `tinggi` sudah didaftar di
 [`sekolah-belum-tuntas.md`](sekolah-belum-tuntas.md), lengkap dengan kalimat
 yang tinggal disalin ke pembinanya. `periksa_sekolah.py` menjaga daftar itu
 tetap sama persis dengan isi datanya, jadi ia menyusut sendiri begitu satu
-sekolah beres — atau CI-nya merah.
+sekolah beres — atau skripnya gagal. Ia tidak jalan sendiri di CI mana pun;
+cara menjalankannya ada di bagian 10.
+
+Satu akibat dari membuang kedua baris tadi: keduanya lahir dari
+`normalize_sekolah.py` atas spreadsheet edisi lama, jadi **menjalankan ulang
+skrip itu akan memunculkan keduanya kembali** — hapus lagi, jangan dicari
+lagi. Daftar `BELUM_KETEMU` di `tools/periksa_sekolah.py` sengaja
+dipertahankan meski kosong; ia satu-satunya cara menandai "sekolah ini memang
+tidak punya alamat".
 
 **Yang masih menggantung selain itu:**
 
@@ -558,20 +582,30 @@ sekolah beres — atau CI-nya merah.
    baris peserta yang tidak menyebut daerahnya sama sekali — salah satunya
    berpetunjuk `Jl. Ir. H. Juanda`, yang bukan alamat kedua sekolah itu.
    Tanyakan ke pembinanya.
-2. **Kode pos 46383 di sekolah-sekolah Kec. Banjaranyar perlu diperiksa.**
+2. **Kode pos Kec. Banjaranyar sudah dibetulkan, jebakannya belum hilang.**
    Banjaranyar mekar dari Banjarsari tahun 2015 dan cermin Dapodik masih
-   memakai kode lama; Desa Kalijaya, Banjaranyar tercatat 46384. Yang benar-
-   benar di Kec. Banjarsari tetap 46383. Yang perlu dicek: `SMAN 2 Banjarsari`
-   (NPSN 20255008, Desa Cigayam).
-3. **`MA Agrowisata Shaleha` dan `MTs Serba Bakti Suryalaya` tidak punya
-   NPSN** — madrasah di bawah Kemenag/EMIS memang tidak selalu ada di Dapodik.
-   Alamatnya ketemu lewat sekolah saudara di kompleks yang sama. Itu bukan
-   cacat, tapi berarti pemeriksaan kembar lewat NPSN (bagian 7) tidak bisa
-   menjangkau keduanya.
+   memakai kode lama; desa yang ikut pindah memakai 46384, yang benar-benar di
+   Kec. Banjarsari tetap 46383. `SMAN 2 Banjarsari` (NPSN 20255008, Desa
+   Cigayam) sudah dipindah ke 46384 oleh `0159`, dan `SMPN 6 Banjarsari` (Desa
+   Cikupa) memang sudah begitu. Yang menyentuh kode pos Banjaranyar berikutnya
+   tetap harus memeriksa **desanya** dulu, bukan kecamatannya.
+3. **Empat sekolah tidak punya NPSN, dan sebabnya dua macam.**
+   `MA Agrowisata Shaleha` dan `MTs Serba Bakti Suryalaya` ada di bawah
+   Kemenag/EMIS, bukan Dapodik. `MA Adzkia` dan `SMA IT Nurul Huda` belum
+   terdaftar di Data Referensi sama sekali — yang terakhir bahkan bukan
+   madrasah, jadi alasan Kemenag tidak berlaku untuknya. Keempatnya
+   beralamat pinjaman dari sekolah saudara di kompleks yang sama, dan
+   pemilik acara membenarkan kedua yang terakhir pada 30 Agustus 2026. Itu
+   bukan cacat, tapi berarti pemeriksaan kembar lewat NPSN (bagian 7) tidak
+   bisa menjangkau keempatnya. Daftarnya `TANPA_NPSN` di
+   `tools/periksa_sekolah.py` — yang berikutnya didaftarkan di situ, bukan
+   dibiarkan lolos.
 
-**188 sekolah sudah terpasang di tabel `sekolah` produksi** (17 Agustus 2026,
-migrasi 0061–0063). Yang belum masuk cuma dua yang alamatnya memang belum
-ketemu. Caranya, beserta yang salah dulu baru betul, ada di bagian 12.
+**188 sekolah pertama terpasang di tabel `sekolah` produksi pada 17 Agustus
+2026** lewat migrasi 0061–0063; caranya, beserta yang salah dulu baru betul,
+ada di bagian 12. Sesudah itu pendaftaran XXXVII (`0154`–`0156`) dan impor
+direktori Kabupaten Ciamis (`0157`–`0162`) menambahkannya jauh lebih banyak —
+keadaan produksi hari ini ada di bagian 13.6, bukan di sini.
 
 Pagar kembarnya **sudah terpasang**: `unique index` atas
 `kunci_sekolah(name)`, dan `submit_pendaftaran` mencari sekolahnya lewat
@@ -649,14 +683,20 @@ SMPT RIYADLUL ULUM WADDAWAH   ->  SMP Terpadu Riyadlul Ulum Waddawah
 nama yang benar-benar ada di produksi. Enam baris, disebut satu per satu, tidak
 ada normalisasi yang perlu dipercaya.
 
-**Sebelum cetak blangko, jalankan `supabase/checks/sekolah_kembar.sql`.**
-Ia melapor pasangan baris `sekolah` yang bedanya cuma tanda baca, huruf `h`,
-huruf status Dapodik, sisipan satu kata, atau kata terakhir yang sama — hal-hal
-yang `kunci_sekolah()` sengaja lewatkan. Ia TIDAK melebur apa pun; yang
-memutuskan tetap manusia, lewat NPSN. Diuji atas 217 nama produksi: lima dari
-enam baris kembar yang pernah ada tertangkap, tanpa satu pun lapor palsu. Yang
-keenam, `MAN Darussalam` lawan `MAN 1 Ciamis`, tidak punya satu huruf pun yang
-sama dan hanya bisa dibuktikan NPSN — yang tidak disimpan tabel `sekolah`.
+**Sebelum cetak blangko — dan sesudah SETIAP impor (bagian 13.3) — jalankan
+`supabase/checks/sekolah_kembar.sql`.** Enam aturan: bedanya cuma tanda baca,
+huruf `h` dan huruf ganda, huruf status Dapodik, sisipan satu kata, kata
+terakhirnya nama diri yang sama, atau — dan ini yang tidak membandingkan nama
+sama sekali — jalan DAN desanya sama persis dengan jenjang yang sama. Semuanya
+hal yang `kunci_sekolah()` sengaja lewatkan. Ia TIDAK melebur apa pun; yang
+memutuskan tetap manusia, lewat NPSN.
+
+Keenam baris kembar yang pernah ada sekarang tertangkap. Yang terakhir,
+`MAN Darussalam` lawan `MAN 1 Ciamis`, tidak punya satu huruf pun yang sama
+dan dulu hanya bisa dibuktikan NPSN — aturan jalan+desa itulah yang
+menutupnya, dan yang menemukannya kejadian nyata: impor `0157` menghidupkan
+kembali baris yang `0154` baru saja lebur. Yang masih lolos, dan ini yang
+perlu diingat: sekolah yang pindah alamat dan berganti nama sekaligus.
 
 **Kalau mengulanginya tahun depan:** cocokkan ke daftar kurasi memakai `kunci()`
 Python, cetak pasangannya, baca, baru rakit migrasinya. Jangan serahkan
@@ -713,8 +753,9 @@ def kunci_sql(n):
 ### 12.6 Yang sengaja tidak dipasang
 
 **Dua sekolah berkeyakinan `rendah`** — `SMK Nusantara 1 Bekasi` dan
-`SMPN 1 Kalijaya` — tidak ikut. Keduanya sudah disisir dari sisi alamat, bukan
-cuma dari sisi nama, dan buntu.
+`SMPN 1 Kalijaya` — tidak ikut, karena keduanya buntu (bagian 11). Barisnya
+sendiri dibuang dari kedua berkas JSON pada 30 Agustus 2026, jadi hari ini
+tidak ada satu pun baris `rendah` yang tersisa untuk dicari.
 
 Memasang tebakan lebih buruk daripada tidak memasang apa-apa. Pembina yang
 tidak menemukan sekolahnya akan mengetiknya sendiri, dan jalan itu memang
@@ -744,7 +785,7 @@ daripada dibiarkan mengajarkan yang salah.
 
 Gantinya satu kalimat yang membawa fakta yang tidak ada di layar dan mahal
 kalau tidak diketahui: nama yang persis sama akan **menyatu** dengan sekolah
-itu, jadi tambahkan kabupatennya. Ini `CLAUDE.md` bagian 9.4 dan 9.7 — form
+itu, jadi tambahkan kabupatennya. Ini `CLAUDE.md` bagian 9.4 dan 9.8 — form
 pendaftaran diisi sekali, oleh orang yang belum pernah dilatih dan tidak punya
 tempat bertanya.
 

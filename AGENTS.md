@@ -158,14 +158,15 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    | `bde75b8` | 28 Aug | committed and pushed while the working copy sat on `main` after a merge |
    | `199b0d6` `a245426` | 30 Aug | the same thing again, twice in a row, minutes after merging #718 |
 
-   Leave all nine as they are: undoing any of them means force-pushing the
+   Leave all ten as they are: undoing any of them means force-pushing the
    default branch, which is worse than untidy history. Verify the count with
    `git log --first-parent` and check each commit's parent count — a commit
    reached as a merge's *second* parent is normal and must not be counted.
 
    **This clause said "two" until 27 August 2026, when a branch audit found
    seven; `bde75b8` made it eight the next day, and `199b0d6`/`a245426` made
-   it ten two days after that.** The five from 17 August were never recorded. A stale count is not a cosmetic error: whoever runs the
+   it ten two days after that.** The five from 17 August were never
+   recorded. A stale count is not a cosmetic error: whoever runs the
    check next reads five false alarms and cannot tell known history from fresh
    damage. If the number changes again, change it HERE — do not leave the
    discrepancy for the next reader.
@@ -190,8 +191,11 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    that way; what found it was a production apply failing on a column rename
    that CI should have caught first. Add the migration to `tests/run.sh` in the
    same commit that creates it.
-6. **Three deploy paths, and only one of them is automatic in the obvious
-   way.** The panitia site is connected to Git and ships on every merge. The
+6. **Three deploy paths, and two of them ship on their own.** The panitia site
+   has TWO routes at once: Cloudflare's Git integration, plus
+   `deploy-panitia.yml`, which a push to `main` touching `web/**` starts. A
+   Git build once hung for over forty minutes with nothing in the repo able
+   to retry it, so both run now and the later one wins. The
    peserta site must **never** be connected to Git — Cloudflare would serve the
    `pra`-phase `live.json` committed in `live/` and blank the rekap — so it
    ships through `publish-live.yml`, which regenerates that file from the
@@ -200,9 +204,12 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    `apply-migration.yml` with the file path, deliberately, after the PR lands.
 7. `CLAUDE.md` and `AGENTS.md` are the same document twice — byte-identical
    apart from the first heading and the intro paragraph. Every edit to one
-   lands in the other in the same commit. No workflow checks this
-   (`shared-files.yml` only compares `web/` against `live/`), and the pair has
-   already drifted 21 lines once, losing all of section 5's rules 9-12.
+   lands in the other in the same commit. `shared-files.yml` compares the pair
+   itself now — `tail -n +5 CLAUDE.md` against `tail -n +7 AGENTS.md`, because
+   AGENTS.md carries a second intro paragraph CLAUDE.md does not — but it only
+   runs when dispatched (section 16.5), so nothing catches the drift on its
+   own. The pair has already drifted 21 lines once, losing all of section 5's
+   rules 9-12.
 
 8. **Nothing records which migrations have been applied.**
    `apply-migration.yml` runs ONE file at a time, by hand, and writes no
@@ -221,8 +228,14 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    **It covered ten migrations until 30 August 2026, while its own header
    described it as a general check.** The other 152 were not examined at all
    and it still reported green — the very shape of mistake section 13.3
-   describes. It now checks **111** and NAMES the **51** it cannot, so the
+   describes. It now checks **112** and NAMES the **51** it cannot, so the
    question stays open instead of being closed by silence.
+
+   **Those 163 stop at `0163`.** `0164`-`0169` are in NEITHER list, so the
+   check still reports green over six migrations it never looked at — the same
+   mistake one edition younger. A migration is not covered until its
+   fingerprint sits in part 1 or its name in part 2, added in the commit that
+   creates the file, exactly as section 7.5 asks of `tests/run.sh`.
 
    **A migration with no fingerprint is not a problem.** It means nothing is
    left to check: a younger migration rewrote its objects, or it only touched
@@ -236,8 +249,10 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    directions: after migration N its fingerprint must read ADA, and before
    migration N it must read BELUM. The second direction is the one usually
    missing — without it `select true` passes. Twenty fingerprints survived a
-   looser rule and were caught by that harness. It rebuilds the database 162
-   times, so it is deliberately not part of `tests/run.sh`.
+   looser rule and were caught by that harness. It builds ONE database from
+   zero and re-runs the checker after every migration — 170 steps in
+   `tests/run.sh` order today — so it is deliberately not part of
+   `tests/run.sh`.
 
    **Production runs PostgreSQL 17.6; a laptop on 18.x will disagree with it
    in ways that look like missing migrations.** PostgreSQL 18 records NOT NULL
@@ -285,7 +300,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    tint, no watermark, no example number printed inside. Speckle on white is
    still readable; speckle over a tint is not.
 8. These rules live in `web/style.css` under `@media print`, and `live/` holds
-   a byte-identical copy — section 7.5 applies to CSS the same way, and
+   a byte-identical copy — section 7.7 applies to CSS the same way, and
    `shared-files.yml` enforces that pair.
 9. **Form per lomba is A5 landscape — 210 × 148 mm, one form per page.**
    Half an A4 cut across, so any copier can duplicate it 2-up onto A4 and the
@@ -306,11 +321,15 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    hundreds of times in a shift, and a sentence that teaches something learned
    once is re-read on every one of them.
 2. **A title, a labelled field, and a button name are usually the whole
-   interface.** "Buka gembok 001?" above a required field labelled "Alasan
-   membuka" already says everything the paragraph "Alasannya dicatat di
-   riwayat, dan itulah satu-satunya penjelasan yang tersisa…" said — in a
-   quarter of the height, on a phone where the field it explained had been
-   pushed down the screen to make room for it.
+   interface.** The gembok dialog was the example: "Buka gembok 001?" above a
+   required field labelled "Alasan membuka" said everything the paragraph
+   "Alasannya dicatat di riwayat, dan itulah satu-satunya penjelasan yang
+   tersisa…" said — in a quarter of the height, on a phone where the field it
+   explained had been pushed down the screen to make room for it. **That
+   dialog is gone since 0166** — Cek Nilai now opens a gembok straight away
+   with the fixed reason "Dibuka dari Cek Nilai", and no screen has an
+   "Alasan membuka" field any more — so do not go looking for it to copy.
+   What survived is the lesson, not the field.
 3. **Cut anything that repeats the title, the field label, or the button next
    to it.** Two labels for one fact do not reinforce each other.
 4. **Keep text that carries a fact the reader cannot get from the screen
@@ -370,12 +389,12 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    window.** Panitia and pembina both plan their morning from it, and "kloter
    9, kira-kira 08:45" is the answer to the question they actually ask.
 6. **An estimate is never a record.** `kloter.jam_berangkat` is typed by the
-   recorder from a real clock at a real moment (alur 12.4) and it is what
+   recorder from a real clock at a real moment (alur 6.4, 6.9) and it is what
    penalties are computed from. The estimate exists to plan the morning; the
    two must never be stored in the same column, and a screen showing both must
    say which is which.
 7. **07:00 and 10:00 are configuration, not constants.** They belong beside
-   the other per-edition numbers, for the same reason as section 6.4 of
+   the other per-edition numbers, for the same reason as section 2.2 of
    rancangan-b: next year's panitia change the window without touching code.
 
 ## 11. Pos, lomba, penilaian
@@ -390,8 +409,15 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
      dan Kebersihan `0–15`. They sum to 100, and **that sum is what must be
      preserved** if the weights are rebalanced again — it is what sets
      Pembidaian's weight against every other lomba (migration `0076`).
-   - **Kim Lihat** — `0–10`
-   - **Kim Cium** — `0–10`
+   - **Kim Lihat** — ten objects, raw `0–10`, worth **100 points**
+   - **Kim Cium** — ten objects, raw `0–10`, worth **100 points**
+
+     **Those `0–10` are RAW ranges, not weights.** Pembidaian's five numbers
+     are points and they sum to 100; Kim's are counts of correct objects
+     scaled to `poin_maks` 100 each. Read the two kinds as one and Pos 3
+     comes out at 220 instead of **400**, and Kim starts to look like a lomba
+     someone ought to raise. What sets any pos's weight is the sum of
+     `poin_maks` over its `wahana` rows — never the count of its lomba.
    - **Logika** — 20 soal, enter the number correct `0–20`, 5 points each
 
    **Kim Lihat and Kim Cium are two lomba, not two criteria of one** (migration
@@ -416,8 +442,11 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 
    Today: Pos 1 **Keagamaan** and **Kepramukaan** (10 soal, max 50), Pos 2
    **Kesehatan** and **Pengetahuan Umum** (10 soal, max 50), Pos 3 **Logika**
-   (20 soal, max 100). Each is its own lomba — `lomba` NULL — so each prints
-   its own blangko and gets its own photo column.
+   (20 soal, max 100). Each is its own lomba — `lomba` NULL — so each gets its
+   own photo column. **None of them prints a blangko**: the peserta answer on
+   the question sheet itself, so `siapkanCetakBlangko()` drops every lomba
+   whose components are all `type = 'soal'`, and a pos holding nothing else
+   prints no master at all and says why.
 
    **The half weight is deliberate — confirmed by the event owner, not an
    oversight.** Every other lomba maxes at 100 and the klasemen sums points as
@@ -434,8 +463,13 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    Kekompakan `0–30`, Kerapihan `0–20`.
 5. **Pos 5 is one lomba, Yel-Yel** — Kreativitas `0–35`, Kekompakan `0–25`,
    Semangat `0–20`, Penampilan `0–20`.
-6. **One lomba is one form per lomba.** Pos 3 prints four blangko masters,
-   not seven; Pos 4 prints one, not four. A regu is judged once at a lomba and the
+6. **One lomba is one form per lomba.** Pos 3 prints THREE blangko masters —
+   Pembidaian, Kim Lihat, Kim Cium — not seven and not four; Pos 4 prints one,
+   not four. **A soal lomba prints no blangko at all.** Logika is the fourth
+   lomba at Pos 3 and it gets no sheet, because the peserta answer on the
+   question paper itself: `siapkanCetakBlangko()` drops every lomba whose
+   components are all `type = 'soal'`, and a pos holding nothing else prints
+   nothing and says so. A regu is judged once at a lomba and the
    judge writes every criterion on the sheet in front of them — a sheet per
    criterion would have the same regu handed five pieces of paper at one
    station.
@@ -445,7 +479,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 8. **The lomba level is `wahana.lomba`** (migration `0054`). `NULL` means the
    component is its own lomba, which is right for most rows — Semaphore,
    Menaksir, Bakiak — so only grouped components carry a value. Read it as
-   `coalesce(lomba, name)`; `kelompokLomba()` in `app.js` does exactly that.
+   `coalesce(lomba, name)`; `kelompokLomba()` in `util.js` does exactly that.
    Do **not** go back to splitting the `kode` prefix: `bidai_`, `kim_`, `pbb_`,
    `yel_` are a naming habit that nothing enforces, and it works right up until
    an edition names two unrelated components with the same first word.
@@ -619,8 +653,8 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 4. **Sebabnya bukan kemalasan.** `rekap.json` duduk di CDN dan bisa diminta
    siapa pun yang tahu alamatnya. Satu-satunya jaminan bahwa nilai belum bocor
    adalah nilainya MEMANG TIDAK ADA di berkas itu — bukan ada tapi tidak
-   digambar. `publish-live.yml` punya empat pagar "BOCOR" yang menegakkan itu,
-   dan tidak satu pun boleh dilonggarkan demi kenyamanan tampilan.
+   digambar. `publish-live.yml` punya sembilan pagar "BOCOR" yang menegakkan
+   itu, dan tidak satu pun boleh dilonggarkan demi kenyamanan tampilan.
 5. **`komponen_terisi` boleh terbit sejak `progres`; `nilai` hanya di
    `penuh`** (migrasi 0072). Centang tidak menyebut satu angka pun, jadi ia
    aman terbit lebih awal — dan itulah yang membuat "masking" di halaman
@@ -678,8 +712,9 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 
 ## 15. CSS tabel: dari layar lebar sampai HP
 
-1. **Setiap tabel data melewati TIGA rentang, bukan dua.** Meja Pembayaran dan
-   Meja Daftar Ulang dua-duanya begitu, dan aturan yang benar di satu rentang
+1. **Setiap tabel data melewati TIGA rentang, bukan dua.** Meja Pembayaran,
+   Meja Daftar Ulang, dan Data Peserta (`.table-peserta`) ketiganya begitu,
+   dan aturan yang benar di satu rentang
    bisa merusak yang lain:
    - **≤ 900px** — barisnya bukan tabel lagi melainkan **kartu**
      (`.data-table:not(.table-tetap) … { display: block }`). Patokan lebar
@@ -688,9 +723,9 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
      `@media (min-width: 901px) and (max-width: 940px)` yang mengaturnya.
    - **≥ 941px** — tabel `fixed`, dipasangkan dengan tabel rinciannya.
 2. **Contoh yang benar adalah Meja Pembayaran, tiru bentuknya.** Induk enam
-   kolom `18/24/6/12/15/25`, rincian lima kolom `18/24/18/15/25`. Dua-duanya
+   kolom `18/24/6/12/20/20`, rincian lima kolom `18/24/18/20/20`. Dua-duanya
    berjumlah **100**, kolom pertamanya bertemu di 18% dan kolom terakhirnya di
-   25% — itulah yang membuat angka rupiah tiap regu jatuh tepat di bawah
+   20% — itulah yang membuat angka rupiah tiap regu jatuh tepat di bawah
    tombol "Tandai Lunas". Kolom di antaranya boleh berbeda; yang harus
    bertemu cuma yang berpasangan.
 3. **Di bawah `table-layout: fixed`, kolom yang tidak dipatok dapat NOL —
@@ -778,9 +813,11 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 5. **No check runs by itself any more — CI is dispatched deliberately.**
    `sql-tests.yml` and `shared-files.yml` carry `workflow_dispatch` and nothing
    else: no `push`, no `pull_request`. Every check they perform runs on a
-   laptop in well under a minute, and rule 1 already requires it there. The one
-   workflow still triggered automatically is `publish-live.yml`, and that is a
-   deploy, not a check.
+   laptop in well under a minute, and rule 1 already requires it there. Three
+   workflows still fire on their own — `publish-live.yml` (push to `live/**`,
+   plus the event cron), `deploy-panitia.yml` (push to `web/**`) and
+   `refresh-live-score.yml` (event cron only). Two deploys and one cache
+   refresh; not a check among them.
 6. **What costs money is the NUMBER of runs, not their length.** GitHub rounds
    every JOB up to a whole minute, so a 7-second check and a 50-second check
    bill exactly the same. One measured day: 24 of 60 runs were a second copy of
@@ -799,11 +836,12 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    a day, which empties a private repo's monthly allowance in a week. Multiply
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia
-   run from their phones. The event-only exception in `publish-live.yml` runs
-   every 15 minutes from 08:00 through 23:45 WIB on 29 August 2026. Cron has no
-   year field, so the first step rejects every scheduled run outside that exact
-   date before reading the database or deploying. Do not widen its window or
-   remove that year guard.
+   run from their phones. There are two event-only exceptions, both on
+   29 August 2026 and both between 06:00 and 18:59 WIB: `publish-live.yml`
+   every 15 minutes, and `refresh-live-score.yml` every 10. Cron has no year
+   field, so each one's first step rejects every scheduled run outside that
+   exact date before reading the database or deploying. Do not widen either
+   window or remove those year guards.
 
 ## 17. Selama acara berjalan
 

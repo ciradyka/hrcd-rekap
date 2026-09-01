@@ -1,6 +1,6 @@
 # Sekolah yang belum tuntas
 
-Delapan belas dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
+Sembilan belas dari 210 baris di `tools/data/sekolah_alamat.json` belum bisa
 dipakai apa adanya. Halaman ini daftar kerjanya: apa yang kurang, kenapa, dan
 apa yang harus ditanyakan.
 
@@ -25,8 +25,11 @@ Yang di bawah ini sisanya.
    jawabannya dari pembina — sebutkan tanggalnya.
 3. **Hapus barisnya dari halaman ini di commit yang sama.**
    `tools/periksa_sekolah.py` membandingkan daftar ini dengan isi datanya dan
-   gagal di CI kalau keduanya tidak cocok. Itu disengaja: daftar kerja yang
-   tidak ikut menyusut berhenti dipercaya, lalu berhenti dibaca.
+   gagal kalau keduanya tidak cocok — tapi ia tidak jalan sendiri. Sejak
+   `shared-files.yml` cuma `workflow_dispatch`, tidak ada pemicu otomatis
+   yang membacanya, jadi jalankan `python tools/periksa_sekolah.py` di laptop
+   sebelum membuka PR. Pemeriksaannya disengaja: daftar kerja yang tidak ikut
+   menyusut berhenti dipercaya, lalu berhenti dibaca.
 
 ---
 
@@ -91,11 +94,14 @@ mencarinya lagi.
 
 > **Banjarsari dan Banjaranyar dulu satu kecamatan, dan cermin Dapodik belum
 > semuanya menyusul.** Banjaranyar mekar dari Banjarsari tahun 2015; desa yang
-> ikut pindah memakai **46384**, bukan 46383. Dua baris kurasi masih tidak
+> ikut pindah memakai **46384**, bukan 46383. Dua baris kurasi sempat tidak
 > sepakat soal ini — `SMAN 2 Banjarsari` (Desa Cigayam, Kec. Banjaranyar)
 > memakai 46383 sementara `SMPN 6 Banjarsari` (Desa Cikupa, kecamatan yang
-> sama) memakai 46384. Keduanya nol regu tahun ini, jadi tidak mendesak, tetapi
-> yang menyentuh kode pos Banjaranyar berikutnya harus memeriksa desanya dulu.
+> sama) memakai 46384 — dan justru ketidaksepakatan itu yang membuat
+> kesalahannya terlihat. Migrasi `0159` membetulkan yang pertama jadi 46384,
+> jadi keduanya sekarang sepakat. Cerminnya belum tentu ikut, jadi yang
+> menyentuh kode pos Banjaranyar berikutnya tetap harus memeriksa desanya
+> dulu.
 >
 > Catatan ini dulu menempel pada baris `SMPN 1 Kalijaya` di bagian B. Barisnya
 > dihapus; peringatannya tidak.
@@ -110,12 +116,14 @@ alamat yang dicetak sekolahnya sendiri. Alasan lengkapnya di
 ---
 
 > **`MTsN 1 Ciamis` diputuskan 30 Agustus 2026: 46211.** Situs resmi sekolahnya
-> menulis 46251, tetapi desanya Panyingkiran, dan 46211 dipakai dua direktori
-> kode pos yang berbeda serta **delapan belas sekolah kurasi lain di Kec.
-> Ciamis tanpa kecuali** — Ciamis 46211, Kertasari 46213, Maleber 46214,
-> Sindangrasa 46215, Linggasari 46216, Imbanagara 46219. Angka 46251 tidak ada
-> di Kec. Ciamis, dan juga tidak di Sindangkasih (46268) maupun Cikoneng
-> (46261) yang bersebelahan.
+> menulis 46251, tetapi desanya Panyingkiran, dan dua direktori kode pos yang
+> berbeda sama-sama menulis 46211 untuk desa itu. Yang menguatkan: kode pos
+> tiap desa di Kec. Ciamis cocok dengan direktori **tanpa kecuali** — Ciamis
+> 46211, Kertasari 46213, Maleber 46214, Sindangrasa 46215, Linggasari 46216,
+> Imbanagara 46219 — delapan belas baris kurasi waktu itu, dua puluh sekarang
+> (`0156` menambah SMK LPS 1 dan 2 di Maleber). Angka 46251 tidak ada di Kec.
+> Ciamis, dan juga tidak di Sindangkasih (46268) maupun Cikoneng (46261) yang
+> bersebelahan.
 >
 > `tests/sql/107` menjaga 46251 tidak diam-diam kembali.
 
@@ -166,10 +174,13 @@ Kolom petunjuk itu **bukan alamat** — runbook bagian 1 menyebutnya arah, bukan
 sumber kebenaran. Tetapi sebagai pemilih di antara dua alamat yang sama-sama
 resmi, ia persis yang dibutuhkan. Simpan kolomnya untuk edisi berikutnya.
 
-Tiga di antaranya tidak selesai penuh dan pindah ke bagian A: `MA Bahrul
-Anwar` (desanya dikosongkan Dapodik), `MA Adzkia` dan `SMA IT Nurul Huda`
-(tidak punya NPSN). Ketiganya sudah punya alamat yang bisa dipakai berkirim
-surat; yang kurang cuma satu kalimat dari pembina.
+Tiga di antaranya sempat pindah ke bagian A, dan ketiganya sudah selesai juga
+30 Agustus 2026 — bukan oleh pembina, melainkan oleh pemilik acara: desa
+`MA Bahrul Anwar` dikonfirmasi Mekarsari (Dapodik mengosongkannya), lalu
+`MA Adzkia` dan `SMA IT Nurul Huda` dibenarkan satu tempat dengan MTs/SMP
+saudaranya. Ketiganya `tinggi` sekarang dan sudah tidak ada di bagian A. Dua
+yang terakhir memang tetap tanpa NPSN; itu bukan cacat, melainkan sebabnya
+keduanya didaftar di `TANPA_NPSN` pada `tools/periksa_sekolah.py`.
 
 **`SMK Lps Ciamis` sudah terjawab, 30 Agustus 2026.** Di Jl. R.E. Martadinata
 No. 23 memang ada dua sekolah — SMK LPS 1 (NPSN 20211529) dan SMK LPS 2
