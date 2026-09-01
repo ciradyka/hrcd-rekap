@@ -1,7 +1,7 @@
 // ============================================================================
 // hrcd-rekap : tests/live_score_refresh_hitung_ulang.test.mjs
-// Tombol Refresh Live Score MENGHITUNG ULANG, dan tidak melempar panitia
-// kembali ke atas.
+// Tombol Refresh Live Score MENGHITUNG ULANG, dan menukar angkanya DI TEMPAT
+// tanpa menggambar ulang layarnya.
 //
 // Kegagalan yang dijaga di sini SUNYI — itu sebabnya ia perlu dijaga mesin.
 // Tombol yang cuma membaca ulang `cache_live_score` selalu berhasil: tidak ada
@@ -37,42 +37,72 @@ test("Refresh meminta database menghitung ulang lebih dulu", () => {
   assert.match(pendengar, /await segarkanLiveScore\(\)/,
     "tombol Refresh tidak meminta penghitungan ulang — ia cuma membaca ulang "
     + "snapshot yang sama, dan itu berhasil tanpa galat apa pun");
-  // Urutannya mengikat: menggambar ulang DULU lalu menghitung berarti yang
-  // tergambar tetap angka lama.
+  // Urutannya mengikat: memasang angkanya DULU lalu menghitung berarti yang
+  // terpasang tetap angka lama.
   assert.ok(
-    pendengar.indexOf("segarkanLiveScore()") < pendengar.indexOf("layarLiveScore()"),
-    "layar digambar ulang sebelum database selesai menghitung");
+    pendengar.indexOf("segarkanLiveScore()") < pendengar.indexOf("pasangSnapshot("),
+    "angkanya dipasang sebelum database selesai menghitung");
 });
 
-test("gambar ulang tetap jalan walau penghitungan gagal", () => {
+test("angkanya tetap dibaca ulang walau penghitungan gagal", () => {
   // Snapshot lama masih berguna dan cap waktunya jujur (keputusan 0146). Yang
   // tidak boleh terjadi: tombol yang gagal diam-diam lalu tidak melakukan apa pun.
   const tangkap = pendengar.slice(pendengar.indexOf("catch"));
   assert.match(tangkap, /notif\(/,
     "kegagalan penghitungan tidak diberitahukan");
-  assert.match(tangkap, /await layarLiveScore\(\)/,
-    "layar tidak digambar ulang ketika penghitungan gagal");
+  assert.match(tangkap, /pasangSnapshot\(await muatDataLiveScore\(cacheLiveScore\)\)/,
+    "snapshot tidak dibaca ulang ketika penghitungan gagal");
 });
 
-test("Refresh tidak melempar panitia ke tab lain atau ke puncak halaman", () => {
-  assert.match(pendengar, /guliranLiveScore = window\.scrollY/,
-    "posisi guliran tidak diingat sebelum papan digambar ulang");
+test("Refresh menukar angkanya DI TEMPAT, bukan menggambar ulang layar", () => {
+  // Menggambar ulang mengganti seluruh isi layar dengan pemuat lalu
+  // membangunnya dari nol: layarnya berkedip kosong, saringan sekolah yang
+  // sedang dipakai terhapus, dan gulirannya harus dipulihkan dengan angka yang
+  // diingat — padahal yang menekan Refresh sedang MEMBACA satu baris di tengah
+  // tabel, biasanya sesudah menyimpan nilai regu itu.
+  // Komentar dibuang dulu: alasan aturan ini justru dijelaskan di komentar
+  // tepat di dalam pendengarnya, dan nama fungsinya disebut di sana.
+  const kode = pendengar.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*/g, "");
+  assert.doesNotMatch(kode, /layarLiveScore\(\)/,
+    "Refresh kembali menggambar ulang seluruh layar");
+  assert.doesNotMatch(app, /guliranLiveScore = /,
+    "ingatan guliran kembali — ia cuma perlu selama Refresh melempar "
+    + "gulirannya, dan sekarang tidak ada lagi yang melempar apa pun");
+
+  // Yang ditukar: cap update, cincin kelengkapan, hitungan tab, podium, baris.
+  const pasang = app.slice(app.indexOf("const pasangSnapshot = (baru) => {"),
+                           app.indexOf("/* Refresh diminta petugas"));
+  assert.ok(pasang.length > 0, "pasangSnapshot tidak ditemukan");
+  for (const [pola, apa] of [
+    [/waktu\.textContent = `Update /, "cap update"],
+    [/rinci\.replaceChildren\(h\(cincinPos\(\)\)\)/, "cincin kelengkapan"],
+    [/podium\.replaceChildren\(h\(podiumGol\(g\)\)\)/, "podium"],
+    [/tbody\.replaceChildren\(h\(barisGol\(g\)\)\)/, "baris tabel"],
+    [/hitung\.textContent = String\(klasemen\.filter/, "hitungan tab golongan"],
+    [/saringUlang\.forEach\(f => f\(\)\)/, "saringan sekolah dijalankan lagi"],
+  ]) {
+    assert.match(pasang, pola, `${apa} tidak ikut ditukar oleh Refresh`);
+  }
+
+  // Golongan yang sedang dibuka tetap diingat — bukan untuk Refresh lagi,
+  // melainkan untuk kunjungan berikutnya ke layar ini.
   assert.match(app, /let golonganLiveScore = null;/,
     "golongan yang sedang dibuka tidak diingat");
   assert.match(app, /golonganLiveScore = pilih;/,
     "golongan tidak dicatat saat tab ditekan");
-  // Dipakai HANYA kalau golongannya masih berisi, supaya papan tidak terbuka
-  // pada tab kosong.
   assert.match(app,
     /golonganLiveScore && jumlahGol\[golonganLiveScore\] > 0 && golonganLiveScore/,
     "golongan yang diingat dipakai tanpa memeriksa masih ada isinya");
-  // Guliran dipulihkan SESUDAH papan tergambar: halaman yang belum setinggi
-  // posisi tujuan membuat browser menahan guliran di batas yang ada saat itu.
-  const pulih = app.indexOf("requestAnimationFrame(() => window.scrollTo(0, ke))");
-  const gambar = app.indexOf("LAYAR.replaceChildren(h(`\n    ${kemajuan}");
-  assert.ok(pulih > 0, "guliran tidak pernah dipulihkan");
-  assert.ok(gambar > 0 && pulih > gambar,
-    "guliran dipulihkan sebelum papannya tergambar");
+});
+
+test("tombolnya dihidupkan lagi sesudah selesai", () => {
+  // Dulu tidak perlu: layarLiveScore() menggambar tombol yang baru sama
+  // sekali. Sekarang tombolnya elemen yang sama dari awal sampai akhir, jadi
+  // baris ini yang membedakan tombol yang bisa ditekan lagi dari tombol mati.
+  assert.match(pendengar, /tombol\.disabled = false/,
+    "tombol Refresh tidak pernah dihidupkan lagi");
+  assert.match(pendengar, /tombol\.classList\.remove\("berputar"\)/,
+    "tombol Refresh berputar selamanya");
 });
 
 test("tombolnya dimatikan selama bekerja", () => {
