@@ -4837,10 +4837,42 @@ button.pill-number:hover { filter: brightness(.95); }
 
 /* auto-fill, bukan jumlah kolom yang dipatok: pos berisi satu lomba (Pos 4,
    Pos 5) dan pos berisi lima (Pos 1) memakai petak yang sama. */
+/* ---------- pemilih lomba: satu warna per pos ----------
+
+   Bentuknya dipinjam dari layar Kejuaraan, dan alasannya sama persis: kartu
+   yang seragam memaksa judulnya dibaca sebelum isinya, sementara yang membuka
+   layar ini berdiri di SATU pos sepanjang pagi dan mencari blok yang itu-itu
+   saja. Tepi kiri tebal, judul sewarna, latar tint pucat.
+
+   Warna TIDAK PERNAH jadi satu-satunya pembeda — judul tiap kartu tetap
+   tertulis penuh beserta nomor posnya, aturan yang sama dengan kotak ikon di
+   papan Home.
+
+   Kelima rona diambil dari palet yang sudah ada di berkas ini supaya layar
+   panitia tidak punya dua daftar warna yang harus dijaga sejalan. Pos di luar
+   1-5 (pos bayangan) memakai warna bawaan di `.pos-blok`. */
+.pos-blok { --aksen: #00695c; --tint: #f4faf9; }
+.pos-warna-1 { --aksen: #1a56db; --tint: #f5f8fe; }
+.pos-warna-2 { --aksen: #b54708; --tint: #fefaf5; }
+.pos-warna-3 { --aksen: #c01048; --tint: #fef6f8; }
+.pos-warna-4 { --aksen: #6941c6; --tint: #faf8fe; }
+.pos-warna-5 { --aksen: #067647; --tint: #f3faf6; }
+.card.pos-blok {
+  border-left: 5px solid var(--aksen);
+  background: var(--tint);
+}
+.card.pos-blok > h2 { color: var(--aksen); }
+
 .pilih-lomba {
   display: grid; gap: .6rem;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
 }
+/* Kotak lombanya tetap PUTIH di atas tint kartunya, dan itu yang membuatnya
+   terbaca sebagai tombol: benda yang bisa ditekan berdiri di atas alasnya,
+   bukan sewarna dengannya. */
+.pos-blok .lomba-kotak:hover { border-color: var(--aksen); color: var(--aksen); }
+.pos-blok .lomba-kotak:active { background: var(--tint); }
+.pos-blok .lomba-kotak:focus-visible { outline-color: var(--aksen); }
 /* Isinya tinggal nama lombanya, jadi diletakkan di TENGAH kotak — nama
    pendek yang rata kiri di petak selebar 11rem meninggalkan lahan kosong di
    kanan yang terbaca seperti ada sesuatu yang hilang di sana. */
