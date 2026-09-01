@@ -8331,8 +8331,21 @@ function gambarPemilihLomba(katalog) {
     blok.isi.push(l);
   }
 
+  /* SATU WARNA PER POS, bentuk yang sama dengan layar Kejuaraan: tepi kiri
+     tebal dan judul sewarna, di atas latar tint pucat. Lima kartu seragam
+     memaksa juri membaca judul tiap kartu untuk tahu ia sedang melihat pos
+     mana — dan yang membuka layar ini berdiri di SATU pos, sepanjang pagi,
+     mencari blok yang sama berulang kali.
+
+     Warnanya tidak pernah jadi satu-satunya pembeda: judul tiap kartu tetap
+     tertulis penuh, dan nomor posnya ada di dalam judul itu.
+
+     Nomor posnya dibawa kelas, bukan gaya sebaris: warna adalah keputusan
+     style.css, dan menuliskannya di sini berarti dua tempat harus ikut benar
+     setiap kali paletnya berubah. Pos di luar 1-5 — pos bayangan — jatuh ke
+     warna bawaan `.pos-blok`, bukan ke kartu tanpa warna. */
   LAYAR.replaceChildren(h(`<div id="pita-antrean"></div>` + perPos.map(b => `
-    <div class="card">
+    <div class="card pos-blok pos-warna-${esc(String(b.pos))}">
       <h2>${esc(b.judul)}</h2>
       <div class="pilih-lomba">
         ${b.isi.map(l => `
