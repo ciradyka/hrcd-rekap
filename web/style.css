@@ -5672,6 +5672,52 @@ button.pill-number:hover { filter: brightness(.95); }
 .fg-petak[data-putar="180"] .fg-buka img { transform: rotate(180deg); }
 .fg-petak[data-putar="270"] .fg-buka img { transform: translate(-50%, -50%) rotate(270deg); }
 
+/* ---------------------------------------------------------------------------
+   PENAMPIL FOTO SATU LAYAR.
+
+   Dipakai ketiga petak foto (lembar pos, Input Nilai Pos v2, Cek Nilai)
+   sebagai ganti membuka berkas aslinya di tab baru. Alasannya di app.js:
+   sudut putar disimpan dan diterapkan CSS, jadi BERKASNYA masih miring dan
+   tab baru memperlihatkan yang miring itu.
+
+   90 dan 270 MENUKAR SUMBU, dan urutannya yang menentukan benar tidaknya:
+   batas lebarnya diambil dari tinggi layar dan batas tingginya dari lebar
+   layar LEBIH DULU, baru gambarnya diputar. Dibalik — diputar dulu lalu
+   dibatasi — yang dibatasi kotak sebelum berputar, dan slip tegak yang
+   diputar 90 derajat menjulur keluar layar di kedua sisinya.
+   --------------------------------------------------------------------------- */
+.lihat-foto {
+  position: fixed; inset: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .92);
+}
+.lihat-foto img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 4px;
+}
+.lihat-foto img[data-putar="90"],
+.lihat-foto img[data-putar="270"] {
+  max-width: calc(100dvh - 2rem);
+  max-height: calc(100dvw - 2rem);
+}
+.lihat-foto img[data-putar="90"]  { transform: rotate(90deg); }
+.lihat-foto img[data-putar="180"] { transform: rotate(180deg); }
+.lihat-foto img[data-putar="270"] { transform: rotate(270deg); }
+/* Latar putih separuh tembus, alasan yang sama dengan tombol putar di bawah:
+   slip adalah kertas putih, dan silang putih di atasnya hilang begitu
+   gambarnya mengisi layar. 44px karena ia satu-satunya jalan keluar yang
+   terlihat. */
+.lihat-tutup {
+  position: absolute; top: .6rem; right: .6rem; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px;
+  font-size: 1.8rem; line-height: 1;
+  background: rgba(255, 255, 255, .9); color: var(--tinta);
+  border: 0; border-radius: 999px;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Tombol putar mengambang di pojok petaknya. Latar putih separuh tembus,
    bukan ikon telanjang: slip adalah kertas putih, dan lambang abu-abu di
    atasnya hilang sama sekali. */

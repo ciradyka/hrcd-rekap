@@ -31,7 +31,11 @@ test("pendengar window di dalam layar selalu membawa signal", () => {
 
   for (const l of baris) {
     if (!/^\s/.test(l)) continue;              // dipasang saat boot, bukan per layar
-    assert.match(l, /signal:/,
+    // `{ signal }` maupun `{ signal: sinyal }` sama-sama diterima. Polanya
+    // dulu `/signal:/` saja, waktu setiap pemanggilnya menulis nama sinyal
+    // layarnya; penampil foto memakai AbortController sendiri dan
+    // mendestrukturnya jadi `signal`, yang membawa persis jaminan yang sama.
+    assert.match(l, /\{[^}]*\bsignal\b/,
       `pendengar window di dalam fungsi tanpa signal: ${l.trim()}`);
   }
 });

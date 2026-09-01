@@ -36,8 +36,14 @@ for (const [nama, kode] of [["panitia", app], ["peserta", live]]) {
     assert.match(kode, /new AbortController\(\)/,
       `panel ${nama} tidak punya pengendali untuk membatalkan pendengarnya`);
 
-    // Tiap pemasangan pendengar document di berkas ini harus membawa signal.
+    /* Tiap pemasangan pendengar document di berkas ini harus membawa signal —
+       KECUALI yang dipasang sekali saat berkasnya dimuat. Yang itu hidup
+       selama tabnya terbuka dan memang tidak punya apa pun untuk dibatalkan;
+       membedakannya lewat INDENTASI, aturan yang sama dengan penjaga
+       pendengar window di tests/screen_listener_cleanup.test.mjs. */
     for (const m of pasang) {
+      const awalBaris = kode.lastIndexOf("\n", m.index) + 1;
+      if (awalBaris === m.index) continue;      // kolom 0 = dipasang saat boot
       const potongan = kode.slice(m.index, kode.indexOf("});", m.index) + 3);
       assert.match(potongan, /\{ signal \}/,
         `satu pendengar document di ${nama} dipasang tanpa signal:\n`
