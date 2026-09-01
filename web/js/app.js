@@ -997,18 +997,33 @@ const TABEL_RIWAYAT = {
 };
 
 /** JSON apa adanya tidak dibaca orang: null jadi "—", daftar anggota jadi
- *  kalimat, dan boolean jadi kata. */
+ *  kalimat, dan boolean jadi kata.
+ *
+ *  MENGEMBALIKAN HTML, BUKAN TEKS, jadi ia yang meng-escape isinya sendiri —
+ *  seluruh jalur keluar di bawah lewat esc(). Nama anggota diketik orang luar
+ *  (lihat kepala util.js), dan satu jalur yang lupa di-escape di sini adalah
+ *  XSS tersimpan di layar panitia. */
 function nilaiRiwayat(v) {
   if (v === null || v === undefined) return "—";
-  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
+  if (Array.isArray(v)) return v.length ? esc(v.join(", ")) : "—";
   if (typeof v === "boolean") return v ? "ya" : "tidak";
   const t = String(v);
   if (t === "") return "—";
-  // Tautan bukti transfer ditulis "(tautan)", bukan alamatnya. Alamat Drive
-  // panjangnya 60 huruf dan tidak satu pun di antaranya menjawab pertanyaan
-  // yang sedang ditanyakan — sedangkan tombol yang MEMBUKA tautan itu ada di
-  // baris yang riwayatnya sedang dibaca.
-  return /^https?:\/\//.test(t) ? "(tautan)" : t;
+  /* Link bukti transfer ditulis "(link)", bukan alamatnya: alamat Drive
+     panjangnya 60 huruf dan tidak satu pun di antaranya menjawab pertanyaan
+     yang sedang ditanyakan.
+
+     TAPI SEKARANG BISA DIKETUK. Sebelumnya ia tulisan mati, dan tombol yang
+     membuka bukti itu memang ada di baris tabelnya — tetapi baris riwayat
+     yang sedang dibaca justru menyebut bukti yang DULU dipasang, yang bisa
+     berbeda dari yang berlaku sekarang. Satu-satunya cara melihat yang
+     disebut riwayat adalah membukanya dari riwayat.
+
+     "link", bukan "tautan": kata yang memang diucapkan panitia
+     (CLAUDE.md 5.7). */
+  return /^https?:\/\//.test(t)
+    ? `<a href="${esc(t)}" target="_blank" rel="noopener">(link)</a>`
+    : esc(t);
 }
 
 /** Satu baris riwayat jadi satu atau beberapa <li>.
@@ -1032,12 +1047,15 @@ function liRiwayat(b) {
     </li>`;
   }
 
+  /* Template BIASA, bukan html`` — nilaiRiwayat() sudah mengembalikan HTML
+     (link bukti transfer bisa diketuk), dan tag html`` akan meng-escape-nya
+     jadi tulisan `<a href=...>`. Yang lain tetap lewat esc() satu per satu. */
   const ubah = b.perubahan || {};
-  return Object.keys(ubah).map(k => html`<li>
-    <span class="r-lomba">${LABEL_RIWAYAT[k] || k}</span>
+  return Object.keys(ubah).map(k => `<li>
+    <span class="r-lomba">${esc(LABEL_RIWAYAT[k] || k)}</span>
     <span class="r-nilai">${nilaiRiwayat(ubah[k].lama)} →
       <strong>${nilaiRiwayat(ubah[k].baru)}</strong></span>
-    <span class="r-oleh">${oleh}</span>
+    <span class="r-oleh">${esc(oleh)}</span>
   </li>`).join("");
 }
 
@@ -1081,7 +1099,13 @@ async function bukaRiwayatPendaftaran(kode) {
 
   const isi = baris.map(liRiwayat).join("");
   await dialog({
-    judul: `Riwayat ${kode}`,
+    /* TANDA HUBUNG YANG TIDAK BOLEH DIPATAH (U+2011). Kode bayar berbentuk
+       "HRCD37-2B8582", dan tanda hubung biasa adalah tempat pemenggalan baris
+       yang sah — jadi judulnya patah jadi "Riwayat HRCD37-" di baris pertama
+       dan "2B8582" di baris kedua, dan dari layar itu terbaca seperti dua
+       kode. Rupanya sama persis; yang berbeda cuma ia tidak bisa dijadikan
+       tempat patah. */
+    judul: `Riwayat ${kode.replace(/-/g, "‑")}`,
     kartuHtml: isi
       ? `<ul class="riwayat riwayat-pendaftaran">${isi}</ul>`
       : `<p class="description">Belum pernah diubah.</p>`,
@@ -2726,20 +2750,25 @@ async function layarCetakKloter() {
            di bawah membuat petugas menekan Cetak lebih dulu, lalu menemukan
            kotak jamnya sesudah kertasnya keluar.
 
+           SEBARIS BERDUA, kiri dan kanan, di lebar berapa pun. Keduanya dua
+           ujung dari SATU jendela — yang diatur bukan dua jam melainkan
+           rentangnya — dan bertumpuk mereka terbaca seperti dua setelan yang
+           tidak berhubungan, sekaligus memakan dua kali tingginya di HP.
+
            TANPA judul dan TANPA paragraf penjelas. Labelnya sendiri sudah
-           menyebut "Rencana Berangkat", jadi judul di atasnya cuma mengulang
+           menyebut jamnya, jadi judul di atasnya cuma mengulang
            label yang ada di bawahnya (pasal 9.3),
            dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
            menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
            sekali (pasal 9.1 dan 9.6). -->
       <div class="two-column planning-jam" style="margin-top:1rem">
         <div class="field">
-          <label for="planning-pertama-hh">Rencana Berangkat Pertama</label>
+          <label for="planning-pertama-hh">Jam Berangkat Pertama</label>
           ${kotakJamHtml("planning-pertama", jamPendek(
             cfg.planning_berangkat_pertama || cfg.jam_mulai_berangkat))}
         </div>
         <div class="field">
-          <label for="planning-terakhir-hh">Rencana Berangkat Terakhir</label>
+          <label for="planning-terakhir-hh">Jam Berangkat Terakhir</label>
           ${kotakJamHtml("planning-terakhir", jamPendek(
             cfg.planning_berangkat_terakhir || cfg.jam_batas_berangkat))}
         </div>
@@ -4692,7 +4721,7 @@ async function layarInputPos() {
               ? `<a class="fg-petak" href="${esc(url)}" target="_blank" rel="noopener"
                     title="${esc(judul)}">
                    <img src="${esc(url)}" alt="${esc(judul)}" loading="lazy"></a>`
-              : `<span class="fg-petak fg-kosong">tautan gagal</span>`}
+              : `<span class="fg-petak fg-kosong">link gagal</span>`}
             <button type="button" class="fg-hapus" data-hapus
                     title="Hapus foto ${esc(String(ke))}"
                     aria-label="Hapus foto ${esc(String(ke))} ${esc(namaLomba)}"
@@ -8605,7 +8634,7 @@ async function gambarLombaNilai(l) {
           ? `<a class="foto-tautan" href="${esc(url)}" target="_blank" rel="noopener"
                 title="${esc(judul)}"><img src="${esc(url)}" alt="${esc(judul)}"
                 loading="lazy"></a>`
-          : `<span class="foto-tautan foto-lembar-kosong">tautan gagal</span>`}
+          : `<span class="foto-tautan foto-lembar-kosong">link gagal</span>`}
         ${silang}
       </div>`;
     }).join("")));
@@ -9657,7 +9686,7 @@ async function layarCekNilai() {
       el.replaceChildren(h(milik.map((f, i) => {
         const url = peta[f.path];
         const judul = `Foto ${i + 1}${f.diunggah_pada ? ` · ${tanggalJam(f.diunggah_pada)}` : ""}`;
-        if (!url) return `<span class="fg-petak fg-kosong">tautan gagal</span>`;
+        if (!url) return `<span class="fg-petak fg-kosong">link gagal</span>`;
         /* Sudutnya dibawa `data-putar`, bukan gaya sebaris: yang memutar CSS,
            dan CSS perlu tahu 90/270 supaya bisa MENUKAR lebar dengan tinggi.
            Gambar yang cuma diputar tanpa ditukar ukurannya meluap keluar

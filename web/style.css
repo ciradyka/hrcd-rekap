@@ -394,6 +394,14 @@ input.jam-ketik {
    Hanya di sini. Kotak jam lain — Keberangkatan, Kedatangan, dialog koreksi —
    berdiri di sebelah teks yang rata kiri, dan menengahkan yang di sana justru
    melepasnya dari barisnya. */
+/* DUA KOLOM DI LEBAR BERAPA PUN, termasuk HP. `.two-column` biasa runtuh jadi
+   satu kolom di bawah 640px, dan untuk sepasang isian yang tidak berhubungan
+   itu benar. Kedua kotak ini berhubungan: mereka dua ujung dari SATU jendela
+   keberangkatan, dan bertumpuk mereka terbaca seperti dua setelan terpisah —
+   sekaligus memakan dua kali tingginya di layar yang isinya justru daftar
+   kloter di bawahnya. Kekhususan 0,2,0 mengalahkan aturan 640px yang 0,1,0,
+   jadi urutannya di berkas ini tidak menentukan apa pun. */
+.two-column.planning-jam { grid-template-columns: 1fr 1fr; gap: .5rem; }
 .planning-jam { text-align: center; }
 .planning-jam .field label { text-align: center; }
 
@@ -933,7 +941,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   max-height: 90vh; overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0,0,0,.3);
 }
-.dialog h2 { margin-bottom: .8rem; }
+/* UKURANNYA DISEBUT, tidak dibiarkan bawaan browser. `h2` bawaan 1.5em =
+   24px tebal, dan pada lebar HP judul "Riwayat HRCD37-2B8582" menuntut lebih
+   dari 284px yang tersedia di dalam dialog — jadi ia patah dua baris, tepat di
+   tanda hubung kode bayarnya. 1.2rem membuatnya 223px dan muat sebaris,
+   sekaligus sejajar dengan `.card h2` yang 1.1rem: judul di dalam dialog tidak
+   punya alasan lebih besar daripada judul kartu di layar di belakangnya. */
+.dialog h2 { font-size: 1.2rem; margin-bottom: .8rem; }
 /* Tanpa <h2>, isi pertama dialog naik ke tepi atas dan bertemu silang tutup
    yang duduk di pojok kanan. Padding ini yang memberinya jalan. */
 .dialog-tanpa-judul { padding-top: 2.6rem; }
