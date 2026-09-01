@@ -1086,6 +1086,78 @@ function pasangCentangRiwayat(wadah) {
     btn.addEventListener("click", () => bukaRiwayatPendaftaran(btn.dataset.riwayatKode)));
 }
 
+/* ============================================================================
+   FOTO SLIP DIBUKA BESAR, DAN IKUT SUDUT PUTARNYA.
+
+   Sudut putar disimpan per foto (migrasi 0167) dan DITERAPKAN CSS — berkasnya
+   sendiri tidak pernah disentuh. Itu keputusan yang benar: memutar berkasnya
+   berarti mengkompres ulang bukti setiap kali ada yang salah tekan.
+
+   Akibatnya satu hal yang tidak ikut dipikirkan: petaknya tegak, tetapi
+   `<a href>` di dalamnya menyerahkan BERKAS ASLI ke browser, dan berkas asli
+   masih miring. Jadi petugas memutar fotonya, mengetuknya untuk membaca
+   tulisan tangannya lebih besar, dan mendapat gambar melintang lagi.
+   Dilaporkan begitu, 2 September 2026.
+
+   Yang dilakukan: ketukannya dibelokkan ke penampil di dalam aplikasi, yang
+   memasang sudut yang sama dengan petaknya. Tab baru sekalian hilang — dan
+   itu memang sudah lama diinginkan di layar ini: sembilan foto berarti
+   sembilan tab, dan sembilan kali menekan "kembali" di HP.
+
+   Ctrl/Cmd/Shift-klik tetap dibiarkan lewat, jadi yang memang mau membuka
+   berkas aslinya di tab sendiri masih bisa. `target="_blank"` di markup-nya
+   juga tetap: kalau JS layar ini gagal dimuat, ketukannya kembali membuka
+   berkasnya — miring, tapi ada.
+   ========================================================================== */
+
+/** Satu foto sebesar layar, dengan sudut putar yang tersimpan. */
+function bukaFotoPenuh(url, putaran, judul) {
+  document.querySelector(".lihat-foto")?.remove();
+  document.body.appendChild(h(`
+    <div class="lihat-foto" role="dialog" aria-modal="true"
+         aria-label="${esc(judul || "Foto")}">
+      <button type="button" class="lihat-tutup" aria-label="Tutup">&times;</button>
+      <img src="${esc(url)}" alt="${esc(judul || "")}"
+           data-putar="${esc(String(Number(putaran) || 0))}">
+    </div>`));
+  const el = document.body.lastElementChild;
+  /* SATU pengendali untuk semua pendengarnya, bukan removeEventListener satu
+     per satu: keduanya menempel di luar `el`, jadi membuang elemennya saja
+     meninggalkan mereka hidup. Bentuk ini juga yang dituntut penjaga di
+     tests/screen_listener_cleanup.test.mjs — pendengar `document` dan
+     `window` di dalam fungsi selalu membawa signal. */
+  const pengendali = new AbortController();
+  const { signal } = pengendali;
+  function tutup() { el.remove(); pengendali.abort(); }
+  el.addEventListener("click", (e) => {
+    /* Gambarnya sendiri TIDAK menutup. Di HP jari mendarat di tengah layar
+       saat hendak mencubit untuk memperbesar, dan penampil yang tertutup oleh
+       cubitan pertama tidak bisa dipakai membaca tulisan tangan — yang justru
+       satu-satunya alasan foto ini dibuka. */
+    if (e.target === el || e.target.closest(".lihat-tutup")) tutup();
+  }, { signal });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") tutup();
+  }, { signal });
+  // Pindah layar menutupnya, alasan yang sama dengan dialog(): penampil ini
+  // menempel di <body>, jadi LAYAR.replaceChildren() tidak membawanya pergi.
+  window.addEventListener("hashchange", tutup, { signal });
+}
+
+/* Satu pendengar untuk KETIGA petak foto — lembar pos, Input Nilai Pos v2,
+   dan Cek Nilai. Ketiganya membungkus tautannya dengan elemen ber-`data-putar`,
+   jadi sudutnya dibaca dari sana; markup ketiganya tidak perlu diubah sama
+   sekali. */
+document.addEventListener("click", (e) => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const taut = e.target.closest("a.fg-buka, a.fg-petak, a.foto-tautan");
+  const url = taut && taut.getAttribute("href");
+  if (!url) return;
+  e.preventDefault();
+  const wadah = taut.closest("[data-putar]");
+  bukaFotoPenuh(url, wadah ? wadah.dataset.putar : 0, taut.getAttribute("title") || "");
+});
+
 /** Dibaca saat DIKETUK, bukan ikut dimuat bersama tabelnya: satu layar memuat
  *  ratusan baris dan hampir semuanya tidak pernah ditanya riwayatnya.
  *
