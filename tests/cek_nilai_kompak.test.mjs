@@ -81,6 +81,78 @@ test("kartu ringkas satu baris, tanpa penanda gembok", () => {
     "ukuran detail di kartu ringkas berubah — lihat catatan yang sama");
 });
 
+test("golongan dibuang dari kartu identitas di HP, bukan di laptop", () => {
+  // Yang paling sedikit menjawab "apakah ini regu yang berdiri di depan saya"
+  // — dan sudah terbaca dari nomor dadanya. 82px yang dibelinya adalah selisih
+  // antara sebaris dan dua baris untuk sembilan dari sepuluh sekolah.
+  assert.match(app, /<span class="identitas-golongan">/,
+    "golongan tidak lagi dibungkus span sendiri, jadi tidak bisa disembunyikan");
+  const hp = css.slice(css.indexOf(".identitas-sebaris .detail"));
+  assert.match(hp,
+    /@media \(max-width: 560px\) \{\s*\.identitas-sebaris \.identitas-golongan \{ display: none; \}/,
+    "golongan tidak disembunyikan di rentang HP");
+});
+
+test("satu ukuran kotak nilai, dipakai ketiga tempat yang membutuhkannya", () => {
+  // Tanpa lebar yang DISEBUT, browser menurunkannya dari isi tiap kotak dan
+  // satu layar berisi lima ukuran berbeda: Bakiak 168, Menaksir 152,
+  // Kesehatan 114, Semaphore 99, PBB 456 di laptop.
+  assert.match(css, /\.cek-isian \{ --kotak-nilai: 7\.1rem; \}/,
+    "lebar kotak nilai tidak lagi disebut sekali di satu tempat");
+  const perlu = [
+    [/\.cek-isian \.isian-baris \{[\s\S]{0,120}flex: 0 1 var\(--kotak-nilai\)/,
+      "baris isian"],
+    [/\.cek-isian \.small-input \{[\s\S]{0,120}width: var\(--kotak-nilai\)/,
+      "kotak angka"],
+    [/\.cek-isian input\.small-input\.input-waktu \{[\s\S]{0,80}width: var\(--kotak-nilai\)/,
+      "kotak mm:ss"],
+  ];
+  for (const [pola, apa] of perlu) {
+    assert.match(css, pola, `${apa} tidak memakai --kotak-nilai`);
+  }
+});
+
+test("kotak berkriteria banyak boleh menyusut, tidak dilepas dari batasnya", () => {
+  // `max-width: none` di sini berkekhususan 0,4,0 — `:has()` mewarisi
+  // kekhususan argumennya — jadi ia mengalahkan
+  // `.cek-isian .small-input { max-width: 100% }`, dan kelima kotak Pembidaian
+  // bertahan di 114px lalu saling menimpa tanpa satu pun penggulir yang
+  // menandainya. Terukur begitu.
+  const awal = css.indexOf(".cek-angka:has(.isian-baris + .isian-baris) .small-input {");
+  assert.ok(awal > 0, "aturan kotak berkriteria banyak hilang");
+  const aturan = css.slice(awal, css.indexOf("}", awal));
+  assert.doesNotMatch(aturan, /max-width: none/,
+    "max-width: none kembali di kotak berkriteria banyak");
+  assert.doesNotMatch(aturan, /font-size|min-height/,
+    "kotak berkriteria banyak kembali punya ukuran hurufnya sendiri — yang "
+    + "diminta satu ukuran untuk semua pos");
+});
+
+test("panah nomor dada duduk di tepi kartu di HP, dipatok lagi di laptop", () => {
+  const dasar = css.slice(css.indexOf(".cek-dada {"), css.indexOf("}", css.indexOf(".cek-dada {")));
+  assert.doesNotMatch(dasar, /max-width/,
+    "patokan lebar kembali di .cek-dada, dan panahnya berhenti 13px sebelum "
+    + "tepi kartu");
+  const satuLayar = css.slice(css.indexOf("@media (min-width: 1000px)"));
+  assert.match(satuLayar, /\.isi\.cek \.cek-dada \{ max-width: 11rem; \}/,
+    "patokan lebar hilang di tata letak satu-layar, tempat kartunya sebaris "
+    + "dan kotak yang melebar mendorong identitas regu keluar baris");
+});
+
+test("menu bawah tidak dihitami browser saat disentuh", () => {
+  // Bawaan HP menyiram SELURUH tombol dengan rgba(0,0,0,.18); item bar ini
+  // tidak punya latar sendiri, jadi yang muncul kotak abu 95x50 di sekeliling
+  // ikon 35x26. Dilaporkan begitu.
+  const nav = css.slice(css.indexOf(".bottom-nav-item {"));
+  assert.match(nav.slice(0, nav.indexOf("}")), /-webkit-tap-highlight-color: transparent;/,
+    "menu bawah kembali memakai kotak sentuh bawaan browser");
+  assert.match(css, /\.bottom-nav-item:active \.bottom-nav-icon \{/,
+    "tidak ada umpan balik sentuh yang menggantikannya");
+  assert.doesNotMatch(css, /\.bottom-nav-item:hover/,
+    "umpan balik memakai :hover, yang menempel di Safari iOS sampai sesuatu "
+    + "yang lain disentuh");
+});
+
 test("menu bawah tetap sasaran sentuh yang sah sesudah dirampingkan", () => {
   // 48px masih di atas 44px, batas yang dipakai iOS maupun Android. Di bawah
   // itu perampingan berhenti jadi perampingan.
