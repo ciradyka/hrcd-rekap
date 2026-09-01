@@ -181,8 +181,13 @@ export function tanggalJam(t) {
  *
  *  `role="status"` + satu baris tersembunyi menjaga pembaca layar tetap
  *  mendapat kabar — bagi mereka perputaran tidak berarti apa-apa. */
-export function pemuat(teks = "Memuat…") {
-  return `<div class="pemuat" role="status" aria-live="polite">
+/** Penanda muat. `kecil` untuk yang duduk DI DALAM kartu, bukan menggantikan
+ *  seluruh layar: yang biasa memesan hampir setinggi layar supaya cincinnya
+ *  jatuh di tengah dan halaman tidak menyusut selagi isinya datang, dan di
+ *  dalam kartu setinggi 99px pesanan itu justru menggelembungkannya jadi
+ *  675px sekejap sebelum menciut lagi. */
+export function pemuat(teks = "Memuat…", { kecil = false } = {}) {
+  return `<div class="pemuat${kecil ? " pemuat-kecil" : ""}" role="status" aria-live="polite">
     <span class="pemuat-cincin" aria-hidden="true"></span>
     <span class="visually-hidden">${esc(teks)}</span>
   </div>`;
