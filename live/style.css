@@ -2342,8 +2342,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .table-peserta { table-layout: fixed; min-width: 858px; }
 
   .table-peserta > thead > tr > th:nth-child(1) { width: 16%; }
-  .table-peserta > thead > tr > th:nth-child(2) { width: 13%; }
-  .table-peserta > thead > tr > th:nth-child(3) { width: 25%; }
+  /* 15%, bukan 13%: pada lebar tersempit tabel ini (min-width 858px) 13%
+     memberi sel 111px, isinya 95px, sementara kode pembayaran menuntut 106px
+     — jadi ia patah di tanda hubungnya sendiri dan "HRCD37-" berdiri sendiri
+     di baris pertama. Dua persen itu diambil dari Asal Sekolah, satu-satunya
+     kolom yang isinya memang boleh membungkus. */
+  .table-peserta > thead > tr > th:nth-child(2) { width: 15%; }
+  .table-peserta > thead > tr > th:nth-child(3) { width: 23%; }
   .table-peserta > thead > tr > th:nth-child(4) { width:  6%; }
   .table-peserta > thead > tr > th:nth-child(5) { width: 21%; }
   .table-peserta > thead > tr > th:nth-child(6) { width: 19%; }
@@ -3542,13 +3547,18 @@ button.pill-number:hover { filter: brightness(.95); }
   .data-table.table-peserta tbody tr[data-baris] > td[data-label]::before { content: none; }
   .table-peserta tbody tr[data-baris] {
     display: grid;
-    /* Kolom pertama DIPATOK, tidak `max-content` seperti Meja Pembayaran.
-       Bedanya karena kartu ini memuat KOTAK ISIAN, dan lebar bawaan sebuah
-       <input> ikut menentukan `max-content` kolomnya: terukur di 430px
-       kolomnya melar jadi 252px dan sisa kartunya tinggal 69px — nama sekolah,
-       tanggal, dan nomor WA semuanya terjepit. 9rem cukup untuk kode
-       pembayaran (terukur 118px) dan tidak bergantung pada isi sel mana pun. */
-    grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    /* DUA KOLOM SAMA LEBAR, dan yang menentukan itu BARIS KEDUA: dua kotak
+       isian bersebelahan yang lebarnya berbeda 8px terbaca sebagai dua kotak
+       yang tidak lurus, bukan sebagai sepasang. Terukur sebelum diperbaiki di
+       393px: 144px lawan 136px.
+
+       Kolom pertama sempat dipatok 9rem demi kode pembayaran, dan `1fr` tidak
+       mengambil apa pun darinya — separuh kartu di 393px adalah 156px,
+       sedangkan kode pembayaran terukur 118px. Yang TIDAK boleh kembali
+       `max-content`: lebar bawaan sebuah <input> ikut menentukannya, dan
+       terukur di 430px kolomnya melar jadi 252px sampai sisa kartunya tinggal
+       69px. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: .25rem .7rem;
     align-items: center;
   }
@@ -3566,9 +3576,52 @@ button.pill-number:hover { filter: brightness(.95); }
   .table-peserta tbody tr[data-baris] > td[data-label="Tanggal"]       { display: none; }
   .table-peserta tbody tr[data-baris] > td[data-label="Kode Bayar"]    { grid-area: 1 / 1; }
   .table-peserta tbody tr[data-baris] > td[data-label="Asal Sekolah"]  { grid-area: 1 / 2; }
-  .table-peserta tbody tr[data-baris] > td[data-label="Regu"]          { grid-area: 2 / 1; }
-  .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"] { grid-area: 3 / 1; }
-  .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"]      { grid-area: 3 / 2; }
+  /* KONTAK DI BARIS KEDUA, TOMBOL REGU DI BAWAHNYA. Sebelumnya terbalik, dan
+     tombol yang duduk di antara nama sekolah dan kotak kontaknya memisahkan
+     dua keterangan yang dibaca bersama — nama CP dan nomornya milik
+     pendaftaran yang sama, dan keduanya milik sekolah tepat di atasnya.
+     Tombol regu MEMBUKA sesuatu, jadi tempatnya di kaki kartu, tepat di atas
+     rincian yang keluar dari sana. */
+  .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"] { grid-area: 2 / 1; }
+  .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"]      { grid-area: 2 / 2; }
+  .table-peserta tbody tr[data-baris] > td[data-label="Regu"]          { grid-area: 3 / 1; }
+  /* Kedua kotak kontak DILURUSKAN DI ATAS, bukan ditengahkan sendiri-sendiri.
+     `align-items: center` pada kartunya benar untuk baris pertama — kode dan
+     nama sekolah beda tinggi barisnya — tetapi pada sepasang kotak isian ia
+     menurunkan yang lebih pendek beberapa piksel. Terukur 4px, cukup untuk
+     terlihat sebagai dua kotak yang tidak sejajar. */
+  .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"],
+  .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"] {
+    align-self: start;
+    /* `td:last-child { margin-top: .5rem }` di aturan kartu umum mengenai
+       kotak WhatsApp — ia memang anak terakhir barisnya — dan itulah 8px yang
+       menurunkannya dari kotak nama CP di sebelahnya. Aturan itu ada untuk
+       kartu yang tombolnya di sel terakhir; di sini sel terakhir justru
+       separuh dari sepasang kotak yang harus lurus. */
+    margin-top: 0;
+  }
+  /* DI BAWAH 360px KARTUNYA JADI SATU KOLOM, dan ambang itu diukur bukan
+     dipilih: separuh kartu di 360px adalah 123px, dan kode pembayaran
+     terukur 118px — pas. Di 320px separuhnya tinggal 103px dan kodenya patah
+     di tanda hubungnya sendiri, jadi "HRCD37-" berdiri di satu baris dan
+     "93E49F" di baris berikutnya. Dari layar itu terbaca seperti dua kode,
+     kesalahan yang sama dengan judul dialog Riwayat.
+
+     Yang mengalah SUSUNANNYA, bukan ukuran hurufnya: kode pembayaran dibaca
+     dari seberang meja dan dieja lewat telepon.
+
+     Urutannya tetap sama dari atas ke bawah — kode, sekolah, kontak, tombol
+     regu — jadi yang berpindah antara HP kecil dan HP besar tidak menemukan
+     dua susunan yang berbeda, cuma satu yang lebih tinggi. */
+  @media (max-width: 359px) {
+    .table-peserta tbody tr[data-baris] { grid-template-columns: minmax(0, 1fr); }
+    .table-peserta tbody tr[data-baris] > td[data-label="Kode Bayar"]     { grid-area: 1 / 1; }
+    .table-peserta tbody tr[data-baris] > td[data-label="Asal Sekolah"]   { grid-area: 2 / 1; }
+    .table-peserta tbody tr[data-baris] > td[data-label="Contact Person"] { grid-area: 3 / 1; }
+    .table-peserta tbody tr[data-baris] > td[data-label="WhatsApp"]       { grid-area: 4 / 1; }
+    .table-peserta tbody tr[data-baris] > td[data-label="Regu"]           { grid-area: 5 / 1; }
+  }
+
   /* Tombol regu rata KIRI di kolomnya, bukan di tengah: kolom pertama dipatok
      lebar kode pembayaran, dan tombol yang mengambang di tengahnya tidak
      sejajar dengan apa pun di atas maupun di bawahnya. */
