@@ -7551,7 +7551,7 @@ async function layarFoto() {
        bawahnya, tempat isinya memang sedang berubah. */
     elLomba.disabled = true;
     elPos.disabled = true;
-    elGrid.replaceChildren(h(pemuat()));
+    elGrid.replaceChildren(h(pemuat("Memuat…", { kecil: true })));
     let komponen;
     try { komponen = await komponenPos(EDISI.nomor, nomorPos); }
     catch (e) {
@@ -7586,7 +7586,7 @@ async function layarFoto() {
       // Pemutar, bukan tulisan. Yang sedang terjadi selalu sama — sedang
       // dimuat — jadi kata yang mengatakannya tidak menambah apa pun, dan di
       // layar yang dipakai ratusan kali per shift ia terbaca berulang-ulang.
-      elGrid.replaceChildren(h(pemuat()));
+      elGrid.replaceChildren(h(pemuat("Memuat…", { kecil: true })));
     }
     let daftar;
     try { daftar = await daftarFotoBelumTaut(nomorPos, kodeLomba); }

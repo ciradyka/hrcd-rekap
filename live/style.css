@@ -4130,6 +4130,14 @@ button.pill-number:hover { filter: brightness(.95); }
      akibatnya layar terlihat kosong dulu sebelum apa pun terjadi — diam yang
      justru terbaca sebagai macet. */
 }
+/* Penanda muat DI DALAM kartu: tanpa pesanan setinggi layar.
+   `min-height: calc(100vh - 10rem)` di atas benar untuk layar yang seluruh
+   isinya belum ada — di layar 760px ia 600px. Dijatuhkan ke dalam petak foto
+   layar Foto Jawaban Sekaligus, angka itu membuat kartunya melonjak dari 99px
+   ke 675px lalu balik lagi setiap kali lombanya diganti. Terukur begitu, dan
+   dilaporkan sebagai "langsung membesar dan mengecil". */
+.pemuat.pemuat-kecil { min-height: 0; padding: .9rem; }
+
 .pemuat-cincin {
   width: 36px; height: 36px; border-radius: 50%;
   border: 3px solid var(--garis);
