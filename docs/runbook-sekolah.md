@@ -187,6 +187,22 @@ Nama resmi yang berbeda tetap disimpan di kolom `nama_resmi`
 `sekolah_alamat.json`, jadi tidak ada yang hilang.
 
 Hasil: **1.102 baris peserta → 201 klaster**, dari 326 tulisan mentah.
+
+> **Angka 1.102 itu tidak tutup dengan bagian 2 dan 3, dan tidak bisa
+> dihitung ulang.** 1.254 baris dikurangi 151 yang bukan sekolah adalah
+> 1.103, bukan 1.102 — selisih satu baris yang tidak dijelaskan di mana pun.
+> Keempat `.xlsx` sumbernya tidak ada di repo (dan memang tidak boleh ada:
+> isinya nama peserta), jadi tidak ada cara memutuskan mana dari ketiga angka
+> itu yang meleset. Dibiarkan apa adanya, dengan catatan ini, karena
+> membetulkan salah satunya secara sepihak cuma memindahkan selisihnya ke
+> tempat lain.
+>
+> Yang di sebelah kanan panah TIDAK bergantung pada ketiganya. 201 klaster,
+> 189 sekolah, dan 209 hari ini semuanya bisa dihitung ulang dari
+> `tools/data/sekolah_nama.json` dan `sekolah_alamat.json` yang ADA di repo —
+> `python tools/periksa_sekolah.py` mencetak dua yang terakhir tiap kali
+> dijalankan. Kalau salah satu angka di halaman ini perlu dipercaya, percaya
+> yang itu.
 Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah** —
 angka putaran pertama, atas empat edisi lama saja. Pendaftaran XXXVII
 menambahkannya jadi **209**; keadaan hari ini ada di bagian 11.
