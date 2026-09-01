@@ -6,7 +6,7 @@ const panitia = await readFile(new URL("../web/js/app.js", import.meta.url), "ut
 const peserta = await readFile(new URL("../live/live.js", import.meta.url), "utf8");
 
 test("regu tanpa peringkat tetap menjadi baris, bukan podium", () => {
-  assert.match(panitia, /baris\.filter\(k => k\.peringkat\)\.sort\(urutJuara\)\.slice\(0, 6\)/);
+  assert.match(panitia, /filter\(k => k\.golongan === g && k\.peringkat\)\s*\.sort\(urutJuara\)\.slice\(0, 6\)/);
   assert.match(peserta, /baris\.filter\(b => b\.peringkat && b\.peringkat <= 3\)/);
 });
 

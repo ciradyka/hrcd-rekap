@@ -5854,20 +5854,21 @@ function siapkanCetakRekap({ judul, baris, posKolom, rekapDada }) {
    <body>, jadi tidak ada yang membuangnya saat pindah layar. */
 let pengendaliFilterSekolah = null;
 
-/* Golongan yang sedang dibuka, dan posisi guliran, DIINGAT melewati gambar
-   ulang Refresh.
+/* Golongan yang sedang dibuka, DIINGAT melewati kunjungan berikutnya ke layar
+   ini \u2014 panitia yang bolak-balik antara Live Score dan layar input sepanjang
+   pagi hampir selalu menanyakan golongan yang sama.
 
-   Keduanya di luar layarLiveScore() karena fungsi itu menggambar ulang
-   seluruh papan dari nol tiap kali dipanggil. Tanpa ingatan ini Refresh
-   melempar panitia kembali ke tab golongan pertama dan ke puncak halaman \u2014
-   dan yang menekan Refresh justru sedang MEMBACA satu baris di tengah tabel,
-   biasanya sesudah menyimpan nilai regu itu.
+   Di luar layarLiveScore() karena fungsi itu menggambar papan dari nol tiap
+   kali dipanggil.
 
    `null` berarti belum ada yang dipilih, dan itu beda dari "memilih golongan
    pertama": golongan yang diingat dipakai HANYA kalau ia masih punya baris,
-   supaya papan tidak terbuka pada tab kosong. */
+   supaya papan tidak terbuka pada tab kosong.
+
+   PASANGANNYA, `guliranLiveScore`, SUDAH TIDAK ADA. Ia ada karena Refresh
+   dulu menggambar ulang seluruh layar dan melempar guliran ke puncak; sejak
+   Refresh menukar angkanya di tempat, tidak ada lagi yang melempar apa pun. */
 let golonganLiveScore = null;
-let guliranLiveScore = null;
 
 /** Satu request yang putus tidak boleh merobohkan seluruh papan.
  *
@@ -5907,17 +5908,21 @@ async function layarLiveScore() {
   }
   if (location.hash !== layarIni) return;
 
-  const pos = snapshot.kelengkapan || [];
+  /* `let`, bukan `const`, untuk yang datang dari snapshot: tombol Refresh
+     menukar isinya DI TEMPAT dan tidak menggambar ulang layar ini. Yang tetap
+     `const` konfigurasi — daftar pos dan komponennya menentukan KOLOM tabel,
+     dan kolom yang berubah menuntut gambar ulang penuh. */
+  let pos = snapshot.kelengkapan || [];
   const posSemua = snapshot.pos || [];
   const komponen = snapshot.komponen || [];
-  const rekap = snapshot.rekap || [];
+  let rekap = snapshot.rekap || [];
 
   /* v_rekap_penuh sudah menghitung peringkat, total, penalti, dan poin per pos
      yang sama dengan klasemen_live_score(). Meminta keduanya membuat database
      menjalankan seluruh rantai skor dua kali untuk setiap panitia yang membuka
      layar ini. Papan hanya memerlukan baris yang sudah berangkat; nama kolom
      poin dinormalkan di sini agar bentuk data untuk penggambar tidak berubah. */
-  const klasemen = rekap
+  const hitungKlasemen = (baris) => baris
     .filter(r => r.sudah_berangkat)
     .map(r => ({ ...r, poin_per_pos: r.poin_pos }))
     .sort((a, b) => {
@@ -5928,6 +5933,7 @@ async function layarLiveScore() {
         return Number(a.peringkat) - Number(b.peringkat);
       return Number(b.total) - Number(a.total);
     });
+  let klasemen = hitungKlasemen(rekap);
 
   // `let`, bukan `const`: saklar di bawah memperbaruinya DI TEMPAT.
   let fase = (status && status.fase_live) || "pra";
@@ -5954,40 +5960,43 @@ async function layarLiveScore() {
     return `hsl(${Math.round(rona)}, 72%, 40%)`;
   };
 
-  const totalLengkap = pos.reduce((n, p) => n + Number(p.lengkap || 0), 0);
-  const totalRegu    = pos.reduce((n, p) => n + Number(p.regu_total || 0), 0);
-  const persenSemua  = totalRegu ? Math.round(totalLengkap / totalRegu * 100) : 0;
+  /* Fungsi, bukan angka: Refresh menukar `pos` lalu memanggil keduanya lagi
+     tanpa menggambar ulang kartunya. */
+  const persenSemua = () => {
+    const lengkap = pos.reduce((n, p) => n + Number(p.lengkap || 0), 0);
+    const semua   = pos.reduce((n, p) => n + Number(p.regu_total || 0), 0);
+    return semua ? Math.round(lengkap / semua * 100) : 0;
+  };
+  const cincinPos = () => pos.map(p => {
+    const s = persenPos(p);
+    return `
+    <li>
+      <div class="cincin" style="--persen:${s};--warna:${warnaPersen(s)}"
+           role="img" aria-label="Pos ${esc(String(p.pos))} ${esc(String(s))} persen selesai">
+        <span>${esc(String(s))}<i>%</i></span>
+      </div>
+      <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
+      <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu</div>
+    </li>`;
+  }).join("");
 
   const kemajuan = `
     <div class="card">
       <button type="button" class="judul-status" id="kemajuan-buka"
               aria-expanded="false" aria-controls="kemajuan-rinci">
         <span class="js-teks">Status</span>
-        <span class="js-batang" aria-hidden="true"><span
-          style="width:${persenSemua}%;background:${warnaPersen(persenSemua)}"></span></span>
-        <span class="js-persen">${esc(String(persenSemua))}%</span>
+        <span class="js-batang" aria-hidden="true"><span id="js-batang-isi"
+          style="width:${persenSemua()}%;background:${warnaPersen(persenSemua())}"></span></span>
+        <span class="js-persen" id="js-persen">${esc(String(persenSemua()))}%</span>
         <span class="kr-panah" aria-hidden="true">▾</span>
       </button>
       <div class="description toolbar-kanan">
-        <span>Update ${esc(tanggalJam(snapshot.dibuat_pada))}</span>
+        <span id="waktu-snapshot">Update ${esc(tanggalJam(snapshot.dibuat_pada))}</span>
         <button type="button" class="icon-button icon-button-inline"
                 id="refresh-live-score" aria-label="Refresh Live Score"
                 title="Refresh Live Score">${ikonRefresh}</button>
       </div>
-      <ul class="kemajuan" id="kemajuan-rinci">
-        ${pos.map(p => {
-          const s = persenPos(p);
-          return `
-          <li>
-            <div class="cincin" style="--persen:${s};--warna:${warnaPersen(s)}"
-                 role="img" aria-label="Pos ${esc(String(p.pos))} ${esc(String(s))} persen selesai">
-              <span>${esc(String(s))}<i>%</i></span>
-            </div>
-            <div class="c-nama">Pos ${esc(String(p.pos))} · ${esc(p.nama_pos)}</div>
-            <div class="c-angka">${esc(String(p.lengkap))} / ${esc(String(p.regu_total))} regu</div>
-          </li>`;
-        }).join("")}
-      </ul>
+      <ul class="kemajuan" id="kemajuan-rinci">${cincinPos()}</ul>
     </div>`;
 
   /* Enam besar, bukan tiga. Yang diumumkan di lapangan adalah Juara 1-3 lalu
@@ -6041,7 +6050,7 @@ async function layarLiveScore() {
       ...p,
       lomba: kelompokLomba(kolomPos(komponen.filter(k => k.pos === p.nomor))),
     }));
-  const rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
+  let rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
   const kepalaPos = kepalaPosRekap(posKolom);
   /* KEEMPAT golongan selalu digambar, dengan urutan tetap — bukan hanya yang
      kebetulan sudah punya baris.
@@ -6073,9 +6082,60 @@ async function layarLiveScore() {
                 style="padding:.3rem .7rem;font-size:.85rem">${esc(teks)}</button>`).join("")}
     </div>`;
 
+  /* PODIUM DAN BARIS TABEL DIPISAH dari kartunya, dan itu yang membuat tombol
+     Refresh bisa menukar angkanya tanpa menggambar ulang layar: keduanya
+     dipanggil lagi dari `pasangSnapshot()` di bawah, lalu hasilnya dipasang ke
+     elemen yang sudah berdiri. Kartunya sendiri — kepala, saklar fase,
+     penyaring sekolah, kepala kolom — tidak disentuh, jadi tab yang sedang
+     dibuka, saringan yang sedang aktif, dan guliran tabelnya tetap. */
+  const podiumGol = (g) => klasemen
+    .filter(k => k.golongan === g && k.peringkat)
+    .sort(urutJuara).slice(0, 6)
+    .map((k, i) => `
+              <div class="juara j${i + 1}${i >= 3 ? " harapan" : ""}">
+                <div class="medali" aria-hidden="true">${MEDALI[i + 1] || ""}</div>
+                <div class="j-teks">
+                  <div class="peringkat">${esc(gelar(i + 1))}
+                    <span class="dada-juara">${esc(dada3(k.nomor_dada))}</span></div>
+                  <div class="nama">${esc(k.nama_regu)}</div>
+                  <div class="sekolah">${esc(k.nama_sekolah)}</div>
+                </div>
+                <div class="total">${esc(angkaRapi(k.total))}</div>
+              </div>`).join("");
+
+  const barisGol = (g) => klasemen.filter(k => k.golongan === g).map(k => {
+  const rk = rekapDada.get(k.nomor_dada) || {};
+  return `
+  <tr data-sekolah="${esc(k.nama_sekolah || "")}">
+    <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat ?? ""))}</span></td>
+    <td class="angka">${esc(dada3(k.nomor_dada))}</td>
+    <td>${esc(k.nama_regu)}</td>
+    <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
+    <!-- Satu lomba bisa punya baris wahana berbeda per golongan;
+         yang berlaku untuk regu INI yang dibaca. Aturannya
+         duduk di selPosRegu(), bersama kepalaPosRekap() —
+         kertas rekap memakai keduanya juga. -->
+    ${selPosRegu(k, posKolom, rekapDada).map(sel =>
+      `<td class="text-center${sel.nilai ? " pos-nilai" : ""}${
+        sel.batas ? " rekap-batas" : ""}">${
+        sel.mati ? `<span class="sel-mati">${esc(sel.teks)}</span>`
+                 : esc(sel.teks)}</td>`).join("")}
+    <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
+    <td class="text-center">${esc(rk.kloter ?? "—")}</td>
+    <td class="text-center">${esc(rk.jam_berangkat
+      ? jamMenit(rk.jam_berangkat) : "—")}</td>
+    <td class="text-center">${esc(rk.jam_datang
+      ? jamMenit(rk.jam_datang) : "—")}</td>
+    <td class="text-center">${esc(rk.anggota_hadir ?? "—")}</td>
+    <td class="text-center">${esc(angkaRapi(
+      Number(k.penalti_waktu) + Number(k.penalti_checkout)
+      + Number(k.penalti_anggota)))}</td>
+    <td class="text-center"><strong>${esc(angkaRapi(k.total))}</strong></td>
+  </tr>`;
+  }).join("");
+
   const kartuGolongan = (g) => {
         const baris = klasemen.filter(k => k.golongan === g);
-        const juara = baris.filter(k => k.peringkat).sort(urutJuara).slice(0, 6);
         const sekolahAda = [...new Set(baris.map(k => k.nama_sekolah).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id"));
         if (!baris.length) return `
@@ -6105,19 +6165,7 @@ async function layarLiveScore() {
             <h2>Klasemen sementara</h2>
             <div class="sisi kanan">${saklar}</div>
           </div>
-          <div class="podium">
-            ${juara.map((k, i) => `
-              <div class="juara j${i + 1}${i >= 3 ? " harapan" : ""}">
-                <div class="medali" aria-hidden="true">${MEDALI[i + 1] || ""}</div>
-                <div class="j-teks">
-                  <div class="peringkat">${esc(gelar(i + 1))}
-                    <span class="dada-juara">${esc(dada3(k.nomor_dada))}</span></div>
-                  <div class="nama">${esc(k.nama_regu)}</div>
-                  <div class="sekolah">${esc(k.nama_sekolah)}</div>
-                </div>
-                <div class="total">${esc(angkaRapi(k.total))}</div>
-              </div>`).join("")}
-          </div>
+          <div class="podium">${podiumGol(g)}</div>
           <!-- Penyaring sekolah. Daftarnya dibangun dari baris golongan INI,
                bukan dari seluruh sekolah: memilih sekolah yang tidak punya
                regu di golongan yang sedang dibuka menghasilkan tabel kosong
@@ -6196,36 +6244,7 @@ async function layarLiveScore() {
                 </tr>
               </thead>
               <tbody>
-                ${baris.map(k => {
-                  const rk = rekapDada.get(k.nomor_dada) || {};
-                  return `
-                  <tr data-sekolah="${esc(k.nama_sekolah || "")}">
-                    <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat ?? ""))}</span></td>
-                    <td class="angka">${esc(dada3(k.nomor_dada))}</td>
-                    <td>${esc(k.nama_regu)}</td>
-                    <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
-                    <!-- Satu lomba bisa punya baris wahana berbeda per golongan;
-                         yang berlaku untuk regu INI yang dibaca. Aturannya
-                         duduk di selPosRegu(), bersama kepalaPosRekap() —
-                         kertas rekap memakai keduanya juga. -->
-                    ${selPosRegu(k, posKolom, rekapDada).map(sel =>
-                      `<td class="text-center${sel.nilai ? " pos-nilai" : ""}${
-                        sel.batas ? " rekap-batas" : ""}">${
-                        sel.mati ? `<span class="sel-mati">${esc(sel.teks)}</span>`
-                                 : esc(sel.teks)}</td>`).join("")}
-                    <td class="text-center">${esc(kontrakTeks(rk.kontrak_menit))}</td>
-                    <td class="text-center">${esc(rk.kloter ?? "—")}</td>
-                    <td class="text-center">${esc(rk.jam_berangkat
-                      ? jamMenit(rk.jam_berangkat) : "—")}</td>
-                    <td class="text-center">${esc(rk.jam_datang
-                      ? jamMenit(rk.jam_datang) : "—")}</td>
-                    <td class="text-center">${esc(rk.anggota_hadir ?? "—")}</td>
-                    <td class="text-center">${esc(angkaRapi(
-                      Number(k.penalti_waktu) + Number(k.penalti_checkout)
-                      + Number(k.penalti_anggota)))}</td>
-                    <td class="text-center"><strong>${esc(angkaRapi(k.total))}</strong></td>
-                  </tr>`;
-                }).join("")}
+                ${barisGol(g)}
               </tbody>
             </table>
           </div>
@@ -6434,28 +6453,87 @@ async function layarLiveScore() {
     });
   }
 
-  /* Refresh diminta petugas, bukan berjalan sendiri. Menggambar ulang lewat
-     fungsi layar yang sama memastikan snapshot skor, status acara, dan cap
-     update berasal dari satu pemuatan baru. */
-  /* Refresh MEMINTA DATABASE MENGHITUNG ULANG lebih dulu, baru menggambar
-     ulang. Menggambar ulang saja cuma membaca `cache_live_score` yang sama:
-     yang mengisi tabel itu satu-satunya cron `refresh-live-score.yml`, dan
-     cron itu sengaja hanya hidup pada tanggal lomba (CLAUDE.md 16.9 \u2014 cron
-     adalah tagihan berjalan, jendelanya tidak dilebarkan). Di luar dua hari
-     itu tombolnya menggambar ulang angka yang sama persis, tanpa satu pun
-     galat, karena membaca snapshot beku memang berhasil.
+  /* Saringan sekolah tiap panel, satu fungsi per panel. Diisi jauh di bawah
+     saat panelnya dipasang; yang memanggilnya cuma pasangSnapshot(). */
+  const saringUlang = [];
 
-     GAMBAR ULANG TETAP DIJALANKAN WALAU PENGHITUNGAN GAGAL. Snapshot lama
-     masih berguna dan cap waktunya jujur (itu keputusan 0146); yang tidak
-     boleh terjadi adalah tombol yang tidak melakukan apa-apa lalu diam.
+  /** Angka baru dipasang KE LAYAR YANG SUDAH BERDIRI.
+   *
+   *  Yang ditukar hanya yang datang dari snapshot: cap update, cincin
+   *  kelengkapan, hitungan tab, podium tiap golongan, dan baris tabelnya.
+   *  Yang TIDAK disentuh sama sekali: tab golongan yang sedang dibuka, panel
+   *  saringan sekolah beserta centangnya, kepala kolom, saklar fase, dan
+   *  guliran \u2014 halaman maupun guliran mendatar di dalam tabelnya.
+   *
+   *  Sebelumnya Refresh memanggil layarLiveScore() lagi, yang mengganti
+   *  SELURUH isi layar dengan pemuat lalu menggambarnya dari nol. Akibatnya
+   *  tiga hal yang semuanya terasa seperti kemunduran bagi yang menekannya:
+   *  layarnya berkedip kosong, saringan sekolah yang sedang dipakai terhapus,
+   *  dan gulirannya harus dipulihkan dengan angka yang diingat \u2014 padahal yang
+   *  menekan Refresh justru sedang MEMBACA satu baris di tengah tabel,
+   *  biasanya sesudah menyimpan nilai regu itu.
+   *
+   *  KOLOM TIDAK IKUT DITUKAR, dan itu disengaja: kolomnya ditentukan daftar
+   *  pos dan komponen, yaitu konfigurasi yang tidak berubah sepanjang pagi.
+   *  Kalau suatu saat memang berubah, yang benar menggambar ulang layarnya \u2014
+   *  bukan menambal kepala tabel di sini. */
+  const pasangSnapshot = (baru) => {
+    snapshot = baru;
+    pos = baru.kelengkapan || [];
+    rekap = baru.rekap || [];
+    klasemen = hitungKlasemen(rekap);
+    rekapDada = new Map(rekap.map(r => [r.nomor_dada, r]));
+
+    const p = persenSemua();
+    const batang = document.getElementById("js-batang-isi");
+    if (batang) {
+      batang.style.width = `${p}%`;
+      batang.style.background = warnaPersen(p);
+    }
+    const persen = document.getElementById("js-persen");
+    if (persen) persen.textContent = `${p}%`;
+    const waktu = document.getElementById("waktu-snapshot");
+    if (waktu) waktu.textContent = `Update ${tanggalJam(snapshot.dibuat_pada)}`;
+    const rinci = document.getElementById("kemajuan-rinci");
+    if (rinci) rinci.replaceChildren(h(cincinPos()));
+
+    LAYAR.querySelectorAll(".panel-gol").forEach(panel => {
+      const g = panel.dataset.gol;
+      const podium = panel.querySelector(".podium");
+      if (podium) podium.replaceChildren(h(podiumGol(g)));
+      const tbody = panel.querySelector("tbody");
+      if (tbody) tbody.replaceChildren(h(barisGol(g)));
+      const hitung = LAYAR.querySelector(
+        `.tab-gol[data-gol="${CSS.escape(g)}"] .tab-hitung`);
+      if (hitung) {
+        hitung.textContent = String(klasemen.filter(k => k.golongan === g).length);
+      }
+    });
+    // Barisnya baru, jadi saringan yang sedang aktif harus dijalankan lagi \u2014
+    // ia menyembunyikan baris satu per satu, dan baris yang baru lahir belum
+    // pernah dilewatinya.
+    saringUlang.forEach(f => f());
+  };
+
+  /* Refresh diminta petugas, bukan berjalan sendiri.
+
+     Refresh MEMINTA DATABASE MENGHITUNG ULANG lebih dulu, baru membaca
+     snapshotnya. Membaca saja cuma mengembalikan `cache_live_score` yang
+     sama: yang mengisi tabel itu satu-satunya cron `refresh-live-score.yml`,
+     dan cron itu sengaja hanya hidup pada tanggal lomba (CLAUDE.md 16.9 \u2014
+     cron adalah tagihan berjalan, jendelanya tidak dilebarkan). Di luar dua
+     hari itu tombolnya memasang angka yang sama persis, tanpa satu pun galat,
+     karena membaca snapshot beku memang berhasil.
+
+     PEMBACAAN TETAP DIJALANKAN WALAU PENGHITUNGAN GAGAL. Snapshot lama masih
+     berguna dan cap waktunya jujur (itu keputusan 0146); yang tidak boleh
+     terjadi adalah tombol yang tidak melakukan apa-apa lalu diam.
 
      Tombolnya dimatikan selama bekerja. Penghitungan bisa memakan detik, dan
      tanpa ini panitia menekannya tiga kali \u2014 yang ditahan ambang 5 detik di
      database, tapi tetap terasa seperti tombol rusak. */
   document.getElementById("refresh-live-score")?.addEventListener("click", async (e) => {
     const tombol = e.currentTarget;
-    // Diingat SEBELUM apa pun digambar ulang, dan dipulihkan sesudahnya.
-    guliranLiveScore = window.scrollY;
     tombol.disabled = true;
     tombol.classList.add("berputar");
     try {
@@ -6463,9 +6541,16 @@ async function layarLiveScore() {
     } catch (err) {
       notif(err.message, true);
     }
-    // Tidak perlu menyalakan tombolnya lagi: layarLiveScore() menggambar
-    // tombol yang baru sama sekali.
-    await layarLiveScore();
+    try {
+      pasangSnapshot(await muatDataLiveScore(cacheLiveScore));
+    } catch (err) {
+      notif(err.message, true);
+    }
+    // Tombolnya DIHIDUPKAN lagi di sini, dan itu baris yang tidak boleh
+    // hilang: dulu layarLiveScore() menggambar tombol yang baru sama sekali,
+    // sekarang tombolnya elemen yang sama dari awal sampai akhir.
+    tombol.classList.remove("berputar");
+    tombol.disabled = false;
   });
 
   /* Kepala tabel Live Score ada DUA baris, dan keduanya menempel di atas.
@@ -6574,6 +6659,9 @@ async function layarLiveScore() {
       hitung.textContent = pilih.size ? `(${pilih.size})` : "";
       panel.querySelector(".th-saring").classList.toggle("menyaring", pilih.size > 0);
     };
+    // Dipanggil lagi oleh Refresh: barisnya ditukar, dan baris yang baru lahir
+    // belum pernah dilewati saringan ini.
+    saringUlang.push(terapkan);
 
     const kepala = panel.querySelector(".th-saring");
     const isi = panel.querySelector(".isi-filter");
@@ -6636,16 +6724,6 @@ async function layarLiveScore() {
       terapkan();
     });
   });
-
-  /* Guliran dipulihkan DI SINI, sesudah seluruh papan tergambar \u2014 termasuk
-     tabelnya, yang menentukan tinggi halaman. Memulihkannya lebih awal tidak
-     bekerja: halaman yang belum setinggi posisi tujuan membuat browser
-     menahan guliran di batas yang ada saat itu. */
-  if (guliranLiveScore !== null) {
-    const ke = guliranLiveScore;
-    guliranLiveScore = null;
-    requestAnimationFrame(() => window.scrollTo(0, ke));
-  }
 
   const bilah = LAYAR.querySelector(".tab-golongan");
   if (bilah) {

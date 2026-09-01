@@ -29,7 +29,7 @@ test("Live Score membaca satu snapshot dan status ringan", () => {
 
 test("klasemen memakai hasil rekap tanpa menghitung skor dua kali", () => {
   assert.doesNotMatch(layar, /klasemenLiveScore/);
-  assert.match(layar, /const klasemen = rekap/);
+  assert.match(layar, /const hitungKlasemen = \(baris\) => baris/);
   assert.match(layar, /\.filter\(r => r\.sudah_berangkat\)/);
   assert.match(layar, /poin_per_pos: r\.poin_pos/);
 });
@@ -46,8 +46,8 @@ test("snapshot diurutkan menurut peringkat dan score, bukan nomor dada", () => {
   // penghargaan harus jatuh ke satu regu bahkan saat skornya seri; membaca
   // seluruh layarLiveScore() di sini membuat pemecah seri itu terbaca seperti
   // pelanggaran aturan ini.
-  const urut = layar.slice(layar.indexOf("const klasemen = rekap"),
-                           layar.indexOf("let fase ="));
+  const urut = layar.slice(layar.indexOf("const hitungKlasemen = (baris) => baris"),
+                           layar.indexOf("let klasemen = hitungKlasemen(rekap);"));
   assert.match(urut, /Number\(a\.peringkat\) - Number\(b\.peringkat\)/);
   assert.match(urut, /Number\(b\.total\) - Number\(a\.total\)/);
   assert.doesNotMatch(urut, /Number\(a\.nomor_dada\)|Number\(b\.nomor_dada\)/);

@@ -42,7 +42,10 @@ const selPanitia = (() => {
 
 /** Badan `kartuGolongan` — tabel Live Score panitia itu sendiri. */
 const papanPanitia = (() => {
-  const awal = app.indexOf("const kartuGolongan = (g) => {");
+  // Mulai dari podiumGol: podium dan baris tabel dipisah dari
+  // kartuGolongan supaya Refresh bisa menukar keduanya di tempat, jadi
+  // irisan yang mulai di kartuGolongan tidak lagi memuat satu barisnya pun.
+  const awal = app.indexOf("const podiumGol = (g) => klasemen");
   const akhir = app.indexOf("const GOL = URUT_GOLONGAN;", awal);
   assert.ok(awal >= 0 && akhir > awal, "kartuGolongan tidak ditemukan di app.js");
   return app.slice(awal, akhir);
