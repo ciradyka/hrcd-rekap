@@ -5310,6 +5310,13 @@ button.pill-number:hover { filter: brightness(.95); }
    menyusut karenanya. */
 .cek-kendali { padding: .6rem .8rem; }
 .cek-kendali .baris-pilih .field { margin-bottom: .5rem; }
+/* KEDUA DROPDOWN SEBARIS, termasuk di HP. Patokan bawaan `.baris-pilih .field`
+   adalah `flex: 1 1 12rem` — 192px, jadi dua kotak menumpuk di layar 393px
+   yang isinya cuma 330px, dan kartu kendalinya naik dari 116px jadi 177px.
+   Tinggi itu di layar ini diambil langsung dari foto slip.
+   `flex: 1 1 0` membagi barisnya rata: 160px per kotak, cukup untuk
+   "Pos 5 — Yel-Yel" maupun "Belum Kunci (12)". */
+.cek-kendali .baris-pilih .field { flex: 1 1 0; min-width: 0; }
 .cek-kendali .cek-navigasi { margin-top: 0; }
 
 /* Kartu identitas regu diberi jarak ke blok lomba pertama. Tanpa ini nama

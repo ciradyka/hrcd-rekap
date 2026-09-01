@@ -511,10 +511,10 @@ async function layarHome() {
              tidak melihatnya sama sekali. Persis yang terjadi sampai baris
              ini ditulis. -->
         <a href="#/pos2">
-          <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Pos v2</div>
+          <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Per Lomba</div>
         </a>
         <a href="#/pos">
-          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos${
+          <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Tabel${
             sesi().pos != null && sesi().pos !== "" ? ` ${esc(sesi().pos)}` : ""}</div>
         </a>
         <a href="#/foto">
@@ -614,7 +614,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/pos">
-        <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Pos</div>
+        <div class="function-name">${ikonKotak("square-pen", "nila")} Input Nilai Tabel</div>
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/foto">
@@ -622,7 +622,7 @@ async function layarHome() {
       </a>` : ""}
       ${bolehLihat("pos") ? `
       <a href="#/pos2">
-        <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Pos v2</div>
+        <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Per Lomba</div>
       </a>` : ""}
       ${bolehLihat("pengaturan") ? `
       <a href="#/cek-nilai">
@@ -4118,7 +4118,7 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 async function layarInputPos() {
   const s = sesi();
   if (!bolehLihat("pos")) {
-    pasangKepala("Input Nilai Pos");
+    pasangKepala("Input Nilai Tabel");
     LAYAR.replaceChildren(h(html`
       <div class="card">
         <h2>Akun meja, bukan akun pos</h2>
@@ -4128,7 +4128,7 @@ async function layarInputPos() {
     return;
   }
 
-  pasangKepala("Input Nilai Pos", "lembar");
+  pasangKepala("Input Nilai Tabel", "lembar");
   LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
@@ -8317,7 +8317,7 @@ const kartuReguNilai = (r, { ringkas = false } = {}) => (ringkas ? `
 async function layarInputPos2() {
   const s = sesi();
   if (!bolehLihat("pos")) {
-    pasangKepala("Input Nilai Pos v2");
+    pasangKepala("Input Nilai Per Lomba");
     LAYAR.replaceChildren(h(html`
       <div class="card">
         <h2>Akun meja, bukan akun pos</h2>
@@ -8327,7 +8327,7 @@ async function layarInputPos2() {
     return;
   }
 
-  pasangKepala("Input Nilai Pos v2", true);
+  pasangKepala("Input Nilai Per Lomba", true);
   LAYAR.replaceChildren(h(pemuat()));
 
   const layarIni = location.hash;
@@ -9380,6 +9380,15 @@ async function layarCekNilai() {
   let nomorPos = Number(posBoleh[0].nomor);
   let lembar = [];      // seluruh regu bernomor dada di pos ini
   let indeks = 0;
+  /* SARINGAN: yang dipilih tidak membuang barisnya, ia cuma menentukan mana
+     yang DILEWATI panah. `lembar` tetap utuh — kotak nomor dada harus tetap
+     bisa melompat ke regu mana pun, termasuk yang tersaring keluar: petugas
+     yang mengetik 042 sedang memegang regu 042 di depannya, dan layar yang
+     menjawab "tidak ada" karena saringannya sedang menyala membantah kenyataan
+     di meja. */
+  let saring = "semua";
+  let fotoAda = new Set();   // "nomorDada|kodeLomba" yang sudah punya foto
+  let fotoTerbaca = false;   // false = daftarnya gagal dibaca, bukan "tidak ada foto"
 
   LAYAR.replaceChildren(h(`
     <!-- Pita antrean ada DI SINI JUGA, dan itu bukan kerapian: sejak layar ini
@@ -9401,6 +9410,20 @@ async function layarCekNilai() {
                   ${posBoleh.length < 2 ? "disabled" : ""}>
             ${posBoleh.map(p => `<option value="${esc(p.nomor)}"
               >${esc(judulPos(p))}</option>`).join("")}
+          </select>
+        </div>
+        <!-- SARINGAN SEBAGAI DROPDOWN, bukan deretan chip. Empat chip beserta
+             angkanya tidak muat sebaris di layar 393px, dan yang tidak muat
+             membungkus jadi baris kedua — tinggi yang di layar ini diambil
+             dari foto slip. Dropdown juga bentuk yang sudah berdiri di
+             sebelahnya, jadi tidak ada satu pun benda baru untuk dipelajari.
+
+             ANGKANYA IKUT DI DALAM PILIHANNYA. "Belum Kunci" tanpa angka
+             menyuruh petugas menekan panah sampai mentok untuk tahu berapa
+             yang tersisa; dengan angkanya, pertanyaan itu sudah terjawab
+             sebelum ditekan sekali pun. -->
+        <div class="field">
+          <select id="cek-saring" class="select-small" aria-label="Saringan">
           </select>
         </div>
       </div>
@@ -9466,26 +9489,111 @@ async function layarCekNilai() {
   const elDada = document.getElementById("cek-dada");
   pasangDada3(elDada, sinyal);
   const elIsi = document.getElementById("cek-isi");
+  const elSaring = document.getElementById("cek-saring");
   const elMundur = document.getElementById("cek-mundur");
   const elMaju = document.getElementById("cek-maju");
 
-  /** Lomba pos yang sedang dibuka, dari katalog yang sudah di tangan. */
-  const lombaPos = () => katalogLomba(
+  /** Lomba pos yang sedang dibuka, dari katalog yang sudah di tangan.
+   *
+   *  DISIMPAN, tidak dihitung ulang tiap panggilan: saringan di bawah
+   *  memanggilnya sekali untuk SETIAP regu di pos ini — 269 kali dikali empat
+   *  saringan — dan katalogLomba() menyusun ulang seluruh kolom pos tiap kali.
+   *  Dikosongkan saat posnya berganti, satu-satunya saat jawabannya berubah. */
+  let lombaCache = null;
+  const lombaPos = () => (lombaCache ||= katalogLomba(
     katalogMentah.pos.filter(p => Number(p.nomor) === nomorPos),
-    katalogMentah.komponen);
+    katalogMentah.komponen));
+
+  /* ------------------------------------------------------------------------
+     SARINGAN: "mana yang masih perlu dikerjakan?"
+
+     Layar ini berjalan satu regu pada satu waktu, jadi saringan di sini bukan
+     daftar melainkan JALUR PANAH: yang tersaring keluar dilewati, dan yang
+     tersisa jadi antrean kerja. "Belum Kunci" dengan begitu berubah jadi
+     tumpukan yang tinggal dihabiskan.
+
+     Yang berlaku untuk satu regu dibatasi golongannya — komponen dan lomba
+     yang bukan urusan golongan itu tidak boleh dihitung sebagai pekerjaan
+     yang belum selesai. Aturan yang sama dipakai gambarKunci() dan
+     statusAwal(), lewat varianUntuk().
+     --------------------------------------------------------------------- */
+  const lombaBerlaku = (r) => lombaPos().filter(l =>
+    l.kolom.some(kol => varianUntuk(kol, r.golongan)));
+
+  const belumInput = (r) => lombaPos().some(l => l.kolom
+    .map(kol => varianUntuk(kol, r.golongan)).filter(Boolean)
+    .some(k => (r.nilai || {})[k.kode] === undefined));
+
+  const belumFoto = (r) => lombaBerlaku(r)
+    .some(l => !fotoAda.has(`${r.nomor_dada}|${l.kode}`));
+
+  const belumKunci = (r) => {
+    const kunci = new Set(r.lomba_terkunci || []);
+    return lombaBerlaku(r).some(l => !kunci.has(l.kode));
+  };
+
+  const SARING = [
+    ["semua", "Semua", () => true],
+    ["belum-input", "Belum Input", belumInput],
+    ["belum-foto", "Belum Foto", belumFoto],
+    ["belum-kunci", "Belum Kunci", belumKunci],
+  ];
+  const cocokSaring = (r) =>
+    (SARING.find(x => x[0] === saring) || SARING[0])[2](r);
+
+  /** Isi ulang pilihan saringan BESERTA jumlahnya.
+   *
+   *  Angkanya berubah tiap kali satu nilai disimpan atau satu gembok dipasang,
+   *  jadi ia dibangun ulang di tiap penggambaran — bukan sekali saat posnya
+   *  dimuat. "Belum Kunci (34)" yang tetap 34 sesudah tiga digembok adalah
+   *  angka yang membohongi orang yang sedang menghitung sisanya.
+   *
+   *  "Belum Foto" HILANG dari daftar kalau daftar fotonya gagal dibaca.
+   *  Menyisakannya berarti menandai seluruh regu belum difoto — tuduhan
+   *  terhadap pekerjaan yang mungkin sudah selesai, aturan yang sama dengan
+   *  "foto tidak terbaca" di petak fotonya. */
+  function isiSaring() {
+    const pakai = SARING.filter(([kode]) => fotoTerbaca || kode !== "belum-foto");
+    if (!pakai.some(([kode]) => kode === saring)) saring = "semua";
+    elSaring.innerHTML = pakai.map(([kode, label, uji]) =>
+      `<option value="${esc(kode)}"${kode === saring ? " selected" : ""}
+        >${esc(label)} (${lembar.filter(uji).length})</option>`).join("");
+  }
 
   async function muatPos() {
     elIsi.replaceChildren(h(pemuat()));
-    try { lembar = await lembarPos(nomorPos); }
-    catch (e) { elIsi.replaceChildren(kartuGagalMuat(e.message, muatPos)); return; }
+    lombaCache = null;
+    /* Daftar foto SEPOS diambil sekali di sini, bukan per regu: saringan
+       "Belum Foto" menanyakannya untuk 269 regu sekaligus, dan
+       daftarFotoLembar() menjawab satu regu per permintaan. v_foto_lembar
+       mengembalikan pasangan nomor dada + kode lomba saja, jadi ia murah.
+
+       Kegagalannya TIDAK menjatuhkan layar: fotonya cuma menghidupkan satu
+       saringan, sedangkan angkanya — yang membuat layar ini ada — datang dari
+       lembar pos. */
+    let foto = null;
+    try {
+      [lembar, foto] = await Promise.all([
+        lembarPos(nomorPos),
+        fotoLembarPos(nomorPos).catch(() => null),
+      ]);
+    } catch (e) { elIsi.replaceChildren(kartuGagalMuat(e.message, muatPos)); return; }
     if (sinyal.aborted) return;
+    fotoTerbaca = foto !== null;
+    fotoAda = new Set((foto || []).map(f => `${f.nomor_dada}|${f.kode_lomba}`));
     indeks = 0;
+    /* Regu pertama yang LOLOS saringan, bukan regu pertama. Saringan yang
+       bertahan saat pos diganti tetapi selalu mendarat di regu yang tersaring
+       keluar akan terbaca seperti saringan yang tidak jalan. */
+    const awal = lembar.findIndex(cocokSaring);
+    if (awal >= 0) indeks = awal;
     await gambarRegu();
   }
 
   function perbaruiNavigasi() {
-    elMundur.disabled = indeks <= 0;
-    elMaju.disabled = indeks >= lembar.length - 1;
+    isiSaring();
+    elMundur.disabled = tetangga(-1) < 0;
+    elMaju.disabled = tetangga(1) < 0;
     /* Kotaknya JANGAN ditimpa selagi diketik: petugas yang sedang mengetik
        "04" untuk menuju 042 akan melihat ketikannya diganti nomor yang sedang
        terbuka, di tengah ketikan. */
@@ -10198,8 +10306,33 @@ async function layarCekNilai() {
     gambarRegu();
   };
 
-  elMundur.addEventListener("click", () => ke(indeks - 1), { signal: sinyal });
-  elMaju.addEventListener("click", () => ke(indeks + 1), { signal: sinyal });
+  /** Tetangga berikutnya yang LOLOS saringan, atau -1 kalau tidak ada lagi.
+   *
+   *  Inilah seluruh isi saringan di layar ini: barisnya tidak dibuang, cuma
+   *  dilewati panah. */
+  const tetangga = (arah) => {
+    for (let i = indeks + arah; i >= 0 && i < lembar.length; i += arah) {
+      if (cocokSaring(lembar[i])) return i;
+    }
+    return -1;
+  };
+  const geser = (arah) => { const i = tetangga(arah); if (i >= 0) ke(i); };
+
+  elMundur.addEventListener("click", () => geser(-1), { signal: sinyal });
+  elMaju.addEventListener("click", () => geser(1), { signal: sinyal });
+
+  elSaring.addEventListener("change", () => {
+    saring = elSaring.value;
+    /* Regu yang sedang terbuka TIDAK ditinggalkan kalau ia masih lolos. Kalau
+       tidak, layar pindah ke yang pertama lolos — dan kalau tidak ada satu
+       pun, ia tetap di tempatnya dengan kedua panah mati. Angka (0) di
+       pilihannya sudah mengatakan itu sebelum ditekan. */
+    if (lembar.length && !cocokSaring(lembar[indeks])) {
+      const i = lembar.findIndex(cocokSaring);
+      if (i >= 0) { ke(i); return; }
+    }
+    perbaruiNavigasi();
+  }, { signal: sinyal });
 
   /* Panah kiri-kanan menggerakkan halaman juga. Petugas yang membandingkan
      dua ratus regu menekan "Berikutnya" dua ratus kali, dan memindahkan
@@ -10209,8 +10342,8 @@ async function layarCekNilai() {
      membetulkan ketikannya lebih buruk daripada tidak ada pintasan. */
   const panahNavigasi = (e) => {
     if (e.target.matches("input, select, textarea")) return;
-    if (e.key === "ArrowLeft") ke(indeks - 1);
-    else if (e.key === "ArrowRight") ke(indeks + 1);
+    if (e.key === "ArrowLeft") geser(-1);
+    else if (e.key === "ArrowRight") geser(1);
   };
   // Satu baris dengan opsinya, bukan dipecah: tests/screen_listener_cleanup
   // memeriksa BARIS yang memuat window.addEventListener, dan pendengar layar
