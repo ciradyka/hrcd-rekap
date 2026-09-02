@@ -6851,10 +6851,16 @@ async function layarLiveScore() {
  *  pengumuman, lalu jadi dasar menulis sertifikat. Sebelum ini satu-satunya
  *  cara mengeluarkannya dari layar adalah tangkapan layar HP.
  *
- *  BAGIAN DAN URUTANNYA DIPINJAM DARI LAYARNYA — `bagian` yang sama persis
- *  dioper ke sini, tidak ditulis ulang. Dua daftar penghargaan yang harus
- *  ikut benar setiap kali satu gelar ditambah adalah dua daftar yang suatu
- *  hari berselisih, dan yang berselisih di sini terbaca di panggung.
+ *  BAGIANNYA DIPINJAM DARI LAYARNYA — `bagian` yang sama persis dioper ke
+ *  sini, tidak ditulis ulang. Dua daftar penghargaan yang harus ikut benar
+ *  setiap kali satu gelar ditambah adalah dua daftar yang suatu hari
+ *  berselisih, dan yang berselisih di sini terbaca di panggung.
+ *
+ *  URUTANNYA BERBEDA DARI LAYARNYA, dan itu disengaja. Layar dipakai
+ *  memeriksa — yang dicari mata Juara I, jadi ia di atas. Panggung dibacakan
+ *  menaik: penghargaan pilihan dulu, lalu juara per golongan dari Harapan III
+ *  sampai Juara I, dan Juara Umum penutupnya. Angka urutnya ikut menempel di
+ *  tiap bagian di layarnya, jadi tetap satu daftar.
  *
  *  YANG BELUM DITENTUKAN IKUT DICETAK, dan tidak diredupkan. Pembawa acara
  *  yang menemukan gelar kosong di atas panggung tidak punya jalan keluar;
@@ -6901,8 +6907,34 @@ function siapkanCetakJuara(hasil, bagian) {
     return `<span class="juara-kosong">Belum ditentukan</span>`;
   };
 
-  const isi = bagian.map(([judul, masuk, label]) => {
-    const punya = hasil.filter(masuk);
+  /* URUTAN BACA DI DALAM SATU BAGIAN, dan satu aturan melayani ketiga
+     bentuknya karena kode penghargaannya sendiri yang membawanya:
+
+       penggalang_pi_6        golongan + peringkat  -> Harapan III dulu
+       kostum_penggalang_pi   golongan saja         -> urut golongan
+       terjauh                keduanya tidak ada    -> biarkan apa adanya
+
+     Peringkatnya dibalik (6 dulu, 1 terakhir) karena panggung dibacakan
+     menaik: Harapan III lebih dulu, Juara I penutupnya.
+
+     DAFTAR GOLONGAN DI SINI BUKAN SALINAN `URUT_GOLONGAN`, dan tidak boleh
+     diganti dengan itu. Yang di util.js urutan TAMPIL — dipakai tab Live
+     Score dan kolom rekap; yang ini urutan DIBACAKAN, diminta pemilik acara:
+     putri lebih dulu di tiap tingkat, dan Penggalang sebelum Penegak. Dua
+     fakta berbeda yang kebetulan sama bentuknya. */
+  const URUT_BACA_GOLONGAN =
+    ["penggalang_pi", "penggalang_pa", "penegak_pi", "penegak_pa"];
+  const kunciBaca = (x) => {
+    const g = URUT_BACA_GOLONGAN.findIndex(k => x.kode.includes(k));
+    const p = x.kode.match(/_(\d+)$/);
+    return [g < 0 ? URUT_BACA_GOLONGAN.length : g, p ? -Number(p[1]) : 0];
+  };
+
+  const isi = [...bagian].sort((a, b) => a[4] - b[4]).map(([judul, masuk, label]) => {
+    const punya = hasil.filter(masuk).sort((a, b) => {
+      const ka = kunciBaca(a), kb = kunciBaca(b);
+      return ka[0] - kb[0] || ka[1] - kb[1];
+    });
     if (!punya.length) return "";
     return `
       <section class="juara-bagian">
@@ -7014,32 +7046,44 @@ async function layarKejuaraan() {
   /* Label golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini:
      satu-satunya tempatnya `util.js`, dan `periksa_urutan_golongan.py` yang
      menjaganya tetap satu. */
-  const gelarGolongan = (kode, kelas) => [
+  /* Angka kelima tiap bagian adalah URUTAN BACANYA DI PANGGUNG, dan ia
+     sengaja berbeda dari urutan di layar ini.
+
+     Layar dipakai MEMERIKSA: yang dicari mata Juara I, jadi ia di atas.
+     Panggung dibacakan MENAIK: penghargaan pilihan lebih dulu, lalu juara per
+     golongan dari Harapan III sampai Juara I, dan Juara Umum paling akhir
+     sebagai puncaknya. Urutan ini keputusan pemilik acara, 2 September 2026.
+
+     Ditaruh sebagai angka DI SINI, bukan sebagai daftar kedua di pembuat
+     cetakannya: daftar penghargaan yang ditulis dua kali adalah daftar yang
+     suatu hari berselisih, dan yang berselisih di sini dibacakan di depan
+     orang banyak. */
+  const gelarGolongan = (kode, kelas, urut) => [
     GOLONGAN_LABEL[kode], x => x.kode.startsWith(kode + "_"),
-    x => x.nama_penghargaan.replace(GOLONGAN_LABEL[kode] + " ", ""), kelas];
+    x => x.nama_penghargaan.replace(GOLONGAN_LABEL[kode] + " ", ""), kelas, urut];
 
   const bagian = [
     ["Juara Umum", x => x.kode === "juara_umum",
-      x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
+      x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum", 11],
     ["Juara Umum Penegak", x => x.kode === "juara_umum_penegak",
-      () => "PENEGAK", "kejuaraan-umum-penegak"],
-    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa"),
-    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi"),
+      () => "PENEGAK", "kejuaraan-umum-penegak", 10],
+    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa", 8),
+    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi", 7),
     ["Juara Umum Penggalang", x => x.kode === "juara_umum_penggalang",
-      () => "PENGGALANG", "kejuaraan-umum-penggalang"],
-    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa"),
-    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi"),
+      () => "PENGGALANG", "kejuaraan-umum-penggalang", 9],
+    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa", 6),
+    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi", 5),
     ["Juara Kostum", x => x.kode.startsWith("kostum_"),
       x => x.nama_penghargaan.replace(/^Juara Kostum /, ""),
-      "kejuaraan-kostum kejuaraan-pilihan"],
+      "kejuaraan-kostum kejuaraan-pilihan", 2],
     ["Juara Yel Yel", x => x.kode.startsWith("yel_yel_"),
-      x => x.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel"],
+      x => x.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel", 3],
     ["Peserta Terfavorit", x => x.kode.startsWith("terfavorit_"),
       x => x.nama_penghargaan.replace(/^Peserta Terfavorit /, ""),
-      "kejuaraan-terfavorit kejuaraan-pilihan"],
+      "kejuaraan-terfavorit kejuaraan-pilihan", 1],
     ["Penghargaan Khusus",
       x => x.kode === "terjauh" || x.kode === "peserta_terbanyak",
-      x => x.nama_penghargaan, "kejuaraan-khusus kejuaraan-pilihan"],
+      x => x.nama_penghargaan, "kejuaraan-khusus kejuaraan-pilihan", 4],
   ];
 
   LAYAR.replaceChildren(h(`
