@@ -6845,6 +6845,92 @@ async function layarLiveScore() {
 
 /* ============================ KEJUARAAN ================================= */
 
+/** DAFTAR JUARA DI ATAS KERTAS.
+ *
+ *  Dua pemakaian, dan keduanya menuntut kertas: dibacakan di panggung saat
+ *  pengumuman, lalu jadi dasar menulis sertifikat. Sebelum ini satu-satunya
+ *  cara mengeluarkannya dari layar adalah tangkapan layar HP.
+ *
+ *  BAGIAN DAN URUTANNYA DIPINJAM DARI LAYARNYA — `bagian` yang sama persis
+ *  dioper ke sini, tidak ditulis ulang. Dua daftar penghargaan yang harus
+ *  ikut benar setiap kali satu gelar ditambah adalah dua daftar yang suatu
+ *  hari berselisih, dan yang berselisih di sini terbaca di panggung.
+ *
+ *  YANG BELUM DITENTUKAN IKUT DICETAK, dan tidak diredupkan. Pembawa acara
+ *  yang menemukan gelar kosong di atas panggung tidak punya jalan keluar;
+ *  yang menemukannya di kertas, sebelum naik, masih punya. Karena itu ia
+ *  tertulis biasa — bukan miring, bukan abu — sementara yang sudah ada
+ *  namanya ditebalkan: bedanya terbaca dari kejauhan tanpa dieja.
+ *
+ *  SATU DOKUMEN MENGALIR, bukan satu lembar per bagian. Sebelas bagian
+ *  berarti sebelas lembar yang harus dibolak-balik di podium, padahal
+ *  seluruhnya muat di dua. Yang dijaga cuma satu bagian tidak terbelah dua
+ *  halaman, lewat `break-inside: avoid`.
+ *
+ *  Tanpa raster, tanpa abu, garis 1pt, huruf terkecil 9pt — kertas ini ikut
+ *  digandakan di mesin fotokopi bersama yang lain (CLAUDE.md bagian 8). */
+function siapkanCetakJuara(hasil, bagian) {
+  document.getElementById("cetakan")?.remove();
+  const dicetak = tanggalJam(new Date().toISOString());
+
+  /* KOLOM KANAN BERARTI SATU HAL: total skor regu. Penghargaan yang menunjuk
+     SEKOLAH — Juara Umum, Pangkalan Terjauh, Peserta Terbanyak — dibiarkan
+     kosong di sana, karena angkanya bukan skor dan satuannya berbeda-beda:
+     poin juara, jumlah regu. Angka itu tetap tertulis, di baris keterangan di
+     bawah namanya, lengkap dengan satuannya.
+
+     Sempat diisi juga, dan hasilnya angka yang sama tercetak dua kali
+     bersebelahan — "42" di kolom kanan dan "42 poin juara" tepat di
+     sebelahnya (bagian 9.3). Kolom yang isinya satu jenis angka bisa dibaca
+     lurus ke bawah; kolom yang isinya tiga jenis menuntut tiap barisnya
+     diartikan sendiri-sendiri. */
+  const angka = (x) => (x.nama_regu && x.total != null) ? angkaRapi(x.total) : "";
+
+  const isiJuara = (x) => {
+    if (x.nama_regu) {
+      return `<strong>${esc(dada3(x.nomor_dada))} · ${esc(x.nama_regu)}</strong>`
+        + `<br><span class="juara-sekolah">${esc(x.nama_sekolah || "")}</span>`;
+    }
+    if (x.nama_sekolah) {
+      const ket = x.kode.startsWith("juara_umum")
+        ? `${angkaRapi(x.poin_juara)} poin juara · ${angkaRapi(x.jumlah_skor)} total skor (6 besar)`
+        : x.kode === "peserta_terbanyak" ? `${angkaRapi(x.total)} regu bernomor dada` : "";
+      return `<strong>${esc(x.nama_sekolah)}</strong>`
+        + (ket ? `<br><span class="juara-sekolah">${esc(ket)}</span>` : "");
+    }
+    return `<span class="juara-kosong">Belum ditentukan</span>`;
+  };
+
+  const isi = bagian.map(([judul, masuk, label]) => {
+    const punya = hasil.filter(masuk);
+    if (!punya.length) return "";
+    return `
+      <section class="juara-bagian">
+        <h2>${esc(judul)}</h2>
+        <!-- TANPA BARIS KEPALA. "GELAR | JUARA | SKOR" akan tercetak
+             SEBELAS KALI di dokumen yang cuma punya tiga kolom, dan
+             ketiganya sudah terbaca dari bentuknya sendiri: gelar tebal di
+             kiri, nama juara di tengah, angka rata kanan. Terukur: sebelas
+             baris kepala memakan 88mm — sepertiga halaman, untuk mengulang
+             sesuatu yang tidak pernah ditanyakan. -->
+        <table class="print-table">
+          <tbody>${punya.map(x => `
+            <tr><td class="juara-gelar">${esc(label(x))}</td>
+                <td>${isiJuara(x)}</td>
+                <td class="juara-skor">${esc(angka(x))}</td></tr>`).join("")}</tbody>
+        </table>
+      </section>`;
+  }).join("");
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout">
+    <section class="print-page">
+      <h1>DAFTAR JUARA — ${esc(EDISI ? EDISI.name : "")}</h1>
+      ${isi}
+      <p class="print-note">Dicetak ${esc(dicetak)}.</p>
+    </section>
+  </div>`));
+}
+
 async function layarKejuaraan() {
   pasangKepala("Kejuaraan", true);
   if (!bolehLihat("live_score")) {
@@ -6957,6 +7043,13 @@ async function layarKejuaraan() {
   ];
 
   LAYAR.replaceChildren(h(`
+    <div class="card">
+      <div class="option-row">
+        <button class="button button-primary" id="cetak-juara" type="button">
+          ${ikon("printer")} Cetak Daftar Juara
+        </button>
+      </div>
+    </div>
     <div class="kejuaraan-bagian">
       ${bagian.map(([judul, masuk, label, kelas]) => `
         <section class="card ${kelas}"><h2>${esc(judul)}</h2>
@@ -6965,6 +7058,17 @@ async function layarKejuaraan() {
           </tbody></table>
         </section>`).join("")}
     </div>`));
+
+  /* TIDAK async, dan itu keputusan yang sama dengan kedua tombol cetak di
+     Live Score: `window.print()` harus tetap berada di dalam giliran ketukan
+     jarinya. Safari iPhone memblokirnya begitu ada satu `await` lebih dulu,
+     karena sesudah itu panggilannya tidak lagi dianggap datang dari pengguna.
+     Seluruh daftarnya sudah di tangan sejak layar ini digambar, jadi memang
+     tidak ada yang perlu ditunggu. */
+  document.getElementById("cetak-juara")?.addEventListener("click", () => {
+    siapkanCetakJuara(hasil, bagian);
+    window.print();
+  });
 
   LAYAR.querySelectorAll(".kejuaraan-pilih").forEach(pilih => {
     const saran = pilih.nextElementSibling;
