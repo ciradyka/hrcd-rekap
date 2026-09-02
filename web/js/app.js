@@ -6939,14 +6939,19 @@ function siapkanCetakJuara(hasil, bagian) {
     return [g < 0 ? URUT_BACA_GOLONGAN.length : g, p ? -Number(p[1]) : 0];
   };
 
-  const isi = [...bagian].sort((a, b) => a[4] - b[4]).map(([judul, masuk, label]) => {
+  const isi = bagian.map(([judul, masuk, label, kelas]) => {
     const punya = hasil.filter(masuk).sort((a, b) => {
       const ka = kunciBaca(a), kb = kunciBaca(b);
       return ka[0] - kb[0] || ka[1] - kb[1];
     });
     if (!punya.length) return "";
+    /* Kelas letaknya DIBAWA APA ADANYA dari layarnya, dan itu yang membuat
+       kertas ini benar-benar salinan layarnya: satu blok aturan grid di
+       style.css menempatkan kedua-duanya — Juara Umum di atas melintang,
+       sisanya berpasangan dua kolom — jadi menggeser satu kartu di layar
+       menggeser kartu yang sama di kertas, tanpa ada yang perlu diingat. */
     return `
-      <section class="juara-bagian">
+      <section class="juara-bagian ${esc(kelas)}">
         <h2>${esc(judul)}</h2>
         <!-- JUDUL HANYA UNTUK KOLOM KANAN. Dua kolom pertama sudah terbaca
              dari bentuknya sendiri — gelar tebal di kiri, nama juara di
@@ -6969,7 +6974,7 @@ function siapkanCetakJuara(hasil, bagian) {
   document.body.appendChild(h(`<div id="cetakan" class="printout juara-cetak">
     <section class="print-page">
       <h1>DAFTAR JUARA — ${esc(EDISI ? EDISI.name : "")}</h1>
-      ${isi}
+      <div class="kejuaraan-bagian">${isi}</div>
       <p class="print-note">Dicetak ${esc(dicetak)}.</p>
     </section>
   </div>`));
@@ -7058,44 +7063,36 @@ async function layarKejuaraan() {
   /* Label golongan diambil dari GOLONGAN_LABEL, tidak ditulis ulang di sini:
      satu-satunya tempatnya `util.js`, dan `periksa_urutan_golongan.py` yang
      menjaganya tetap satu. */
-  /* Angka kelima tiap bagian adalah URUTAN BACANYA DI PANGGUNG, dan ia
-     sengaja berbeda dari urutan di layar ini.
-
-     Layar dipakai MEMERIKSA: yang dicari mata Juara I, jadi ia di atas.
-     Panggung dibacakan MENAIK: penghargaan pilihan lebih dulu, lalu juara per
-     golongan dari Harapan III sampai Juara I, dan Juara Umum paling akhir
-     sebagai puncaknya. Urutan ini keputusan pemilik acara, 2 September 2026.
-
-     Ditaruh sebagai angka DI SINI, bukan sebagai daftar kedua di pembuat
-     cetakannya: daftar penghargaan yang ditulis dua kali adalah daftar yang
-     suatu hari berselisih, dan yang berselisih di sini dibacakan di depan
-     orang banyak. */
-  const gelarGolongan = (kode, kelas, urut) => [
+  /* SATU DAFTAR untuk layar dan kertas, termasuk urutannya. Kertasnya salinan
+     layarnya — Juara Umum di atas, sisanya berpasangan — keputusan pemilik
+     acara, 2 September 2026. Yang berbeda cuma urutan BARIS di dalam tiap
+     kartu; lihat kunciBaca() di pembuat cetakannya. */
+  const gelarGolongan = (kode, kelas) => [
     GOLONGAN_LABEL[kode], x => x.kode.startsWith(kode + "_"),
-    x => x.nama_penghargaan.replace(GOLONGAN_LABEL[kode] + " ", ""), kelas, urut];
+    x => x.nama_penghargaan.replace(GOLONGAN_LABEL[kode] + " ", ""), kelas];
 
   const bagian = [
     ["Juara Umum", x => x.kode === "juara_umum",
-      x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum", 11],
+      x => x.nama_penghargaan.replace(/^Juara Umum /, ""), "kejuaraan-umum"],
     ["Juara Umum Penegak", x => x.kode === "juara_umum_penegak",
-      () => "PENEGAK", "kejuaraan-umum-penegak", 10],
-    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa", 8),
-    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi", 7),
+      () => "PENEGAK", "kejuaraan-umum-penegak"],
+    gelarGolongan("penegak_pa", "kejuaraan-penegak-pa"),
+    gelarGolongan("penegak_pi", "kejuaraan-penegak-pi"),
     ["Juara Umum Penggalang", x => x.kode === "juara_umum_penggalang",
-      () => "PENGGALANG", "kejuaraan-umum-penggalang", 9],
-    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa", 6),
-    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi", 5),
+      () => "PENGGALANG", "kejuaraan-umum-penggalang"],
+    gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa"),
+    gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi"),
     ["Juara Kostum", x => x.kode.startsWith("kostum_"),
       x => x.nama_penghargaan.replace(/^Juara Kostum /, ""),
-      "kejuaraan-kostum kejuaraan-pilihan", 2],
+      "kejuaraan-kostum kejuaraan-pilihan"],
     ["Juara Yel Yel", x => x.kode.startsWith("yel_yel_"),
-      x => x.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel", 3],
+      x => x.nama_penghargaan.replace(/^Juara Yel Yel /, ""), "kejuaraan-yel-yel"],
     ["Peserta Terfavorit", x => x.kode.startsWith("terfavorit_"),
       x => x.nama_penghargaan.replace(/^Peserta Terfavorit /, ""),
-      "kejuaraan-terfavorit kejuaraan-pilihan", 1],
+      "kejuaraan-terfavorit kejuaraan-pilihan"],
     ["Penghargaan Khusus",
       x => x.kode === "terjauh" || x.kode === "peserta_terbanyak",
-      x => x.nama_penghargaan, "kejuaraan-khusus kejuaraan-pilihan", 4],
+      x => x.nama_penghargaan, "kejuaraan-khusus kejuaraan-pilihan"],
   ];
 
   LAYAR.replaceChildren(h(`

@@ -895,7 +895,13 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 .kejuaraan-bagian .card { overflow: visible; }
 .kejuaraan-terkunci { display: flex; align-items: center; gap: .45rem; }
 .kejuaraan-nilai { flex: 1; min-width: 0; }
-@media (min-width: 900px) {
+/* `, print` DI SINI, dan itu yang membuat kertas Daftar Juara jadi salinan
+   layar ini alih-alih tata letak kedua yang harus dijaga sejalan. Kertasnya
+   memakai kelas yang sama persis — `kejuaraan-umum`, `kejuaraan-penegak-pa`,
+   dan seterusnya — jadi menggeser satu kartu di sini menggesernya di
+   dua-duanya. Yang TIDAK ikut cuma warnanya; blok cetak di bawah
+   mengembalikannya ke hitam-putih (bagian 8). */
+@media (min-width: 900px), print {
   .kejuaraan-bagian { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kejuaraan-umum {
     grid-column: 1 / -1; grid-row: 1;
@@ -1243,19 +1249,17 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .printout h2 { font-size: 12pt; margin: 5mm 0 1mm; }
   .juara-bagian { break-inside: avoid; page-break-inside: avoid; }
 
-  /* DUA KOLOM DI SATU LEMBAR. Sebelas bagian yang mengalir satu kolom penuh
-     memakan tiga halaman; dibagi dua, keduanya muat lebih rapat tanpa satu
-     baris pun mengecil.
+  /* TATA LETAKNYA MILIK LAYARNYA. Kertas ini memakai kelas yang sama dan
+     ditempatkan blok grid `@media (min-width: 900px), print` di atas: Juara
+     Umum melintang di puncak, sisanya berpasangan dua kolom. Yang tersisa di
+     sini cuma melepas hiasannya.
 
-     `column-fill: auto` dan bukan `balance`: yang dibacakan di panggung harus
-     punya urutan yang tidak bisa salah dibaca — kolom kiri sampai habis, baru
-     kolom kanan. `balance` membagi rata dan membuat bagian terakhir kolom
-     kiri berpindah-pindah mengikuti panjang isinya.
-
-     Judul dan cap cetak MELINTANG penuh, di luar kolomnya: judul dokumen yang
-     duduk di kolom kiri saja terbaca seperti judul kolom itu. */
-  .juara-cetak .print-page { columns: 2; column-gap: 7mm; column-fill: auto; }
-  .juara-cetak h1, .juara-cetak .print-note { column-span: all; }
+     Latar tint dari `.kejuaraan-umum` dan kawan-kawan DIBUANG: bagian 8.4
+     melarang raster abu di kertas yang digandakan fotokopi — yang halus
+     keluar belang, yang pekat menghitami tulisannya. Kekhususan 0,2,0 di sini
+     mengalahkan 0,1,0 milik warnanya. */
+  .printout .kejuaraan-bagian { display: grid; gap: 4mm; }
+  .printout .juara-bagian { background: none; }
   /* Kolom selebar ~91mm, jadi patokan yang dipakai satu kolom terlalu longgar
      di sini: yang dipersempit gelar dan angkanya, karena keduanya isinya
      pendek dan tetap — "Harapan III" dan empat digit. Sisanya jatuh ke nama

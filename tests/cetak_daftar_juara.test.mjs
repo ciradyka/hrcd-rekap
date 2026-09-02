@@ -84,20 +84,23 @@ test("judul hanya untuk kolom kanan, dua kolom pertama dibiarkan", () => {
     "dua kolom pertama ikut diberi judul");
 });
 
-test("kertasnya dua kolom kiri-kanan", () => {
-  // Sebelas bagian mengalir satu kolom penuh memakan tiga lembar; dibagi dua,
-  // dua lembar — tanpa satu baris pun mengecil. Terukur di lebar kolom 91mm:
-  // tiga kolom terpakai, jadi dua lembar A4.
-  assert.match(css, /\.juara-cetak \.print-page \{ columns: 2; column-gap: 7mm; column-fill: auto; \}/,
-    "daftar juara tidak lagi dicetak dua kolom");
-  // `auto`, bukan `balance`: yang dibacakan di panggung harus punya urutan
-  // yang tidak bisa salah dibaca — kolom kiri sampai habis, baru kolom kanan.
-  assert.ok(!css.includes("column-fill: balance"),
-    "kolomnya diseimbangkan, jadi urutan bacanya berpindah-pindah");
-  assert.match(css, /\.juara-cetak h1, \.juara-cetak \.print-note \{ column-span: all; \}/,
-    "judul dokumen duduk di satu kolom saja");
-  assert.ok(kodePembuat.includes('class="printout juara-cetak"'),
-    "cetakan daftar juara tidak lagi ditandai untuk tata letak dua kolom");
+test("tata letak kertasnya MILIK layarnya, satu blok untuk keduanya", () => {
+  // Kertasnya salinan layar Kejuaraan: Juara Umum melintang di puncak,
+  // sisanya berpasangan dua kolom. Satu blok grid melayani dua-duanya, jadi
+  // menggeser satu kartu di layar menggesernya di kertas juga — tanpa ada
+  // tata letak kedua yang harus diingat.
+  assert.match(css, /@media \(min-width: 900px\), print \{/,
+    "blok grid Kejuaraan tidak lagi ikut berlaku saat mencetak");
+  assert.ok(kodePembuat.includes('<section class="juara-bagian ${esc(kelas)}">'),
+    "bagian cetakan tidak lagi membawa kelas letak dari layarnya");
+  assert.ok(kodePembuat.includes('<div class="kejuaraan-bagian">${isi}</div>'),
+    "cetakan tidak dibungkus wadah grid yang sama dengan layarnya");
+  assert.match(css, /\.printout \.kejuaraan-bagian \{ display: grid; gap: 4mm; \}/,
+    "wadah grid cetakan tidak dipasang");
+  // Yang TIDAK ikut cuma warnanya: bagian 8.4 melarang raster abu di kertas
+  // yang digandakan fotokopi.
+  assert.match(css, /\.printout \.juara-bagian \{ background: none; \}/,
+    "latar tint kartu ikut tercetak");
 });
 
 test("satu bagian tidak boleh terbelah dua halaman", () => {
@@ -117,8 +120,16 @@ test("kertasnya menuruti aturan fotokopi", () => {
   const blok = css.slice(css.indexOf("/* ---- Daftar juara ----"),
                          css.indexOf(".print-note { font-size: 9pt;"));
   assert.ok(blok.length > 0, "blok CSS daftar juara tidak ditemukan");
-  assert.doesNotMatch(blok, /background|color:\s*#(?!000)/,
-    "ada latar atau warna selain hitam di cetakan daftar juara");
+  // `background: none` justru yang MEMBUANG tint, jadi yang dilarang cuma
+  // latar yang punya warna.
+  for (const m of blok.matchAll(/background:\s*([^;]+);/g)) {
+    assert.equal(m[1].trim(), "none",
+      `ada latar berwarna di cetakan daftar juara: ${m[0]}`);
+  }
+  for (const m of blok.matchAll(/#[0-9a-fA-F]{3,6}/g)) {
+    assert.match(m[0], /^#0{3,6}$/,
+      `ada warna selain hitam di cetakan daftar juara: ${m[0]}`);
+  }
   // Huruf terkecil di kertas ini 9pt — batas bawahnya 7pt (bagian 8.6).
   for (const m of blok.matchAll(/font-size: ([\d.]+)pt/g)) {
     assert.ok(Number(m[1]) >= 7, `ada huruf ${m[1]}pt di kertas, di bawah batas 7pt`);
@@ -132,35 +143,23 @@ const tanpaKomentar = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*/
 const kodePembuat = tanpaKomentar(pembuat);
 const kodeLayar = tanpaKomentar(layar);
 
-test("urutan bacanya menempel di bagian layarnya, bukan jadi daftar kedua", () => {
-  // Daftar penghargaan yang ditulis dua kali adalah daftar yang suatu hari
-  // berselisih, dan yang berselisih di sini dibacakan di depan orang banyak.
-  // Angka urutnya jadi unsur kelima tiap bagian; pembuat cetakan cuma
-  // mengurutkannya.
-  assert.ok(kodePembuat.includes("[...bagian].sort((a, b) => a[4] - b[4])"),
-    "pembuat cetakan tidak mengurutkan bagian menurut angka urut bacanya");
-
-  // Urutan panggung yang diminta pemilik acara, 2 September 2026: penghargaan
-  // pilihan dulu, juara per golongan (Penggalang sebelum Penegak, putri
-  // sebelum putra), lalu Juara Umum sebagai puncaknya.
+test("bagian dicetak dalam urutan layarnya, tanpa daftar kedua", () => {
+  // Kertasnya salinan layarnya, jadi tidak ada urutan cetak tersendiri untuk
+  // dijaga sejalan. Daftar penghargaan yang ditulis dua kali adalah daftar
+  // yang suatu hari berselisih.
+  assert.ok(kodePembuat.includes("const isi = bagian.map(([judul, masuk, label, kelas]) => {"),
+    "pembuat cetakan tidak lagi memakai urutan bagian milik layarnya");
+  assert.ok(!kodePembuat.includes("].sort((a, b) => a[4] - b[4])"),
+    "urutan cetak tersendiri kembali — kertasnya bukan lagi salinan layarnya");
   const awal = kodeLayar.indexOf("const bagian = [");
   assert.ok(awal > 0, "daftar bagian tidak ditemukan di layar Kejuaraan");
   const daftar = kodeLayar.slice(awal, kodeLayar.indexOf("];", awal));
-  for (const [tanda, urut] of [
-    ['"kejuaraan-terfavorit kejuaraan-pilihan", 1', "Peserta Terfavorit ke-1"],
-    ['"kejuaraan-kostum kejuaraan-pilihan", 2', "Juara Kostum ke-2"],
-    ['"kejuaraan-yel-yel", 3', "Juara Yel Yel ke-3"],
-    ['"kejuaraan-khusus kejuaraan-pilihan", 4', "Penghargaan Khusus ke-4"],
-    ['gelarGolongan("penggalang_pi", "kejuaraan-penggalang-pi", 5)', "Penggalang PI ke-5"],
-    ['gelarGolongan("penggalang_pa", "kejuaraan-penggalang-pa", 6)', "Penggalang PA ke-6"],
-    ['gelarGolongan("penegak_pi", "kejuaraan-penegak-pi", 7)', "Penegak PI ke-7"],
-    ['gelarGolongan("penegak_pa", "kejuaraan-penegak-pa", 8)', "Penegak PA ke-8"],
-    ['"kejuaraan-umum-penggalang", 9', "Juara Umum Penggalang ke-9"],
-    ['"kejuaraan-umum-penegak", 10', "Juara Umum Penegak ke-10"],
-    ['"kejuaraan-umum", 11', "Juara Umum ke-11"],
-  ]) {
-    assert.ok(daftar.includes(tanda), `urutan baca berubah: ${urut}`);
-  }
+  // Juara Umum tetap yang pertama, dan kelas letaknya yang menempatkannya.
+  assert.ok(daftar.indexOf('"kejuaraan-umum"') < daftar.indexOf('"kejuaraan-umum-penegak"'),
+    "Juara Umum bukan bagian pertama");
+  const umum = css.slice(css.indexOf(".kejuaraan-umum {"));
+  assert.ok(umum.slice(0, umum.indexOf("}")).includes("grid-column: 1 / -1; grid-row: 1;"),
+    "Juara Umum tidak lagi melintang di baris pertama");
 });
 
 test("satu aturan mengurutkan baris di ketiga bentuk bagian", () => {
