@@ -1232,6 +1232,29 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   .receipt-signature { margin-top: 10mm; width: 60mm; margin-left: auto; text-align: center; }
   .receipt-line { margin-top: 14mm; border-top: 1pt solid #000; padding-top: 2mm; }
 
+  /* ---- Daftar juara ----
+
+     Satu dokumen mengalir, bukan satu lembar per bagian: sebelas bagian
+     berarti sebelas lembar yang dibolak-balik di podium, padahal seluruhnya
+     muat di dua. Yang dijaga cuma satu bagian tidak terbelah dua halaman —
+     gelar "Juara 1" yang tertinggal sendirian di kaki halaman, dengan
+     namanya di halaman berikutnya, adalah persis kesalahan yang mahal saat
+     dibacakan. */
+  .printout h2 { font-size: 12pt; margin: 5mm 0 1mm; }
+  .juara-bagian { break-inside: avoid; page-break-inside: avoid; }
+  /* Nama sekolah dan keterangan poin: kecil dan HITAM PEKAT, bukan abu.
+     Bagian 8.4 — yang harus mundur dibuat kecil, bukan pucat, karena raster
+     abu keluar belang dari mesin fotokopi. */
+  .juara-sekolah { font-size: 9pt; }
+  /* Gelar yang belum ada juaranya TIDAK diredupkan. Pembawa acara yang
+     menemukannya di atas panggung tidak punya jalan keluar; yang menemukannya
+     di kertas sebelum naik masih punya. Bedanya dari yang sudah terisi cukup
+     dari tebalnya: nama juara tebal, ini biasa. */
+  .juara-kosong { font-size: 11pt; }
+  .print-table .juara-gelar { width: 34mm; font-weight: 700; }
+  .print-table th.juara-gelar { font-weight: 700; }
+  .print-table .juara-skor { width: 20mm; text-align: right; font-weight: 700; }
+
   .print-note { font-size: 9pt; margin-top: .5rem; }
   .insert-note { font-size: 9pt; font-weight: 700; margin-top: .4rem; }
 
