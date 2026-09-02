@@ -78,10 +78,15 @@ test("judul hanya untuk kolom kanan, dua kolom pertama dibiarkan", () => {
   // "GELAR | JUARA" yang tercetak sebelas kali mengulang sesuatu yang sudah
   // terbaca dari bentuknya. Angka di kanan tidak begitu: 1673 dan 42 duduk di
   // kolom yang sama padahal yang satu skor regu dan yang satu poin juara.
-  assert.ok(kodePembuat.includes('<th class="juara-skor">Skor / Poin Juara</th>'),
-    "judul kolom kanan hilang atau berubah bunyinya");
-  assert.ok(kodePembuat.includes('<thead><tr><th class="juara-gelar"></th><th></th>'),
-    "dua kolom pertama ikut diberi judul");
+  assert.ok(kodePembuat.includes(
+    '<thead><tr><th colspan="3" class="juara-kepala">Skor / Poin Juara</th></tr></thead>'),
+    "judul kolom kanan hilang, berubah bunyinya, atau tidak lagi melintang");
+  // Melintang tiga kolom dan rata kanan, bukan sel di kolom ketiga: kolom itu
+  // selebar angkanya saja, dan judulnya patah jadi tiga baris di dalamnya.
+  assert.match(css, /\.juara-cetak \.print-table thead th\.juara-kepala \{/,
+    "aturan judul kolom melintang hilang");
+  assert.match(css, /text-align: right; white-space: nowrap;/,
+    "judul kolom tidak lagi dipaku satu baris di tepi kanan");
 });
 
 test("tata letak kertasnya MILIK layarnya, satu blok untuk keduanya", () => {
@@ -95,12 +100,17 @@ test("tata letak kertasnya MILIK layarnya, satu blok untuk keduanya", () => {
     "bagian cetakan tidak lagi membawa kelas letak dari layarnya");
   assert.ok(kodePembuat.includes('<div class="kejuaraan-bagian">${isi}</div>'),
     "cetakan tidak dibungkus wadah grid yang sama dengan layarnya");
-  assert.match(css, /\.printout \.kejuaraan-bagian \{ display: grid; gap: 4mm; \}/,
+  assert.match(css, /\.printout \.kejuaraan-bagian \{ display: grid; gap: 6mm 8mm; \}/,
     "wadah grid cetakan tidak dipasang");
-  // Yang TIDAK ikut cuma warnanya: bagian 8.4 melarang raster abu di kertas
-  // yang digandakan fotokopi.
-  assert.match(css, /\.printout \.juara-bagian \{ background: none; \}/,
-    "latar tint kartu ikut tercetak");
+  // Yang TIDAK ikut warnanya: bagian 8.4 melarang raster abu di kertas yang
+  // digandakan fotokopi. Yang ikut BENTUKNYA — tepi kiri tebal tiap kartu,
+  // penanda yang membuat layarnya gampang dibaca, jadi garis hitam 2pt
+  // (bagian 8.2: garis selamat difotokopi, blok warna tidak).
+  const kartu = css.slice(css.indexOf(".printout .juara-bagian {"));
+  const aturanKartu = kartu.slice(0, kartu.indexOf("}"));
+  assert.match(aturanKartu, /background: none;/, "latar tint kartu ikut tercetak");
+  assert.match(aturanKartu, /border-left: 2pt solid #000;/,
+    "tepi kiri kartu hilang — yang membedakan satu kartu dari tetangganya");
 });
 
 test("satu bagian tidak boleh terbelah dua halaman", () => {
