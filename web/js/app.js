@@ -6954,15 +6954,20 @@ function siapkanCetakJuara(hasil, bagian) {
       <section class="juara-bagian ${esc(kelas)}">
         <h2>${esc(judul)}</h2>
         <!-- JUDUL HANYA UNTUK KOLOM KANAN. Dua kolom pertama sudah terbaca
-             dari bentuknya sendiri — gelar tebal di kiri, nama juara di
+             dari bentuknya sendiri — gelar kecil di kiri, nama juara besar di
              tengah — dan "GELAR | JUARA" yang tercetak sebelas kali cuma
              mengulang sesuatu yang tidak pernah ditanyakan (bagian 9.3).
              Angka di kanan tidak begitu: 1673 dan 42 duduk di kolom yang sama
              padahal yang satu skor regu dan yang satu poin juara, dan tanpa
-             judul tidak ada yang mengatakan itu. -->
+             judul tidak ada yang mengatakan itu.
+
+             SATU SEL MELINTANG TIGA KOLOM, rata kanan — bukan sel di kolom
+             ketiga. Kolom itu selebar angkanya saja, dan "Skor / Poin Juara"
+             di dalamnya patah jadi tiga baris: satu blok tulisan menggantung
+             dengan ruang kosong di kirinya, sebelas kali. Melintang, ia satu
+             baris yang duduk tepat di atas angkanya. -->
         <table class="print-table">
-          <thead><tr><th class="juara-gelar"></th><th></th>
-            <th class="juara-skor">Skor / Poin Juara</th></tr></thead>
+          <thead><tr><th colspan="3" class="juara-kepala">Skor / Poin Juara</th></tr></thead>
           <tbody>${punya.map(x => `
             <tr><td class="juara-gelar">${esc(label(x))}</td>
                 <td>${isiJuara(x)}</td>

@@ -1258,27 +1258,86 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      melarang raster abu di kertas yang digandakan fotokopi — yang halus
      keluar belang, yang pekat menghitami tulisannya. Kekhususan 0,2,0 di sini
      mengalahkan 0,1,0 milik warnanya. */
-  .printout .kejuaraan-bagian { display: grid; gap: 4mm; }
-  .printout .juara-bagian { background: none; }
-  /* Kolom selebar ~91mm, jadi patokan yang dipakai satu kolom terlalu longgar
-     di sini: yang dipersempit gelar dan angkanya, karena keduanya isinya
-     pendek dan tetap — "Harapan III" dan empat digit. Sisanya jatuh ke nama
-     regu dan sekolahnya, satu-satunya yang panjangnya tidak bisa ditebak. */
-  .juara-cetak .print-table .juara-gelar { width: 21mm; font-size: 9pt; }
-  .juara-cetak .print-table .juara-skor { width: 21mm; }
-  .juara-cetak .print-table th, .juara-cetak .print-table td { padding: 3pt 4pt; }
-  /* Judul kolomnya HURUF BIASA dan 8pt, bukan kapital 9pt seperti kepala
-     tabel lain di berkas ini. "SKOR / POIN JUARA" berkapital menuntut tiga
-     baris di kolom 21mm — kepala kosong setinggi tiga baris, sebelas kali.
-     Huruf biasa 8pt memuatnya dalam dua, dan 8pt masih di atas batas 7pt
-     (bagian 8.6). */
-  .juara-cetak .print-table th { text-transform: none; font-size: 8pt; }
-  /* Jarak antar bagian dirapatkan, dan itu yang menentukan satu lembar atau
-     dua: sebelas judul bagian dengan jarak atas 5mm adalah 55mm — seperlima
-     halaman untuk ruang kosong. Terukur, seluruh daftar jatuh dari 284mm ke
-     bawah 277mm, jadi muat satu lembar A4 bolak-balik-tidak-perlu. */
-  .juara-cetak h2 { margin: 2.5mm 0 0; }
-  .juara-cetak .print-table { margin-top: 1mm; }
+  .printout .kejuaraan-bagian { display: grid; gap: 6mm 8mm; }
+  /* TEPI KIRI TEBAL, sama seperti di layar — dan itu yang membuat layar
+     Kejuaraan gampang dibaca: tiap kartu punya sisi yang menandai di mana ia
+     mulai dan berhenti. Di layar sisi itu berwarna; di kertas ia garis hitam
+     2pt, dan bagian 8.2 memang menyuruh begitu — garis selamat difotokopi,
+     blok warna tidak.
+
+     Latar tintnya sendiri dibuang: bagian 8.4, raster abu keluar belang. */
+  .printout .juara-bagian {
+    background: none;
+    border-left: 2pt solid #000; padding-left: 3.5mm;
+  }
+  /* ---- Bukan kotak-kotak ----
+
+     Daftar juara BUKAN formulir. Blangko dikotak-kotak karena orang menulis
+     ke dalam kotaknya; daftar ini cuma dibaca — dibacakan di panggung, lalu
+     disalin ke sertifikat — dan garis di keempat sisi tiap sel membuat
+     halaman yang seluruhnya isian terbaca seperti borang pajak.
+
+     Yang dibuang GARIS TEGAKNYA, dan itu yang menentukan: garis tegak yang
+     membelah tiap baris jadi tiga petak adalah satu-satunya hal yang membuat
+     sesuatu terbaca sebagai TABEL. Yang tinggal garis mendatar tipis di
+     antara juara — bentuk yang sama dengan daftar acara dan daftar menu,
+     dibaca dari atas ke bawah tanpa satu pun petak.
+
+     Garisnya 0.75pt, batas bawah yang masih selamat difotokopi (bagian 8.5),
+     dan hitam pekat — bukan abu, yang justru keluar belang (bagian 8.4). */
+  .juara-cetak .print-table th,
+  .juara-cetak .print-table td { border: 0; padding: 1.6mm 1.5mm; }
+  /* Satu garis tegas di bawah kepala, sekaligus jadi garis bawah judul
+     bagiannya: keduanya berdampingan, jadi satu garis melayani dua-duanya.
+     Judulnya melintang tiga kolom dan rata kanan — duduk tepat di atas
+     angkanya tanpa memaksa kolomnya melebar. */
+  .juara-cetak .print-table thead th.juara-kepala {
+    border-bottom: 1.5pt solid #000;
+    text-transform: none; font-size: 8pt; font-weight: 700;
+    text-align: right; white-space: nowrap; padding: 0 2mm .8mm;
+  }
+  /* Garis antar juara. TIDAK di baris terakhir: garis yang menutup daftar
+     mengembalikan kesan kotak yang baru saja dibuang.
+
+     1pt, bukan 0.75pt. 0.75 adalah BATAS BAWAH yang masih selamat difotokopi
+     (bagian 8.5), bukan ukuran yang enak dibaca — di antara dua baris setinggi
+     12pt ia nyaris tidak terlihat, dan pemisah yang harus dicari bukan
+     pemisah. Kepala bagiannya 1.5pt supaya tetap terbaca lebih tegas daripada
+     pemisah antar juara: satu tingkat, bukan dua garis yang sama. */
+  .juara-cetak .print-table tbody tr + tr td { border-top: 1pt solid #000; }
+
+  /* Nomor dada dan nama regu — yang dibacakan — jadi yang paling besar di
+     kartunya. Gelarnya sendiri kecil dan berjarak huruf: ia penanda, bukan
+     kalimat, dan mata mencarinya sebagai bentuk di tepi kiri. */
+  /* `width: 1%` + `nowrap` = kolom SELEBAR ISINYA. Patokan milimeter mana pun
+     salah di sini: "Harapan III" dan "Peserta Terbanyak" beda jauh, dan
+     patokan yang muat untuk yang panjang memboroskan tempat untuk yang
+     pendek — sedangkan yang terlalu sempit mematahkan "Harapan III" jadi dua
+     baris, yang di daftar tanpa kotak justru paling kelihatan. Sisa lebarnya
+     jatuh ke nama regu, satu-satunya yang panjangnya tidak bisa ditebak. */
+  .juara-cetak .print-table .juara-gelar {
+    width: 1%; white-space: nowrap; font-size: 8.5pt; letter-spacing: .02em;
+  }
+  /* Jarak ke angkanya 3mm, bukan 5mm. Setiap milimeter yang diambil kolom
+     gelar atau kolom angka diambil dari NAMA REGU — dan nama regu yang patah
+     jadi "011 ·" lalu "RANCAKA11" di baris berikutnya adalah satu-satunya hal
+     di kertas ini yang benar-benar dibacakan keras-keras. Terukur di kartu
+     tersempit (79mm): namanya dapat 47mm, cukup untuk nomor dada beserta nama
+     satu kata terpanjang. */
+  .juara-cetak .print-table .juara-skor {
+    width: 1%; white-space: nowrap; font-size: 12pt; padding-left: 3mm;
+  }
+  .juara-cetak .print-table td strong { font-size: 12pt; }
+
+  /* Judul bagian diberi jarak di atasnya, bukan garis: yang memisahkan dua
+     kartu bersebelahan ruang kosong, dan ruang kosong tidak pernah keluar
+     belang dari mesin fotokopi. */
+  .juara-cetak h2 { margin: 0 0 1mm; letter-spacing: .01em; }
+  .juara-cetak .print-table { margin-top: 0; }
+  /* Judul dokumen di tengah, seperti kepala acara. Rata kiri membuatnya
+     terbaca seperti judul kolom pertama. */
+  .juara-cetak h1 { text-align: center; margin-bottom: 4mm; }
+  .juara-cetak .print-note { text-align: center; margin-top: 4mm; }
   /* Nama sekolah dan keterangan poin: kecil dan HITAM PEKAT, bukan abu.
      Bagian 8.4 — yang harus mundur dibuat kecil, bukan pucat, karena raster
      abu keluar belang dari mesin fotokopi. */
