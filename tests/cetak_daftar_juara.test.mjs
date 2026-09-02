@@ -59,21 +59,45 @@ test("gelar yang belum ada juaranya IKUT dicetak", () => {
     "tulisan 'Belum ditentukan' diberi gaya yang meredupkannya");
 });
 
-test("kolom kanan berarti SATU hal: total skor regu", () => {
-  // Diisi juga untuk penghargaan sekolah, hasilnya angka yang sama tercetak
-  // dua kali bersebelahan — "42" di kolom kanan dan "42 poin juara" tepat di
-  // sebelahnya (bagian 9.3).
-  assert.match(pembuat,
-    /const angka = \(x\) => \(x\.nama_regu && x\.total != null\) \? angkaRapi\(x\.total\) : "";/,
-    "kolom skor kembali diisi angka yang satuannya berbeda-beda");
+test("kolom kanan persis seperti judulnya: skor ATAU poin juara", () => {
+  // Tidak ada yang ketiga. Peserta Terbanyak menghitung REGU dan Pangkalan
+  // Terjauh tidak punya angka sama sekali, jadi keduanya kosong di kolom itu
+  // dan angkanya tetap tertulis lengkap dengan satuannya di baris bawah nama.
+  // Kolom berisi tiga jenis angka menuntut tiap barisnya diartikan
+  // sendiri-sendiri, dan kolom ini justru ada supaya dibaca lurus ke bawah.
+  assert.ok(kodePembuat.includes('if (x.kode.startsWith("juara_umum")) return angkaRapi(x.poin_juara);'),
+    "poin juara tidak masuk ke kolom yang judulnya menyebutnya");
+  assert.ok(!kodePembuat.includes('x.kode === "peserta_terbanyak" ? angkaRapi(x.total)'),
+    "jumlah regu ikut masuk ke kolom skor — satuannya bukan skor maupun poin juara");
+  // Dan poin juaranya tidak diulang di baris keterangan di bawah namanya.
+  assert.ok(kodePembuat.includes("`${angkaRapi(x.jumlah_skor)} total skor (6 besar)`"),
+    "keterangan Juara Umum masih mengulang poin juara yang sudah di kolom kanan");
 });
 
-test("tanpa baris kepala yang diulang sebelas kali", () => {
-  // Terukur: sebelas baris kepala memakan 88mm — sepertiga halaman A4 — untuk
-  // mengulang tiga kata yang sudah terbaca dari bentuk kolomnya sendiri.
-  // Dokumennya turun dari 4 halaman jadi 3.
-  assert.doesNotMatch(pembuat, /<thead>/,
-    "baris kepala kembali di tabel daftar juara");
+test("judul hanya untuk kolom kanan, dua kolom pertama dibiarkan", () => {
+  // "GELAR | JUARA" yang tercetak sebelas kali mengulang sesuatu yang sudah
+  // terbaca dari bentuknya. Angka di kanan tidak begitu: 1673 dan 42 duduk di
+  // kolom yang sama padahal yang satu skor regu dan yang satu poin juara.
+  assert.ok(kodePembuat.includes('<th class="juara-skor">Skor / Poin Juara</th>'),
+    "judul kolom kanan hilang atau berubah bunyinya");
+  assert.ok(kodePembuat.includes('<thead><tr><th class="juara-gelar"></th><th></th>'),
+    "dua kolom pertama ikut diberi judul");
+});
+
+test("kertasnya dua kolom kiri-kanan", () => {
+  // Sebelas bagian mengalir satu kolom penuh memakan tiga lembar; dibagi dua,
+  // dua lembar — tanpa satu baris pun mengecil. Terukur di lebar kolom 91mm:
+  // tiga kolom terpakai, jadi dua lembar A4.
+  assert.match(css, /\.juara-cetak \.print-page \{ columns: 2; column-gap: 7mm; column-fill: auto; \}/,
+    "daftar juara tidak lagi dicetak dua kolom");
+  // `auto`, bukan `balance`: yang dibacakan di panggung harus punya urutan
+  // yang tidak bisa salah dibaca — kolom kiri sampai habis, baru kolom kanan.
+  assert.ok(!css.includes("column-fill: balance"),
+    "kolomnya diseimbangkan, jadi urutan bacanya berpindah-pindah");
+  assert.match(css, /\.juara-cetak h1, \.juara-cetak \.print-note \{ column-span: all; \}/,
+    "judul dokumen duduk di satu kolom saja");
+  assert.ok(kodePembuat.includes('class="printout juara-cetak"'),
+    "cetakan daftar juara tidak lagi ditandai untuk tata letak dua kolom");
 });
 
 test("satu bagian tidak boleh terbelah dua halaman", () => {

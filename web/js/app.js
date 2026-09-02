@@ -6879,18 +6879,23 @@ function siapkanCetakJuara(hasil, bagian) {
   document.getElementById("cetakan")?.remove();
   const dicetak = tanggalJam(new Date().toISOString());
 
-  /* KOLOM KANAN BERARTI SATU HAL: total skor regu. Penghargaan yang menunjuk
-     SEKOLAH — Juara Umum, Pangkalan Terjauh, Peserta Terbanyak — dibiarkan
-     kosong di sana, karena angkanya bukan skor dan satuannya berbeda-beda:
-     poin juara, jumlah regu. Angka itu tetap tertulis, di baris keterangan di
-     bawah namanya, lengkap dengan satuannya.
+  /* KOLOM KANAN PERSIS SEPERTI JUDULNYA: skor regu, atau poin juara untuk
+     Juara Umum. Tidak ada yang ketiga — Peserta Terbanyak menghitung REGU dan
+     Pangkalan Terjauh tidak punya angka sama sekali, jadi keduanya dibiarkan
+     kosong di kolom itu dan angkanya tetap tertulis lengkap dengan satuannya
+     di baris di bawah namanya.
 
-     Sempat diisi juga, dan hasilnya angka yang sama tercetak dua kali
-     bersebelahan — "42" di kolom kanan dan "42 poin juara" tepat di
-     sebelahnya (bagian 9.3). Kolom yang isinya satu jenis angka bisa dibaca
-     lurus ke bawah; kolom yang isinya tiga jenis menuntut tiap barisnya
-     diartikan sendiri-sendiri. */
-  const angka = (x) => (x.nama_regu && x.total != null) ? angkaRapi(x.total) : "";
+     Kolomnya sempat tanpa judul dan hanya berisi skor regu; judulnya yang
+     membuat poin juara boleh ikut masuk, karena sekarang ada yang
+     mengatakan angka itu bisa dua macam. Yang tidak boleh masuk tetap yang
+     satuannya lain lagi (bagian 9.3): kolom berisi tiga jenis angka menuntut
+     tiap barisnya diartikan sendiri-sendiri, dan kolom ini justru ada supaya
+     bisa dibaca lurus ke bawah. */
+  const angka = (x) => {
+    if (x.nama_regu) return x.total == null ? "" : angkaRapi(x.total);
+    if (x.kode.startsWith("juara_umum")) return angkaRapi(x.poin_juara);
+    return "";
+  };
 
   const isiJuara = (x) => {
     if (x.nama_regu) {
@@ -6898,8 +6903,12 @@ function siapkanCetakJuara(hasil, bagian) {
         + `<br><span class="juara-sekolah">${esc(x.nama_sekolah || "")}</span>`;
     }
     if (x.nama_sekolah) {
+      /* Poin juaranya TIDAK diulang di sini — ia sudah berdiri di kolom
+         kanan. Yang tersisa di baris ini justru yang tidak muat di sana:
+         total skor enam besar, angka kedua yang menjelaskan dari mana poin
+         itu datang. */
       const ket = x.kode.startsWith("juara_umum")
-        ? `${angkaRapi(x.poin_juara)} poin juara · ${angkaRapi(x.jumlah_skor)} total skor (6 besar)`
+        ? `${angkaRapi(x.jumlah_skor)} total skor (6 besar)`
         : x.kode === "peserta_terbanyak" ? `${angkaRapi(x.total)} regu bernomor dada` : "";
       return `<strong>${esc(x.nama_sekolah)}</strong>`
         + (ket ? `<br><span class="juara-sekolah">${esc(ket)}</span>` : "");
@@ -6939,13 +6948,16 @@ function siapkanCetakJuara(hasil, bagian) {
     return `
       <section class="juara-bagian">
         <h2>${esc(judul)}</h2>
-        <!-- TANPA BARIS KEPALA. "GELAR | JUARA | SKOR" akan tercetak
-             SEBELAS KALI di dokumen yang cuma punya tiga kolom, dan
-             ketiganya sudah terbaca dari bentuknya sendiri: gelar tebal di
-             kiri, nama juara di tengah, angka rata kanan. Terukur: sebelas
-             baris kepala memakan 88mm — sepertiga halaman, untuk mengulang
-             sesuatu yang tidak pernah ditanyakan. -->
+        <!-- JUDUL HANYA UNTUK KOLOM KANAN. Dua kolom pertama sudah terbaca
+             dari bentuknya sendiri — gelar tebal di kiri, nama juara di
+             tengah — dan "GELAR | JUARA" yang tercetak sebelas kali cuma
+             mengulang sesuatu yang tidak pernah ditanyakan (bagian 9.3).
+             Angka di kanan tidak begitu: 1673 dan 42 duduk di kolom yang sama
+             padahal yang satu skor regu dan yang satu poin juara, dan tanpa
+             judul tidak ada yang mengatakan itu. -->
         <table class="print-table">
+          <thead><tr><th class="juara-gelar"></th><th></th>
+            <th class="juara-skor">Skor / Poin Juara</th></tr></thead>
           <tbody>${punya.map(x => `
             <tr><td class="juara-gelar">${esc(label(x))}</td>
                 <td>${isiJuara(x)}</td>
@@ -6954,7 +6966,7 @@ function siapkanCetakJuara(hasil, bagian) {
       </section>`;
   }).join("");
 
-  document.body.appendChild(h(`<div id="cetakan" class="printout">
+  document.body.appendChild(h(`<div id="cetakan" class="printout juara-cetak">
     <section class="print-page">
       <h1>DAFTAR JUARA — ${esc(EDISI ? EDISI.name : "")}</h1>
       ${isi}
