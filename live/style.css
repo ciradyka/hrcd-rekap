@@ -1242,6 +1242,39 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      dibacakan. */
   .printout h2 { font-size: 12pt; margin: 5mm 0 1mm; }
   .juara-bagian { break-inside: avoid; page-break-inside: avoid; }
+
+  /* DUA KOLOM DI SATU LEMBAR. Sebelas bagian yang mengalir satu kolom penuh
+     memakan tiga halaman; dibagi dua, keduanya muat lebih rapat tanpa satu
+     baris pun mengecil.
+
+     `column-fill: auto` dan bukan `balance`: yang dibacakan di panggung harus
+     punya urutan yang tidak bisa salah dibaca — kolom kiri sampai habis, baru
+     kolom kanan. `balance` membagi rata dan membuat bagian terakhir kolom
+     kiri berpindah-pindah mengikuti panjang isinya.
+
+     Judul dan cap cetak MELINTANG penuh, di luar kolomnya: judul dokumen yang
+     duduk di kolom kiri saja terbaca seperti judul kolom itu. */
+  .juara-cetak .print-page { columns: 2; column-gap: 7mm; column-fill: auto; }
+  .juara-cetak h1, .juara-cetak .print-note { column-span: all; }
+  /* Kolom selebar ~91mm, jadi patokan yang dipakai satu kolom terlalu longgar
+     di sini: yang dipersempit gelar dan angkanya, karena keduanya isinya
+     pendek dan tetap — "Harapan III" dan empat digit. Sisanya jatuh ke nama
+     regu dan sekolahnya, satu-satunya yang panjangnya tidak bisa ditebak. */
+  .juara-cetak .print-table .juara-gelar { width: 21mm; font-size: 9pt; }
+  .juara-cetak .print-table .juara-skor { width: 21mm; }
+  .juara-cetak .print-table th, .juara-cetak .print-table td { padding: 3pt 4pt; }
+  /* Judul kolomnya HURUF BIASA dan 8pt, bukan kapital 9pt seperti kepala
+     tabel lain di berkas ini. "SKOR / POIN JUARA" berkapital menuntut tiga
+     baris di kolom 21mm — kepala kosong setinggi tiga baris, sebelas kali.
+     Huruf biasa 8pt memuatnya dalam dua, dan 8pt masih di atas batas 7pt
+     (bagian 8.6). */
+  .juara-cetak .print-table th { text-transform: none; font-size: 8pt; }
+  /* Jarak antar bagian dirapatkan, dan itu yang menentukan satu lembar atau
+     dua: sebelas judul bagian dengan jarak atas 5mm adalah 55mm — seperlima
+     halaman untuk ruang kosong. Terukur, seluruh daftar jatuh dari 284mm ke
+     bawah 277mm, jadi muat satu lembar A4 bolak-balik-tidak-perlu. */
+  .juara-cetak h2 { margin: 2.5mm 0 0; }
+  .juara-cetak .print-table { margin-top: 1mm; }
   /* Nama sekolah dan keterangan poin: kecil dan HITAM PEKAT, bukan abu.
      Bagian 8.4 — yang harus mundur dibuat kecil, bukan pucat, karena raster
      abu keluar belang dari mesin fotokopi. */
