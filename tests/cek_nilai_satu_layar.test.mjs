@@ -43,7 +43,15 @@ test("pengamat header memakai sinyal layar yang SUDAH ADA", () => {
   // "Memuat…" selamanya, tanpa satu pun galat. Itu benar-benar terjadi saat
   // tata letak ini dibangun.
   const awal = app.indexOf("async function layarCekNilai()");
-  const akhir = app.indexOf("const RUTE = {", awal);
+  /* Batas bawahnya SPANDUK BAGIAN BERIKUTNYA, bukan tabel RUTE.
+     Dulu ia `app.indexOf("const RUTE = {")`, dan itu benar hanya selama Cek
+     Nilai kebetulan bagian TERAKHIR sebelum tabel rute. Begitu satu layar
+     baru disisipkan di antaranya, potongan ini ikut memuat layar itu — dan
+     `sinyalLayarBaru()` miliknya terhitung sebagai panggilan kedua milik Cek
+     Nilai. Tesnya gagal, padahal layar yang dijaganya tidak berubah
+     sebarispun. */
+  const spanduk = app.indexOf("\n/* ==", awal);
+  const akhir = spanduk >= 0 ? spanduk : app.indexOf("const RUTE = {", awal);
   // Komentar dibuang dulu: alasan aturan ini justru dijelaskan di komentar
   // tepat di atas kodenya, dan nama fungsinya disebut di sana.
   const layar = app.slice(awal, akhir)

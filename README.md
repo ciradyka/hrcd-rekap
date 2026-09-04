@@ -27,6 +27,14 @@ capnya menyebut sampai migrasi berapa ia berlaku. Kalau cap itu tertinggal jauh
 dari `supabase/migrations/`, angkanya jangan dipercaya sebelum dihitung ulang —
 itulah gunanya cap itu ada.
 
+**Buku Sakti tidak ada di tabel ini, dan itu bukan kelalaian.** Ia dokumen
+untuk PANITIA, bukan untuk pengelola repo, jadi ia tinggal di dalam sistemnya
+sendiri — layar `#/buku-sakti`, isinya `web/js/buku-sakti.mjs`. Di situ ia bisa
+dibuka dari HP di tengah acara, mencetak dirinya sendiri untuk difotokopi, dan
+menautkan tiap langkah ke layar yang mengerjakannya. Menyuntingnya berarti
+menyunting daftar blok di berkas itu; tidak ada satu pun tag HTML yang perlu
+disentuh, dan `tests/buku_sakti.test.mjs` menolak bentuk yang salah.
+
 `desain-sistem.md` dan `rancangan-b.md` merekam **keputusan pada saat itu**,
 bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 61
 komentar di kode — tersebar di 32 berkas: migrasi, tes, SPA, workflow,
@@ -41,9 +49,10 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 ├── docs/                     # spesifikasi, catatan keputusan, arsitektur
 ├── web/                      # SPA statis — layar panitia (panitia-hrcd37)
 │   ├── index.html            # layar panitia (butuh login)
-│   ├── js/                   # api.js, app.js, util.js, dan dua modul murni
-│   │                         # hitung: departure-calculator.mjs dan
-│   │                         # nomor-dada-series.mjs
+│   ├── js/                   # api.js, app.js, util.js, dua modul murni hitung
+│   │                         # (departure-calculator.mjs dan
+│   │                         # nomor-dada-series.mjs), dan buku-sakti.mjs —
+│   │                         # ISI Buku Sakti sebagai data, bukan kode
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
@@ -87,7 +96,7 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │   ├── dev_server.py         # tiruan Supabase untuk mencoba layar
 │   ├── static_server.py      # penyaji web/ tanpa cache
 │   ├── concurrency_test.py   # uji daftar ulang serentak dari banyak meja
-│   ├── *.test.mjs            # 85 berkas tes layar + modul (node --test)
+│   ├── *.test.mjs            # 91 berkas tes layar + modul (node --test)
 │   └── status_migrasi_check.sh
 │                             # menguji jejak status_migrasi.sql dua arah;
 │                             # lambat, sengaja di luar run.sh

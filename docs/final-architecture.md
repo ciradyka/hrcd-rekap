@@ -286,6 +286,7 @@ supaya tombol Back HP mengembalikan pemilih lomba, bukan melompat ke Home.
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
+| `#/buku-sakti` | Buku Sakti | buku pegangan yang diserahkan antar kepanitiaan: cara menjalankan HRCD, tugas pokok tiap seksi, alasan sistem ini berbentuk begini, dan timeline satu edisi dari Serah Terima Jabatan sampai pelaksanaan. Alamatnya berbuntut kode bab — `#/buku-sakti/seksi`. Isinya data statis di `web/js/buku-sakti.mjs`, bukan baris database, jadi ia tetap terbaca saat Supabase tidak bisa dihubungi. **Satu-satunya layar tanpa pagar hak akses**, dan itu disengaja: yang paling butuh membacanya justru yang haknya paling sempit. Tautan ke layar lain di dalamnya tetap ikut hak |
 
 Lima peran akun: `admin`, `registrasi`, `gerbang`, `juri_pos`, dan
 `koordinator_pos`. Peran hanya memilih centang awal lewat `paket_peran()`;

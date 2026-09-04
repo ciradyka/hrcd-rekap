@@ -46,6 +46,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
+import { BUKU_SAKTI, TIMELINE, FITUR_NAMA, cariBagian, cariBulan }
+  from "./buku-sakti.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -529,6 +531,20 @@ async function layarHome() {
           <div class="function-name">${ikonKotak("trophy", "jingga")} Kejuaraan</div>
         </a>` : ""}
       </div>
+      <a class="bs-pintu" href="#/buku-sakti">
+        ${ikon("book-open", "ikon bs-pintu-ikon")}
+        <span class="bs-pintu-teks">
+          <span class="bs-pintu-nama">Buku Sakti</span>
+          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
+               Aturan itu melarang menjelaskan nama yang sudah mengatakan
+               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
+               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
+               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
+               tidak punya cara menduga. -->
+          <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
+            seksi, dan timeline satu edisi.</span>
+        </span>
+      </a>
 `));
     return;
   }
@@ -642,6 +658,33 @@ async function layarHome() {
         <div class="function-name">${ikonKotak("settings", "abu")} Kalkulator Keberangkatan</div>
       </a>` : ""}
     </div>
+
+    <!-- BUKAN UBIN KELIMA BELAS, dan itu keputusan warna sebelum keputusan
+         tata letak. Tiap ubin di papan ini punya rona sendiri supaya jempol
+         bisa menuju "yang jingga" tanpa mengeja namanya, dan keempat belas
+         rona yang jaraknya cukup jauh sudah habis terpakai. Ubin kelima belas
+         berarti dua ubin serona — dan sejak itu warnanya berhenti menandai
+         apa pun, untuk keempat belas ubin sekaligus, bukan cuma yang baru.
+
+         Jadi ia berdiri DI BAWAH grid sebagai pita selebar papan: terlihat
+         tanpa dicari, tidak ikut kode warna, dan tidak menggeser satu pun
+         ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya sengaja
+         tidak diperiksa — alasannya di kepala bagian BUKU SAKTI. -->
+
+      <a class="bs-pintu" href="#/buku-sakti">
+        ${ikon("book-open", "ikon bs-pintu-ikon")}
+        <span class="bs-pintu-teks">
+          <span class="bs-pintu-nama">Buku Sakti</span>
+          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
+               Aturan itu melarang menjelaskan nama yang sudah mengatakan
+               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
+               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
+               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
+               tidak punya cara menduga. -->
+          <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
+            seksi, dan timeline satu edisi.</span>
+        </span>
+      </a>
   `));
 }
 
@@ -10579,6 +10622,452 @@ async function layarCekNilai() {
   await muatPos();
 }
 
+/* ============================== BUKU SAKTI ===============================
+
+   Buku pegangan yang diserahkan ke kepanitiaan berikutnya. Isinya tinggal di
+   buku-sakti.mjs sebagai data; layar ini cuma menggambarnya dan menyiapkan
+   versi cetaknya.
+
+   TIDAK ADA PAGAR HAK AKSES DI PINTUNYA, dan itu keputusan, bukan kelalaian.
+   Buku ini menjelaskan pekerjaan SELURUH panitia, dan yang paling butuh
+   membacanya justru yang haknya paling sempit: juri pos yang baru pertama
+   memegang lembar nilai, petugas meja yang dipindah pagi itu juga. Mengikat
+   buku ke satu centang berarti orang-orang itu yang tidak bisa membukanya.
+
+   Yang dijaga hak akses adalah DATA. Buku ini tidak memuat satu baris data
+   pun — tidak ada nama regu, tidak ada nilai, tidak ada nomor WA pembina.
+
+   TAUTAN DI DALAMNYA TETAP IKUT HAK. Blok "layar" menyebut fitur yang
+   dibutuhkan, dan yang tidak memegangnya melihat kotak yang sama tanpa
+   tautan, lengkap dengan nama centang yang harus diminta ke admin. Tautan
+   yang berujung pada kartu "tidak berhak" mengajari orang bahwa buku ini
+   tidak bisa dipercaya, dan buku panduan yang tidak dipercaya sama saja
+   dengan tidak ada.
+   ========================================================================= */
+
+/** Bagian yang harus digulir ke tempatnya SESUDAH layar digambar ulang.
+ *
+ *  Daftar isi dan hasil cari sama-sama bisa menunjuk bagian di bab LAIN, dan
+ *  berpindah bab berarti hash berganti, arahkan() jalan, dan seluruh DOM
+ *  dibangun ulang. Elemen tujuannya belum ada saat tombolnya diketuk, jadi
+ *  yang bisa dititipkan lintas penggambaran cuma kodenya. */
+let bagianDitujuBuku = null;
+
+/** Nomor bab untuk dibaca manusia: "Bab 2". Diambil dari urutannya di
+ *  BUKU_SAKTI, bukan disimpan di datanya — dua tempat yang menyimpan urutan
+ *  yang sama adalah dua tempat yang suatu hari tidak sepakat. */
+const nomorBabBuku = (bab) => BUKU_SAKTI.indexOf(bab) + 1;
+
+/** Satu blok isi jadi markup layar.
+ *
+ *  esc() di SETIAP sisipan. Teks buku ini memang ditulis panitia sendiri,
+ *  tapi "ditulis orang yang kita percaya" bukan alasan yang bertahan: satu
+ *  tanda kurang-dari di tengah kalimat sudah cukup membuang sisa paragrafnya,
+ *  tanpa satu pun galat, dan yang menemukannya pembaca yang kehilangan
+ *  separuh halaman. */
+function blokBuku(blok) {
+  switch (blok.jenis) {
+    case "p":
+      return `<p>${esc(blok.teks)}</p>`;
+    case "poin":
+      return `<ul class="bs-poin">${
+        blok.butir.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    case "langkah":
+      return `<ol class="bs-langkah">${
+        blok.butir.map(x => `<li>${esc(x)}</li>`).join("")}</ol>`;
+    case "tabel":
+      /* DUA hal yang membuat tabel ini terbaca di HP, dan keduanya wajib.
+
+         `data-label` membawa nama kolomnya, karena di bawah 900px `<thead>`
+         disembunyikan dan sel tanpa label kehilangan artinya sama sekali —
+         isi yang berdiri sendiri tanpa nama kolomnya.
+
+         `data-baris` yang MENYALAKAN rupa kartunya. Tanpa atribut itu barisnya
+         tetap dipecah jadi blok bertumpuk (aturan `.data-table:not(
+         .table-tetap)`), tetapi tidak mendapat kotak, jarak, maupun awalan
+         nama kolom — yang tergambar deretan potongan teks telanjang, dan
+         labelnya justru tidak ikut. Nilainya cuma nomor urut: seluruh aturan
+         di style.css memakainya sebagai penanda ADA, bukan membaca isinya. */
+      return `<div class="bs-tabel-bungkus">
+        <table class="table data-table bs-tabel">
+          <thead><tr>${blok.kepala.map(k => `<th>${esc(k)}</th>`).join("")}</tr></thead>
+          <tbody>${blok.baris.map((baris, n) => `<tr data-baris="${n}">${
+            baris.map((sel, i) => `<td data-label="${esc(blok.kepala[i] || "")}">${
+              esc(sel)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table></div>`;
+    case "kenapa":
+      return `<p class="bs-kenapa">${esc(blok.teks)}</p>`;
+    case "layar":
+      return blokLayarBuku(blok);
+    default:
+      /* Jenis yang tidak dikenal DIAM, tidak melempar. Buku yang salah ketik
+         satu jenis blok tetap terbuka dan kehilangan satu blok; kalau ia
+         melempar, seluruh layar jadi kartu galat dan yang hilang seluruh
+         buku. Yang menangkap salah ketiknya tes bentuk, jauh sebelum sini. */
+      return "";
+  }
+}
+
+/** Blok "layar": kotak yang menunjuk layar sungguhan, ikut hak akun. */
+function blokLayarBuku(blok) {
+  const isi = `<span class="bs-layar-nama">${esc(blok.nama)}</span>`
+    + (blok.teks ? `<span class="bs-layar-teks">${esc(blok.teks)}</span>` : "");
+  if (!blok.fitur || bolehLihat(blok.fitur)) {
+    return `<a class="bs-layar" href="${esc(blok.hash)}">${isi}</a>`;
+  }
+  return `<div class="bs-layar bs-layar-mati">${isi}
+    <span class="bs-layar-hak">Butuh centang ${
+      esc(FITUR_NAMA[blok.fitur] || blok.fitur)} di layar Akun.</span></div>`;
+}
+
+/** Satu bagian bacaan.
+ *
+ *  TIDAK ada atribut pencarian di sini, dan itu disengaja: kotak cari
+ *  membaca DATA-nya lewat cariBagian(), bukan DOM. Menaruh salinan teksnya di
+ *  atribut akan membuat dua sumber untuk satu pertanyaan — dan yang di DOM
+ *  itu yang basi begitu bukunya disunting sementara halamannya tidak dimuat
+ *  ulang. */
+function bagianBukuHtml(bagian) {
+  return `<section class="card bs-bagian" id="bs-${esc(bagian.kode)}">
+    <h3>${esc(bagian.judul)}</h3>
+    ${bagian.isi.map(blokBuku).join("")}
+  </section>`;
+}
+
+/** Satu bulan timeline. Bentuknya sengaja berbeda dari bagian bacaan: yang
+ *  dicari orang di kalender bukan paragraf melainkan tonggak yang bisa
+ *  dicentang dan langkah sistem yang harus dikerjakan bulan itu. */
+function bulanBukuHtml(bulan, indeks) {
+  return `<section class="card bs-bulan" id="bs-bulan-${esc(bulan.kode)}">
+    <div class="bs-bulan-kepala">
+      <span class="bs-bulan-urut">${esc(String(indeks + 1))}</span>
+      <span class="bs-bulan-nama">${esc(bulan.bulan)}</span>
+      <span class="bs-bulan-tajuk">${esc(bulan.tajuk)}</span>
+    </div>
+    <p class="bs-bulan-fokus">${esc(bulan.fokus)}</p>
+    <div class="bs-bulan-kolom">
+      <div>
+        <h4>Tonggak</h4>
+        <ul class="bs-poin">${bulan.tonggak.map(x =>
+          `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>
+      <div>
+        <h4>Di sistem</h4>
+        <ul class="bs-poin">${bulan.sistem.map(x =>
+          `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>
+    </div>
+    <p class="bs-bulan-seksi">${bulan.seksi.map(x =>
+      `<span class="bs-pil">${esc(x)}</span>`).join("")}</p>
+    <p class="bs-kenapa bs-jangan">${esc(bulan.jangan)}</p>
+  </section>`;
+}
+
+function layarBukuSakti() {
+  /* LEBAR BIASA (760px), bukan `wide`.
+
+     Layar meja memakai 1080px supaya tabelnya muat; layar ini bacaan, dan
+     baris sepanjang 1054px membuat mata kehilangan awal baris berikutnya tiap
+     kali ia kembali ke kiri. Diukur di browser: pada lebar biasa satu baris
+     paragraf jatuh di sekitar 68 huruf — persis rentang yang nyaman dibaca
+     panjang-panjang.
+
+     Wadahnya yang dibatasi, bukan paragrafnya. Kalau `max-width` ditaruh di
+     kartu bagian saja, kartu bacaan jadi 686px sementara kepala, deret tab,
+     dan kartu bab tetap 1054px — empat tepi kiri-kanan yang tidak sejajar di
+     satu halaman, dan itu terbaca seperti tata letak yang rusak, bukan
+     seperti kolom bacaan. */
+  pasangKepala("Buku Sakti");
+  const diminta = ekorRute(location.hash);
+  const bab = BUKU_SAKTI.find(b => b.kode === diminta) || BUKU_SAKTI[0];
+
+  /* SELURUH BAB DIGAMBAR SEKALIGUS, yang tidak terpilih disembunyikan.
+
+     Isinya statis dan tidak menyentuh jaringan sama sekali, jadi harganya
+     cuma DOM — dan yang dibeli dengan itu kotak cari yang menyapu seluruh
+     buku tanpa satu pun penggambaran ulang, termasuk bab yang sedang tidak
+     terbuka. Menggambar per bab akan menuntut kotak cari punya salinan
+     teksnya sendiri, dan salinan itu yang suatu hari tidak sepakat dengan
+     yang tergambar. */
+  const panel = BUKU_SAKTI.map(b => `
+    <div class="bs-panel" data-bab="${esc(b.kode)}"${b === bab ? "" : " hidden"}>
+      <div class="card bs-bab">
+        <div class="bs-bab-kepala">
+          ${ikonKotak(b.ikon, b.warna)}
+          <div>
+            <h2>Bab ${esc(String(nomorBabBuku(b)))} — ${esc(b.judul)}</h2>
+            <p class="description">${esc(b.ringkas)}</p>
+          </div>
+        </div>
+        ${b.kode === "timeline" ? "" : `
+        <nav class="bs-isi" aria-label="Daftar isi ${esc(b.judul)}">
+          <ol>${b.bagian.map(bagian =>
+            `<li><button type="button" class="bs-ke"
+                         data-ke="bs-${esc(bagian.kode)}">${
+              esc(bagian.judul)}</button></li>`).join("")}</ol>
+        </nav>`}
+      </div>
+      ${b.kode === "timeline"
+        ? `<div class="bs-timeline">${TIMELINE.map(bulanBukuHtml).join("")}</div>`
+        : b.bagian.map(bagianBukuHtml).join("")}
+    </div>`).join("");
+
+  LAYAR.replaceChildren(h(`
+    <div class="card bs-kepala">
+      <h2>Buku Sakti — ${esc(EDISI ? EDISI.name : "HRCD")}</h2>
+      <!-- Satu kalimat, dan ia membawa fakta yang tidak ada di judulnya:
+           siapa yang menulis buku ini dan kapan ia ditulis ulang. Tanpa itu
+           pembaca tidak tahu bahwa isinya boleh — dan harus — diubah. -->
+      <p class="description">Ditulis ulang tiap serah terima jabatan oleh
+        panitia yang turun, untuk panitia yang naik.</p>
+      <div class="bs-alat">
+        <label class="visually-hidden" for="bs-cari">Cari isi buku</label>
+        <input type="search" id="bs-cari" autocomplete="off"
+               placeholder="Cari isi buku…">
+        <div class="bs-cetak">
+          <button class="button button-secondary button-small" id="bs-cetak-bab"
+                  type="button">${ikon("printer")} Cetak Bab Ini</button>
+          <button class="button button-primary button-small" id="bs-cetak-semua"
+                  type="button">${ikon("printer")} Cetak Semua</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV BERISI TAUTAN, bukan role="tablist" berisi role="tab".
+         Bentuknya memang meminjam pil tab Live Score, tapi yang di sini
+         benar-benar TAUTAN: mengetuknya mengganti alamat dan menambah entri
+         Back, sementara sebuah tab tidak pindah halaman. Pembaca layar yang
+         diberi tahu "tab" lalu mendapat perpindahan halaman kehilangan
+         tempatnya. Yang menandai bab terbuka aria-current="page" — penanda
+         yang memang untuk satu tautan di antara sekelompok tautan.
+
+         (Tanpa backtick di komentar ini: ia berada DI DALAM template
+         literal, dan satu backtick menutupnya di tengah jalan.) -->
+    <nav class="tab-golongan bs-tab" aria-label="Bab">
+      ${BUKU_SAKTI.map(b => `
+        <a class="tab-gol" href="#/buku-sakti/${esc(b.kode)}"${
+          b === bab ? ' aria-current="page"' : ""}>
+          ${esc(b.tab)}
+          <span class="tab-hitung">${esc(String(
+            b.kode === "timeline" ? TIMELINE.length : b.bagian.length))}</span>
+        </a>`).join("")}
+    </nav>
+
+    <div class="card bs-hasil" id="bs-hasil" hidden></div>
+    <div id="bs-panel-semua">${panel}</div>
+  `));
+
+  /* sinyalLayarBaru(), BUKAN `pengendaliLayar.signal`.
+
+     arahkan() memanggil `pengendaliLayar.abort()` sebelum menggambar layar
+     berikutnya dan TIDAK membuat pengendali baru — yang membuatnya cuma
+     fungsi ini. Jadi sinyal yang dibaca langsung dari `pengendaliLayar` di
+     sini sudah dalam keadaan aborted, dan `addEventListener` dengan sinyal
+     seperti itu diam saja: tidak melempar, tidak memperingatkan, tidak
+     memasang apa pun.
+
+     Ditulis sepanjang ini karena gagalnya tidak terlihat. Layarnya tergambar
+     lengkap, tab-nya berpindah (itu tautan, bukan pendengar), dan yang mati
+     cuma kotak cari serta daftar isinya — dua hal yang baru dicoba orang
+     sesudah beberapa menit membaca. */
+  const sinyal = sinyalLayarBaru();
+  const elCari = document.getElementById("bs-cari");
+  const elHasil = document.getElementById("bs-hasil");
+  const elSemua = document.getElementById("bs-panel-semua");
+
+  /** Gulir ke satu bagian dan tandai sebentar supaya mata menemukannya.
+   *
+   *  Tanpa penandaan, melompat ke bagian kesebelas dari daftar isi mendarat
+   *  di tengah tembok teks yang semuanya berupa kartu putih seukuran sama,
+   *  dan yang melompat harus membaca judulnya untuk memastikan ia sampai di
+   *  tempat yang benar. */
+  const gulirKe = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: "start", behavior: "smooth" });
+    el.classList.add("bs-sorot");
+    setTimeout(() => el.classList.remove("bs-sorot"), 1600);
+  };
+
+  if (bagianDitujuBuku) {
+    const tujuan = bagianDitujuBuku;
+    bagianDitujuBuku = null;
+    // Satu putaran ditunggu: elemennya baru saja masuk DOM dan belum punya
+    // posisi, jadi scrollIntoView() yang dipanggil sekarang mendarat di 0.
+    setTimeout(() => gulirKe(tujuan), 0);
+  }
+
+  LAYAR.addEventListener("click", (ev) => {
+    const ke = ev.target.closest(".bs-ke");
+    if (ke) { gulirKe(ke.dataset.ke); return; }
+    const hasil = ev.target.closest(".bs-hasil-butir");
+    if (!hasil) return;
+    /* Hasil cari boleh menunjuk bab lain, dan berpindah bab mengganti hash.
+       Kalau bab-nya SAMA, hash-nya tidak berubah dan hashchange tidak pernah
+       datang — jadi gulirnya dikerjakan langsung di sini. */
+    if (hasil.dataset.bab === bab.kode) { gulirKe(hasil.dataset.ke); return; }
+    bagianDitujuBuku = hasil.dataset.ke;
+    location.hash = `#/buku-sakti/${hasil.dataset.bab}`;
+  }, { signal: sinyal });
+
+  /* KOTAK CARI MENYAPU SELURUH BUKU, bukan bab yang sedang terbuka.
+
+     Yang mengetik "gembok" tidak tahu — dan tidak perlu tahu — bahwa gembok
+     dijelaskan di bab Menjalankan HRCD dan disinggung lagi di bab Seksi.
+     Kotak yang cuma menyaring bab yang kebetulan terbuka menjawab "tidak
+     ketemu" untuk kata yang jelas-jelas ada di bukunya. */
+  const saring = () => {
+    const kata = elCari.value.trim();
+    if (!kata) {
+      elHasil.hidden = true;
+      elSemua.hidden = false;
+      return;
+    }
+    const bagian = cariBagian(kata);
+    const bulan = cariBulan(kata);
+    const jumlah = bagian.length + bulan.length;
+    elSemua.hidden = true;
+    elHasil.hidden = false;
+    elHasil.replaceChildren(h(`<div>
+      <p class="description">${jumlah === 0
+        ? "Tidak ada bagian yang memuat semua kata itu."
+        : `${esc(String(jumlah))} bagian memuat semua kata itu.`}</p>
+      <ul class="bs-hasil-daftar">
+        ${bagian.map(({ bab: b, bagian: g }) => `
+          <li><button type="button" class="bs-hasil-butir"
+                      data-bab="${esc(b.kode)}" data-ke="bs-${esc(g.kode)}">
+            <span class="bs-hasil-bab">Bab ${esc(String(nomorBabBuku(b)))} · ${
+              esc(b.judul)}</span>
+            <span class="bs-hasil-judul">${esc(g.judul)}</span>
+          </button></li>`).join("")}
+        ${bulan.map(bl => `
+          <li><button type="button" class="bs-hasil-butir"
+                      data-bab="timeline" data-ke="bs-bulan-${esc(bl.kode)}">
+            <span class="bs-hasil-bab">Timeline</span>
+            <span class="bs-hasil-judul">${esc(bl.bulan)} — ${esc(bl.tajuk)}</span>
+          </button></li>`).join("")}
+      </ul>
+    </div>`));
+  };
+  elCari.addEventListener("input", saring, { signal: sinyal });
+
+  /* Cetak Bab Ini pada tab Timeline mencetak TIMELINE-nya, bukan halaman
+     kosong: bab itu memang tidak punya `bagian`, dan tombol yang berbunyi
+     "Cetak Bab Ini" lalu mengeluarkan satu lembar sampul adalah tombol yang
+     berbohong. */
+  document.getElementById("bs-cetak-bab").addEventListener("click", () => {
+    const sendiri = bab.kode === "timeline";
+    siapkanCetakBuku(sendiri ? null : bab, sendiri);
+    window.print();
+  }, { signal: sinyal });
+  document.getElementById("bs-cetak-semua").addEventListener("click", () => {
+    siapkanCetakBuku(null, true);
+    window.print();
+  }, { signal: sinyal });
+}
+
+/* ---------------------------------------------------------------------------
+   CETAK BUKU SAKTI
+
+   Buku ini digandakan di mesin fotokopi seperti seluruh kertas acara ini,
+   jadi aturan CLAUDE.md bagian 8 berlaku penuh: tidak ada blok hitam, tidak
+   ada teks terbalik, tidak ada abu dan raster, garis paling tipis 0,75pt,
+   huruf paling kecil 7pt.
+
+   SATU DOKUMEN MENGALIR PER BAB, bukan satu lembar per bagian. Empat puluh
+   bagian berarti empat puluh lembar untuk isi yang muat di belasan, dan
+   tumpukan setebal itu tidak dibaca siapa pun. Yang dijaga cuma satu bagian
+   tidak terbelah dua halaman, lewat `break-inside: avoid`.
+
+   Daftar isinya TANPA nomor halaman. Nomor halaman hanya bisa benar kalau
+   dihitung dari hasil paginasi browser, dan itu berbeda antar peranti dan
+   antar ukuran kertas — daftar isi yang menyebut halaman 12 sementara
+   bagiannya di halaman 14 lebih buruk daripada daftar isi tanpa angka sama
+   sekali.
+   --------------------------------------------------------------------------- */
+
+/** Blok isi jadi markup KERTAS. Bedanya dari blokBuku() cuma satu, dan itu
+ *  yang membuat fungsi ini ada: blok "layar" kehilangan tautannya. Alamat
+ *  `#/pembayaran` di atas kertas tidak bisa diketuk dan tidak memberi tahu
+ *  apa pun kepada yang membacanya — yang berguna tinggal nama layarnya. */
+function blokBukuCetak(blok) {
+  if (blok.jenis !== "layar") return blokBuku(blok);
+  return `<p class="bs-cetak-layar"><strong>${esc(blok.nama)}</strong>${
+    blok.teks ? ` — ${esc(blok.teks)}` : ""}</p>`;
+}
+
+function siapkanCetakBuku(babSatu, ikutTimeline) {
+  document.getElementById("cetakan")?.remove();
+  const dicetak = tanggalJam(new Date().toISOString());
+  const judulEdisi = EDISI ? EDISI.name : "HRCD";
+  const babCetak = babSatu ? [babSatu] : BUKU_SAKTI.filter(b => b.bagian.length);
+  const timeline = !!(ikutTimeline && TIMELINE.length);
+
+  const daftarIsi = `
+    <h2>Daftar Isi</h2>
+    ${babCetak.map(b => `
+      <p class="bs-cetak-isi-bab">Bab ${esc(String(nomorBabBuku(b)))} — ${
+        esc(b.judul)}</p>
+      <ul class="bs-cetak-isi">${b.bagian.map(g =>
+        `<li>${esc(g.judul)}</li>`).join("")}</ul>`).join("")}
+    ${timeline ? `
+      <p class="bs-cetak-isi-bab">Timeline Satu Edisi</p>
+      <ul class="bs-cetak-isi">${TIMELINE.map(bl =>
+        `<li>${esc(bl.bulan)} — ${esc(bl.tajuk)}</li>`).join("")}</ul>` : ""}`;
+
+  const halamanBab = babCetak.map(b => `
+    <section class="print-page">
+      <h1>Bab ${esc(String(nomorBabBuku(b)))} — ${esc(b.judul)}</h1>
+      <p class="bs-cetak-ringkas">${esc(b.ringkas)}</p>
+      ${b.bagian.map(g => `
+        <section class="bs-cetak-bagian">
+          <h2>${esc(g.judul)}</h2>
+          ${g.isi.map(blokBukuCetak).join("")}
+        </section>`).join("")}
+    </section>`).join("");
+
+  /* RINGKASAN ENAM BULAN DALAM SATU TABEL, lalu rinciannya.
+     Tabel itu yang ditempel di dinding sekretariat; rinciannya yang dibaca
+     saat bulannya tiba. Keduanya dicetak karena keduanya dipakai berbeda. */
+  const halamanTimeline = !timeline ? "" : `
+    <section class="print-page">
+      <h1>Timeline Satu Edisi</h1>
+      <table class="print-table">
+        <thead><tr><th>Bulan</th><th>Tajuk</th><th>Fokus</th></tr></thead>
+        <tbody>${TIMELINE.map(bl => `<tr>
+          <td>${esc(bl.bulan)}</td>
+          <td>${esc(bl.tajuk)}</td>
+          <td>${esc(bl.fokus)}</td></tr>`).join("")}</tbody>
+      </table>
+      ${TIMELINE.map(bl => `
+        <section class="bs-cetak-bagian">
+          <h2>${esc(bl.bulan)} — ${esc(bl.tajuk)}</h2>
+          <p>${esc(bl.fokus)}</p>
+          <p class="bs-cetak-label">Tonggak</p>
+          <ul class="bs-poin">${bl.tonggak.map(x =>
+            `<li>${esc(x)}</li>`).join("")}</ul>
+          <p class="bs-cetak-label">Di sistem</p>
+          <ul class="bs-poin">${bl.sistem.map(x =>
+            `<li>${esc(x)}</li>`).join("")}</ul>
+          <p class="bs-cetak-label">Seksi yang paling sibuk</p>
+          <p>${esc(bl.seksi.join(" · "))}</p>
+          <p class="bs-kenapa">${esc(bl.jangan)}</p>
+        </section>`).join("")}
+    </section>`;
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout buku-cetak">
+    <section class="print-page">
+      <h1>BUKU SAKTI — ${esc(judulEdisi)}</h1>
+      <p class="bs-cetak-ringkas">Buku pegangan panitia. Ditulis ulang tiap
+        serah terima jabatan oleh panitia yang turun, untuk panitia yang naik.</p>
+      ${daftarIsi}
+      <p class="print-note">Dicetak ${esc(dicetak)}.</p>
+    </section>
+    ${halamanBab}
+    ${halamanTimeline}
+  </div>`));
+}
+
 /* ALAMAT BOLEH BERBUNTUT: `#/pos2/2:bakiak`.
 
    Satu-satunya yang memakainya hari ini Input Nilai Pos v2, dan alasannya
@@ -10615,6 +11104,10 @@ const RUTE = {
   "#/pengaturan-kloter": layarPengaturanKloter,
   "#/ganti-password": layarGantiPassword,
   "#/account": layarAkun,
+  // Berbuntut kode bab: `#/buku-sakti/seksi`. Itu yang membuat satu bab
+  // bisa disebut di grup panitia sebagai alamat, bukan sebagai
+  // "buka Buku Sakti lalu ketuk tab ketiga".
+  "#/buku-sakti": layarBukuSakti,
 };
 
 // Hash yang benar-benar sedang tergambar. `location.hash` sudah berisi tujuan
@@ -10670,6 +11163,14 @@ const keSetelan = () => {
 const keAkun = () => {
   if (location.hash === "#/account") arahkan(); else location.hash = "#/account";
 };
+/* Menuju Buku Sakti dari mana pun. `pangkalRute()` dipakai, bukan hash utuh:
+   alamatnya berbuntut kode bab, jadi `#/buku-sakti/seksi` juga sudah "sedang
+   di Buku Sakti" — dan tombolnya harus menggambar ulang di tempat, bukan
+   melempar pembaca kembali ke bab pertama. */
+const keBuku = () => {
+  if (pangkalRute(location.hash) === "#/buku-sakti") arahkan();
+  else location.hash = "#/buku-sakti";
+};
 const keluarSekarang = () => {
   if (!bolehMeninggalkanNilai()) return;
   // Peringatan sudah dijawab di atas; samakan penanda agar arahkan() tidak
@@ -10684,6 +11185,8 @@ document.getElementById("nav-home").addEventListener("click", keHome);
 document.getElementById("nav-setting").addEventListener("click", keSetelan);
 document.getElementById("btn-akun").addEventListener("click", keAkun);
 document.getElementById("nav-akun").addEventListener("click", keAkun);
+document.getElementById("btn-buku").addEventListener("click", keBuku);
+document.getElementById("nav-buku").addEventListener("click", keBuku);
 document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);

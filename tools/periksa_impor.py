@@ -68,6 +68,7 @@ if __name__ == "__main__":
         ("web/js/app.js", "web/js/api.js", "./api.js"),
         ("web/js/app.js", "web/js/util.js", "./util.js"),
         ("web/js/app.js", "web/js/nomor-dada-series.mjs", "./nomor-dada-series.mjs"),
+        ("web/js/app.js", "web/js/buku-sakti.mjs", "./buku-sakti.mjs"),
         ("live/js/daftar.js", "live/js/api.js", "./api.js"),
         ("live/js/daftar.js", "live/js/util.js", "./util.js"),
         ("live/js/daftar.js", "live/js/school-search.mjs", "./school-search.mjs"),
