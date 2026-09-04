@@ -777,6 +777,31 @@ export const bukaKunciNilaiPos = (nomorDada, pos, lomba, alasan) =>
   rpc("buka_kunci_nilai_pos",
       { p_nomor_dada: nomorDada, p_pos: pos, p_lomba: lomba, p_alasan: alasan });
 
+/* ---------- papan sprint Buku Sakti (migrasi 0170) ---------- */
+
+/** Centang tugas papan sprint edisi aktif, beserta siapa dan kapan.
+ *
+ *  Dibaca sekali saat layar Buku Sakti dibuka, bukan per tugas: seratusan
+ *  tugas berarti seratusan permintaan, dan seluruhnya muat dalam satu
+ *  jawaban berukuran beberapa kilobyte.
+ *
+ *  Gagalnya BUKAN alasan menutup layar. Buku Sakti sengaja tetap terbaca
+ *  tanpa database sama sekali (lihat pagar edisi di app.js), jadi yang
+ *  memanggil ini harus menangani gagalnya sebagai "centangnya belum
+ *  terbaca", bukan sebagai "bukunya tidak bisa dibuka". */
+export async function daftarCentangSprint() {
+  if (K.mode === "dev") return baca("/centang-sprint");
+  return baca(null, "v_centang_sprint?select=kode,dicentang_pada,dicentang_oleh");
+}
+
+/** Centang satu tugas, atau batalkan centangnya.
+ *
+ *  Satu fungsi dua arah, sama dengan RPC-nya: kotak centang selalu tahu
+ *  keadaan barunya, dan dua fungsi terpisah berarti dua tempat yang harus
+ *  sepakat soal edisi aktif dan jejaknya. */
+export const setCentangSprint = (kode, selesai) =>
+  rpc("set_centang_sprint", { p_kode: kode, p_selesai: !!selesai });
+
 /** Riwayat perubahan nilai satu regu di satu pos — siapa mengubah apa, kapan.
  *
  *  Dibaca saat penanda simpan diketuk, bukan ikut dimuat bersama lembarnya:

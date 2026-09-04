@@ -292,7 +292,13 @@ button { font: inherit; cursor: pointer; }
   margin-top: .2rem;
 }
 
-input[type=text], input[type=number], input[type=password], input[type=time], input[type=tel] {
+/* `search` ikut daftar ini, bukan dibiarkan bawaan browser: kotak cari yang
+   tepinya setipis rambut dan tingginya 24px berdiri di antara kotak-kotak
+   setinggi 46px terbaca seperti kotak yang rusak, dan di HP ia terlalu
+   kecil untuk disentuh. Tombol silang bawaannya sengaja DIBIARKAN — ia
+   satu-satunya jalan mengosongkan kotaknya dengan satu ketukan. */
+input[type=text], input[type=number], input[type=password], input[type=time],
+input[type=tel], input[type=search] {
   width: 100%;
   font: inherit;
   font-size: 1.0625rem;
@@ -3426,6 +3432,8 @@ button.pill-number:hover { filter: brightness(.95); }
   #nav-home[aria-current="page"]    .bottom-nav-icon { background: var(--utama-muda); }
   #nav-setting[aria-current="page"] .bottom-nav-icon { background: #f0eafe; }
   #nav-akun[aria-current="page"]    .bottom-nav-icon { background: #eef0f3; }
+  /* Hijau HRCD yang sama dengan Home: keduanya "tempat", bukan setelan. */
+  #nav-buku[aria-current="page"]    .bottom-nav-icon { background: var(--utama-muda); }
 
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar.
 
@@ -5976,4 +5984,413 @@ button.pill-number:hover { filter: brightness(.95); }
   .isi.cek .cek-foto { flex: 1; min-height: 150px; margin-top: .3rem; }
   .isi.cek .cek-foto .fg-petak { height: 100%; }
   .isi.cek .cek-lomba .foto-navigasi { margin-top: .25rem; flex: 0 0 auto; }
+}
+
+/* Pita Buku Sakti di kaki papan Home.
+
+   Sengaja BUKAN ubin. Empat belas ubin di atasnya masing-masing punya rona
+   sendiri, dan itu batasnya — rona kelima belas yang cukup berjauhan dari
+   keempat belas lainnya sudah tidak ada. Pita ini keluar dari kode warna itu
+   sama sekali: bentuknya yang membedakannya, bukan warnanya, jadi ia tidak
+   pernah bisa tertukar dengan meja mana pun.
+
+   Garis putus-putus, bukan bayangan kartu: ubin di atasnya benda yang bisa
+   ditekan sepanjang hari lomba, pita ini pintu yang dibuka sesekali. */
+.bs-pintu {
+  display: flex; align-items: center; gap: .8rem;
+  margin-top: 1rem; padding: .9rem 1.1rem;
+  border: 1.5px dashed var(--garis); border-radius: var(--radius);
+  background: var(--kartu);
+  text-decoration: none; color: inherit;
+  min-height: 46px;
+}
+.bs-pintu:hover { border-color: var(--utama); background: var(--utama-muda); }
+.bs-pintu:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.bs-pintu-ikon { width: 1.6rem; height: 1.6rem; color: var(--utama); flex: 0 0 auto; }
+.bs-pintu-nama { display: block; font-weight: 700; }
+.bs-pintu-ket {
+  display: block; font-size: .88rem; color: var(--tinta-lembut);
+  line-height: 1.45; margin-top: .1rem;
+}
+
+/* ============================================================================
+   BUKU SAKTI
+
+   Satu-satunya layar di sistem ini yang isinya BACAAN, bukan data. Aturan
+   yang membuat layar meja terbaca cepat — baris padat, angka besar, satu
+   aksi utama — justru melawan di sini: yang dibaca panitia baru di layar ini
+   paragraf demi paragraf, sekali, dengan sungguh-sungguh.
+
+   Jadi dua hal dilonggarkan, dan cuma dua:
+
+   1. LEBAR BARIS DIBATASI. Kartu bacaan berhenti di 68 huruf. Layar 1080px
+      memberi baris sepanjang 150 huruf, dan mata kehilangan awal baris
+      berikutnya setiap kali ia kembali ke kiri. Tabel dan timeline TIDAK ikut
+      dibatasi — keduanya dibaca melintang, bukan mengalir.
+   2. JARAK ANTAR BARIS DINAIKKAN ke 1.65. Tubuh 16px yang rapat nyaman untuk
+      satu baris nama regu dan melelahkan untuk sepuluh baris paragraf.
+
+   Selebihnya memakai kartu, tabel, dan pil yang sama persis dengan layar
+   lain. Buku yang tampilannya asing dari sistem yang ia jelaskan adalah buku
+   yang terbaca seperti tempelan.
+   ========================================================================== */
+
+.bs-kepala .description { margin-bottom: .8rem; }
+
+/* Kotak cari dan dua tombol cetak dalam satu baris; di HP tombolnya turun ke
+   baris kedua dan kotak carinya tetap selebar kartunya. `min-width: 0` wajib
+   ada di kotak carinya: tanpa itu ia menolak menyusut di bawah lebar bawaan
+   input dan mendorong tombol cetak keluar kartu. */
+.bs-alat {
+  display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
+}
+.bs-alat input[type="search"] {
+  flex: 1 1 14rem; min-width: 0;
+}
+.bs-cetak { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* Tab bab memakai .tab-golongan/.tab-gol apa adanya. Yang berbeda cuma satu:
+   di sana tab-nya <button>, di sini <a> — karena bab boleh disebut sebagai
+   alamat. Anchor tidak mewarisi reset tombol, jadi garis bawah dan warna
+   tautannya dibuang di sini. */
+.bs-tab .tab-gol { text-decoration: none; }
+/* Bab yang terbuka ditandai `aria-current="page"`, bukan `aria-selected` —
+   ini tautan, bukan tab. Aturan warnanya ditulis lengkap di sini karena
+   .tab-gol[aria-selected="true"] di atas tidak mengenainya sama sekali. */
+.bs-tab .tab-gol[aria-current="page"] {
+  background: var(--utama); border-color: var(--utama); color: #fff;
+}
+.bs-tab .tab-gol[aria-current="page"] .tab-hitung {
+  background: rgba(255, 255, 255, .24); color: #fff;
+}
+
+/* ---- Kepala bab ---- */
+.bs-bab-kepala { display: flex; gap: .7rem; align-items: flex-start; }
+.bs-bab-kepala h2 { margin-bottom: .15rem; }
+
+/* Daftar isi bab. Bernomor, karena bagiannya memang berurutan waktu di bab
+   Menjalankan HRCD dan urutan itu bagian dari isinya. */
+.bs-isi { margin-top: .9rem; border-top: 1px solid var(--garis); padding-top: .8rem; }
+.bs-isi ol { margin: 0; padding-left: 1.4rem; }
+.bs-isi li { margin: .1rem 0; }
+/* `display: block`, dan itu bukan selera.
+
+   Tombol bawaannya inline-block, dan inline-block yang isinya membungkus dua
+   baris menyejajarkan BARIS TERAKHIRNYA dengan nomor daftar. Di HP, judul
+   bagian seperti "Seksi Kesekretariatan dan Pendaftaran" memang membungkus —
+   dan yang tergambar nomornya "5." berdiri di sebelah baris KEDUA, dengan
+   baris pertamanya menggantung di atasnya tanpa nomor.
+
+   Sebagai blok ia juga jadi sasaran sentuh selebar kartunya, yang memang
+   yang diinginkan dari daftar isi di HP. */
+.bs-ke {
+  display: block; width: 100%;
+  background: none; border: 0; padding: .25rem 0; font: inherit; cursor: pointer;
+  color: var(--utama); text-align: left; line-height: 1.4;
+}
+.bs-ke:hover { text-decoration: underline; }
+.bs-ke:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+
+/* ---- Satu bagian bacaan ---- */
+.bs-bagian {
+  /* TANPA max-width sendiri. Lebar kolomnya diputuskan wadahnya — layar ini
+     memakai `.isi` biasa 760px, bukan `.isi.wide` — supaya kepala, deret tab,
+     kartu bab, dan kartu bagian punya tepi yang sama. Terukur di browser:
+     satu baris paragraf jatuh di sekitar 68 huruf. */
+  line-height: 1.65;
+  /* Kepala halaman ikut menggulir (tidak sticky), jadi yang perlu
+     disisakan cuma satu jarak napas, bukan setinggi kepalanya. */
+  scroll-margin-top: .8rem;
+}
+.bs-bagian h3 {
+  font-size: 1.05rem; letter-spacing: -.01em; margin-bottom: .5rem;
+}
+.bs-bagian p { margin: .55rem 0; }
+
+/* Sorotan sesudah melompat dari daftar isi atau hasil cari. Dua detik, lalu
+   hilang sendiri — penanda yang menetap jadi bagian dari tampilan kartunya
+   dan berhenti berarti "yang ini". */
+.bs-sorot {
+  box-shadow: var(--bayang-naik), 0 0 0 2px var(--utama);
+  transition: box-shadow .25s ease;
+}
+
+.bs-poin, .bs-langkah { margin: .55rem 0; padding-left: 1.35rem; }
+.bs-poin li, .bs-langkah li { margin: .3rem 0; }
+/* Angka langkah ditebalkan supaya urutan kerja terbaca sebagai urutan, bukan
+   sebagai daftar yang kebetulan bernomor. */
+.bs-langkah li::marker { font-weight: 700; color: var(--utama); }
+
+/* Kotak "kenapa": alasan di balik satu aturan, dan satu-satunya blok yang
+   memang harus MENAHAN mata sebentar. Garis tebal di kiri, bukan latar
+   berwarna — kartu yang penuh kotak bertint terbaca seperti peringatan
+   beruntun, dan yang kesepuluh tidak dibaca siapa pun. */
+.bs-kenapa {
+  border-left: 3px solid var(--utama);
+  padding: .1rem 0 .1rem .8rem;
+  color: var(--tinta-lembut);
+}
+
+/* ---- Blok "layar" ---- */
+.bs-layar {
+  display: block; margin: .6rem 0;
+  border: 1px solid var(--garis); border-left: 3px solid var(--utama);
+  border-radius: var(--radius-kecil);
+  padding: .55rem .75rem;
+  text-decoration: none; color: inherit;
+  background: var(--kartu);
+}
+a.bs-layar:hover { border-color: var(--utama); background: var(--utama-muda); }
+a.bs-layar:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.bs-layar-nama { display: block; font-weight: 700; color: var(--utama); }
+/* Panah HANYA pada yang bisa diketuk. Pada kotak yang mati ia menjanjikan
+   perpindahan yang tidak akan terjadi. */
+a.bs-layar .bs-layar-nama::after { content: " \2192"; }
+.bs-layar-teks {
+  display: block; font-size: .92rem; color: var(--tinta-lembut);
+  margin-top: .1rem; line-height: 1.5;
+}
+/* Kotak layar yang di luar hak akun ini. Diredupkan, TIDAK dihilangkan: buku
+   ini menjelaskan pekerjaan seluruh panitia, dan seorang bendahara yang
+   membaca bab juri pos tetap perlu tahu layar itu ada. */
+.bs-layar-mati { border-left-color: var(--garis); background: var(--kertas); }
+.bs-layar-mati .bs-layar-nama { color: var(--tinta-lembut); }
+.bs-layar-hak {
+  display: block; margin-top: .25rem;
+  font-size: .82rem; color: var(--tinta-lembut);
+}
+
+/* Tabel di dalam bacaan. Digulir sendiri di wadahnya — CLAUDE.md bagian 15
+   berlaku di sini juga: yang boleh menggulir mendatar wadah tabelnya, tidak
+   pernah badan halaman. Di bawah 900px .data-table sudah berubah jadi kartu
+   sendiri, jadi wadah ini tinggal diam. */
+.bs-tabel-bungkus { overflow-x: auto; margin: .7rem 0; }
+.bs-tabel { line-height: 1.45; }
+
+/* ---- Hasil cari ---- */
+.bs-hasil-daftar { list-style: none; margin: .6rem 0 0; padding: 0; }
+.bs-hasil-daftar li + li { margin-top: .35rem; }
+.bs-hasil-butir {
+  display: block; width: 100%; text-align: left; cursor: pointer; font: inherit;
+  border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+  background: var(--kartu); padding: .55rem .75rem; min-height: 44px;
+}
+.bs-hasil-butir:hover { border-color: var(--utama); background: var(--utama-muda); }
+.bs-hasil-butir:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.bs-hasil-bab {
+  display: block; font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .02em; color: var(--tinta-lembut);
+}
+.bs-hasil-judul { display: block; font-weight: 600; margin-top: .1rem; }
+
+/* ---- Papan sprint ---- */
+#bs-sprint-ringkas { margin-bottom: .8rem; }
+/* Centang belum terbaca: satu baris kecil, bukan kartu merah. Membuka buku
+   panduan waktu sinyal mati adalah hal yang wajar, dan peringatan yang muncul
+   tiap kali bukunya dibuka mengajari orang menutupnya tanpa membaca. */
+.bs-sprint-putus { color: var(--kuning); }
+
+.bs-sprint { scroll-margin-top: .8rem; }
+.bs-sprint-kepala { display: flex; gap: .6rem; align-items: flex-start; }
+/* Nomor sprint, bukan tanggal. Bulan kalendernya bergeser tiap edisi; yang
+   tidak bergeser urutannya dan hitungan mundurnya dari hari-H. */
+.bs-sprint-urut {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.9rem; height: 1.9rem; border-radius: 999px;
+  background: var(--utama-muda); color: var(--utama);
+  font-weight: 800; font-size: .9rem; flex: 0 0 auto;
+}
+.bs-sprint-judul { min-width: 0; flex: 1; }
+.bs-sprint-baris {
+  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+}
+.bs-sprint-tajuk { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+.bs-sprint-waktu {
+  font-size: .82rem; color: var(--tinta-lembut); margin-top: .1rem;
+}
+.bs-sprint-fokus { margin: .55rem 0 .2rem; line-height: 1.6; }
+.bs-sprint-hasil { margin: .6rem 0 .5rem; line-height: 1.55; }
+
+/* ---- Daftar tugas yang dicentang ---- */
+.bs-todo { list-style: none; margin: .7rem 0 0; padding: 0; }
+.bs-todo-item {
+  border-top: 1px solid var(--garis); padding: .5rem 0;
+}
+.bs-todo-item:first-child { border-top: 0; }
+
+/* Kotak DAN kalimatnya satu sasaran ketukan. Kotak 20px yang berdiri sendiri
+   di antara seratus baris adalah sasaran yang meleset di HP, dan tugas yang
+   tercentang gara-gara meleset lebih buruk daripada tugas yang belum
+   tercentang: yang satu diam, yang lain berbohong. */
+.bs-todo-baris {
+  display: flex; gap: .6rem; align-items: flex-start; cursor: pointer;
+  line-height: 1.55;
+}
+.bs-todo-kotak { flex: 0 0 auto; margin-top: .2rem; }
+.bs-todo-teks { min-width: 0; }
+/* Yang sudah selesai DIREDUPKAN, tidak dicoret. Teks tercoret berhenti bisa
+   dibaca ulang, dan tugas yang sudah selesai masih sering dibaca ulang —
+   "kemarin kita mengirim surat ke berapa desa?" */
+.bs-todo-selesai .bs-todo-teks { color: var(--tinta-lembut); }
+
+.bs-todo-kaki {
+  display: flex; flex-wrap: wrap; gap: .3rem .5rem; align-items: center;
+  /* Sejajar dengan teksnya, bukan dengan kotaknya: lebar kotak + jaraknya. */
+  margin: .25rem 0 0 1.6rem;
+  font-size: .8rem; color: var(--tinta-lembut);
+}
+.bs-todo-layar {
+  color: var(--utama); text-decoration: none; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bs-todo-layar:hover { text-decoration: underline; }
+.bs-todo-layar::after { content: " \2192"; }
+.bs-todo-jejak { font-variant-numeric: tabular-nums; }
+
+.bs-pil {
+  font-size: .78rem; font-weight: 600;
+  background: var(--kertas); color: var(--tinta-lembut);
+  border-radius: 999px; padding: .1rem .55rem;
+}
+/* "Jangan sampai" memakai kotak kenapa yang sama, tapi merah: ia satu-satunya
+   kalimat di kartu sprint yang menyebut kerugian, dan warnanya yang membuatnya
+   ditemukan waktu kartunya cuma dipindai sekilas. */
+.bs-jangan { border-left-color: var(--bahaya); }
+
+/* ============================================================================
+   BUKU SAKTI DI KERTAS
+
+   Buku ini digandakan di mesin fotokopi seperti seluruh kertas acara ini,
+   jadi CLAUDE.md bagian 8 berlaku penuh: tidak ada blok hitam, tidak ada teks
+   terbalik, tidak ada abu maupun raster, garis paling tipis 0,75pt, huruf
+   paling kecil 7pt.
+
+   Yang di layar memakai warna dan tint di sini memakai GARIS. Kotak "kenapa"
+   tetap bergaris kiri, kotak layar jadi baris bernama tebal, dan pil seksi
+   jadi teks berpemisah titik tengah. Ketiganya tetap terbaca sesudah kertas
+   ini disalin empat kali; latar berwarna tidak.
+   ========================================================================== */
+@media print {
+  .buku-cetak { font-size: 11pt; line-height: 1.45; }
+  .buku-cetak h1 { font-size: 15pt; margin-bottom: .3rem; }
+  .buku-cetak h2 { font-size: 11.5pt; margin: 4mm 0 1mm; }
+  .buku-cetak p { margin: .35rem 0; }
+
+  /* Satu bagian tidak boleh terbelah dua halaman. Judul yang tertinggal
+     sendirian di kaki halaman dengan isinya di halaman berikutnya adalah
+     kegagalan yang paling terasa waktu buku ini dibaca sambil berdiri. */
+  .buku-cetak .bs-cetak-bagian {
+    break-inside: avoid; page-break-inside: avoid;
+    margin-bottom: 3mm;
+  }
+
+  .buku-cetak .bs-cetak-ringkas { font-size: 10pt; margin-bottom: 3mm; }
+  .buku-cetak .bs-cetak-isi-bab { font-weight: 700; margin: 3mm 0 0; }
+  .buku-cetak .bs-cetak-isi { margin: .5mm 0 0; padding-left: 6mm; }
+  .buku-cetak .bs-cetak-isi li { margin: .3mm 0; }
+  .buku-cetak .bs-cetak-label {
+    font-size: 8.5pt; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .02em; margin: 2mm 0 0;
+  }
+
+  .buku-cetak .bs-poin, .buku-cetak .bs-langkah {
+    margin: .3rem 0; padding-left: 6mm;
+  }
+  .buku-cetak .bs-poin li, .buku-cetak .bs-langkah li { margin: .8mm 0; }
+
+  /* Garis 1pt, bukan 3px: bagian 8.5 menuntut minimal 0,75pt supaya garisnya
+     selamat dari fotokopi. Warnanya hitam — hijau HRCD keluar sebagai abu
+     muda di mesin hitam-putih, dan abu justru yang paling buruk (bagian 8.4). */
+  .buku-cetak .bs-kenapa {
+    border-left: 1pt solid #000; padding-left: 3mm; color: #000;
+  }
+
+  /* Kotak layar kehilangan kotaknya di kertas. Yang tersisa nama layarnya
+     tebal diikuti keterangannya — persis yang berguna waktu tidak ada yang
+     bisa diketuk. */
+  .buku-cetak .bs-cetak-layar { margin: .3rem 0; }
+
+  /* ---- Tabel: TETAP TABEL di kertas ----
+
+     Ini bukan kerapian, ini perbaikan. Halaman cetak A4 dikurangi margin
+     12mm terhitung sekitar 720px CSS, dan itu DI BAWAH 900px — jadi aturan
+     kartu HP (`.data-table:not(.table-tetap) … { display: block }`) ikut
+     berlaku saat mencetak. Yang keluar dari printer: tiap sel jatuh ke
+     barisnya sendiri, tanpa kepala kolom, sehingga tabel lima peran akun
+     tercetak sebagai lima belas baris berdiri sendiri yang tidak
+     mengatakan baris mana milik peran mana.
+
+     Terlihat di PDF Chrome headless, bukan diduga: halaman 4 keluar begitu.
+
+     Kekhususannya SAMA PERSIS dengan aturan kartu itu (0,2,3), jadi yang
+     memutuskan urutan — dan blok ini memang paling belakang di berkas.
+     Menambah `!important` di sini akan menyembunyikan ketergantungan itu,
+     bukan menghapusnya. */
+  .buku-cetak .bs-tabel { display: table; }
+  .buku-cetak .bs-tabel > thead { display: table-header-group; }
+  .buku-cetak .bs-tabel > tbody { display: table-row-group; }
+  .buku-cetak .bs-tabel > tbody > tr { display: table-row; }
+  .buku-cetak .bs-tabel > tbody > tr > td { display: table-cell; }
+  /* Rupa kartu HP ikut dilucuti: kotak, jarak, dan awalan nama kolom hanya
+     berarti waktu barisnya bertumpuk. Di kertas kepala kolomnya sudah
+     tergambar sekali di atas, dan mengulangnya di tiap sel menggandakan
+     tabelnya. */
+  .buku-cetak .bs-tabel > tbody > tr[data-baris] {
+    border: 0; border-radius: 0; padding: 0; margin: 0;
+  }
+  .buku-cetak .bs-tabel > tbody > tr[data-baris] > td {
+    border: 0.4px solid #000; padding: 4pt 5pt; margin: 0;
+  }
+  .buku-cetak .bs-tabel > tbody > tr[data-baris] > td[data-label]::before {
+    content: none;
+  }
+  /* Kepala tabel DIPUTIHKAN dan dilepas dari patokannya.
+
+     `.data-table thead th` di aturan layar memberinya `background:
+     var(--kertas)` — abu #f0f1f4 — beserta `box-shadow` abu dan `position:
+     sticky`. Ketiganya benar di layar dan salah di kertas: bagian 8.4
+     melarang raster abu (mesin fotokopi mengubahnya jadi belang atau
+     kotoran), dan `position: sticky` di media cetak adalah cara yang sama
+     dengan `.bottom-nav` merusak setiap halaman.
+
+     Yang memisahkan kepala dari isinya tetap ada, dan tetap selamat
+     difotokopi: huruf tebal, HURUF BESAR, dan garis bawah 1,5pt. */
+  .buku-cetak .bs-tabel > thead > tr > th {
+    background: none; box-shadow: none; position: static;
+    border: 0.4px solid #000; padding: 4pt 5pt; text-align: left;
+    font-size: 8.5pt; text-transform: uppercase; font-weight: 700;
+    border-bottom-width: 1.5pt;
+  }
+
+  /* Nomor langkah HITAM, bukan hijau HRCD. Hijau tua keluar sebagai abu
+     sedang dari mesin fotokopi hitam-putih, dan abu justru yang paling
+     buruk (CLAUDE.md 8.4). Yang membedakan nomor dari isinya tetap ada:
+     ia tebal. */
+  .buku-cetak .bs-langkah li::marker { color: #000; }
+
+  /* ---- Papan sprint di kertas ----
+
+     Kertas ini ditempel di dinding sekretariat dan dicentang pakai pulpen
+     sepanjang enam bulan, jadi bentuknya daftar berkotak, bukan salinan
+     layar. */
+  .buku-cetak .bs-cetak-waktu {
+    font-size: 9pt; font-weight: 700; margin: 0 0 1mm;
+  }
+  .buku-cetak .bs-cetak-todo { list-style: none; margin: .3rem 0; padding: 0; }
+  .buku-cetak .bs-cetak-todo li {
+    display: flex; gap: 2.5mm; align-items: flex-start; margin: 1.2mm 0;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  /* Kotak centang tulis tangan: PUTIH, kosong, dan cukup besar untuk dicentang
+     pulpen (CLAUDE.md 8.7 — tidak ada apa pun di belakang area yang ditulisi).
+     Garisnya 1pt supaya selamat difotokopi (8.5). */
+  .buku-cetak .bs-cetak-kotak {
+    flex: 0 0 auto; width: 3.5mm; height: 3.5mm; margin-top: .6mm;
+    border: 1pt solid #000; background: none;
+  }
+  .buku-cetak .bs-cetak-todo-teks { min-width: 0; }
+  /* Nama seksi di belakang tugasnya, miring dan kecil — tetap 8pt, di atas
+     batas 7pt bagian 8.6. Tidak diredupkan: bagian 8.4 melarang abu, jadi
+     yang membuatnya mundur ukurannya, bukan warnanya. */
+  .buku-cetak .bs-cetak-todo-teks em { font-size: 8pt; white-space: nowrap; }
 }

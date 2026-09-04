@@ -148,6 +148,7 @@ RPC = {
     "batal_ceklis_berangkat":["p_nomor_dada"],
     "koreksi_jam_berangkat": ["p_kloter", "p_jam", "p_alasan"],
     "minta_segarkan_live_score": [],
+    "set_centang_sprint":    ["p_kode", "p_selesai"],
     "putar_foto_lembar":     ["p_id", "p_putaran"],
     "simpan_nilai_massal":   ["p_baris", "p_sumber", "p_pos"],
     "hapus_nilai_pos":       ["p_nomor_dada", "p_kode", "p_pos"],
@@ -254,6 +255,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select id, name, address from sekolah order by name",
                     role="anon"))
+            elif u.path == "/centang-sprint":
+                # Papan sprint Buku Sakti (migrasi 0170). Layarnya sengaja
+                # tetap terbuka walau ini gagal, jadi yang penting di sini
+                # cuma bentuk jawabannya sama dengan v_centang_sprint di
+                # produksi: kode, dicentang_pada, dicentang_oleh.
+                # uid WAJIB diteruskan: v_centang_sprint security_invoker, dan
+                # RLS-nya menuntut peran() — tanpa uid yang kembali daftar
+                # KOSONG, bukan galat, dan papan sprint tergambar seolah belum
+                # ada satu tugas pun yang selesai.
+                self._kirim(200, q(
+                    "select kode, dicentang_pada, dicentang_oleh "
+                    "from v_centang_sprint order by kode", uid=p.get("uid")))
             elif u.path == "/edisi":
                 self._kirim(200, q(
                     "select * from v_edisi_publik", role="anon", fetch="one"))

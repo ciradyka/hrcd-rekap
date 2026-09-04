@@ -27,6 +27,7 @@ import {
   hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
+  daftarCentangSprint, setCentangSprint,
   aturFaseLive, segarkanLiveScore,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
@@ -46,6 +47,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
+import { BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_LAYAR, NAMA_LAYAR,
+         cariBagian, cariSprint, tugasSprint } from "./buku-sakti.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -192,6 +195,13 @@ function pasangKepala(judul, lebar = false) {
       .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
     document.getElementById("nav-akun")
       .setAttribute("aria-current", location.hash === "#/account" ? "page" : "false");
+    /* pangkalRute(), bukan perbandingan hash utuh: alamat Buku Sakti
+       berbuntut kode bab, jadi `#/buku-sakti/seksi` juga sedang di layar ini.
+       Tanpa itu penandanya menyala di bab pertama lalu padam begitu pembaca
+       pindah tab — satu-satunya item menu yang berkedip. */
+    document.getElementById("nav-buku")
+      .setAttribute("aria-current",
+        pangkalRute(location.hash) === "#/buku-sakti" ? "page" : "false");
   }
   // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
   // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
@@ -529,6 +539,20 @@ async function layarHome() {
           <div class="function-name">${ikonKotak("trophy", "jingga")} Kejuaraan</div>
         </a>` : ""}
       </div>
+      <a class="bs-pintu" href="#/buku-sakti">
+        ${ikon("book-open", "ikon bs-pintu-ikon")}
+        <span class="bs-pintu-teks">
+          <span class="bs-pintu-nama">Buku Sakti</span>
+          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
+               Aturan itu melarang menjelaskan nama yang sudah mengatakan
+               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
+               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
+               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
+               tidak punya cara menduga. -->
+          <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
+            seksi, dan timeline satu edisi.</span>
+        </span>
+      </a>
 `));
     return;
   }
@@ -642,6 +666,33 @@ async function layarHome() {
         <div class="function-name">${ikonKotak("settings", "abu")} Kalkulator Keberangkatan</div>
       </a>` : ""}
     </div>
+
+    <!-- BUKAN UBIN KELIMA BELAS, dan itu keputusan warna sebelum keputusan
+         tata letak. Tiap ubin di papan ini punya rona sendiri supaya jempol
+         bisa menuju "yang jingga" tanpa mengeja namanya, dan keempat belas
+         rona yang jaraknya cukup jauh sudah habis terpakai. Ubin kelima belas
+         berarti dua ubin serona — dan sejak itu warnanya berhenti menandai
+         apa pun, untuk keempat belas ubin sekaligus, bukan cuma yang baru.
+
+         Jadi ia berdiri DI BAWAH grid sebagai pita selebar papan: terlihat
+         tanpa dicari, tidak ikut kode warna, dan tidak menggeser satu pun
+         ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya sengaja
+         tidak diperiksa — alasannya di kepala bagian BUKU SAKTI. -->
+
+      <a class="bs-pintu" href="#/buku-sakti">
+        ${ikon("book-open", "ikon bs-pintu-ikon")}
+        <span class="bs-pintu-teks">
+          <span class="bs-pintu-nama">Buku Sakti</span>
+          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
+               Aturan itu melarang menjelaskan nama yang sudah mengatakan
+               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
+               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
+               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
+               tidak punya cara menduga. -->
+          <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
+            seksi, dan timeline satu edisi.</span>
+        </span>
+      </a>
   `));
 }
 
@@ -10579,6 +10630,665 @@ async function layarCekNilai() {
   await muatPos();
 }
 
+/* ============================== BUKU SAKTI ===============================
+
+   Buku pegangan yang diserahkan ke kepanitiaan berikutnya. Isinya tinggal di
+   buku-sakti.mjs sebagai data; layar ini cuma menggambarnya dan menyiapkan
+   versi cetaknya.
+
+   TIDAK ADA PAGAR HAK AKSES DI PINTUNYA, dan itu keputusan, bukan kelalaian.
+   Buku ini menjelaskan pekerjaan SELURUH panitia, dan yang paling butuh
+   membacanya justru yang haknya paling sempit: juri pos yang baru pertama
+   memegang lembar nilai, petugas meja yang dipindah pagi itu juga. Mengikat
+   buku ke satu centang berarti orang-orang itu yang tidak bisa membukanya.
+
+   Yang dijaga hak akses adalah DATA. Buku ini tidak memuat satu baris data
+   pun — tidak ada nama regu, tidak ada nilai, tidak ada nomor WA pembina.
+
+   TAUTAN DI DALAMNYA TETAP IKUT HAK. Blok "layar" menyebut fitur yang
+   dibutuhkan, dan yang tidak memegangnya melihat kotak yang sama tanpa
+   tautan, lengkap dengan nama centang yang harus diminta ke admin. Tautan
+   yang berujung pada kartu "tidak berhak" mengajari orang bahwa buku ini
+   tidak bisa dipercaya, dan buku panduan yang tidak dipercaya sama saja
+   dengan tidak ada.
+   ========================================================================= */
+
+/** Bagian yang harus digulir ke tempatnya SESUDAH layar digambar ulang.
+ *
+ *  Daftar isi dan hasil cari sama-sama bisa menunjuk bagian di bab LAIN, dan
+ *  berpindah bab berarti hash berganti, arahkan() jalan, dan seluruh DOM
+ *  dibangun ulang. Elemen tujuannya belum ada saat tombolnya diketuk, jadi
+ *  yang bisa dititipkan lintas penggambaran cuma kodenya. */
+let bagianDitujuBuku = null;
+
+/** Nomor bab untuk dibaca manusia: "Bab 2". Diambil dari urutannya di
+ *  BUKU_SAKTI, bukan disimpan di datanya — dua tempat yang menyimpan urutan
+ *  yang sama adalah dua tempat yang suatu hari tidak sepakat. */
+const nomorBabBuku = (bab) => BUKU_SAKTI.indexOf(bab) + 1;
+
+/** Satu blok isi jadi markup layar.
+ *
+ *  esc() di SETIAP sisipan. Teks buku ini memang ditulis panitia sendiri,
+ *  tapi "ditulis orang yang kita percaya" bukan alasan yang bertahan: satu
+ *  tanda kurang-dari di tengah kalimat sudah cukup membuang sisa paragrafnya,
+ *  tanpa satu pun galat, dan yang menemukannya pembaca yang kehilangan
+ *  separuh halaman. */
+function blokBuku(blok) {
+  switch (blok.jenis) {
+    case "p":
+      return `<p>${esc(blok.teks)}</p>`;
+    case "poin":
+      return `<ul class="bs-poin">${
+        blok.butir.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    case "langkah":
+      return `<ol class="bs-langkah">${
+        blok.butir.map(x => `<li>${esc(x)}</li>`).join("")}</ol>`;
+    case "tabel":
+      /* DUA hal yang membuat tabel ini terbaca di HP, dan keduanya wajib.
+
+         `data-label` membawa nama kolomnya, karena di bawah 900px `<thead>`
+         disembunyikan dan sel tanpa label kehilangan artinya sama sekali —
+         isi yang berdiri sendiri tanpa nama kolomnya.
+
+         `data-baris` yang MENYALAKAN rupa kartunya. Tanpa atribut itu barisnya
+         tetap dipecah jadi blok bertumpuk (aturan `.data-table:not(
+         .table-tetap)`), tetapi tidak mendapat kotak, jarak, maupun awalan
+         nama kolom — yang tergambar deretan potongan teks telanjang, dan
+         labelnya justru tidak ikut. Nilainya cuma nomor urut: seluruh aturan
+         di style.css memakainya sebagai penanda ADA, bukan membaca isinya. */
+      return `<div class="bs-tabel-bungkus">
+        <table class="table data-table bs-tabel">
+          <thead><tr>${blok.kepala.map(k => `<th>${esc(k)}</th>`).join("")}</tr></thead>
+          <tbody>${blok.baris.map((baris, n) => `<tr data-baris="${n}">${
+            baris.map((sel, i) => `<td data-label="${esc(blok.kepala[i] || "")}">${
+              esc(sel)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table></div>`;
+    case "kenapa":
+      return `<p class="bs-kenapa">${esc(blok.teks)}</p>`;
+    case "layar":
+      return blokLayarBuku(blok);
+    default:
+      /* Jenis yang tidak dikenal DIAM, tidak melempar. Buku yang salah ketik
+         satu jenis blok tetap terbuka dan kehilangan satu blok; kalau ia
+         melempar, seluruh layar jadi kartu galat dan yang hilang seluruh
+         buku. Yang menangkap salah ketiknya tes bentuk, jauh sebelum sini. */
+      return "";
+  }
+}
+
+/** Blok "layar": kotak yang menunjuk layar sungguhan, ikut hak akun. */
+function blokLayarBuku(blok) {
+  const isi = `<span class="bs-layar-nama">${esc(blok.nama)}</span>`
+    + (blok.teks ? `<span class="bs-layar-teks">${esc(blok.teks)}</span>` : "");
+  if (!blok.fitur || bolehLihat(blok.fitur)) {
+    return `<a class="bs-layar" href="${esc(blok.hash)}">${isi}</a>`;
+  }
+  return `<div class="bs-layar bs-layar-mati">${isi}
+    <span class="bs-layar-hak">Butuh centang ${
+      esc(FITUR_NAMA[blok.fitur] || blok.fitur)} di layar Akun.</span></div>`;
+}
+
+/** Satu bagian bacaan.
+ *
+ *  TIDAK ada atribut pencarian di sini, dan itu disengaja: kotak cari
+ *  membaca DATA-nya lewat cariBagian(), bukan DOM. Menaruh salinan teksnya di
+ *  atribut akan membuat dua sumber untuk satu pertanyaan — dan yang di DOM
+ *  itu yang basi begitu bukunya disunting sementara halamannya tidak dimuat
+ *  ulang. */
+function bagianBukuHtml(bagian) {
+  return `<section class="card bs-bagian" id="bs-${esc(bagian.kode)}">
+    <h3>${esc(bagian.judul)}</h3>
+    ${bagian.isi.map(blokBuku).join("")}
+  </section>`;
+}
+
+/* ------------------------------ PAPAN SPRINT -----------------------------
+
+   Tiga belas sprint dua mingguan, dan tiap tugasnya bisa dicentang. Centangnya
+   duduk di database (migrasi 0170) dan terlihat oleh seluruh panitia — papan
+   rencana yang jawabannya berbeda-beda per HP bukan papan koordinasi.
+
+   DIGAMBAR DULU, CENTANGNYA MENYUSUL.
+
+   Layar ini tidak menunggu jaringan sebelum menggambar apa pun. Isinya berkas
+   statis yang sudah ikut termuat bersama app.js, jadi papannya muncul seketika
+   dengan seluruh kotak dalam keadaan kosong, lalu satu permintaan mengisinya.
+   Urutan itu yang membuat janji di kepala buku-sakti.mjs tetap benar: bukunya
+   terbaca walau Supabase tidak terjangkau, dan yang hilang cuma centangnya.
+
+   Karena itu gagalnya BUKAN kartu galat. Yang tergambar sebaris kecil di
+   kepala papan, dan seluruh isi bukunya tetap bisa dibaca. */
+
+/** Centang yang sedang berlaku: kode tugas -> { dicentang_oleh, dicentang_pada }.
+ *
+ *  Di luar fungsi layarnya supaya kembali dari layar lain tidak mengosongkan
+ *  papan sampai permintaannya selesai — papan yang berkedip kosong tiap kali
+ *  pembaca menekan Back terbaca seperti centang yang hilang. */
+let centangSprint = new Map();
+
+/** Sudah pernah dibaca dari server sekali? Membedakan "belum tahu" dari
+ *  "sudah tahu, dan memang kosong" — yang pertama tidak boleh dilaporkan
+ *  sebagai papan yang belum dikerjakan siapa pun. */
+let centangSprintTerbaca = false;
+
+/** Tautan kecil di kaki sebuah tugas, ikut hak akun.
+ *
+ *  Yang tidak berhak TIDAK diberi tautan mati: tugasnya tetap terbaca lengkap,
+ *  cuma tanpa jalan pintas. Menuliskan "butuh centang X" di sini seperti pada
+ *  blok layar akan menambah satu baris di bawah SERATUS TUJUH tugas, dan papan
+ *  yang gunanya untuk disapu cepat berhenti bisa disapu. */
+function tautanTugasSprint(tugas) {
+  if (!tugas.layar) return "";
+  const fitur = FITUR_LAYAR[tugas.layar];
+  if (fitur && !bolehLihat(fitur)) return "";
+  return `<a class="bs-todo-layar" href="${esc(tugas.layar)}">${
+    esc(NAMA_LAYAR[tugas.layar] || tugas.layar)}</a>`;
+}
+
+/** Satu tugas: kotak centang, teksnya, seksinya, dan jejak siapa mencentang.
+ *
+ *  Kotak centang DI DALAM <label> bersama teksnya, jadi seluruh kalimat jadi
+ *  sasaran ketukan. Di HP, kotak 20px yang berdiri sendiri di antara seratus
+ *  baris adalah sasaran yang meleset. */
+function tugasSprintHtml(tugas) {
+  return `<li class="bs-todo-item" data-tugas="${esc(tugas.kode)}">
+    <label class="bs-todo-baris">
+      <input type="checkbox" class="checkbox bs-todo-kotak"
+             data-tugas="${esc(tugas.kode)}">
+      <span class="bs-todo-teks">${esc(tugas.teks)}</span>
+    </label>
+    <div class="bs-todo-kaki">
+      <span class="bs-pil">${esc(tugas.seksi)}</span>
+      ${tautanTugasSprint(tugas)}
+      <span class="bs-todo-jejak" data-jejak="${esc(tugas.kode)}"></span>
+    </div>
+  </li>`;
+}
+
+/** Satu sprint. */
+function sprintHtml(sprint) {
+  return `<section class="card bs-sprint" id="bs-sprint-${esc(sprint.kode)}">
+    <div class="bs-sprint-kepala">
+      <span class="bs-sprint-urut">${esc(String(sprint.nomor))}</span>
+      <div class="bs-sprint-judul">
+        <div class="bs-sprint-baris">
+          <span class="bs-sprint-tajuk">${esc(sprint.tajuk)}</span>
+          <span class="bs-sprint-kemajuan"
+                data-kemajuan="${esc(sprint.kode)}"></span>
+        </div>
+        <!-- Tiga patokan waktu, dan yang ketiga yang membuat papan ini masih
+             berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
+             hari-H tidak. -->
+        <div class="bs-sprint-waktu">${esc(sprint.bulan)} · ${
+          esc(sprint.rentang)} · ${esc(sprint.mundur)}</div>
+      </div>
+    </div>
+    <p class="bs-sprint-fokus">${esc(sprint.fokus)}</p>
+    <ul class="bs-todo">${sprint.tugas.map(tugasSprintHtml).join("")}</ul>
+    <p class="bs-sprint-hasil"><strong>Selesai kalau:</strong> ${
+      esc(sprint.hasil)}</p>
+    <p class="bs-kenapa bs-jangan">${esc(sprint.jangan)}</p>
+  </section>`;
+}
+
+/** Gambar ulang kotak centang, jejak, dan lencana kemajuan dari `centangSprint`.
+ *
+ *  MENYENTUH SEL YANG SUDAH ADA, tidak membangun ulang papannya. Membangun
+ *  ulang akan memindahkan kotak tepat sebelum jempol turun, dan melempar
+ *  gulirannya ke atas di tengah rapat — persis alasan layar lain berhenti
+ *  menggambar ulang pada `visibilitychange`. */
+function segarkanPapanSprint() {
+  const papan = document.getElementById("bs-panel-sprint");
+  if (!papan) return;
+
+  for (const kotak of papan.querySelectorAll("[data-tugas].bs-todo-kotak")) {
+    const c = centangSprint.get(kotak.dataset.tugas);
+    kotak.checked = !!c;
+    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !!c);
+  }
+  for (const jejak of papan.querySelectorAll("[data-jejak]")) {
+    const c = centangSprint.get(jejak.dataset.jejak);
+    /* Jejak dibiarkan KOSONG kalau belum dicentang, bukan diisi "belum".
+       Seratus tujuh baris "belum" adalah seratus tujuh baris yang tidak
+       mengatakan apa-apa, dan yang dicari mata justru yang sudah selesai. */
+    jejak.textContent = c
+      ? `${c.dicentang_oleh || "panitia"} · ${berapaLalu(c.dicentang_pada)}`
+      : "";
+  }
+  for (const lencana of papan.querySelectorAll("[data-kemajuan]")) {
+    const sprint = SPRINT.find(s => s.kode === lencana.dataset.kemajuan);
+    if (!sprint) continue;
+    const selesai = sprint.tugas.filter(t => centangSprint.has(t.kode)).length;
+    const penuh = selesai === sprint.tugas.length;
+    lencana.className = `badge bs-sprint-kemajuan ${
+      penuh ? "badge-green" : "badge-kemajuan"}`;
+    lencana.textContent = `${selesai}/${sprint.tugas.length}`;
+  }
+
+  const ringkas = document.getElementById("bs-sprint-ringkas");
+  if (ringkas) {
+    const semua = tugasSprint();
+    const selesai = semua.filter(x => centangSprint.has(x.tugas.kode)).length;
+    ringkas.textContent = centangSprintTerbaca
+      ? `${selesai} dari ${semua.length} tugas selesai.`
+      : "Centang belum terbaca — papan ini tetap bisa dibaca, tetapi yang "
+        + "tercentang belum tentu tergambar.";
+    ringkas.classList.toggle("bs-sprint-putus", !centangSprintTerbaca);
+  }
+}
+
+/** Ambil centang dari server lalu gambar ulang. Gagalnya ditelan.
+ *
+ *  Sengaja TIDAK melempar dan tidak memanggil notif(): membuka buku panduan
+ *  saat sinyal mati adalah hal yang wajar dilakukan orang, dan kotak merah
+ *  yang muncul tiap kali bukunya dibuka mengajari orang menutupnya tanpa
+ *  membaca. Yang memberitahukannya satu baris kecil di kepala papan. */
+async function muatCentangSprint() {
+  try {
+    const baris = await daftarCentangSprint();
+    centangSprint = new Map((baris || []).map(x => [x.kode, x]));
+    centangSprintTerbaca = true;
+  } catch {
+    centangSprintTerbaca = false;
+  }
+  segarkanPapanSprint();
+}
+
+function layarBukuSakti() {
+  /* LEBAR BIASA (760px), bukan `wide`.
+
+     Layar meja memakai 1080px supaya tabelnya muat; layar ini bacaan, dan
+     baris sepanjang 1054px membuat mata kehilangan awal baris berikutnya tiap
+     kali ia kembali ke kiri. Diukur di browser: pada lebar biasa satu baris
+     paragraf jatuh di sekitar 68 huruf — persis rentang yang nyaman dibaca
+     panjang-panjang.
+
+     Wadahnya yang dibatasi, bukan paragrafnya. Kalau `max-width` ditaruh di
+     kartu bagian saja, kartu bacaan jadi 686px sementara kepala, deret tab,
+     dan kartu bab tetap 1054px — empat tepi kiri-kanan yang tidak sejajar di
+     satu halaman, dan itu terbaca seperti tata letak yang rusak, bukan
+     seperti kolom bacaan. */
+  pasangKepala("Buku Sakti");
+  const diminta = ekorRute(location.hash);
+  const bab = BUKU_SAKTI.find(b => b.kode === diminta) || BUKU_SAKTI[0];
+
+  /* SELURUH BAB DIGAMBAR SEKALIGUS, yang tidak terpilih disembunyikan.
+
+     Isinya statis dan tidak menyentuh jaringan sama sekali, jadi harganya
+     cuma DOM — dan yang dibeli dengan itu kotak cari yang menyapu seluruh
+     buku tanpa satu pun penggambaran ulang, termasuk bab yang sedang tidak
+     terbuka. Menggambar per bab akan menuntut kotak cari punya salinan
+     teksnya sendiri, dan salinan itu yang suatu hari tidak sepakat dengan
+     yang tergambar. */
+  const panel = BUKU_SAKTI.map(b => `
+    <div class="bs-panel" data-bab="${esc(b.kode)}"${b === bab ? "" : " hidden"}>
+      <div class="card bs-bab">
+        <div class="bs-bab-kepala">
+          ${ikonKotak(b.ikon, b.warna)}
+          <div>
+            <h2>Bab ${esc(String(nomorBabBuku(b)))} — ${esc(b.judul)}</h2>
+            <p class="description">${esc(b.ringkas)}</p>
+          </div>
+        </div>
+        ${b.kode === "timeline" ? "" : `
+        <nav class="bs-isi" aria-label="Daftar isi ${esc(b.judul)}">
+          <ol>${b.bagian.map(bagian =>
+            `<li><button type="button" class="bs-ke"
+                         data-ke="bs-${esc(bagian.kode)}">${
+              esc(bagian.judul)}</button></li>`).join("")}</ol>
+        </nav>`}
+      </div>
+      ${b.kode === "timeline"
+        ? `<div class="bs-timeline" id="bs-panel-sprint">
+             <p class="description" id="bs-sprint-ringkas"></p>
+             ${SPRINT.map(sprintHtml).join("")}
+           </div>`
+        : b.bagian.map(bagianBukuHtml).join("")}
+    </div>`).join("");
+
+  LAYAR.replaceChildren(h(`
+    <div class="card bs-kepala">
+      <h2>Buku Sakti — ${esc(EDISI ? EDISI.name : "HRCD")}</h2>
+      <!-- Satu kalimat, dan ia membawa fakta yang tidak ada di judulnya:
+           siapa yang menulis buku ini dan kapan ia ditulis ulang. Tanpa itu
+           pembaca tidak tahu bahwa isinya boleh — dan harus — diubah. -->
+      <p class="description">Ditulis ulang tiap serah terima jabatan oleh
+        panitia yang turun, untuk panitia yang naik.</p>
+      <div class="bs-alat">
+        <label class="visually-hidden" for="bs-cari">Cari isi buku</label>
+        <input type="search" id="bs-cari" autocomplete="off"
+               placeholder="Cari isi buku…">
+        <div class="bs-cetak">
+          <button class="button button-secondary button-small" id="bs-cetak-bab"
+                  type="button">${ikon("printer")} Cetak Bab Ini</button>
+          <button class="button button-primary button-small" id="bs-cetak-semua"
+                  type="button">${ikon("printer")} Cetak Semua</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV BERISI TAUTAN, bukan role="tablist" berisi role="tab".
+         Bentuknya memang meminjam pil tab Live Score, tapi yang di sini
+         benar-benar TAUTAN: mengetuknya mengganti alamat dan menambah entri
+         Back, sementara sebuah tab tidak pindah halaman. Pembaca layar yang
+         diberi tahu "tab" lalu mendapat perpindahan halaman kehilangan
+         tempatnya. Yang menandai bab terbuka aria-current="page" — penanda
+         yang memang untuk satu tautan di antara sekelompok tautan.
+
+         (Tanpa backtick di komentar ini: ia berada DI DALAM template
+         literal, dan satu backtick menutupnya di tengah jalan.) -->
+    <nav class="tab-golongan bs-tab" aria-label="Bab">
+      ${BUKU_SAKTI.map(b => `
+        <a class="tab-gol" href="#/buku-sakti/${esc(b.kode)}"${
+          b === bab ? ' aria-current="page"' : ""}>
+          ${esc(b.tab)}
+          <span class="tab-hitung">${esc(String(
+            b.kode === "timeline" ? SPRINT.length : b.bagian.length))}</span>
+        </a>`).join("")}
+    </nav>
+
+    <div class="card bs-hasil" id="bs-hasil" hidden></div>
+    <div id="bs-panel-semua">${panel}</div>
+  `));
+
+  /* sinyalLayarBaru(), BUKAN `pengendaliLayar.signal`.
+
+     arahkan() memanggil `pengendaliLayar.abort()` sebelum menggambar layar
+     berikutnya dan TIDAK membuat pengendali baru — yang membuatnya cuma
+     fungsi ini. Jadi sinyal yang dibaca langsung dari `pengendaliLayar` di
+     sini sudah dalam keadaan aborted, dan `addEventListener` dengan sinyal
+     seperti itu diam saja: tidak melempar, tidak memperingatkan, tidak
+     memasang apa pun.
+
+     Ditulis sepanjang ini karena gagalnya tidak terlihat. Layarnya tergambar
+     lengkap, tab-nya berpindah (itu tautan, bukan pendengar), dan yang mati
+     cuma kotak cari serta daftar isinya — dua hal yang baru dicoba orang
+     sesudah beberapa menit membaca. */
+  const sinyal = sinyalLayarBaru();
+  const elCari = document.getElementById("bs-cari");
+  const elHasil = document.getElementById("bs-hasil");
+  const elSemua = document.getElementById("bs-panel-semua");
+
+  /** Gulir ke satu bagian dan tandai sebentar supaya mata menemukannya.
+   *
+   *  Tanpa penandaan, melompat ke bagian kesebelas dari daftar isi mendarat
+   *  di tengah tembok teks yang semuanya berupa kartu putih seukuran sama,
+   *  dan yang melompat harus membaca judulnya untuk memastikan ia sampai di
+   *  tempat yang benar. */
+  const gulirKe = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: "start", behavior: "smooth" });
+    el.classList.add("bs-sorot");
+    setTimeout(() => el.classList.remove("bs-sorot"), 1600);
+  };
+
+  if (bagianDitujuBuku) {
+    const tujuan = bagianDitujuBuku;
+    bagianDitujuBuku = null;
+    // Satu putaran ditunggu: elemennya baru saja masuk DOM dan belum punya
+    // posisi, jadi scrollIntoView() yang dipanggil sekarang mendarat di 0.
+    setTimeout(() => gulirKe(tujuan), 0);
+  }
+
+  /* KOTAK CARI MENYAPU SELURUH BUKU, bukan bab yang sedang terbuka.
+
+     Yang mengetik "gembok" tidak tahu — dan tidak perlu tahu — bahwa gembok
+     dijelaskan di bab Menjalankan HRCD dan disinggung lagi di bab Seksi.
+     Kotak yang cuma menyaring bab yang kebetulan terbuka menjawab "tidak
+     ketemu" untuk kata yang jelas-jelas ada di bukunya. */
+  const saring = () => {
+    const kata = elCari.value.trim();
+    if (!kata) {
+      elHasil.hidden = true;
+      elSemua.hidden = false;
+      return;
+    }
+    const bagian = cariBagian(kata);
+    const sprint = cariSprint(kata);
+    const jumlah = bagian.length + sprint.length;
+    elSemua.hidden = true;
+    elHasil.hidden = false;
+    elHasil.replaceChildren(h(`<div>
+      <p class="description">${jumlah === 0
+        ? "Tidak ada bagian yang memuat semua kata itu."
+        : `${esc(String(jumlah))} bagian memuat semua kata itu.`}</p>
+      <ul class="bs-hasil-daftar">
+        ${bagian.map(({ bab: b, bagian: g }) => `
+          <li><button type="button" class="bs-hasil-butir"
+                      data-bab="${esc(b.kode)}" data-ke="bs-${esc(g.kode)}">
+            <span class="bs-hasil-bab">Bab ${esc(String(nomorBabBuku(b)))} · ${
+              esc(b.judul)}</span>
+            <span class="bs-hasil-judul">${esc(g.judul)}</span>
+          </button></li>`).join("")}
+        ${sprint.map(sp => `
+          <li><button type="button" class="bs-hasil-butir"
+                      data-bab="timeline" data-ke="bs-sprint-${esc(sp.kode)}">
+            <span class="bs-hasil-bab">Sprint ${esc(String(sp.nomor))} · ${
+              esc(sp.bulan)} ${esc(sp.rentang)}</span>
+            <span class="bs-hasil-judul">${esc(sp.tajuk)}</span>
+          </button></li>`).join("")}
+      </ul>
+    </div>`));
+  };
+  elCari.addEventListener("input", saring, { signal: sinyal });
+
+  /* KOTAK CENTANG PAPAN SPRINT.
+
+     Bentuknya sama persis dengan matriks hak di layar Akun, dan itu disengaja
+     — panitia yang sudah pernah mencentang di sana tidak perlu belajar apa
+     pun yang baru:
+
+       diredupkan selagi disimpan, BUKAN di-disable (.checkbox.saving);
+       ketukan beruntun DIANTREKAN, bukan diblokir, supaya salah centang bisa
+         langsung dibatalkan;
+       ditolak server = kotaknya DIKEMBALIKAN, karena kotak yang tetap
+         tercentang padahal servernya menolak adalah kebohongan yang baru
+         ketahuan besok.
+
+     Satu antrean untuk SELURUH papan: dua ketukan pada tugas yang sama harus
+     mendarat urut, dan urutan itulah yang menentukan keadaan akhirnya. */
+  let antreCentang = Promise.resolve();
+  LAYAR.addEventListener("change", (ev) => {
+    const kotak = ev.target.closest(".bs-todo-kotak");
+    if (!kotak) return;
+    const kode = kotak.dataset.tugas;
+    const mau = kotak.checked;
+    kotak.classList.add("saving");
+    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", mau);
+    antreCentang = antreCentang.then(async () => {
+      try {
+        await setCentangSprint(kode, mau);
+        /* Jejaknya dibaca ULANG dari server, tidak ditebak di sini. Yang
+           tercatat siapa yang MENYELESAIKAN — dan kalau orang lain sudah
+           mencentangnya lebih dulu, yang benar namanya, bukan nama kita. */
+        await muatCentangSprint();
+      } catch (e) {
+        kotak.checked = !mau;
+        kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !mau);
+        notif(e instanceof ErrorApi ? e.message : "Centang gagal disimpan.", true);
+      } finally {
+        kotak.classList.remove("saving");
+      }
+    });
+  }, { signal: sinyal });
+
+  /* Dimuat SESUDAH layarnya tergambar, dan tanpa await: papan sprint muncul
+     seketika dengan kotak kosong, lalu terisi. Membalik urutannya berarti
+     seluruh buku menunggu satu permintaan jaringan yang boleh saja tidak
+     pernah dijawab. */
+  segarkanPapanSprint();
+  muatCentangSprint();
+
+  LAYAR.addEventListener("click", (ev) => {
+    const ke = ev.target.closest(".bs-ke");
+    if (ke) { gulirKe(ke.dataset.ke); return; }
+    const hasil = ev.target.closest(".bs-hasil-butir");
+    if (!hasil) return;
+
+    /* KOTAK CARI DIKOSONGKAN LEBIH DULU, dan itu bukan kerapian.
+
+       Selama mencari, `#bs-panel-semua` disembunyikan — seluruh isi buku ada
+       di dalamnya. `scrollIntoView()` pada elemen di dalam `display: none`
+       tidak melakukan apa pun dan tidak melempar apa pun, jadi mengetuk hasil
+       cari yang bagiannya ada di bab yang SEDANG terbuka terasa seperti
+       tombol mati. Persis itu yang terjadi sebelum baris ini ada.
+
+       saring() dipanggil, bukan `hidden` yang disetel tangan: yang memutuskan
+       panel mana terlihat cuma satu fungsi, dan dua tempat yang memutuskan
+       hal yang sama adalah dua tempat yang suatu hari tidak sepakat. */
+    elCari.value = "";
+    saring();
+
+    /* Berpindah bab mengganti hash, dan penggambaran ulanglah yang menggulir
+       — lewat bagianDitujuBuku. Kalau babnya SAMA, hash-nya tidak berubah,
+       hashchange tidak pernah datang, dan tidak ada penggambaran ulang: di
+       situ gulirnya harus dikerjakan langsung. */
+    if (hasil.dataset.bab === bab.kode) { gulirKe(hasil.dataset.ke); return; }
+    bagianDitujuBuku = hasil.dataset.ke;
+    location.hash = `#/buku-sakti/${hasil.dataset.bab}`;
+  }, { signal: sinyal });
+
+  /* SATU PARAMETER, SATU ARTI: bab yang dicetak, atau null untuk seluruhnya.
+
+     Sebelumnya dua — `(babSatu, ikutTimeline)` — dan `babSatu === null` sudah
+     dipakai untuk arti "semua bab". Akibatnya papan sprint tidak punya cara
+     diungkapkan sama sekali: "Cetak Bab Ini" di tab Sprint memanggil
+     `(null, true)`, argumen yang SAMA PERSIS dengan tombol di sebelahnya,
+     dan yang keluar seluruh buku. Tombolnya melakukan kebalikan dari
+     namanya, tanpa satu pun galat. */
+  document.getElementById("bs-cetak-bab").addEventListener("click", () => {
+    siapkanCetakBuku(bab);
+    window.print();
+  }, { signal: sinyal });
+  document.getElementById("bs-cetak-semua").addEventListener("click", () => {
+    siapkanCetakBuku(null);
+    window.print();
+  }, { signal: sinyal });
+}
+
+/* ---------------------------------------------------------------------------
+   CETAK BUKU SAKTI
+
+   Buku ini digandakan di mesin fotokopi seperti seluruh kertas acara ini,
+   jadi aturan CLAUDE.md bagian 8 berlaku penuh: tidak ada blok hitam, tidak
+   ada teks terbalik, tidak ada abu dan raster, garis paling tipis 0,75pt,
+   huruf paling kecil 7pt.
+
+   SATU DOKUMEN MENGALIR PER BAB, bukan satu lembar per bagian. Empat puluh
+   bagian berarti empat puluh lembar untuk isi yang muat di belasan, dan
+   tumpukan setebal itu tidak dibaca siapa pun. Yang dijaga cuma satu bagian
+   tidak terbelah dua halaman, lewat `break-inside: avoid`.
+
+   Daftar isinya TANPA nomor halaman. Nomor halaman hanya bisa benar kalau
+   dihitung dari hasil paginasi browser, dan itu berbeda antar peranti dan
+   antar ukuran kertas — daftar isi yang menyebut halaman 12 sementara
+   bagiannya di halaman 14 lebih buruk daripada daftar isi tanpa angka sama
+   sekali.
+   --------------------------------------------------------------------------- */
+
+/** Blok isi jadi markup KERTAS. Bedanya dari blokBuku() cuma satu, dan itu
+ *  yang membuat fungsi ini ada: blok "layar" kehilangan tautannya. Alamat
+ *  `#/pembayaran` di atas kertas tidak bisa diketuk dan tidak memberi tahu
+ *  apa pun kepada yang membacanya — yang berguna tinggal nama layarnya. */
+function blokBukuCetak(blok) {
+  if (blok.jenis !== "layar") return blokBuku(blok);
+  return `<p class="bs-cetak-layar"><strong>${esc(blok.nama)}</strong>${
+    blok.teks ? ` — ${esc(blok.teks)}` : ""}</p>`;
+}
+
+function siapkanCetakBuku(babSatu) {
+  document.getElementById("cetakan")?.remove();
+  const dicetak = tanggalJam(new Date().toISOString());
+  const judulEdisi = EDISI ? EDISI.name : "HRCD";
+
+  /* SATU DAFTAR BAB, dan papan sprint ikut di dalamnya sebagai bab biasa.
+     `babSatu` null berarti seluruh buku; selain itu tepat satu bab — termasuk
+     kalau yang dipilih papan sprint. Tidak ada sentinel yang memikul dua arti
+     di sini (lihat komentar di tombolnya). */
+  const babCetak = babSatu ? [babSatu] : BUKU_SAKTI;
+  const babBacaan = babCetak.filter(b => b.bagian.length);
+  const adaSprint = babCetak.some(b => b.kode === "timeline") && SPRINT.length > 0;
+
+  const daftarIsi = `
+    <h2>Daftar Isi</h2>
+    ${babBacaan.map(b => `
+      <p class="bs-cetak-isi-bab">Bab ${esc(String(nomorBabBuku(b)))} — ${
+        esc(b.judul)}</p>
+      <ul class="bs-cetak-isi">${b.bagian.map(g =>
+        `<li>${esc(g.judul)}</li>`).join("")}</ul>`).join("")}
+    ${adaSprint ? `
+      <p class="bs-cetak-isi-bab">Papan Sprint Satu Edisi</p>
+      <ul class="bs-cetak-isi">${SPRINT.map(sp =>
+        `<li>Sprint ${esc(String(sp.nomor))} · ${esc(sp.bulan)} ${
+          esc(sp.rentang)} — ${esc(sp.tajuk)}</li>`).join("")}</ul>` : ""}`;
+
+  const halamanBab = babBacaan.map(b => `
+    <section class="print-page">
+      <h1>Bab ${esc(String(nomorBabBuku(b)))} — ${esc(b.judul)}</h1>
+      <p class="bs-cetak-ringkas">${esc(b.ringkas)}</p>
+      ${b.bagian.map(g => `
+        <section class="bs-cetak-bagian">
+          <h2>${esc(g.judul)}</h2>
+          ${g.isi.map(blokBukuCetak).join("")}
+        </section>`).join("")}
+    </section>`).join("");
+
+  /* KOTAK CENTANG DICETAK KOSONG, SELALU — tidak peduli apa yang tercentang
+     di layar.
+
+     Kertas ini ditempel di dinding sekretariat dan dicentang pakai pulpen
+     sepanjang enam bulan. Mencetak keadaan hari ini membuatnya jadi POTRET,
+     dan potret yang ditempel di dinding berhenti benar keesokan harinya
+     sementara kotak-kotak yang sudah tercetak hitam tidak bisa dibatalkan
+     lagi oleh siapa pun.
+
+     Kotaknya juga tetap PUTIH dan kosong — CLAUDE.md 8.7 melarang apa pun di
+     belakang area yang ditulisi tangan. */
+  const halamanSprint = !adaSprint ? "" : `
+    <section class="print-page">
+      <h1>Papan Sprint Satu Edisi</h1>
+      <p class="bs-cetak-ringkas">Tiga belas sprint dua mingguan. Tanggalnya
+        dihitung mundur dari hari-H, jadi papan ini tetap berlaku pada edisi
+        yang bulannya bergeser. Kotaknya sengaja tercetak kosong: yang di
+        layar berubah tiap hari, yang di dinding dicentang pakai pulpen.</p>
+      <table class="print-table">
+        <thead><tr><th>Sprint</th><th>Waktu</th><th>Tajuk</th><th>Tugas</th></tr></thead>
+        <tbody>${SPRINT.map(sp => `<tr>
+          <td class="text-center">${esc(String(sp.nomor))}</td>
+          <td>${esc(sp.bulan)} ${esc(sp.rentang)}<br>${esc(sp.mundur)}</td>
+          <td>${esc(sp.tajuk)}</td>
+          <td class="text-center">${esc(String(sp.tugas.length))}</td></tr>`).join("")}</tbody>
+      </table>
+      ${SPRINT.map(sp => `
+        <section class="bs-cetak-bagian">
+          <h2>Sprint ${esc(String(sp.nomor))} — ${esc(sp.tajuk)}</h2>
+          <p class="bs-cetak-waktu">${esc(sp.bulan)} ${esc(sp.rentang)} · ${
+            esc(sp.mundur)}</p>
+          <p>${esc(sp.fokus)}</p>
+          <ul class="bs-cetak-todo">${sp.tugas.map(t => `
+            <li><span class="bs-cetak-kotak"></span>
+              <span class="bs-cetak-todo-teks">${esc(t.teks)}
+                <em>${esc(t.seksi)}</em></span></li>`).join("")}</ul>
+          <p class="bs-cetak-label">Selesai kalau</p>
+          <p>${esc(sp.hasil)}</p>
+          <p class="bs-kenapa">${esc(sp.jangan)}</p>
+        </section>`).join("")}
+    </section>`;
+
+  document.body.appendChild(h(`<div id="cetakan" class="printout buku-cetak">
+    <section class="print-page">
+      <h1>BUKU SAKTI — ${esc(judulEdisi)}</h1>
+      <p class="bs-cetak-ringkas">Buku pegangan panitia. Ditulis ulang tiap
+        serah terima jabatan oleh panitia yang turun, untuk panitia yang naik.</p>
+      ${daftarIsi}
+      <p class="print-note">Dicetak ${esc(dicetak)}.</p>
+    </section>
+    ${halamanBab}
+    ${halamanSprint}
+  </div>`));
+}
+
 /* ALAMAT BOLEH BERBUNTUT: `#/pos2/2:bakiak`.
 
    Satu-satunya yang memakainya hari ini Input Nilai Pos v2, dan alasannya
@@ -10615,6 +11325,10 @@ const RUTE = {
   "#/pengaturan-kloter": layarPengaturanKloter,
   "#/ganti-password": layarGantiPassword,
   "#/account": layarAkun,
+  // Berbuntut kode bab: `#/buku-sakti/seksi`. Itu yang membuat satu bab
+  // bisa disebut di grup panitia sebagai alamat, bukan sebagai
+  // "buka Buku Sakti lalu ketuk tab ketiga".
+  "#/buku-sakti": layarBukuSakti,
 };
 
 // Hash yang benar-benar sedang tergambar. `location.hash` sudah berisi tujuan
@@ -10644,7 +11358,24 @@ async function arahkan() {
   await lengkapiHakSesi();
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
-    catch (e) { layarButuhEdisi("Sistem Panitia"); return; }
+    catch (e) {
+      /* BUKU SAKTI LEWAT, layar lain tidak.
+
+         Setiap layar lain menggambar data edisi — biaya, jam berangkat, nama
+         edisi di kepala tabel — jadi tanpa baris edisi yang tergambar cuma
+         angka yang salah. Buku Sakti tidak membaca satu baris data pun:
+         isinya berkas statis yang sudah ikut termuat bersama app.js.
+
+         Dan justru di sinilah ia paling dibutuhkan. Sinyal mati di pos,
+         Supabase tidak terjangkau, dan yang dicari orang adalah halaman yang
+         mengatakan apa yang harus dikerjakan. Menahannya di balik pagar ini
+         membuat buku panduan menghilang tepat pada keadaan yang paling
+         membutuhkannya — dan janji itu tertulis di kepala buku-sakti.mjs,
+         jadi tanpa baris ini janjinya bohong. */
+      if (pangkalRute(location.hash) !== "#/buku-sakti") {
+        layarButuhEdisi("Sistem Panitia"); return;
+      }
+    }
   }
   // Alamat lamanya `#/akun`, dan itu masih duduk di riwayat browser dan
   // bookmark panitia. Dialihkan, bukan didiamkan: rute yang tidak dikenal
@@ -10657,7 +11388,7 @@ async function arahkan() {
   (RUTE[pangkalRute(location.hash)] || layarHome)();
 }
 
-// Tiga aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
+// EMPAT aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
 // dan menu bawah (HP). Dideklarasikan lebih dulu supaya tidak ada listener
 // yang menunjuk const yang belum terisi.
 const keHome = () => {
@@ -10669,6 +11400,14 @@ const keSetelan = () => {
 };
 const keAkun = () => {
   if (location.hash === "#/account") arahkan(); else location.hash = "#/account";
+};
+/* Menuju Buku Sakti dari mana pun. `pangkalRute()` dipakai, bukan hash utuh:
+   alamatnya berbuntut kode bab, jadi `#/buku-sakti/seksi` juga sudah "sedang
+   di Buku Sakti" — dan tombolnya harus menggambar ulang di tempat, bukan
+   melempar pembaca kembali ke bab pertama. */
+const keBuku = () => {
+  if (pangkalRute(location.hash) === "#/buku-sakti") arahkan();
+  else location.hash = "#/buku-sakti";
 };
 const keluarSekarang = () => {
   if (!bolehMeninggalkanNilai()) return;
@@ -10684,6 +11423,8 @@ document.getElementById("nav-home").addEventListener("click", keHome);
 document.getElementById("nav-setting").addEventListener("click", keSetelan);
 document.getElementById("btn-akun").addEventListener("click", keAkun);
 document.getElementById("nav-akun").addEventListener("click", keAkun);
+document.getElementById("btn-buku").addEventListener("click", keBuku);
+document.getElementById("nav-buku").addEventListener("click", keBuku);
 document.getElementById("nav-keluar").addEventListener("click", keluarSekarang);
 document.getElementById("ganti-password").addEventListener("click", keSetelan);
 window.addEventListener("hashchange", arahkan);

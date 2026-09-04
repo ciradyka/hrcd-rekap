@@ -739,6 +739,11 @@ run supabase/migrations/0168_judul_isian_menaksir.sql
 # sini: 0076 dijalankan lebih dulu, jadi kesepuluh baris soal ada dan angkanya
 # dilaporkan lewat notice.
 run supabase/migrations/0169_judul_isian_soal.sql
+# 0170 memberi papan sprint Buku Sakti tabel centangnya. Ia tidak menyentuh
+# satu pun data lomba, jadi urutannya bebas — yang penting ia ada di sini
+# sama sekali (CLAUDE.md 7.5).
+run supabase/migrations/0170_centang_sprint.sql
+run tests/sql/120_centang_sprint.sql
 
 # tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
 # perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.

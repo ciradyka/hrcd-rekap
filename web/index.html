@@ -9,7 +9,7 @@
        peserta, dan dua tab bernama sama membuat panitia mengetik nilai ke tab
        yang salah. -->
   <title>Sistem Panitia — HRCD</title>
-  <link rel="stylesheet" href="style.css?v=59">
+  <link rel="stylesheet" href="style.css?v=60">
 </head>
 <body>
   <header class="header" id="kepala" hidden>
@@ -23,6 +23,19 @@
          dibuka sekali di awal edisi tidak boleh ikut bersaing di sana. -->
     <button class="icon-button" id="btn-akun" type="button" hidden
             aria-label="Akun" title="Akun"><span data-ikon="user-cog"></span></button>
+    <!-- Buku Sakti ada DI SINI, bukan sebagai ubin di Home, dan alasannya dua.
+         Yang pertama sama dengan alasan tombol Akun di sebelah kiri: papan
+         Home dipakai sepanjang hari lomba dan sudah memuat empat belas ubin.
+         Yang kedua warna — tiap ubin Home punya rona sendiri supaya jempol
+         bisa menuju "yang jingga" tanpa mengeja, dan keempat belas rona yang
+         cukup berjauhan sudah habis terpakai. Ubin kelima belas berarti dua
+         ubin serona, yang menghapus guna warnanya sendiri.
+
+         Di kepala halaman ia justru lebih mudah dicapai: ada di SETIAP layar,
+         termasuk papan juri pos yang isinya terpisah dari papan meja dan
+         karena itu sering ketinggalan waktu ubin baru ditambahkan. -->
+    <button class="icon-button" id="btn-buku" type="button"
+            aria-label="Buku Sakti" title="Buku Sakti"><span data-ikon="book-open"></span></button>
     <button class="icon-button" id="ganti-password" type="button" aria-label="Ganti Password" title="Ganti Password"><span data-ikon="settings"></span></button>
     <button class="button button-small button-secondary" id="btn-keluar" type="button">Keluar</button>
   </header>
@@ -38,6 +51,13 @@
   <nav class="bottom-nav" id="bottom-nav" hidden aria-label="Menu utama">
     <button class="bottom-nav-item" id="nav-home" type="button">
       <span class="bottom-nav-icon" data-ikon="house"></span><span>Home</span>
+    </button>
+    <!-- Di HP tombol kepala disembunyikan (style.css, 560px), jadi tanpa item
+         ini Buku Sakti tidak punya jalan sama sekali di peranti yang paling
+         banyak dipakai panitia. Alasannya sama persis dengan item Akun di
+         bawah, hanya saja yang ini untuk semua orang. -->
+    <button class="bottom-nav-item" id="nav-buku" type="button">
+      <span class="bottom-nav-icon" data-ikon="book-open"></span><span>Buku</span>
     </button>
     <button class="bottom-nav-item" id="nav-setting" type="button">
       <span class="bottom-nav-icon" data-ikon="settings"></span><span>Setelan</span>

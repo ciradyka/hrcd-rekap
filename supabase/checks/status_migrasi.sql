@@ -26,8 +26,8 @@
 -- daripada masalahnya lebih berbahaya daripada tidak ada pemeriksaan, karena ia
 -- menutup pertanyaannya.
 --
--- Sekarang keduanya disebutkan: 116 migrasi punya jejak yang diperiksa
--- (bagian 1), dan 53 tidak punya (bagian 2). 116 + 53 = 169, yaitu SELURUH
+-- Sekarang keduanya disebutkan: 117 migrasi punya jejak yang diperiksa
+-- (bagian 1), dan 53 tidak punya (bagian 2). 117 + 53 = 170, yaitu SELURUH
 -- migrasi yang ada — dan angka itu yang harus dijaga tiap kali berkas migrasi
 -- baru mendarat. Yang di bagian 2 bukan berarti belum diterapkan — berarti
 -- tidak ada yang tersisa untuk diperiksa.
@@ -339,7 +339,9 @@ begin
   ('0166', 'constraint nilai_terkunci.nilai_terkunci_pkey: PRIMARY KEY (regu_id, pos, kode_lomba)',
    $c$select exists (select 1 from pg_constraint where conrelid = 'nilai_terkunci'::regclass and conname = 'nilai_terkunci_pkey' and position('PRIMARY KEY (regu_id, pos, kode_lomba)' in pg_get_constraintdef(oid)) > 0)$c$),
   ('0167', 'constraint foto_lembar.foto_lembar_putaran_check: CHECK ((putaran = ANY (ARRAY[0, 90, 180, 270])))',
-   $c$select exists (select 1 from pg_constraint where conrelid = 'foto_lembar'::regclass and conname = 'foto_lembar_putaran_check' and position('CHECK ((putaran = ANY (ARRAY[0, 90, 180, 270])))' in pg_get_constraintdef(oid)) > 0)$c$)
+   $c$select exists (select 1 from pg_constraint where conrelid = 'foto_lembar'::regclass and conname = 'foto_lembar_putaran_check' and position('CHECK ((putaran = ANY (ARRAY[0, 90, 180, 270])))' in pg_get_constraintdef(oid)) > 0)$c$),
+  ('0170', 'function set_centang_sprint ada',
+   $c$select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'set_centang_sprint')$c$)
 ) as t(nomor, jejak, cek)
   loop
     begin

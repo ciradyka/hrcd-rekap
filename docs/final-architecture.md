@@ -7,7 +7,8 @@ sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
 sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0164`, lalu
-2 September 2026 sampai migrasi `0169`.
+2 September 2026 sampai migrasi `0169`, lalu 5 September 2026
+sampai migrasi `0170`.
 
 Dokumen ini sengaja TIDAK memuat jumlah view, RPC, policy, check, atau pemicu.
 Angka-angka itu berubah tiap beberapa migrasi, tidak ada satu tes pun yang
@@ -35,7 +36,11 @@ dihormati layar Cek Nilai, Input Nilai Pos, dan Input Nilai Pos v2; `0168`
 membetulkan judul dan petunjuk `menaksir` ("Hasil Taksir", "(meter)"),
 menyusul `0085` yang membalik arti angka yang diketik tetapi meninggalkan
 judulnya; `0169` mengosongkan `judul_isian` kelima lomba soal supaya layar
-menurunkan "Jumlah benar" sendiri, sama seperti Semaphore.
+menurunkan "Jumlah benar" sendiri, sama seperti Semaphore; `0170` memberi
+papan sprint Buku Sakti tabel centangnya (`centang_sprint`,
+`set_centang_sprint()`, `v_centang_sprint`) — satu-satunya tabel yang boleh
+ditulis SETIAP panitia tanpa centang fitur, dan alasannya ada di kepala
+berkas migrasinya.
 
 Bersamaan dengan `0169`, bentuk pengisian "soal" DIBUANG dari Input Nilai Pos
 v2 — `jenisLomba()` di `web/js/util.js` tinggal "waktu" dan "nilai", dan
@@ -111,7 +116,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-169 migrasi, `0001` sampai `0169`, dijalankan berurutan tanpa lubang penomoran.
+170 migrasi, `0001` sampai `0170`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 
@@ -286,6 +291,7 @@ supaya tombol Back HP mengembalikan pemilih lomba, bukan melompat ke Home.
 | `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
+| `#/buku-sakti` | Buku Sakti | buku pegangan yang diserahkan antar kepanitiaan: cara menjalankan HRCD, tugas pokok tiap seksi, alasan sistem ini berbentuk begini, dan timeline satu edisi dari Serah Terima Jabatan sampai pelaksanaan. Alamatnya berbuntut kode bab — `#/buku-sakti/seksi`. Isinya data statis di `web/js/buku-sakti.mjs`, bukan baris database, jadi ia tetap terbaca saat Supabase tidak bisa dihubungi. **Satu-satunya layar tanpa pagar hak akses**, dan itu disengaja: yang paling butuh membacanya justru yang haknya paling sempit. Tautan ke layar lain di dalamnya tetap ikut hak |
 
 Lima peran akun: `admin`, `registrasi`, `gerbang`, `juri_pos`, dan
 `koordinator_pos`. Peran hanya memilih centang awal lewat `paket_peran()`;
