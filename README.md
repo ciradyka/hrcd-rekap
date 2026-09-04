@@ -35,6 +35,14 @@ menautkan tiap langkah ke layar yang mengerjakannya. Menyuntingnya berarti
 menyunting daftar blok di berkas itu; tidak ada satu pun tag HTML yang perlu
 disentuh, dan `tests/buku_sakti.test.mjs` menolak bentuk yang salah.
 
+Bab terakhirnya papan sprint: tiga belas sprint dua mingguan dari Serah Terima
+Jabatan sampai hari-H, dan **tiap tugasnya bisa dicentang**. Centangnya duduk
+di database (`centang_sprint`, migrasi `0170`) dan terlihat oleh seluruh
+panitia beserta siapa yang mencentang dan kapan — papan rencana yang jawabannya
+berbeda-beda per HP bukan papan koordinasi. Kunci centangnya kode tugas di
+`buku-sakti.mjs`, jadi **kode yang sudah dipakai tidak pernah diubah**;
+menambah dan menghapus tugas aman, mengganti nama kodenya tidak.
+
 `desain-sistem.md` dan `rancangan-b.md` merekam **keputusan pada saat itu**,
 bukan keadaan hari ini. Keduanya sengaja dipertahankan apa adanya karena 61
 komentar di kode — tersebar di 32 berkas: migrasi, tes, SPA, workflow,
@@ -52,7 +60,9 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │   ├── js/                   # api.js, app.js, util.js, dua modul murni hitung
 │   │                         # (departure-calculator.mjs dan
 │   │                         # nomor-dada-series.mjs), dan buku-sakti.mjs —
-│   │                         # ISI Buku Sakti sebagai data, bukan kode
+│   │                         # ISI Buku Sakti sebagai data, bukan kode:
+│   │                         # empat bab bacaan + papan 13 sprint yang
+│   │                         # tugasnya dicentang (migrasi 0170)
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
 │   ├── _headers              # aturan cache Cloudflare
@@ -72,7 +82,7 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0169
+│   ├── migrations/           # skema database, urut 0001..0170
 │   ├── checks/               # 30 SQL manual, dan 12 di antaranya MENGUBAH
 │   │                         # data (flow_test, cleanup_data_uji,
 │   │                         # cleanup_smoke, seed_data_uji, kloter_dari_stok,

@@ -27,6 +27,7 @@ import {
   hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
   unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
   statusAcara, bolehLihat, lengkapiHakSesi,
+  daftarCentangSprint, setCentangSprint,
   aturFaseLive, segarkanLiveScore,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
@@ -46,8 +47,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
-import { BUKU_SAKTI, TIMELINE, FITUR_NAMA, cariBagian, cariBulan }
-  from "./buku-sakti.mjs";
+import { BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_LAYAR, NAMA_LAYAR,
+         cariBagian, cariSprint, tugasSprint } from "./buku-sakti.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -194,6 +195,13 @@ function pasangKepala(judul, lebar = false) {
       .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
     document.getElementById("nav-akun")
       .setAttribute("aria-current", location.hash === "#/account" ? "page" : "false");
+    /* pangkalRute(), bukan perbandingan hash utuh: alamat Buku Sakti
+       berbuntut kode bab, jadi `#/buku-sakti/seksi` juga sedang di layar ini.
+       Tanpa itu penandanya menyala di bab pertama lalu padam begitu pembaca
+       pindah tab — satu-satunya item menu yang berkedip. */
+    document.getElementById("nav-buku")
+      .setAttribute("aria-current",
+        pangkalRute(location.hash) === "#/buku-sakti" ? "page" : "false");
   }
   // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
   // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
@@ -10734,33 +10742,156 @@ function bagianBukuHtml(bagian) {
   </section>`;
 }
 
-/** Satu bulan timeline. Bentuknya sengaja berbeda dari bagian bacaan: yang
- *  dicari orang di kalender bukan paragraf melainkan tonggak yang bisa
- *  dicentang dan langkah sistem yang harus dikerjakan bulan itu. */
-function bulanBukuHtml(bulan, indeks) {
-  return `<section class="card bs-bulan" id="bs-bulan-${esc(bulan.kode)}">
-    <div class="bs-bulan-kepala">
-      <span class="bs-bulan-urut">${esc(String(indeks + 1))}</span>
-      <span class="bs-bulan-nama">${esc(bulan.bulan)}</span>
-      <span class="bs-bulan-tajuk">${esc(bulan.tajuk)}</span>
+/* ------------------------------ PAPAN SPRINT -----------------------------
+
+   Tiga belas sprint dua mingguan, dan tiap tugasnya bisa dicentang. Centangnya
+   duduk di database (migrasi 0170) dan terlihat oleh seluruh panitia — papan
+   rencana yang jawabannya berbeda-beda per HP bukan papan koordinasi.
+
+   DIGAMBAR DULU, CENTANGNYA MENYUSUL.
+
+   Layar ini tidak menunggu jaringan sebelum menggambar apa pun. Isinya berkas
+   statis yang sudah ikut termuat bersama app.js, jadi papannya muncul seketika
+   dengan seluruh kotak dalam keadaan kosong, lalu satu permintaan mengisinya.
+   Urutan itu yang membuat janji di kepala buku-sakti.mjs tetap benar: bukunya
+   terbaca walau Supabase tidak terjangkau, dan yang hilang cuma centangnya.
+
+   Karena itu gagalnya BUKAN kartu galat. Yang tergambar sebaris kecil di
+   kepala papan, dan seluruh isi bukunya tetap bisa dibaca. */
+
+/** Centang yang sedang berlaku: kode tugas -> { dicentang_oleh, dicentang_pada }.
+ *
+ *  Di luar fungsi layarnya supaya kembali dari layar lain tidak mengosongkan
+ *  papan sampai permintaannya selesai — papan yang berkedip kosong tiap kali
+ *  pembaca menekan Back terbaca seperti centang yang hilang. */
+let centangSprint = new Map();
+
+/** Sudah pernah dibaca dari server sekali? Membedakan "belum tahu" dari
+ *  "sudah tahu, dan memang kosong" — yang pertama tidak boleh dilaporkan
+ *  sebagai papan yang belum dikerjakan siapa pun. */
+let centangSprintTerbaca = false;
+
+/** Tautan kecil di kaki sebuah tugas, ikut hak akun.
+ *
+ *  Yang tidak berhak TIDAK diberi tautan mati: tugasnya tetap terbaca lengkap,
+ *  cuma tanpa jalan pintas. Menuliskan "butuh centang X" di sini seperti pada
+ *  blok layar akan menambah satu baris di bawah SERATUS TUJUH tugas, dan papan
+ *  yang gunanya untuk disapu cepat berhenti bisa disapu. */
+function tautanTugasSprint(tugas) {
+  if (!tugas.layar) return "";
+  const fitur = FITUR_LAYAR[tugas.layar];
+  if (fitur && !bolehLihat(fitur)) return "";
+  return `<a class="bs-todo-layar" href="${esc(tugas.layar)}">${
+    esc(NAMA_LAYAR[tugas.layar] || tugas.layar)}</a>`;
+}
+
+/** Satu tugas: kotak centang, teksnya, seksinya, dan jejak siapa mencentang.
+ *
+ *  Kotak centang DI DALAM <label> bersama teksnya, jadi seluruh kalimat jadi
+ *  sasaran ketukan. Di HP, kotak 20px yang berdiri sendiri di antara seratus
+ *  baris adalah sasaran yang meleset. */
+function tugasSprintHtml(tugas) {
+  return `<li class="bs-todo-item" data-tugas="${esc(tugas.kode)}">
+    <label class="bs-todo-baris">
+      <input type="checkbox" class="checkbox bs-todo-kotak"
+             data-tugas="${esc(tugas.kode)}">
+      <span class="bs-todo-teks">${esc(tugas.teks)}</span>
+    </label>
+    <div class="bs-todo-kaki">
+      <span class="bs-pil">${esc(tugas.seksi)}</span>
+      ${tautanTugasSprint(tugas)}
+      <span class="bs-todo-jejak" data-jejak="${esc(tugas.kode)}"></span>
     </div>
-    <p class="bs-bulan-fokus">${esc(bulan.fokus)}</p>
-    <div class="bs-bulan-kolom">
-      <div>
-        <h4>Tonggak</h4>
-        <ul class="bs-poin">${bulan.tonggak.map(x =>
-          `<li>${esc(x)}</li>`).join("")}</ul>
-      </div>
-      <div>
-        <h4>Di sistem</h4>
-        <ul class="bs-poin">${bulan.sistem.map(x =>
-          `<li>${esc(x)}</li>`).join("")}</ul>
+  </li>`;
+}
+
+/** Satu sprint. */
+function sprintHtml(sprint) {
+  return `<section class="card bs-sprint" id="bs-sprint-${esc(sprint.kode)}">
+    <div class="bs-sprint-kepala">
+      <span class="bs-sprint-urut">${esc(String(sprint.nomor))}</span>
+      <div class="bs-sprint-judul">
+        <div class="bs-sprint-baris">
+          <span class="bs-sprint-tajuk">${esc(sprint.tajuk)}</span>
+          <span class="bs-sprint-kemajuan"
+                data-kemajuan="${esc(sprint.kode)}"></span>
+        </div>
+        <!-- Tiga patokan waktu, dan yang ketiga yang membuat papan ini masih
+             berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
+             hari-H tidak. -->
+        <div class="bs-sprint-waktu">${esc(sprint.bulan)} · ${
+          esc(sprint.rentang)} · ${esc(sprint.mundur)}</div>
       </div>
     </div>
-    <p class="bs-bulan-seksi">${bulan.seksi.map(x =>
-      `<span class="bs-pil">${esc(x)}</span>`).join("")}</p>
-    <p class="bs-kenapa bs-jangan">${esc(bulan.jangan)}</p>
+    <p class="bs-sprint-fokus">${esc(sprint.fokus)}</p>
+    <ul class="bs-todo">${sprint.tugas.map(tugasSprintHtml).join("")}</ul>
+    <p class="bs-sprint-hasil"><strong>Selesai kalau:</strong> ${
+      esc(sprint.hasil)}</p>
+    <p class="bs-kenapa bs-jangan">${esc(sprint.jangan)}</p>
   </section>`;
+}
+
+/** Gambar ulang kotak centang, jejak, dan lencana kemajuan dari `centangSprint`.
+ *
+ *  MENYENTUH SEL YANG SUDAH ADA, tidak membangun ulang papannya. Membangun
+ *  ulang akan memindahkan kotak tepat sebelum jempol turun, dan melempar
+ *  gulirannya ke atas di tengah rapat — persis alasan layar lain berhenti
+ *  menggambar ulang pada `visibilitychange`. */
+function segarkanPapanSprint() {
+  const papan = document.getElementById("bs-panel-sprint");
+  if (!papan) return;
+
+  for (const kotak of papan.querySelectorAll("[data-tugas].bs-todo-kotak")) {
+    const c = centangSprint.get(kotak.dataset.tugas);
+    kotak.checked = !!c;
+    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !!c);
+  }
+  for (const jejak of papan.querySelectorAll("[data-jejak]")) {
+    const c = centangSprint.get(jejak.dataset.jejak);
+    /* Jejak dibiarkan KOSONG kalau belum dicentang, bukan diisi "belum".
+       Seratus tujuh baris "belum" adalah seratus tujuh baris yang tidak
+       mengatakan apa-apa, dan yang dicari mata justru yang sudah selesai. */
+    jejak.textContent = c
+      ? `${c.dicentang_oleh || "panitia"} · ${berapaLalu(c.dicentang_pada)}`
+      : "";
+  }
+  for (const lencana of papan.querySelectorAll("[data-kemajuan]")) {
+    const sprint = SPRINT.find(s => s.kode === lencana.dataset.kemajuan);
+    if (!sprint) continue;
+    const selesai = sprint.tugas.filter(t => centangSprint.has(t.kode)).length;
+    const penuh = selesai === sprint.tugas.length;
+    lencana.className = `badge bs-sprint-kemajuan ${
+      penuh ? "badge-green" : "badge-kemajuan"}`;
+    lencana.textContent = `${selesai}/${sprint.tugas.length}`;
+  }
+
+  const ringkas = document.getElementById("bs-sprint-ringkas");
+  if (ringkas) {
+    const semua = tugasSprint();
+    const selesai = semua.filter(x => centangSprint.has(x.tugas.kode)).length;
+    ringkas.textContent = centangSprintTerbaca
+      ? `${selesai} dari ${semua.length} tugas selesai.`
+      : "Centang belum terbaca — papan ini tetap bisa dibaca, tetapi yang "
+        + "tercentang belum tentu tergambar.";
+    ringkas.classList.toggle("bs-sprint-putus", !centangSprintTerbaca);
+  }
+}
+
+/** Ambil centang dari server lalu gambar ulang. Gagalnya ditelan.
+ *
+ *  Sengaja TIDAK melempar dan tidak memanggil notif(): membuka buku panduan
+ *  saat sinyal mati adalah hal yang wajar dilakukan orang, dan kotak merah
+ *  yang muncul tiap kali bukunya dibuka mengajari orang menutupnya tanpa
+ *  membaca. Yang memberitahukannya satu baris kecil di kepala papan. */
+async function muatCentangSprint() {
+  try {
+    const baris = await daftarCentangSprint();
+    centangSprint = new Map((baris || []).map(x => [x.kode, x]));
+    centangSprintTerbaca = true;
+  } catch {
+    centangSprintTerbaca = false;
+  }
+  segarkanPapanSprint();
 }
 
 function layarBukuSakti() {
@@ -10808,7 +10939,10 @@ function layarBukuSakti() {
         </nav>`}
       </div>
       ${b.kode === "timeline"
-        ? `<div class="bs-timeline">${TIMELINE.map(bulanBukuHtml).join("")}</div>`
+        ? `<div class="bs-timeline" id="bs-panel-sprint">
+             <p class="description" id="bs-sprint-ringkas"></p>
+             ${SPRINT.map(sprintHtml).join("")}
+           </div>`
         : b.bagian.map(bagianBukuHtml).join("")}
     </div>`).join("");
 
@@ -10849,7 +10983,7 @@ function layarBukuSakti() {
           b === bab ? ' aria-current="page"' : ""}>
           ${esc(b.tab)}
           <span class="tab-hitung">${esc(String(
-            b.kode === "timeline" ? TIMELINE.length : b.bagian.length))}</span>
+            b.kode === "timeline" ? SPRINT.length : b.bagian.length))}</span>
         </a>`).join("")}
     </nav>
 
@@ -10897,19 +11031,6 @@ function layarBukuSakti() {
     setTimeout(() => gulirKe(tujuan), 0);
   }
 
-  LAYAR.addEventListener("click", (ev) => {
-    const ke = ev.target.closest(".bs-ke");
-    if (ke) { gulirKe(ke.dataset.ke); return; }
-    const hasil = ev.target.closest(".bs-hasil-butir");
-    if (!hasil) return;
-    /* Hasil cari boleh menunjuk bab lain, dan berpindah bab mengganti hash.
-       Kalau bab-nya SAMA, hash-nya tidak berubah dan hashchange tidak pernah
-       datang — jadi gulirnya dikerjakan langsung di sini. */
-    if (hasil.dataset.bab === bab.kode) { gulirKe(hasil.dataset.ke); return; }
-    bagianDitujuBuku = hasil.dataset.ke;
-    location.hash = `#/buku-sakti/${hasil.dataset.bab}`;
-  }, { signal: sinyal });
-
   /* KOTAK CARI MENYAPU SELURUH BUKU, bukan bab yang sedang terbuka.
 
      Yang mengetik "gembok" tidak tahu — dan tidak perlu tahu — bahwa gembok
@@ -10924,8 +11045,8 @@ function layarBukuSakti() {
       return;
     }
     const bagian = cariBagian(kata);
-    const bulan = cariBulan(kata);
-    const jumlah = bagian.length + bulan.length;
+    const sprint = cariSprint(kata);
+    const jumlah = bagian.length + sprint.length;
     elSemua.hidden = true;
     elHasil.hidden = false;
     elHasil.replaceChildren(h(`<div>
@@ -10940,28 +11061,108 @@ function layarBukuSakti() {
               esc(b.judul)}</span>
             <span class="bs-hasil-judul">${esc(g.judul)}</span>
           </button></li>`).join("")}
-        ${bulan.map(bl => `
+        ${sprint.map(sp => `
           <li><button type="button" class="bs-hasil-butir"
-                      data-bab="timeline" data-ke="bs-bulan-${esc(bl.kode)}">
-            <span class="bs-hasil-bab">Timeline</span>
-            <span class="bs-hasil-judul">${esc(bl.bulan)} — ${esc(bl.tajuk)}</span>
+                      data-bab="timeline" data-ke="bs-sprint-${esc(sp.kode)}">
+            <span class="bs-hasil-bab">Sprint ${esc(String(sp.nomor))} · ${
+              esc(sp.bulan)} ${esc(sp.rentang)}</span>
+            <span class="bs-hasil-judul">${esc(sp.tajuk)}</span>
           </button></li>`).join("")}
       </ul>
     </div>`));
   };
   elCari.addEventListener("input", saring, { signal: sinyal });
 
-  /* Cetak Bab Ini pada tab Timeline mencetak TIMELINE-nya, bukan halaman
-     kosong: bab itu memang tidak punya `bagian`, dan tombol yang berbunyi
-     "Cetak Bab Ini" lalu mengeluarkan satu lembar sampul adalah tombol yang
-     berbohong. */
+  /* KOTAK CENTANG PAPAN SPRINT.
+
+     Bentuknya sama persis dengan matriks hak di layar Akun, dan itu disengaja
+     — panitia yang sudah pernah mencentang di sana tidak perlu belajar apa
+     pun yang baru:
+
+       diredupkan selagi disimpan, BUKAN di-disable (.checkbox.saving);
+       ketukan beruntun DIANTREKAN, bukan diblokir, supaya salah centang bisa
+         langsung dibatalkan;
+       ditolak server = kotaknya DIKEMBALIKAN, karena kotak yang tetap
+         tercentang padahal servernya menolak adalah kebohongan yang baru
+         ketahuan besok.
+
+     Satu antrean untuk SELURUH papan: dua ketukan pada tugas yang sama harus
+     mendarat urut, dan urutan itulah yang menentukan keadaan akhirnya. */
+  let antreCentang = Promise.resolve();
+  LAYAR.addEventListener("change", (ev) => {
+    const kotak = ev.target.closest(".bs-todo-kotak");
+    if (!kotak) return;
+    const kode = kotak.dataset.tugas;
+    const mau = kotak.checked;
+    kotak.classList.add("saving");
+    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", mau);
+    antreCentang = antreCentang.then(async () => {
+      try {
+        await setCentangSprint(kode, mau);
+        /* Jejaknya dibaca ULANG dari server, tidak ditebak di sini. Yang
+           tercatat siapa yang MENYELESAIKAN — dan kalau orang lain sudah
+           mencentangnya lebih dulu, yang benar namanya, bukan nama kita. */
+        await muatCentangSprint();
+      } catch (e) {
+        kotak.checked = !mau;
+        kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !mau);
+        notif(e instanceof ErrorApi ? e.message : "Centang gagal disimpan.", true);
+      } finally {
+        kotak.classList.remove("saving");
+      }
+    });
+  }, { signal: sinyal });
+
+  /* Dimuat SESUDAH layarnya tergambar, dan tanpa await: papan sprint muncul
+     seketika dengan kotak kosong, lalu terisi. Membalik urutannya berarti
+     seluruh buku menunggu satu permintaan jaringan yang boleh saja tidak
+     pernah dijawab. */
+  segarkanPapanSprint();
+  muatCentangSprint();
+
+  LAYAR.addEventListener("click", (ev) => {
+    const ke = ev.target.closest(".bs-ke");
+    if (ke) { gulirKe(ke.dataset.ke); return; }
+    const hasil = ev.target.closest(".bs-hasil-butir");
+    if (!hasil) return;
+
+    /* KOTAK CARI DIKOSONGKAN LEBIH DULU, dan itu bukan kerapian.
+
+       Selama mencari, `#bs-panel-semua` disembunyikan — seluruh isi buku ada
+       di dalamnya. `scrollIntoView()` pada elemen di dalam `display: none`
+       tidak melakukan apa pun dan tidak melempar apa pun, jadi mengetuk hasil
+       cari yang bagiannya ada di bab yang SEDANG terbuka terasa seperti
+       tombol mati. Persis itu yang terjadi sebelum baris ini ada.
+
+       saring() dipanggil, bukan `hidden` yang disetel tangan: yang memutuskan
+       panel mana terlihat cuma satu fungsi, dan dua tempat yang memutuskan
+       hal yang sama adalah dua tempat yang suatu hari tidak sepakat. */
+    elCari.value = "";
+    saring();
+
+    /* Berpindah bab mengganti hash, dan penggambaran ulanglah yang menggulir
+       — lewat bagianDitujuBuku. Kalau babnya SAMA, hash-nya tidak berubah,
+       hashchange tidak pernah datang, dan tidak ada penggambaran ulang: di
+       situ gulirnya harus dikerjakan langsung. */
+    if (hasil.dataset.bab === bab.kode) { gulirKe(hasil.dataset.ke); return; }
+    bagianDitujuBuku = hasil.dataset.ke;
+    location.hash = `#/buku-sakti/${hasil.dataset.bab}`;
+  }, { signal: sinyal });
+
+  /* SATU PARAMETER, SATU ARTI: bab yang dicetak, atau null untuk seluruhnya.
+
+     Sebelumnya dua — `(babSatu, ikutTimeline)` — dan `babSatu === null` sudah
+     dipakai untuk arti "semua bab". Akibatnya papan sprint tidak punya cara
+     diungkapkan sama sekali: "Cetak Bab Ini" di tab Sprint memanggil
+     `(null, true)`, argumen yang SAMA PERSIS dengan tombol di sebelahnya,
+     dan yang keluar seluruh buku. Tombolnya melakukan kebalikan dari
+     namanya, tanpa satu pun galat. */
   document.getElementById("bs-cetak-bab").addEventListener("click", () => {
-    const sendiri = bab.kode === "timeline";
-    siapkanCetakBuku(sendiri ? null : bab, sendiri);
+    siapkanCetakBuku(bab);
     window.print();
   }, { signal: sinyal });
   document.getElementById("bs-cetak-semua").addEventListener("click", () => {
-    siapkanCetakBuku(null, true);
+    siapkanCetakBuku(null);
     window.print();
   }, { signal: sinyal });
 }
@@ -10996,26 +11197,33 @@ function blokBukuCetak(blok) {
     blok.teks ? ` — ${esc(blok.teks)}` : ""}</p>`;
 }
 
-function siapkanCetakBuku(babSatu, ikutTimeline) {
+function siapkanCetakBuku(babSatu) {
   document.getElementById("cetakan")?.remove();
   const dicetak = tanggalJam(new Date().toISOString());
   const judulEdisi = EDISI ? EDISI.name : "HRCD";
-  const babCetak = babSatu ? [babSatu] : BUKU_SAKTI.filter(b => b.bagian.length);
-  const timeline = !!(ikutTimeline && TIMELINE.length);
+
+  /* SATU DAFTAR BAB, dan papan sprint ikut di dalamnya sebagai bab biasa.
+     `babSatu` null berarti seluruh buku; selain itu tepat satu bab — termasuk
+     kalau yang dipilih papan sprint. Tidak ada sentinel yang memikul dua arti
+     di sini (lihat komentar di tombolnya). */
+  const babCetak = babSatu ? [babSatu] : BUKU_SAKTI;
+  const babBacaan = babCetak.filter(b => b.bagian.length);
+  const adaSprint = babCetak.some(b => b.kode === "timeline") && SPRINT.length > 0;
 
   const daftarIsi = `
     <h2>Daftar Isi</h2>
-    ${babCetak.map(b => `
+    ${babBacaan.map(b => `
       <p class="bs-cetak-isi-bab">Bab ${esc(String(nomorBabBuku(b)))} — ${
         esc(b.judul)}</p>
       <ul class="bs-cetak-isi">${b.bagian.map(g =>
         `<li>${esc(g.judul)}</li>`).join("")}</ul>`).join("")}
-    ${timeline ? `
-      <p class="bs-cetak-isi-bab">Timeline Satu Edisi</p>
-      <ul class="bs-cetak-isi">${TIMELINE.map(bl =>
-        `<li>${esc(bl.bulan)} — ${esc(bl.tajuk)}</li>`).join("")}</ul>` : ""}`;
+    ${adaSprint ? `
+      <p class="bs-cetak-isi-bab">Papan Sprint Satu Edisi</p>
+      <ul class="bs-cetak-isi">${SPRINT.map(sp =>
+        `<li>Sprint ${esc(String(sp.nomor))} · ${esc(sp.bulan)} ${
+          esc(sp.rentang)} — ${esc(sp.tajuk)}</li>`).join("")}</ul>` : ""}`;
 
-  const halamanBab = babCetak.map(b => `
+  const halamanBab = babBacaan.map(b => `
     <section class="print-page">
       <h1>Bab ${esc(String(nomorBabBuku(b)))} — ${esc(b.judul)}</h1>
       <p class="bs-cetak-ringkas">${esc(b.ringkas)}</p>
@@ -11026,32 +11234,45 @@ function siapkanCetakBuku(babSatu, ikutTimeline) {
         </section>`).join("")}
     </section>`).join("");
 
-  /* RINGKASAN ENAM BULAN DALAM SATU TABEL, lalu rinciannya.
-     Tabel itu yang ditempel di dinding sekretariat; rinciannya yang dibaca
-     saat bulannya tiba. Keduanya dicetak karena keduanya dipakai berbeda. */
-  const halamanTimeline = !timeline ? "" : `
+  /* KOTAK CENTANG DICETAK KOSONG, SELALU — tidak peduli apa yang tercentang
+     di layar.
+
+     Kertas ini ditempel di dinding sekretariat dan dicentang pakai pulpen
+     sepanjang enam bulan. Mencetak keadaan hari ini membuatnya jadi POTRET,
+     dan potret yang ditempel di dinding berhenti benar keesokan harinya
+     sementara kotak-kotak yang sudah tercetak hitam tidak bisa dibatalkan
+     lagi oleh siapa pun.
+
+     Kotaknya juga tetap PUTIH dan kosong — CLAUDE.md 8.7 melarang apa pun di
+     belakang area yang ditulisi tangan. */
+  const halamanSprint = !adaSprint ? "" : `
     <section class="print-page">
-      <h1>Timeline Satu Edisi</h1>
+      <h1>Papan Sprint Satu Edisi</h1>
+      <p class="bs-cetak-ringkas">Tiga belas sprint dua mingguan. Tanggalnya
+        dihitung mundur dari hari-H, jadi papan ini tetap berlaku pada edisi
+        yang bulannya bergeser. Kotaknya sengaja tercetak kosong: yang di
+        layar berubah tiap hari, yang di dinding dicentang pakai pulpen.</p>
       <table class="print-table">
-        <thead><tr><th>Bulan</th><th>Tajuk</th><th>Fokus</th></tr></thead>
-        <tbody>${TIMELINE.map(bl => `<tr>
-          <td>${esc(bl.bulan)}</td>
-          <td>${esc(bl.tajuk)}</td>
-          <td>${esc(bl.fokus)}</td></tr>`).join("")}</tbody>
+        <thead><tr><th>Sprint</th><th>Waktu</th><th>Tajuk</th><th>Tugas</th></tr></thead>
+        <tbody>${SPRINT.map(sp => `<tr>
+          <td class="text-center">${esc(String(sp.nomor))}</td>
+          <td>${esc(sp.bulan)} ${esc(sp.rentang)}<br>${esc(sp.mundur)}</td>
+          <td>${esc(sp.tajuk)}</td>
+          <td class="text-center">${esc(String(sp.tugas.length))}</td></tr>`).join("")}</tbody>
       </table>
-      ${TIMELINE.map(bl => `
+      ${SPRINT.map(sp => `
         <section class="bs-cetak-bagian">
-          <h2>${esc(bl.bulan)} — ${esc(bl.tajuk)}</h2>
-          <p>${esc(bl.fokus)}</p>
-          <p class="bs-cetak-label">Tonggak</p>
-          <ul class="bs-poin">${bl.tonggak.map(x =>
-            `<li>${esc(x)}</li>`).join("")}</ul>
-          <p class="bs-cetak-label">Di sistem</p>
-          <ul class="bs-poin">${bl.sistem.map(x =>
-            `<li>${esc(x)}</li>`).join("")}</ul>
-          <p class="bs-cetak-label">Seksi yang paling sibuk</p>
-          <p>${esc(bl.seksi.join(" · "))}</p>
-          <p class="bs-kenapa">${esc(bl.jangan)}</p>
+          <h2>Sprint ${esc(String(sp.nomor))} — ${esc(sp.tajuk)}</h2>
+          <p class="bs-cetak-waktu">${esc(sp.bulan)} ${esc(sp.rentang)} · ${
+            esc(sp.mundur)}</p>
+          <p>${esc(sp.fokus)}</p>
+          <ul class="bs-cetak-todo">${sp.tugas.map(t => `
+            <li><span class="bs-cetak-kotak"></span>
+              <span class="bs-cetak-todo-teks">${esc(t.teks)}
+                <em>${esc(t.seksi)}</em></span></li>`).join("")}</ul>
+          <p class="bs-cetak-label">Selesai kalau</p>
+          <p>${esc(sp.hasil)}</p>
+          <p class="bs-kenapa">${esc(sp.jangan)}</p>
         </section>`).join("")}
     </section>`;
 
@@ -11064,7 +11285,7 @@ function siapkanCetakBuku(babSatu, ikutTimeline) {
       <p class="print-note">Dicetak ${esc(dicetak)}.</p>
     </section>
     ${halamanBab}
-    ${halamanTimeline}
+    ${halamanSprint}
   </div>`));
 }
 
@@ -11137,7 +11358,24 @@ async function arahkan() {
   await lengkapiHakSesi();
   if (!EDISI) {
     try { EDISI = await infoEdisi(); }
-    catch (e) { layarButuhEdisi("Sistem Panitia"); return; }
+    catch (e) {
+      /* BUKU SAKTI LEWAT, layar lain tidak.
+
+         Setiap layar lain menggambar data edisi — biaya, jam berangkat, nama
+         edisi di kepala tabel — jadi tanpa baris edisi yang tergambar cuma
+         angka yang salah. Buku Sakti tidak membaca satu baris data pun:
+         isinya berkas statis yang sudah ikut termuat bersama app.js.
+
+         Dan justru di sinilah ia paling dibutuhkan. Sinyal mati di pos,
+         Supabase tidak terjangkau, dan yang dicari orang adalah halaman yang
+         mengatakan apa yang harus dikerjakan. Menahannya di balik pagar ini
+         membuat buku panduan menghilang tepat pada keadaan yang paling
+         membutuhkannya — dan janji itu tertulis di kepala buku-sakti.mjs,
+         jadi tanpa baris ini janjinya bohong. */
+      if (pangkalRute(location.hash) !== "#/buku-sakti") {
+        layarButuhEdisi("Sistem Panitia"); return;
+      }
+    }
   }
   // Alamat lamanya `#/akun`, dan itu masih duduk di riwayat browser dan
   // bookmark panitia. Dialihkan, bukan didiamkan: rute yang tidak dikenal
@@ -11150,7 +11388,7 @@ async function arahkan() {
   (RUTE[pangkalRute(location.hash)] || layarHome)();
 }
 
-// Tiga aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
+// EMPAT aksi yang sama dipasang di DUA tempat: tombol header (layar lebar)
 // dan menu bawah (HP). Dideklarasikan lebih dulu supaya tidak ada listener
 // yang menunjuk const yang belum terisi.
 const keHome = () => {

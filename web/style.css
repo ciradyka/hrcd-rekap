@@ -3432,6 +3432,8 @@ button.pill-number:hover { filter: brightness(.95); }
   #nav-home[aria-current="page"]    .bottom-nav-icon { background: var(--utama-muda); }
   #nav-setting[aria-current="page"] .bottom-nav-icon { background: #f0eafe; }
   #nav-akun[aria-current="page"]    .bottom-nav-icon { background: #eef0f3; }
+  /* Hijau HRCD yang sama dengan Home: keduanya "tempat", bukan setelan. */
+  #nav-buku[aria-current="page"]    .bottom-nav-icon { background: var(--utama-muda); }
 
   /* Ruang supaya baris terakhir isi halaman tidak tertutup bar.
 
@@ -6181,50 +6183,77 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
 }
 .bs-hasil-judul { display: block; font-weight: 600; margin-top: .1rem; }
 
-/* ---- Timeline ---- */
-.bs-bulan { scroll-margin-top: .8rem; }
-.bs-bulan-kepala {
-  display: flex; align-items: baseline; gap: .55rem; flex-wrap: wrap;
-}
-/* Nomor urut bulan, bukan tanggal. Bulan kalendernya bergeser tiap edisi —
-   yang tidak bergeser urutannya: bulan pertama sesudah serah terima, bulan
-   keenam adalah pelaksanaan. */
-.bs-bulan-urut {
+/* ---- Papan sprint ---- */
+#bs-sprint-ringkas { margin-bottom: .8rem; }
+/* Centang belum terbaca: satu baris kecil, bukan kartu merah. Membuka buku
+   panduan waktu sinyal mati adalah hal yang wajar, dan peringatan yang muncul
+   tiap kali bukunya dibuka mengajari orang menutupnya tanpa membaca. */
+.bs-sprint-putus { color: var(--kuning); }
+
+.bs-sprint { scroll-margin-top: .8rem; }
+.bs-sprint-kepala { display: flex; gap: .6rem; align-items: flex-start; }
+/* Nomor sprint, bukan tanggal. Bulan kalendernya bergeser tiap edisi; yang
+   tidak bergeser urutannya dan hitungan mundurnya dari hari-H. */
+.bs-sprint-urut {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 1.7rem; height: 1.7rem; border-radius: 999px;
+  width: 1.9rem; height: 1.9rem; border-radius: 999px;
   background: var(--utama-muda); color: var(--utama);
-  font-weight: 800; font-size: .85rem; flex: 0 0 auto;
-  align-self: center;
+  font-weight: 800; font-size: .9rem; flex: 0 0 auto;
 }
-.bs-bulan-nama { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
-.bs-bulan-tajuk { color: var(--tinta-lembut); font-weight: 600; }
-.bs-bulan-fokus { margin: .45rem 0 .2rem; line-height: 1.6; }
+.bs-sprint-judul { min-width: 0; flex: 1; }
+.bs-sprint-baris {
+  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+}
+.bs-sprint-tajuk { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+.bs-sprint-waktu {
+  font-size: .82rem; color: var(--tinta-lembut); margin-top: .1rem;
+}
+.bs-sprint-fokus { margin: .55rem 0 .2rem; line-height: 1.6; }
+.bs-sprint-hasil { margin: .6rem 0 .5rem; line-height: 1.55; }
 
-/* Dua kolom di layar lebar, satu di HP. Tonggak dan langkah sistem memang dua
-   daftar yang dibaca berdampingan: yang satu dicentang panitia, yang satu
-   dikerjakan di layar. */
-.bs-bulan-kolom {
-  display: grid; gap: .3rem 1.4rem; margin-top: .5rem;
-  grid-template-columns: 1fr;
+/* ---- Daftar tugas yang dicentang ---- */
+.bs-todo { list-style: none; margin: .7rem 0 0; padding: 0; }
+.bs-todo-item {
+  border-top: 1px solid var(--garis); padding: .5rem 0;
 }
-@media (min-width: 700px) {
-  .bs-bulan-kolom { grid-template-columns: 1fr 1fr; }
-}
-.bs-bulan-kolom h4 {
-  font-size: .78rem; text-transform: uppercase; letter-spacing: .03em;
-  color: var(--tinta-lembut); margin-top: .5rem;
-}
+.bs-todo-item:first-child { border-top: 0; }
 
-.bs-bulan-seksi {
-  display: flex; flex-wrap: wrap; gap: .3rem; margin: .7rem 0 .5rem;
+/* Kotak DAN kalimatnya satu sasaran ketukan. Kotak 20px yang berdiri sendiri
+   di antara seratus baris adalah sasaran yang meleset di HP, dan tugas yang
+   tercentang gara-gara meleset lebih buruk daripada tugas yang belum
+   tercentang: yang satu diam, yang lain berbohong. */
+.bs-todo-baris {
+  display: flex; gap: .6rem; align-items: flex-start; cursor: pointer;
+  line-height: 1.55;
 }
+.bs-todo-kotak { flex: 0 0 auto; margin-top: .2rem; }
+.bs-todo-teks { min-width: 0; }
+/* Yang sudah selesai DIREDUPKAN, tidak dicoret. Teks tercoret berhenti bisa
+   dibaca ulang, dan tugas yang sudah selesai masih sering dibaca ulang —
+   "kemarin kita mengirim surat ke berapa desa?" */
+.bs-todo-selesai .bs-todo-teks { color: var(--tinta-lembut); }
+
+.bs-todo-kaki {
+  display: flex; flex-wrap: wrap; gap: .3rem .5rem; align-items: center;
+  /* Sejajar dengan teksnya, bukan dengan kotaknya: lebar kotak + jaraknya. */
+  margin: .25rem 0 0 1.6rem;
+  font-size: .8rem; color: var(--tinta-lembut);
+}
+.bs-todo-layar {
+  color: var(--utama); text-decoration: none; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bs-todo-layar:hover { text-decoration: underline; }
+.bs-todo-layar::after { content: " \2192"; }
+.bs-todo-jejak { font-variant-numeric: tabular-nums; }
+
 .bs-pil {
-  font-size: .82rem; font-weight: 600;
+  font-size: .78rem; font-weight: 600;
   background: var(--kertas); color: var(--tinta-lembut);
-  border-radius: 999px; padding: .15rem .6rem;
+  border-radius: 999px; padding: .1rem .55rem;
 }
 /* "Jangan sampai" memakai kotak kenapa yang sama, tapi merah: ia satu-satunya
-   kalimat di kartu bulan yang menyebut kerugian, dan warnanya yang membuatnya
+   kalimat di kartu sprint yang menyebut kerugian, dan warnanya yang membuatnya
    ditemukan waktu kartunya cuma dipindai sekilas. */
 .bs-jangan { border-left-color: var(--bahaya); }
 
@@ -6310,7 +6339,7 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
     border: 0; border-radius: 0; padding: 0; margin: 0;
   }
   .buku-cetak .bs-tabel > tbody > tr[data-baris] > td {
-    border: 1px solid #000; padding: 4pt 5pt; margin: 0;
+    border: 0.4px solid #000; padding: 4pt 5pt; margin: 0;
   }
   .buku-cetak .bs-tabel > tbody > tr[data-baris] > td[data-label]::before {
     content: none;
@@ -6328,7 +6357,7 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
      difotokopi: huruf tebal, HURUF BESAR, dan garis bawah 1,5pt. */
   .buku-cetak .bs-tabel > thead > tr > th {
     background: none; box-shadow: none; position: static;
-    border: 1px solid #000; padding: 4pt 5pt; text-align: left;
+    border: 0.4px solid #000; padding: 4pt 5pt; text-align: left;
     font-size: 8.5pt; text-transform: uppercase; font-weight: 700;
     border-bottom-width: 1.5pt;
   }
@@ -6338,4 +6367,30 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
      buruk (CLAUDE.md 8.4). Yang membedakan nomor dari isinya tetap ada:
      ia tebal. */
   .buku-cetak .bs-langkah li::marker { color: #000; }
+
+  /* ---- Papan sprint di kertas ----
+
+     Kertas ini ditempel di dinding sekretariat dan dicentang pakai pulpen
+     sepanjang enam bulan, jadi bentuknya daftar berkotak, bukan salinan
+     layar. */
+  .buku-cetak .bs-cetak-waktu {
+    font-size: 9pt; font-weight: 700; margin: 0 0 1mm;
+  }
+  .buku-cetak .bs-cetak-todo { list-style: none; margin: .3rem 0; padding: 0; }
+  .buku-cetak .bs-cetak-todo li {
+    display: flex; gap: 2.5mm; align-items: flex-start; margin: 1.2mm 0;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  /* Kotak centang tulis tangan: PUTIH, kosong, dan cukup besar untuk dicentang
+     pulpen (CLAUDE.md 8.7 — tidak ada apa pun di belakang area yang ditulisi).
+     Garisnya 1pt supaya selamat difotokopi (8.5). */
+  .buku-cetak .bs-cetak-kotak {
+    flex: 0 0 auto; width: 3.5mm; height: 3.5mm; margin-top: .6mm;
+    border: 1pt solid #000; background: none;
+  }
+  .buku-cetak .bs-cetak-todo-teks { min-width: 0; }
+  /* Nama seksi di belakang tugasnya, miring dan kecil — tetap 8pt, di atas
+     batas 7pt bagian 8.6. Tidak diredupkan: bagian 8.4 melarang abu, jadi
+     yang membuatnya mundur ukurannya, bukan warnanya. */
+  .buku-cetak .bs-cetak-todo-teks em { font-size: 8pt; white-space: nowrap; }
 }

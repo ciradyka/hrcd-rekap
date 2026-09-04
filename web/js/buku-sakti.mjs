@@ -92,6 +92,75 @@ export const FITUR_NAMA = {
 /** Kode fitur yang boleh disebut blok "layar". */
 export const FITUR_SAH = Object.keys(FITUR_NAMA);
 
+/** Centang yang membuat sebuah layar TERJANGKAU dari papan Home.
+ *
+ *  Ini pertanyaan yang BERBEDA dari `fitur` di blok "layar", dan keduanya
+ *  memang boleh berbeda untuk rute yang sama. Blok layar menjawab "apa yang
+ *  dibutuhkan untuk MELAKUKAN hal yang sedang dijelaskan paragraf ini" —
+ *  karena itu satu blok tentang saklar fase menyebut `pengaturan` sementara
+ *  blok lain tentang papan klasemen di layar yang sama menyebut `live_score`,
+ *  dan keduanya benar. Peta ini menjawab yang lebih kasar: centang mana yang
+ *  memunculkan ubinnya di Home sama sekali.
+ *
+ *  Dipakai tautan kecil di tiap tugas papan sprint, yang tidak punya ruang
+ *  untuk membedakan sehalus itu.
+ *
+ *  SALINAN YANG BERISIK, sama seperti FITUR_NAMA: tes membandingkannya
+ *  dengan syarat ubin di layarHome(). Kalau suatu edisi memindahkan sebuah
+ *  layar ke centang lain, tesnya yang memberi tahu.
+ *
+ *  `null` berarti terbuka untuk setiap panitia. */
+export const FITUR_LAYAR = {
+  "#/home":              null,
+  "#/ganti-password":    null,
+  "#/buku-sakti":        null,
+  "#/data-peserta":      "pendaftaran",
+  "#/pembayaran":        "pembayaran",
+  "#/daftar-ulang":      "daftar_ulang",
+  "#/cetak-kloter":      "cetak_kloter",
+  "#/keberangkatan":     "keberangkatan",
+  "#/finish":            "kedatangan",
+  "#/pos":               "pos",
+  "#/pos2":              "pos",
+  "#/foto":              "pos",
+  "#/cek-nilai":         "pengaturan",
+  "#/pengaturan-kloter": "pengaturan",
+  "#/live-score":        "live_score",
+  "#/kejuaraan":         "live_score",
+  "#/account":           "akun",
+};
+
+/** Nama layar seperti tertulis di kepala halamannya.
+ *
+ *  Tautan kecil di tiap tugas papan sprint memakai ini, bukan alamatnya
+ *  sendiri: "#/cetak-kloter" adalah alamat, dan yang dicari panitia yang
+ *  membaca papan adalah NAMA layar yang harus dibuka. Alamat cuma berarti
+ *  bagi yang sudah tahu isinya.
+ *
+ *  SALINAN YANG BERISIK, seperti FITUR_NAMA dan FITUR_LAYAR: tes
+ *  membandingkannya dengan pasangKepala() di app.js, jadi layar yang berganti
+ *  nama membuat tesnya gagal, bukan membuat papan sprint memanggil nama yang
+ *  sudah tidak dipakai siapa pun. */
+export const NAMA_LAYAR = {
+  "#/home":              "Home",
+  "#/ganti-password":    "Ganti Password",
+  "#/buku-sakti":        "Buku Sakti",
+  "#/data-peserta":      "Data Peserta",
+  "#/pembayaran":        "Meja Pembayaran",
+  "#/daftar-ulang":      "Meja Daftar Ulang",
+  "#/cetak-kloter":      "Daftar Kloter",
+  "#/keberangkatan":     "Keberangkatan",
+  "#/finish":            "Kedatangan",
+  "#/pos":               "Input Nilai Tabel",
+  "#/pos2":              "Input Nilai Per Lomba",
+  "#/foto":              "Foto Jawaban Sekaligus",
+  "#/cek-nilai":         "Cek Nilai",
+  "#/pengaturan-kloter": "Kalkulator Keberangkatan",
+  "#/live-score":        "Live Score",
+  "#/kejuaraan":         "Kejuaraan",
+  "#/account":           "Akun",
+};
+
 /** Rute yang boleh disebut blok "layar". Sama alasannya dengan FITUR_SAH:
  *  tautan yang salah ketik di dalam buku jatuh ke Home tanpa satu pun galat,
  *  dan yang membacanya menyimpulkan bukunya yang bohong. */
@@ -151,7 +220,7 @@ const BAB_TUTORIAL = {
           butir: [
             "Aturan penilaian adalah data, bukan kode. Tiap tahun angkanya berubah tanpa satu baris kode disentuh.",
             "Memindahkan satu lomba dari satu pos ke pos lain mengubah bobot KEDUA pos itu tanpa satu angka pun diedit.",
-            "Status migrasi sendiri baru mencakup sampai berkas 0163. Berkas yang lebih muda belum ikut diperiksa, jadi jangan membaca laporan hijau sebagai jaminan penuh.",
+            "Status migrasi memeriksa SELURUH migrasi yang ada: 116 punya sidik jari yang dicari di database, 53 sisanya tidak punya karena migrasi yang lebih muda sudah menimpa objeknya. Jumlah keduanya harus selalu sama dengan jumlah berkas migrasi — begitu ada berkas baru, angka itu yang harus ikut naik.",
           ],
         },
       ],
@@ -1090,7 +1159,7 @@ const BAB_SEKSI = {
             "Menyebarkan link form pendaftaran ke pangkalan bersama humas, dan menjawab pertanyaan pembina yang tersangkut di tengah form.",
             "Menjaga nama regu unik di seluruh acara: dua regu dari sekolah yang sama ditulis NAMA 1 dan NAMA 2, tabrakan antar sekolah dibedakan dengan ekor nama sekolah.",
             "Menjaga satu sekolah satu baris. Pembeda dua sekolah senama ditulis di dalam namanya sendiri, misalnya MAN 3 Ciamis dan MAN 3 Tasikmalaya; kalau tidak ada tabrakan, jangan tambahkan ekor apa pun.",
-            "Membetulkan salah ketik lewat Data Peserta. Yang bisa diubah di sana cuma tulisan: nama regu, nama kontak, dan nomor WA pembina. Golongan, sekolah, nomor dada, dan status bayar punya jalurnya sendiri.",
+            "Membetulkan salah ketik lewat Data Peserta: nama regu, nama ketua, keempat nama anggota, Kelas atau Organisasi, nama kontak, dan nomor WA pembina. Golongan, sekolah, nomor dada, dan status bayar TIDAK bisa diubah di sana — ketiganya punya jalurnya sendiri.",
             "Menyerahkan hitungan regu terakhir ke perlengkapan dan konsumsi begitu pendaftaran ditutup.",
             "Menyiapkan meja offline: 2 sampai 3 meja, tiap meja 1 sampai 2 orang, dengan satu laptop yang sudah login sebelum peserta datang.",
           ],
@@ -2175,7 +2244,7 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Sejak pendaftaran dibuka sampai juara diumumkan, sistem ini dipakai orang sungguhan sambil kita menyuntingnya. Layar yang mati bukan bug yang dilaporkan besok, melainkan pekerjaan yang berhenti sekarang, di meja dengan antrean di depannya. Karena itu sebelum merge, buka layar yang disentuh dan HITUNG BARISNYA.",
+          teks: "Sejak pendaftaran dibuka sampai juara diumumkan, sistem ini dipakai orang sungguhan sambil kita edit. Layar yang mati bukan bug yang dilaporkan besok, melainkan pekerjaan yang berhenti sekarang, di meja dengan antrean di depannya. Karena itu sebelum merge, buka layar yang disentuh dan HITUNG BARISNYA.",
         },
         {
           jenis: "poin",
@@ -2198,207 +2267,442 @@ const BAB_KENAPA = {
     },
   ],
 };
-/* Bulan-bulan timeline. Bentuknya BERBEDA dari bab di atas, dan itu disengaja
-   — sebuah bulan bukan sebuah bagian bacaan: ia punya tonggak yang dicentang,
-   seksi yang sedang sibuk, dan satu kesalahan khas yang mahal. Memaksanya
-   masuk ke daftar blok akan mengubur keempat hal itu di dalam paragraf.
+/* PAPAN SPRINT — tiga belas sprint dua mingguan, September sampai hari-H,
+   ditutup satu sprint evaluasi.
 
-   Harganya satu percabangan di perakit layar, dan itu batas yang jelas:
-   bab dengan `bagian` digambar sebagai bacaan, bab timeline digambar sebagai
-   kalender. */
-export const TIMELINE = [
+   Bentuknya BERBEDA dari bab bacaan di atas, dan itu disengaja. Sebuah sprint
+   bukan bagian yang dibaca: ia daftar tugas yang DICENTANG, dan tiap tugas
+   punya seksi yang memegangnya. Memaksanya masuk ke daftar blok akan
+   mengubur keduanya di dalam paragraf.
+
+   TANPA SATU PUN TANGGAL KALENDER, dan itu bukan kemalasan. Tanggal lomba
+   ditetapkan di Sprint 2 — ia salah satu tugas di papan ini — jadi papan yang
+   menyebut tanggal akan berbohong tepat sampai tugas itu selesai. Yang dipakai
+   dua patokan yang tidak pernah basi: bulan beserta nomor minggunya, dan
+   hitungan mundur dari hari-H. Edisi yang jatuh di bulan lain memakai kolom
+   `mundur` dan membiarkan `bulan` sebagai contoh.
+
+   KODE TUGAS ADALAH KUNCI CENTANG DI DATABASE (migrasi 0170).
+
+   SEKALI SEBUAH KODE DIPAKAI, JANGAN PERNAH DIUBAH. Database tidak menyimpan
+   daftar tugasnya dan tidak bisa memvalidasi kodenya — ia cuma menyimpan
+   pasangan (edisi, kode). Mengganti "s6-desa" jadi "s6-surat-desa" membuat
+   centangnya menggantung: tugasnya kembali kosong, centang lamanya tetap
+   duduk di database, dan tidak ada satu pun galat yang menjelaskan kenapa.
+
+   Menambah tugas baru aman. Menghapus tugas aman. Yang tidak aman cuma
+   MENGGANTI NAMA. Kalau sebuah tugas berubah isinya, ubah `teks`-nya dan
+   biarkan kodenya — kode itu identitas, bukan judul. */
+export const SPRINT = [
   {
-    kode: "september",
+    kode: "s1",
+    nomor: 1,
     bulan: "September",
+    rentang: "Minggu 1-2",
+    mundur: "H-167 sampai H-154",
     tajuk: "Serah Terima Jabatan",
-    fokus:
-      "Kepengurusan berpindah ke angkatan berikutnya, dan panitia inti edisi baru terbentuk sebelum satu rapat besar pun digelar.",
-    tonggak: [
-      "Serah terima jabatan pengurus ambalan selesai, penanggung jawab acara ditetapkan namanya",
-      "Ketua Pelaksana, Sekretaris, dan Bendahara edisi baru ditunjuk",
-      "Evaluasi edisi sebelumnya dibaca ulang bersama, bukan disimpan",
-      "Akses diserahkan: siapa yang memegang akun admin, akun GitHub organisasi, dan password Supabase",
-      "Tanggal lomba diusulkan ke pembina dan sekolah untuk dikunci di rapat Oktober",
+    fokus: "Kepengurusan berpindah, panitia inti terbentuk, dan akses ke seluruh akun organisasi berpindah tangan sebelum satu rapat besar pun digelar.",
+    hasil: "Ketua Pelaksana, Sekretaris, dan Bendahara sudah ada namanya, dan minimal dua orang memegang password tiap akun organisasi.",
+    tugas: [
+      { kode: "s1-serah-terima", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Selesaikan serah terima jabatan pengurus ambalan dan tetapkan siapa penanggung jawab HRCD edisi ini." },
+      { kode: "s1-inti", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Tunjuk Ketua Pelaksana, Wakil, Sekretaris, dan Bendahara. Seksi selebihnya menyusul di rapat besar." },
+      { kode: "s1-akses", seksi: "Administrator Sistem", layar: null,
+        teks: "Serahkan password akun organisasi (Supabase, Cloudflare, GitHub, email ambalan) ke minimal DUA orang, dan catat siapa memegang apa di luar sistem." },
+      { kode: "s1-password", seksi: "Administrator Sistem", layar: "#/account",
+        teks: "Ganti password akun admin yang diwariskan, jangan dipakai apa adanya." },
+      { kode: "s1-evaluasi", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Baca ulang catatan evaluasi edisi lalu bersama-sama. Tiap keluhan yang berulang jadi calon tugas di sprint berikutnya." },
+      { kode: "s1-arsip", seksi: "Seksi Rekap dan Skor", layar: "#/live-score",
+        teks: "Cetak arsip edisi lalu selagi datanya masih utuh: Rekap Nilai Semua dari Live Score, dan Daftar Juara dari Kejuaraan." },
+      { kode: "s1-nonaktif", seksi: "Administrator Sistem", layar: "#/account",
+        teks: "Nonaktifkan akun panitia edisi lalu yang orangnya sudah lulus. Jangan hapus barisnya, riwayat nilai menunjuk ke sana." },
+      { kode: "s1-buku", seksi: "Ketua Pelaksana dan Wakil", layar: "#/buku-sakti",
+        teks: "Minta seluruh panitia inti membaca Buku Sakti ini sampai habis sebelum rapat besar." },
     ],
-    seksi: [
-      "Ketua Pelaksana dan Wakil",
-      "Sekretaris",
-      "Bendahara — Meja Pembayaran",
-      "Administrator Sistem",
-    ],
-    sistem: [
-      "Serahkan akun admin lama ke pengurus baru lewat workflow \"Ganti password akun panitia\" — satu akun sekali jalan, password dibuat server, diambil dari Artifact sebelum hilang tiga hari",
-      "Buka layar Akun di #/account dan nonaktifkan akun panitia edisi lalu yang orangnya sudah lulus; jangan hapus barisnya, riwayat nilai menunjuk ke sana",
-      "Buka Live Score selagi datanya masih ada, cetak lewat tombol \"Rekap Nilai Semua\", dan salin daftar juara dari layar Kejuaraan sebagai arsip kertas",
-      "Pastikan minimal dua orang tahu password akun organisasi (Supabase, Cloudflare, GitHub) — bukan satu orang, bukan akun pribadi",
-    ],
-    jangan:
-      "Jangan membersihkan data edisi lalu bulan ini — begitu dihapus, tidak ada lagi bahan evaluasi dan tidak ada contoh layar terisi untuk melatih panitia baru.",
+    jangan: "Jangan membersihkan data edisi lalu bulan ini. Begitu dihapus, tidak ada lagi bahan evaluasi dan tidak ada satu pun layar terisi untuk melatih panitia baru.",
   },
+
   {
-    kode: "oktober",
+    kode: "s2",
+    nomor: 2,
+    bulan: "September",
+    rentang: "Minggu 3-4",
+    mundur: "H-153 sampai H-140",
+    tajuk: "Tanggal dan Anggaran Dikunci",
+    fokus: "Tanggal acara ditetapkan bersama kepala sekolah dan pembina, dan dari tanggal itulah seluruh tenggat berikutnya dihitung mundur.",
+    hasil: "Tanggal lomba terkunci hitam di atas putih, dan anggaran kasar sudah punya titik impas dari uang pendaftaran saja.",
+    tugas: [
+      { kode: "s2-tanggal", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "TETAPKAN TANGGAL LOMBA bersama kepala sekolah dan pembina, lalu tulis di notulen. Seluruh tenggat di sprint berikutnya dihitung mundur dari tanggal ini." },
+      { kode: "s2-tema", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Tetapkan tema, kuota regu, dan biaya pendaftaran per regu, termasuk biaya regu Intern yang memang berbeda." },
+      { kode: "s2-rab", seksi: "Bendahara — Meja Pembayaran", layar: null,
+        teks: "Susun anggaran kasar dan hitung titik impasnya dari uang pendaftaran SAJA. Acara harus tetap jalan kalau sponsor nol." },
+      { kode: "s2-izin-prinsip", seksi: "Sekretaris", layar: null,
+        teks: "Ajukan izin prinsip kegiatan ke Kepala Sekolah selaku Ka Mabigus. Ini induk semua surat; tanpa nomornya tidak ada surat lain yang sah." },
+      { kode: "s2-proposal", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Susun proposal umum dan proposal sponsor berjenjang: sponsor utama, pendukung, dan partisipan." },
+      { kode: "s2-target-sponsor", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Susun daftar calon sponsor beserta NAMA ORANG yang akan didatangi. Alumni dan orang tua siswa yang paling sering berhasil." },
+      { kode: "s2-kalender", seksi: "Sekretaris", layar: "#/buku-sakti",
+        teks: "Salin timeline ini jadi kalender panitia dengan tanggal sungguhan, lalu tempel di sekretariat." },
+    ],
+    jangan: "Jangan menunda penetapan tanggal ke bulan depan. Setiap minggu tanggal belum pasti adalah satu minggu yang hilang dari antrean izin keramaian, dan antrean itu tidak bisa dipercepat dengan cara apa pun.",
+  },
+
+  {
+    kode: "s3",
+    nomor: 3,
     bulan: "Oktober",
-    tajuk: "Rapat Besar dan Anggaran",
-    fokus:
-      "Tema, tanggal, biaya, dan seluruh seksi dikunci dalam satu rapat besar, lalu edisi baru dibuat di database.",
-    tonggak: [
-      "Rapat besar: tema, tanggal lomba, dan biaya pendaftaran diputuskan dan dicatat notulennya",
-      "Seluruh seksi terisi namanya, lengkap dengan koordinator tiap seksi",
-      "Anggaran kasar disusun: pemasukan dari perkiraan jumlah regu, pengeluaran per seksi",
-      "Rute dan lokasi lima pos disurvei ulang, termasuk titik pos bayangan sebelum tiap pos",
-      "Kebutuhan barak dihitung dari perkiraan regu luar kota",
+    rentang: "Minggu 1-2",
+    mundur: "H-139 sampai H-126",
+    tajuk: "Rapat Besar dan Seksi Lengkap",
+    fokus: "Seluruh seksi terisi namanya, dan proposal mulai berjalan ke calon sponsor.",
+    hasil: "Tidak ada seksi tanpa koordinator, dan proposal sudah ada di tangan sepuluh calon sponsor pertama.",
+    tugas: [
+      { kode: "s3-rapat-besar", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Gelar rapat besar: tema, tanggal, biaya, dan susunan seluruh seksi diputuskan dan dinotulenkan." },
+      { kode: "s3-koordinator", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Tunjuk koordinator tiap seksi dan serahkan daftarnya ke Administrator Sistem sebelum akun dibuat." },
+      { kode: "s3-sk", seksi: "Sekretaris", layar: null,
+        teks: "Ajukan SK Panitia atau Surat Tugas ke Kepala Sekolah. Hampir semua permohonan berikutnya melampirkannya." },
+      { kode: "s3-sebar-proposal", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Datangi sepuluh calon sponsor pertama dan serahkan proposalnya LANGSUNG, jangan hanya kirim pesan." },
+      { kode: "s3-survei-1", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Jalani survei rute pertama dengan berjalan kaki penuh. Catat titik rawan: jalan raya yang harus diseberangi, jembatan, tanjakan, dan tepi sungai." },
+      { kode: "s3-foto-rute", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Rekam titik dan foto tiap calon lokasi pos untuk lampiran surat izin desa dan surat izin lahan nanti." },
+      { kode: "s3-akun-panitia", seksi: "Administrator Sistem", layar: "#/account",
+        teks: "Buat akun untuk koordinator tiap seksi di layar Akun. Pilih PERANNYA dulu, centangnya sesudahnya." },
+      { kode: "s3-buku-seksi", seksi: "Sekretaris", layar: "#/buku-sakti",
+        teks: "Minta tiap koordinator membaca bab Tugas Pokok Seksi bagian seksinya sendiri, lalu membantahnya kalau tidak cocok." },
     ],
-    seksi: [
-      "Ketua Pelaksana dan Wakil",
-      "Sekretaris",
-      "Bendahara — Meja Pembayaran",
-      "Seksi Lomba dan Juri Pos",
-      "Seksi Perlengkapan",
-    ],
-    sistem: [
-      "Susun migration edisi baru dan isi kolomnya apa adanya: nomor, nama, tahun, tanggal_lomba, biaya_per_regu, jam_mulai_berangkat, dan interval_berangkat_menit",
-      "Jalankan migration itu lewat workflow \"Apply migration to Supabase\" — merge saja tidak pernah menerapkannya",
-      "Jalankan supabase/checks/status_migrasi.sql lewat workflow yang sama, lalu baca hasilnya: yang berbunyi BELUM belum pernah hidup, dan yang tidak disebut sama sekali belum pernah diperiksa",
-      "Samakan stok nomor dada dengan kain yang benar-benar dipesan lewat supabase/checks/stok_nomor_dada.sql — dua deret, Eksternal dan Intern, dan pagar nomor dada membaca angkanya dari sana",
-      "Buka Kalkulator Keberangkatan di #/pengaturan-kloter dan lihat perkiraan jam berangkat kloter terakhir — kalau lewat 10:00, jumlah kloter atau interval_berangkat_menit yang salah, bukan jam upacaranya",
-    ],
-    jangan:
-      "Jangan menulis tanggal lomba di kode atau di skrip mana pun — seluruh perkiraan jam berangkat dihitung dari satu kolom tanggal di tabel edisi, dan tanggal yang ditulis di dua tempat akan berbeda persis saat tidak ada waktu memperbaikinya.",
+    jangan: "Jangan membuat akun panitia sebelum perannya diputuskan. Mengganti peran akan MENGHAPUS seluruh centang tangan lalu mengisinya ulang dari paket peran, tanpa peringatan.",
   },
+
   {
-    kode: "november",
+    kode: "s4",
+    nomor: 4,
+    bulan: "Oktober",
+    rentang: "Minggu 3-4",
+    mundur: "H-125 sampai H-112",
+    tajuk: "Surat Pertama Keluar",
+    fokus: "Izin prinsip dan SK panitia terbit, lalu permohonan rekomendasi Kwartir Ranting berangkat.",
+    hasil: "Ada surat sah bernomor untuk dilampirkan ke seluruh permohonan berikutnya.",
+    tugas: [
+      { kode: "s4-izin-prinsip-terbit", seksi: "Sekretaris", layar: null,
+        teks: "Pastikan izin prinsip Kepala Sekolah dan SK Panitia sudah TERBIT, bukan sekadar diajukan." },
+      { kode: "s4-kwarran", seksi: "Sekretaris", layar: null,
+        teks: "Ajukan permohonan rekomendasi ke Kwartir Ranting, lampirkan proposal dan SK Panitia. Prosesnya satu sampai dua minggu." },
+      { kode: "s4-izin-gedung", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Ajukan izin pemakaian ruang kelas untuk barak, lapangan upacara, aula, dapur, dan kamar mandi lewat Wakasek Sarpras. Sebutkan ruang mana saja dan tanggal berapa dikosongkan dari KBM." },
+      { kode: "s4-survei-2", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Jalani survei rute kedua bersama perangkat desa untuk menetapkan lima titik pos, titik air, titik ambulans, dan jalur evakuasi." },
+      { kode: "s4-poster", seksi: "Seksi Dokumentasi dan Publikasi", layar: null,
+        teks: "Susun draf poster, logo kegiatan, dan desain kaos. Logo sponsor menyusul di versi kedua." },
+      { kode: "s4-juklak", seksi: "Sekretaris", layar: null,
+        teks: "Susun petunjuk pelaksanaan dan petunjuk teknis. Ini dokumen yang benar-benar dibaca pembina, jauh lebih menentukan daripada poster." },
+      { kode: "s4-follow-up", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Follow-up calon sponsor tiap tujuh sampai sepuluh hari, dan catat siapa menelepon siapa." },
+      { kode: "s4-format-soal", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Tetapkan jumlah soal, bobot, dan format jawaban tiap mata lomba, samakan dengan yang dipakai sistem penilaian." },
+    ],
+    jangan: "Jangan mengirim surat ke desa atau kepolisian sebelum rutenya final. Surat yang dilampiri peta yang kemudian berubah harus diulang dari nol, dan antreannya tidak bisa dipotong.",
+  },
+
+  {
+    kode: "s5",
+    nomor: 5,
     bulan: "November",
-    tajuk: "Soal, Kriteria, Bobot",
-    fokus:
-      "Isi lombanya disusun: soal ditulis, kriteria penilaian ditetapkan, dan bobot tiap pos dikunci sebelum blangko dirancang.",
-    tonggak: [
-      "Soal lima lomba tulis selesai beserta kunci jawabannya, disimpan tertutup",
-      "Kriteria tiap lomba dan rentang nilainya disepakati juri, bukan diputuskan sendiri oleh seksi lomba",
-      "Kontrak waktu yang ditawarkan ditetapkan, beserta penalti per menit terlalu cepat maupun terlambat",
-      "Surat izin sekolah, surat ke kepolisian dan puskesmas, serta surat undangan pangkalan dikirim",
-      "Proposal sponsor disebar dan yang sudah menyatakan iya dicatat nominalnya",
+    rentang: "Minggu 1-2",
+    mundur: "H-111 sampai H-98",
+    tajuk: "Rute Final dan Kisi-Kisi",
+    fokus: "Rute dikunci supaya surat desa, surat lahan, dan titik pos bisa berangkat; kisi-kisi soal disusun.",
+    hasil: "Peta rute final tercetak, dan kisi-kisi tiap mata lomba sudah ada.",
+    tugas: [
+      { kode: "s5-rute-final", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "KUNCI RUTE FINAL dan cetak petanya. Surat desa dan surat lahan menunggu ini, jadi rutenya tidak boleh bergerak lagi sesudah sprint ini." },
+      { kode: "s5-kwarran-terbit", seksi: "Sekretaris", layar: null,
+        teks: "Pastikan rekomendasi Kwartir Ranting sudah terbit, lalu ajukan rekomendasi ke Kwartir Cabang. Prosesnya dua sampai tiga minggu." },
+      { kode: "s5-kisi", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Susun kisi-kisi tiap mata lomba: cakupan materi, tingkat kesulitan, dan pembagian Penggalang dan Penegak." },
+      { kode: "s5-rubrik", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Tulis rubrik penilaian tiap lomba praktik dan angkakan. Rubrik yang tidak eksplisit membuat dua juri berselisih tiga puluh poin untuk penampilan yang sama." },
+      { kode: "s5-poster-final", seksi: "Seksi Dokumentasi dan Publikasi", layar: null,
+        teks: "Finalkan poster dan juklak-juknis supaya siap disebar begitu rekomendasi Kwarcab keluar." },
+      { kode: "s5-edaran", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Minta Kwartir Cabang menerbitkan surat edaran ke gudep SMP dan SMA se-kabupaten. Ini alat publikasi paling ampuh dan tidak berbiaya." },
+      { kode: "s5-migrasi-edisi", seksi: "Administrator Sistem", layar: null,
+        teks: "Susun migration edisi baru: nomor, nama, tahun, tanggal lomba, biaya per regu Eksternal dan Intern, jam mulai dan batas berangkat, serta jeda maksimal antar kloter." },
+      { kode: "s5-kalkulator", seksi: "Administrator Sistem", layar: "#/pengaturan-kloter",
+        teks: "Buka Kalkulator Keberangkatan dan pastikan kloter terakhir masih berangkat sebelum jam sepuluh dengan perkiraan jumlah regu tahun ini." },
     ],
-    seksi: [
-      "Seksi Lomba dan Juri Pos",
-      "Ketua Pelaksana dan Wakil",
-      "Sekretaris",
-      "Seksi Humas dan Sponsor",
-      "Seksi Keamanan dan P3K",
-    ],
-    sistem: [
-      "Susun migration pos, lomba, dan penilaian edisi baru: tiap penilaian dengan poin_maks-nya, lomba berupa soal dengan total_soal-nya, dan pengelompokan lomba lewat kolom wahana.lomba",
-      "Ingat bobot pos tidak pernah ditulis sebagai angka — ia jumlah poin_maks seluruh wahana di pos itu; memindah satu lomba antar pos mengubah bobot keduanya sekaligus",
-      "Kunci rentang nilai mentah sama dengan jumlah soal, supaya petugas tidak bisa mengetik 12 dari 10",
-      "Jalankan migration lewat \"Apply migration to Supabase\", lalu baca hasilnya lewat supabase/checks/lomba_per_pos.sql — pengelompokan lomba itu data, tidak bisa dibaca dari kode",
-      "Buka Input Nilai Tabel di #/pos, hitung kolomnya per pos, lalu tekan cetak blangko dan bawa kertasnya ke rapat juri; pos yang seluruhnya lomba soal memang menolak mencetak dan menyebutkan alasannya di layar",
-    ],
-    jangan:
-      "Jangan menggabungkan dua lomba yang lembar jawabannya terpisah menjadi satu baris — kolom foto ikut kode lomba, jadi satu kode untuk dua lomba berarti satu kolom memegang dua lembar jawaban berbeda, dan itu baru ketahuan saat ada nilai yang disengketakan.",
+    jangan: "Jangan menulis tanggal lomba di dalam kode atau di skrip mana pun. Ia baris konfigurasi di database, dan panitia tahun depan mengubahnya tanpa menyentuh satu baris kode.",
   },
+
   {
-    kode: "desember",
+    kode: "s6",
+    nomor: 6,
+    bulan: "November",
+    rentang: "Minggu 3-4",
+    mundur: "H-97 sampai H-84",
+    tajuk: "Pendaftaran Dibuka",
+    fokus: "Publikasi berangkat dan form pendaftaran dibuka, bersamaan dengan surat ke setiap desa yang dilewati rute.",
+    hasil: "Sekolah peserta sudah menerima undangan dan bisa mendaftar, dan tiap desa rute sudah menerima suratnya.",
+    tugas: [
+      { kode: "s6-migrasi-terap", seksi: "Administrator Sistem", layar: null,
+        teks: "Jalankan migration edisi baru lewat workflow \"Apply migration to Supabase\", satu berkas sekali jalan, lalu baca notice-nya. Merge saja tidak pernah menerapkannya." },
+      { kode: "s6-status-migrasi", seksi: "Administrator Sistem", layar: null,
+        teks: "Jalankan supabase/checks/status_migrasi.sql lewat workflow yang sama untuk membuktikan migration-nya benar-benar hidup di produksi." },
+      { kode: "s6-bobot", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Isi daftar pos, lomba, dan penilaian beserta poin maksimalnya. Bobot sebuah pos tidak ditulis di mana pun: ia jumlah poin maksimal seluruh wahana di pos itu." },
+      { kode: "s6-buka-daftar", seksi: "Seksi Kesekretariatan dan Pendaftaran", layar: null,
+        teks: "BUKA FORM PENDAFTARAN di situs peserta dan umumkan alamatnya ke grup pembina." },
+      { kode: "s6-undangan", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Kirim surat undangan beserta juklak-juknis ke sekolah peserta, dan buat grup pembina." },
+      { kode: "s6-desa", seksi: "Sekretaris", layar: null,
+        teks: "Antarkan surat izin ke SETIAP kepala desa yang dilewati rute atau ditempati pos, satu surat per desa, sambil membawa peta. Yang paling sering terjadi adalah kurang satu desa." },
+      { kode: "s6-kisi-umum", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Umumkan kisi-kisi ke sekolah peserta. Ini bagian dari keadilan lomba, dan ia memangkas protes di hari-H." },
+      { kode: "s6-pantau-daftar", seksi: "Seksi Kesekretariatan dan Pendaftaran", layar: "#/data-peserta",
+        teks: "Pantau Data Peserta tiap hari sejak pendaftaran dibuka. Salah ketik pembina jauh lebih murah dibetulkan hari ini daripada di meja daftar ulang." },
+    ],
+    jangan: "Jangan membuka pendaftaran sebelum data uji dibersihkan. Kloter yang masih menyandang tanda cetak atau jam berangkat dari percobaan membuat pembagian berikutnya mulai dari tengah, dan panitia mencari kloter yang tidak pernah ada.",
+  },
+
+  {
+    kode: "s7",
+    nomor: 7,
     bulan: "Desember",
-    tajuk: "Publikasi dan Pendaftaran Dibuka",
-    fokus:
-      "Acara diumumkan ke pangkalan, form pendaftaran dibuka, dan akun panitia dibuat jauh sebelum dipakai.",
-    tonggak: [
-      "Pamflet dan link pendaftaran disebar ke pangkalan SMP dan SMA se-wilayah",
-      "Form pendaftaran dibuka pada tanggal yang diumumkan, dan pendaftar pertama masuk",
-      "Nomor kontak panitia untuk pertanyaan pembina diumumkan, satu nomor saja",
-      "Rekening penerimaan pembayaran dipastikan hidup dan nama pemiliknya diumumkan apa adanya",
-      "Meja pendaftaran offline dijadwalkan: hari, jam, dan siapa yang menjaga",
+    rentang: "Minggu 1-2",
+    mundur: "H-83 sampai H-70",
+    tajuk: "Izin Lahan dan Penulisan Soal",
+    fokus: "Pemilik lahan ditemui satu per satu, dan soal mulai ditulis.",
+    hasil: "Tiap titik yang dilintasi punya nama dan nomor HP pemiliknya, dan draf soal tiap mata lomba sudah ada.",
+    tugas: [
+      { kode: "s7-lahan", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Temui pemilik lahan yang dilintasi bersama perangkat desa; catat nama, nomor HP, dan titiknya. Sebagian minta ganti tanaman yang terinjak, jadi anggarkan." },
+      { kode: "s7-lahan-pos", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Urus izin lahan kelima pos secara TERPISAH dari lahan yang cuma dilewati. Pos butuh tempat teduh, air, dan ruang untuk satu regu bergerak." },
+      { kode: "s7-camat", seksi: "Sekretaris", layar: null,
+        teks: "Ajukan rekomendasi Camat. Syaratnya surat desa sudah terbit lebih dulu." },
+      { kode: "s7-tulis-soal", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Tulis soal beserta kunci jawabannya, satu penulis per mata lomba, dikerjakan offline dan tidak dibagikan di grup umum." },
+      { kode: "s7-uji-jalan", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Uji jalan kaki rute penuh dengan stopwatch minimal dua kali, di hari dan jam yang sama dengan hari-H: satu tim berkecepatan Penggalang SMP, satu tim Penegak SMA." },
+      { kode: "s7-materi-praktik", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Siapkan materi lomba praktik dan rahasiakan: sepuluh objek KIM Lihat, daftar simpul, kata semaphore, objek menaksir beserta ukuran benarnya, dan skenario cedera pembidaian." },
+      { kode: "s7-juri-undangan", seksi: "Sekretaris", layar: null,
+        teks: "Kirim permohonan juri undangan untuk PBB, yel-yel, keagamaan, dan kesehatan. Orangnya sibuk, jadi kirim awal dan konfirmasi ulang." },
+      { kode: "s7-alat-praktik", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Hitung kebutuhan alat praktik PER POS, bukan total: mitela, bidai, tongkat, tali, bakiak, bendera semaphore, stopwatch, dan meteran." },
     ],
-    seksi: [
-      "Seksi Humas dan Sponsor",
-      "Seksi Dokumentasi dan Publikasi",
-      "Seksi Kesekretariatan dan Pendaftaran",
-      "Bendahara — Meja Pembayaran",
-      "Administrator Sistem",
-    ],
-    sistem: [
-      "Bersihkan data uji SEKARANG lewat supabase/checks/cleanup_data_uji.sql di workflow \"Apply migration to Supabase\" — termasuk mengembalikan penomoran kloter ke 1, kalau tidak pembagian kloter nanti mulai dari tengah",
-      "Bakukan daftar sekolah kurasi lebih dulu, lalu sapu sisanya lewat supabase/checks/sekolah_kembar.sql; dua sekolah senama dibedakan di dalam namanya sendiri, bukan lewat alamat",
-      "Jalankan workflow \"Provision akun panitia\" per batch: tempel CSV berisi username, email, peran, dan pos; ambil passwordnya dari Artifact sebelum terhapus tiga hari lagi",
-      "Buka layar Akun dan cocokkan centang tiap akun dengan pekerjaan orangnya, dengan urutan yang benar: pilih perannya DULU, sesuaikan centangnya SESUDAHNYA — mengganti peran menghapus seluruh centang tangan",
-      "Buka form pendaftaran di situs peserta dari HP sungguhan, daftarkan satu regu percobaan sampai selesai, lalu hapus regu itu — di fase Internal peserta hanya melihat jumlah pendaftar dan jalan ke formulir",
-    ],
-    jangan:
-      "Jangan membuka pendaftaran sebelum data uji dibersihkan: regu percobaan yang tertinggal ikut terhitung di jumlah pendaftar yang dilihat publik, dan cleanup_data_uji.sql tidak membedakan data uji dari data asli — sesudah ada pendaftar sungguhan, berkas itu tidak boleh dijalankan lagi.",
+    jangan: "Jangan mengukur kontrak waktu memakai panitia yang paling bugar. Regu yang terlambat karena patokannya salah adalah kesalahan panitia, tetapi penaltinya tetap jatuh ke peserta.",
   },
+
   {
-    kode: "januari",
+    kode: "s8",
+    nomor: 8,
+    bulan: "Desember",
+    rentang: "Minggu 3-4",
+    mundur: "H-69 sampai H-56",
+    tajuk: "Izin Keramaian Masuk",
+    fokus: "Berkas izin keramaian masuk ke kepolisian, dan kontrak waktu dihitung dari hasil uji jalan.",
+    hasil: "Berkas izin keramaian sudah diterima, dan pilihan kontrak waktu sudah punya angka yang bisa dipertanggungjawabkan.",
+    tugas: [
+      { kode: "s8-keramaian", seksi: "Sekretaris", layar: null,
+        teks: "Masukkan berkas izin keramaian lewat Polsek: surat permohonan, proposal, susunan panitia, jadwal, peta rute, rekomendasi desa dan camat, surat sekolah, fotokopi KTP penanggung jawab, dan perkiraan jumlah peserta." },
+      { kode: "s8-polsek", seksi: "Seksi Keamanan dan P3K", layar: null,
+        teks: "Datangi Kapolsek atau Kanit Binmas untuk membicarakan pengamanan titik start, penyeberangan, dan keramaian malam. Datang, jangan hanya berkirim surat." },
+      { kode: "s8-kontrak-waktu", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Hitung pilihan kontrak waktu dari total waktu jalan ditambah waktu di lima pos ditambah istirahat wajar, lalu masukkan sebagai konfigurasi edisi." },
+      { kode: "s8-satlantas", seksi: "Seksi Keamanan dan P3K", layar: null,
+        teks: "Bicarakan penyeberangan jalan raya dengan Satlantas secara terpisah dari izin keramaian, dan Dinas Perhubungan kalau ada pengalihan jalan atau parkir bus." },
+      { kode: "s8-koramil", seksi: "Sekretaris", layar: null,
+        teks: "Kirim surat pemberitahuan ke Koramil dan temui Danramil. Babinsa tiap desa rute sering ikut membantu di lapangan." },
+      { kode: "s8-piala", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Pesan piala, medali, dan plakat dengan plat KOSONG. Grafir butuh empat sampai enam minggu, dan nama juara memang belum ada sebelum acara." },
+      { kode: "s8-uji-lomba", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Uji coba tiap lomba praktik dengan satu regu contoh dan ukur waktunya. Dari sinilah lama satu regu berada di satu pos diketahui." },
+      { kode: "s8-sponsor-nego", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "Tutup negosiasi sponsor dan siapkan kesepakatan tertulisnya: nominal atau barang, hak tampil logo, jumlah spanduk, dan tenggat pembayaran." },
+    ],
+    jangan: "Jangan mengajukan izin keramaian kurang dari tiga minggu sebelum hari-H. Prosesnya sendiri satu sampai dua minggu kerja, dan hampir selalu ada berkas yang harus dilengkapi lebih dulu.",
+  },
+
+  {
+    kode: "s9",
+    nomor: 9,
     bulan: "Januari",
-    tajuk: "Penutupan, Daftar Ulang, Gladi",
-    fokus:
-      "Pendaftaran ditutup, uang masuk dicocokkan, nomor dada dibagikan, dan seluruh alur dicoba dari ujung ke ujung sebelum hari-H.",
-    tonggak: [
-      "Pendaftaran ditutup pada tanggal yang diumumkan, jumlah regu final diketahui",
-      "Seluruh pembayaran dicocokkan dan ditandai lunas",
-      "Technical meeting dengan pembina: rute, kontrak waktu, aturan penalti, dan jam kumpul",
-      "Daftar ulang berjalan 1-2 hari sebelum lomba, nomor dada kain berpindah ke tangan regu",
-      "Gladi lapangan: seluruh panitia berdiri di posnya masing-masing, memakai laptop dan HP yang akan dipakai hari-H",
+    rentang: "Minggu 1-2",
+    mundur: "H-55 sampai H-42",
+    tajuk: "Sponsor Ditutup, Soal Divalidasi",
+    fokus: "Kontrak sponsor ditutup supaya logo masih sempat masuk cetakan, dan seluruh soal diperiksa orang lain.",
+    hasil: "Tidak ada logo baru sesudah sprint ini, dan tiap kunci jawaban sudah divalidasi pembina.",
+    tugas: [
+      { kode: "s9-tutup-sponsor", seksi: "Seksi Humas dan Sponsor", layar: null,
+        teks: "TUTUP KONTRAK SPONSOR. Sesudah ini tidak ada logo baru, karena spanduk, backdrop, kaos, sertifikat, dan ID card semuanya menunggu file logo." },
+      { kode: "s9-logo", seksi: "Seksi Dokumentasi dan Publikasi", layar: null,
+        teks: "Kumpulkan file logo sponsor dalam resolusi cetak, lalu kunci desain spanduk dan backdrop." },
+      { kode: "s9-cadangan", seksi: "Bendahara — Meja Pembayaran", layar: null,
+        teks: "Periksa pemasukan sponsor. Kalau kurang dari separuh target, jalankan rencana cadangan SEKARANG: danus, potong biaya yang bisa dipotong, dan ganti sewa dengan pinjaman barang." },
+      { kode: "s9-validasi-soal", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Serahkan seluruh soal ke pembina dan guru mata pelajaran untuk divalidasi: kunci benar, tidak ada soal berkunci ganda, bahasa tidak ambigu, dan sesuai jenjang SMP dan SMA." },
+      { kode: "s9-medis", seksi: "Seksi Keamanan dan P3K", layar: null,
+        teks: "Ajukan permohonan tenaga medis dan ambulans ke Puskesmas kecamatan dan PMI, lalu sepakati rumah sakit rujukan beserta nomor IGD-nya." },
+      { kode: "s9-nomor-dada", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Pesan kain nomor dada beserta cadangan sepuluh persen. Sablon butuh dua minggu kerja. Kalau pendaftaran belum ditutup, pesan sejumlah KUOTA, bukan sejumlah pendaftar." },
+      { kode: "s9-pinjam", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Kirim surat peminjaman tenda, terpal, meja-kursi, sound system, HT, genset, dan lampu sorot." },
+      { kode: "s9-stok-dada", seksi: "Administrator Sistem", layar: null,
+        teks: "Samakan stok nomor dada di sistem dengan kain yang benar-benar dipesan: dua deret, Eksternal dan Intern. Pagar nomor dada membaca angkanya dari sana." },
     ],
-    seksi: [
-      "Seksi Kesekretariatan dan Pendaftaran",
-      "Bendahara — Meja Pembayaran",
-      "Seksi Daftar Ulang",
-      "Seksi Perlengkapan",
-      "Seksi Konsumsi",
-    ],
-    sistem: [
-      "Kosongkan antrean Meja Pembayaran di #/pembayaran — regu yang belum lunas tidak bisa daftar ulang — lalu betulkan salah ketik pembina di Data Peserta sebelum nomor dada keluar, karena sesudahnya nama regu ikut membeku",
-      "Cetak blangko master tiap lomba dari Input Nilai Tabel: yang keluar dari printer SATU master A5 melintang per lomba, dan penggandaannya pekerjaan mesin fotokopi 2-up di sekretariat",
-      "Jalankan daftar ulang di Meja Daftar Ulang di #/daftar-ulang dengan 2-3 meja paralel; nomor dada diketik dari kain di tangan, kloter jatuh sendiri secara FIFO",
-      "Cetak dua bentuk dari Daftar Kloter: \"Cetak Kloter untuk Petugas\" untuk meja staging, dan \"Cetak Kloter untuk Peserta\" untuk papan pengumuman",
-      "Isi database uji lewat supabase/checks/simulasi_end_to_end.sql sampai papan Live Score terisi, dan jelang gladi jalankan workflow \"Setel password bersama semua akun\" supaya sepuluh orang bisa login tanpa sepuluh serah terima — kembalikan ke acak sesudahnya",
-    ],
-    jangan:
-      "Jangan salah mengetik nomor dada saat daftar ulang: blangko penilaian hanya memuat nomor dada tanpa nama regu, jadi satu angka keliru memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya.",
+    jangan: "Jangan menerima sponsor yang logonya datang belakangan. Satu logo yang menyusul memaksa seluruh cetakan diulang, dan biaya cetak ulangnya lebih besar daripada sponsornya.",
   },
+
   {
-    kode: "februari",
+    kode: "s10",
+    nomor: 10,
+    bulan: "Januari",
+    rentang: "Minggu 3-4",
+    mundur: "H-41 sampai H-28",
+    tajuk: "Soal Selesai dan Meja Diuji",
+    fokus: "Soal dikunci total, dan alur meja dicoba dengan data contoh sebelum peserta sungguhan datang.",
+    hasil: "Soal siap digandakan, dan panitia tahu berapa lama satu regu dilayani di meja.",
+    tugas: [
+      { kode: "s10-revisi-soal", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Perbaiki soal dari hasil validasi, lalu ujicobakan ke lima sampai sepuluh anggota ambalan yang TIDAK ikut menyusun, untuk mengukur waktu pengerjaan yang sebenarnya." },
+      { kode: "s10-soal-kunci", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "KUNCI SOAL DAN LAYOUT FINALNYA. Sesudah ini tidak ada perubahan isi, hanya penggandaan." },
+      { kode: "s10-simulasi-meja", seksi: "Seksi Daftar Ulang", layar: "#/daftar-ulang",
+        teks: "Jalankan simulasi meja pembayaran dan daftar ulang dengan data contoh. Ukur berapa lama satu regu dilayani, lalu kalikan dengan jumlah regu tahun ini." },
+      { kode: "s10-bersih-uji", seksi: "Administrator Sistem", layar: null,
+        teks: "Bersihkan data uji sesudah simulasi, termasuk mengembalikan penomoran kloter ke satu." },
+      { kode: "s10-sertifikat", seksi: "Seksi Dokumentasi dan Publikasi", layar: null,
+        teks: "Siapkan template sertifikat, ID card panitia dan juri, serta rompi atau slayer pembeda." },
+      { kode: "s10-konsumsi", seksi: "Seksi Konsumsi", layar: null,
+        teks: "Kunci kontrak konsumsi panitia, juri, tamu, dan aparat. Jumlah pastinya dikonfirmasi ulang tiga hari sebelum hari-H." },
+      { kode: "s10-bpbd", seksi: "Seksi Keamanan dan P3K", layar: null,
+        teks: "Kirim pemberitahuan ke BPBD dan minta pembacaan risiko rute, lalu kumpulkan izin orang tua panitia yang menginap." },
+      { kode: "s10-rambu", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Buat penunjuk arah, rambu bahaya, dan papan nama pos dari bahan tahan hujan, huruf besar, dua sisi." },
+    ],
+    jangan: "Jangan membiarkan soal selesai mepet. Soal yang jadi tiga hari sebelum acara tidak sempat divalidasi, dan kunci yang salah baru ketahuan sesudah tiga ratus regu menjawab — satu mata lomba dianulir dan seluruh klasemen goyah.",
+  },
+
+  {
+    kode: "s11",
+    nomor: 11,
     bulan: "Februari",
-    tajuk: "Pelaksanaan dan Evaluasi",
-    fokus:
-      "Hari lomba: upacara, keberangkatan bertahap, penilaian di lima pos, kedatangan, pengumuman juara, lalu arsip.",
-    tonggak: [
-      "Upacara dan pemberangkatan kloter pertama oleh pejabat, seluruh keberangkatan selesai pukul 10:00",
-      "Lima pos berjalan dan nilai mentah masuk sistem sepanjang siang",
-      "Seluruh regu tercatat sampai di finish dan kelengkapan anggota diperiksa fisik",
-      "Juara diumumkan di lapangan, baru sesudah itu ditampilkan di layar peserta",
-      "Rapat evaluasi digelar selagi ingatan masih segar, dan arsipnya diserahkan ke pengurus berikutnya",
+    rentang: "Minggu 1-2",
+    mundur: "H-27 sampai H-14",
+    tajuk: "Pendaftaran Ditutup",
+    fokus: "Jumlah regu terkunci, nomor dada dibagikan, kloter terbentuk, dan technical meeting digelar.",
+    hasil: "Daftar Kloter tercetak, dan tiap pembina sudah tahu kira-kira jam berapa regunya berangkat.",
+    tugas: [
+      { kode: "s11-tutup-daftar", seksi: "Seksi Kesekretariatan dan Pendaftaran", layar: null,
+        teks: "TUTUP PENDAFTARAN. Sejak titik ini jumlah regu terkunci, dan konsumsi, nomor dada, serta blangko baru bisa dipesan dengan angka pasti." },
+      { kode: "s11-sapu-bayar", seksi: "Bendahara — Meja Pembayaran", layar: "#/pembayaran",
+        teks: "Sapu Meja Pembayaran sampai antrean menunggu pembayaran habis. Hubungi pembina yang belum lunas lewat kontak di Data Peserta, jangan dibiarkan sampai pagi hari-H." },
+      { kode: "s11-gandakan-soal", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Gandakan soal lima mata lomba beserta cadangan sepuluh persen, ditunggui panitia, lalu paketkan per pos, disegel, diberi label, dan disimpan terkunci." },
+      { kode: "s11-blangko", seksi: "Seksi Lomba dan Juri Pos", layar: "#/pos",
+        teks: "Cetak MASTER blangko dari layar Input Nilai Tabel lalu gandakan di mesin fotokopi. Yang dicetak dari layar satu master per lomba, bukan setumpuk." },
+      { kode: "s11-daftar-ulang", seksi: "Seksi Daftar Ulang", layar: "#/daftar-ulang",
+        teks: "Jalankan daftar ulang: cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, dan tukar nomor yang kainnya rusak." },
+      { kode: "s11-cetak-kloter", seksi: "Seksi Keberangkatan", layar: "#/cetak-kloter",
+        teks: "Cetak Daftar Kloter untuk Petugas dan untuk Peserta sesudah seluruh regu bernomor dada." },
+      { kode: "s11-tm", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Gelar technical meeting dengan pembina peserta: rute, kontrak waktu, sistem penilaian, barang bawaan, aturan barak, sanksi, jam kloter, dan tata cara protes. Buat berita acara dan bagikan notulennya — yang tidak hadir tetap terikat." },
+      { kode: "s11-latih-juri", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Latih juri pos dengan kalibrasi: dua juri menilai penampilan yang sama, lalu selisihnya dibahas sampai rubriknya dibaca serupa. Wajib untuk PBB, yel-yel, dan pembidaian." },
+      { kode: "s11-akun-juri", seksi: "Administrator Sistem", layar: "#/account",
+        teks: "Buat akun juri pos beserta kolom posnya, dan satu akun koordinator pos yang kolom posnya DIKOSONGKAN supaya kelima pos terbuka untuknya." },
+      { kode: "s11-izin-terbit", seksi: "Sekretaris", layar: null,
+        teks: "Pastikan izin keramaian sudah TERBIT, lalu ajukan permohonan pengamanan menyusul sekalian menanyakan jumlah personel dan konsumsinya." },
     ],
-    seksi: [
-      "Seksi Keberangkatan",
-      "Seksi Kedatangan — Finish",
-      "Seksi Lomba dan Juri Pos",
-      "Seksi Rekap dan Skor",
-      "Administrator Sistem",
+    jangan: "Jangan menomori kloter sendiri. Urutan FIFO dan kuota lima Eksternal serta tiga Intern dijaga di dalam sistem, bukan oleh urutan nomor dada. Kalau kloter perlu disusun ulang, bersihkan lalu jalankan ulang alurnya.",
+  },
+
+  {
+    kode: "s12",
+    nomor: 12,
+    bulan: "Februari",
+    rentang: "Minggu 3-4",
+    mundur: "H-13 sampai hari-H",
+    tajuk: "Gladi dan Hari-H",
+    fokus: "Gladi kotor, gladi bersih, lalu hari lomba itu sendiri dari upacara sampai pengumuman juara.",
+    hasil: "Juara diumumkan, rekap terbit, dan seluruh nilai terkunci.",
+    tugas: [
+      { kode: "s12-survei-ulang", seksi: "Seksi Lomba dan Juri Pos", layar: null,
+        teks: "Susuri ulang rute mencari perubahan: panen, penutupan jalan, longsor, pagar baru, kandang baru." },
+      { kode: "s12-simulasi-penuh", seksi: "Administrator Sistem", layar: null,
+        teks: "Jalankan simulasi end-to-end penuh dengan data uji, dari pendaftaran sampai klasemen, lalu bersihkan datanya sampai kloter kembali ke nomor satu." },
+      { kode: "s12-gladi-kotor", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Gelar gladi kotor: seluruh panitia, seluruh alur, pos dijalankan dengan regu boneka dari anggota ambalan. Uji HT dan cari titik tanpa sinyal sekalian." },
+      { kode: "s12-gladi-bersih", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Gelar gladi bersih untuk upacara, pemberangkatan kloter, dan penutupan. Fokusnya urutan dan waktu, bukan seluruh pos." },
+      { kode: "s12-barak", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Siapkan barak: pembagian ruang, pemisahan putra dan putri, denah tertempel, penjaga malam per lantai, penerangan, dan aturan jam malam." },
+      { kode: "s12-pasang-rambu", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Pasang penunjuk arah sehari sebelum acara, sore hari, jangan lebih awal. Rambu yang dipasang seminggu sebelumnya hilang, dicabut, atau berpindah arah." },
+      { kode: "s12-berangkat", seksi: "Seksi Keberangkatan", layar: "#/keberangkatan",
+        teks: "Hari-H pagi: upacara, lalu berangkatkan kloter dari jam tujuh sampai jam sepuluh, dengan tiga kloter selalu siap — satu di Pemberangkatan, dua di staging." },
+      { kode: "s12-nilai", seksi: "Seksi Lomba dan Juri Pos", layar: "#/pos2",
+        teks: "Sepanjang siang: juri mengisi nilai per lomba dan memotret lembar jawabannya, lalu koordinator pos memantau kelengkapan kelima pos." },
+      { kode: "s12-datang", seksi: "Seksi Kedatangan — Finish", layar: "#/finish",
+        teks: "Catat kedatangan tiap regu dengan tombol SAMPAI DI FINISH pada jam sungguhan, lalu hitung anggotanya secara fisik." },
+      { kode: "s12-fase", seksi: "Seksi Rekap dan Skor", layar: "#/live-score",
+        teks: "Naikkan fase live bertahap lalu terbitkan rekapnya. Urutannya selalu nyalakan fasenya dulu, terbitkan sesudahnya, dan itu berlaku ke dua arah." },
     ],
-    sistem: [
-      "Pagi: naikkan fase live ke Progress lewat saklar di Live Score, lalu jalankan workflow \"Publish rekap live\" — fasenya dulu, penerbitan sesudahnya, dan urutan itu berlaku ke dua arah",
-      "Keberangkatan di #/keberangkatan: kertas yang jadi pencatat utama dan laptop memverifikasi, jam berangkat diketik dari jam sungguhan; di Kedatangan di #/finish justru terbalik, laptop pencatat utamanya, dan regu yang lupa dicatat tiba hilang dari klasemen tanpa satu galat pun",
-      "Pantau Live Score sepanjang siang: angka hilang berarti regu sudah closing tapi nilainya belum lengkap, dan pos yang berhenti menyetor lebih dari setengah jam berarti laptop atau sinyalnya rusak",
-      "Sisir Cek Nilai di #/cek-nilai lewat ketiga saringannya — Belum Input, Belum Foto, Belum Kunci — sampai angkanya nol: adu foto lembar jawaban dengan angka yang diketik, betulkan kalau beda, lalu pasang gembok per lomba",
-      "Sesudah juara dibacakan di lapangan: isi pilihan manual di Kejuaraan, naikkan fase ke Juara, jalankan \"Publish rekap live\" lagi, lalu cetak \"Rekap Nilai Semua\" dari Live Score dan Daftar Kloter final sebagai arsip",
+    jangan: "Jangan mengumumkan juara sebelum Cek Nilai bersih. Angka yang dibetulkan sesudah papan juara dibacakan tidak bisa ditarik kembali dari ingatan orang yang sudah bertepuk tangan.",
+  },
+
+  {
+    kode: "s13",
+    nomor: 13,
+    bulan: "Sesudah acara",
+    rentang: "Dua minggu setelah hari-H",
+    mundur: "H+1 sampai H+14",
+    tajuk: "Evaluasi dan Serah Terima",
+    fokus: "Ucapan terima kasih, laporan, arsip, dan buku yang ditulis ulang untuk kepanitiaan berikutnya.",
+    hasil: "Izin tahun depan jadi mudah, dan panitia berikutnya menerima buku yang sudah diperbarui.",
+    tugas: [
+      { kode: "s13-terima-kasih", seksi: "Sekretaris", layar: null,
+        teks: "Kirim surat ucapan terima kasih ke seluruh instansi, sponsor, pemilik lahan, dan pemberi pinjaman barang. Inilah yang menentukan izin tahun depan mudah atau susah." },
+      { kode: "s13-kembalikan", seksi: "Seksi Perlengkapan", layar: null,
+        teks: "Kembalikan seluruh barang pinjaman dengan berita acara, dan bereskan sampah di sekolah maupun sepanjang rute sesuai kesepakatan dengan desa." },
+      { kode: "s13-evaluasi", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Gelar rapat evaluasi selagi ingatan masih segar, dan TULIS notulennya. Yang tidak ditulis minggu ini hilang." },
+      { kode: "s13-lpj", seksi: "Bendahara — Meja Pembayaran", layar: null,
+        teks: "Tutup laporan keuangan dan susun LPJ ke Kepala Sekolah, Kwartir Ranting, dan tiap sponsor beserta foto pemasangan logonya." },
+      { kode: "s13-arsip", seksi: "Seksi Rekap dan Skor", layar: "#/kejuaraan",
+        teks: "Cetak arsip: Rekap Nilai Semua, Daftar Kloter final, dan Daftar Juara. Simpan bersama notulen dan seluruh berkas izin." },
+      { kode: "s13-sertifikat-juara", seksi: "Seksi Dokumentasi dan Publikasi", layar: null,
+        teks: "Cetak dan bagikan sertifikat juara sesudah hasilnya pasti." },
+      { kode: "s13-tulis-buku", seksi: "Sekretaris", layar: "#/buku-sakti",
+        teks: "TULIS ULANG BUKU SAKTI ini dari hasil evaluasi: yang berubah tahun ini, yang ternyata salah, dan yang baru kalian pelajari. Buku yang tidak diperbarui pelan-pelan jadi buku yang menyesatkan." },
+      { kode: "s13-serah-terima", seksi: "Ketua Pelaksana dan Wakil", layar: null,
+        teks: "Serahkan akses akun organisasi, arsip, dan buku ini ke kepengurusan berikutnya, lalu mulai lagi dari Sprint 1." },
     ],
-    jangan:
-      "Jangan menaikkan fase ke Juara sebelum juara dibacakan di lapangan, dan jangan menurunkannya kembali sesudahnya berharap papan kembali — berkas fase juara tidak memuat satu baris klasemen pun, jadi papannya kosong sampai rekap diterbitkan ulang.",
+    jangan: "Jangan membersihkan data acara sebelum arsipnya tercetak dan LPJ selesai. Sekali dibersihkan, klasemen, nilai mentah, dan daftar juara tidak bisa dikembalikan.",
   },
 ];
-/** Timeline ikut jadi tab supaya seluruh buku punya satu deretan tab, bukan
- *  tiga tab ditambah satu tombol yang letaknya lain sendiri. `bagian`-nya
- *  sengaja kosong: yang digambar TIMELINE di atas. */
-const BAB_TIMELINE = {
-  kode: "timeline", judul: "Timeline Satu Edisi",
-  tab: "Timeline", ikon: "clock", warna: "toska",
-  ringkas: "Enam bulan dari Serah Terima Jabatan sampai hari pelaksanaan: "
-    + "tonggak yang dicentang, langkah yang dikerjakan di sistem, dan satu "
-    + "kesalahan khas tiap bulan.",
+/** Papan sprint ikut jadi tab supaya seluruh buku punya satu deretan tab,
+ *  bukan tiga tab ditambah satu tombol yang letaknya lain sendiri.
+ *  `bagian`-nya sengaja kosong: yang digambar SPRINT di atas. */
+const BAB_SPRINT = {
+  kode: "timeline", judul: "Papan Sprint Satu Edisi",
+  tab: "Sprint", ikon: "list-checks", warna: "toska",
+  ringkas: "Tiga belas sprint dua mingguan dari Serah Terima Jabatan sampai "
+    + "hari-H, ditutup satu sprint evaluasi. Tiap tugas bisa dicentang, dan "
+    + "centangnya dilihat seluruh panitia.",
   bagian: [],
 };
 
-export const BUKU_SAKTI = [BAB_TUTORIAL, BAB_SEKSI, BAB_KENAPA, BAB_TIMELINE];
+export const BUKU_SAKTI = [BAB_TUTORIAL, BAB_SEKSI, BAB_KENAPA, BAB_SPRINT];
 
 /** Seluruh bagian buku, rata, masing-masing membawa bab asalnya. Dipakai
  *  kotak cari dan daftar isi cetak. */
@@ -2425,10 +2729,18 @@ export function teksBagian(bagian) {
   return potong.join(" ").toLowerCase();
 }
 
-/** Semua teks satu bulan timeline, sebentuk dengan teksBagian(). */
-export function teksBulan(bulan) {
-  return [bulan.bulan, bulan.tajuk, bulan.fokus, bulan.jangan,
-          ...bulan.tonggak, ...bulan.seksi, ...bulan.sistem]
+/** Semua teks satu sprint, sebentuk dengan teksBagian().
+ *
+ *  SELURUH kolom ikut, termasuk nomor sprint dan nama seksi. Yang mencari
+ *  "perizinan" mau menemukan sprintnya; yang mencari "Bendahara" mau
+ *  menemukan semua tugas bendahara; dan yang mengetik "s9" sedang menyalin
+ *  kode tugas dari notulen rapat. Kolom yang tertinggal dari daftar ini jadi
+ *  kata yang ada di layar tetapi tidak pernah ketemu. */
+export function teksSprint(sprint) {
+  return [sprint.kode, String(sprint.nomor), sprint.bulan, sprint.rentang,
+          sprint.mundur, sprint.tajuk, sprint.fokus, sprint.hasil,
+          sprint.jangan,
+          ...sprint.tugas.flatMap(t => [t.kode, t.teks, t.seksi])]
     .join(" ").toLowerCase();
 }
 
@@ -2446,12 +2758,21 @@ export function cariBagian(kata) {
   });
 }
 
-/** Bulan timeline yang cocok, aturan sama dengan cariBagian(). */
-export function cariBulan(kata) {
+/** Sprint yang cocok. Aturannya SAMA dengan cariBagian() — semua kata, bukan
+ *  salah satunya — dan kesamaan itu diuji, bukan diandaikan: dua kotak cari
+ *  yang berperilaku berbeda di satu layar adalah kotak cari yang salah satunya
+ *  pasti mengejutkan. */
+export function cariSprint(kata) {
   const potong = String(kata || "").toLowerCase().split(/\s+/).filter(Boolean);
   if (!potong.length) return [];
-  return TIMELINE.filter(bulan => {
-    const teks = teksBulan(bulan);
+  return SPRINT.filter(sprint => {
+    const teks = teksSprint(sprint);
     return potong.every(k => teks.includes(k));
   });
+}
+
+/** Seluruh tugas papan sprint, rata, masing-masing membawa sprint asalnya.
+ *  Dipakai menghitung kemajuan dan mencetak papannya. */
+export function tugasSprint() {
+  return SPRINT.flatMap(sprint => sprint.tugas.map(tugas => ({ sprint, tugas })));
 }

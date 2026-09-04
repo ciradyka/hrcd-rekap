@@ -7,7 +7,8 @@ sebelum sistemnya dibangun.
 
 Terakhir diperiksa terhadap kode secara menyeluruh: **27 Agustus 2026**,
 sampai migrasi `0136`. Disegarkan 30 Agustus 2026 sampai migrasi `0164`, lalu
-2 September 2026 sampai migrasi `0169`.
+2 September 2026 sampai migrasi `0169`, lalu 5 September 2026
+sampai migrasi `0170`.
 
 Dokumen ini sengaja TIDAK memuat jumlah view, RPC, policy, check, atau pemicu.
 Angka-angka itu berubah tiap beberapa migrasi, tidak ada satu tes pun yang
@@ -35,7 +36,11 @@ dihormati layar Cek Nilai, Input Nilai Pos, dan Input Nilai Pos v2; `0168`
 membetulkan judul dan petunjuk `menaksir` ("Hasil Taksir", "(meter)"),
 menyusul `0085` yang membalik arti angka yang diketik tetapi meninggalkan
 judulnya; `0169` mengosongkan `judul_isian` kelima lomba soal supaya layar
-menurunkan "Jumlah benar" sendiri, sama seperti Semaphore.
+menurunkan "Jumlah benar" sendiri, sama seperti Semaphore; `0170` memberi
+papan sprint Buku Sakti tabel centangnya (`centang_sprint`,
+`set_centang_sprint()`, `v_centang_sprint`) — satu-satunya tabel yang boleh
+ditulis SETIAP panitia tanpa centang fitur, dan alasannya ada di kepala
+berkas migrasinya.
 
 Bersamaan dengan `0169`, bentuk pengisian "soal" DIBUANG dari Input Nilai Pos
 v2 — `jenisLomba()` di `web/js/util.js` tinggal "waktu" dan "nilai", dan
@@ -111,7 +116,7 @@ Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
 
 ## 2. Database
 
-169 migrasi, `0001` sampai `0169`, dijalankan berurutan tanpa lubang penomoran.
+170 migrasi, `0001` sampai `0170`, dijalankan berurutan tanpa lubang penomoran.
 `supabase/migrations/` adalah satu-satunya sumber kebenaran skema — tidak ada
 perubahan yang dilakukan lewat dashboard.
 

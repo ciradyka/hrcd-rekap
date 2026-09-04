@@ -29,8 +29,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  BUKU_SAKTI, TIMELINE, FITUR_NAMA, FITUR_SAH, RUTE_SAH,
-  bagianBuku, teksBagian, teksBulan, cariBagian, cariBulan,
+  BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_SAH, FITUR_LAYAR, NAMA_LAYAR, RUTE_SAH,
+  bagianBuku, teksBagian, teksSprint, cariBagian, cariSprint, tugasSprint,
 } from "../web/js/buku-sakti.mjs";
 
 const baca = (p) => readFile(new URL(p, import.meta.url), "utf8");
@@ -280,11 +280,13 @@ const semuaTeks = () => {
       }
     }
   }
-  for (const bulan of TIMELINE) {
-    for (const [kunci, nilai] of Object.entries(bulan)) {
-      if (typeof nilai === "string") keluar.push([`timeline/${bulan.kode}.${kunci}`, nilai]);
-      if (Array.isArray(nilai)) {
-        for (const x of nilai) keluar.push([`timeline/${bulan.kode}.${kunci}`, x]);
+  for (const sp of SPRINT) {
+    for (const [kunci, nilai] of Object.entries(sp)) {
+      if (typeof nilai === "string") keluar.push([`${sp.kode}.${kunci}`, nilai]);
+    }
+    for (const t of sp.tugas) {
+      for (const kunci of ["teks", "seksi"]) {
+        keluar.push([`${t.kode}.${kunci}`, t[kunci]]);
       }
     }
   }
@@ -326,48 +328,159 @@ test("perakit blok meng-escape setiap sisipan datanya", () => {
 });
 
 // ---------------------------------------------------------------------------
-// 6. Timeline
+// 6. Papan sprint
 // ---------------------------------------------------------------------------
 
-const BULAN_URUT = ["September", "Oktober", "November", "Desember",
-                    "Januari", "Februari"];
+/** Tiap string papan sprint SENDIRI-SENDIRI, tidak digabung.
+ *
+ *  Hanya papan sprint: larangan tanggal berlaku di sini saja. Bab bacaan
+ *  justru WAJIB boleh menyebut tanggal — "29 Agustus 2026" di bab Seksi
+ *  adalah fakta sejarah edisi lalu, dan memaksanya hilang membuat angka
+ *  acuannya menggantung tanpa tahun. */
+const teksPapan = () => SPRINT.flatMap(sp => [
+  ...Object.entries(sp)
+    .filter(([, v]) => typeof v === "string")
+    .map(([k, v]) => [`${sp.kode}.${k}`, v]),
+  ...sp.tugas.flatMap(t => [[`${t.kode}.teks`, t.teks],
+                            [`${t.kode}.seksi`, t.seksi]]),
+]);
 
-test("timeline enam bulan, berurutan dari serah terima sampai pelaksanaan", () => {
-  assert.deepEqual(TIMELINE.map(b => b.bulan), BULAN_URUT);
+const BULAN_URUT = ["September", "September", "Oktober", "Oktober",
+                    "November", "November", "Desember", "Desember",
+                    "Januari", "Januari", "Februari", "Februari",
+                    "Sesudah acara"];
+
+test("tiga belas sprint, dua per bulan, ditutup sprint evaluasi", () => {
+  assert.equal(SPRINT.length, 13);
+  assert.deepEqual(SPRINT.map(s => s.bulan), BULAN_URUT);
+  assert.deepEqual(SPRINT.map(s => s.nomor), [...Array(13)].map((_, i) => i + 1));
+  assert.deepEqual(SPRINT.map(s => s.kode),
+    [...Array(13)].map((_, i) => `s${i + 1}`));
 });
 
-test("tiap bulan timeline lengkap", () => {
-  for (const bulan of TIMELINE) {
-    for (const kunci of ["kode", "bulan", "tajuk", "fokus", "jangan"]) {
-      assert.equal(typeof bulan[kunci], "string", `${bulan.kode}: ${kunci} bukan string`);
-      assert.ok(bulan[kunci].trim(), `${bulan.kode}: ${kunci} kosong`);
+test("tiap sprint lengkap kolomnya", () => {
+  for (const sp of SPRINT) {
+    for (const kunci of ["kode", "bulan", "rentang", "mundur", "tajuk",
+                         "fokus", "hasil", "jangan"]) {
+      assert.equal(typeof sp[kunci], "string", `${sp.kode}: ${kunci} bukan string`);
+      assert.ok(sp[kunci].trim(), `${sp.kode}: ${kunci} kosong`);
     }
-    for (const kunci of ["tonggak", "seksi", "sistem"]) {
-      assert.ok(Array.isArray(bulan[kunci]) && bulan[kunci].length,
-        `${bulan.kode}: ${kunci} kosong`);
-    }
+    assert.equal(typeof sp.nomor, "number", `${sp.kode}: nomor bukan angka`);
+    assert.ok(Array.isArray(sp.tugas) && sp.tugas.length,
+      `${sp.kode}: tidak punya tugas`);
   }
 });
 
-test("kode bulan aman dipakai jadi id elemen dan tidak kembar", () => {
-  const kode = TIMELINE.map(b => b.kode);
-  assert.equal(new Set(kode).size, kode.length, `kode bulan kembar: ${kode}`);
-  for (const k of kode) assert.match(k, /^[a-z0-9-]+$/);
+test("papan sprint tidak menyebut satu pun tanggal kalender", () => {
+  // Tanggal lomba baru DITETAPKAN di Sprint 2 — ia salah satu tugas di papan
+  // ini. Papan yang menyebut tanggal berbohong tepat sampai tugas itu
+  // selesai, dan tahun berikutnya berbohong sepanjang enam bulan.
+  //
+  // Diperiksa PER KOLOM, bukan atas teks gabungan teksSprint(). Yang
+  // digabung memuat `nomor` tepat sebelum `bulan`, jadi sprint pertama
+  // berbunyi "s1 1 september ..." dan pemeriksa tanggal menuduhnya menyebut
+  // "1 September". Lapor palsu adalah cara tercepat membuat orang berhenti
+  // mempercayai sebuah tes.
+  const tahun = /\b(19|20)\d{2}\b/;
+  const tanggal = /\b\d{1,2}\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\b/i;
+  for (const [di, teks] of teksPapan()) {
+    assert.ok(!tahun.test(teks), `${di}: menyebut tahun — "${teks.slice(0, 60)}"`);
+    assert.ok(!tanggal.test(teks),
+      `${di}: menyebut tanggal kalender — "${teks.slice(0, 60)}"`);
+  }
 });
 
-test("seksi yang disebut timeline juga dijelaskan di bab Seksi", () => {
-  // Kalender yang menyebut "Seksi Barak" sementara babnya tidak pernah
-  // menjelaskan seksi itu meninggalkan pembaca dengan nama tanpa tugas —
-  // dan nama tanpa tugas adalah pekerjaan yang tidak dikerjakan siapa pun.
+test("kode tugas unik DI SELURUH PAPAN dan diawali kode sprintnya", () => {
+  // Kode tugas adalah KUNCI CENTANG di database (migrasi 0170). Dua tugas
+  // sekode berarti satu centang menyalakan dua kotak, tanpa satu pun galat.
+  const kode = tugasSprint().map(x => x.tugas.kode);
+  const kembar = kode.filter((k, i) => kode.indexOf(k) !== i);
+  assert.deepEqual(kembar, [], `kode tugas kembar: ${kembar}`);
+  for (const { sprint, tugas } of tugasSprint()) {
+    assert.match(tugas.kode, /^[a-z0-9]+(-[a-z0-9]+)*$/,
+      `${tugas.kode}: bentuknya ditolak constraint centang_sprint_kode_check`);
+    assert.ok(tugas.kode.startsWith(`${sprint.kode}-`),
+      `${tugas.kode}: tidak diawali "${sprint.kode}-"`);
+    assert.ok(tugas.kode.length <= 60,
+      `${tugas.kode}: lebih dari 60 huruf, ditolak constraint`);
+  }
+});
+
+test("tiap tugas punya teks, seksi, dan field layar", () => {
+  for (const { tugas } of tugasSprint()) {
+    assert.ok(String(tugas.teks || "").trim(), `${tugas.kode}: teks kosong`);
+    assert.ok(String(tugas.seksi || "").trim(), `${tugas.kode}: seksi kosong`);
+    // `undefined` dan `null` berperilaku sama di perakitnya, tapi hanya null
+    // yang mengatakan "sudah dipikirkan dan memang di luar sistem".
+    assert.ok("layar" in tugas, `${tugas.kode}: tanpa field layar`);
+  }
+});
+
+test("layar tiap tugas adalah rute yang ada", () => {
+  for (const { tugas } of tugasSprint()) {
+    if (tugas.layar === null) continue;
+    assert.ok(RUTE_SAH.includes(tugas.layar),
+      `${tugas.kode}: rute "${tugas.layar}" tidak ada`);
+  }
+});
+
+test("tiap seksi yang memegang tugas dijelaskan di bab Seksi", () => {
+  // Nama seksi tanpa bagian yang menjelaskannya adalah pekerjaan yang tidak
+  // dikerjakan siapa pun: papan menyuruh "Seksi Barak", dan tidak ada satu
+  // baris pun yang mengatakan siapa itu.
   const bab = BUKU_SAKTI.find(b => b.kode === "seksi");
   assert.ok(bab, "bab seksi hilang");
-  const teks = bab.bagian.map(teksBagian).join(" ");
-  for (const bulan of TIMELINE) {
-    for (const seksi of bulan.seksi) {
-      assert.ok(teks.includes(seksi.toLowerCase()),
-        `${bulan.kode}: "${seksi}" tidak dijelaskan di bab Seksi`);
-    }
+  const judul = bab.bagian.map(g => g.judul);
+  for (const { tugas } of tugasSprint()) {
+    assert.ok(judul.includes(tugas.seksi),
+      `${tugas.kode}: seksi "${tugas.seksi}" bukan judul bagian mana pun di bab Seksi`);
   }
+});
+
+test("tiap seksi di bab Seksi kebagian minimal satu tugas", () => {
+  // Arah sebaliknya, dan ia yang menangkap seksi yang dijelaskan panjang
+  // lebar lalu tidak pernah muncul di papan — pembacanya tahu tugas pokoknya
+  // tetapi tidak pernah tahu kapan mengerjakannya.
+  const bab = BUKU_SAKTI.find(b => b.kode === "seksi");
+  const dipakai = new Set(tugasSprint().map(x => x.tugas.seksi));
+  const menganggur = bab.bagian
+    .map(g => g.judul)
+    .filter(j => j !== "Cara membaca bab ini" && !dipakai.has(j));
+  assert.deepEqual(menganggur, [],
+    `seksi tanpa satu pun tugas di papan sprint: ${menganggur}`);
+});
+
+test("NAMA_LAYAR menutup tiap rute, dan sepakat dengan pasangKepala()", () => {
+  // Nama layar yang basi lebih buruk daripada alamat mentah: panitia mencari
+  // ubin bernama "Rekapitulasi" yang sudah tidak ada, dan menyimpulkan
+  // bukunya yang benar.
+  assert.deepEqual(Object.keys(NAMA_LAYAR).sort(), [...RUTE_SAH].sort());
+  const dipakai = new Set(
+    [...app.matchAll(/pasangKepala\("([^"]+)"/g)].map(m => m[1]));
+  for (const [rute, nama] of Object.entries(NAMA_LAYAR)) {
+    assert.ok(dipakai.has(nama),
+      `NAMA_LAYAR["${rute}"] = "${nama}", tapi tidak ada pasangKepala() dengan nama itu`);
+  }
+});
+
+test("FITUR_LAYAR menutup tiap rute, dan sepakat dengan ubin Home", () => {
+  // SALINAN YANG BERISIK. Yang memutuskan hak tetap boleh() di database;
+  // peta ini cuma menjawab "centang mana yang memunculkan ubinnya di Home",
+  // dan jawabannya harus sama dengan syarat ubin yang benar-benar digambar.
+  assert.deepEqual(Object.keys(FITUR_LAYAR).sort(), [...RUTE_SAH].sort());
+
+  const awal = app.indexOf("async function layarHome()");
+  const akhir = app.indexOf("/* ============================ PENGATURAN KLOTER", awal);
+  assert.ok(awal >= 0 && akhir > awal, "layarHome tidak ditemukan");
+  const home = app.slice(awal, akhir);
+  let cocok = 0;
+  for (const m of home.matchAll(/bolehLihat\("([a-z_]+)"\) \? `\s*<a href="(#\/[a-z0-9-]+)"/g)) {
+    cocok += 1;
+    assert.equal(FITUR_LAYAR[m[2]], m[1],
+      `FITUR_LAYAR["${m[2]}"] = ${FITUR_LAYAR[m[2]]}, tapi ubin Home menuntut ${m[1]}`);
+  }
+  assert.ok(cocok >= 8,
+    `cuma ${cocok} ubin Home terbaca — polanya berubah dan tes ini jadi diam`);
 });
 
 // ---------------------------------------------------------------------------
@@ -387,9 +500,30 @@ test("cari yang kosong tidak mengembalikan apa pun", () => {
   // Layar memakai ini sebagai penanda "tidak sedang mencari" dan
   // mengembalikan seluruh panel. Kalau string kosong justru mengembalikan
   // seluruh buku sebagai HASIL, panelnya tidak pernah muncul lagi.
-  assert.deepEqual(cariBagian(""), []);
-  assert.deepEqual(cariBagian("   "), []);
-  assert.deepEqual(cariBulan(""), []);
+  for (const cari of [cariBagian, cariSprint]) {
+    assert.deepEqual(cari(""), []);
+    assert.deepEqual(cari("   "), []);
+  }
+});
+
+test("cariSprint juga menuntut SEMUA kata, bukan salah satunya", () => {
+  // Diuji terpisah dari cariBagian: keduanya dipakai kotak cari yang SAMA,
+  // dan dua fungsi yang berperilaku beda di satu kotak berarti separuh
+  // hasilnya mengejutkan. Sebelum tes ini hanya cariBagian yang dijaga.
+  const kata = SPRINT[0].tajuk.split(/\s+/)[0];
+  assert.ok(cariSprint(kata).length >= 1, "kata sendiri harus ketemu");
+  assert.equal(cariSprint(`${kata} zzzznonsensezzzz`).length, 0,
+    "satu kata yang tidak ada harus menggugurkan hasilnya");
+});
+
+test("cariSprint menemukan lewat kode tugas dan nama seksi", () => {
+  // Keduanya jalan masuk yang nyata: kode tugas disalin dari notulen rapat,
+  // dan nama seksi dipakai koordinator untuk menyapu tugasnya sendiri.
+  const { sprint, tugas } = tugasSprint()[0];
+  assert.ok(cariSprint(tugas.kode).some(s => s.kode === sprint.kode),
+    `kode tugas ${tugas.kode} tidak ketemu`);
+  assert.ok(cariSprint(tugas.seksi).length >= 1,
+    `seksi ${tugas.seksi} tidak ketemu`);
 });
 
 test("cari menyapu seluruh bab, bukan bab pertama saja", () => {
@@ -401,13 +535,24 @@ test("cari menyapu seluruh bab, bukan bab pertama saja", () => {
     `judul "${bagian.judul}" tidak ketemu lewat cariBagian`);
 });
 
-test("teksBulan memuat seluruh kolom bulan", () => {
-  for (const bulan of TIMELINE) {
-    const teks = teksBulan(bulan);
-    for (const potong of [bulan.tajuk, bulan.fokus, bulan.jangan,
-                          ...bulan.tonggak, ...bulan.sistem]) {
-      assert.ok(teks.includes(potong.toLowerCase()),
-        `${bulan.kode}: "${potong.slice(0, 30)}" tidak ikut terindeks`);
+test("teksSprint memuat SETIAP kolom, tanpa kecuali", () => {
+  // Ditulis sebagai "tiap kolom yang berupa string", bukan daftar tangan:
+  // daftar tangan itulah yang dulu melewatkan dua kolom sambil nama tesnya
+  // berbunyi "seluruh kolom".
+  for (const sp of SPRINT) {
+    const teks = teksSprint(sp);
+    for (const [kunci, nilai] of Object.entries(sp)) {
+      if (typeof nilai !== "string") continue;
+      assert.ok(teks.includes(nilai.toLowerCase()),
+        `${sp.kode}: kolom ${kunci} tidak ikut terindeks`);
+    }
+    assert.ok(teks.includes(String(sp.nomor)),
+      `${sp.kode}: nomor sprint tidak ikut terindeks`);
+    for (const t of sp.tugas) {
+      for (const potong of [t.kode, t.teks, t.seksi]) {
+        assert.ok(teks.includes(potong.toLowerCase()),
+          `${sp.kode}: "${potong.slice(0, 30)}" tidak ikut terindeks`);
+      }
     }
   }
 });
@@ -468,9 +613,16 @@ test("layar Buku Sakti tidak dipagari hak akses", () => {
   const awal = app.indexOf("function layarBukuSakti() {");
   const akhir = app.indexOf("function blokBukuCetak(", awal);
   assert.ok(awal >= 0 && akhir > awal, "layarBukuSakti tidak ditemukan");
-  const badan = app.slice(awal, akhir);
-  assert.ok(!/kartuGalat\(\s*["'`]Akun ini tidak berhak/.test(badan),
-    "Buku Sakti tidak boleh dipagari hak akses — lihat komentar di atasnya");
+  const badan = tanpaKomentar(app.slice(awal, akhir));
+  /* Yang dicari BENTUK pagarnya, bukan satu kalimat tertentu. Layar lain
+     memakai kalimat yang berbeda-beda ("Akun ini tidak berhak membuka X"),
+     jadi tes yang mencocokkan satu kalimat akan diam terhadap pagar yang
+     ditulis dengan kalimat kedua. Yang menandai pagar dengan pasti dua hal:
+     kartu galat, dan bolehLihat() yang mengembalikan lebih awal. */
+  assert.ok(!badan.includes("kartuGalat("),
+    "Buku Sakti tidak boleh punya kartu galat hak akses — lihat komentar di atasnya");
+  assert.ok(!/if\s*\(!\s*bolehLihat\(/.test(badan),
+    "Buku Sakti tidak boleh menolak lewat bolehLihat() — lihat komentar di atasnya");
 });
 
 // ---------------------------------------------------------------------------
@@ -486,7 +638,29 @@ test("layar Buku Sakti tidak dipagari hak akses", () => {
 const cetakBuku = (() => {
   const awal = css.indexOf(".buku-cetak { font-size:");
   assert.ok(awal >= 0, "aturan cetak .buku-cetak tidak ditemukan di style.css");
-  return tanpaKomentar(css.slice(awal));
+  /* Berhenti di penutup `@media print` YANG MEMUATNYA, tidak di akhir berkas.
+     Versi pertama membaca sampai habis, jadi aturan LAYAR mana pun yang
+     ditambahkan sesudah blok ini ikut dinilai sebagai aturan kertas — satu
+     `background` biasa di sana menggagalkan tes fotokopi yang tidak ada
+     hubungannya dengannya, dan yang membacanya menyimpulkan tesnya rusak.
+
+     Dihitung dari `@media print {`, BUKAN dari `.buku-cetak {`: yang kedua
+     berhenti di kurung tutup aturan pertama, dan potongannya cuma satu
+     baris — tes kertas berikutnya lalu memeriksa nyaris tidak ada apa-apa
+     sambil tetap berbunyi hijau. */
+  const mulai = css.lastIndexOf("@media print", awal);
+  assert.ok(mulai >= 0, "@media print yang memuat .buku-cetak tidak ditemukan");
+  let dalam = 0;
+  let tutup = -1;
+  for (let j = css.indexOf("{", mulai); j < css.length; j++) {
+    if (css[j] === "{") dalam++;
+    else if (css[j] === "}") {
+      dalam--;
+      if (dalam === 0) { tutup = j; break; }
+    }
+  }
+  assert.ok(tutup > awal, "blok @media print tidak pernah ditutup");
+  return tanpaKomentar(css.slice(awal, tutup));
 })();
 
 test("cetak buku tanpa raster abu dan tanpa latar berwarna", () => {
@@ -495,7 +669,10 @@ test("cetak buku tanpa raster abu dan tanpa latar berwarna", () => {
   // mesin lelah atau menghitam jadi kotoran.
   // `background: none` justru yang DIMINTA — ia membatalkan latar abu milik
   // aturan layar. Yang dilarang latar yang benar-benar mengisi sesuatu.
-  const terisi = [...cetakBuku.matchAll(/background:\s*([^;}]+)/g)]
+  // `background-color`, `background-image`, dan `background` sekaligus:
+  // ketiganya menuangkan tinta, dan pemeriksa yang cuma tahu satu di
+  // antaranya melewatkan dua cara menulis hal yang sama.
+  const terisi = [...cetakBuku.matchAll(/background(?:-color|-image)?:\s*([^;}]+)/g)]
     .map(m => m[1].trim())
     .filter(v => v !== "none");
   assert.deepEqual(terisi, [], `ada latar terisi di aturan cetak buku: ${terisi}`);
@@ -538,4 +715,12 @@ test("cetak buku membuang tautan yang tidak bisa diketuk di kertas", () => {
   const badan = app.slice(awal, akhir);
   assert.ok(!badan.includes("href="),
     "alamat hash tidak berarti apa-apa di atas kertas");
+
+  /* Dan perakit cetaknya memang MEMANGGILNYA. Tanpa baris ini fungsinya
+     boleh saja benar sambil tidak pernah dipakai — siapkanCetakBuku()
+     kembali memanggil blokBuku() dan tautannya kembali tercetak, sementara
+     tes di atas tetap hijau karena ia cuma membaca fungsi yang menganggur. */
+  const perakit = app.slice(app.indexOf("function siapkanCetakBuku("));
+  assert.ok(perakit.slice(0, perakit.indexOf("\n}\n")).includes("blokBukuCetak"),
+    "siapkanCetakBuku tidak memanggil blokBukuCetak — tautannya ikut tercetak");
 });
