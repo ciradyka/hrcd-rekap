@@ -48,7 +48,7 @@ import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
 import { BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_LAYAR, NAMA_LAYAR,
-         cariBagian, cariSprint, tugasSprint } from "./buku-sakti.mjs";
+         cariBagian, cariSprint, tugasSprint, lajurSeksi } from "./buku-sakti.mjs";
 
 const LAYAR = document.getElementById("layar");
 
@@ -10798,37 +10798,151 @@ function tugasSprintHtml(tugas) {
       <span class="bs-todo-teks">${esc(tugas.teks)}</span>
     </label>
     <div class="bs-todo-kaki">
-      <span class="bs-pil">${esc(tugas.seksi)}</span>
+      <!-- Nama seksinya TIDAK ditulis lagi di sini. Tugas ini duduk di dalam
+           lajur seksinya, dan kepala lajur itu menempel di atas selama papan
+           digulir — jadi menuliskannya lagi di bawah tiap tugas berarti nama
+           yang sama tercetak seratus enam belas kali di kolom yang seluruh
+           isinya memang seksi itu. Di rentang HP, tempat kepala lajurnya
+           tidak ikut turun, yang membawanya bs-sel-lajur sekali per sel.
+
+           (Tanpa backtick di komentar ini: ia berada DI DALAM template
+           literal, dan satu backtick menutupnya di tengah jalan.) -->
       ${tautanTugasSprint(tugas)}
       <span class="bs-todo-jejak" data-jejak="${esc(tugas.kode)}"></span>
     </div>
   </li>`;
 }
 
-/** Satu sprint. */
-function sprintHtml(sprint) {
-  return `<section class="card bs-sprint" id="bs-sprint-${esc(sprint.kode)}">
-    <div class="bs-sprint-kepala">
-      <span class="bs-sprint-urut">${esc(String(sprint.nomor))}</span>
-      <div class="bs-sprint-judul">
-        <div class="bs-sprint-baris">
-          <span class="bs-sprint-tajuk">${esc(sprint.tajuk)}</span>
-          <span class="bs-sprint-kemajuan"
-                data-kemajuan="${esc(sprint.kode)}"></span>
-        </div>
-        <!-- Tiga patokan waktu, dan yang ketiga yang membuat papan ini masih
-             berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
-             hari-H tidak. -->
-        <div class="bs-sprint-waktu">${esc(sprint.bulan)} · ${
-          esc(sprint.rentang)} · ${esc(sprint.mundur)}</div>
+/** Hari ini itu H berapa, dihitung dari tanggal lomba edisi yang aktif.
+ *
+ *  NULL kalau edisinya belum termuat atau tanggalnya tidak terbaca. Papan ini
+ *  harus tetap tergambar tanpa jaringan (janji di kepala buku-sakti.mjs), jadi
+ *  ketiadaan tanggal bukan galat — yang hilang cuma penanda sekarang.
+ *
+ *  Dihitung di tengah hari, bukan tengah malam: selisih dua tanggal yang
+ *  melewati pergantian waktu musim panas bisa jatuh 23 atau 25 jam, dan
+ *  pembagian dengan 24 jam membuat hasilnya meleset satu hari. Tidak ada DST
+ *  di Indonesia, tapi laptop yang zona waktunya salah setel bukan hal aneh. */
+function hariIniH() {
+  const tgl = EDISI && EDISI.tanggal_lomba;
+  if (!tgl) return null;
+  const lomba = new Date(`${tgl}T12:00:00`);
+  if (Number.isNaN(lomba.getTime())) return null;
+  const kini = new Date();
+  const hariIni = new Date(kini.getFullYear(), kini.getMonth(), kini.getDate(), 12);
+  return Math.round((hariIni - lomba) / 86400000);
+}
+
+/** Keadaan tiap sprint terhadap hari ini: "lewat", "sekarang", atau "nanti".
+ *
+ *  Inilah yang membuat papan ini menjawab pertanyaan yang sebenarnya dibawa
+ *  panitia waktu membukanya — bukan "apa rencananya" melainkan "sekarang
+ *  seharusnya sudah sampai mana". Patokannya hMulai dan hSelesai, bukan nama
+ *  bulan: bulan bergeser tiap edisi, hitungan mundur dari hari-H tidak. */
+function keadaanSprint(sprint, h) {
+  if (h === null) return "";
+  if (h > sprint.hSelesai) return "lewat";
+  if (h < sprint.hMulai) return "nanti";
+  return "sekarang";
+}
+
+/** Satu sel papan: tugas satu seksi di satu sprint.
+ *
+ *  Sel kosong tetap digambar dan tetap kosong. Di rentang papan ia yang
+ *  menjaga lajur di bawahnya tetap lurus; di rentang HP ia disembunyikan CSS,
+ *  karena daftar yang memuat empat belas baris kosong per sprint tidak bisa
+ *  dibaca sama sekali. */
+function selPapanHtml(sprint, lajur, pita) {
+  const tugas = sprint.tugas.filter(t => t.seksi === lajur.judul);
+  if (!tugas.length) {
+    return `<div class="bs-sel bs-sel-kosong ${esc(pita)}"
+                 data-lajur="${esc(lajur.judul)}"></div>`;
+  }
+  return `<div class="bs-sel ${esc(pita)}" data-lajur="${esc(lajur.judul)}">
+    <!-- Nama seksinya ikut DI DALAM sel, dan disembunyikan di rentang papan.
+         Di rentang HP kepala lajurnya tidak ikut turun bersama selnya, jadi
+         tanpa baris ini tugasnya kehilangan nama pemiliknya sama sekali —
+         persoalan yang sama dengan data-label pada tabel yang jadi kartu. -->
+    <span class="bs-sel-lajur i-${esc(lajur.rona)}">${esc(lajur.judul)}</span>
+    <ul class="bs-todo">${tugas.map(tugasSprintHtml).join("")}</ul>
+  </div>`;
+}
+
+/** Satu baris papan: kepala sprintnya, lalu satu sel per lajur seksi. */
+function barisPapanHtml(sprint, lajur, h) {
+  const keadaan = keadaanSprint(sprint, h);
+  /* PITA SATU BARIS, dan ia menjawab persoalan yang muncul begitu garis kisi
+     dibuang: tinggi sebuah baris ditentukan seksi tersibuk di sprint itu, jadi
+     enam belas lajur lain berakhir kosong sepanjang beberapa ratus piksel.
+     Tanpa pita, kekosongan itu terbaca sebagai papan yang bolong; dengan pita,
+     ia terbaca sebagai satu sprint yang memang cuma menyibukkan sedikit seksi
+     — dan mata bisa menyusuri satu sprint melintang tujuh belas lajur tanpa
+     kehilangan barisnya. Sprint yang sedang berjalan mendapat pitanya sendiri. */
+  const pita = keadaan === "sekarang"
+    ? "bs-pita-sekarang"
+    : (sprint.nomor % 2 ? "bs-pita-ganjil" : "bs-pita-genap");
+  /* HANYA dua keadaan yang punya kelas, karena hanya dua yang punya aturan.
+     Bentuk sebelumnya menuliskan `bs-baris-${keadaan || "netral"}`, jadi
+     baris yang belum datang memakai kelas `bs-baris-nanti` dan baris yang
+     tanggal lombanya belum terbaca memakai `bs-baris-netral` — dua nama yang
+     tidak menggambar apa pun. Kelas mati mengundang aturan yang suatu hari
+     ditulis untuknya di tempat lain, lalu berlaku tanpa ada yang mencarinya. */
+  const kelas = keadaan === "sekarang" ? " bs-baris-sekarang"
+    : keadaan === "lewat" ? " bs-baris-lewat" : "";
+  return `<div class="bs-baris-kepala${kelas}"
+       id="bs-sprint-${esc(sprint.kode)}" data-sprint="${esc(sprint.kode)}">
+      <div class="bs-baris-atas">
+        <span class="bs-baris-urut">${esc(String(sprint.nomor))}</span>
+        <h3>${esc(sprint.tajuk)}</h3>
+        <span class="bs-sprint-kemajuan" data-kemajuan="${esc(sprint.kode)}"></span>
       </div>
+      <!-- Tiga patokan waktu, dan yang ketiga yang membuat papan ini masih
+           berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
+           hari-H tidak. -->
+      <div class="bs-sprint-waktu">${esc(sprint.bulan)} · ${
+        esc(sprint.rentang)} · ${esc(sprint.mundur)}</div>
+      ${keadaan === "sekarang"
+        ? `<span class="badge badge-green bs-baris-tanda">SEDANG BERJALAN</span>`
+        : ""}
+      <p class="bs-sprint-fokus">${esc(sprint.fokus)}</p>
+      <p class="bs-sprint-hasil"><strong>Selesai kalau:</strong> ${
+        esc(sprint.hasil)}</p>
+      <p class="bs-kenapa bs-jangan">${esc(sprint.jangan)}</p>
     </div>
-    <p class="bs-sprint-fokus">${esc(sprint.fokus)}</p>
-    <ul class="bs-todo">${sprint.tugas.map(tugasSprintHtml).join("")}</ul>
-    <p class="bs-sprint-hasil"><strong>Selesai kalau:</strong> ${
-      esc(sprint.hasil)}</p>
-    <p class="bs-kenapa bs-jangan">${esc(sprint.jangan)}</p>
-  </section>`;
+    ${lajur.map(l => selPapanHtml(sprint, l, pita)).join("")}`;
+}
+
+/** SELURUH papan: waktu mengalir ke bawah, seksi berjajar ke samping.
+ *
+ *  Bentuknya dipilih dari pertanyaan yang dibawa pembacanya. Yang membuka
+ *  papan ini bertanya dua hal, dan keduanya butuh sumbu yang berbeda:
+ *  "sekarang seharusnya sudah sampai mana" dibaca MENURUN, dan "seksi saya
+ *  kebagian apa saja" dibaca MENURUN DI SATU LAJUR. Satu kolom per seksi
+ *  menjawab keduanya dengan satu gambar.
+ *
+ *  Lajurnya diambil dari bab Seksi lewat lajurSeksi(), tidak ditulis ulang di
+ *  sini — alasannya di sana. */
+function papanSprintHtml() {
+  const lajur = lajurSeksi();
+  const h = hariIniH();
+  return `<div class="bs-legenda">
+      ${lajur.map(l => `<button type="button" class="bs-legenda-chip i-${
+        esc(l.rona)}" data-sorot="${esc(l.judul)}">${esc(l.singkat)}<span
+        class="bs-legenda-hitung" data-lajur-hitung="${esc(l.judul)}"></span></button>`).join("")}
+    </div>
+    <!-- Penggulir mendatarnya WADAH ini, tidak pernah badan halaman
+         (CLAUDE.md bagian 15). Kepala lajur menempel di atas dan kepala
+         sprint menempel di kiri, jadi yang digeser tidak pernah kehilangan
+         nama seksinya maupun nomor sprintnya. -->
+    <div class="bs-papan-bungkus">
+      <div class="bs-papan" style="--lajur:${lajur.length}">
+        <div class="bs-papan-sudut">Sprint</div>
+        ${lajur.map(l => `<div class="bs-lajur-kepala i-${esc(l.rona)}"
+             data-lajur="${esc(l.judul)}"
+             title="${esc(l.judul)}">${esc(l.singkat)}</div>`).join("")}
+        ${SPRINT.map(s => barisPapanHtml(s, lajur, h)).join("")}
+      </div>
+    </div>`;
 }
 
 /** Gambar ulang kotak centang, jejak, dan lencana kemajuan dari `centangSprint`.
@@ -10844,7 +10958,6 @@ function segarkanPapanSprint() {
   for (const kotak of papan.querySelectorAll("[data-tugas].bs-todo-kotak")) {
     const c = centangSprint.get(kotak.dataset.tugas);
     kotak.checked = !!c;
-    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !!c);
   }
   for (const jejak of papan.querySelectorAll("[data-jejak]")) {
     const c = centangSprint.get(jejak.dataset.jejak);
@@ -10863,6 +10976,36 @@ function segarkanPapanSprint() {
     lencana.className = `badge bs-sprint-kemajuan ${
       penuh ? "badge-green" : "badge-kemajuan"}`;
     lencana.textContent = `${selesai}/${sprint.tugas.length}`;
+  }
+
+  /* TERLAMBAT, dan ini yang membuat papan menjawab pertanyaan yang dibawa
+     pembacanya. Tugas di sprint yang sudah LEWAT tetapi belum tercentang
+     ditandai; yang belum lewat tidak, betapapun kosongnya. Tanpa pemisahan
+     itu papan yang baru dibuka di bulan pertama tampak merah seluruhnya dan
+     berhenti berarti apa-apa.
+
+     Ditandai di sini, bukan waktu menggambar, karena ia bergantung pada
+     centang yang datangnya menyusul dari server. */
+  const h = hariIniH();
+  const telat = new Set();
+  if (h !== null) {
+    for (const sprint of SPRINT) {
+      if (keadaanSprint(sprint, h) !== "lewat") continue;
+      for (const t of sprint.tugas) if (!centangSprint.has(t.kode)) telat.add(t.kode);
+    }
+  }
+  for (const item of papan.querySelectorAll(".bs-todo-item[data-tugas]")) {
+    item.classList.toggle("bs-todo-telat", telat.has(item.dataset.tugas));
+  }
+
+  /* Hitungan per lajur: berapa tugas seksi itu yang belum selesai. Angka nol
+     DIHILANGKAN, tidak ditulis 0 — yang dicari mata di legenda ini justru
+     seksi yang masih punya sisa, dan tujuh belas angka nol menutupinya. */
+  for (const hitung of papan.querySelectorAll("[data-lajur-hitung]")) {
+    const nama = hitung.dataset.lajurHitung;
+    const sisa = tugasSprint()
+      .filter(x => x.tugas.seksi === nama && !centangSprint.has(x.tugas.kode)).length;
+    hitung.textContent = sisa ? String(sisa) : "";
   }
 
   const ringkas = document.getElementById("bs-sprint-ringkas");
@@ -10941,7 +11084,7 @@ function layarBukuSakti() {
       ${b.kode === "timeline"
         ? `<div class="bs-timeline" id="bs-panel-sprint">
              <p class="description" id="bs-sprint-ringkas"></p>
-             ${SPRINT.map(sprintHtml).join("")}
+             ${papanSprintHtml()}
            </div>`
         : b.bagian.map(bagianBukuHtml).join("")}
     </div>`).join("");
@@ -11095,7 +11238,6 @@ function layarBukuSakti() {
     const kode = kotak.dataset.tugas;
     const mau = kotak.checked;
     kotak.classList.add("saving");
-    kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", mau);
     antreCentang = antreCentang.then(async () => {
       try {
         await setCentangSprint(kode, mau);
@@ -11105,7 +11247,6 @@ function layarBukuSakti() {
         await muatCentangSprint();
       } catch (e) {
         kotak.checked = !mau;
-        kotak.closest(".bs-todo-item")?.classList.toggle("bs-todo-selesai", !mau);
         notif(e instanceof ErrorApi ? e.message : "Centang gagal disimpan.", true);
       } finally {
         kotak.classList.remove("saving");
@@ -11120,7 +11261,50 @@ function layarBukuSakti() {
   segarkanPapanSprint();
   muatCentangSprint();
 
+  /* SOROT SATU LAJUR SEKSI.
+   *
+   *  Papannya tujuh belas lajur, dan yang membukanya hampir selalu mencari
+   *  satu: seksinya sendiri. Menyorot dikerjakan JavaScript, bukan CSS,
+   *  karena yang harus diredupkan tersebar di enam belas kolom lain — tidak
+   *  ada selektor yang bisa menyebut "kolom yang bukan yang ini" tanpa nama
+   *  seksinya ikut ditulis ke dalam stylesheet.
+   *
+   *  Menyorot lagi seksi yang sama mematikannya. Tanpa itu satu-satunya jalan
+   *  kembali ke papan penuh adalah memuat ulang halaman. */
+  let lajurTersorot = null;
+  const sorotLajur = (nama) => {
+    lajurTersorot = nama;
+    for (const el of LAYAR.querySelectorAll("[data-lajur]")) {
+      el.classList.toggle("bs-redup", !!nama && el.dataset.lajur !== nama);
+    }
+    for (const chip of LAYAR.querySelectorAll("[data-sorot]")) {
+      chip.classList.toggle("bs-legenda-aktif", chip.dataset.sorot === nama);
+    }
+    if (!nama) return;
+
+    /* DIBAWA KE DEPAN MATA, bukan cuma disorot.
+       Di layar 1440px cuma empat lajur dari tujuh belas yang terlihat
+       sekaligus, jadi menyorot lajur kedua belas tanpa menggesernya membuat
+       legendanya terasa seperti tombol mati: yang berubah ada, tetapi di luar
+       layar. Yang digeser wadahnya sendiri, mendatar saja — scrollIntoView()
+       akan ikut menggeser halaman tegak dan melempar papannya dari layar. */
+    const kepala = LAYAR.querySelector(`.bs-lajur-kepala[data-lajur="${CSS.escape(nama)}"]`);
+    const bungkus = LAYAR.querySelector(".bs-papan-bungkus");
+    if (!kepala || !bungkus) return;
+    const sudut = LAYAR.querySelector(".bs-papan-sudut");
+    // Lebar kolom sprint yang menempel di kiri dikurangkan, kalau tidak lajur
+    // yang dituju berhenti tepat DI BAWAH kolom itu dan tetap tidak terlihat.
+    const tertutup = sudut ? sudut.getBoundingClientRect().width : 0;
+    const geser = kepala.offsetLeft - tertutup - 8;
+    bungkus.scrollTo({ left: Math.max(0, geser), behavior: "smooth" });
+  };
+
   LAYAR.addEventListener("click", (ev) => {
+    const chip = ev.target.closest(".bs-legenda-chip");
+    if (chip) {
+      sorotLajur(chip.dataset.sorot === lajurTersorot ? null : chip.dataset.sorot);
+      return;
+    }
     const ke = ev.target.closest(".bs-ke");
     if (ke) { gulirKe(ke.dataset.ke); return; }
     const hasil = ev.target.closest(".bs-hasil-butir");
