@@ -77,7 +77,12 @@ jobs:
           fi
           python tools/arsip_edisi.py --keluar arsip-keluar $bendera
 
+      # SELALU, walau langkah di atas gagal. Putaran pertama mati di satu
+      # foto yang koneksinya putus, dan karena unggahan dilewati, seluruh
+      # unduhan setengah jalan ikut terbuang. Yang setengah pun berharga:
+      # menjalankan ulang akan melewati yang sudah ada.
       - name: Hitung isinya
+        if: always()
         run: |
           set -euo pipefail
           echo "### Arsip selesai" >> "$GITHUB_STEP_SUMMARY"
@@ -94,6 +99,7 @@ jobs:
       # Yang kecil lebih dulu, supaya angka klasemen sudah bisa diambil
       # sementara unggahan foto masih berjalan.
       - name: Unggah data
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: arsip-data
@@ -104,10 +110,10 @@ jobs:
           if-no-files-found: error
 
       - name: Unggah lembar jawaban
-        if: inputs.sertakan_foto
+        if: always() && inputs.sertakan_foto
         uses: actions/upload-artifact@v4
         with:
           name: arsip-lembar-jawaban
           path: arsip-keluar/lembar-jawaban
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
