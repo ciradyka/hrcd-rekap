@@ -4123,7 +4123,10 @@ button.pill-number:hover { filter: brightness(.95); }
 /* Hijau, bukan abu: gembok tertutup berarti "sudah diperiksa dan benar",
    sekelas dengan centang hijau di baris yang sama — bukan berarti mati. */
 .table-pos tbody tr.baris-terkunci .gembok { color: var(--utama); }
-.gembok { color: var(--tinta-lembut); background: none; border: 0; cursor: pointer; }
+/* Hanya WARNA di sini. Latar, garis, dan kursornya sudah ditetapkan aturan
+   .gembok di bagian lembar pos; mengulanginya membuat dua tempat untuk satu
+   jawaban, dan yang belakangan menang tanpa suara (CLAUDE.md 15.6). */
+.gembok { color: var(--tinta-lembut); }
 /* Lambang, bukan tombol: sejak 0166 menggembok pindah ke layar Cek Nilai.
    Kursornya dikembalikan ke bawaan supaya ia tidak mengaku bisa diketuk. */
 .gembok-tanda { cursor: default; display: inline-flex; align-items: center; }
@@ -5948,7 +5951,6 @@ button.pill-number:hover { filter: brightness(.95); }
   }
   .isi.cek .cek-identitas .card-identity .nama { font-size: 1.1rem; }
   .isi.cek .cek-identitas .card-identity .detail { font-size: .85rem; }
-  .isi.cek .cek-identitas .card-identity { flex: 1 1 auto; }
 
   #cek-isi { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .6rem; }
   /* Wadah lomba mengisi sisa tinggi, dan ISINYA yang menyesuaikan — bukan
