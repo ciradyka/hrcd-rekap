@@ -29,9 +29,9 @@ begin
 
   begin
     perform simpan_kejuaraan_manual('kostum', v_intern);
-    assert false, '93.1 GAGAL: regu Intern dapat dipilih';
+    assert false, '93.1 GAGAL: regu Internal dapat dipilih';
   exception when others then
-    assert sqlerrm like '%termasuk Intern',
+    assert sqlerrm like '%termasuk Internal',
       format('93.1 GAGAL: penolakannya salah: %s', sqlerrm);
   end;
 

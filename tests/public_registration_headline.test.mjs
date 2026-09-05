@@ -27,7 +27,7 @@ test("headline pra menjumlahkan golongan yang sama dengan pill", () => {
   // membantah pil di bawahnya.
   //
   // Versi pertama memaku `URUT_GOLONGAN_PESERTA` apa adanya, lalu gagal saat
-  // penghitung pendaftar dipindahkan ke daftar yang memuat Intern — padahal
+  // penghitung pendaftar dipindahkan ke daftar yang memuat Internal — padahal
   // pilnya ikut pindah dan keduanya tetap sepakat. Tes yang memaku ejaan
   // menghukum perubahan yang benar, lalu diabaikan.
   const headline = jumlahHelper.match(
@@ -47,26 +47,26 @@ test("headline pra menjumlahkan golongan yang sama dengan pill", () => {
 });
 
 
-test("jumlah pendaftar memuat Intern; klasemen tetap tanpa Intern", () => {
+test("jumlah pendaftar memuat Internal; klasemen tetap tanpa Internal", () => {
   // Dua pertanyaan yang berbeda, dan sejak 28 Agustus 2026 dua daftar yang
   // berbeda:
   //
-  //   "berapa regu sudah mendaftar"  -> SELURUHNYA. Regu Intern sama-sama
+  //   "berapa regu sudah mendaftar"  -> SELURUHNYA. Regu Internal sama-sama
   //                                     mendaftar, membayar, dan berangkat.
   //   "siapa yang muncul di papan"   -> Eksternal saja, dan itu tetap.
   //
-  // Sebelumnya keduanya memakai satu daftar, jadi 64 regu Intern hilang dari
+  // Sebelumnya keduanya memakai satu daftar, jadi 64 regu Internal hilang dari
   // hitungan pendaftar tanpa ada yang memutuskannya.
   assert.match(live, /const URUT_GOLONGAN_DAFTAR = URUT_GOLONGAN;/,
-    "daftar penghitung pendaftar bukan lagi daftar penuh — Intern akan hilang "
+    "daftar penghitung pendaftar bukan lagi daftar penuh — Internal akan hilang "
     + "lagi dari angka pendaftar");
 
   const saringan = live.match(
     /const URUT_GOLONGAN_PESERTA =\s*URUT_GOLONGAN\.filter\(g => !g\.startsWith\("intern_"\)\);/);
-  assert.ok(saringan, "saringan klasemen tidak lagi membuang Intern");
+  assert.ok(saringan, "saringan klasemen tidak lagi membuang Internal");
 
   // Papan klasemen — tab, kartu, dan golongan aktif — tetap memakai saringan
-  // Eksternal. Kalau salah satunya berpindah ke daftar penuh, Intern mendapat
+  // Eksternal. Kalau salah satunya berpindah ke daftar penuh, Internal mendapat
   // tab di papan publik, dan itu keputusan yang berbeda sama sekali.
   const papan = live.slice(live.indexOf("let golAktif ="));
   for (const pemakai of ["let golAktif = URUT_GOLONGAN_PESERTA[0]",

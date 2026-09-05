@@ -54,7 +54,7 @@
 >   Seluruh bagian 3 menggambarkan mekanisme yang sudah diganti.
 > - **Golongan ada enam, bukan empat** (0091): empat Eksternal ditambah
 >   `intern_pa` dan `intern_pi`. Papan panitia memakai keenamnya; papan
->   PESERTA tetap empat, karena Intern dibuang di batas penerbitan.
+>   PESERTA tetap empat, karena Internal dibuang di batas penerbitan.
 > - **Fase live ada lima, bukan tiga** (0145 `top10`, 0163 `juara`).
 > - **Akun panitia bisa dibuat dari layar Akun** (`#/account`) lewat gateway
 >   Worker, dan dari HP lewat `provision-accounts.yml`. Kalimat "dari SPA
@@ -134,7 +134,7 @@ penyelesaiannya dicatat di bagian 11.
 
 | Tabel | Isi | Contoh edisi 37 |
 | --- | --- | --- |
-| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | Kuota otomatis 5 Eksternal + 3 Intern, perkiraan 300 Eksternal + 50 Intern, `kloter_maks=75`, jendela 07:00–10:00 |
+| `edisi` | Metadata + semua angka tunggal musim; tepat satu `aktif` | Kuota otomatis 5 Eksternal + 3 Internal, perkiraan 300 Eksternal + 50 Internal, `kloter_maks=75`, jendela 07:00–10:00 |
 | `pos` | Daftar pos dinilai + bobot | 5 baris, `bobot=1.00` semua (aturan 9.2) |
 | `wahana` | Satu baris per komponen nilai (wahana **atau** soal, kolom `jenis` — di database `type` sejak 0014): bentuk konversi (`bentuk`, di database `form`) + parameter + rentang wajar | `kode='lari_zigzag', bentuk='kecil_baik', poin_maks=100, raw_terbaik=20, raw_terburuk=90` → raw 40 detik = 71,4 poin |
 | `kontrak_opsi` | Pilihan kontrak waktu | `('3 jam',180), ('3,5 jam',210), ('4 jam',240)` |
@@ -195,9 +195,9 @@ Postgres — layar tidak pernah menulis "setengah jadi":
 | RPC | Menjamin |
 | --- | --- |
 | `submit_pendaftaran` | Buat sekolah (bila baru) + batch + N baris regu + kode pembayaran unik, sekali jalan; validasi ulang rincian golongan = total di server |
-| `verifikasi_pembayaran` | Cek nominal = `tagihan_pendaftaran()` = jumlah `biaya_regu(golongan)` seluruh regu yang belum dibatalkan — Intern memakai `biaya_per_regu_intern`, golongan lain `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
+| `verifikasi_pembayaran` | Cek nominal = `tagihan_pendaftaran()` = jumlah `biaya_regu(golongan)` seluruh regu yang belum dibatalkan — Internal memakai `biaya_per_regu_intern`, golongan lain `biaya_per_regu`; tolak batch yang bukan `menunggu_pembayaran`; terbit kwitansi; `UNIQUE` menolak verifikasi dobel |
 | `batalkan_verifikasi` | Jalan mundur yang sah untuk salah verifikasi (meja di hari yang sama, admin kapan pun) — dengan alasan, terekam riwayat |
-| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → tempatkan FIFO ke kloter paling awal yang belum berangkat dengan kuota 5 Eksternal + 3 Intern → tulis semuanya sekaligus. Regu `batal` dilewati. |
+| `daftar_ulang_batch` | **Transaksi terpenting**: kunci batch lunas → terima pasangan regu→nomor dada **yang diketik petugas** (`p_nomor` jsonb; wajib lengkap satu batch, nomor divalidasi ada di stok / belum pensiun / belum dipakai, baris stoknya dikunci) → **satu gerbang `pg_advisory_xact_lock`** → tempatkan FIFO ke kloter paling awal yang belum berangkat dengan kuota 5 Eksternal + 3 Internal → tulis semuanya sekaligus. Regu `batal` dilewati. |
 | `tukar_nomor_dada` | Nomor dada rusak/salah pasang: tukar dengan stok tersedia, terekam riwayat |
 | `konfirmasi_kontrak` | Validasi pilihan terhadap `kontrak_opsi` (bukan hardcode); boleh dikoreksi selama kloter belum berangkat |
 | `berangkatkan_kloter` | Jam berangkat **wajib dari argumen** (diketik) — fungsi tidak mengenal `now()`; menolak bila ada regu ter-ceklis berangkat yang belum punya kontrak (daftarnya ditampilkan layar) |
@@ -502,7 +502,7 @@ dikerjakan**: lembar Umum yang tercetak hari ini tidak punya kotak itu.
 | --- | --- | --- |
 | Login | semua | Username + password; akhiran email ditambah otomatis |
 | Beranda meja | meja | Pemilih fungsi + lencana angka dari data nyata (batch menunggu verifikasi, batch lunas belum bernomor, regu belum closing) |
-| Form pendaftaran | publik | Bagian 3 alur, **satu halaman** (bukan wizard — lihat 10.4): 7 bagian bernomor dinamis (Peserta, Asal sekolah, Menginap, Jumlah regu, Identitas regu, Contact Person, Pembayaran; bagian Menginap dilewati untuk Intern), autocomplete sekolah dari master (dimuat sekali, difilter di browser), blok per regu muncul mengikuti stepper, tombol Kirim menempel di bawah dengan total hidup; hasil akhir menampilkan kode pembayaran besar-besar |
+| Form pendaftaran | publik | Bagian 3 alur, **satu halaman** (bukan wizard — lihat 10.4): 7 bagian bernomor dinamis (Peserta, Asal sekolah, Menginap, Jumlah regu, Identitas regu, Contact Person, Pembayaran; bagian Menginap dilewati untuk Internal), autocomplete sekolah dari master (dimuat sekali, difilter di browser), blok per regu muncul mengikuti stepper, tombol Kirim menempel di bawah dengan total hidup; hasil akhir menampilkan kode pembayaran besar-besar |
 | Meja pembayaran | meja | Ketik kode → kartu batch → "Tandai Lunas" → panel sukses langsung menawarkan "Cetak Kwitansi" (satu alur, bukan dua); "Batalkan (salah)" memanggil `batalkan_verifikasi` |
 | Meja daftar ulang | meja | Cari kode/sekolah → buka "Isi N Nomor Dada" → **ketik nomor dari kain fisik per regu** (nama regu + kategori + ketua terlihat, Enter = regu berikutnya) → satu tombol "Simpan N Nomor Dada" → kloter terisi otomatis dan dibacakan; jalur "Tukar nomor" untuk stok rusak |
 | Garis start | meja | Papan 4 kolom **turunan otomatis** dari kloter terakhir yang berangkat: N berangkat / N+1–N+2 siap / N+3 konfirmasi kontrak. Operator hanya punya dua aksi: ceklis regu + tombol besar "BERANGKATKAN" (jam diketik). Papan bergeser sendiri — operator tidak pernah memutuskan apa yang maju |
@@ -611,7 +611,7 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
    lagi diperlukan. Kodenya ikut menyusut, sejalan dengan CLAUDE.md §6.
 4. Yang tetap dijaga meski satu halaman:
    - Bagian **bernomor**, sekarang 1–7 dan dihitung dinamis supaya pendaftar
-     Intern yang melewati bagian menginap tetap membaca urutan tanpa lubang.
+     Internal yang melewati bagian menginap tetap membaca urutan tanpa lubang.
    - Tombol Kirim **menempel di bawah layar** dengan ringkasan hidup
      ("3 regu · Rp 525.000") — pada form panjang, aksi utama tidak boleh
      tenggelam di ujung gulungan.
@@ -662,7 +662,7 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 1. **Bentuk formula total** (Σ pos − penalti) adalah kode (satu view);
    angka-angkanya konfigurasi. Bentuk yang benar-benar baru = pemilik
    mengedit satu view SQL. Batas yang sama berlaku di semua kandidat.
-2. **Kuota otomatis 5 Eksternal + 3 Intern** ditegakkan RPC; set manual tidak
+2. **Kuota otomatis 5 Eksternal + 3 Internal** ditegakkan RPC; set manual tidak
    dibatasi kuota maupun jumlah, dan `urutan_kloter` hanya wajib positif.
 3. **.xlsx tidak di-parse** — paste dari Excel menutup kebutuhan yang sama
    tanpa dependensi parser.
@@ -730,7 +730,7 @@ dibaca dengan koreksi ini:
    rombongan sebelum memecah; menggabung tetap jalan terakhir. Jumlah
    pendamping bisa diisi dari form dan dikoreksi meja (`ubah_pendamping`).
 10. **Penempatan kloter otomatis FIFO**: kloter paling awal diisi sampai kuota
-    5 Eksternal + 3 Intern; sekolah tidak menjadi faktor penempatan.
+    5 Eksternal + 3 Internal; sekolah tidak menjadi faktor penempatan.
 11. **Audit menempel juga di** `akun_panitia` (peta otorisasi), `sekolah`,
     `ruangan`, `nomor_dada_pensiun`; simpan-ulang tanpa perubahan tidak
     menulis apa pun sehingga riwayat tidak banjir dan kepengarangan tidak

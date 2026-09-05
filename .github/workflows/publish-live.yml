@@ -155,7 +155,7 @@ jobs:
           # Live Score peserta hanya untuk Eksternal. Database dan layar
           # panitia tetap menyimpan Intern PA/PI sebagai klasemen tersendiri;
           # barisnya dibuang di batas penerbitan supaya bukan sekadar tab yang
-          # disembunyikan oleh JavaScript. Komponen khusus Intern juga tidak
+          # disembunyikan oleh JavaScript. Komponen khusus Internal juga tidak
           # perlu ikut memperbesar berkas publik.
           eksternal = lambda baris: not str(baris.get('golongan', '')).startswith('intern')
           d['progres'] = [baris for baris in d['progres'] if eksternal(baris)]

@@ -21,7 +21,7 @@ begin
   select fase_live into v_fase_sebelumnya from status_acara;
   update status_acara set fase_live = 'progres' where id = true;
 
-  -- Pilih pos yang benar-benar diikuti Intern agar tes tidak bisa lulus hanya
+  -- Pilih pos yang benar-benar diikuti Internal agar tes tidak bisa lulus hanya
   -- karena 0096 memang sudah mengeluarkan mereka dari Pos 4/5.
   select p.nomor into v_pos
   from v_pos p
@@ -35,7 +35,7 @@ begin
   limit 1;
 
   assert v_pos is not null,
-    '65 GAGAL: tidak ada pos yang diikuti Intern; fikstur tidak menguji boundary publik';
+    '65 GAGAL: tidak ada pos yang diikuti Internal; fikstur tidak menguji boundary publik';
 
   select regu_total into v_publik
   from v_kelengkapan_publik where pos = v_pos;
@@ -60,7 +60,7 @@ begin
     and komponen_pos_golongan(v_pos, r.golongan) > 0;
 
   assert v_semua > v_eksternal,
-    '65 GAGAL: tidak ada regu Intern yang membedakan hitungan publik dan panitia';
+    '65 GAGAL: tidak ada regu Internal yang membedakan hitungan publik dan panitia';
   assert v_publik = v_eksternal,
     format('65 GAGAL: publik menghitung %s regu di Pos %s, seharusnya %s Eksternal',
            v_publik, v_pos, v_eksternal);

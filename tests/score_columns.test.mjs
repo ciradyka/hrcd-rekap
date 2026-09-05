@@ -1,6 +1,6 @@
 // ============================================================================
 // hrcd-rekap : tests/score_columns.test.mjs
-// Varian umum dan Intern dari satu penilaian tetap satu kolom layar.
+// Varian umum dan Internal dari satu penilaian tetap satu kolom layar.
 // ============================================================================
 
 import assert from "node:assert/strict";
@@ -13,7 +13,7 @@ const komponen = (kode, name, golongan = null) => ({
   rentang_mentah_min: 0, rentang_mentah_maks: 10,
 });
 
-test("pasangan umum dan Intern bergabung berdasarkan nama", () => {
+test("pasangan umum dan Internal bergabung berdasarkan nama", () => {
   const kolom = kolomPos([
     komponen("semaphore", "Semaphore"),
     komponen("menaksir", "Menaksir"),

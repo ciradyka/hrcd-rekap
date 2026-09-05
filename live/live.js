@@ -70,7 +70,7 @@ import {
 
 const GOLONGAN = GOLONGAN_LABEL;
 
-/* Live Score peserta hanya mengumumkan golongan Eksternal. Intern tetap ada
+/* Live Score peserta hanya mengumumkan golongan Eksternal. Internal tetap ada
    di sumber bersama karena layar panitia memang perlu menilainya, tetapi tidak
    mendapat tab atau baris di halaman publik. Diturunkan dari daftar bersama
    supaya urutan dan label golongan tidak ditulis ulang di sini. */
@@ -81,9 +81,9 @@ const golonganPeserta = g => URUT_GOLONGAN_PESERTA.includes(g);
 /* MENGHITUNG PENDAFTAR itu pertanyaan lain dari MENYUSUN KLASEMEN, dan sejak
    28 Agustus 2026 keduanya tidak lagi memakai daftar yang sama.
 
-   Yang di atas menjawab "siapa yang muncul di papan" — Intern tidak, dan itu
+   Yang di atas menjawab "siapa yang muncul di papan" — Internal tidak, dan itu
    tetap. Yang di sini menjawab "berapa regu sudah mendaftar", dan jawabannya
-   SELURUHNYA, karena regu Intern sama-sama mendaftar, sama-sama membayar, dan
+   SELURUHNYA, karena regu Internal sama-sama mendaftar, sama-sama membayar, dan
    sama-sama berangkat pagi itu. Angka yang menghilangkan 64 di antaranya
    bukan angka yang lebih sopan, cuma angka yang salah.
 
@@ -205,14 +205,14 @@ async function ambilRingkasDb() {
 /** Ringkasan yang berlaku: database kalau terbaca, berkas kalau tidak. */
 const ringkasBerlaku = () => RINGKAS_DB || (META && META.ringkas) || {};
 
-/** Regu yang sudah mendaftar, SELURUHNYA — Intern ikut, sama dengan yang
+/** Regu yang sudah mendaftar, SELURUHNYA — Internal ikut, sama dengan yang
  *  diumumkan pil golongan di bawahnya. Sampai 28 Agustus 2026 angka ini
  *  menjumlahkan golongan Eksternal saja, memakai ulang saringan klasemen
  *  padahal pertanyaannya berbeda.
  *
  *  Cadangan `jumlah_regu_daftar` menjaga live.json lama yang belum punya
  *  `per_golongan` tetap tergambar — dan kebetulan ia MEMANG sudah berisi
- *  total dengan Intern, jadi kedua jalur kini menjawab hal yang sama. */
+ *  total dengan Internal, jadi kedua jalur kini menjawab hal yang sama. */
 const jumlahPesertaPra = () => {
   const r = ringkasBerlaku();
   const per = r.per_golongan || {};
@@ -520,9 +520,9 @@ function pasangCetakSkor() {
 let golAktif = URUT_GOLONGAN_PESERTA[0];
 
 function barisPapan(klasemenTerbuka, top10 = false) {
-  /* Penyaring ini tetap ada walau workflow penerbitan juga membuang Intern.
+  /* Penyaring ini tetap ada walau workflow penerbitan juga membuang Internal.
      Dengan begitu berkas lama yang masih tersimpan di cache tidak sempat
-     menampilkan Intern setelah kode halaman yang baru sudah ter-deploy. */
+     menampilkan Internal setelah kode halaman yang baru sudah ter-deploy. */
   const progres = ((REKAP && REKAP.progres) || [])
     .filter(b => golonganPeserta(b.golongan));
   const klasemen = ((REKAP && REKAP.klasemen) || [])

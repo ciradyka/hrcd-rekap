@@ -355,7 +355,7 @@ input.jam-ketik {
 
    Keempat kolomnya dipatok 25% di bawah `table-layout: fixed` — kolom yang
    tidak dipatok mendapat NOL, bukan sisanya (pasal 15.3), dan kolom yang
-   lebarnya ikut isinya membuat "Intern" jauh lebih sempit daripada "Total
+   lebarnya ikut isinya membuat "Internal" jauh lebih sempit daripada "Total
    Kloter" sehingga angkanya tidak lagi berjarak sama.
 
    Rantai anak, bukan selektor keturunan (pasal 15.5): kartu ini tidak
@@ -1746,7 +1746,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
      yang 13,04mm satu baris. Terlihat di lembar tercetak — judulnya tidak
      pernah membungkus, padahal 10mm mestinya memaksanya. */
   /* 12mm, naik dari 10mm sejak nomor dada bisa EMPAT digit (migrasi 0116:
-     Intern 1001-1250). Diukur pada tiruan lembar Pos 3 melintang 277mm,
+     Internal 1001-1250). Diukur pada tiruan lembar Pos 3 melintang 277mm,
      kondisi terlebar:
 
        "1250" pada 11pt      8,85mm tinta

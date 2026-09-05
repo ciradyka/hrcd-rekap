@@ -47,7 +47,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - **Aplikasi panitia** — satu link yang sama untuk semua panitia, dengan
      akses yang dibedakan per akun (bagian 8.10).
    - **Tampilan live untuk peserta** — halaman publik tanpa login, berisi
-     **klasemen empat golongan Eksternal** (Intern tidak masuk papan), dibuka
+     **klasemen empat golongan Eksternal** (Internal tidak masuk papan), dibuka
      **bertahap** lewat lima fase: `pra`, `progres` (centang per pos tanpa
      satu angka nilai pun, ditambah kloter, kontrak waktu, jam berangkat, dan
      jam datang regu itu sendiri, supaya jamnya bisa dicocokkan sebelum
@@ -80,7 +80,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    - Intern PA (tuan rumah, putra)
    - Intern PI (tuan rumah, putri)
 
-   Keempat golongan Eksternal dinilai penuh. Regu **Intern** semuanya berasal
+   Keempat golongan Eksternal dinilai penuh. Regu **Internal** semuanya berasal
    dari satu sekolah — tuan rumah — dan hanya dinilai dari lima lomba soal
    tulis ditambah ketepatan waktu; lomba lapangan, penalti tanpa checkout,
    penalti anggota, dan nilai pos terlewat tidak berlaku bagi mereka. Papan
@@ -182,8 +182,8 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    dipensiunkan, belum dipakai regu lain, dan **berada di deret yang benar**.
    Nomor yang sudah dipakai ditolak dengan pesan, bukan diterima diam-diam.
 
-   **Ada DUA deret** (migrasi `0116`): Eksternal 1–500, Intern 1001–1250. Kain
-   kedua set sama-sama bertulis 001, jadi kain Intern bertulis 001 diketik
+   **Ada DUA deret** (migrasi `0116`): Eksternal 1–500, Internal 1001–1250. Kain
+   kedua set sama-sama bertulis 001, jadi kain Internal bertulis 001 diketik
    1001 — dan yang tampil di seluruh layar, kertas, dan papan peserta adalah
    1001, bukan terjemahan yang cuma hidup di satu layar.
 6. **Pengisian nomor dada dilakukan sekaligus per sekolah**, bukan satu regu
@@ -191,7 +191,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    transaksi di meja. Urutan selesainya transaksi itulah yang menentukan
    kloternya — lihat bagian 5.4. Sekolahnya sendiri tidak menentukan apa pun.
 7. **Kloternya tetap ditentukan sistem** (bagian 5.3). Yang manual hanya
-   nomor dadanya; urutan FIFO dan kuota 5 Eksternal + 3 Intern dijaga di dalam
+   nomor dadanya; urutan FIFO dan kuota 5 Eksternal + 3 Internal dijaga di dalam
    `daftar_ulang_batch`, bukan oleh petugas satu meja yang tidak bisa melihat
    apa yang baru saja terisi di meja sebelah.
 8. **Peserta wajib mengonfirmasi datanya sendiri, termasuk nomor dada,
@@ -229,9 +229,9 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
 
 ## 5. Kloter dan kontrak waktu
 
-1. Penempatan otomatis memakai kuota **5 regu Eksternal + 3 regu Intern** per
+1. Penempatan otomatis memakai kuota **5 regu Eksternal + 3 regu Internal** per
    kloter. Kedua kuota dihitung terpisah.
-2. Perkiraan 300 Eksternal + 50 Intern membutuhkan **60 kloter**, tetapi edisi
+2. Perkiraan 300 Eksternal + 50 Internal membutuhkan **60 kloter**, tetapi edisi
    menyediakan **75 kloter** agar tempat kosong pada kloter yang sudah
    berangkat tidak menggagalkan batch daftar ulang berikutnya.
 3. Kloter ditentukan otomatis begitu regu menerima nomor dada.
@@ -248,7 +248,7 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    (5 menit, keputusan pemilik acara), supaya dua kloter tidak dijadwalkan
    berjarak tiga jam hanya karena kloternya sedikit.
 8. **Satu kloter boleh berisi golongan campuran.** Penggalang dan Penegak, putra
-   dan putri, dapat berangkat dalam kloter yang sama; hanya Intern dan Eksternal
+   dan putri, dapat berangkat dalam kloter yang sama; hanya Internal dan Eksternal
    yang mempunyai kuota otomatis terpisah.
 9. Setiap regu memilih **kontrak waktu**: 3 / 3,5 / 4 jam. Kontrak dipilih per
    regu, sehingga satu kloter bisa berisi regu dengan kontrak berbeda-beda.
@@ -541,7 +541,7 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    5. Kertas dimasukkan ke **kotak penilaian** di pos itu.
    6. Kotaknya diserahkan ke tim IT untuk diinput.
    7. Tim IT **mengurutkan kertasnya menurut nomor dada** — 001 sampai 500
-      untuk Eksternal, lalu 1001 sampai 1250 untuk Intern (migrasi `0116`) —
+      untuk Eksternal, lalu 1001 sampai 1250 untuk Internal (migrasi `0116`) —
       lalu memasukkannya berurutan.
 
    Bentuk ini bukan selera, melainkan tuntutan dua hal yang terjadi bersamaan.
@@ -868,7 +868,7 @@ Jalur lomba    tiap lomba punya jurinya sendiri
 
 ### Pengurangan lain di luar penalti waktu
 
-Ketiga pengurangan di bawah **tidak berlaku bagi regu Intern** (migrasi
+Ketiga pengurangan di bawah **tidak berlaku bagi regu Internal** (migrasi
 `0091`): mereka hanya menerima poin lomba soal tulis dikurangi penalti waktu.
 
 7. **Belum tercatat tiba** di meja Kedatangan: tetap ditampilkan di Live Score

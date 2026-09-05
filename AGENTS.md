@@ -506,7 +506,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
 2. **Pengacakan otomatis selalu mengisi kloter paling awal yang BELUM
    BERANGKAT dulu secara FIFO.** Yang lebih dahulu menyelesaikan daftar ulang
    mendapat kloter lebih awal. Setiap kloter otomatis memuat paling banyak
-   **5 Eksternal dan 3 Intern**; kuota keduanya dihitung terpisah. Tidak ada
+   **5 Eksternal dan 3 Internal**; kuota keduanya dihitung terpisah. Tidak ada
    lagi pengacakan atau lompatan dua kloter berdasarkan sekolah.
 3. **Di lapangan semua dinamis, jadi penyisipan manual tetap diperlukan.**
    Peserta yang terlambat bisa memaksa berangkat, dan panitia dapat
@@ -534,7 +534,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    masih bertanda tercetak, dan papan seperti itu membuat panitia mencari
    keenam belas kloter yang tidak pernah ada.
 5. **Sekolah tidak memengaruhi penempatan kloter.** Urutan daftar ulang dan
-   kuota 5 Eksternal + 3 Intern adalah seluruh aturan otomatis. Dua regu dari
+   kuota 5 Eksternal + 3 Internal adalah seluruh aturan otomatis. Dua regu dari
    sekolah yang sama boleh berada dalam kloter yang sama bila FIFO menempatkan
    mereka di sana.
 6. **Jangan menomori kloter sendiri.** Penomoran menyimpan aturan yang tidak

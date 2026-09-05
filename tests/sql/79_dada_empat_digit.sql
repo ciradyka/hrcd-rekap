@@ -33,7 +33,7 @@ begin
    where s.nomor >= 1001
      and not exists (select 1 from regu r where r.nomor_dada = s.nomor)
      and not exists (select 1 from nomor_dada_pensiun p where p.nomor = s.nomor);
-  assert v_nomor >= 1001, '79.0: tidak ada nomor Intern bebas di stok';
+  assert v_nomor >= 1001, '79.0: tidak ada nomor Internal bebas di stok';
 
   -- Kloter kosong yang belum berangkat, dan tidak boleh ada kloter berisi
   -- sebelum ia — `berangkatkan_kloter` menolak yang melompati.

@@ -1,6 +1,6 @@
 -- ============================================================================
 -- hrcd-rekap : tests/sql/72_biaya_intern.sql
--- Regu Intern ditagih Rp 100.000, Eksternal Rp 175.000, dan yang menghitung
+-- Regu Internal ditagih Rp 100.000, Eksternal Rp 175.000, dan yang menghitung
 -- tagihan adalah PENJUMLAHAN — bukan lagi perkalian.
 --
 -- Kenapa penjumlahan itu yang diuji, bukan angkanya: harga berganti tiap
@@ -45,7 +45,7 @@ begin
   assert v_eksternal = 175000,
     format('72.1: biaya Eksternal %s, harusnya 175000', v_eksternal);
   assert v_intern = 100000,
-    format('72.1: biaya Intern %s, harusnya 100000', v_intern);
+    format('72.1: biaya Internal %s, harusnya 100000', v_intern);
 
   foreach v_g in array array['penegak_pa', 'penegak_pi',
                              'penggalang_pa', 'penggalang_pi'] loop
@@ -56,7 +56,7 @@ begin
 
   foreach v_g in array array['intern_pa', 'intern_pi'] loop
     assert biaya_regu(v_g) = v_intern,
-      format('72.1: biaya_regu(%s) = %s, harusnya harga Intern %s',
+      format('72.1: biaya_regu(%s) = %s, harusnya harga Internal %s',
              v_g, biaya_regu(v_g), v_intern);
   end loop;
 end $$;
@@ -91,14 +91,14 @@ begin
 
   select hasil into strict v from uji72 where label = 'int';
   assert (v ->> 'total_tagihan')::int = 3 * v_intern,
-    format('72.2: tagihan 3 regu Intern %s, harusnya %s',
+    format('72.2: tagihan 3 regu Internal %s, harusnya %s',
            v ->> 'total_tagihan', 3 * v_intern);
 end $$;
 
 -- ---------------------------------------------------------------------------
 -- 72.3 Batch campuran: di sinilah perkalian lama dan penjumlahan baru berbeda.
 --
---      Dua Eksternal + dua Intern. Perkalian lama memberi 4 x Eksternal, dan
+--      Dua Eksternal + dua Internal. Perkalian lama memberi 4 x Eksternal, dan
 --      pesan gagalnya menyebutkan angka itu supaya siapa pun yang membuat tes
 --      ini merah tahu persis apa yang kembali.
 -- ---------------------------------------------------------------------------
@@ -201,7 +201,7 @@ begin
   where pendaftaran_id = v_id and nama_regu = 'Ujibiaya Bataltiga';
 
   assert tagihan_pendaftaran(v_id) = 2 * v_eksternal,
-    format('72.5: regu Intern yang dibatalkan masih ditagih — %s, harusnya %s',
+    format('72.5: regu Internal yang dibatalkan masih ditagih — %s, harusnya %s',
            tagihan_pendaftaran(v_id), 2 * v_eksternal);
 
   assert verifikasi_pembayaran(v_kode, 2 * v_eksternal, 'tunai')
@@ -225,7 +225,7 @@ begin
   assert v.biaya_per_regu = 175000,
     format('72.6: anon membaca biaya Eksternal %s', v.biaya_per_regu);
   assert v.biaya_per_regu_intern = 100000,
-    format('72.6: anon membaca biaya Intern %s', v.biaya_per_regu_intern);
+    format('72.6: anon membaca biaya Internal %s', v.biaya_per_regu_intern);
 end $$;
 
 reset role;

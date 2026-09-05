@@ -3,7 +3,7 @@
 -- Dua deret nomor dada, dan KEDUA pintu yang memberi nomor harus menjaganya.
 --
 -- Kain nomor dada dicetak dalam dua set yang sama-sama mulai dari 001, jadi
--- Intern diketik 1001-1250. Yang diuji di sini bukan bahwa nomornya tersimpan
+-- Internal diketik 1001-1250. Yang diuji di sini bukan bahwa nomornya tersimpan
 -- — itu sudah dijaga unique sejak 0001 — melainkan bahwa nomor dari deret yang
 -- SALAH ditolak, dan bahwa pesannya menyebut deret yang benar. Petugas yang
 -- salah ketik butuh tahu harus mengetik apa.
@@ -13,7 +13,7 @@
 -- Menutup yang pertama saja meninggalkan pintu samping yang terbuka lebar.
 -- ============================================================================
 
-\echo '--- 78. dua deret nomor dada: Eksternal dan Intern'
+\echo '--- 78. dua deret nomor dada: Eksternal dan Internal'
 \set ON_ERROR_STOP on
 
 begin;
@@ -39,10 +39,10 @@ begin
   -- ---------------------------------------------------------------------
   assert (select intern_mulai = 1001 and intern_sampai = 1250
           from v_rentang_nomor_dada),
-    '78.0 GAGAL: stok Intern bukan 1001-1250';
+    '78.0 GAGAL: stok Internal bukan 1001-1250';
   assert (select eksternal_sampai < 1001 and eksternal_mulai = 1
           from v_rentang_nomor_dada),
-    '78.0 GAGAL: deret Eksternal bocor ke wilayah Intern';
+    '78.0 GAGAL: deret Eksternal bocor ke wilayah Internal';
 
   -- Nomor bebas dari masing-masing deret. Diambil dari stok, bukan ditulis
   -- angkanya: tes yang mematok 7 dan 1001 akan gugur setiap kali fixture di
@@ -74,23 +74,23 @@ begin
   returning id into v_regu_intern;
 
   -- ---------------------------------------------------------------------
-  -- 78.1 Regu Intern + nomor Eksternal: DITOLAK, dan pesannya menyebut
+  -- 78.1 Regu Internal + nomor Eksternal: DITOLAK, dan pesannya menyebut
   --      1001-1250. Inilah kekeliruan yang benar-benar akan terjadi di meja
-  --      — kain Intern bertulis 001, dan mengetik apa yang terbaca adalah
+  --      — kain Internal bertulis 001, dan mengetik apa yang terbaca adalah
   --      hal paling wajar sedunia.
   -- ---------------------------------------------------------------------
   v_tolak := false;
   begin
     perform * from daftar_ulang_batch('UJI-DERET-0116', jsonb_build_array(
       jsonb_build_object('regu_id', v_regu_intern, 'nomor_dada', v_eks)));
-    raise exception 'GAGAL: regu Intern menerima nomor dari deret Eksternal (%)', v_eks;
+    raise exception 'GAGAL: regu Internal menerima nomor dari deret Eksternal (%)', v_eks;
   exception when others then
     if sqlerrm like 'GAGAL:%' then raise; end if;
     v_tolak := true; v_pesan := sqlerrm;
   end;
-  assert v_tolak, '78.1 GAGAL: nomor Eksternal untuk regu Intern tidak ditolak';
+  assert v_tolak, '78.1 GAGAL: nomor Eksternal untuk regu Internal tidak ditolak';
   assert v_pesan like '%1001 - 1250%',
-    format('78.1 GAGAL: pesan tidak menyebut deret Intern yang benar: %s', v_pesan);
+    format('78.1 GAGAL: pesan tidak menyebut deret Internal yang benar: %s', v_pesan);
   assert v_pesan like '%intern%',
     format('78.1 GAGAL: pesan tidak menyebut deret mana yang dimaksud: %s', v_pesan);
 
@@ -103,26 +103,26 @@ begin
   perform * from daftar_ulang_batch('UJI-DERET-0116', jsonb_build_array(
     jsonb_build_object('regu_id', v_regu_intern, 'nomor_dada', v_intern)));
   assert (select nomor_dada = v_intern from regu where id = v_regu_intern),
-    '78.2 GAGAL: nomor Intern yang sah ikut ditolak';
+    '78.2 GAGAL: nomor Internal yang sah ikut ditolak';
 
   -- ---------------------------------------------------------------------
   -- 78.3 Arah sebaliknya. Aturannya satu kalimat dibaca dari dua sisi, jadi
   --      menguji satu sisi saja membiarkan separuhnya tanpa kursi.
   -- ---------------------------------------------------------------------
   insert into regu (pendaftaran_id, nama_regu, nama_ketua, golongan)
-  values (v_daftar, 'DERET EKSTERN UJI', 'Ketua Uji', 'penggalang_pa')
+  values (v_daftar, 'DERET EKSTERNAL UJI', 'Ketua Uji', 'penggalang_pa')
   returning id into v_regu_ext;
 
   v_tolak := false;
   begin
     perform * from daftar_ulang_batch('UJI-DERET-0116', jsonb_build_array(
       jsonb_build_object('regu_id', v_regu_ext, 'nomor_dada', v_intern_lain)));
-    raise exception 'GAGAL: regu Eksternal menerima nomor dari deret Intern (%)', v_intern_lain;
+    raise exception 'GAGAL: regu Eksternal menerima nomor dari deret Internal (%)', v_intern_lain;
   exception when others then
     if sqlerrm like 'GAGAL:%' then raise; end if;
     v_tolak := true; v_pesan := sqlerrm;
   end;
-  assert v_tolak, '78.3 GAGAL: nomor Intern untuk regu Eksternal tidak ditolak';
+  assert v_tolak, '78.3 GAGAL: nomor Internal untuk regu Eksternal tidak ditolak';
   assert v_pesan like '%eksternal%',
     format('78.3 GAGAL: pesan tidak menyebut deret Eksternal: %s', v_pesan);
 
@@ -132,13 +132,13 @@ begin
     '78.3 GAGAL: nomor Eksternal yang sah ikut ditolak';
 
   -- ---------------------------------------------------------------------
-  -- 78.4 Pintu kedua: tukar kain sobek. Regu Intern tidak boleh berpindah ke
+  -- 78.4 Pintu kedua: tukar kain sobek. Regu Internal tidak boleh berpindah ke
   --      deret Eksternal lewat jalur ini.
   -- ---------------------------------------------------------------------
   v_tolak := false;
   begin
     perform tukar_nomor_dada(v_regu_intern, v_eks_lain, 'uji 78: kain sobek');
-    raise exception 'GAGAL: tukar memindahkan regu Intern ke deret Eksternal (%)', v_eks_lain;
+    raise exception 'GAGAL: tukar memindahkan regu Internal ke deret Eksternal (%)', v_eks_lain;
   exception when others then
     if sqlerrm like 'GAGAL:%' then raise; end if;
     v_tolak := true; v_pesan := sqlerrm;
@@ -147,14 +147,14 @@ begin
   assert v_pesan like '%1001 - 1250%',
     format('78.4 GAGAL: pesan tukar tidak menyebut deret yang benar: %s', v_pesan);
 
-  -- 78.5 Tukar ke sesama deret Intern tetap jalan — pagarnya menyaring deret,
+  -- 78.5 Tukar ke sesama deret Internal tetap jalan — pagarnya menyaring deret,
   --      bukan mematikan penukaran.
   perform tukar_nomor_dada(v_regu_intern, v_intern_lain, 'uji 78: kain sobek');
   assert (select nomor_dada = v_intern_lain from regu where id = v_regu_intern),
-    '78.5 GAGAL: tukar sesama deret Intern ikut ditolak';
+    '78.5 GAGAL: tukar sesama deret Internal ikut ditolak';
 
   perform set_config('app.uid', '', true);
-  raise notice '78 OK — Eksternal % / %, Intern % / % diuji dua arah, dua pintu.',
+  raise notice '78 OK — Eksternal % / %, Internal % / % diuji dua arah, dua pintu.',
                v_eks, v_eks_lain, v_intern, v_intern_lain;
 end;
 $blok$;

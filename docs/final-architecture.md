@@ -242,7 +242,7 @@ kainnya benda fisik di meja, dan yang ada di tangan petugas belum tentu nomor
 terkecil yang tersedia.
 
 **Dua deret, satu kunci** (migrasi `0116`). Kain dicetak dalam dua set yang
-sama-sama mulai dari 001, jadi Intern diketik **1001–1250** sementara
+sama-sama mulai dari 001, jadi Internal diketik **1001–1250** sementara
 Eksternal tetap **1–500**. Yang membedakannya bukan kolom baru: `nomor_dada`
 tetap satu integer unik, dan yang menjaga deretnya `nomor_dada_sesuai_deret()`
 di **dua** pintu — `daftar_ulang_batch` dan `tukar_nomor_dada`. Batas
@@ -253,7 +253,7 @@ deret di kotaknya sendiri, dan pesannya menyebut rentang yang benar.
 
 **Kainnya ikut diberi angka 1 di depan** — keputusan pemilik acara,
 27 Agustus 2026. Ini bukan kerapian: juri di pos menulis nomor dada dengan
-tangan dari kain di dada regu, jadi kain Intern yang polos bertulis 001 akan
+tangan dari kain di dada regu, jadi kain Internal yang polos bertulis 001 akan
 menghasilkan blangko yang ambigu, dan tidak ada baris SQL yang bisa
 memulihkannya. Dengan angka 1 di depan, kain dan sistem menyebut angka yang
 sama dan tidak ada terjemahan di kepala siapa pun.
@@ -538,7 +538,7 @@ bisa dipercaya.
 
 Penyebutnya adalah regu lunas, tidak batal, sudah punya nomor dada, dan memang
 memiliki komponen yang berlaku di pos itu. `komponen_berlaku()` menjadi satu
-aturan bersama untuk penilaian dan kelengkapan sejak `0096`: regu Intern
+aturan bersama untuk penilaian dan kelengkapan sejak `0096`: regu Internal
 dihitung di lima Soal Tulis yang mereka ikuti, tetapi tidak menjadi regu
 "kosong" abadi di lomba lapangan yang memang tidak mereka ikuti.
 

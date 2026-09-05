@@ -71,7 +71,7 @@ test("isi kloter tetap FIFO dengan dua kuota terpisah", () => {
   assert.deepEqual(hasil[0], {
     kloter: 1, jumlahEksternal: 5, jumlahIntern: 3, waktuBerangkat: "07:00",
   });
-  // Intern habis di kloter ke-17: 50 dibagi 3 menyisakan 2.
+  // Internal habis di kloter ke-17: 50 dibagi 3 menyisakan 2.
   assert.equal(hasil[16].jumlahEksternal, 5);
   assert.equal(hasil[16].jumlahIntern, 2);
   assert.equal(hasil[17].jumlahIntern, 0);

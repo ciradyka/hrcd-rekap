@@ -42,7 +42,7 @@ Ringkasan dari `alur-lomba.md` — setiap kandidat dipetakan ke daftar ini:
 | R1 | Form pendaftaran online (identitas regu, golongan, barak), link sama untuk online & offline |
 | R2 | Verifikasi pembayaran manual → kwitansi + kode pembayaran |
 | R3 | Daftar ulang 2–3 meja paralel: kode → nomor dada, diambil **per sekolah sekaligus**, tanpa nomor ganda |
-| R4 | Kloter otomatis FIFO saat itu juga: 5 Eksternal + 3 Intern, 75 kloter dengan headroom untuk perkiraan 300+50 regu; set manual tanpa batas |
+| R4 | Kloter otomatis FIFO saat itu juga: 5 Eksternal + 3 Internal, 75 kloter dengan headroom untuk perkiraan 300+50 regu; set manual tanpa batas |
 | R5 | Layar garis start: antrean 4 tahap, konfirmasi kontrak waktu, jam berangkat per kloter + ceklis per regu |
 | R6 | Input nilai per pos: link + akun/password sendiri per pos; input manual **dan** upload massal Excel/CSV dengan layar preview yang memvalidasi |
 | R7 | Mesin skor yang bisa dikonfigurasi panitia tanpa programmer: 6 bentuk konversi, bobot pos, rumus penalti, pengurangan lain |

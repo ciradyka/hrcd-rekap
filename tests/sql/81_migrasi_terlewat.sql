@@ -22,7 +22,7 @@ do $blok$
 declare
   v_jumlah int;
 begin
-  -- 81.1 (0091) Golongan Intern sah di tabel regu. Inilah yang gagal di
+  -- 81.1 (0091) Golongan Internal sah di tabel regu. Inilah yang gagal di
   -- lapangan: constraint 0001 hanya mengenal empat golongan eksternal.
   assert exists (select 1 from pg_constraint
                  where conname = 'regu_golongan_check'
@@ -34,7 +34,7 @@ begin
                    and pg_get_constraintdef(oid) like '%intern_pa%'),
     '81.1 GAGAL: wahana_golongan_check belum mengenal golongan intern';
 
-  -- 81.2 (0091) Sebuah regu Intern benar-benar bisa masuk, bukan hanya lolos
+  -- 81.2 (0091) Sebuah regu Internal benar-benar bisa masuk, bukan hanya lolos
   -- pembacaan constraint. Di-rollback supaya tidak meninggalkan baris uji.
   assert exists (select 1 from pendaftaran),
     '81.2 GAGAL: tidak ada pendaftaran untuk disisipi — tes ini akan lulus '
@@ -45,31 +45,31 @@ begin
     from pendaftaran limit 1;
     get diagnostics v_jumlah = row_count;
     assert v_jumlah = 1,
-      format('81.2 GAGAL: %s baris regu Intern masuk, seharusnya 1', v_jumlah);
+      format('81.2 GAGAL: %s baris regu Internal masuk, seharusnya 1', v_jumlah);
   exception when others then
     if sqlerrm like '81.2 GAGAL%' then raise; end if;
-    raise exception '81.2 GAGAL: regu Intern ditolak database — %', sqlerrm;
+    raise exception '81.2 GAGAL: regu Internal ditolak database — %', sqlerrm;
   end;
 
-  -- 81.3 (0091) Komponen Intern: lima Soal Tulis punya varian sendiri, dan
+  -- 81.3 (0091) Komponen Internal: lima Soal Tulis punya varian sendiri, dan
   -- komponen umum TIDAK otomatis berlaku bagi mereka.
   select count(*) into v_jumlah
   from wahana where edisi = edisi_aktif() and kode like '%\_intern';
   assert v_jumlah = 5,
-    format('81.3 GAGAL: varian wahana Intern ada %s, seharusnya 5', v_jumlah);
+    format('81.3 GAGAL: varian wahana Internal ada %s, seharusnya 5', v_jumlah);
 
   assert komponen_berlaku('intern', 'intern_pa'),
     '81.3 GAGAL: komponen bertanda intern tidak berlaku untuk Intern PA';
   assert not komponen_berlaku(null, 'intern_pa'),
-    '81.3 GAGAL: komponen umum ikut berlaku untuk Intern — lomba lapangan '
+    '81.3 GAGAL: komponen umum ikut berlaku untuk Internal — lomba lapangan '
     'akan muncul di lembar mereka';
 
-  -- 81.4 (0091) Klasemen Intern hanya Soal Tulis dikurangi penalti waktu.
+  -- 81.4 (0091) Klasemen Internal hanya Soal Tulis dikurangi penalti waktu.
   assert exists (select 1 from pg_class c
                  join pg_namespace n on n.oid = c.relnamespace
                  where n.nspname = 'public' and c.relname = 'v_total_skor'
                    and pg_get_viewdef(c.oid) like '%intern_pa%'),
-    '81.4 GAGAL: v_total_skor masih mengenakan penalti lapangan ke Intern';
+    '81.4 GAGAL: v_total_skor masih mengenakan penalti lapangan ke Internal';
 
   -- 81.5 (0098) Layar Keberangkatan hanya memegang hak `keberangkatan`.
   assert exists (select 1 from pg_proc p
@@ -107,7 +107,7 @@ begin
                  join pg_namespace n on n.oid = c.relnamespace
                  where n.nspname = 'public' and c.relname = 'v_kelengkapan_publik'
                    and pg_get_viewdef(c.oid) like '%intern_pa%'),
-    '81.9 GAGAL: v_kelengkapan_publik masih ikut menghitung regu Intern';
+    '81.9 GAGAL: v_kelengkapan_publik masih ikut menghitung regu Internal';
 
   -- 81.10 (0105) 75 kloter tersedia, dan barisnya benar-benar ada.
   select kloter_maks into v_jumlah from edisi where is_active;

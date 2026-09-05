@@ -259,7 +259,7 @@ begin
       select kode_pembayaran from pendaftaran where status = 'menunggu_pembayaran'
     loop
       -- tagihan_pendaftaran(), bukan jumlah_regu * biaya_per_regu: sejak
-      -- migrasi 0110 regu Intern berharga lain, jadi perkalian lama meleset
+      -- migrasi 0110 regu Internal berharga lain, jadi perkalian lama meleset
       -- pada batch mana pun yang memuatnya dan simulasi berhenti di
       -- "nominal tidak sama dengan tagihan".
       perform verifikasi_pembayaran(

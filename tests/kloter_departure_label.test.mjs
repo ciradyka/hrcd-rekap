@@ -119,20 +119,20 @@ test("layar planning tanpa judul dan tanpa paragraf penjelas", () => {
 });
 
 
-test("jumlah Eksternal dan Intern tetap ada, sebagai kolom mendatar", () => {
+test("jumlah Eksternal dan Internal tetap ada, sebagai kolom mendatar", () => {
   // Yang dijaga ANGKANYA tetap terbit, bukan bentuk tabelnya: keempatnya
   // dibalik jadi mendatar 27 Agustus 2026 supaya kotak jam dan tombol Cetak
   // di bawahnya tidak terdorong keluar layar HP.
-  assert.match(layar, /<th>Eksternal<\/th><th>Intern<\/th>/);
+  assert.match(layar, /<th>Eksternal<\/th><th>Internal<\/th>/);
   assert.match(layar, /<td class="angka">\$\{jumlahEksternal\}<\/td>/);
   assert.match(layar, /<td class="angka">\$\{jumlahIntern\}<\/td>/);
   // Kepala kolom dan angkanya harus berurutan sama. Tertukar, "Eksternal 0
-  // Intern 6" terbaca meyakinkan dan salah total.
+  // Internal 6" terbaca meyakinkan dan salah total.
   const kepala = layar.match(/<th>Total Kloter<\/th>[\s\S]*?<\/tr>/)[0];
   const isi = layar.match(/<tbody>[\s\S]*?<\/tbody>/)[0];
   assert.deepEqual(
     [...kepala.matchAll(/<th>([^<]+)<\/th>/g)].map(m => m[1]),
-    ["Total Kloter", "Total Regu", "Eksternal", "Intern"]);
+    ["Total Kloter", "Total Regu", "Eksternal", "Internal"]);
   assert.deepEqual(
     [...isi.matchAll(/\$\{(\w+)/g)].map(m => m[1]),
     ["perKloter", "baris", "jumlahEksternal", "jumlahIntern"]);

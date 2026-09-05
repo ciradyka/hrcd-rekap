@@ -86,7 +86,7 @@ def siapkan():
         k = h["kode_pembayaran"]
         # Nominalnya diambil dari yang sudah dihitung submit_pendaftaran, bukan
         # dari REGU_PER_SEKOLAH * biaya_per_regu. Batch ini CAMPURAN Eksternal
-        # dan Intern, dan sejak migrasi 0110 keduanya berharga lain — perkalian
+        # dan Internal, dan sejak migrasi 0110 keduanya berharga lain — perkalian
         # itu meleset dan verifikasi_pembayaran menolak seluruh fixture.
         jalankan("select verifikasi_pembayaran(%s,%s,%s)",
                  (k, h["total_tagihan"], "tunai"),
@@ -98,9 +98,9 @@ def siapkan():
 def stok_tersedia(jumlah, intern=False):
     """Nomor dada yang masih boleh dipakai, urut kecil ke besar.
 
-    DUA DERET sejak migrasi 0116: kain Intern dicetak set sendiri yang juga
-    mulai dari 001, jadi Intern diketik 1001-1250 dan nomor Eksternal untuk
-    regu Intern ditolak database. Batasnya dibaca dari `edisi`, tidak ditulis
+    DUA DERET sejak migrasi 0116: kain Internal dicetak set sendiri yang juga
+    mulai dari 001, jadi Internal diketik 1001-1250 dan nomor Eksternal untuk
+    regu Internal ditolak database. Batasnya dibaca dari `edisi`, tidak ditulis
     di sini — tes yang mematok 1001 akan gugur diam-diam begitu panitia tahun
     depan menggesernya.
     """
@@ -151,7 +151,7 @@ def serbu(kode):
     if len(stok_ext) < butuh_ext or len(stok_int) < butuh_int:
         raise SystemExit(
             f"stok nomor dada kurang: butuh {butuh_ext} Eksternal / {butuh_int} "
-            f"Intern, ada {len(stok_ext)} / {len(stok_int)}")
+            f"Internal, ada {len(stok_ext)} / {len(stok_int)}")
     # Disiapkan SEBELUM barrier supaya yang diadu murni transaksinya, bukan
     # waktu menyusun JSON di Python.
     bawaan = {k: pasangan(k,
@@ -229,7 +229,7 @@ def periksa(hasil, galat):
         group by k.nomor
         having count(r.id) > (select maks_intern_per_kloter from edisi where is_active)
     """, uid=MEJA[2])
-    cek("tidak ada kloter melebihi kuota Intern", not penuh_intern,
+    cek("tidak ada kloter melebihi kuota Internal", not penuh_intern,
         str(penuh_intern[:3]))
 
     urutan = jalankan("""
