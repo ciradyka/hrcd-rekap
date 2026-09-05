@@ -31,7 +31,17 @@ begin
     perform simpan_kejuaraan_manual('kostum', v_intern);
     assert false, '93.1 GAGAL: regu Internal dapat dipilih';
   exception when others then
-    assert sqlerrm like '%termasuk Internal',
+    -- JANGAN ganti 'Intern' jadi 'Internal' di sini. Ini bukan teks yang tes
+    -- ini tulis, melainkan POLA yang dicocokkan ke pesan yang DIANGKAT
+    -- migrasinya, dan migrasinya berbunyi '...atau termasuk Intern' —
+    -- 0142, lalu 0143, 0152 dan 0153 yang menulis ulang fungsinya. Sebuah
+    -- migrasi merekam apa yang benar-benar dijalankan, jadi kata itu tidak
+    -- ikut disapu saat 'Ekstern/Intern' dibakukan jadi 'Eksternal/Internal'
+    -- di docs, layar dan tes. Menamai ulang satu sisi perbandingan saja
+    -- membuat polanya tidak pernah cocok: assert di dalam handler ini gagal,
+    -- galatnya keluar dari blok do, dan 28 tes di belakangnya tidak pernah
+    -- jalan sama sekali.
+    assert sqlerrm like '%termasuk Intern',
       format('93.1 GAGAL: penolakannya salah: %s', sqlerrm);
   end;
 
