@@ -34,7 +34,13 @@
 # hasil lomba tidak membutuhkannya, dan folder yang diunggah ke Drive lebih
 # mudah dibagikan daripada database.
 #
-# PAKAI (di terminal SENDIRI — service key tidak boleh masuk ke mana pun lain):
+# DUA KUNCI, DUA GUNA. `SUPABASE_DB_URL` membaca datanya sebagai pemilik
+# database, dan itu yang dipakai kalau ada — enam tabel dan view tidak diberi
+# SELECT ke `service_role`, dan menambal itu berarti melonggarkan hak produksi
+# selamanya demi arsip sekali jalan. `SUPABASE_SERVICE_KEY` dipakai mengambil
+# foto dari Storage, dan untuk itu tidak ada penggantinya.
+#
+# PAKAI (di terminal SENDIRI — kunci ini tidak boleh masuk ke mana pun lain):
 #
 #   PowerShell
 #     $env:SUPABASE_URL = "https://xxxx.supabase.co"
@@ -56,6 +62,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,6 +70,11 @@ import requests
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+# Kalau ada, INI yang dipakai membaca data — lihat ambil_semua().
+DB_URL = os.environ.get("SUPABASE_DB_URL", "")
+# Sama seperti tests/run.sh dan tests/dev_database.sh: jalur psql boleh
+# disebutkan sendiri, karena di Windows ia hampir tidak pernah di PATH.
+PSQL = os.environ.get("PSQL", "psql")
 BUCKET = "lembar"
 
 # PostgREST memulangkan paling banyak 1000 baris sekali minta. Tabel nilai
@@ -99,12 +111,67 @@ SUMBER = [
 KOLOM_KONTAK = {"kontak", "no_wa", "nomor_wa", "wa", "telepon", "hp", "email"}
 
 
+class TidakBisaJalan(Exception):
+    """Alatnya sendiri yang tidak bisa jalan, bukan satu sumber yang gagal.
+
+    Bedanya penting. Satu tabel yang ditolak boleh dilewati — arsipnya tetap
+    berguna, dan BACA-DULU.txt mencatat mana yang bolong. Tapi psql yang
+    tidak ada berarti TIDAK SATU pun sumber bisa dibaca, dan meneruskan
+    berarti menulis folder kosong lalu mencetak "Selesai". Arsip kosong yang
+    terbaca seperti arsip berhasil adalah cara paling murah kehilangan satu
+    edisi.
+    """
+
+
 def kepala():
     return {"apikey": SERVICE_KEY, "Authorization": f"Bearer {SERVICE_KEY}"}
 
 
+def ambil_psql(nama):
+    """Seluruh baris lewat koneksi Postgres langsung.
+
+    KENAPA JALUR INI ADA, dan kenapa ia yang didahulukan.
+
+    Percobaan pertama memakai PostgREST dengan service key, dan enam sumber
+    dijawab 403: `kejuaraan_manual`, `foto_lembar`, `v_rekap_penuh`,
+    `v_kejuaraan`, `v_daftar_kloter`, `v_foto_lembar`. Sebabnya bukan RLS
+    melainkan GRANT — `service_role` memang tidak diberi SELECT di sana.
+
+    Yang salah adalah menambal itu dengan `grant select ... to service_role`:
+    satu migrasi yang melonggarkan hak di produksi, permanen, hanya supaya
+    arsip bisa dibuat sekali. Koneksi Postgres tersambung sebagai pemilik
+    database, membaca apa adanya, dan tidak mengubah apa pun.
+    """
+    sql = (f"select coalesce(json_agg(t), '[]'::json) "
+           f"from (select * from {nama}) t")
+    try:
+        r = subprocess.run(
+            [PSQL, DB_URL, "-A", "-t", "-v", "ON_ERROR_STOP=1", "-c", sql],
+            capture_output=True, text=True,
+        )
+    except FileNotFoundError:
+        # Di runner Actions psql selalu ada; di laptop Windows hampir tidak
+        # pernah ada di PATH. Pesannya menyebut jalan keluarnya, bukan
+        # menumpahkan traceback — sama seperti PSQL di tests/run.sh.
+        raise TidakBisaJalan(
+            f"psql tidak ditemukan sebagai '{PSQL}'.\n"
+            "Sebutkan jalurnya lewat PSQL, misalnya:\n"
+            '  $env:PSQL = "C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe"')
+    if r.returncode != 0:
+        raise SystemExit(f"GAGAL membaca {nama}: {r.stderr.strip()[:200]}")
+    return json.loads(r.stdout.strip() or "[]")
+
+
 def ambil_semua(nama):
-    """Seluruh baris satu tabel atau view, berputar sampai habis."""
+    """Seluruh baris satu tabel atau view.
+
+    Lewat Postgres kalau SUPABASE_DB_URL ada, karena itu satu-satunya jalur
+    yang melihat seluruh isi tanpa menuntut grant baru. Kalau tidak ada,
+    jatuh ke PostgREST — cukup untuk sebagian besar sumber, dan akan
+    melapor 403 dengan jelas untuk sisanya.
+    """
+    if DB_URL:
+        return ambil_psql(nama)
     baris, offset = [], 0
     while True:
         r = requests.get(
@@ -248,10 +315,16 @@ def main():
     p.add_argument("--tenang", action="store_true", help="kurangi keluaran")
     a = p.parse_args()
 
-    if not SUPABASE_URL or not SERVICE_KEY:
+    # Data bisa lewat SUPABASE_DB_URL atau lewat REST; foto SELALU lewat
+    # storage API, jadi service key tetap wajib kecuali fotonya dilewati.
+    if not DB_URL and not (SUPABASE_URL and SERVICE_KEY):
         raise SystemExit(
-            "SUPABASE_URL dan SUPABASE_SERVICE_KEY harus diisi lebih dulu.\n"
+            "Isi SUPABASE_DB_URL, atau SUPABASE_URL beserta SUPABASE_SERVICE_KEY.\n"
             "Lihat keterangan PAKAI di kepala berkas ini.")
+    if not a.tanpa_foto and not (SUPABASE_URL and SERVICE_KEY):
+        raise SystemExit(
+            "Foto slip menuntut SUPABASE_URL dan SUPABASE_SERVICE_KEY.\n"
+            "Tambahkan keduanya, atau jalankan dengan --tanpa-foto.")
 
     keluar = Path(a.keluar)
     data = keluar / "data"
@@ -262,6 +335,8 @@ def main():
     for nama, jenis, ket in SUMBER:
         try:
             baris = ambil_semua(nama)
+        except TidakBisaJalan as e:
+            raise SystemExit(str(e))
         except SystemExit as e:
             print(f"  ! {e}", file=sys.stderr)
             ringkas.append((nama, jenis, "GAGAL", ket))
@@ -274,6 +349,13 @@ def main():
         ringkas.append((nama, jenis, f"{len(baris)} baris", ket))
         if not a.tenang:
             print(f"  {nama}: {len(baris)} baris")
+
+    # Nol sumber terbaca berarti arsipnya kosong, dan folder kosong yang
+    # dilaporkan "Selesai" lebih berbahaya daripada galat.
+    if not isi:
+        raise SystemExit(
+            "TIDAK SATU sumber pun terbaca — arsip tidak dibuat.\n"
+            "Periksa kuncinya dan pesan galat di atas.")
 
     # Peta nomor dada -> identitas regu, dipakai _daftar.csv tiap folder foto.
     regu_per_dada = {}
