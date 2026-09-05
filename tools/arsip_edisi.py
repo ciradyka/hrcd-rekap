@@ -57,6 +57,7 @@
 # MEMBACA; tidak ada satu pun tulisan ke database.
 # ============================================================================
 import argparse
+import concurrent.futures as cf
 import csv
 import io
 import json
@@ -64,10 +65,14 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
 import requests
+
+# Session per utas — lihat sesi_utas().
+_LOKAL = threading.local()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
@@ -277,6 +282,19 @@ def aman(nama):
     return re.sub(r"\s+", " ", nama) or "tanpa-nama"
 
 
+def sesi_utas():
+    """Satu requests.Session per utas.
+
+    Session dipakai ulang supaya koneksinya tidak dibuka 2.489 kali, tapi satu
+    Session yang dibagi ke banyak utas tidak dijamin aman. Menyimpannya di
+    threading.local() memberi keduanya: koneksi yang dipakai ulang, dan tidak
+    ada utas yang menyentuh Session utas lain.
+    """
+    if not hasattr(_LOKAL, "sesi"):
+        _LOKAL.sesi = requests.Session()
+    return _LOKAL.sesi
+
+
 def unduh_satu(sesi, path, percobaan=3):
     """Satu foto, dengan pengulangan. `None` kalau tetap gagal.
 
@@ -308,19 +326,31 @@ def unduh_satu(sesi, path, percobaan=3):
     return None
 
 
-def unduh_foto(keluar, foto, regu_per_dada, tenang):
+def unduh_foto(keluar, foto, regu_per_dada, tenang, utas=8):
     """Foto slip, satu folder per lomba, nama berkas nomor dada.
 
     Kalau satu regu punya lebih dari satu foto untuk lomba yang sama —
     lembar bolak-balik, atau ulangan karena yang pertama buram — yang kedua
     dan seterusnya diberi akhiran -2, -3. Urutannya jam unggah, jadi nomor
     kecil selalu foto yang lebih dulu.
+
+    DUA TAHAP, dan pemisahan itu yang membuatnya selesai tepat waktu.
+
+    Tahap pertama memutuskan nama tiap berkas dan menulis _daftar.csv. Ia
+    HARUS berurutan: akhiran -2 lahir dari urutan, dan dua utas yang menomori
+    bersamaan akan memberi nama yang sama pada dua foto berbeda.
+
+    Tahap kedua mengunduh, dan itu yang dikerjakan beramai-ramai. Putaran
+    sebelumnya berurutan: 2.489 permintaan kali ~1,4 detik menembus batas
+    60 menit satu job, dan GitHub membatalkan run-nya — seluruh unduhan
+    hilang tanpa satu berkas pun terunggah. Menunggu jaringan adalah
+    pekerjaan yang memang untuk dibagi.
     """
     akar = keluar / "lembar-jawaban"
     akar.mkdir(parents=True, exist_ok=True)
-    # Satu koneksi dipakai ulang untuk seluruh unduhan. Membuka 2.489
-    # koneksi baru bukan cuma lebih lambat, ia sendiri sumber putusnya.
-    sesi = requests.Session()
+
+    rencana = []          # (path, berkas) yang benar-benar perlu diunduh
+    dilewati = 0
 
     per_folder = {}
     for f in sorted(foto, key=lambda x: (x.get("pos") or 0,
@@ -331,7 +361,6 @@ def unduh_foto(keluar, foto, regu_per_dada, tenang):
         per_folder.setdefault(folder, []).append(f)
 
     total = sum(len(v) for v in per_folder.values())
-    sudah = dilewati = gagal = 0
 
     for folder, isian in per_folder.items():
         tujuan = akar / folder
@@ -365,17 +394,29 @@ def unduh_foto(keluar, foto, regu_per_dada, tenang):
             if berkas.exists() and (not besar or berkas.stat().st_size == besar):
                 dilewati += 1
                 continue
-
-            isi_foto = unduh_satu(sesi, f["path"])
-            if isi_foto is None:
-                gagal += 1
-                continue
-            berkas.write_bytes(isi_foto)
-            sudah += 1
-            if not tenang and (sudah + dilewati) % 50 == 0:
-                print(f"  foto {sudah + dilewati}/{total}")
+            rencana.append((f["path"], berkas))
 
         tulis_csv(tujuan / "_daftar.csv", daftar)
+
+    sudah = gagal = 0
+
+    def kerjakan(tugas):
+        path, berkas = tugas
+        isi_foto = unduh_satu(sesi_utas(), path)
+        if isi_foto is None:
+            return False
+        berkas.write_bytes(isi_foto)
+        return True
+
+    if rencana:
+        with cf.ThreadPoolExecutor(max_workers=utas) as kolam:
+            for berhasil in kolam.map(kerjakan, rencana):
+                if berhasil:
+                    sudah += 1
+                else:
+                    gagal += 1
+                if not tenang and (sudah + gagal) % 100 == 0:
+                    print(f"  foto {sudah + gagal + dilewati}/{total}")
 
     print(f"  foto: {sudah} diunduh, {dilewati} sudah ada, {gagal} gagal, {total} total")
     return gagal
