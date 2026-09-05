@@ -15,14 +15,23 @@ Tidak ada satu pun INSERT langsung ke tabel operasional — kalau ada, yang
 tergambar bukan tampilan yang akan dilihat besok, melainkan tampilan yang
 kebetulan mirip.
 
-    submit_pendaftaran     form peserta        (service_role, lewat Worker)
-    verifikasi_pembayaran  meja pembayaran
-    daftar_ulang_batch     meja daftar ulang   (nomor dada dari stok)
+Yang DIPANGGIL BERKAS INI, dan cuma ini:
+
     konfirmasi_kontrak     meja keberangkatan  (kontrak waktu per regu)
     ceklis_berangkat       meja keberangkatan
     berangkatkan_kloter    meja keberangkatan  (jam berangkat sungguhan)
     simpan_nilai_massal    operator pos        (per pos, semua komponennya)
     catat_closing          meja kedatangan     (jam datang -> penalti)
+
+Tiga langkah SEBELUMNYA bukan pekerjaan berkas ini, dan daftar ini sempat
+menyebut ketiganya seolah-olah ia yang mengerjakan:
+
+    submit_pendaftaran     form peserta        ) dikerjakan
+    verifikasi_pembayaran  meja pembayaran     ) tools/seed_regu_uji.py
+    daftar_ulang_batch     meja daftar ulang   ) lebih dulu
+
+Jalankan seed_regu_uji.py dulu. Kalau belum, skrip ini berhenti dan
+mengatakannya — lihat periksa_prasyarat() di bawah.
 
 YANG DIACAK, DAN ITU HARUS DISEBUT
 
@@ -213,7 +222,39 @@ def datang():
     print(f"  {n} regu tercatat datang")
 
 
+def periksa_prasyarat():
+    """Berhenti berisik kalau belum ada regu yang bisa disimulasikan.
+
+    KENAPA ADA. Keempat tahap di bawah masing-masing mengerjakan apa yang
+    ketemu dan diam kalau tidak ketemu apa-apa. Jadi pada database yang
+    regunya belum daftar ulang, skrip ini mencetak nol di kelima bagiannya,
+    keluar dengan status 0, dan terbaca seperti simulasi yang berhasil atas
+    edisi yang memang kosong. Itu bentuk kegagalan yang CLAUDE.md bagian 13.3
+    sebut sendiri: melapor bersih atas sesuatu yang tidak pernah diperiksa.
+
+    Prasyaratnya nomor dada, bukan regu. Regu yang sudah terdaftar tetapi
+    belum daftar ulang tidak punya kloter, dan tanpa kloter tidak ada yang
+    bisa diberangkatkan — jadi menghitung regu saja tetap meloloskan keadaan
+    yang bikin skrip ini diam.
+    """
+    baris = jalan(
+        "select count(*) filter (where nomor_dada is not null) as bernomor,"
+        "       count(*) as regu from regu")[0]
+    if baris["bernomor"]:
+        return
+    sys.exit(
+        "Belum ada satu regu pun yang bernomor dada, jadi tidak ada yang bisa\n"
+        f"disimulasikan ({baris['regu']} regu terdaftar, 0 sudah daftar ulang).\n"
+        "\n"
+        "Skrip ini melanjutkan dari daftar ulang, ia tidak mengerjakannya.\n"
+        "Yang mengerjakan pendaftaran, verifikasi pembayaran, dan daftar ulang\n"
+        "adalah tools/seed_regu_uji.py. Jalankan itu lebih dulu:\n"
+        "\n"
+        "    python tools/seed_regu_uji.py <Database HRCD XXXVI.xlsx> 50\n")
+
+
 def main():
+    periksa_prasyarat()
     langkah("kontrak waktu")
     kontrak_waktu()
     langkah("keberangkatan")
