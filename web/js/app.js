@@ -539,6 +539,7 @@ async function layarHome() {
           <div class="function-name">${ikonKotak("trophy", "jingga")} Kejuaraan</div>
         </a>` : ""}
       </div>
+      ${bolehLihat("pengaturan") ? `
       <a class="bs-pintu" href="#/buku-sakti">
         ${ikon("book-open", "ikon bs-pintu-ikon")}
         <span class="bs-pintu-teks">
@@ -553,6 +554,7 @@ async function layarHome() {
             seksi, dan timeline satu edisi.</span>
         </span>
       </a>
+      ` : ""}
 `));
     return;
   }
@@ -679,6 +681,7 @@ async function layarHome() {
          ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya sengaja
          tidak diperiksa — alasannya di kepala bagian BUKU SAKTI. -->
 
+      ${bolehLihat("pengaturan") ? `
       <a class="bs-pintu" href="#/buku-sakti">
         ${ikon("book-open", "ikon bs-pintu-ikon")}
         <span class="bs-pintu-teks">
@@ -693,6 +696,7 @@ async function layarHome() {
             seksi, dan timeline satu edisi.</span>
         </span>
       </a>
+      ` : ""}
   `));
 }
 
@@ -11072,6 +11076,24 @@ function layarBukuSakti() {
      satu halaman, dan itu terbaca seperti tata letak yang rusak, bukan
      seperti kolom bacaan. */
   pasangKepala("Buku Sakti");
+  /* DIPAGARI SEMENTARA, dan ini kebalikan dari niat aslinya.
+
+     Buku ini dulu terbuka untuk semua akun panitia, karena yang paling butuh
+     membacanya justru yang haknya paling sempit. Sejak 5 September 2026 ia
+     dipagari centang `pengaturan` atas permintaan pemilik acara: isinya masih
+     ditulis ulang, dan buku panduan yang berubah tiap jam menyesatkan
+     pembacanya lebih banyak daripada menolongnya.
+
+     Yang dipakai centang, BUKAN nama akun (CLAUDE.md 13.1). Menuliskan
+     "admin.ciradyka" di sini akan patah begitu username itu diganti — layar
+     Akun bisa menggantinya — dan pagarnya tidak akan kelihatan di matriks
+     centang tempat panitia mengurus hak. Membukanya kembali untuk seluruh
+     panitia nanti cukup mengembalikan baris ini beserta FITUR_LAYAR. */
+  if (!bolehLihat("pengaturan")) {
+    LAYAR.replaceChildren(h(kartuGalat(
+      "Akun ini tidak berhak membuka Buku Sakti.")));
+    return;
+  }
   const diminta = ekorRute(location.hash);
   const bab = BUKU_SAKTI.find(b => b.kode === diminta) || BUKU_SAKTI[0];
 
