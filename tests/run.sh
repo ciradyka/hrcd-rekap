@@ -783,4 +783,16 @@ run supabase/migrations/0171_lembar_pos_jawaban_benar_kembali.sql
 # ada migrasi baru, ia masuk di ATAS baris ini.
 run supabase/checks/live_json.sql
 
+# Jejak tiap migrasi, diperiksa terhadap SKEMA AKHIR. Barisnya harus tetap
+# yang terakhir, dan alasannya sama dengan alasan live_json.sql di atas: yang
+# diperiksa keadaan sesudah semuanya mendarat, bukan keadaan pada barisnya.
+#
+# Seluruh tes lain di berkas ini membuktikan invariannya pada saat invarian
+# itu dibuat lalu tidak pernah memeriksanya lagi, jadi migrasi yang membangun
+# ulang objek milik migrasi lebih tua bisa melanggarnya sambil suite tetap
+# hijau. Itulah yang terjadi pada v_lembar_pos: tes 56 duduk 320 baris di atas
+# migrasi yang mematahkannya. Yang di bawah ini menutup kelas itu untuk 117
+# jejak sekaligus — rinciannya di kepala berkasnya.
+run tests/sql/121_jejak_migrasi_akhir.sql
+
 echo "SEMUA TES LULUS"
