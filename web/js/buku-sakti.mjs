@@ -1915,7 +1915,7 @@ const BAB_KENAPA = {
   tab: "Kenapa",
   ikon: "file-text",
   warna: "ungu",
-  ringkas: "Dua puluh empat keputusan yang membentuk sistem ini, alternatif yang ditolak, dan apa yang rusak kalau dibalik.",
+  ringkas: "Dua puluh lima keputusan yang membentuk sistem ini, alternatif yang ditolak, dan apa yang rusak kalau dibalik.",
   bagian: [
     {
       kode: "kenapa-biaya-nol",
@@ -1936,6 +1936,29 @@ const BAB_KENAPA = {
         {
           jenis: "kenapa",
           teks: "Kalau batas ini dilonggarkan, tagihan kejutan jatuh ke rekening pribadi pengurus lama. Kuota yang habis juga mematikan SEMUA workflow, termasuk apply-migration dan tombol ganti password yang dipakai panitia dari HP.",
+        },
+      ],
+    },
+    {
+      kode: "kenapa-februari-maret",
+      judul: "Lombanya Februari atau Maret, dan tanggalnya dikunci September",
+      isi: [
+        {
+          jenis: "p",
+          teks: "Tanggal lomba ditetapkan di Sprint 2, sekitar lima bulan sebelum harinya, bersama kepala sekolah dan pembina lalu ditulis di notulen. Bulan yang dianjurkan Februari atau Maret. Dua-duanya keputusan yang saling mengunci: tanggal yang jatuh di Februari berarti hitungan mundurnya dimulai September, dan itulah kenapa papan sprint di buku ini berbentuk seperti sekarang.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Ditolak Agustus. Sekolah, desa, dan kwartir sama-sama penuh acara Agustusan, jadi panitia, lahan, dan izin keramaian semuanya berebut dengan lomba yang sudah ada lebih dulu. Peserta pun begitu: sekolah yang diundang sedang menyiapkan acaranya sendiri.",
+            "Februari dan Maret memberi Kelas X tempat. Mereka sudah masuk sejak Juli, sudah kenal ambalan, dan sudah bisa dipercaya memegang pekerjaan sungguhan. Digelar lebih awal, mereka baru penonton.",
+            "Itu sekaligus kaderisasi, bukan cuma tambahan tenaga. Yang jadi panitia sebagai Kelas X adalah yang memimpin edisi berikutnya, dan mereka sudah pernah melihat seluruh alurnya sekali.",
+            "Tanggalnya tetap harus dikunci lima bulan di depan. Antrean izin keramaian tidak bisa dipercepat dengan cara apa pun, dan tiap minggu tanggal belum pasti adalah satu minggu yang hilang dari antrean itu.",
+          ],
+        },
+        {
+          jenis: "kenapa",
+          teks: "Kalau lombanya digeser ke Agustus, panitia inti mengerjakan dua acara sekaligus dan Kelas X kehilangan satu-satunya edisi yang bisa mereka ikuti sebelum memimpinnya. Kalau tanggalnya dibiarkan menggantung sampai Oktober, yang hilang bukan waktu persiapan melainkan tempat di antrean izin.",
         },
       ],
     },
@@ -2615,7 +2638,7 @@ export const SPRINT = [
     hasil: "Tanggal lomba terkunci hitam di atas putih, dan anggaran kasar sudah punya titik impas dari uang pendaftaran saja.",
     tugas: [
       { kode: "s2-tanggal", seksi: "Ketua Pelaksana", layar: null,
-        teks: "TETAPKAN TANGGAL LOMBA bersama kepala sekolah dan pembina, lalu tulis di notulen. Seluruh tenggat di sprint berikutnya dihitung mundur dari tanggal ini." },
+        teks: "TETAPKAN TANGGAL LOMBA bersama kepala sekolah dan pembina, lalu tulis di notulen. Anjurannya Februari atau Maret: Agustus bertabrakan dengan Agustusan, dan bulan-bulan itu memberi Kelas X tempat untuk ikut memegang pekerjaan. Seluruh tenggat di sprint berikutnya dihitung mundur dari tanggal ini." },
       { kode: "s2-tema", seksi: "Ketua Pelaksana", layar: null,
         teks: "Tetapkan tema, kuota regu, dan biaya pendaftaran per regu, termasuk biaya regu Internal yang memang berbeda." },
       { kode: "s2-rab", seksi: "Bendahara", layar: null,
