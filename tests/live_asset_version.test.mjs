@@ -37,7 +37,7 @@ const halaman = await readFile(new URL("../live/index.html", import.meta.url), "
  *  berkas saat nomor itu dipasang. Ubah KEDUANYA bersama-sama. */
 const BERKAS = {
   "live.js": { versi: 20, sidik: "0cec1e3dde68" },
-  "live.css": { versi: 7, sidik: "3edc52a93ca9" },
+  "live.css": { versi: 8, sidik: "49d72f12ce8f" },
   "style.css": { versi: 68, sidik: "fc1fce32700b" },
 };
 

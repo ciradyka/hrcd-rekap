@@ -147,9 +147,21 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem .7rem 2rem; }
    dan Rekapitulasi lewat `.kolom-petunjuk` di web/style.css. */
 .tabel th.kol-komponen { font-size: .72rem; font-weight: 600; white-space: normal;
   line-height: 1.15; }
-.tabel td.pos { text-align: center; }
-.tabel td.pos.ada { font-weight: 700; }
-.tabel td.pos.belum { color: #9aa3ad; }
+
+/* Gaya sel pos TIDAK ditulis di sini. Satu-satunya tempatnya blok "Centang
+   pos" di bawah — cari `.tabel td.pos`.
+
+   Dulu ada blok kedua persis di baris ini, dan itu membalik yang dimaksudnya.
+   Selektornya sama persis dengan yang di bawah dan kekhususannya sama, jadi
+   yang menang cuma ditentukan urutan baris: `color: #9aa3ad` di sini kalah
+   oleh `#c7c7c2` di bawah dan tidak pernah berlaku sedetik pun, sementara
+   `font-weight: 700` pada `.ada` JUSTRU menang — kekhususannya lebih tinggi
+   daripada `.tabel td.pos` milik blok bawah. Hasil terukurnya: sel yang SUDAH
+   dicentang tergambar 700 dan sel yang MASIH kosong 800, jadi centangnya
+   lebih tipis daripada strip kosong di sebelahnya — kebalikan dari maksud
+   blok bawah, yang menyebut centang "yang paling besar dan paling berwarna".
+   Tidak ada yang merah, tidak ada aturan yang terlihat salah (CLAUDE.md
+   15.6). */
 
 .tabel { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
 .tabel th {
