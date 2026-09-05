@@ -1941,8 +1941,12 @@ const BAB_KENAPA = {
     },
     {
       kode: "kenapa-februari-maret",
-      judul: "Lombanya Februari atau Maret, dan tanggalnya dikunci September",
+      judul: "Menetapkan tanggal adalah tugas utama, dan bulannya Februari atau Maret",
       isi: [
+        {
+          jenis: "p",
+          teks: "Dari seluruh papan sprint, satu tugas yang tidak boleh mundur: menetapkan tanggal. Logo, surat, susunan acara, lapangan, dan hadiah boleh menyusul, karena semuanya masih bisa dikejar. Tanggal tidak bisa dikejar, karena yang menunggunya bukan panitia melainkan peserta.",
+        },
         {
           jenis: "p",
           teks: "Tanggal lomba ditetapkan di Sprint 2, sekitar lima bulan sebelum harinya, bersama kepala sekolah dan pembina lalu ditulis di notulen. Bulan yang dianjurkan Februari atau Maret. Dua-duanya keputusan yang saling mengunci: tanggal yang jatuh di Februari berarti hitungan mundurnya dimulai September, dan itulah kenapa papan sprint di buku ini berbentuk seperti sekarang.",
@@ -1950,6 +1954,8 @@ const BAB_KENAPA = {
         {
           jenis: "poin",
           butir: [
+            "Lomba tidak bisa mendadak. Regu berlatih, sekolah mengurus izin dan biaya, dan pembina menyusun jadwalnya sendiri. Semua itu berangkat dari tanggal, bukan dari pengumuman sebulan sebelumnya.",
+            "Pertanyaannya selalu datang lebih dulu. Tiap tahun ada pembina dan peserta yang menanyakan kapan HRCD berikutnya digelar, kadang sebelum panitianya sendiri terbentuk. Tanggal adalah satu-satunya jawaban yang mereka butuhkan saat itu.",
             "Ditolak Agustus. Sekolah, desa, dan kwartir sama-sama penuh acara Agustusan, jadi panitia, lahan, dan izin keramaian semuanya berebut dengan lomba yang sudah ada lebih dulu. Peserta pun begitu: sekolah yang diundang sedang menyiapkan acaranya sendiri.",
             "Februari dan Maret memberi Kelas X tempat. Mereka sudah masuk sejak Juli, sudah kenal ambalan, dan sudah bisa dipercaya memegang pekerjaan sungguhan. Digelar lebih awal, mereka baru penonton.",
             "Itu sekaligus kaderisasi, bukan cuma tambahan tenaga. Yang jadi panitia sebagai Kelas X adalah yang memimpin edisi berikutnya, dan mereka sudah pernah melihat seluruh alurnya sekali.",
@@ -1958,7 +1964,7 @@ const BAB_KENAPA = {
         },
         {
           jenis: "kenapa",
-          teks: "Kalau lombanya digeser ke Agustus, panitia inti mengerjakan dua acara sekaligus dan Kelas X kehilangan satu-satunya edisi yang bisa mereka ikuti sebelum memimpinnya. Kalau tanggalnya dibiarkan menggantung sampai Oktober, yang hilang bukan waktu persiapan melainkan tempat di antrean izin.",
+          teks: "Kalau lombanya digeser ke Agustus, panitia inti mengerjakan dua acara sekaligus dan Kelas X kehilangan satu-satunya edisi yang bisa mereka ikuti sebelum memimpinnya. Kalau tanggalnya dibiarkan menggantung sampai Oktober, yang hilang bukan waktu persiapan panitia melainkan tempat di antrean izin, dan waktu latihan peserta yang tidak pernah bisa diganti.",
         },
       ],
     },
@@ -2654,7 +2660,7 @@ export const SPRINT = [
       { kode: "s2-danus-target", seksi: "Dana Usaha", layar: null,
         teks: "Tetapkan target rupiah dana usaha bersama Bendahara, dan bagi caranya: jualan berkala, pre-order, atau bazar." },
     ],
-    jangan: "Jangan menunda penetapan tanggal ke bulan depan. Setiap minggu tanggal belum pasti adalah satu minggu yang hilang dari antrean izin keramaian, dan antrean itu tidak bisa dipercepat dengan cara apa pun.",
+    jangan: "Jangan menunda penetapan tanggal ke bulan depan, dan jangan menunggu logo, surat, atau lapangan selesai dulu. Semua itu bisa menyusul; tanggal tidak. Setiap minggu tanggal belum pasti adalah satu minggu yang hilang dari antrean izin keramaian, dan satu minggu latihan yang hilang dari regu yang sudah menanyakannya.",
   },
 
   {
