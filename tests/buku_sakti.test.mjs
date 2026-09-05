@@ -638,25 +638,38 @@ test("tidak ada backtick di komentar HTML milik layar ini", () => {
   }
 });
 
-test("layar Buku Sakti tidak dipagari hak akses", () => {
-  // Sengaja, dan didokumentasikan di kepala bagiannya: yang paling butuh
-  // membaca buku ini justru yang haknya paling sempit. Tes ini menahan
-  // "kerapian" yang suatu hari menambahkan pagar seperti layar lain.
+test("layar Buku Sakti dipagari centang, dan pintunya ikut pagar itu", () => {
+  // KEBALIKAN dari tes yang berdiri di sini sebelum 5 September 2026. Dulu ia
+  // menahan pagar apa pun, karena buku ini terbuka untuk semua akun panitia.
+  // Sekarang pemilik acara menutupnya sementara: isinya masih ditulis ulang,
+  // dan panduan yang berubah tiap jam menyesatkan lebih banyak daripada
+  // menolong.
+  //
+  // Yang diuji BUKAN sekadar adanya pagar, melainkan pagar yang dipasang
+  // dengan mekanisme yang benar. Menuliskan nama akun akan patah begitu
+  // username diganti dari layar Akun, dan tidak akan kelihatan di matriks
+  // centang tempat panitia mengurus hak (CLAUDE.md 13.1).
   const awal = app.indexOf("function layarBukuSakti() {");
   const akhir = app.indexOf("function blokBukuCetak(", awal);
   assert.ok(awal >= 0 && akhir > awal, "layarBukuSakti tidak ditemukan");
   const badan = tanpaKomentar(app.slice(awal, akhir));
-  /* Yang dicari BENTUK pagarnya, bukan satu kalimat tertentu. Layar lain
-     memakai kalimat yang berbeda-beda ("Akun ini tidak berhak membuka X"),
-     jadi tes yang mencocokkan satu kalimat akan diam terhadap pagar yang
-     ditulis dengan kalimat kedua. Yang menandai pagar dengan pasti dua hal:
-     kartu galat, dan bolehLihat() yang mengembalikan lebih awal. */
-  assert.ok(!badan.includes("kartuGalat("),
-    "Buku Sakti tidak boleh punya kartu galat hak akses — lihat komentar di atasnya");
-  assert.ok(!/if\s*\(!\s*bolehLihat\(/.test(badan),
-    "Buku Sakti tidak boleh menolak lewat bolehLihat() — lihat komentar di atasnya");
-});
 
+  assert.match(badan, /if\s*\(!\s*bolehLihat\("pengaturan"\)\)/,
+    "Buku Sakti harus menolak lewat bolehLihat(\"pengaturan\")");
+  assert.ok(badan.includes("kartuGalat("),
+    "penolakannya harus berupa kartu galat, seperti layar lain");
+  assert.ok(!/admin\.ciradyka|username\s*===/.test(tanpaKomentar(app)),
+    "pagar tidak boleh memakai nama akun — pakai centang (CLAUDE.md 13.1)");
+
+  // Pintu masuknya dua: kartu galat sesi dan papan Home. Tautan yang tetap
+  // tergambar untuk akun tanpa centang cuma mengantar orang ke kartu
+  // \"tidak berhak\" — itu bukan pagar, itu jebakan.
+  const pintu = app.split('<a class="bs-pintu" href="#/buku-sakti">').length - 1;
+  assert.equal(pintu, 2, `pintu Buku Sakti ada ${pintu}, seharusnya 2`);
+  const berpagar = app.split('${bolehLihat("pengaturan") ? `').length - 1;
+  assert.ok(berpagar >= 2,
+    "kedua pintu Buku Sakti harus dibungkus bolehLihat(\"pengaturan\")");
+});
 // ---------------------------------------------------------------------------
 // 9. Aturan kertas (CLAUDE.md bagian 8)
 // ---------------------------------------------------------------------------

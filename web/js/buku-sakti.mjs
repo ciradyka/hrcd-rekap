@@ -127,7 +127,7 @@ export const FITUR_SAH = Object.keys(FITUR_NAMA);
 export const FITUR_LAYAR = {
   "#/home":              null,
   "#/ganti-password":    null,
-  "#/buku-sakti":        null,
+  "#/buku-sakti":        "pengaturan",
   "#/data-peserta":      "pendaftaran",
   "#/pembayaran":        "pembayaran",
   "#/daftar-ulang":      "daftar_ulang",
