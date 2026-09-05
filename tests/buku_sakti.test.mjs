@@ -443,9 +443,14 @@ test("tiap seksi di bab Seksi kebagian minimal satu tugas", () => {
   // tetapi tidak pernah tahu kapan mengerjakannya.
   const bab = BUKU_SAKTI.find(b => b.kode === "seksi");
   const dipakai = new Set(tugasSprint().map(x => x.tugas.seksi));
+  // Pengecualiannya ditandai DI DATANYA lewat `bukanSeksi`, bukan dengan judul
+  // yang ditulis mati di sini. Judul sempat ditulis mati, dan begitu bagian
+  // pengantarnya diganti nama, tes ini menuduh dua bagian pengantar sebagai
+  // seksi yang menganggur — laporan palsu yang mengubur laporan sungguhan.
   const menganggur = bab.bagian
+    .filter(g => !g.bukanSeksi)
     .map(g => g.judul)
-    .filter(j => j !== "Cara membaca bab ini" && !dipakai.has(j));
+    .filter(j => !dipakai.has(j));
   assert.deepEqual(menganggur, [],
     `seksi tanpa satu pun tugas di papan sprint: ${menganggur}`);
 });

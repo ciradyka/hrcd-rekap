@@ -4618,6 +4618,23 @@ button.pill-number:hover { filter: brightness(.95); }
    — ikon telanjang di antara tiga belas ikon berkotak. */
 .i-abu     { background: #eef0f3; color: #475467; }
 
+/* TIGA RONA TAMBAHAN, dan alasan batas empat belas di atas TIDAK berlaku bagi
+   ketiganya. Batas itu ditulis untuk papan Home, tempat warna satu-satunya
+   penanda yang membedakan satu ubin dari tiga belas ubin sebentuk di
+   sekitarnya — di sana rona kelima belas memang menghapus guna keempat belas
+   lainnya sekaligus.
+
+   Papan sprint punya dua penanda lain yang tidak dimiliki papan Home: nama
+   seksinya tertulis di kepala lajurnya, dan letak lajurnya tetap. Jadi di
+   sana warna membedakan LAJUR, bukan menamai seksi, dan tujuh belas lajur
+   boleh berwarna tujuh belas. Ketiganya sengaja dipakai berurutan di lajur
+   14 sampai 17 supaya tetangganya berjauhan rona: abu, coklat, koral, batu.
+
+   Jangan memakai ketiganya untuk ubin Home. */
+.i-tanah   { background: #f3ece3; color: #8a5a2b; }
+.i-koral   { background: #fdeae6; color: #b4451d; }
+.i-batu    { background: #e8edf3; color: #3f5c7a; }
+
 /* Di kertas semua tint hilang — CLAUDE.md 8.4 melarang abu dan raster, dan
    latar berwarna yang difotokopi jadi kotoran. Ikonnya sendiri tidak dicetak
    di blangko mana pun, tapi aturan ini menjaga kalau suatu hari ikut. */
@@ -6190,21 +6207,318 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
    tiap kali bukunya dibuka mengajari orang menutupnya tanpa membaca. */
 .bs-sprint-putus { color: var(--kuning); }
 
-.bs-sprint { scroll-margin-top: .8rem; }
-.bs-sprint-kepala { display: flex; gap: .6rem; align-items: flex-start; }
+/* ============================================================================
+   PAPAN SPRINT: WAKTU MENURUN, SEKSI MELINTANG
+
+   Bentuknya diputuskan dari pertanyaan yang dibawa pembacanya, bukan dari
+   selera tata letak. Yang membuka papan ini menanyakan dua hal:
+
+     "sekarang seharusnya sudah sampai mana"  -> dibaca MENURUN
+     "seksi saya kebagian apa saja"           -> dibaca MENURUN, di satu lajur
+
+   Keduanya sumbu vertikal, dan itulah kenapa waktu yang mengalir ke bawah dan
+   seksi yang berjajar ke samping — bukan sebaliknya. Sumbu mendatar dipakai
+   untuk hal yang memang dilompati sekali-sekali, bukan dibaca berurutan.
+
+   TIGA HAL YANG WAJIB, dan ketiganya saling bergantung:
+
+   1. Wadahnya yang menggulir, tidak pernah badan halaman (bagian 15).
+   2. Wadahnya punya TINGGI TERBATAS, dan itu bukan hiasan: `position: sticky`
+      menempel pada scrollport terdekat. Tanpa tinggi terbatas, wadah ini
+      tidak pernah benar-benar menggulir tegak, jadi kepala lajur di atas
+      tidak punya apa pun untuk ditempeli dan ikut hilang ke atas bersama
+      barisnya — tepat waktu pembacanya paling perlu tahu ia sedang di kolom
+      seksi yang mana.
+   3. `overflow-x: auto` sendirian TIDAK ADA. Sumbu yang satu `visible` dan
+      satunya tidak akan dipaksa jadi `auto` oleh browser, jadi lebih baik
+      ditulis apa adanya sebagai `overflow: auto` daripada disetel diam-diam.
+
+   Di bawah 901px seluruh kisi ini dibongkar jadi blok bertumpuk — lihat
+   media query di bawah. Papan mendatar berisi tujuh belas lajur tidak bisa
+   dicentang sambil berdiri di lapangan.
+   ========================================================================== */
+.bs-papan-bungkus {
+  overflow: auto;
+  max-height: 78vh;
+  border-radius: var(--radius);
+  background: var(--kertas);
+  margin-top: .8rem;
+  overscroll-behavior: contain;
+  /* KELUAR DARI KOLOM BACAAN, dan cuma papan ini yang boleh.
+     Layar Buku Sakti sengaja selebar 760px supaya paragrafnya berhenti di
+     sekitar 68 huruf. Papan tujuh belas lajur di dalam 760px memuat DUA
+     lajur, jadi lima belas sisanya cuma bisa ditemukan dengan menggeser —
+     dan yang hilang justru gunanya: melihat seluruh seksi sekaligus.
+     Melebarkan seluruh layarnya bukan jawabannya, karena itu ikut melebarkan
+     tiga bab bacaan di sebelahnya. Jadi wadah INI saja yang melebar, dan
+     tetap terpusat: setengah lebar induknya, dikurangi setengah lebarnya
+     sendiri. */
+  width: min(96vw, 1700px);
+  margin-left: calc(50% - min(48vw, 850px));
+}
+
+/* KARTU, BUKAN KISI — dan ini keputusan yang diambil setelah diukur.
+
+   Dari 221 petak papan ini, cuma 79 yang berisi. Versi pertama menggambar
+   garis di keempat sisi tiap petak, jadi 142 petak kosong tergambar sebagai
+   142 KOTAK KOSONG — dan yang terbaca bukan papan kerja melainkan tabel yang
+   belum diisi. Diukur di browser: ruang yang benar-benar terbuang cuma satu
+   persen, jadi yang salah bukan tata letaknya melainkan garisnya.
+
+   Sekarang tidak ada satu pun garis petak. Yang tergambar cuma benda yang
+   memang ada: kartu sprint di kiri, dan kartu tugas di lajurnya. Petak kosong
+   berhenti jadi kotak dan kembali jadi jarak — dan jarak tidak menuntut
+   dibaca. */
+.bs-papan {
+  display: grid;
+  /* Kolom sprint, lalu satu kolom per seksi. Jumlah lajurnya datang dari
+     JavaScript lewat --lajur, karena ia jumlah seksi di bab Seksi dan berubah
+     tiap kali kepanitiaan menyusun ulang seksinya. */
+  grid-template-columns: 19rem repeat(var(--lajur, 15), 15rem);
+  /* Jarak TEGAK saja; jarak mendatarnya nol dan digantikan padding di dalam
+     tiap sel. Kalau kolomnya diberi jarak, pita sprint terpotong jadi tujuh
+     belas kotak tinggi berdiri sendiri — dan yang tergambar bukan satu baris
+     waktu melainkan tujuh belas lubang. */
+  gap: .6rem 0;
+  padding: .55rem .25rem;
+  /* `start`, BUKAN `stretch` yang jadi bawaan grid. Tinggi satu baris
+     ditentukan seksi tersibuk di sprint itu — di Sprint 11 ada lajur setinggi
+     800px — dan dengan `stretch` keenam belas lajur lain ikut ditarik
+     setinggi itu. Yang tertarik kotak transparan, jadi tidak kelihatan; yang
+     kelihatan kartu tugasnya melar mengikuti. */
+  align-items: start;
+  min-width: min-content;
+}
+
+/* Kepala lajur menempel di atas, kepala sprint menempel di kiri, dan sudut
+   kiri-atas menempel pada keduanya sekaligus — karena itu z-index-nya paling
+   tinggi: ia satu-satunya yang bisa ditumpuk dari dua arah.
+
+   Keduanya WAJIB berlatar pekat. Di bawah kisi yang tidak lagi bergaris,
+   satu-satunya yang menahan kartu tugas supaya tidak terbaca menembus kepala
+   lajurnya adalah latar itu sendiri. */
+.bs-papan-sudut {
+  position: sticky; top: 0; left: 0; z-index: 3;
+  background: var(--kertas);
+  padding: .5rem .2rem .5rem .35rem;
+  font-weight: 700; font-size: .72rem;
+  color: var(--tinta-lembut); text-transform: uppercase; letter-spacing: .04em;
+  display: flex; align-items: center;
+  box-shadow: 0 .6rem 0 var(--kertas);
+}
+/* BLOK PEKAT, BUKAN PIL — dan ini diputuskan setelah melihatnya digulir.
+
+   Versi sebelumnya memberi tiap kepala lajur bentuk pil dengan jarak di
+   kiri-kanannya. Selama papan diam ia terlihat rapi; begitu digulir, kartu
+   tugas yang lewat DI BAWAHNYA muncul di sela antar pil dan di atas
+   lengkungannya — jadi baris kepala terbaca seperti pecahan, dan nama seksi
+   bercampur dengan potongan kalimat tugas dari baris lain.
+
+   Yang menempel harus menutup penuh. Jadi kepalanya sekarang blok selebar
+   lajurnya berlatar sama dengan papan, dan warnanya pindah ke GARIS BAWAH
+   setebal 3px beserta warna hurufnya — tetap satu warna per seksi, tetapi
+   tidak lagi menuntut bentuk yang berlubang.
+
+   `background` di sini menang atas `.i-*` karena kekhususannya sama dan
+   letaknya lebih belakang di berkas ini; `color` dibiarkan datang dari sana. */
+.bs-lajur-kepala {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--kertas);
+  border-bottom: 3px solid currentColor;
+  padding: .5rem .55rem; font-weight: 700; font-size: .8rem;
+  line-height: 1.25;
+  display: flex; align-items: center;
+  /* Menutup jarak tegak antar baris juga. Tanpa ini, kartu yang menggulir ke
+     atas terlihat sekilas di celah .6rem antara kepala dan baris pertama. */
+  box-shadow: 0 .6rem 0 var(--kertas);
+}
+
+/* Kepala sprint: satu-satunya kolom yang tetap terbaca selagi lajur digeser,
+   jadi seluruh keterangan sprintnya duduk di sini — fokus, syarat selesai,
+   dan peringatannya. */
+.bs-baris-kepala {
+  position: sticky; left: 0; z-index: 1;
+  background: var(--kartu);
+  border-radius: var(--radius-kecil);
+  box-shadow: var(--bayang);
+  padding: .8rem .85rem;
+  /* Kepala sprint `start`, jadi ia berhenti setinggi isinya dan pita
+     barisnya lewat di belakangnya. Marginnya menggantikan jarak kolom yang
+     sudah dinolkan. */
+  align-self: start;
+  margin: 0 .55rem 0 .25rem;
+}
+.bs-baris-atas {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+}
+.bs-baris-atas h3 {
+  font-size: 1rem; letter-spacing: -.01em; margin: 0; min-width: 0; flex: 1;
+}
 /* Nomor sprint, bukan tanggal. Bulan kalendernya bergeser tiap edisi; yang
    tidak bergeser urutannya dan hitungan mundurnya dari hari-H. */
-.bs-sprint-urut {
+.bs-baris-urut {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 1.9rem; height: 1.9rem; border-radius: 999px;
+  width: 1.75rem; height: 1.75rem; border-radius: 999px;
   background: var(--utama-muda); color: var(--utama);
-  font-weight: 800; font-size: .9rem; flex: 0 0 auto;
+  font-weight: 800; font-size: .85rem; flex: 0 0 auto;
 }
-.bs-sprint-judul { min-width: 0; flex: 1; }
-.bs-sprint-baris {
-  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+.bs-baris-tanda { margin-top: .45rem; }
+.bs-baris-kepala .bs-sprint-fokus { margin: .6rem 0 0; }
+.bs-baris-kepala .bs-sprint-hasil { margin: .5rem 0; font-size: .92rem; }
+.bs-baris-kepala .bs-jangan { font-size: .88rem; }
+
+/* Sprint yang sedang berjalan: kartunya diangkat dan diberi cincin hijau.
+   Yang sudah lewat nomornya diredupkan. Yang belum datang dibiarkan apa
+   adanya — papan yang menandai sepuluh sprint sekaligus sebagai belum
+   tidak menandai apa-apa. */
+.bs-baris-sekarang {
+  box-shadow: var(--bayang-naik), inset 0 0 0 2px var(--hijau);
 }
-.bs-sprint-tajuk { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+.bs-baris-lewat { opacity: .9; }
+.bs-baris-lewat .bs-baris-urut { background: var(--kertas); color: var(--tinta-lembut); }
+
+/* Sel tidak punya garis dan tidak punya kartu; yang terlihat kartu tugas di
+   dalamnya. Yang dimilikinya cuma PITA sprintnya — dan pita itu wajib
+   `stretch`, kebalikan dari kepala sprintnya yang `start`: kepala boleh
+   berhenti setinggi isinya, tetapi pita harus setinggi barisnya, karena
+   justru bagian kosong itulah yang harus terlihat sebagai satu baris. */
+.bs-sel {
+  padding: .15rem .3rem; min-width: 0; align-self: stretch;
+}
+/* Dua pita berselang-seling, keduanya nyaris tidak terlihat sendiri-sendiri.
+   Yang dikerjakannya bukan memberi warna melainkan memberi BATAS: tanpa
+   pergantian ini, tiga belas baris kartu di atas satu latar rata tidak punya
+   tanda di mana satu sprint berhenti dan sprint berikutnya mulai. */
+.bs-pita-ganjil { background: rgba(255, 255, 255, .55); }
+.bs-pita-genap  { background: transparent; }
+/* Sprint yang sedang berjalan: satu-satunya pita yang memang boleh terlihat. */
+.bs-pita-sekarang { background: rgba(0, 105, 92, .07); }
+/* Nama seksi di dalam sel hanya untuk rentang HP; di rentang papan ia sudah
+   tertulis di kepala lajurnya. */
+.bs-sel-lajur { display: none; }
+.bs-sel .bs-todo { margin-top: 0; }
+
+/* Kartu tugas. Di rentang papan tiap tugas berdiri sendiri sebagai kartu,
+   bukan sebagai baris daftar bergaris — karena di sini tetangganya bukan
+   tugas berikutnya di bawahnya, melainkan seksi lain di sebelahnya. */
+.bs-sel .bs-todo-item {
+  border-top: 0;
+  background: var(--kartu);
+  border-radius: var(--radius-kecil);
+  box-shadow: var(--bayang);
+  padding: .5rem .55rem;
+  margin-bottom: .45rem;
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+/* Teks tugas SEDIKIT lebih kecil di rentang papan, dan itu diukur bukan
+   dicicipi: tinggi satu baris papan ditentukan lajur tersibuknya, dan lajur
+   tersibuk berisi empat kartu. Pada 16px/1.5 keempatnya menumpuk sampai
+   sekitar 780px, jadi enam belas lajur lain kosong sepanjang itu. Pada
+   .9rem/1.45 tumpukannya turun sekitar seperlima, dan yang ikut turun
+   kekosongan di enam belas lajur lain — bukan cuma di lajur yang penuh.
+
+   Tidak lebih kecil dari ini: bagian 8.6 memang aturan cetak, tapi papan yang
+   dipandangi berjam-jam punya lantainya sendiri. */
+.bs-sel .bs-todo-teks {
+  font-size: .9rem; line-height: 1.45;
+  /* Lajur selebar 15rem menyisakan sekitar 177px untuk teks, dan buku ini
+     memuat nama berkas yang lebih panjang daripada itu tanpa satu pun tempat
+     untuk dipatahkan — supabase/checks/status_migrasi.sql terukur 241px. Tanpa
+     baris ini nama itu menembus kartunya dan menimpa lajur di sebelahnya.
+     `anywhere`, bukan `break-word`: yang kedua tidak mematahkan kata yang
+     sudah berada di awal barisnya sendiri, dan justru itu keadaannya di sini. */
+  overflow-wrap: anywhere;
+}
+.bs-sel .bs-todo-item:last-child { margin-bottom: 0; }
+.bs-sel .bs-todo-item:hover {
+  box-shadow: var(--bayang-naik);
+  transform: translateY(-1px);
+}
+.bs-sel .bs-todo-baris { line-height: 1.5; }
+.bs-sel .bs-todo-kaki { margin-top: .3rem; }
+
+/* Tugas yang sprintnya sudah lewat dan belum tercentang. Pita merah di tepi
+   kiri kartunya, bukan latar merah: satu lajur boleh memuat empat tugas
+   terlambat sekaligus, dan empat blok merah bertumpuk berhenti terbaca
+   sebagai peringatan. */
+.bs-todo-telat { box-shadow: var(--bayang), inset .2rem 0 0 var(--bahaya); }
+.bs-sel .bs-todo-telat:hover { box-shadow: var(--bayang-naik), inset .2rem 0 0 var(--bahaya); }
+
+/* ---- Legenda seksi ---- */
+.bs-legenda { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem; }
+.bs-legenda-chip {
+  font: inherit; cursor: pointer; border: 1px solid transparent;
+  border-radius: 999px; padding: .25rem .65rem;
+  font-size: .78rem; font-weight: 700;
+  display: inline-flex; align-items: center; gap: .35rem; min-height: 32px;
+  transition: box-shadow .15s ease;
+}
+.bs-legenda-chip:hover { box-shadow: inset 0 0 0 999px rgba(0, 0, 0, .05); }
+.bs-legenda-chip:focus-visible { outline: 2px solid var(--utama); outline-offset: 2px; }
+.bs-legenda-aktif { border-color: currentColor; }
+.bs-legenda-hitung { font-variant-numeric: tabular-nums; opacity: .7; }
+/* Lajur yang sedang tidak disorot. Diredupkan, TIDAK disembunyikan: kolom
+   yang hilang membuat lajur di sebelahnya bergeser, dan yang sedang dibaca
+   ikut berpindah tempat di bawah mata pembacanya. */
+.bs-redup { opacity: .22; }
+
+/* ============================================================================
+   PAPAN SPRINT DI HP: KISINYA DIBONGKAR, BUKAN DIKECILKAN
+
+   Sama dengan yang dilakukan tabel data di rentang ini — barisnya berhenti
+   jadi baris dan jadi kartu bertumpuk. Papan tujuh belas lajur yang digeser
+   ke samping tidak bisa dicentang sambil berdiri di lapangan, dan mencentang
+   adalah satu-satunya hal yang dikerjakan orang di papan ini.
+
+   Urutan DOM-nya sudah benar untuk bentuk ini tanpa satu pun properti
+   pengurut: kepala sprint lebih dulu, lalu sel-selnya. Jadi yang tergambar
+   sprint demi sprint, dan di dalam tiap sprint tugasnya berkelompok per
+   seksi — persis bentuk yang berguna di HP.
+
+   Tinggi terbatasnya DIBUANG di sini, dan itu wajib: penggulir tegak di
+   dalam halaman yang juga menggulir tegak menyandera jempol yang kebetulan
+   mendarat di dalamnya. */
+@media (max-width: 900px) {
+  .bs-papan-bungkus {
+    overflow: visible; max-height: none;
+    border: 0; background: none; border-radius: 0;
+    /* Pelebaran di rentang papan ikut dibatalkan. Tanpa dua baris ini,
+       kartunya keluar dari tepi layar HP dan badan halaman ikut menggulir
+       mendatar — persis yang dilarang bagian 15. */
+    width: auto; margin-left: 0;
+  }
+  .bs-papan { display: block; padding: 0; }
+  /* Kepala lajur dan sudutnya tidak punya arti tanpa kisinya. */
+  .bs-papan-sudut, .bs-lajur-kepala { display: none; }
+  /* Sel kosong dibuang seluruhnya. Empat belas petak kosong per sprint adalah
+     empat belas baris yang harus dilewati jempol sebelum sampai ke isinya. */
+  .bs-sel-kosong { display: none; }
+  /* Pita sprint ikut dibuang. Ia menandai SATU BARIS melintang, dan di sini
+     tidak ada baris melintang untuk ditandai — yang tersisa cuma latar
+     seluruh layar berganti warna tiap sprint. */
+  .bs-pita-ganjil, .bs-pita-genap, .bs-pita-sekarang { background: none; }
+  .bs-baris-kepala {
+    position: static; margin: 1rem 0 0;
+  }
+  .bs-sel { padding: .55rem 0 0; }
+  /* Kartu tugas kembali jadi baris daftar: di HP tetangganya memang tugas
+     berikutnya di bawahnya, bukan seksi lain di sebelahnya, jadi kartu
+     bertumpuk cuma menambah tepi yang harus dilewati mata. */
+  .bs-sel .bs-todo-item {
+    background: none; box-shadow: none; border-radius: 0;
+    padding: .5rem 0; margin-bottom: 0;
+    border-top: 1px solid var(--garis);
+  }
+  .bs-sel .bs-todo-item:first-child { border-top: 0; }
+  .bs-sel .bs-todo-teks { font-size: 1rem; line-height: 1.55; }
+  .bs-todo-telat { box-shadow: none; border-left: 3px solid var(--bahaya); padding-left: .55rem; }
+  /* Nama seksinya muncul di sini, karena kepala lajurnya sudah tidak ada. */
+  .bs-sel-lajur {
+    display: inline-block; border-radius: 999px; padding: .1rem .55rem;
+    font-size: .78rem; font-weight: 700;
+  }
+}
+
 .bs-sprint-waktu {
   font-size: .82rem; color: var(--tinta-lembut); margin-top: .1rem;
 }
@@ -6228,10 +6542,20 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
 }
 .bs-todo-kotak { flex: 0 0 auto; margin-top: .2rem; }
 .bs-todo-teks { min-width: 0; }
-/* Yang sudah selesai DIREDUPKAN, tidak dicoret. Teks tercoret berhenti bisa
-   dibaca ulang, dan tugas yang sudah selesai masih sering dibaca ulang —
-   "kemarin kita mengirim surat ke berapa desa?" */
-.bs-todo-selesai .bs-todo-teks { color: var(--tinta-lembut); }
+/* BARIS YANG TERCENTANG TIDAK BERUBAH SAMA SEKALI, dan itu aturan sistem,
+   bukan selera layar ini.
+
+   Ceklis Keberangkatan (app.js) adalah bentuk bakunya: satu `.checkbox`, nama
+   tebal, keterangan `.sub` di bawahnya — dan saat dicentang yang berubah cuma
+   kotaknya. Tidak diredupkan, tidak dicoret, tidak diberi latar.
+
+   Buku Sakti sempat meredupkan teksnya, dan akibatnya satu-satunya daftar
+   centang di aplikasi ini yang rupanya berbeda dari daftar centang lain.
+   Panitia yang seharian mencentang di Keberangkatan lalu membuka papan sprint
+   menemukan bentuk yang tidak ia kenal, untuk pekerjaan yang persis sama.
+
+   Kalau suatu hari memang perlu membedakan yang selesai, ubah ceklis
+   Keberangkatan lebih dulu — atau jangan sama sekali. */
 
 .bs-todo-kaki {
   display: flex; flex-wrap: wrap; gap: .3rem .5rem; align-items: center;
@@ -6245,13 +6569,16 @@ a.bs-layar .bs-layar-nama::after { content: " \2192"; }
 }
 .bs-todo-layar:hover { text-decoration: underline; }
 .bs-todo-layar::after { content: " \2192"; }
-.bs-todo-jejak { font-variant-numeric: tabular-nums; }
-
-.bs-pil {
-  font-size: .78rem; font-weight: 600;
-  background: var(--kertas); color: var(--tinta-lembut);
-  border-radius: 999px; padding: .1rem .55rem;
+/* Baris keterangan di bawah isian, dan nilainya DIAMBIL dari `.sub` —
+   komponen yang sudah dipakai nama sekolah di bawah nama regu di seluruh
+   tabel data (`.data-table .sub`, `--tinta-lembut` dan `.82rem`). Kelasnya
+   sendiri tetap perlu karena `.sub` disempitkan ke dalam `.data-table`, dan
+   papan sprint bukan tabel. Yang tidak boleh berbeda nilainya. */
+.bs-todo-jejak {
+  font-size: .82rem; color: var(--tinta-lembut);
+  font-variant-numeric: tabular-nums;
 }
+
 /* "Jangan sampai" memakai kotak kenapa yang sama, tapi merah: ia satu-satunya
    kalimat di kartu sprint yang menyebut kerugian, dan warnanya yang membuatnya
    ditemukan waktu kartunya cuma dipindai sekilas. */
