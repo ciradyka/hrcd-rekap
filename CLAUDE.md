@@ -855,13 +855,32 @@ Guidance for Claude Code when working in this repository.
    those year guards.
 
    **The third cron is the only standing one, and it was priced before it was
-   enabled.** `keep-supabase-awake.yml` makes one REST request a week so the
-   free-tier project is not paused for idleness — 52 runs a year, so 52 billed
-   minutes, against the 288 minutes A DAY that `*/5 * * * *` would cost. It
-   carries no secret: the address and anon key are read out of
-   `web/config.js`, which is public anyway. Delete the file once the edition's
-   results have been pulled out with `tools/arsip_edisi.py`; what it protects
-   is the last copy of those results, not the project itself.
+   enabled.** `keep-supabase-awake.yml` touches the REST API so the free-tier
+   project is not paused for idleness. It carries no secret: the address and
+   anon key are read out of `web/config.js`, which is public anyway. Delete the
+   file once the edition's results have been pulled out with
+   `tools/arsip_edisi.py`; what it protects is the last copy of those results,
+   not the project itself.
+
+   **It ran WEEKLY at first, and that was under what Supabase asks for.** The
+   pause is decided on activity across a 7-day window, and the documentation
+   puts the bar at "a few user requests to the database each day over the
+   previous week" — one request every seven days is the exact shape of "too
+   few user queries". No threshold is published, so the answer is not to guess
+   it but to sit far above it: the cron is DAILY, and each run makes three
+   spaced requests. GitHub bills per JOB rounded up to a whole minute, not per
+   request, so the second and third requests cost nothing.
+
+   Re-priced accordingly: 365 runs a year, so ~31 billed minutes a month
+   against the 2,000 a month a private repo gets on Free — about 1.5%, still
+   nothing beside the 288 minutes A DAY that `*/5 * * * *` would cost. Do not
+   quietly take it back to weekly to save four minutes a month; what that buys
+   is a project that pauses.
+
+   **A failing run here is not a flaky check, it is the alarm.** GitHub emails
+   on a failed scheduled workflow, and that email is the only warning this
+   repo has. A paused project can be restored for ONE YEAR after it is paused;
+   past that there is no button for anyone to press.
 
 ## 17. Selama acara berjalan
 
