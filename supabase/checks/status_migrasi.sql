@@ -27,7 +27,7 @@
 -- menutup pertanyaannya.
 --
 -- Sekarang keduanya disebutkan: 117 migrasi punya jejak yang diperiksa
--- (bagian 1), dan 53 tidak punya (bagian 2). 117 + 53 = 170, yaitu SELURUH
+-- (bagian 1), dan 54 tidak punya (bagian 2). 117 + 54 = 171, yaitu SELURUH
 -- migrasi yang ada — dan angka itu yang harus dijaga tiap kali berkas migrasi
 -- baru mendarat. Yang di bagian 2 bukan berarti belum diterapkan — berarti
 -- tidak ada yang tersisa untuk diperiksa.
@@ -424,7 +424,14 @@ select nomor, berkas from (values
   ('0151', 'skor_juara_umum_enam_besar'),
   ('0162', 'lebur_smp_al_fadliliyah'),
   ('0168', 'judul_isian_menaksir'),
-  ('0169', 'judul_isian_soal')
+  ('0169', 'judul_isian_soal'),
+  -- 0171 mengembalikan argumen ke-11 `w.jawaban_benar` yang 0166 jatuhkan
+  -- dari v_lembar_pos. Jejaknya BUKAN jejak baru: yang membuktikannya persis
+  -- jejak 0085 di bagian 1, yang memuat panggilan hitung_poin sebelas argumen
+  -- di dalam v_lembar_pos. Alasan yang sama menempatkan 0095 di daftar ini.
+  -- Kalau 0085 melapor BELUM di atas database yang dibangun dari nol, yang
+  -- dilaporkannya bukan migrasi terlewat melainkan regresi itu, lagi.
+  ('0171', 'lembar_pos_jawaban_benar_kembali')
 ) as t(nomor, berkas)
 order by nomor;
 

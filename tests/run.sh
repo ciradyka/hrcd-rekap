@@ -744,6 +744,13 @@ run supabase/migrations/0169_judul_isian_soal.sql
 # sama sekali (CLAUDE.md 7.5).
 run supabase/migrations/0170_centang_sprint.sql
 run tests/sql/120_centang_sprint.sql
+# 0171 mengembalikan argumen ke-11 `w.jawaban_benar` ke hitung_poin() di dalam
+# v_lembar_pos, yang dijatuhkan 0166 saat membangun ulang view itu. Ia HARUS
+# berada di bawah 0166 — di atasnya, 0166-lah yang menang dan perbaikannya
+# tidak ada artinya. Berlaku untuk migrasi berikutnya juga: apa pun yang
+# menulis ulang v_lembar_pos setelah ini wajib membawa argumen ke-11 itu
+# serta, dan penjaga di kaki 0171 hanya memeriksa keadaan pada saat ia jalan.
+run supabase/migrations/0171_lembar_pos_jawaban_benar_kembali.sql
 
 # tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
 # perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.
