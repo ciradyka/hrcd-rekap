@@ -26,7 +26,7 @@
    menggambarnya meng-escape semuanya. Itu juga yang membuat isinya bisa
    diuji di Node tanpa membuka browser.
 
-   ENAM JENIS BLOK, DAN TIDAK ADA YANG KETUJUH
+   TUJUH JENIS BLOK, DAN TIDAK ADA YANG KEDELAPAN
 
      { jenis: "p",       teks: "satu paragraf" }
      { jenis: "poin",    butir: ["...", "..."] }          daftar bertitik
@@ -34,15 +34,29 @@
      { jenis: "tabel",   kepala: ["A", "B"],
                          baris: [["a1", "b1"]] }          panjang baris = kepala
      { jenis: "kenapa",  teks: "..." }                    kotak beraksen
+     { jenis: "foto",    berkas: "kain-intern.jpg",       objek di bucket buku
+                         teks: "Contoh: ..." }            keterangan WAJIB
      { jenis: "layar",   nama: "Meja Pembayaran",
                          hash: "#/pembayaran",
                          fitur: "pembayaran",             null = terbuka untuk
                          teks: "..." }                    semua panitia
 
-   Menambah jenis ketujuh menuntut tiga tempat berubah sekaligus: perakit di
+   Menambah jenis kedelapan menuntut tiga tempat berubah sekaligus: perakit di
    app.js, perakit cetaknya, dan tes bentuk di tests/buku_sakti.test.mjs.
-   Sebelum menambahnya, periksa dulu apakah salah satu dari enam yang ada
+   Sebelum menambahnya, periksa dulu apakah salah satu dari tujuh yang ada
    sudah cukup — hampir selalu cukup.
+
+   BLOK FOTO: KETERANGANNYA YANG UTAMA, GAMBARNYA PELENGKAP.
+
+   Gambarnya duduk di bucket Supabase `buku` yang publik, dibuat sekali lewat
+   dashboard. Ia TIDAK ikut tercetak — buku ini digandakan di mesin fotokopi
+   seperti blangko, dan raster abu-abu keluar kotor atau hilang di salinan
+   kedua (bagian 8). Di layar pun gambarnya dibuang sendiri kalau gagal
+   dimuat, karena buku panduan paling dibutuhkan saat ada yang rusak.
+
+   Akibatnya satu: tulis keterangannya supaya utuh dibaca TANPA gambarnya.
+   "Contoh: kain Intern bertulis 1001, angka 1 di depan ikut disablon" bekerja
+   di dua keadaan; "Contoh: seperti di gambar" tidak bekerja di satu pun.
 
    SATU BAB PUNYA DUA NAMA, dan keduanya wajib.
 
@@ -177,8 +191,53 @@ const BAB_TUTORIAL = {
   tab: "Menjalankan",
   ikon: "list-ordered",
   warna: "biru",
-  ringkas: "Urutan kerja satu edisi HRCD, dari menyiapkan edisi baru sampai papan juara dan pembersihan sesudah acara.",
+  ringkas: "Hal penting yang wajib diketahui semua panitia, lalu urutan kerja satu edisi HRCD dari menyiapkan edisi baru sampai papan juara dan pembersihan sesudah acara.",
   bagian: [
+    {
+      kode: "tutorial-hal-penting",
+      judul: "Hal penting yang wajib disampaikan ke semua panitia",
+      isi: [
+        {
+          jenis: "p",
+          teks: "Beberapa hal di sistem ini benar hanya kalau semua orang tahu. Bukan cuma pemegang akun: juri pos, petugas finish, pencatat, dan koordinator lapangan. Sampaikan seluruh isi bagian ini di gladi kotor, bukan pagi hari-H, karena semuanya berujung pada nilai yang jatuh ke regu yang salah.",
+        },
+        {
+          jenis: "p",
+          teks: "Yang pertama dan paling sering keliru: nomor dada punya DUA deret, dan keduanya dipakai berdampingan di lomba yang sama. Regu Eksternal dan regu Intern dinilai di pos yang sama, oleh juri yang sama, di blangko yang sama.",
+        },
+        {
+          jenis: "tabel",
+          kepala: ["Deret", "Angka di sistem", "Yang harus tertulis di kain"],
+          baris: [
+            ["Eksternal", "1 sampai 500", "sama persis dengan angka di sistem"],
+            ["Intern", "1001 sampai 1250", "1001, bukan 001; angka 1 di depan ikut disablon"],
+          ],
+        },
+        {
+          jenis: "p",
+          teks: "Contoh: kain bertulis 1001 diketik 1001, dan yang tampil di seluruh layar, kertas, dan papan peserta juga 1001. Tidak ada penerjemahan di kepala siapa pun. Kain Eksternal bertulis 7 diketik 7.",
+        },
+        {
+          jenis: "foto",
+          berkas: "kain-nomor-dada-dua-deret.jpg",
+          teks: "Contoh: dua kain berdampingan. Yang kiri Eksternal, angkanya polos. Yang kanan Intern, angka 1 di depan ikut disablon jadi 1001 — bukan 001.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Kain Intern yang polos bertulis 001 melahirkan blangko yang ambigu: juri menyalin apa yang dilihatnya di dada regu, dan 001 bisa dibaca sebagai Eksternal 1. Tidak ada satu baris SQL pun yang bisa memulihkan blangko seperti itu, karena kertasnya tidak menyimpan nama regu.",
+            "Blangko penilaian memang HANYA memuat nomor dada, tanpa nama regu. Satu angka yang salah memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya.",
+            "Nomor yang ditukar karena kainnya rusak DIPENSIUNKAN permanen. Kalau petugas pos melihat nomor yang sudah pensiun di lapangan, itu dilaporkan ke Sekretariat, bukan dinilai diam-diam.",
+            "Penalti pos terlewat dan penalti anggota TIDAK berlaku bagi regu Intern. Umumkan ini sebelum papan dibaca, kalau tidak ada yang menyimpulkan sistemnya salah hitung.",
+            "Samakan jam tangan seluruh panitia ke satu jam acuan pada apel pagi. Jam berangkat dan jam datang diketik dari jam sungguhan, dan penaltinya satu poin per menit ke dua arah. Dua jam tangan yang selisih tiga menit berarti tiga poin bagi regu yang tidak salah apa-apa.",
+          ],
+        },
+        {
+          jenis: "kenapa",
+          teks: "Semua ini murah selama masih di atas kertas dan mahal begitu masuk sistem. Nomor dada yang salah ketahuan di meja daftar ulang cuma satu ketukan. Yang ketahuan saat klasemen dibacakan tidak bisa ditarik lagi dari ingatan orang yang telanjur bertepuk tangan.",
+        },
+      ],
+    },
     {
       kode: "tutorial-edisi-baru",
       judul: "Menyiapkan edisi baru",
@@ -389,7 +448,7 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "kenapa",
-          teks: "Regu yang belum lunas tidak bisa daftar ulang dan tidak masuk penyebut kelengkapan pos. Antrean yang tertahan di sini akan muncul kembali sebagai antrean panjang di meja daftar ulang, satu hari sebelum lomba, saat tidak ada lagi waktu mengurusnya.",
+          teks: "Regu yang belum lunas tidak bisa daftar ulang dan tidak masuk penyebut kelengkapan pos. Antrean yang tertahan di sini muncul lagi di meja daftar ulang pada H-1, saat tidak ada lagi waktu mengurusnya.",
         },
       ],
     },
@@ -399,7 +458,11 @@ const BAB_TUTORIAL = {
       isi: [
         {
           jenis: "p",
-          teks: "Daftar ulang berjalan satu sampai dua hari sebelum lomba, biasanya dengan dua atau tiga meja paralel. Regu datang menyebut kode pembayaran, panitia mengonfirmasi nama regu dan sekolahnya, lalu MENGETIK nomor dada dari kain fisik yang sudah ada di tangan.",
+          teks: "Dua hal ini beda dan sering tertukar. PENDAFTARAN itu registrasi dan membayar, berbulan-bulan sebelumnya. DAFTAR ULANG itu hadir di tempat, dan jendelanya H-1 sampai hari-H — tidak pernah lebih awal.",
+        },
+        {
+          jenis: "p",
+          teks: "Di meja inilah regu masuk ke kloter keberangkatan, jadi di sini pula seluruh perlengkapannya diserahkan: kain nomor dada dan tiska. Biasanya dua atau tiga meja paralel. Regu menyebut kode pembayaran, panitia mengonfirmasi nama regu dan sekolahnya, lalu MENGETIK nomor dada dari kain fisik yang sudah ada di tangan.",
         },
         {
           jenis: "layar",
@@ -407,6 +470,11 @@ const BAB_TUTORIAL = {
           hash: "#/daftar-ulang",
           fitur: "daftar_ulang",
           teks: "Cari batch dengan kode pembayaran, isi nomor dada untuk seluruh regu sekolah itu sekaligus lewat satu tombol Simpan, dan tukar nomor yang kainnya rusak.",
+        },
+        {
+          jenis: "foto",
+          berkas: "meja-daftar-ulang.jpg",
+          teks: "Contoh: satu meja daftar ulang. Kotak kain nomor dada dan tiska di sebelah petugas, layar menghadap petugas, dan antrean satu sekolah dilayani sekali jalan.",
         },
         {
           jenis: "langkah",
@@ -432,7 +500,7 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "kenapa",
-          teks: "Blangko penilaian per lomba hanya memuat NOMOR DADA tanpa nama regu. Nomor dada yang salah setelah lomba dimulai bukan sekadar salah tulis: ia memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya. Sebelum kertasnya dicetak, pembetulan cuma satu ketukan.",
+          teks: "Blangko penilaian per lomba hanya memuat NOMOR DADA tanpa nama regu. Nomor dada yang salah setelah lomba dimulai bukan sekadar salah tulis. Ia memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya. Sebelum kertasnya dicetak, pembetulan cuma satu ketukan.",
         },
       ],
     },
@@ -462,6 +530,15 @@ const BAB_TUTORIAL = {
           ],
         },
         {
+          jenis: "p",
+          teks: "Contoh: sekolah A selesai daftar ulang jam 08:10 dan regunya masuk kloter 3. Sekolah B selesai jam 08:25 dan masuk kloter 4 — walaupun nomor dadanya kebetulan lebih kecil. Yang menentukan jam selesainya, bukan angkanya.",
+        },
+        {
+          jenis: "foto",
+          berkas: "daftar-kloter-tertempel.jpg",
+          teks: "Contoh: lembar Daftar Kloter untuk Peserta yang tertempel di barak. Isinya perkiraan jam berangkat saja, tanpa kolom centang dan tanpa kotak jam.",
+        },
+        {
           jenis: "langkah",
           butir: [
             "Tekan Cetak Kloter untuk Petugas: lembarnya memuat kolom Kontrak Waktu dan Hadir yang ditulisi berdampingan, plus tempat menulis tangan jam berangkat sebenarnya.",
@@ -477,7 +554,7 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "p",
-          teks: "Bersihkan data harus mengembalikan penomoran kloter ke 1. Produksi pernah memulai pembagian dari kloter 17 karena 24 kloter pertama masih menyandang tanda cetak dari percobaan sebelumnya, dan panitia menghabiskan pagi mencari enam belas kloter yang tidak pernah ada.",
+          teks: "Bersihkan data harus mengembalikan penomoran kloter ke 1. Produksi pernah memulai pembagian dari kloter 17, karena 24 kloter pertama masih menyandang tanda cetak dari percobaan sebelumnya. Panitia menghabiskan pagi mencari enam belas kloter yang tidak pernah ada.",
         },
       ],
     },
@@ -613,7 +690,7 @@ const BAB_TUTORIAL = {
             "Masukkan lembar yang sudah terisi ke KOTAK PENILAIAN pos itu.",
             "Jalur foto utamanya tombol kamera di meja IT: difoto saat nomor dadanya baru diketik, jadi gambarnya tertaut sendiri ke regu dan lomba yang tepat.",
             "Foto Jawaban Sekaligus dipakai untuk yang tidak bisa dilakukan tombol itu: memotret setumpuk kertas DI POS sebelum ia berangkat ke meja IT. Nomor dadanya menganggur di antrean sampai ada yang menautkannya, jadi jangan biarkan antreannya menumpuk.",
-            "Urutkan kertasnya menurut nomor dada sebelum diinput — tabelnya juga berurut begitu, deret 1 sampai 500 dulu lalu 1001 ke atas — lalu masukkan berurutan lewat Input Nilai Tabel.",
+            "Urutkan kertasnya menurut nomor dada sebelum diinput, lalu masukkan berurutan lewat Input Nilai Tabel. Tabelnya berurut sama: deret 1 sampai 500 dulu, baru 1001 ke atas.",
           ],
         },
         {
@@ -637,7 +714,7 @@ const BAB_TUTORIAL = {
         {
           jenis: "poin",
           butir: [
-            "Yang ditolak server — nilai di luar rentang, regu tergembok, komponen bukan untuk golongan itu — dilaporkan merah saat itu juga selagi regunya masih di depan petugas, dan tidak masuk antrean.",
+            "Yang ditolak server dilaporkan merah saat itu juga, selagi regunya masih di depan petugas, dan tidak masuk antrean. Yang ditolak: nilai di luar rentang, regu tergembok, komponen bukan untuk golongan itu.",
             "Kotak penilaian yang tertinggal di pos adalah satu-satunya cara nilai lenyap tanpa jejak. Tunjuk satu orang penanggung jawabnya sejak pos tutup sampai isinya masuk sistem.",
           ],
         },
@@ -744,7 +821,7 @@ const BAB_TUTORIAL = {
       isi: [
         {
           jenis: "p",
-          teks: "Live Score bukan cuma papan skor; sepanjang lomba ia adalah alat memantau kelengkapan. Di kartu Status ada satu cincin per pos: persennya di dalam cincin, dan di bawahnya berapa regu yang nilainya sudah LENGKAP dibanding berapa regu yang seharusnya dinilai di pos itu.",
+          teks: "Live Score bukan cuma papan skor; sepanjang lomba ia adalah alat memantau kelengkapan. Di kartu Status ada satu cincin per pos. Persennya di dalam cincin. Di bawahnya, berapa regu yang nilainya sudah LENGKAP dibanding berapa regu yang seharusnya dinilai di pos itu.",
         },
         {
           jenis: "layar",
@@ -785,7 +862,7 @@ const BAB_TUTORIAL = {
           butir: [
             "Sapu cincin kelengkapan tiap pos setiap kali ada jeda di meja.",
             "Bandingkan cincin-cincinnya satu sama lain, bukan dengan angka yang diingat-ingat. Cincin yang diam sendirian sementara yang lain naik itulah yang perlu ditelepon.",
-            "Tekan Refresh kalau angkanya terasa basi. Sejak migrasi 0165 tombol itu MENGHITUNG ULANG, bukan sekadar membaca ulang snapshot lama — dan di luar tanggal lomba penyegaran otomatis memang mati, jadi tombol inilah satu-satunya yang memperbaruinya.",
+            "Tekan Refresh kalau angkanya terasa basi. Sejak migrasi 0165 tombol itu MENGHITUNG ULANG, bukan sekadar membaca ulang snapshot lama. Di luar tanggal lomba penyegaran otomatis memang mati, jadi tombol inilah satu-satunya yang memperbarui.",
             "Naikkan fase HANYA sesudah panitia inti setuju.",
           ],
         },
@@ -805,7 +882,7 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "p",
-          teks: "Penerbitannya BUKAN tombol di layar panitia. Yang ada di layar cuma saklar fase; yang menulis berkasnya adalah workflow Publish rekap live di GitHub Actions, dijalankan dari tab Actions — dan itu bisa dari HP. Pesan yang muncul sesudah saklar digeser pun menyuruh hal yang sama.",
+          teks: "Penerbitannya BUKAN tombol di layar panitia. Yang ada di layar cuma saklar fase. Yang menulis berkasnya workflow Publish rekap live di GitHub Actions, dijalankan dari tab Actions, dan itu bisa dari HP. Pesan yang muncul sesudah saklar digeser pun menyuruh hal yang sama.",
         },
         {
           jenis: "layar",
@@ -932,7 +1009,7 @@ const BAB_TUTORIAL = {
         {
           jenis: "poin",
           butir: [
-            "Catat hal-hal yang belum ada layarnya supaya kepanitiaan berikutnya tidak mencarinya di hari-H: penempatan barak belum punya layar di aplikasi panitia, upload nilai massal belum dibangun sama sekali, dan foto borongan masih ditautkan ke nomor dada dengan tangan.",
+            "Catat apa saja yang belum ada layarnya, supaya kepanitiaan berikutnya tidak mencarinya di hari-H. Sekarang ada tiga: penempatan barak belum punya layar, upload nilai massal belum dibangun, dan foto borongan masih ditautkan ke nomor dada dengan tangan.",
             "Catat juga apa yang tahun ini berubah angkanya — bobot lomba, kontrak waktu, stok nomor dada — supaya edisi berikutnya tahu apa yang harus ditinjau ulang.",
           ],
         },
@@ -946,7 +1023,7 @@ const BAB_SEKSI = {
   tab: "Seksi",
   ikon: "users",
   warna: "magenta",
-  ringkas: "Bentuk kepanitiaan yang dibutuhkan satu edisi HRCD: siapa saja seksinya, apa tugas pokoknya, kapan pekerjaannya jatuh, dan hak akses apa yang dipegangnya.",
+  ringkas: "Bentuk kepanitiaan yang dibutuhkan satu edisi HRCD: siapa saja seksinya, apa tugas pokoknya, kapan pekerjaannya jatuh, dan hak akses apa yang dipegangnya. Ditutup satu bagian strategi mendatangkan untung.",
   bagian: [
     {
       kode: "seksi-susunan",
@@ -992,7 +1069,7 @@ const BAB_SEKSI = {
         },
         {
           jenis: "kenapa",
-          teks: "Yang paling sering hilang di susunan mana pun bukan seksi yang besar, melainkan pekerjaan yang jatuh di antara dua seksi: garis finish antara Acara dan Koordinator Lapangan, penyusuran jalur antara Keamanan dan Kesehatan, dan daftar username antara Sekretaris dan Sekretariat. Putuskan ketiganya di rapat besar, tertulis.",
+          teks: "Yang paling sering hilang bukan seksi yang besar, melainkan pekerjaan yang jatuh di antara dua seksi. Tiga contohnya: garis finish antara Acara dan Koordinator Lapangan, penyusuran jalur antara Keamanan dan Kesehatan, daftar username antara Sekretaris dan Sekretariat. Putuskan ketiganya di rapat besar, tertulis.",
         },
       ],
     },
@@ -1270,7 +1347,7 @@ const BAB_SEKSI = {
             "Menyebarkan link form pendaftaran ke pangkalan bersama Humas, dan menjawab pembina yang tersangkut di tengah form.",
             "Menjaga nama regu unik dan satu sekolah satu baris. Dua sekolah senama dibedakan DI DALAM namanya, misalnya MAN 3 Ciamis dan MAN 3 Tasikmalaya.",
             "Membetulkan salah ketik lewat Data Peserta. Golongan, sekolah, nomor dada, dan status bayar tidak bisa diubah di sana.",
-            "Menjalankan daftar ulang H-1 atau H-2 dengan dua sampai tiga meja: mengetik nomor dada dari kain fisik, seluruh regu satu sekolah dalam satu kali simpan.",
+            "Menjalankan daftar ulang H-1 sampai hari-H dengan dua sampai tiga meja: mengetik nomor dada dari kain fisik, seluruh regu satu sekolah dalam satu kali simpan.",
             "Mencetak dan menempel daftar kloter di papan utama dan di barak, supaya pembina tidak bertanya satu per satu.",
             "Sebagai pemegang admin: membuat akun panitia, menerapkan migration konfigurasi edisi, menaikkan fase live atas perintah Ketua, dan menerbitkan rekap ke situs peserta.",
           ],
@@ -1282,7 +1359,7 @@ const BAB_SEKSI = {
             ["Sprint 1 sampai 3", "Memegang password akun organisasi, membuat akun panitia inti."],
             ["Sprint 5 sampai 6", "Menerapkan migration konfigurasi edisi, membuka pendaftaran, memantau regu masuk tiap hari."],
             ["Sprint 11", "Menutup pendaftaran, menyerahkan hitungan regu terakhir ke Logistik dan Konsumsi, membuat akun juri."],
-            ["H-1 sampai H-2", "Daftar ulang: nomor dada, kloter, cetak daftar kloter."],
+            ["H-1 sampai hari-H", "Daftar ulang: nomor dada, tiska, kloter, cetak daftar kloter."],
             ["Hari lomba", "Standby untuk gembok dan pembetulan nilai, menaikkan fase live, menerbitkan rekap."],
           ],
         },
@@ -1437,7 +1514,7 @@ const BAB_SEKSI = {
         },
         {
           jenis: "kenapa",
-          teks: "Penalti waktu menilai KETEPATAN, bukan kecepatan. Terlalu cepat dan terlambat sama-sama mengurangi satu poin per menit, jadi jam datang yang tidak ditekan membuat penalti kosong untuk regu itu dan tidak ada cara memulihkannya sesudah semua bubar.",
+          teks: "Penalti waktu menilai KETEPATAN, bukan kecepatan. Terlalu cepat dan terlambat sama-sama mengurangi satu poin per menit. Jam datang yang tidak ditekan membuat penalti regu itu kosong, dan tidak ada cara memulihkannya sesudah semua bubar.",
         },
       ],
     },
@@ -1568,14 +1645,15 @@ const BAB_SEKSI = {
       isi: [
         {
           jenis: "p",
-          teks: "Semua benda yang harus ada di tempatnya pada pagi hari-H: barak, tenda, alat tiap lomba, nomor dada kain, blangko yang sudah digandakan, piala, dan rambu rute. Tiga angka kerjanya diambil dari sistem, jadi ia menunggu hitungan regu terakhir dari Sekretariat.",
+          teks: "Semua benda yang harus ada di tempatnya pada pagi hari-H: barak, tenda, alat tiap lomba, nomor dada kain, tiska, blangko yang sudah digandakan, piala, dan rambu rute. Tiga angka kerjanya diambil dari sistem, jadi ia menunggu hitungan regu terakhir dari Sekretariat.",
         },
         {
           jenis: "poin",
           butir: [
             "Mengurus izin dan pembagian ruang barak, memisahkan putra dan putri, dan menempel denahnya.",
             "Menyediakan alat tiap lomba sesuai daftar Koordinator Lapangan, beserta cadangannya.",
-            "Menyiapkan nomor dada kain dua deret, Eksternal dan Intern, sesuai stok yang dipasang di sistem.",
+            "Menyiapkan nomor dada kain dua deret sesuai stok yang dipasang di sistem: Eksternal polos, Intern disablon 1001 ke atas dan bukan 001.",
+            "Menyiapkan tiska sejumlah PESERTA beserta cadangan, dan menyerahkannya ke meja daftar ulang, bukan ke garis finish. Tiska bukti keikutsertaan, jadi hitungannya per kepala, bukan per regu.",
             "Menggandakan blangko di mesin fotokopi. Yang dicetak dari layar cuma satu master per lomba, bukan setumpuk.",
             "Menyiapkan piala dan hadiah, dan memastikan namanya sesuai kategori juara.",
             "Memasang rambu penunjuk arah sehari sebelum acara, sore hari, jangan lebih awal.",
@@ -1586,7 +1664,7 @@ const BAB_SEKSI = {
           kepala: ["Kapan", "Yang dikerjakan"],
           baris: [
             ["Sprint 4", "Izin pemakaian gedung dan lahan barak."],
-            ["Sprint 7 sampai 9", "Alat praktik tiap lomba, nomor dada kain, piala."],
+            ["Sprint 7 sampai 9", "Alat praktik tiap lomba, nomor dada kain, tiska, piala."],
             ["Sprint 11 sampai 12", "Menggandakan blangko, menyiapkan barak, memasang rambu sore H-1."],
             ["Sesudah acara", "Mengembalikan barang pinjaman dan membereskan lahan."],
           ],
@@ -1744,6 +1822,91 @@ const BAB_SEKSI = {
         },
       ],
     },
+
+    {
+      kode: "seksi-strategi-untung",
+      judul: "Strategi mendatangkan untung: merchandise",
+      bukanSeksi: true,
+      isi: [
+        {
+          jenis: "p",
+          teks: "Bagian ini milik bersama Dana Usaha, Sponsorship, dan Bendahara. Untung HRCD datang dari tiga arah: uang masuk di luar pendaftaran, uang orang lain yang menggantikan belanja kita, dan uang yang batal keluar. Yang ketiga paling sering dilupakan padahal paling mudah didapat. Satu dus air minum yang disponsori bernilai persis sama dengan satu dus air minum yang terjual.",
+        },
+        {
+          jenis: "p",
+          teks: "Syarat pertamanya sudah dikunci sejak Sprint 2: titik impas dihitung dari uang pendaftaran SAJA. Artinya seluruh isi bagian ini adalah untung, bukan penambal lubang, dan acara tetap jalan kalau sponsor nol. Rencana yang membuat acara batal ketika targetnya meleset bukan strategi, itu taruhan.",
+        },
+        {
+          jenis: "p",
+          teks: "Merchandise adalah satu-satunya jalur untung yang angkanya bisa direncanakan jauh hari, dan satu-satunya yang bisa berbalik jadi rugi kalau urutannya salah.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Begitu daftarnya siap, buka pre-order SAAT ITU JUGA lewat pembina, jangan menunggu posternya jadi. Satu pembina memesan untuk sepuluh regu sekaligus; eceran satu per satu ke peserta tidak akan pernah mengejar angka itu.",
+            "Produksi sejumlah yang SUDAH DIBAYAR, ditambah cadangan kecil untuk bazar. Stok yang dicetak dari perkiraan berakhir jadi kardus di sekretariat, dan kardus itu kerugian yang sudah dibayar di muka.",
+            "Hitung harga jual dari biaya satuan pada jumlah yang PASTI terjual, bukan pada jumlah yang diharapkan. Sablon murah per lusin dan mahal per lima potong, jadi harga yang disusun dari harga lusinan lalu laku lima potong menjual barang di bawah modal.",
+            "Tutup pre-order di Sprint 9. Barang yang jadi sesudah hari-H tidak bisa dijual ke siapa pun lagi, pembelinya sudah pulang.",
+            "Uangnya ditransfer TERPISAH dari uang pendaftaran. Kalau digabung, nominal yang masuk tidak cocok dengan tagihan regunya dan batch itu ditolak di Meja Pembayaran sebagai salah nominal. Penjualan kaos berubah jadi keluhan, dan verifikasi pembayaran satu sekolah mundur sehari.",
+          ],
+        },
+        {
+          jenis: "kenapa",
+          teks: "Yang membuat merchandise rugi hampir tidak pernah barangnya tidak laku, melainkan urutannya terbalik: dicetak lebih dulu, ditawarkan belakangan. Pre-order membalik urutan itu, dan itulah satu-satunya alasan seksi sekolah boleh berjualan barang sama sekali.",
+        },
+      ],
+    },
+
+    {
+      kode: "seksi-strategi-lapangan",
+      judul: "Strategi mendatangkan untung: bazar dan belanja yang batal keluar",
+      bukanSeksi: true,
+      isi: [
+        {
+          jenis: "p",
+          teks: "Hari lomba adalah hari dengan orang paling banyak dan waktu paling sedikit. Yang menentukan hasil bazar cuma dua hal: tempatnya dan jamnya.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Berjualan di tempat orang MENUNGGU, bukan di tempat orang lewat. Barak pada malam H-1 dan garis finish sepanjang siang; regu yang sudah masuk finish menunggu berjam-jam sampai kloter terakhir datang.",
+            "Yang paling laku di dua titik itu minuman dingin dan makanan ringan, bukan kenang-kenangan. Merchandise dijual malam sebelumnya di barak, saat orangnya belum lelah dan uangnya belum habis.",
+            "Kembalian habis lebih cepat daripada barang. Minta uang kecil ke Bendahara sebelum stan dibuka, dan setorkan hasilnya berkala, bukan sekaligus tengah malam.",
+            "Satu orang menjaga uang dan satu orang melayani. Stan yang dijaga satu orang berhenti tiap kali penjaganya dipanggil, dan selisih kasnya tidak bisa ditelusuri ke siapa pun.",
+          ],
+        },
+        {
+          jenis: "p",
+          teks: "Arah ketiga tidak pernah tampil sebagai pemasukan di buku kas, padahal nilainya sama besar: belanja yang batal keluar.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Minta sponsor dalam bentuk BARANG untuk pos belanja yang memang sudah ada di anggaran, seperti air minum, konsumsi juri, hadiah, spanduk, dan obat. Toko jauh lebih mudah memberi barang daripada uang tunai, dan nilainya sama di laporan.",
+            "Pinjam sebelum membeli. Tenda, HT, sound system, dan alat lomba hampir selalu ada di gugus depan lain, sekolah tetangga, atau alumni. Kembalikan dengan berita acara supaya pintunya masih terbuka tahun depan.",
+            "Cetak sekali, fotokopi sisanya. Blangko dan daftar kloter memang dirancang untuk itu. Mencetak ribuan lembar dari printer sekolah menghabiskan satu toner untuk pekerjaan yang selesai dalam hitungan menit di mesin fotokopi.",
+            "Pesan nomor dada kain dan hadiah SESUDAH pendaftaran ditutup, kecuali cadangan sepuluh persen. Yang dipesan dari proyeksi selalu lebih banyak daripada yang dipakai.",
+          ],
+        },
+        {
+          jenis: "tabel",
+          kepala: ["Kapan", "Yang dikerjakan"],
+          baris: [
+            ["Sprint 2", "Target rupiah Dana Usaha dan titik impas dari uang pendaftaran saja."],
+            ["Sprint 3", "Daftar merchandise disusun, pre-order dibuka lewat pembina."],
+            ["Sprint 3 sampai 8", "Jualan berkala, proposal sponsor, permintaan barang dan pinjaman alat."],
+            ["Sprint 9", "Pre-order dan penerimaan sponsor DITUTUP, produksi dimulai."],
+            ["Malam H-1", "Merchandise dijual di barak, sekalian saat pembina mengambil nomor dada."],
+            ["Hari lomba", "Bazar di barak dan garis finish, setoran berkala ke Bendahara."],
+            ["Sesudah acara", "Sisa stok dihabiskan di sekolah sendiri, jangan disimpan sampai edisi berikutnya."],
+          ],
+        },
+        {
+          jenis: "kenapa",
+          teks: "Untung yang tidak tercatat bukan untung. Dana usaha, bazar, merchandise, dan sponsor barang semuanya berjalan di luar sistem, karena yang dicatat sistem cuma pembayaran pendaftaran. Satu buku Bendahara adalah satu-satunya tempat angkanya bertemu, dan yang tidak masuk buku itu hilang di LPJ.",
+        },
+      ],
+    },
   ],
 };
 const BAB_KENAPA = {
@@ -1752,7 +1915,7 @@ const BAB_KENAPA = {
   tab: "Kenapa",
   ikon: "file-text",
   warna: "ungu",
-  ringkas: "Dua puluh dua keputusan yang membentuk sistem ini, alternatif yang ditolak, dan apa yang rusak kalau dibalik.",
+  ringkas: "Dua puluh empat keputusan yang membentuk sistem ini, alternatif yang ditolak, dan apa yang rusak kalau dibalik.",
   bagian: [
     {
       kode: "kenapa-biaya-nol",
@@ -1772,7 +1935,7 @@ const BAB_KENAPA = {
         },
         {
           jenis: "kenapa",
-          teks: "Kalau batas ini dilonggarkan, tagihan kejutan jatuh ke rekening pribadi pengurus lama, dan kuota yang habis mematikan SEMUA workflow — termasuk apply-migration dan tombol ganti password yang dipakai panitia dari HP.",
+          teks: "Kalau batas ini dilonggarkan, tagihan kejutan jatuh ke rekening pribadi pengurus lama. Kuota yang habis juga mematikan SEMUA workflow, termasuk apply-migration dan tombol ganti password yang dipakai panitia dari HP.",
         },
       ],
     },
@@ -1782,13 +1945,13 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Empat kandidat dibandingkan sebelum satu dipilih. Yang menang Supabase karena tiga hal yang paling berbahaya kalau salah — nomor dada ganda, isolasi pos, dan riwayat perubahan — dijamin oleh platformnya sendiri lewat transaksi, RLS, dan trigger. Bukan oleh kehati-hatian orang yang sedang berdiri di meja dengan antrean di depannya.",
+          teks: "Empat kandidat dibandingkan sebelum satu dipilih. Yang menang Supabase. Tiga hal yang paling berbahaya kalau salah — nomor dada ganda, isolasi pos, riwayat perubahan — dijamin platformnya sendiri lewat transaksi, RLS, dan trigger. Bukan oleh kehati-hatian orang yang sedang berdiri di meja dengan antrean di depannya.",
         },
         {
           jenis: "poin",
           butir: [
             "Ditolak Google Sheets plus Apps Script: batas 30 eksekusi bersamaan dibagi ke SEMUA perangkat, dan tiap aksi berjeda 1 sampai 4 detik. Sepuluh meja bekerja bersamaan sudah menghabiskannya.",
-            "Ditolak Firebase paket Spark: kuota 50.000 baca per hari tersentuh oleh belasan penonton yang refresh, dan kalau habis, database mati baca sampai jam 15:00 WIB — persis di tengah penilaian.",
+            "Ditolak Firebase paket Spark: kuota 50.000 baca per hari tersentuh oleh belasan penonton yang refresh. Kalau habis, database mati baca sampai jam 15:00 WIB, persis di tengah penilaian.",
             "Ditolak PocketBase di laptop panitia lewat Tunnel: memindahkan seluruh risiko ke satu hardware pelajar di hari paling sibuk. Laptop ditutup, acara berhenti.",
           ],
         },
@@ -1817,7 +1980,7 @@ const BAB_KENAPA = {
         },
         {
           jenis: "kenapa",
-          teks: "Kalau digabung, alamat yang diteruskan ke ratusan orang sekaligus menyebarkan pintu masuk panitia — dan beban ratusan HP yang refresh papan jatuh ke Worker yang sama dengan yang sedang dipakai meja bekerja.",
+          teks: "Kalau digabung, alamat yang diteruskan ke ratusan orang sekaligus menyebarkan pintu masuk panitia. Dan beban ratusan HP yang refresh papan jatuh ke Worker yang sama dengan yang dipakai meja bekerja.",
         },
       ],
     },
@@ -1827,20 +1990,20 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Seluruh data peserta dan nilai datang dari dua file yang diterbitkan workflow: live.json berukuran sekitar 1 KB yang di-poll tiap 60 detik, dan rekap.json berukuran puluhan KB yang diambil sekali per versi, itu pun baru setelah peserta mengetik nama sekolahnya. Versi itu sidik jari ISI, jadi menerbitkan sepuluh kali tanpa nilai baru tidak membuat satu HP pun download ulang. Satu-satunya permintaan langsung dari HP peserta ke database adalah membaca saklar fase, v_fase_live, tiap 15 detik selama halamannya terlihat — satu nilai, bukan satu baris rekap pun.",
+          teks: "Seluruh data peserta dan nilai datang dari dua file yang diterbitkan workflow. Yang pertama live.json, sekitar 1 KB, di-poll tiap 60 detik. Yang kedua rekap.json, puluhan KB, diambil sekali per versi — itu pun baru setelah peserta mengetik nama sekolahnya. Versi itu sidik jari ISI, jadi menerbitkan sepuluh kali tanpa nilai baru tidak membuat satu HP pun download ulang. Satu-satunya permintaan langsung dari HP peserta ke database adalah membaca saklar fase, v_fase_live, tiap 15 detik selama halamannya terlihat — satu nilai, bukan satu baris rekap pun.",
         },
         {
           jenis: "poin",
           butir: [
-            "Ditolak halaman peserta yang menarik seluruh rekap langsung dari Supabase: pesertanya 1.500 sampai 3.000 orang dan mereka membuka alamat yang sama berkali-kali dalam jendela waktu yang sama persis.",
+            "Ditolak halaman peserta yang menarik seluruh rekap langsung dari Supabase. Pesertanya 1.500 sampai 3.000 orang, dan mereka membuka alamat yang sama berkali-kali dalam jendela waktu yang sama persis.",
             "Ditolak Realtime: koneksi terbuka per HP untuk data yang sebagian besar waktu tidak berubah sama sekali. Polling yang ada pun berhenti begitu tab tidak terlihat, dan jalan lagi begitu HP dibuka.",
             "Ditolak menyambungkan situs peserta ke Git seperti layar panitia. Yang di-deploy ke sana bukan isi repository melainkan live.json yang baru ditulis workflow dari database beberapa detik sebelumnya.",
-            "Kalau tersambung Git, tiap push ke main menimpanya dengan file contoh fase pra yang memang ada di repository — rekap peserta mendadak kosong tanpa satu langkah pun yang gagal.",
+            "Kalau tersambung Git, tiap push ke main menimpanya dengan file contoh fase pra yang memang ada di repository. Rekap peserta mendadak kosong tanpa satu langkah pun yang gagal.",
           ],
         },
         {
           jenis: "kenapa",
-          teks: "Kalau dibalik, tiga ribu HP menarik file gemuk tiap menit langsung dari database, dan papan peserta bisa dikosongkan di tengah acara oleh perbaikan warna tombol yang sama sekali tidak berhubungan.",
+          teks: "Kalau dibalik, tiga ribu HP menarik file gemuk tiap menit langsung dari database. Dan papan peserta bisa dikosongkan di tengah acara oleh perbaikan warna tombol yang sama sekali tidak berhubungan.",
         },
       ],
     },
@@ -1912,7 +2075,7 @@ const BAB_KENAPA = {
           butir: [
             "Ditolak kolom total tersimpan plus tombol hitung ulang: koreksi yang datang di menit terakhir menuntut seseorang ingat menekan tombolnya, dan papan mengumumkan juara dari angka lama.",
             "Ditolak juri menghitung poin di kepala atau di kertas. Blangko cetak sengaja TIDAK punya kolom Nilai Pos: juri hanya menulis data mentah, dan skornya tetap dihitung database.",
-            "Ditolak layar menghitung poin di browser. Layar Input Nilai Tabel selalu membaca ulang angkanya dari v_lembar_pos tiap kali satu baris tersimpan, karena menghitung di browser melahirkan mesin skor kedua yang suatu hari berbeda pendapat dengan v_poin_pos.",
+            "Ditolak layar menghitung poin di browser. Layar Input Nilai Tabel selalu membaca ulang angkanya dari v_lembar_pos tiap kali satu baris tersimpan. Menghitung di browser melahirkan mesin skor kedua, yang suatu hari berbeda pendapat dengan v_poin_pos.",
             "cache_live_score dari migration 0146 murni soal kecepatan. Menghapusnya tidak menghilangkan satu nilai pun, karena ia bukan sumber angkanya.",
           ],
         },
@@ -1925,7 +2088,7 @@ const BAB_KENAPA = {
         },
         {
           jenis: "kenapa",
-          teks: "Kalau skor disimpan atau dihitung di dua tempat, akan ada dua angka untuk satu regu, dan suatu hari keduanya berbeda pendapat — biasanya di panggung, saat juara dibacakan.",
+          teks: "Kalau skor disimpan atau dihitung di dua tempat, akan ada dua angka untuk satu regu. Suatu hari keduanya berbeda pendapat, biasanya di panggung, saat juara dibacakan.",
         },
       ],
     },
@@ -1935,20 +2098,48 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Aturan skor berganti hampir tiap tahun. Karena itu tiap kolom penilaian adalah satu baris di tabel wahana, dengan enam bentuk konversi yang bisa dipilih. Layar Input Nilai Tabel membangun kolomnya dari baris-baris itu — nama dan urutannya dari wahana, bentuk kotaknya dari wahana, rentang yang boleh diketik dari wahana — jadi mengganti penilaian tahun depan tidak menyentuh satu baris kode pun.",
+          teks: "Aturan skor berganti hampir tiap tahun. Karena itu tiap kolom penilaian adalah satu baris di tabel wahana, dengan enam bentuk konversi yang bisa dipilih. Layar Input Nilai Tabel membangun kolomnya dari baris-baris itu: nama, urutan, bentuk kotak, dan rentang yang boleh diketik, semuanya dari wahana. Jadi mengganti penilaian tahun depan tidak menyentuh satu baris kode pun.",
         },
         {
           jenis: "poin",
           butir: [
             "Ditolak rumus dan bobot ditulis di kode aplikasi: panitia tahun depan harus mencari programmer untuk mengganti bobot satu lomba.",
-            "Ditolak menghitung bobot pos dari CACAH lomba. Bobot pos adalah jumlah poin_maks seluruh wahana-nya. Memecah KIM jadi Kim Lihat dan Kim Cium di migration 0087 tidak mengubah satu poin pun, sedangkan memindah satu lomba antar pos mengubah bobot dua pos tanpa satu angka diedit.",
+            "Ditolak menghitung bobot pos dari CACAH lomba. Bobot pos adalah jumlah poin_maks seluruh wahana-nya. Memecah KIM jadi Kim Lihat dan Kim Cium di migration 0087 tidak mengubah satu poin pun. Sebaliknya, memindah satu lomba antar pos mengubah bobot dua pos tanpa satu angka diedit.",
             "Salah baca yang paling sering: angka 0 sampai 10 di KIM itu RENTANG MENTAH, bukan bobot. Dibaca sebagai bobot, Pos 3 terlihat 220 padahal 400, dan KIM mulai terlihat seperti lomba yang perlu dinaikkan.",
             "Lomba berbentuk soal cukup satu angka: berapa jawaban benar. Rentang mentahnya harus sama dengan jumlah soalnya, karena rentang yang lebih longgar membiarkan petugas mengetik 12 dari 10.",
           ],
         },
         {
+          jenis: "p",
+          teks: "Contoh lomba berbentuk soal: Logika 20 soal dengan poin maksimal 100. Regu benar 13, poinnya 13 dibagi 20 dikali 100, jadi 65. Yang diketik petugas cuma angka 13.",
+        },
+        {
           jenis: "kenapa",
           teks: "Kalau aturan dipindah ke kode, panitia kehilangan kendali atas acaranya sendiri dan harus menunggu orang yang bisa menyentuh kode.",
+        },
+      ],
+    },
+    {
+      kode: "kenapa-tanpa-undian",
+      judul: "Nomor dada tidak diundi di technical meeting",
+      isi: [
+        {
+          jenis: "p",
+          teks: "Di banyak lomba nomor peserta diundi di depan semua orang saat technical meeting. Di sini tidak. Nomor dada diketik petugas dari kain yang sudah dipegang, di meja daftar ulang, satu regu sekali sebut. Sebabnya bukan malas seremoni: undian menghabiskan berjam-jam untuk membagikan angka yang tidak menentukan apa pun.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Nomor dada TIDAK menentukan kloter. Kloter jatuh FIFO dari urutan daftar ulang, bukan dari besar kecilnya angka. Nomor 7 dan nomor 412 punya peluang persis sama untuk berangkat paling pagi.",
+            "Nomor dada juga tidak menentukan urutan pos, lawan, atau apa pun yang bisa menguntungkan. Jadi yang diadili adil lewat undian sebenarnya cuma angka di kain, dan di situ tidak ada yang perlu diadili.",
+            "Hitung waktunya sebelum menjadwalkannya: deret Eksternal saja menyediakan 500 nomor dan acuan kami sekitar 300 regu. Sepuluh detik per regu sudah lima puluh menit, dan tidak ada undian sungguhan yang selesai dalam sepuluh detik per regu.",
+            "Yang hadir di technical meeting pembina, bukan seluruh regu, dan yang tidak hadir tetap terikat hasilnya. Nomor untuk regu yang wakilnya tidak datang harus dibagikan lagi di meja daftar ulang, jadi mejanya tetap dibutuhkan dan undiannya jadi pekerjaan kedua.",
+            "Undian melahirkan daftar pasangan nomor dan regu yang masih harus dicocokkan ke kain fisik belakangan. Celah itu yang ditutup dengan mengetik angka dari kain yang sedang dipegang. Yang tertulis di kain dan yang tersimpan di sistem tidak pernah lahir dari dua sumber berbeda.",
+          ],
+        },
+        {
+          jenis: "kenapa",
+          teks: "Technical meeting punya agenda yang tidak bisa diwakilkan: rute, kontrak waktu, cara menilai, barang bawaan, aturan barak, sanksi, jam kloter, dan tata cara protes. Satu jam yang dipakai membacakan angka diambil dari situ, dan yang biasanya terpotong bagian sanksi dan protes, dua hal yang paling mahal kalau tidak disepakati di depan.",
         },
       ],
     },
@@ -1965,7 +2156,7 @@ const BAB_KENAPA = {
           butir: [
             "Ditolak sistem memberi nomor terkecil yang tersedia: petugas jadi harus mencari kain nomor tertentu di tumpukan, sementara antrean berdiri di depannya.",
             "Sejak migration 0116 ada dua deret dari satu kunci yang sama: Eksternal 1 sampai 500, Intern 1001 sampai 1250.",
-            "Deret Intern itu keputusan pemilik acara, 27 Agustus 2026, dan ia menutup jalur sistemnya saja. Jalur kertasnya ikut menuntut: kain Intern harus ditandai supaya yang ditulis juri di blangko juga 1xxx, karena juri menyalin nomor dari kain di dada regu — kain polos bertulis 001 menghasilkan blangko ambigu yang tidak bisa dipulihkan satu baris SQL pun.",
+            "Deret Intern itu keputusan pemilik acara, 27 Agustus 2026, dan ia menutup jalur sistemnya saja. Jalur kertasnya ikut menuntut. Kain Intern harus ditandai 1xxx, karena juri menyalin nomor dari kain di dada regu. Kain polos bertulis 001 menghasilkan blangko ambigu, dan itu tidak bisa dipulihkan satu baris SQL pun.",
             "Efek sampingnya menjatuhkan satu bug tidur: pemformat tiga digit memotong 1001 jadi 100. Diperbaiki di migration 0117.",
           ],
         },
@@ -1986,14 +2177,14 @@ const BAB_KENAPA = {
         {
           jenis: "poin",
           butir: [
-            "Ditolak pola kunci baris yang dipakai migration 0004. Versi itu mengunci baris di nomor_dada_stok sambil memutuskan sebuah nomor sudah terpakai atau belum dari tabel LAIN, regu.nomor_dada — mengunci tabel A untuk memutuskan tabel B, dan pada 30 meja serentak dua transaksi bisa sama-sama menganggap nomor yang sama masih kosong.",
+            "Ditolak pola kunci baris yang dipakai migration 0004. Versi itu mengunci baris di nomor_dada_stok, tapi memutuskan nomor sudah terpakai atau belum dari tabel LAIN, regu.nomor_dada. Mengunci tabel A untuk memutuskan tabel B. Pada 30 meja serentak, dua transaksi bisa sama-sama menganggap nomor yang sama masih kosong.",
             "Perbaikannya menyederhanakan, bukan menambah kepintaran. Dengan satu gerbang di awal, pola SKIP LOCKED tidak diperlukan lagi sama sekali — dan penerus tidak perlu menalar kunci lintas tabel untuk membaca fungsinya.",
             "Terukur, bukan diyakini. Diuji dengan 30 koneksi serentak memperebutkan 300 nomor dada: versi lama gagal di 1 sampai 3 meja tiap putaran, 290 dari 300 regu berhasil. Sesudah migration 0007 memakai satu gerbang, lima putaran berturut-turut memberi 300 dari 300 regu bernomor, nol error, nol duplikat, selesai dalam 1,65 detik.",
           ],
         },
         {
           jenis: "kenapa",
-          teks: "Kunci UNIQUE pada nomor dada memang menahan datanya, tapi yang ditahan cuma datanya — di meja yang terlihat adalah satu sekolah gagal daftar ulang dengan pesan error teknis, di depan antrean.",
+          teks: "Kunci UNIQUE pada nomor dada memang menahan datanya, tapi cuma datanya. Di meja, yang terlihat satu sekolah gagal daftar ulang dengan pesan error teknis, di depan antrean.",
         },
       ],
     },
@@ -2003,24 +2194,61 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Pembagian kloter otomatis mengisi kloter paling awal yang belum berangkat, urut siapa yang lebih dulu menyelesaikan daftar ulang, paling banyak 5 Eksternal dan 3 Intern per kloter dengan kuota dihitung terpisah. Sekolah tidak berpengaruh sama sekali. Tapi kloter yang kertasnya sudah dicetak TETAP boleh ditambah regu secara manual.",
+          teks: "Pembagian kloter otomatis mengisi kloter paling awal yang belum berangkat, urut siapa yang lebih dulu menyelesaikan daftar ulang. Paling banyak 5 Eksternal dan 3 Intern per kloter, kuotanya dihitung terpisah. Sekolah tidak berpengaruh sama sekali. Tapi kloter yang kertasnya sudah dicetak TETAP boleh ditambah regu secara manual.",
         },
         {
           jenis: "poin",
           butir: [
             "Ditolak penyebaran per sekolah dan lompatan dua kloter — aturan lama yang dibuang migration 0092 karena tidak ada yang bisa menjelaskannya di lapangan. Aturan sekarang muat dalam satu kalimat ke pembina.",
-            "Ditolak membekukan kloter begitu kertasnya dicetak. Pagar itu pernah ada di migration 0008, dikembalikan di 0040, lalu dibuang seluruhnya di 0066: mencetak ulang selembar daftar itu murah, memberangkatkan kloter dengan empat tempat kosong tidak bisa diulang.",
+            "Ditolak membekukan kloter begitu kertasnya dicetak. Pagar itu pernah ada di migration 0008, dikembalikan di 0040, lalu dibuang seluruhnya di 0066. Alasannya: mencetak ulang selembar daftar itu murah, memberangkatkan kloter dengan empat tempat kosong tidak bisa diulang.",
             "Kejadian nyatanya: satu sekolah datang terlambat, daftar ulang sesudah kertas dibagikan, regunya diselipkan. Di garis start kloter memanggil sepuluh nama padahal kertas memuat sembilan. Karena itu sisipan ditandai waktunya dan tampil sebagai kartu merah yang MENETAP.",
             "Pengacakan OTOMATIS tetap melewati kloter yang sudah berangkat, dikembalikan migration 0088. Yang dibuka cuma jalur manual, dan itu keputusan petugas yang sadar.",
           ],
         },
         {
           jenis: "p",
-          teks: "Satu akibat yang wajib diketahui petugas yang menyisipkan: penalti waktu dihitung dari jam berangkat kloter, jadi regu yang dimasukkan ke kloter yang sudah jalan dihitung berangkat pada jam kloter itu, bukan jam ia benar-benar jalan. Kalau maksudnya regu itu berangkat sekarang, tempatnya di kloter yang belum jalan. Dan jangan menomori kloter sendiri secara manual: penomoran menyimpan aturan yang tidak kelihatan dari nomornya.",
+          teks: "Satu akibat wajib diketahui petugas yang menyisipkan. Penalti waktu dihitung dari jam berangkat kloter. Regu yang dimasukkan ke kloter yang sudah jalan dihitung berangkat pada jam kloter itu, bukan jam ia benar-benar jalan. Kalau maksudnya regu itu berangkat sekarang, tempatnya di kloter yang belum jalan. Dan jangan menomori kloter sendiri secara manual: penomoran menyimpan aturan yang tidak kelihatan dari nomornya.",
         },
         {
           jenis: "kenapa",
-          teks: "Kalau kloter dibekukan, regu ada di database tapi tidak pernah dipanggil di garis start; kalau sekolah dijadikan faktor lagi, pertanyaan kenapa regu kami di kloter 30 tidak bisa dijawab siapa pun di lapangan.",
+          teks: "Kalau kloter dibekukan, regu ada di database tapi tidak pernah dipanggil di garis start. Kalau sekolah dijadikan faktor lagi, pertanyaan kenapa regu kami di kloter 30 tidak bisa dijawab siapa pun di lapangan.",
+        },
+      ],
+    },
+    {
+      kode: "kenapa-ambil-h1",
+      judul: "Nomor dada dan tiska diambil H-1, bukan pagi hari-H",
+      isi: [
+        {
+          jenis: "p",
+          teks: "Meja daftar ulang buka H-1 sampai hari-H, dan di situlah pembina mengambil kain nomor dada dan tiska regunya. Jendelanya memang sampai hari-H, tapi yang dianjurkan H-1. Ini bukan soal kerapian panitia. Nomor dada yang diketik di meja itulah yang MEMBENTUK kloter, dan daftarnya harus sudah tertempel di barak semalam sebelumnya. Pagi hari-H tinggal dijalankan.",
+        },
+        {
+          jenis: "poin",
+          butir: [
+            "Kloter jatuh saat nomor dada tersimpan, urut FIFO. Regu yang baru mengambil nomornya pagi hari-H baru punya kloter pagi itu juga, sesudah daftarnya dicetak, ditempel, dan dibacakan.",
+            "Jendela keberangkatan cuma tiga jam, 07:00 sampai 10:00, dan dibuka upacara dengan tiga kloter sudah siap di Pemberangkatan dan dua staging. Tidak ada celah di dalamnya untuk antrean daftar ulang.",
+            "Kain yang rusak masih bisa ditukar. Tukar nomor rusak memensiunkan nomor lama permanen dan menuntut daftar kloter dicetak ulang: sepele kalau ketahuan H-1, mahal kalau ketahuan saat regunya sudah berbaris.",
+            "Blangko penilaian cuma memuat nomor dada, tanpa nama regu. Nomor yang salah dan lolos ke lapangan memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya.",
+            "Dua benda ini beda gunanya dan dua-duanya tidak bisa menyusul. Nomor dada adalah ID peserta yang harus terbaca dari JARAK JAUH, dipakai juri dan petugas sepanjang hari tanpa perlu bertanya nama. Tiska adalah bukti keikutsertaan, satu untuk tiap peserta, dan jumlahnya ikut kepala orang, bukan jumlah regu.",
+            "Aturannya berlaku untuk apa pun yang lain: kalau bisa, SELURUH kelengkapan peserta diserahkan sekali jalan di meja daftar ulang. Pembina datang sekali, mengantre sekali, dan pulang membawa semuanya. Tiap benda yang dijanjikan menyusul ke hari-H adalah satu antrean baru di pagi yang sudah penuh.",
+          ],
+        },
+        {
+          jenis: "foto",
+          berkas: "perlengkapan-peserta.jpg",
+          teks: "Contoh: satu paket perlengkapan yang diserahkan sekali jalan — kain nomor dada seregu, dan tiska sejumlah anggotanya.",
+        },
+        {
+          jenis: "layar",
+          nama: "Meja Daftar Ulang",
+          hash: "#/daftar-ulang",
+          fitur: "daftar_ulang",
+          teks: "Buka H-1 sampai hari-H. Di sinilah nomor dada diketik, kloter terbentuk, dan kain yang rusak ditukar selagi pembetulannya masih murah.",
+        },
+        {
+          jenis: "kenapa",
+          teks: "Kalau dibalik, pagi hari-H berisi tiga pekerjaan yang berebut orang dan tempat yang sama: upacara, daftar ulang, dan pemberangkatan. Yang mengalah selalu jam berangkat, dan jendelanya tidak bisa dipanjangkan. Kloter terakhir tetap harus lepas jam sepuluh, dan regu yang berangkat terlambat pulang terlambat juga, karena kontrak waktunya sama panjang buat semua orang.",
         },
       ],
     },
@@ -2062,6 +2290,10 @@ const BAB_KENAPA = {
           teks: "Tiap regu memilih sendiri kontrak waktunya. Targetnya jam berangkat kloter ditambah kontrak itu: berangkat 07:00 dengan kontrak empat jam berarti harus tiba tepat 11:00. Satu menit terlalu cepat dan satu menit terlambat sama-sama mengurangi satu poin.",
         },
         {
+          jenis: "p",
+          teks: "Contoh, kloter berangkat 07:00 dengan kontrak empat jam, jadi targetnya 11:00. Tiba 11:07 kena 7 poin. Tiba 10:53 juga kena 7 poin. Tiba 11:00 tepat, nol.",
+        },
+        {
           jenis: "poin",
           butir: [
             "Ditolak menilai kecepatan: regu akan berlomba pulang secepat mungkin dan kontrak waktu kehilangan seluruh artinya.",
@@ -2088,7 +2320,7 @@ const BAB_KENAPA = {
           butir: [
             "Ditolak policy yang membandingkan nama peran. Menambahkan satu perbandingan seperti itu berarti ada dua mekanisme untuk satu pertanyaan, dan yang satu tidak bisa diubah panitia.",
             "Pemeriksaan yang cakupannya lebih sempit daripada masalahnya sudah terbukti berbahaya DUA KALI. Migration 0064 memindai policy dan function lalu melapor bersih — enam VIEW lolos karena view bukan keduanya. Migration 0065 menambahkan view lalu melapor bersih lagi — v_klasemen_live_score lolos karena ia menyaring dengan nama peran admin, yang tidak mengandung nama peran lama yang sedang dicari. Dua laporan hijau, dua layar kosong di lapangan.",
-            "Isolasi pos sengaja tinggal pada MENULIS. Sejak migration 0069 rincian Live Score dibuka untuk semua pemegang centang live_score — keputusan pemilik acara, dan konsekuensinya diterima: juri Pos 3 bisa melihat angka Pos 1 sebelum diumumkan.",
+            "Isolasi pos sengaja tinggal pada MENULIS. Sejak migration 0069 rincian Live Score dibuka untuk semua pemegang centang live_score. Itu keputusan pemilik acara, dan konsekuensinya diterima: juri Pos 3 bisa melihat angka Pos 1 sebelum diumumkan.",
           ],
         },
         {
@@ -2114,7 +2346,12 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Yang dicetak dari browser adalah MASTER, bukan tumpukannya. Satu pos dengan tiga lomba mencetak tiga halaman, bukan 1.500. Blangko itu kosong, jadi menggandakannya di fotokopi lebih cepat dan jauh lebih murah — mencetak tumpukannya dari browser menghabiskan satu toner kantor untuk pekerjaan yang selesai dalam hitungan menit di mesin fotokopi.",
+          teks: "Yang dicetak dari browser adalah MASTER, bukan tumpukannya. Satu pos dengan tiga lomba mencetak tiga halaman, bukan 1.500. Blangko itu kosong, jadi menggandakannya di fotokopi lebih cepat dan jauh lebih murah. Mencetak tumpukannya dari browser menghabiskan satu toner kantor untuk pekerjaan yang selesai dalam hitungan menit di mesin fotokopi.",
+        },
+        {
+          jenis: "foto",
+          berkas: "blangko-a5-landscape.jpg",
+          teks: "Contoh: satu master blangko A5 melintang. Nomor dada dan nilai mentah berdampingan dengan tempat yang lega, dan dua lembar seperti ini muat di satu A4 saat difotokopi.",
         },
         {
           jenis: "poin",
@@ -2126,7 +2363,7 @@ const BAB_KENAPA = {
         },
         {
           jenis: "p",
-          teks: "Karena masternya difotokopi berulang — sering kali fotokopi dari fotokopi — aturan cetaknya keras dan tidak satu pun kosmetik: tanpa blok hitam pekat, tanpa abu-abu atau raster, tanpa tulisan putih di atas gelap, garis minimal 0,75pt, huruf minimal 7pt, dan tidak ada apa pun di belakang area yang ditulisi. Blok hitam keluar belang dan berbercak dari mesin fotokopi, abu-abu jadi kotor atau hilang sama sekali, dan huruf di bawah 7pt tertutup toner sampai lubang huruf a dan e menutup.",
+          teks: "Masternya difotokopi berulang, sering kali fotokopi dari fotokopi. Karena itu aturan cetaknya keras, dan tidak satu pun kosmetik. Tanpa blok hitam pekat, tanpa abu-abu atau raster, tanpa tulisan putih di atas gelap. Garis minimal 0,75pt, huruf minimal 7pt, dan tidak ada apa pun di belakang area yang ditulisi. Blok hitam keluar belang dan berbercak dari mesin fotokopi. Abu-abu jadi kotor atau hilang sama sekali. Huruf di bawah 7pt tertutup toner sampai lubang huruf a dan e menutup.",
         },
         {
           jenis: "kenapa",
@@ -2168,9 +2405,9 @@ const BAB_KENAPA = {
         {
           jenis: "poin",
           butir: [
-            "Ditolak paragraf penjelas di atas tiap fitur. Contoh yang dipakai dulu dialog gembok: judulnya di atas satu field beralasan sudah mengatakan seluruh isi paragrafnya, dalam seperempat tingginya, di HP tempat paragraf itu justru mendorong field-nya keluar layar. Dialog itu sendiri sudah tidak ada sejak migration 0166 — Cek Nilai membuka gembok langsung dengan alasan tetap Dibuka dari Cek Nilai — jadi yang tersisa pelajarannya, bukan layarnya.",
+            "Ditolak paragraf penjelas di atas tiap fitur. Contohnya dulu dialog gembok. Judul di atas satu field beralasan sudah mengatakan seluruh isi paragrafnya, dalam seperempat tingginya. Di HP, paragraf itu justru mendorong field-nya keluar layar. Dialognya sendiri sudah tidak ada sejak migration 0166. Cek Nilai membuka gembok langsung, dengan alasan tetap Dibuka dari Cek Nilai. Yang tersisa pelajarannya, bukan layarnya.",
             "Ditolak glosarium istilah di layar. Menjelaskan Penggalang PA sebagai SMP atau MTs putra dibuang, karena ia menjelaskan istilah kepada orang yang mengucapkannya tiap hari.",
-            "Yang DIPERTAHANKAN: fakta yang tidak bisa dibaca dari layar itu sendiri — angka yang berlaku sekarang, akibat yang tidak bisa dibatalkan, peringatan bahwa sesuatu sudah tercetak atau sudah berangkat.",
+            "Yang DIPERTAHANKAN: fakta yang tidak bisa dibaca dari layar itu sendiri. Angka yang berlaku sekarang, akibat yang tidak bisa dibatalkan, peringatan bahwa sesuatu sudah tercetak atau sudah berangkat.",
             "Satu pengecualian yang sengaja: form pendaftaran. Pembina mengisinya sekali seumur acara, tanpa pelatihan, dan tanpa siapa pun untuk ditanya.",
           ],
         },
@@ -2217,8 +2454,8 @@ const BAB_KENAPA = {
             "Ditolak menerapkan migration otomatis saat merge ke main: satu perbaikan CSS yang kebetulan satu branch dengan migration akan mengubah skema produksi di tengah antrean pendaftaran.",
             "Harga yang dibayar nyata dan wajib diketahui: TIDAK ADA yang mencatat migration mana yang sudah jalan. Sepuluh file — 0091 dan 0098 sampai 0106 — tidak pernah sampai produksi, dan CI tetap hijau selama itu.",
             "Yang menemukannya enam hari kemudian bukan tes, melainkan pembina yang mendaftarkan regu Internal dan ditolak karena constraint golongan masih versi migration 0001. Migration 0119 memasang ulang isinya.",
-            "Karena itu ada supabase/checks/status_migrasi.sql: ia mencari SIDIK JARI sebuah migration di database — sebuah constraint, sebuah kolom, potongan definisi function, sebaris konfigurasi — dan tidak mengubah apa pun. Nama file tidak bisa diperiksa, karena tidak ada yang menyimpannya.",
-            "Cakupannya disebutkan, bukan didiamkan: 116 migration punya jejak yang diperiksa dan 53 tidak menyisakan jejak apa pun, dan 116 tambah 53 adalah seluruh 169 migration yang ada. Angka itu yang harus dijaga tiap kali file migration baru mendarat — nomor yang tidak ada di kedua daftar tidak muncul sebagai BELUM, ia tidak muncul sama sekali.",
+            "Karena itu ada supabase/checks/status_migrasi.sql. Ia mencari SIDIK JARI sebuah migration di database: sebuah constraint, sebuah kolom, potongan definisi function, sebaris konfigurasi. Ia tidak mengubah apa pun. Nama file tidak bisa diperiksa, karena tidak ada yang menyimpannya.",
+            "Cakupannya disebutkan, bukan didiamkan: 116 migration punya jejak yang diperiksa dan 53 tidak menyisakan jejak apa pun, dan 116 tambah 53 adalah seluruh 169 migration yang ada. Angka itu yang harus dijaga tiap kali file migration baru mendarat. Nomor yang tidak ada di kedua daftar tidak muncul sebagai BELUM. Ia tidak muncul sama sekali.",
           ],
         },
         {
@@ -2243,7 +2480,7 @@ const BAB_KENAPA = {
           jenis: "poin",
           butir: [
             "Ditolak menjalankannya otomatis tiap push. GitHub membulatkan tiap JOB ke menit penuh, jadi yang mahal JUMLAH run, bukan lamanya: check 7 detik dan check 50 detik ditagih sama persis.",
-            "Satu hari yang terukur: 24 dari 60 run adalah salinan kedua dari check yang sudah lulus — sekali di pull request, sekali waktu merge-nya mendarat di main, atas tree yang sama persis.",
+            "Satu hari yang terukur: 24 dari 60 run adalah salinan kedua dari check yang sudah lulus. Sekali di pull request, sekali waktu merge-nya mendarat di main, atas tree yang sama persis.",
             "Cron pun ditakar. Jadwal tiap lima menit sama dengan 288 menit terbilang per hari, dan itu menghabiskan jatah bulanan dalam sepekan. Dua cron yang ada dikunci ke tanggal lombanya dengan penjaga tahun di langkah pertama, karena cron tidak punya kolom tahun.",
             "Dispatch CI kalau salah itu mahal: ada migration baru, perubahannya tidak bisa dijalankan lokal, laptopnya tidak punya PostgreSQL, atau acaranya kurang dari sepekan lagi.",
           ],
@@ -2266,7 +2503,7 @@ const BAB_KENAPA = {
           jenis: "poin",
           butir: [
             "Ditolak menolak simpanan waktu jaringan putus: angkanya hilang, dan regunya sudah pergi ke pos berikutnya.",
-            "Ditolak mengantre semua kegagalan tanpa pandang bulu. Nilai di luar rentang, regu yang tergembok, atau komponen yang bukan untuk golongan itu tidak akan berubah jawabannya karena ditunggu — dan satu baris rusak menyumbat seluruh antrean di belakangnya.",
+            "Ditolak mengantre semua kegagalan tanpa pandang bulu. Nilai di luar rentang, regu tergembok, atau komponen yang bukan untuk golongan itu tidak akan berubah jawabannya karena ditunggu. Dan satu baris rusak menyumbat seluruh antrean di belakangnya.",
             "Yang ditolak server dilaporkan merah SELAGI regunya masih berdiri di depan petugas, saat masih bisa dibetulkan.",
             "Janjinya ditulis jujur: terkirim begitu halaman ini terbuka dan ada sinyal, bukan pasti terkirim nanti. Tidak ada service worker, dan Background Sync tidak ada di Safari iOS.",
           ],
@@ -2291,7 +2528,7 @@ const BAB_KENAPA = {
             "Ditolak menganggap parse check, tes SQL, dan halaman contoh sebagai bukti sebuah layar hidup. 28 Agustus 2026 Meja Pembayaran KOSONG di produksi selama acara berjalan; satu deklarasi berakhir di bawah pemakainya dan melempar error untuk SETIAP baris.",
             "Parse check lulus, seluruh tes lulus, pengukuran tata letak dikerjakan di halaman contoh berisi markup statis. Tidak satu langkah pun membuka layarnya. Yang menemukannya petugas di lapangan.",
             "Layar yang rusak sering terbaca seperti layar yang kosong. Waktu itu tulisan 39 invoice dan 40 regu di atas tabel tetap benar, karena angkanya dihitung dari data yang sudah diterima, bukan dari barisnya. Jangan menilai dari kepala layar.",
-            "Kalau alat untuk membuka layarnya sendiri rusak, itu bug prioritas tinggi, bukan gangguan kecil. Skrip tests/dev_database.sh pernah berhenti di migration 0118 sejak file itu mendarat, dan selama itu tidak ada cara membuka layar mana pun di laptop — jadi aturan di atas mustahil dipatuhi tanpa disadari siapa pun.",
+            "Kalau alat untuk membuka layarnya sendiri rusak, itu bug prioritas tinggi, bukan gangguan kecil. Skrip tests/dev_database.sh pernah berhenti di migration 0118 sejak file itu mendarat. Selama itu tidak ada cara membuka layar mana pun di laptop, jadi aturan di atas mustahil dipatuhi tanpa disadari siapa pun.",
           ],
         },
         {
@@ -2616,7 +2853,9 @@ export const SPRINT = [
       { kode: "s9-medis", seksi: "Kesehatan", layar: null,
         teks: "Ajukan permohonan tenaga medis dan ambulans ke Puskesmas kecamatan dan PMI, lalu sepakati rumah sakit rujukan beserta nomor IGD-nya." },
       { kode: "s9-nomor-dada", seksi: "Akomodasi dan Logistik", layar: null,
-        teks: "Pesan kain nomor dada beserta cadangan sepuluh persen. Sablon butuh dua minggu kerja. Kalau pendaftaran belum ditutup, pesan sejumlah KUOTA, bukan sejumlah pendaftar." },
+        teks: "Pesan kain nomor dada beserta cadangan sepuluh persen. Deret Intern disablon 1001 dan seterusnya, BUKAN 001, supaya angka yang disalin juri dari dada regu tidak bentrok dengan Eksternal. Sablon butuh dua minggu kerja. Kalau pendaftaran belum ditutup, pesan sejumlah KUOTA, bukan sejumlah pendaftar." },
+      { kode: "s9-tiska", seksi: "Akomodasi dan Logistik", layar: null,
+        teks: "Pesan tiska beserta cadangan. Hitungannya per PESERTA, bukan per regu, jadi angkanya berlipat kira-kira delapan kali jumlah regu — pastikan Bendahara memakai angka itu, bukan angka regu." },
       { kode: "s9-pinjam", seksi: "Akomodasi dan Logistik", layar: null,
         teks: "Kirim surat peminjaman tenda, terpal, meja-kursi, sound system, HT, genset, dan lampu sorot." },
       { kode: "s9-stok-dada", seksi: "Sekretariat", layar: null,
@@ -2658,7 +2897,7 @@ export const SPRINT = [
       { kode: "s10-katering", seksi: "Konsumsi", layar: null,
         teks: "Pesan katering atau susun rencana masak sendiri untuk panitia, juri, dan tamu." },
     ],
-    jangan: "Jangan membiarkan soal selesai mepet. Soal yang jadi tiga hari sebelum acara tidak sempat divalidasi, dan kunci yang salah baru ketahuan sesudah tiga ratus regu menjawab — satu mata lomba dianulir dan seluruh klasemen goyah.",
+    jangan: "Jangan membiarkan soal selesai mepet. Soal yang jadi tiga hari sebelum acara tidak sempat divalidasi. Kunci yang salah baru ketahuan sesudah tiga ratus regu menjawab: satu mata lomba dianulir, dan seluruh klasemen goyah.",
   },
 
   {
@@ -2670,8 +2909,8 @@ export const SPRINT = [
     hMulai: -27,
     hSelesai: -14,
     tajuk: "Pendaftaran Ditutup",
-    fokus: "Jumlah regu terkunci, nomor dada dibagikan, kloter terbentuk, dan technical meeting digelar.",
-    hasil: "Daftar Kloter tercetak, dan tiap pembina sudah tahu kira-kira jam berapa regunya berangkat.",
+    fokus: "Jumlah regu terkunci, pembayaran disapu habis, soal dan blangko siap, dan technical meeting digelar.",
+    hasil: "Tidak ada lagi regu yang belum lunas, dan tiap pembina sudah tahu aturannya beserta jendela berangkat 07:00 sampai 10:00.",
     tugas: [
       { kode: "s11-tutup-daftar", seksi: "Sekretariat", layar: null,
         teks: "TUTUP PENDAFTARAN. Sejak titik ini jumlah regu terkunci, dan konsumsi, nomor dada, serta blangko baru bisa dipesan dengan angka pasti." },
@@ -2681,10 +2920,6 @@ export const SPRINT = [
         teks: "Gandakan soal lima mata lomba beserta cadangan sepuluh persen, ditunggui panitia, lalu paketkan per pos, disegel, diberi label, dan disimpan terkunci." },
       { kode: "s11-blangko", seksi: "Koordinator Lapangan", layar: "#/pos",
         teks: "Cetak MASTER blangko dari layar Input Nilai Tabel lalu gandakan di mesin fotokopi. Yang dicetak dari layar satu master per lomba, bukan setumpuk." },
-      { kode: "s11-daftar-ulang", seksi: "Sekretariat", layar: "#/daftar-ulang",
-        teks: "Jalankan daftar ulang: cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, dan tukar nomor yang kainnya rusak." },
-      { kode: "s11-cetak-kloter", seksi: "Sekretariat", layar: "#/cetak-kloter",
-        teks: "Cetak Daftar Kloter untuk Petugas dan untuk Peserta sesudah seluruh regu bernomor dada." },
       { kode: "s11-tm", seksi: "Ketua Pelaksana", layar: null,
         teks: "Gelar technical meeting dengan pembina peserta: rute, kontrak waktu, sistem penilaian, barang bawaan, aturan barak, sanksi, jam kloter, dan tata cara protes. Buat berita acara dan bagikan notulennya — yang tidak hadir tetap terikat." },
       { kode: "s11-latih-juri", seksi: "Koordinator Lapangan", layar: null,
@@ -2696,7 +2931,7 @@ export const SPRINT = [
       { kode: "s11-rujukan", seksi: "Kesehatan", layar: null,
         teks: "Sepakati jalur rujukan dengan puskesmas atau klinik terdekat, dan catat nomor yang bisa dihubungi saat hari-H." },
     ],
-    jangan: "Jangan menomori kloter sendiri. Urutan FIFO dan kuota lima Eksternal serta tiga Intern dijaga di dalam sistem, bukan oleh urutan nomor dada. Kalau kloter perlu disusun ulang, bersihkan lalu jalankan ulang alurnya.",
+    jangan: "Jangan menjanjikan nomor dada atau kloter di technical meeting. Keduanya baru lahir di meja daftar ulang, H-1, dan pembina yang sudah telanjur dijanjikan akan menagihnya pada malam paling sibuk.",
   },
 
   {
@@ -2708,7 +2943,7 @@ export const SPRINT = [
     hMulai: -13,
     hSelesai: 0,
     tajuk: "Gladi dan Hari-H",
-    fokus: "Gladi kotor, gladi bersih, lalu hari lomba itu sendiri dari upacara sampai pengumuman juara.",
+    fokus: "Gladi kotor, gladi bersih, daftar ulang H-1, lalu hari lomba itu sendiri dari upacara sampai pengumuman juara.",
     hasil: "Juara diumumkan, rekap terbit, dan seluruh nilai terkunci.",
     tugas: [
       { kode: "s12-survei-ulang", seksi: "Survey", layar: null,
@@ -2723,6 +2958,10 @@ export const SPRINT = [
         teks: "Siapkan barak: pembagian ruang, pemisahan putra dan putri, denah tertempel, penjaga malam per lantai, penerangan, dan aturan jam malam." },
       { kode: "s12-pasang-rambu", seksi: "Akomodasi dan Logistik", layar: null,
         teks: "Pasang penunjuk arah sehari sebelum acara, sore hari, jangan lebih awal. Rambu yang dipasang seminggu sebelumnya hilang, dicabut, atau berpindah arah." },
+      { kode: "s12-daftar-ulang", seksi: "Sekretariat", layar: "#/daftar-ulang",
+        teks: "H-1: buka meja daftar ulang. Cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, tukar nomor yang kainnya rusak, dan serahkan kain beserta tiskanya. Jangan menomori kloter sendiri: urutan FIFO dan kuota lima Eksternal serta tiga Intern dijaga di dalam sistem." },
+      { kode: "s12-cetak-kloter", seksi: "Sekretariat", layar: "#/cetak-kloter",
+        teks: "Cetak Daftar Kloter untuk Petugas dan untuk Peserta sesudah seluruh regu bernomor dada, lalu tempel lembar peserta di barak dan titik kumpul malam itu juga." },
       { kode: "s12-berangkat", seksi: "Seksi Acara", layar: "#/keberangkatan",
         teks: "Hari-H pagi: upacara, lalu berangkatkan kloter dari jam tujuh sampai jam sepuluh, dengan tiga kloter selalu siap — satu di Pemberangkatan, dua di staging." },
       { kode: "s12-nilai", seksi: "Koordinator Lapangan", layar: "#/pos2",

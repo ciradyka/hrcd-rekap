@@ -958,6 +958,35 @@ export const simpanKejuaraanManual = (kode, reguId) =>
 export const simpanKejuaraanTerjauh = (sekolahId) =>
   rpc("simpan_kejuaraan_terjauh", { p_sekolah: sekolahId });
 
+/* ========================== FOTO BUKU SAKTI ============================= */
+
+/* Gambar contoh di dalam Buku Sakti: kain nomor dada Intern, blangko A5, rupa
+   satu layar. Bucket-nya `buku` dan sengaja PUBLIK, tidak seperti `lembar` dan
+   `bukti` yang privat dan dilayani lewat tautan bertanda tangan.
+
+   Kenapa publik, padahal dua bucket lain tidak: isinya benda mati — sehelai
+   kain, selembar formulir kosong — bukan data satu pun peserta. Tautan
+   bertanda tangan menuntut satu panggilan jaringan per gambar sebelum gambar
+   pertama muncul, dan tandanya kedaluwarsa, jadi buku panduan yang dibuka
+   berulang kali sepanjang tahun akan meminta tanda tangan baru terus-menerus.
+
+   YANG TIDAK BOLEH HILANG: keterangannya tetap tergambar walaupun gambarnya
+   gagal dimuat. Buku ini justru paling dibutuhkan saat ada yang rusak, dan
+   Supabase yang sedang tidak bisa dihubungi tidak boleh membuat satu kalimat
+   pun ikut hilang — lihat blokFotoBuku() di app.js.
+
+   Bucket-nya dibuat SEKALI lewat dashboard Supabase, bukan lewat migration:
+   ia infrastruktur yang tidak pernah berubah tiap edisi, dan menaruhnya di
+   migration berarti satu berkas lagi yang harus di-dispatch orang. */
+const BUCKET_BUKU = "buku";
+
+/** Alamat satu gambar Buku Sakti. `berkas` nama objek di bucket, tanpa jalur. */
+export function fotoBuku(berkas) {
+  const nama = encodeURIComponent(berkas);
+  if (K.mode === "dev") return `${K.devUrl}/storage/${nama}`;
+  return `${K.supabaseUrl}/storage/v1/object/public/${BUCKET_BUKU}/${nama}`;
+}
+
 /* ============================ FOTO LEMBAR =============================== */
 
 /* Salinan slip penilaian di server (migrasi 0047). Kertas hilang; foto tidak.

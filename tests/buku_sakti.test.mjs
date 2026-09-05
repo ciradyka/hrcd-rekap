@@ -40,7 +40,7 @@ const css = await baca("../web/style.css");
 const html = await baca("../web/index.html");
 const migrasi0057 = await baca("../supabase/migrations/0057_hak_akses.sql");
 
-const JENIS_SAH = ["p", "poin", "langkah", "tabel", "kenapa", "layar"];
+const JENIS_SAH = ["p", "poin", "langkah", "tabel", "kenapa", "foto", "layar"];
 
 /** Tiap bagian dari tiap bab, membawa nama babnya untuk pesan galat. */
 const semuaBagian = () => bagianBuku().map(({ bab, bagian }) => ({
@@ -142,7 +142,7 @@ test("tiap bagian punya judul dan isi yang tidak kosong", () => {
   }
 });
 
-test("tidak ada jenis blok ketujuh", () => {
+test("tidak ada jenis blok kedelapan", () => {
   for (const { di, blok } of semuaBlok()) {
     assert.ok(JENIS_SAH.includes(blok.jenis),
       `${di}: jenis "${blok.jenis}" tidak dikenal perakit layar`);
@@ -162,6 +162,33 @@ test("blok p dan kenapa membawa teks; poin dan langkah membawa butir", () => {
       }
     }
   }
+});
+
+test("blok foto membawa nama berkas DAN keterangan yang berdiri sendiri", () => {
+  // Keterangannya bukan pelengkap gambar, ia yang utama: kertas cetakan tidak
+  // memuat gambarnya sama sekali (raster abu-abu, CLAUDE.md bagian 8), dan di
+  // layar gambarnya dibuang sendiri kalau gagal dimuat. Blok foto tanpa
+  // keterangan berarti satu penjelasan yang hilang tanpa jejak di dua tempat
+  // sekaligus.
+  for (const { di, blok } of semuaBlok()) {
+    if (blok.jenis !== "foto") continue;
+    assert.ok(String(blok.berkas || "").trim(), `${di}: foto tanpa nama berkas`);
+    assert.ok(!/[/\\]/.test(blok.berkas),
+      `${di}: nama berkas memuat jalur — objek duduk langsung di bucket buku`);
+    assert.ok(String(blok.teks || "").trim(), `${di}: foto tanpa keterangan`);
+  }
+});
+
+test("perakit cetak tidak pernah mengirim gambar ke kertas", () => {
+  // Bukan soal tinta: buku ini digandakan di mesin fotokopi seperti blangko,
+  // dan raster abu-abu keluar kotor atau hilang di salinan kedua.
+  const awal = app.indexOf("function blokBukuCetak(blok) {");
+  const akhir = app.indexOf("function siapkanCetakBuku(", awal);
+  assert.ok(awal > 0 && akhir > awal, "blokBukuCetak() tidak ketemu");
+  const badan = app.slice(awal, akhir);
+  assert.ok(/jenis === "foto"/.test(badan),
+    "blokBukuCetak() tidak menangani blok foto sama sekali");
+  assert.ok(!/<img/.test(badan), "blokBukuCetak() masih menggambar <img>");
 });
 
 test("baris tabel selebar kepalanya", () => {
