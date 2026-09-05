@@ -22,10 +22,15 @@
   Cache-Control: no-cache
   Content-Type: text/css; charset=utf-8
 
-# Aturan untuk /live.json sengaja BELUM ada di sini. Halaman live publik
-# (live.html + live.json) baru rencana — lihat docs/rancangan-b.md bagian 7 —
-# dan berkasnya tidak pernah dibuat. Aturan cache-nya sempat ditulis lebih dulu
-# beserta komentar yang menyatakan "diperbarui GitHub Actions tiap beberapa
-# menit", padahal workflow itu tidak ada; aturan untuk berkas yang tidak ada
-# hanya menyesatkan pembaca berikutnya. Tambahkan kembali saat halamannya
-# benar-benar dibangun.
+# TIDAK ADA ATURAN /live.json DI SINI, DAN JANGAN DITAMBAHKAN.
+#
+# Berkas ini mengatur situs PANITIA, dan situs panitia tidak menyajikan
+# live.json maupun rekap.json sama sekali. Keduanya milik situs PESERTA, di
+# domainnya sendiri, dan aturan cache-nya ada di live/_headers — di sana
+# live.json no-store karena di-poll tiap menit, sementara rekap.json disimpan
+# lama karena alamatnya sudah memuat versinya. Alasan lengkapnya, termasuk
+# kenapa berkas itu tidak punya aturan `/*`, ditulis di kepala berkas itu.
+#
+# Yang perlu diketahui sebelum menyentuh cache halaman peserta: tempatnya
+# live/_headers, bukan sini. Aturan yang ditulis di berkas ini tidak akan
+# mengubah apa pun di HP peserta, dan diamnya sulit dibedakan dari berhasil.
