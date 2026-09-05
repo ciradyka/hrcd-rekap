@@ -123,9 +123,9 @@ SUMBER = [
     ("kontrak_opsi",     "tabel",  "Pilihan kontrak waktu yang berlaku."),
     ("konfig_penalti",   "tabel",  "Angka penalti. Tanpa ini nilainya tidak bisa ditafsirkan lagi."),
     ("status_acara",     "tabel",  "Fase live saat arsip dibuat."),
-    ("ruangan",          "tabel",  "Ruang yang dipakai barak."),
+    ("room",             "tabel",  "Ruang yang dipakai barak."),
     ("penempatan_barak", "tabel",  "Regu mana menempati ruang mana."),
-    ("riwayat",          "tabel",  "Jejak perubahan: siapa mengubah apa, kapan."),
+    ("history",          "tabel",  "Jejak perubahan: siapa mengubah apa, kapan."),
     ("foto_lembar",      "tabel",  "Metadata tiap foto slip: regu, pos, lomba, path."),
     ("v_rekap_penuh",    "view",   "Rekap lengkap: nilai mentah, poin per komponen, poin per pos."),
     ("v_klasemen",       "view",   "Klasemen akhir per golongan."),
@@ -171,6 +171,30 @@ class TidakBisaJalan(Exception):
     """
 
 
+class NamaSumberSalah(TidakBisaJalan):
+    """Sebuah nama di SUMBER tidak menunjuk relasi mana pun.
+
+    Ini BUKAN kasus yang dilayani lewatan per-sumber di atas. Grant yang
+    ditolak berarti tabelnya ada dan hak bacanya kurang — arsipnya tetap
+    berguna, dan yang bolong tercatat. Nama yang salah berarti berkas INI
+    yang salah, dan arsipnya kehilangan tabel yang tidak pernah diminta
+    dengan benar.
+
+    Keduanya dulu terbaca sama persis di layar: satu baris "! GAGAL membaca
+    <nama>", satu baris GAGAL di ringkasan, dan arsip yang tampak lengkap.
+    Dua nama tinggal begitu sejak alat ini ditulis — `riwayat` sudah berganti
+    nama jadi `history` di 0012 dan `ruangan` jadi `room` di 0014, keduanya
+    jauh sebelumnya. Yang hilang jejak audit (satu-satunya catatan koreksi,
+    pembukaan gembok, sisipan kloter manual) dan daftar ruang barak, sementara
+    penempatan_barak IKUT terarsip — jadi tiap penempatan tersimpan sebagai
+    room_id yang tidak bisa dikembalikan ke nama ruang mana pun.
+
+    Karena itu yang ini menghentikan seluruh jalannya: yang perlu diperbaiki
+    berkas ini, dan memperbaikinya sesudah data produksi dibersihkan sudah
+    terlambat (CLAUDE.md 16.9).
+    """
+
+
 def kepala():
     return {"apikey": SERVICE_KEY, "Authorization": f"Bearer {SERVICE_KEY}"}
 
@@ -206,7 +230,17 @@ def ambil_psql(nama):
             "Sebutkan jalurnya lewat PSQL, misalnya:\n"
             '  $env:PSQL = "C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe"')
     if r.returncode != 0:
-        raise SystemExit(f"GAGAL membaca {nama}: {r.stderr.strip()[:200]}")
+        galat = r.stderr.strip()
+        # `select * from <nama>` cuma punya satu objek yang bisa hilang, jadi
+        # "does not exist" di sini selalu berarti relasinya yang tidak ada —
+        # bukan kolom, bukan hak.
+        if "does not exist" in galat:
+            raise NamaSumberSalah(
+                f"SUMBER menyebut '{nama}', dan relasi itu tidak ada.\n"
+                f"  {galat[:200]}\n"
+                "Betulkan namanya di tools/arsip_edisi.py. Melewatinya berarti "
+                "menulis arsip yang kelihatan lengkap tanpa tabel itu.")
+        raise SystemExit(f"GAGAL membaca {nama}: {galat[:200]}")
     return json.loads(r.stdout.strip() or "[]")
 
 
@@ -228,6 +262,15 @@ def ambil_semua(nama):
             params={"select": "*", "limit": HALAMAN, "offset": offset},
             timeout=60,
         )
+        if r.status_code == 404 or "PGRST205" in r.text:
+            # PostgREST menjawab 404/PGRST205 untuk relasi yang tidak ada, dan
+            # 403 untuk relasi yang ada tapi tidak boleh dibaca. Cuma yang
+            # pertama kesalahan berkas ini.
+            raise NamaSumberSalah(
+                f"SUMBER menyebut '{nama}', dan relasi itu tidak ada.\n"
+                f"  {r.status_code} {r.text[:200]}\n"
+                "Betulkan namanya di tools/arsip_edisi.py. Melewatinya berarti "
+                "menulis arsip yang kelihatan lengkap tanpa tabel itu.")
         if r.status_code != 200:
             raise SystemExit(f"GAGAL membaca {nama}: {r.status_code} {r.text[:200]}")
         potong = r.json()
