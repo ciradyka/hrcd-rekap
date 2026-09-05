@@ -59,6 +59,11 @@ jobs:
 
       - name: Jalankan arsip
         env:
+          # DB_URL yang membaca datanya, karena enam tabel dan view tidak
+          # diberi SELECT ke `service_role` — percobaan pertama dijawab 403
+          # dan foto slipnya tidak pernah ikut. Service key tetap ada untuk
+          # Storage, yang tidak bisa dibaca lewat Postgres.
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
