@@ -4,7 +4,7 @@
 // DUA DERET NOMOR DADA, DAN LAYAR HARUS MENOLAK YANG SALAH SEBELUM SERVER.
 //
 // Panitia mencetak kain nomor dada dalam dua set yang sama-sama mulai dari
-// 001, jadi Intern diketik 1001-1250. Pagar sesungguhnya ada di database
+// 001, jadi Internal diketik 1001-1250. Pagar sesungguhnya ada di database
 // (tes SQL 78); yang diuji di sini pagar di kotaknya — petugas meja mengisi
 // belasan kotak sebelum menekan Simpan, dan ditolak server berarti mencari
 // sendiri kotak mana yang salah.
@@ -41,8 +41,8 @@ test("golongan Intern dikenali dari awalannya, bukan dari daftar nama", () => {
 });
 
 
-test("nomor Eksternal untuk regu Intern ditolak, dan sebaliknya", () => {
-  // Kekeliruan yang PASTI terjadi kalau tidak ditolak: kain Intern bertulis
+test("nomor Eksternal untuk regu Internal ditolak, dan sebaliknya", () => {
+  // Kekeliruan yang PASTI terjadi kalau tidak ditolak: kain Internal bertulis
   // 001, dan mengetik apa yang terbaca adalah hal paling wajar sedunia.
   assert.equal(deretCocok(HRCD37, "intern_pa", 1), false);
   assert.equal(deretCocok(HRCD37, "intern_pa", 250), false);
@@ -69,7 +69,7 @@ test("batasnya dari rentang, bukan dari angka 1001 yang dipatok", () => {
 
 
 test("deret yang kosong tidak menghakimi apa pun", () => {
-  // Stok Intern yang belum diisi admin: layar berhenti menilai deret dan
+  // Stok Internal yang belum diisi admin: layar berhenti menilai deret dan
   // membiarkan database yang memutuskan. Menolak semua nomor di keadaan ini
   // akan mematikan meja daftar ulang untuk seluruh peserta.
   const belum = { eksternalMulai: 1, eksternalSampai: 500, internMulai: 0, internSampai: 0 };
@@ -80,7 +80,7 @@ test("deret yang kosong tidak menghakimi apa pun", () => {
 
 test("lembar cadangan memuat kedua deret dan TIDAK memuat lubang di antaranya", () => {
   // Inilah yang dulu salah: lembar dicetak 1..batas, dan batas adalah nomor
-  // tertinggi di stok. Dengan deret Intern 1001-1250 itu berarti 500 baris
+  // tertinggi di stok. Dengan deret Internal 1001-1250 itu berarti 500 baris
   // kosong bernomor 501-1000 — nomor yang tidak pernah dibawa siapa pun, dan
   // tiap barisnya menyuruh petugas mencari slip yang tidak ada.
   const nomor = nomorStok(HRCD37);
@@ -94,7 +94,7 @@ test("lembar cadangan memuat kedua deret dan TIDAK memuat lubang di antaranya", 
 });
 
 
-test("stok yang belum punya deret Intern tetap mencetak deret Eksternal", () => {
+test("stok yang belum punya deret Internal tetap mencetak deret Eksternal", () => {
   const belum = { eksternalMulai: 1, eksternalSampai: 3, internMulai: 0, internSampai: 0 };
   assert.deepEqual(nomorStok(belum), [1, 2, 3]);
 });
@@ -113,7 +113,7 @@ test("pesannya menyebut deret yang BENAR, bukan cuma bahwa nomornya salah", () =
 });
 
 
-test("batch Intern dikenali dari golongan regunya", () => {
+test("batch Internal dikenali dari golongan regunya", () => {
   assert.equal(deretIntern([{ golongan: "penggalang_pa" }, { golongan: "intern_pi" }]), true);
   assert.equal(deretIntern([{ golongan: "penggalang_pa" }]), false);
   assert.equal(deretIntern([]), false);

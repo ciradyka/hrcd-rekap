@@ -1,6 +1,6 @@
 -- ============================================================================
 -- hrcd-rekap : tests/sql/52_intern_golongan.sql
--- Intern adalah dua golongan tersendiri dan hanya mengikuti Soal Tulis.
+-- Internal adalah dua golongan tersendiri dan hanya mengikuti Soal Tulis.
 -- ============================================================================
 
 do $blok$
@@ -24,7 +24,7 @@ begin
 
   select count(*) into v_n from wahana
   where edisi = edisi_aktif() and golongan = 'intern';
-  assert v_n = 5, format('Intern mendapat %s komponen, seharusnya 5 Soal Tulis', v_n);
+  assert v_n = 5, format('Internal mendapat %s komponen, seharusnya 5 Soal Tulis', v_n);
 
   select count(*) into v_n from wahana
   where edisi = edisi_aktif() and golongan = 'intern'
@@ -72,12 +72,12 @@ begin
 
   select total into v_total from v_total_skor where regu_id = v_regu;
   assert v_total = 300,
-         format('Intern bernilai Soal Tulis penuh harus mendapat 300, bukan %s', v_total);
+         format('Internal bernilai Soal Tulis penuh harus mendapat 300, bukan %s', v_total);
 
   select penalti_checkout + penalti_anggota into v_total
   from v_total_skor where regu_id = v_regu;
   assert v_total = 0,
-         format('Intern terkena %s penalti selain waktu', v_total);
+         format('Internal terkena %s penalti selain waktu', v_total);
 
   select n.nomor into v_nomor from nomor_dada_stok n
   where not exists (select 1 from regu r where r.nomor_dada = n.nomor)
@@ -102,10 +102,10 @@ begin
                      '00000000-0000-0000-0000-00000000000a', true);
   select count(*) into v_n from v_lembar_pos where regu_id = v_regu;
   assert v_n = 3,
-         format('Intern muncul di %s pos; seharusnya hanya tiga pos Soal Tulis', v_n);
+         format('Internal muncul di %s pos; seharusnya hanya tiga pos Soal Tulis', v_n);
   select sum(jumlah_komponen) into v_n from v_lembar_pos where regu_id = v_regu;
   assert v_n = 5,
-         format('form Intern memuat %s komponen; seharusnya lima Soal Tulis', v_n);
+         format('form Internal memuat %s komponen; seharusnya lima Soal Tulis', v_n);
   reset role;
 
   update kloter set jam_berangkat = '2026-08-29 07:00:00+07'
@@ -116,7 +116,7 @@ begin
     (regu_id, jam_datang, anggota_hadir, recorded_by, note)
   values
     (v_regu, '2026-08-29 11:03:00+07', 3,
-     (select id from auth.users order by id limit 1), 'uji Intern');
+     (select id from auth.users order by id limit 1), 'uji Internal');
 
   select total into v_total from v_total_skor where regu_id = v_regu;
   assert v_total = 297,
@@ -124,7 +124,7 @@ begin
   select penalti_checkout + penalti_anggota into v_total
   from v_total_skor where regu_id = v_regu;
   assert v_total = 0,
-         format('Intern terkena %s penalti checkout/anggota setelah closing', v_total);
+         format('Internal terkena %s penalti checkout/anggota setelah closing', v_total);
   select peringkat into v_n from v_klasemen where regu_id = v_regu;
   assert v_n = 1, format('Intern PA harus memulai klasemennya sendiri di peringkat %s', v_n);
 

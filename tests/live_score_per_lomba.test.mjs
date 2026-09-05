@@ -23,7 +23,7 @@ const live = await readFile(new URL("live/live.js", akar), "utf8");
 
 /* Konfigurasi Pos 3 yang sebenarnya (dibaca dari `wahana` edisi 37): lima
    kriteria Pembidaian di bawah satu `lomba`, KIM Lihat dan KIM Cium sebagai
-   lomba tersendiri sejak 0087, dan Logika dengan varian Intern-nya. */
+   lomba tersendiri sejak 0087, dan Logika dengan varian Internal-nya. */
 const POS3 = [
   { kode: "bidai_diagnosis", name: "Diagnosis dan Penanganan Awal", lomba: "Pembidaian", golongan: null },
   { kode: "bidai_teknik", name: "Teknik Bidai", lomba: "Pembidaian", golongan: null },
@@ -86,13 +86,13 @@ test("terisi sebagian dilaporkan sebagian, bukan lengkap dan bukan kosong", () =
 
 
 test("lomba yang tidak berlaku untuk golongannya dilaporkan berlaku=0", () => {
-  // Regu Intern hanya dinilai Soal Tulis dan ketepatan waktu (0091); seluruh
+  // Regu Internal hanya dinilai Soal Tulis dan ketepatan waktu (0091); seluruh
   // lomba lapangan tidak berlaku untuknya. Itu keadaan sah, dan papan harus
   // membedakannya dari "nilainya belum masuk".
   const [pembidaian, , , logika] = lombaPos(POS3);
   assert.equal(ringkasLomba(pembidaian, "intern_pa", 3, {}).berlaku, 0);
 
-  // Logika punya varian Intern, jadi ia TETAP berlaku — dan yang dibaca
+  // Logika punya varian Internal, jadi ia TETAP berlaku — dan yang dibaca
   // varian internnya, bukan baris umum.
   const r = ringkasLomba(logika, "intern_pa", 3, { "3.logika_intern": 80, "3.logika": 55 });
   assert.equal(r.berlaku, 1);

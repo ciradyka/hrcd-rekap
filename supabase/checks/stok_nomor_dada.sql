@@ -6,7 +6,7 @@
 -- HRCD XXXVII:
 --
 --     Eksternal   001 - 250
---     Intern     1001 - 1100
+--     Internal     1001 - 1100
 --
 -- ---------------------------------------------------------------------------
 -- KENAPA BUKAN MIGRASI
@@ -50,7 +50,7 @@ drop table if exists stok_kain;
 create temporary table stok_kain (jenis text, dari integer, sampai integer);
 insert into stok_kain (jenis, dari, sampai) values
   ('Eksternal',    1,  250),
-  ('Intern',    1001, 1100);
+  ('Internal',    1001, 1100);
 
 -- ---------------------------------------------------------------------------
 -- 1. Keadaan sekarang, sebelum disentuh.
@@ -126,7 +126,7 @@ do $blok$
 declare r record;
 begin
   select * into r from v_rentang_nomor_dada;
-  raise notice 'stok: SEKARANG Eksternal % - %, Intern % - %.',
+  raise notice 'stok: SEKARANG Eksternal % - %, Internal % - %.',
                r.eksternal_mulai, r.eksternal_sampai, r.intern_mulai, r.intern_sampai;
   raise notice 'stok: lembar cadangan "form tabel" akan mencetak % baris.',
                (select count(*) from nomor_dada_stok);

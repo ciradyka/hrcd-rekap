@@ -1,4 +1,4 @@
--- Simulasi 24 pemenang Eksternal dan 12 regu Intern. Dua sekolah Penegak
+-- Simulasi 24 pemenang Eksternal dan 12 regu Internal. Dua sekolah Penegak
 -- sengaja sama-sama mendapat lima gelar agar bobot Juara I-Harapan III diuji;
 -- sekolah Juara Umum tetap ditentukan pertama-tama dari jumlah gelar.
 
@@ -111,7 +111,7 @@ cross join lateral (
     and kode = 'kepramukaan_keagamaan'
 ) w;
 
--- Intern sengaja mendapat nilai Pos 5 sempurna; satu-satunya nilai Pos 5
+-- Internal sengaja mendapat nilai Pos 5 sempurna; satu-satunya nilai Pos 5
 -- Eksternal hanya 50. Juara Yel-Yel tetap harus jatuh ke nomor 301.
 insert into nilai_mentah
   (regu_id, wahana_id, nilai_1, nilai_2, source, created_by)
@@ -162,12 +162,12 @@ begin
   select nomor_dada into v_nomor from hasil_simulasi_kejuaraan
   where kode = 'yel_yel';
   assert v_nomor = 301,
-    format('94.5 GAGAL: Intern memengaruhi Juara Yel-Yel; nomor dada = %s', v_nomor);
+    format('94.5 GAGAL: Internal memengaruhi Juara Yel-Yel; nomor dada = %s', v_nomor);
 
   select count(*) into v_salah from hasil_simulasi_kejuaraan
   where golongan like 'intern_%';
   assert v_salah = 0,
-    format('94.6 GAGAL: %s gelar diberikan kepada Intern', v_salah);
+    format('94.6 GAGAL: %s gelar diberikan kepada Internal', v_salah);
 end;
 $blok$;
 

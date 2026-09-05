@@ -273,7 +273,7 @@ run supabase/migrations/0024_komponen_pos.sql
 #     yang lebih muda. Sebelum menambahkan satu ke daftar ini, cari migrasi
 #     sesudahnya yang menyentuh kolom yang sama.
 #   * 0091 harus SESUDAH 0076 agar lima komponen Soal Tulis yang disalin untuk
-#     Intern sudah ada. 0093 menyiapkan 60 kloter setelah edisi aktif lahir;
+#     Internal sudah ada. 0093 menyiapkan 60 kloter setelah edisi aktif lahir;
 #     0105 menambah headroom-nya menjadi 75, dan ia HARUS ikut diulang di
 #     sini: di glob ia berjalan sebelum edisi aktif lahir, jadi
 #     `select kloter_maks from edisi where is_active` tidak menemukan apa
@@ -285,7 +285,7 @@ run supabase/migrations/0024_komponen_pos.sql
 #     assert 0118 memeriksa sebaran jamnya atas jumlah yang benar.
 #   * 0169 harus SESUDAH 0076 dan 0091, karena keduanya yang memasang
 #     `judul_isian = 'Benar'` pada baris soal — 0076 untuk kelimanya, 0091
-#     untuk salinan Intern-nya. Alasan yang sama persis dengan 0168 di bawah.
+#     untuk salinan Internal-nya. Alasan yang sama persis dengan 0168 di bawah.
 #   * 0168 harus SESUDAH 0039, dan itu satu-satunya alasan ia ada di daftar
 #     ini. 0039 memasang judul isian Menaksir "Selisih Taksir" dan 0168
 #     menggantinya dengan "Hasil Taksir"; di glob urutannya benar, tapi 0039

@@ -89,7 +89,7 @@ export function jadwalPlanning(nomorKloter, waktuPertama, waktuTerakhir,
 }
 
 /**
- * Isi kloter FIFO dengan kuota terpisah Eksternal dan Intern, lalu sebarkan
+ * Isi kloter FIFO dengan kuota terpisah Eksternal dan Internal, lalu sebarkan
  * jam K1 sampai kloter terakhir merata di seluruh jendela.
  */
 export function hitungRekomendasiKloter({

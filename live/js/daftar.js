@@ -207,7 +207,7 @@ const labelGolongan = k => golonganForm().find(g => g.kode === k)?.label
 
 const NAMA_MAKS = 25;
 
-/* Kelas / organisasi (jalur Intern). Sama dengan batas kolomnya di database
+/* Kelas / organisasi (jalur Internal). Sama dengan batas kolomnya di database
    (migrasi 0133), jadi yang lolos di layar juga lolos di sana — pembina tidak
    pernah menemui penolakan yang tidak bisa ia lihat sebabnya. */
 const KELAS_MAKS = 80;
@@ -227,7 +227,7 @@ const KELAS_MAKS = 80;
 const POLA_KELAS = /^[A-Za-z0-9 ]*$/;
 const rapatSpasi = (t) => String(t || "").replace(/\s+/g, " ").trim();
 
-/* Kelas / organisasi: WAJIB di jalur Intern, tidak ada sama sekali di jalur
+/* Kelas / organisasi: WAJIB di jalur Internal, tidak ada sama sekali di jalur
    Eksternal. Satu tempat yang memutuskan, dipakai cekRegu() maupun periksa().
    Dua aturan untuk satu kotak berarti kotak yang merah tapi tetap bisa
    dikirim, atau sebaliknya.
@@ -349,7 +349,7 @@ function halaman() {
     </section>
 
     <!-- Identitas regu. Judulnya bukan lagi "Nama tiap regu" karena jalur
-         Intern mengisi lebih dari nama di sini: kelas atau organisasi asal
+         Internal mengisi lebih dari nama di sini: kelas atau organisasi asal
          tiap regu ikut, dan itu justru yang membedakan mereka. -->
     <section class="card" id="bagian-regu">
       <h2><span class="section-number">${nomorRegu}</span> Identitas regu</h2>
@@ -811,7 +811,7 @@ function sinkronRegu() {
 
 function perbaruiTotal() {
   const total = jawab.regu.length;
-  // Regu Intern berharga lain (migrasi 0110). Form ini tidak pernah mencampur
+  // Regu Internal berharga lain (migrasi 0110). Form ini tidak pernah mencampur
   // keduanya — jenis peserta dipilih sekali di atas dan menentukan seluruh
   // pilihan golongan — jadi "N × harga" masih benar dan harganya diambil dari
   // regu pertama. Yang DIJUMLAHKAN tetap per regu, supaya angka besarnya tetap
@@ -858,8 +858,8 @@ function gambarRegu() {
           <input type="text" id="r-anggota-${i}-${k}" value="${a}"
                  style="margin-top:.35rem"
                  placeholder="Nama Anggota ${k + 1}">`).join("");
-    /* Kelas / organisasi HANYA di jalur Intern, dan di ATAS nama regunya.
-       Regu Eksternal sudah dibedakan oleh sekolahnya; regu Intern semuanya
+    /* Kelas / organisasi HANYA di jalur Internal, dan di ATAS nama regunya.
+       Regu Eksternal sudah dibedakan oleh sekolahnya; regu Internal semuanya
        dari satu sekolah, jadi inilah satu-satunya yang membedakan mereka —
        dan yang dibaca lebih dulu saat memanggil regu di lapangan.
 
@@ -969,7 +969,7 @@ function gambarRegu() {
     const kotakAnggota = document.getElementById(`r-anggota-galat-${i}`);
     if (kotakAnggota) kotakAnggota.hidden = !salahAnggota;
 
-    // Kotaknya cuma ada di jalur Intern; di Eksternal keduanya null dan
+    // Kotaknya cuma ada di jalur Internal; di Eksternal keduanya null dan
     // baris ini tidak melakukan apa-apa.
     const salahKelas = masalahKelas(i);
     const inpKelas = document.getElementById(`r-kelas-${i}`);
@@ -1025,7 +1025,7 @@ function gambarRegu() {
     // sudah mengisi belasan kotak dan harus mencari yang mana, dan aturan yang
     // baru muncul di ujung terbaca seperti penolakan yang mengada-ada.
     //
-    // Kotaknya cuma ada di jalur Intern, dan gambarRegu() menggambar ulang
+    // Kotaknya cuma ada di jalur Internal, dan gambarRegu() menggambar ulang
     // seluruh kartunya saat jenis peserta berganti, jadi tidak ada listener
     // yang menggantung ke kotak yang sudah tidak ada.
     const inpKelas = document.getElementById(`r-kelas-${i}`);

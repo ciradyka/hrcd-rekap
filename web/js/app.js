@@ -745,7 +745,7 @@ async function layarPengaturanKloter() {
                  min="0" value="${eksternalAwal}">
         </div>
         <div class="field">
-          <label for="kloter-jumlah-intern">Regu Intern</label>
+          <label for="kloter-jumlah-intern">Regu Internal</label>
           <input type="number" id="kloter-jumlah-intern" inputmode="numeric"
                  min="0" value="${internAwal}">
         </div>
@@ -760,7 +760,7 @@ async function layarPengaturanKloter() {
           <thead><tr>
             <th>Kloter</th>
             <th>Eksternal</th>
-            <th>Intern</th>
+            <th>Internal</th>
             <th>Waktu Berangkat</th>
           </tr></thead>
           <tbody id="kloter-rekomendasi-baris"></tbody>
@@ -1257,7 +1257,7 @@ async function layarDataPeserta() {
         saringan: [
           { kode: "semua", label: "Semua" },
           { kode: "eksternal", label: "Eksternal", pendek: "Luar" },
-          { kode: "intern", label: "Intern" },
+          { kode: "intern", label: "Internal" },
         ],
         saringAktif: "semua",
         jumlah: semua.length,
@@ -1359,7 +1359,7 @@ async function layarDataPeserta() {
      dari kelima, bukan orang keenam. Kotak "Anggota 5" karena itu tidak ada —
      constraint regu_anggota_maks_empat menolaknya.
 
-     Kelas hanya untuk regu Intern; regu Eksternal dibedakan oleh sekolahnya
+     Kelas hanya untuk regu Internal; regu Eksternal dibedakan oleh sekolahnya
      dan kotaknya tidak digambar sama sekali. */
   const barisRegu = (r, i) => {
     const id = esc(r.id);
@@ -1548,7 +1548,7 @@ async function layarPembayaran() {
 
     tbody.replaceChildren(h(baris.map(b => {
       const aktif = reguAktif(b);
-      // PENJUMLAHAN per regu, bukan perkalian: regu Intern berharga lain
+      // PENJUMLAHAN per regu, bukan perkalian: regu Internal berharga lain
       // (migrasi 0110), dan satu pendaftaran boleh memuat kedua jenis.
       // Angka ini dikirim apa adanya sebagai nominal ke verifikasi_pembayaran,
       // yang menghitung ulang dengan rumus yang sama di server dan menolak
@@ -1903,7 +1903,7 @@ function cetakKwitansi(daftar) {
            · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}<br>
            <span class="receipt-date"><strong>Tanggal:</strong>
              ${esc(tanggal(bayar.verified_at))}</span></p>
-        <!-- Dulu baris ini berbunyi "N regu @ Rp X". Sejak regu Intern punya
+        <!-- Dulu baris ini berbunyi "N regu @ Rp X". Sejak regu Internal punya
              harganya sendiri (migrasi 0110) tidak ada lagi SATU harga satuan
              yang benar untuk setiap batch, dan menuliskan salah satunya di
              kwitansi yang dipegang pembina lebih buruk daripada tidak
@@ -2090,7 +2090,7 @@ async function layarDaftarUlang() {
                      style.css. -->
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th>
                     <th>Nomor dada${deretIntern(menunggu) && rentang
-                      ? `<span class="sub">Intern ${rentang.internMulai}–${rentang.internSampai}</span>`
+                      ? `<span class="sub">Internal ${rentang.internMulai}–${rentang.internSampai}</span>`
                       : ""}</th>
                     <th class="kol-imbang"></th></tr>
               </thead>
@@ -2199,8 +2199,8 @@ async function layarDaftarUlang() {
     // berikutnya, dan di regu terakhir langsung menyimpan — satu sekolah
     // selesai tanpa memegang mouse.
     // Deret yang salah memerah SAMBIL DIKETIK, tidak menunggu tombol Simpan.
-    // Kain Intern bertulis 001 sama seperti kain Eksternal, jadi mengetik tiga
-    // angka untuk regu Intern adalah kekeliruan yang paling mungkin terjadi di
+    // Kain Internal bertulis 001 sama seperti kain Eksternal, jadi mengetik tiga
+    // angka untuk regu Internal adalah kekeliruan yang paling mungkin terjadi di
     // meja — dan menahannya sampai Simpan berarti petugas sudah mengetik
     // sepuluh nomor sebelum tahu yang pertama salah.
     const tandaiDeret = (inp) => {
@@ -2254,7 +2254,7 @@ async function layarDaftarUlang() {
             keluhan = keluhan || `Nomor ${angka} diketik untuk dua regu.`;
             continue;
           }
-          // Kain Intern bertulis 001 sama seperti kain Eksternal, dan
+          // Kain Internal bertulis 001 sama seperti kain Eksternal, dan
           // mengetik apa yang terbaca adalah hal paling wajar sedunia —
           // karena itu yang ditolak di sini bukan salah ketik, melainkan
           // kekeliruan yang PASTI terjadi kalau tidak ditolak.
@@ -2762,7 +2762,7 @@ async function layarKeberangkatan() {
  *  `Number(value)`, dan `Number("001")` tetap 1 — tidak ada satu pun
  *  pencarian, penyimpanan, atau perbandingan yang perlu tahu soal ini.
  *
- *  Nomor Intern empat digit tidak dipotong: dada3() melewatkan apa pun di atas
+ *  Nomor Internal empat digit tidak dipotong: dada3() melewatkan apa pun di atas
  *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000.
  *
  *  ANGKA NOL MENGOSONGKAN KOTAKNYA, dan itu bukan kebetulan melainkan
@@ -2856,7 +2856,7 @@ async function layarCetakKloter() {
         <thead>
           <tr>
             <th>Total Kloter</th><th>Total Regu</th>
-            <th>Eksternal</th><th>Intern</th>
+            <th>Eksternal</th><th>Internal</th>
           </tr>
         </thead>
         <tbody>
@@ -9132,7 +9132,7 @@ async function gambarLombaNilai(l) {
    *  varianUntuk() yang memilihnya, sama seperti layar lama — Tebak Simpul
    *  punya empat baris wahana dan regu ini cuma berhak atas satu. Lomba yang
    *  tidak punya varian untuk golongan itu bukan konfigurasi rusak: lomba
-   *  lapangan memang tidak berlaku untuk regu Intern (migrasi 0091). */
+   *  lapangan memang tidak berlaku untuk regu Internal (migrasi 0091). */
   function gambarIsian(r) {
     const dipakai = l.kolom
       .map(kol => ({ kol, k: varianUntuk(kol, r.golongan) }))

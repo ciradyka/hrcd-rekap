@@ -388,7 +388,7 @@ run tests/sql/51_reset_event_times.sql
 run supabase/migrations/0091_intern_golongan.sql
 run tests/sql/52_intern_golongan.sql
 # 0092 mengganti penyebaran sekolah per dua kloter dengan FIFO berkategori:
-# otomatis 5 Eksternal + 3 Intern, manual tanpa batas, 300+50 regu dalam 60
+# otomatis 5 Eksternal + 3 Internal, manual tanpa batas, 300+50 regu dalam 60
 # kloter yang perkiraannya dibagi rata sepanjang 07:00-10:00.
 run supabase/migrations/0092_fifo_kloter_eksternal_intern.sql
 run supabase/migrations/0093_configure_fifo_capacity.sql
@@ -408,7 +408,7 @@ run supabase/migrations/0095_lembar_pos_jawaban_benar.sql
 run tests/sql/56_lembar_pos_sama_dengan_klasemen.sql
 # 0096 membuat penyebut kelengkapan memakai komponen_berlaku(), aturan golongan
 # yang sama dengan penilaian — 0091 mengubah aturannya dan melewatkan salinan
-# di komponen_pos_golongan(), jadi regu Intern tidak pernah bisa terhitung
+# di komponen_pos_golongan(), jadi regu Internal tidak pernah bisa terhitung
 # lengkap dan di Pos 4/5 dihitung kosong selamanya. Tes 57 menguji kesamaan
 # aturannya, bukan angkanya.
 run supabase/migrations/0096_kelengkapan_mengenal_intern.sql
@@ -443,7 +443,7 @@ run tests/sql/63_daftar_ulang_after_print.sql
 run supabase/migrations/0103_restore_pos_last_entry.sql
 run tests/sql/64_pos_last_entry.sql
 # Halaman peserta hanya menerbitkan regu Eksternal, jadi penghitung kelengkapan
-# publik harus memakai populasi yang sama. Papan panitia tetap menghitung Intern.
+# publik harus memakai populasi yang sama. Papan panitia tetap menghitung Internal.
 run supabase/migrations/0104_public_completeness_external_only.sql
 run tests/sql/65_public_completeness_external.sql
 # Enam puluh kloter hanya memberi tepat 300 tempat Eksternal. Tambahkan 15
@@ -471,7 +471,7 @@ run tests/sql/70_anggota_hadir_publik.sql
 # keadaan yang harus dikerjakannya.
 run supabase/migrations/0109_kontrak_waktu_tiga_pilihan.sql
 run tests/sql/71_kontrak_waktu_tiga_pilihan.sql
-# 0110 memberi regu Intern harganya sendiri, jadi tagihan berhenti jadi
+# 0110 memberi regu Internal harganya sendiri, jadi tagihan berhenti jadi
 # perkalian dan menjadi penjumlahan per regu. Tes 72 memakai batch CAMPURAN —
 # satu-satunya bentuk yang membedakan kedua rumus — dan menempati kursi Meja
 # Pembayaran untuk membuktikan server menolak nominal rumus lama.
@@ -510,13 +510,13 @@ run supabase/migrations/0114_nama_anggota_regu.sql
 # tanpa galat dan pagar akhirnya tidak menyala di daftar kurasi.
 run supabase/migrations/0115_sekolah_baku_dua_baris.sql
 
-# 0116 memecah nomor dada jadi dua deret: Eksternal 1-500, Intern 1001-1250.
-# Tes 78 menempati kursinya — memberi regu Intern nomor Eksternal harus
+# 0116 memecah nomor dada jadi dua deret: Eksternal 1-500, Internal 1001-1250.
+# Tes 78 menempati kursinya — memberi regu Internal nomor Eksternal harus
 # ditolak, dan sebaliknya, lewat KEDUA pintu yang memberi nomor.
 run supabase/migrations/0116_nomor_dada_intern_seribu.sql
 run tests/sql/78_deret_nomor_dada_intern.sql
 
-# 0117 membetulkan lpad(...,3) yang MEMOTONG nomor Intern empat digit jadi
+# 0117 membetulkan lpad(...,3) yang MEMOTONG nomor Internal empat digit jadi
 # tiga — dan tiga digit itu regu Eksternal yang benar-benar ada. Tes 79
 # membaca pesan yang keluar, bukan definisi fungsinya.
 run supabase/migrations/0117_dada_empat_digit_berangkat.sql
@@ -615,7 +615,7 @@ run supabase/migrations/0129_impor_pendaftaran_xxxvii.sql
 # tempatnya tepat di belakangnya, bukan di kelompok migrasi mana pun.
 run supabase/migrations/0130_bukti_transfer_link_drive.sql
 
-# 0133 memberi regu kolom kelas/organisasi, dipakai jalur Intern. Pagar di
+# 0133 memberi regu kolom kelas/organisasi, dipakai jalur Internal. Pagar di
 # dalamnya MENGIRIM dua pendaftaran uji lewat submit_pendaftaran lalu
 # menghapusnya lagi — salah satunya untuk membuktikan kiriman TANPA kunci
 # baru itu tetap diterima.

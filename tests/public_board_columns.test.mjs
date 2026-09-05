@@ -43,12 +43,12 @@ test("varian bergolongan digabung jadi satu kolom bernama sama", () => {
 });
 
 
-test("varianUntuk tidak simetris: Intern tidak menerima komponen umum", () => {
+test("varianUntuk tidak simetris: Internal tidak menerima komponen umum", () => {
   const [kol] = kolomPos([
     { kode: "semaphore", name: "Semaphore", golongan: null },
   ]);
   assert.equal(varianUntuk(kol, "penegak_pa").kode, "semaphore");
-  // Kalau baris umum ikut berlaku untuk Intern, seluruh lomba lapangan
+  // Kalau baris umum ikut berlaku untuk Internal, seluruh lomba lapangan
   // tergambar untuk regu yang tidak mengikutinya (migrasi 0091).
   assert.equal(varianUntuk(kol, "intern_pa"), null);
 

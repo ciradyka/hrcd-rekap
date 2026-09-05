@@ -63,7 +63,7 @@ insert into status_acara (id) values (true);
 -- tests/run.sh menjalankannya di TENGAH daftar migrasi, sementara
 -- tests/dev_database.sh menjalankannya SESUDAH semuanya — dan beberapa
 -- migrasi memasukkan baris yang sama (0093, 0105, 0119 untuk kloter; 0116
--- untuk stok nomor dada Intern, yang memang sudah memakai penjaga yang sama).
+-- untuk stok nomor dada Internal, yang memang sudah memakai penjaga yang sama).
 --
 -- Tanpa penjaga ini, seed berhenti dengan "duplicate key" pada urutan kedua,
 -- dan yang gagal bukan cuma seed-nya: seluruh langkah sesudahnya tidak
@@ -74,7 +74,7 @@ insert into kloter (nomor) select generate_series(1, 40)
 on conflict (nomor) do nothing;
 
 -- Stok nomor dada fisik. DUA deret, karena kainnya dicetak dua set yang
--- sama-sama mulai dari 001: Eksternal 1-500, Intern 1001-1250 (migrasi 0116).
+-- sama-sama mulai dari 001: Eksternal 1-500, Internal 1001-1250 (migrasi 0116).
 -- Batas antaranya `edisi.nomor_dada_intern_mulai`.
 insert into nomor_dada_stok (nomor) select generate_series(1, 500)
 on conflict (nomor) do nothing;

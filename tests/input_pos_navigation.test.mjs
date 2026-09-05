@@ -18,7 +18,7 @@ function rangkai(...barisDaftar) {
   }
 }
 
-test("Enter mengikuti kolom tabel melewati batas Intern dan Eksternal", () => {
+test("Enter mengikuti kolom tabel melewati batas Internal dan Eksternal", () => {
   const asal = kotak();
   asal.closest = () => ({ cellIndex: 3 });
 
@@ -27,7 +27,7 @@ test("Enter mengikuti kolom tabel melewati batas Intern dan Eksternal", () => {
   const tujuan = kotak();
   const pertama = baris([]);
   const disaring = baris([sel(), sel(), sel(), sel(tersembunyi)], true);
-  // Baris Intern tidak punya lomba pada kolom 3. Ia punya input pada kolom 0,
+  // Baris Internal tidak punya lomba pada kolom 3. Ia punya input pada kolom 0,
   // tetapi input itu tidak boleh dianggap sebagai kolom yang sama.
   const intern = baris([sel(salahKolom), sel(), sel(), sel()]);
   const eksternal = baris([sel(), sel(), sel(), sel(tujuan)]);

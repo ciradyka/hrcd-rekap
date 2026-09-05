@@ -35,7 +35,7 @@ begin
   reset role;
 
   assert v_pemenang = 'SEKOLAH EKSTERNAL UJI 92',
-    format('92 GAGAL: dua regu Intern ikut dihitung; pemenang = %s', v_pemenang);
+    format('92 GAGAL: dua regu Internal ikut dihitung; pemenang = %s', v_pemenang);
 
   delete from regu where pendaftaran_id in (v_daftar_eksternal, v_daftar_intern);
   delete from pendaftaran where id in (v_daftar_eksternal, v_daftar_intern);

@@ -5,10 +5,10 @@
 -- angka bulat yang dipilih waktu edisi dibuka.
 --
 --     kloter dibutuhkan = maks( kain Eksternal / kuota Eksternal per kloter,
---                               kain Intern    / kuota Intern per kloter )
+--                               kain Internal    / kuota Internal per kloter )
 --     kloter dipasang   = kloter dibutuhkan + CADANGAN
 --
--- HRCD XXXVII: 250 kain Eksternal / 5 = 50 kloter, 100 kain Intern / 3 = 34
+-- HRCD XXXVII: 250 kain Eksternal / 5 = 50 kloter, 100 kain Internal / 3 = 34
 -- kloter, jadi 50 yang menentukan.
 --
 -- ---------------------------------------------------------------------------
@@ -75,7 +75,7 @@ begin
 
   raise notice 'kloter: kain % Eksternal / % per kloter = % kloter',
                v_kain_ext, v_q_ext, ceil(v_kain_ext::numeric / v_q_ext);
-  raise notice 'kloter: kain % Intern    / % per kloter = % kloter',
+  raise notice 'kloter: kain % Internal    / % per kloter = % kloter',
                v_kain_int, v_q_int, ceil(v_kain_int::numeric / v_q_int);
   raise notice 'kloter: dibutuhkan %, cadangan %, dipasang % (sebelumnya %)',
                v_butuh, v_cadangan, v_pasang, v_lama;

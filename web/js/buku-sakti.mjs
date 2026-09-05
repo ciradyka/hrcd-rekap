@@ -55,7 +55,7 @@
    dimuat, karena buku panduan paling dibutuhkan saat ada yang rusak.
 
    Akibatnya satu: tulis keterangannya supaya utuh dibaca TANPA gambarnya.
-   "Contoh: kain Intern bertulis 1001, angka 1 di depan ikut disablon" bekerja
+   "Contoh: kain Internal bertulis 1001, angka 1 di depan ikut disablon" bekerja
    di dua keadaan; "Contoh: seperti di gambar" tidak bekerja di satu pun.
 
    SATU BAB PUNYA DUA NAMA, dan keduanya wajib.
@@ -203,14 +203,14 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "p",
-          teks: "Yang pertama dan paling sering keliru: nomor dada punya DUA deret, dan keduanya dipakai berdampingan di lomba yang sama. Regu Eksternal dan regu Intern dinilai di pos yang sama, oleh juri yang sama, di blangko yang sama.",
+          teks: "Yang pertama dan paling sering keliru: nomor dada punya DUA deret, dan keduanya dipakai berdampingan di lomba yang sama. Regu Eksternal dan regu Internal dinilai di pos yang sama, oleh juri yang sama, di blangko yang sama.",
         },
         {
           jenis: "tabel",
           kepala: ["Deret", "Angka di sistem", "Yang harus tertulis di kain"],
           baris: [
             ["Eksternal", "1 sampai 500", "sama persis dengan angka di sistem"],
-            ["Intern", "1001 sampai 1250", "1001, bukan 001; angka 1 di depan ikut disablon"],
+            ["Internal", "1001 sampai 1250", "1001, bukan 001; angka 1 di depan ikut disablon"],
           ],
         },
         {
@@ -220,15 +220,15 @@ const BAB_TUTORIAL = {
         {
           jenis: "foto",
           berkas: "kain-nomor-dada-dua-deret.jpg",
-          teks: "Contoh: dua kain berdampingan. Yang kiri Eksternal, angkanya polos. Yang kanan Intern, angka 1 di depan ikut disablon jadi 1001 — bukan 001.",
+          teks: "Contoh: dua kain berdampingan. Yang kiri Eksternal, angkanya polos. Yang kanan Internal, angka 1 di depan ikut disablon jadi 1001 — bukan 001.",
         },
         {
           jenis: "poin",
           butir: [
-            "Kain Intern yang polos bertulis 001 melahirkan blangko yang ambigu: juri menyalin apa yang dilihatnya di dada regu, dan 001 bisa dibaca sebagai Eksternal 1. Tidak ada satu baris SQL pun yang bisa memulihkan blangko seperti itu, karena kertasnya tidak menyimpan nama regu.",
+            "Kain Internal yang polos bertulis 001 melahirkan blangko yang ambigu: juri menyalin apa yang dilihatnya di dada regu, dan 001 bisa dibaca sebagai Eksternal 1. Tidak ada satu baris SQL pun yang bisa memulihkan blangko seperti itu, karena kertasnya tidak menyimpan nama regu.",
             "Blangko penilaian memang HANYA memuat nomor dada, tanpa nama regu. Satu angka yang salah memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya.",
             "Nomor yang ditukar karena kainnya rusak DIPENSIUNKAN permanen. Kalau petugas pos melihat nomor yang sudah pensiun di lapangan, itu dilaporkan ke Sekretariat, bukan dinilai diam-diam.",
-            "Penalti pos terlewat dan penalti anggota TIDAK berlaku bagi regu Intern. Umumkan ini sebelum papan dibaca, kalau tidak ada yang menyimpulkan sistemnya salah hitung.",
+            "Penalti pos terlewat dan penalti anggota TIDAK berlaku bagi regu Internal. Umumkan ini sebelum papan dibaca, kalau tidak ada yang menyimpulkan sistemnya salah hitung.",
             "Samakan jam tangan seluruh panitia ke satu jam acuan pada apel pagi. Jam berangkat dan jam datang diketik dari jam sungguhan, dan penaltinya satu poin per menit ke dua arah. Dua jam tangan yang selisih tiga menit berarti tiga poin bagi regu yang tidak salah apa-apa.",
           ],
         },
@@ -255,7 +255,7 @@ const BAB_TUTORIAL = {
           nama: "Kalkulator Keberangkatan",
           hash: "#/pengaturan-kloter",
           fitur: "pengaturan",
-          teks: "Isi Waktu Berangkat Pertama, Waktu Berangkat Terakhir, jumlah regu Eksternal dan Intern; layar ini menghitung rekomendasi berapa kloter yang terbentuk beserta jam berangkat tiap kloter. Dipakai untuk memastikan seluruh kloter masih masuk jendela sebelum angkanya dikunci.",
+          teks: "Isi Waktu Berangkat Pertama, Waktu Berangkat Terakhir, jumlah regu Eksternal dan Internal; layar ini menghitung rekomendasi berapa kloter yang terbentuk beserta jam berangkat tiap kloter. Dipakai untuk memastikan seluruh kloter masih masuk jendela sebelum angkanya dikunci.",
         },
         {
           jenis: "langkah",
@@ -264,7 +264,7 @@ const BAB_TUTORIAL = {
             "Tetapkan jendela keberangkatan 07:00 sampai 10:00 dan jeda MAKSIMAL antar keberangkatan 5 menit sebagai konfigurasi edisi, bukan sebagai angka tetap. Jeda itu batas atas: kalau kloternya sedikit, yang terakhir berangkat jauh sebelum ujung jendela.",
             "Isi daftar pos, lomba, dan penilaian beserta poin maksimalnya. Bobot sebuah pos tidak pernah ditulis di mana pun: ia adalah jumlah poin maksimal seluruh wahana di pos itu.",
             "Isi pilihan kontrak waktu (3 jam, 3,5 jam, 4 jam) dan konfigurasi penalti.",
-            "Isi stok nomor dada dua deret: Eksternal 1 sampai 500, Intern 1001 sampai 1250.",
+            "Isi stok nomor dada dua deret: Eksternal 1 sampai 500, Internal 1001 sampai 1250.",
             "Buka Kalkulator Keberangkatan dan pastikan kloter terakhir masih berangkat sebelum 10:00.",
             "Sesudah PR mendarat, jalankan workflow Apply migration to Supabase untuk tiap berkas migration, satu per satu, lalu baca notice yang keluar.",
             "Jalankan supabase/checks/status_migrasi.sql lewat workflow yang sama untuk membuktikan migration-nya benar-benar hidup di database.",
@@ -272,7 +272,7 @@ const BAB_TUTORIAL = {
         },
         {
           jenis: "kenapa",
-          teks: "Migration tidak pernah ikut merge. Berkas yang di-merge tapi tidak pernah dijalankan tidak menimbulkan satu galat pun: CI tetap hijau dan layar tetap menyala. Sepuluh migration pernah menganggur enam hari seperti itu, dan yang menemukannya adalah seorang pembina yang ditolak saat mendaftarkan regu Intern.",
+          teks: "Migration tidak pernah ikut merge. Berkas yang di-merge tapi tidak pernah dijalankan tidak menimbulkan satu galat pun: CI tetap hijau dan layar tetap menyala. Sepuluh migration pernah menganggur enam hari seperti itu, dan yang menemukannya adalah seorang pembina yang ditolak saat mendaftarkan regu Internal.",
         },
         {
           jenis: "poin",
@@ -492,8 +492,8 @@ const BAB_TUTORIAL = {
           jenis: "poin",
           butir: [
             "Nomor dada DIKETIK petugas, tidak diterbitkan sistem. Sistem hanya memeriksa: ada di stok, belum dipensiunkan, belum dipakai, dan berada di deret yang benar.",
-            "Ada DUA deret. Eksternal 1 sampai 500. Intern 1001 sampai 1250.",
-            "Kain Intern bertulis 001 diketik 1001, dan angka 1001 itulah yang tampil di seluruh layar, kertas, dan papan peserta. Kain barunya diberi angka 1 di depan supaya tidak ada terjemahan di kepala siapa pun.",
+            "Ada DUA deret. Eksternal 1 sampai 500. Internal 1001 sampai 1250.",
+            "Kain Internal bertulis 001 diketik 1001, dan angka 1001 itulah yang tampil di seluruh layar, kertas, dan papan peserta. Kain barunya diberi angka 1 di depan supaya tidak ada terjemahan di kepala siapa pun.",
             "Kloter ditentukan SISTEM saat nomor dada tersimpan. Petugas tidak memilih kloter di layar ini.",
             "Tidak ada tanda tangan dan tidak ada centang konfirmasi di sistem. Konsekuensinya tidak ada catatan siapa mengonfirmasi apa dan kapan, jadi konfirmasi lisannya harus benar-benar dilakukan.",
           ],
@@ -522,7 +522,7 @@ const BAB_TUTORIAL = {
         {
           jenis: "poin",
           butir: [
-            "Kuota otomatis per kloter: 5 Eksternal dan 3 Intern, dihitung TERPISAH.",
+            "Kuota otomatis per kloter: 5 Eksternal dan 3 Internal, dihitung TERPISAH.",
             "Urutannya FIFO murni. Yang lebih dahulu menyelesaikan daftar ulang mendapat kloter lebih awal.",
             "Sekolah tidak memengaruhi apa pun. Tidak ada pengacakan dan tidak ada lompatan kloter. Dua regu satu sekolah boleh sekloter kalau memang FIFO menempatkan mereka di sana.",
             "Pengacakan otomatis MELEWATI kloter yang sudah berangkat. Tanda cetak tidak menutup kloter untuk penambahan regu.",
@@ -770,7 +770,7 @@ const BAB_TUTORIAL = {
           butir: [
             "Jam datang adalah jam saat tombol ditekan di laptop panitia, BUKAN timestamp server saat datanya sampai. Kalau server yang menandai waktunya sendiri, regu yang dicatat dua puluh menit setelah tiba dihukum atas keterlambatan yang tidak pernah terjadi.",
             "Karena itu jam datang tetap boleh diubah manual untuk pencatatan susulan dari kertas.",
-            "Penalti pos terlewat dan penalti anggota TIDAK berlaku bagi regu Intern.",
+            "Penalti pos terlewat dan penalti anggota TIDAK berlaku bagi regu Internal.",
             "Regu yang belum tercatat tiba tetap tampil di Live Score tanpa peringkat, tidak bisa masuk enam besar, dan tidak dikenai pengurangan apa pun. Ia hilang dari klasemen resmi tanpa satu galat pun muncul.",
           ],
         },
@@ -1215,7 +1215,7 @@ const BAB_SEKSI = {
         {
           jenis: "poin",
           butir: [
-            "Menetapkan tanggal lomba dan biaya pendaftaran per regu, DUA angka, satu untuk Eksternal dan satu untuk Intern.",
+            "Menetapkan tanggal lomba dan biaya pendaftaran per regu, DUA angka, satu untuk Eksternal dan satu untuk Internal.",
             "Menunjuk koordinator tiap seksi, dan menunjuk seksi mana yang memegang akun admin.",
             "Memutuskan yang tidak boleh diputuskan petugas meja: pembatalan keberangkatan, penyisipan regu terlambat ke kloter, dan sanksi.",
             "Memutuskan kapan fase live dinaikkan, lalu memberitahukannya ke pemegang admin, bukan sebaliknya.",
@@ -1652,7 +1652,7 @@ const BAB_SEKSI = {
           butir: [
             "Mengurus izin dan pembagian ruang barak, memisahkan putra dan putri, dan menempel denahnya.",
             "Menyediakan alat tiap lomba sesuai daftar Koordinator Lapangan, beserta cadangannya.",
-            "Menyiapkan nomor dada kain dua deret sesuai stok yang dipasang di sistem: Eksternal polos, Intern disablon 1001 ke atas dan bukan 001.",
+            "Menyiapkan nomor dada kain dua deret sesuai stok yang dipasang di sistem: Eksternal polos, Internal disablon 1001 ke atas dan bukan 001.",
             "Menyiapkan tiska sejumlah PESERTA beserta cadangan, dan menyerahkannya ke meja daftar ulang, bukan ke garis finish. Tiska bukti keikutsertaan, jadi hitungannya per kepala, bukan per regu.",
             "Menggandakan blangko di mesin fotokopi. Yang dicetak dari layar cuma satu master per lomba, bukan setumpuk.",
             "Menyiapkan piala dan hadiah, dan memastikan namanya sesuai kategori juara.",
@@ -2155,8 +2155,8 @@ const BAB_KENAPA = {
           jenis: "poin",
           butir: [
             "Ditolak sistem memberi nomor terkecil yang tersedia: petugas jadi harus mencari kain nomor tertentu di tumpukan, sementara antrean berdiri di depannya.",
-            "Sejak migration 0116 ada dua deret dari satu kunci yang sama: Eksternal 1 sampai 500, Intern 1001 sampai 1250.",
-            "Deret Intern itu keputusan pemilik acara, 27 Agustus 2026, dan ia menutup jalur sistemnya saja. Jalur kertasnya ikut menuntut. Kain Intern harus ditandai 1xxx, karena juri menyalin nomor dari kain di dada regu. Kain polos bertulis 001 menghasilkan blangko ambigu, dan itu tidak bisa dipulihkan satu baris SQL pun.",
+            "Sejak migration 0116 ada dua deret dari satu kunci yang sama: Eksternal 1 sampai 500, Internal 1001 sampai 1250.",
+            "Deret Internal itu keputusan pemilik acara, 27 Agustus 2026, dan ia menutup jalur sistemnya saja. Jalur kertasnya ikut menuntut. Kain Internal harus ditandai 1xxx, karena juri menyalin nomor dari kain di dada regu. Kain polos bertulis 001 menghasilkan blangko ambigu, dan itu tidak bisa dipulihkan satu baris SQL pun.",
             "Efek sampingnya menjatuhkan satu bug tidur: pemformat tiga digit memotong 1001 jadi 100. Diperbaiki di migration 0117.",
           ],
         },
@@ -2194,7 +2194,7 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Pembagian kloter otomatis mengisi kloter paling awal yang belum berangkat, urut siapa yang lebih dulu menyelesaikan daftar ulang. Paling banyak 5 Eksternal dan 3 Intern per kloter, kuotanya dihitung terpisah. Sekolah tidak berpengaruh sama sekali. Tapi kloter yang kertasnya sudah dicetak TETAP boleh ditambah regu secara manual.",
+          teks: "Pembagian kloter otomatis mengisi kloter paling awal yang belum berangkat, urut siapa yang lebih dulu menyelesaikan daftar ulang. Paling banyak 5 Eksternal dan 3 Internal per kloter, kuotanya dihitung terpisah. Sekolah tidak berpengaruh sama sekali. Tapi kloter yang kertasnya sudah dicetak TETAP boleh ditambah regu secara manual.",
         },
         {
           jenis: "poin",
@@ -2617,7 +2617,7 @@ export const SPRINT = [
       { kode: "s2-tanggal", seksi: "Ketua Pelaksana", layar: null,
         teks: "TETAPKAN TANGGAL LOMBA bersama kepala sekolah dan pembina, lalu tulis di notulen. Seluruh tenggat di sprint berikutnya dihitung mundur dari tanggal ini." },
       { kode: "s2-tema", seksi: "Ketua Pelaksana", layar: null,
-        teks: "Tetapkan tema, kuota regu, dan biaya pendaftaran per regu, termasuk biaya regu Intern yang memang berbeda." },
+        teks: "Tetapkan tema, kuota regu, dan biaya pendaftaran per regu, termasuk biaya regu Internal yang memang berbeda." },
       { kode: "s2-rab", seksi: "Bendahara", layar: null,
         teks: "Susun anggaran kasar dan hitung titik impasnya dari uang pendaftaran SAJA. Acara harus tetap jalan kalau sponsor nol." },
       { kode: "s2-izin-prinsip", seksi: "Sekretaris", layar: null,
@@ -2727,7 +2727,7 @@ export const SPRINT = [
       { kode: "s5-edaran", seksi: "Humas", layar: null,
         teks: "Minta Kwartir Cabang menerbitkan surat edaran ke gudep SMP dan SMA se-kabupaten. Ini alat publikasi paling ampuh dan tidak berbiaya." },
       { kode: "s5-migrasi-edisi", seksi: "Sekretariat", layar: null,
-        teks: "Susun migration edisi baru: nomor, nama, tahun, tanggal lomba, biaya per regu Eksternal dan Intern, jam mulai dan batas berangkat, serta jeda maksimal antar kloter." },
+        teks: "Susun migration edisi baru: nomor, nama, tahun, tanggal lomba, biaya per regu Eksternal dan Internal, jam mulai dan batas berangkat, serta jeda maksimal antar kloter." },
       { kode: "s5-kalkulator", seksi: "Sekretariat", layar: "#/pengaturan-kloter",
         teks: "Buka Kalkulator Keberangkatan dan pastikan kloter terakhir masih berangkat sebelum jam sepuluh dengan perkiraan jumlah regu tahun ini." },
     ],
@@ -2853,13 +2853,13 @@ export const SPRINT = [
       { kode: "s9-medis", seksi: "Kesehatan", layar: null,
         teks: "Ajukan permohonan tenaga medis dan ambulans ke Puskesmas kecamatan dan PMI, lalu sepakati rumah sakit rujukan beserta nomor IGD-nya." },
       { kode: "s9-nomor-dada", seksi: "Akomodasi dan Logistik", layar: null,
-        teks: "Pesan kain nomor dada beserta cadangan sepuluh persen. Deret Intern disablon 1001 dan seterusnya, BUKAN 001, supaya angka yang disalin juri dari dada regu tidak bentrok dengan Eksternal. Sablon butuh dua minggu kerja. Kalau pendaftaran belum ditutup, pesan sejumlah KUOTA, bukan sejumlah pendaftar." },
+        teks: "Pesan kain nomor dada beserta cadangan sepuluh persen. Deret Internal disablon 1001 dan seterusnya, BUKAN 001, supaya angka yang disalin juri dari dada regu tidak bentrok dengan Eksternal. Sablon butuh dua minggu kerja. Kalau pendaftaran belum ditutup, pesan sejumlah KUOTA, bukan sejumlah pendaftar." },
       { kode: "s9-tiska", seksi: "Akomodasi dan Logistik", layar: null,
         teks: "Pesan tiska beserta cadangan. Hitungannya per PESERTA, bukan per regu, jadi angkanya berlipat kira-kira delapan kali jumlah regu — pastikan Bendahara memakai angka itu, bukan angka regu." },
       { kode: "s9-pinjam", seksi: "Akomodasi dan Logistik", layar: null,
         teks: "Kirim surat peminjaman tenda, terpal, meja-kursi, sound system, HT, genset, dan lampu sorot." },
       { kode: "s9-stok-dada", seksi: "Sekretariat", layar: null,
-        teks: "Samakan stok nomor dada di sistem dengan kain yang benar-benar dipesan: dua deret, Eksternal dan Intern. Pagar nomor dada membaca angkanya dari sana." },
+        teks: "Samakan stok nomor dada di sistem dengan kain yang benar-benar dipesan: dua deret, Eksternal dan Internal. Pagar nomor dada membaca angkanya dari sana." },
       { kode: "s9-danus-preorder", seksi: "Dana Usaha", layar: null,
         teks: "Tutup pre-order kaos dan merchandise sekarang, supaya barangnya jadi sebelum hari-H, bukan sesudahnya." },
     ],
@@ -2959,7 +2959,7 @@ export const SPRINT = [
       { kode: "s12-pasang-rambu", seksi: "Akomodasi dan Logistik", layar: null,
         teks: "Pasang penunjuk arah sehari sebelum acara, sore hari, jangan lebih awal. Rambu yang dipasang seminggu sebelumnya hilang, dicabut, atau berpindah arah." },
       { kode: "s12-daftar-ulang", seksi: "Sekretariat", layar: "#/daftar-ulang",
-        teks: "H-1: buka meja daftar ulang. Cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, tukar nomor yang kainnya rusak, dan serahkan kain beserta tiskanya. Jangan menomori kloter sendiri: urutan FIFO dan kuota lima Eksternal serta tiga Intern dijaga di dalam sistem." },
+        teks: "H-1: buka meja daftar ulang. Cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, tukar nomor yang kainnya rusak, dan serahkan kain beserta tiskanya. Jangan menomori kloter sendiri: urutan FIFO dan kuota lima Eksternal serta tiga Internal dijaga di dalam sistem." },
       { kode: "s12-cetak-kloter", seksi: "Sekretariat", layar: "#/cetak-kloter",
         teks: "Cetak Daftar Kloter untuk Petugas dan untuk Peserta sesudah seluruh regu bernomor dada, lalu tempel lembar peserta di barak dan titik kumpul malam itu juga." },
       { kode: "s12-berangkat", seksi: "Seksi Acara", layar: "#/keberangkatan",

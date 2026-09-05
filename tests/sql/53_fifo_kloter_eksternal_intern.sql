@@ -1,5 +1,5 @@
 -- ============================================================================
--- 0092: FIFO, kuota 5 Eksternal + 3 Intern, manual tanpa batas, dan 60 kloter.
+-- 0092: FIFO, kuota 5 Eksternal + 3 Internal, manual tanpa batas, dan 60 kloter.
 -- ============================================================================
 
 do $blok$
@@ -23,7 +23,7 @@ begin
 
   assert (select maks_eksternal_per_kloter = 5 and maks_intern_per_kloter = 3
           from edisi where is_active),
-         'kuota otomatis bukan 5 Eksternal + 3 Intern';
+         'kuota otomatis bukan 5 Eksternal + 3 Internal';
   assert (select kloter_maks >= 60 from edisi where is_active),
          '300 Eksternal membutuhkan sedikitnya 60 kloter';
   assert (select count(*) from kloter where nomor between 1 and 60) = 60,
@@ -41,12 +41,12 @@ begin
   values (v_sekolah, 'UJI-FIFO-0092', 13, '081200000092', 'lunas')
   returning id into v_daftar;
 
-  -- Delapan Eksternal lalu lima Intern dalam satu transaksi. Urutan nama
+  -- Delapan Eksternal lalu lima Internal dalam satu transaksi. Urutan nama
   -- sengaja memastikan Eksternal diproses lebih dahulu; kuota tiap jenis tetap
   -- harus menghasilkan K1=5+3 dan K2=3+2.
   for v_i in 1..13 loop
     insert into regu (pendaftaran_id, nama_regu, nama_ketua, golongan)
-    values (v_daftar, format('%s %s', case when v_i <= 8 then 'A Ext' else 'B Intern' end,
+    values (v_daftar, format('%s %s', case when v_i <= 8 then 'A Ext' else 'B Internal' end,
                     chr(64 + v_i)),
             'Ketua Uji', case when v_i <= 8 then 'penggalang_pa' else 'intern_pa' end)
     returning id into v_regu;
@@ -65,7 +65,7 @@ begin
   assert v_jumlah = 5, format('K1 berisi %s Eksternal, seharusnya 5', v_jumlah);
   select count(*) into v_jumlah from regu r where r.pendaftaran_id = v_daftar
     and r.kloter_nomor = 1 and r.golongan like 'intern_%';
-  assert v_jumlah = 3, format('K1 berisi %s Intern, seharusnya 3', v_jumlah);
+  assert v_jumlah = 3, format('K1 berisi %s Internal, seharusnya 3', v_jumlah);
   select count(*) into v_jumlah from regu r where r.pendaftaran_id = v_daftar
     and r.kloter_nomor = 2;
   assert v_jumlah = 5, format('sisa FIFO di K2 berjumlah %s, seharusnya 5', v_jumlah);
@@ -127,4 +127,4 @@ begin
   raise notice '53: FIFO 5+3, lewati kloter berangkat, manual tanpa batas, dan perkiraan 60 kloter teruji.';
 end $blok$;
 
-\echo '53 FIFO kloter Eksternal/Intern: LULUS'
+\echo '53 FIFO kloter Eksternal/Internal: LULUS'

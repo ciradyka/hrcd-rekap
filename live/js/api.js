@@ -886,13 +886,13 @@ export async function lembarPos(pos) {
  *  yang mungkin muncul di kotak penilaian. */
 /** Kedua deret nomor dada, dari `v_rentang_nomor_dada` (migrasi 0116).
  *
- *  Kain nomor dada dicetak dua set yang sama-sama mulai dari 001, jadi Intern
+ *  Kain nomor dada dicetak dua set yang sama-sama mulai dari 001, jadi Internal
  *  diketik 1001-1250 sementara Eksternal tetap 1-500. Yang dibaca di sini
  *  UJUNG-UJUNGNYA saja, bukan seluruh 750 baris stok: layar cuma perlu tahu
  *  nomor mana milik deret mana, dan meja daftar ulang bekerja di jaringan
  *  yang sama dengan lima pos.
  *
- *  Nol berarti deretnya kosong — stok Intern yang belum pernah diisi admin.
+ *  Nol berarti deretnya kosong — stok Internal yang belum pernah diisi admin.
  *  Layar yang memakainya harus tetap jalan dalam keadaan itu, bukan menolak
  *  semua nomor. */
 export async function rentangNomorDada() {
@@ -960,7 +960,7 @@ export const simpanKejuaraanTerjauh = (sekolahId) =>
 
 /* ========================== FOTO BUKU SAKTI ============================= */
 
-/* Gambar contoh di dalam Buku Sakti: kain nomor dada Intern, blangko A5, rupa
+/* Gambar contoh di dalam Buku Sakti: kain nomor dada Internal, blangko A5, rupa
    satu layar. Bucket-nya `buku` dan sengaja PUBLIK, tidak seperti `lembar` dan
    `bukti` yang privat dan dilayani lewat tautan bertanda tangan.
 

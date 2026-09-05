@@ -46,7 +46,7 @@ export function bacaAnggotaHadir(teks, badInput = false) {
 /** Cari kotak pada kolom tabel dan slot yang sama di baris berikutnya.
  *
  * Baris Input Pos tidak selalu punya kotak yang sama: komponen Eksternal
- * digambar sebagai tanda mati pada baris Intern, dan sebaliknya. Karena itu
+ * digambar sebagai tanda mati pada baris Internal, dan sebaliknya. Karena itu
  * indeks di antara seluruh input satu baris tidak menunjukkan kolom tabel.
  * `data-slot` membedakan pasangan Benar/Salah di dalam satu sel. */
 export function kotakBerikutnyaDalamKolom(baris, kotak) {
@@ -1185,7 +1185,7 @@ export function petunjukKolom(k) {
  *
  * Kalau minimal satu baris bernama sama dibatasi golongan, SEMUA baris dengan
  * nama itu adalah varian satu kolom — termasuk baris asal yang golongannya
- * null. Ini menyatukan pasangan umum + Intern tanpa menurunkan hubungan dari
+ * null. Ini menyatukan pasangan umum + Internal tanpa menurunkan hubungan dari
  * akhiran `kode`, yang hanya kebiasaan penamaan dan bukan kontrak data. */
 export function kolomPos(komponen) {
   const namaBervarian = new Set(
@@ -1209,10 +1209,10 @@ export function kolomPos(komponen) {
 /** Varian mana dari satu kolom yang berlaku untuk satu regu — atau null.
  *
  *  Pasangan sisi layar dari `komponen_berlaku()` di database (migrasi 0091),
- *  dan seperti fungsi itu ia TIDAK simetris: regu Intern hanya menerima
+ *  dan seperti fungsi itu ia TIDAK simetris: regu Internal hanya menerima
  *  komponen bertanda `intern` atau golongannya sendiri, sedangkan golongan
  *  Eksternal menerima baris umum (`golongan` null) maupun baris golongannya.
- *  Komponen umum tidak otomatis berlaku untuk Intern — kalau iya, seluruh
+ *  Komponen umum tidak otomatis berlaku untuk Internal — kalau iya, seluruh
  *  lomba lapangan ikut tergambar untuk regu yang tidak mengikutinya.
  *
  *  Tempatnya di util.js bersama kolomPos(), bukan di app.js, karena papan
@@ -1419,7 +1419,7 @@ export function periksaJawabSimpan(jumlahKirim, jawab) {
  *  `berlaku === 0` berarti lomba ini memang bukan untuk golongan regu itu.
  *  Itu keadaan sah, bukan konfigurasi rusak: Tebak Simpul Penegak tidak ada
  *  urusannya dengan regu Penggalang, dan seluruh lomba lapangan tidak ada
- *  urusannya dengan regu Intern (migrasi 0091). */
+ *  urusannya dengan regu Internal (migrasi 0091). */
 export function ringkasLomba(lomba, golongan, pos, peta) {
   let berlaku = 0, terisi = 0, jumlah = 0;
   for (const kol of lomba.kolom) {
@@ -1495,7 +1495,7 @@ export const URUT_GOLONGAN =
  *  di layar mana pun yang bisa memperbaikinya.
  *
  *  Tagihan satu batch adalah PENJUMLAHAN nilai ini per regu, bukan perkalian:
- *  satu pendaftaran boleh memuat regu Eksternal dan Intern sekaligus.
+ *  satu pendaftaran boleh memuat regu Eksternal dan Internal sekaligus.
  *
  *  HARGA INTERN YANG TIDAK ADA JATUH KE HARGA BIASA, dan itu yang membuat
  *  urutan rilis tidak penting. Situs terbit tiap kali PR di-merge sedangkan
@@ -1503,7 +1503,7 @@ export const URUT_GOLONGAN =
  *  ketika layar baru ini membaca `v_edisi_publik` yang belum punya kolomnya.
  *  Dengan jatuh ke `biaya_per_regu` layar menghitung persis seperti server
  *  yang belum dimigrasi — angkanya cocok, pembayaran jalan. Kalau ia jatuh ke
- *  nol, regu Intern akan tampil Rp 0 di Meja Pembayaran dan setiap
+ *  nol, regu Internal akan tampil Rp 0 di Meja Pembayaran dan setiap
  *  pembayarannya ditolak, tanpa satu pun galat yang menyebut sebabnya. */
 export const biayaRegu = (edisi, golongan) =>
   golongan === "intern_pa" || golongan === "intern_pi"

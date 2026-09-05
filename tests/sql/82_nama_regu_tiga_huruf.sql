@@ -15,7 +15,7 @@
 -- Diuji untuk KEDUA jenis peserta. Constraint-nya memang tidak menyebut
 -- golongan, tetapi "berlaku untuk semua" adalah persis jenis kalimat yang
 -- benar saat ditulis dan diam-diam berhenti benar nanti — pos, kelengkapan,
--- dan penalti semuanya sudah pernah bercabang untuk Intern.
+-- dan penalti semuanya sudah pernah bercabang untuk Internal.
 --
 -- Dan constraint-nya NOT VALID: empat baris satu huruf yang sudah ada di
 -- produksi sengaja dibiarkan. Yang dijaga tes terakhir adalah bahwa
@@ -72,7 +72,7 @@ begin
              v_nama);
   end loop;
 
-  -- 82.3 Nama Intern yang cukup panjang tetap masuk — supaya 82.1 tidak
+  -- 82.3 Nama Internal yang cukup panjang tetap masuk — supaya 82.1 tidak
   -- lulus hanya karena golongan Intern kebetulan ditolak oleh hal lain.
   begin
     insert into regu (pendaftaran_id, nama_regu, nama_ketua, golongan)
@@ -82,8 +82,8 @@ begin
     v_diterima := false;
   end;
   assert v_diterima,
-    '82.3 GAGAL: regu Intern bernama "Cakrawala" ditolak — 82.1 tidak '
-    'membuktikan apa pun kalau semua Intern memang ditolak';
+    '82.3 GAGAL: regu Internal bernama "Cakrawala" ditolak — 82.1 tidak '
+    'membuktikan apa pun kalau semua Internal memang ditolak';
 
   -- 82.4 Constraint-nya NOT VALID: baris lama dibiarkan, baris baru tidak.
   -- Kalau suatu saat ia divalidasi, keempat nama satu huruf di produksi harus

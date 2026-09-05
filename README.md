@@ -193,7 +193,7 @@ bash tests/dev_database.sh        # siapkan database hrcd_dev
 python tests/concurrency_test.py  # 30 meja serentak, 300 nomor diperebutkan
 ```
 
-Uji ini memakai 270 regu Eksternal dan 30 regu Intern supaya kedua kuota
+Uji ini memakai 270 regu Eksternal dan 30 regu Internal supaya kedua kuota
 kloter diuji bersamaan. Workflow **SQL Tests** juga menjalankannya terhadap
 database `hrcd_test` setelah seluruh migrasi dan tes SQL selesai.
 
