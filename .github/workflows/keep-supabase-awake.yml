@@ -1,0 +1,88 @@
+name: Keep Supabase awake
+
+# ============================================================================
+# hrcd-rekap : keep-supabase-awake.yml — satu permintaan REST tiap minggu,
+# supaya project Supabase gratis tidak di-pause karena menganggur.
+#
+# KENAPA BERKAS INI ADA
+#
+# Project free tier di-pause kalau tidak ada aktivitas selama sepekan.
+# `docs/rancangan-b.md` bagian 12.5 sudah merencanakan keep-alive sejak awal
+# dan mencatat sendiri bahwa ia TIDAK PERNAH DIBUAT; yang tersisa cuma
+# jendela pemulihan satu tahun. Selama arsip edisi belum ditarik keluar
+# lewat `tools/arsip_edisi.py`, satu-satunya salinan hasil HRCD ada di
+# project itu — dan project yang ter-pause di luar jendela pemulihan adalah
+# hasil lomba yang hilang.
+#
+# TAGIHANNYA, dihitung lebih dulu seperti yang dituntut CLAUDE.md 16.9:
+# mingguan = 52 run setahun. GitHub membulatkan tiap JOB ke menit penuh, jadi
+# 52 menit setahun. Bandingkan dengan `*/5 * * * *` yang 288 menit SEHARI.
+# Ini cron ketiga di repo, dan satu-satunya yang tidak terkunci ke tanggal
+# lomba — memang disengaja, karena yang dijaganya juga tidak terikat tanggal.
+#
+# TANPA SECRET SATU PUN. Alamat dan anon key dibaca dari `web/config.js`,
+# yang memang publik dan disajikan apa adanya ke tiap browser panitia. Satu
+# sumber, jadi project yang pindah tidak meninggalkan workflow yang basi.
+#
+# YANG DIBACA sengaja `v_edisi_publik`: view paling ringan yang terbuka untuk
+# anon, dipakai halaman peserta, dan tidak memuat satu pun data pribadi.
+#
+# BOLEH DIMATIKAN. Begitu arsipnya keluar dan tersimpan di Drive, project
+# ini tidak perlu dijaga hidup lagi — hapus berkas ini, dan biarkan
+# Supabase melakukan apa yang mau dilakukannya.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Senin 08:00 WIB = 01:00 UTC. Harinya tidak penting; yang penting
+    # jaraknya tidak pernah lebih dari tujuh hari.
+    - cron: "0 1 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-supabase-awake
+  cancel-in-progress: false
+
+jobs:
+  sentuh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Baca alamat dan anon key dari web/config.js
+        id: cfg
+        run: |
+          set -euo pipefail
+          url=$(grep -oE 'supabaseUrl:[[:space:]]*"[^"]+"' web/config.js \
+                | head -1 | sed 's/.*"\(.*\)"/\1/')
+          key=$(grep -oE 'anonKey:[[:space:]]*"[^"]+"' web/config.js \
+                | head -1 | sed 's/.*"\(.*\)"/\1/')
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "GAGAL: supabaseUrl atau anonKey tidak terbaca dari web/config.js." >&2
+            echo "Kalau bentuk berkas itu berubah, perbaiki pembacanya DI SINI." >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          # Anon key memang publik, tapi tetap tidak perlu tercetak di log.
+          echo "::add-mask::$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
+      - name: Sentuh REST API
+        run: |
+          set -euo pipefail
+          # Yang membuktikan project masih hidup bukan HTTP 200 saja
+          # melainkan jawaban yang benar-benar berisi baris edisi. Project
+          # yang ter-pause menjawab galat, bukan JSON.
+          jawab=$(curl -fsS --max-time 30 \
+            -H "apikey: ${{ steps.cfg.outputs.key }}" \
+            -H "Authorization: Bearer ${{ steps.cfg.outputs.key }}" \
+            "${{ steps.cfg.outputs.url }}/rest/v1/v_edisi_publik?select=name&limit=1")
+          echo "jawaban: $jawab"
+          case "$jawab" in
+            \[*\]) echo "Supabase menjawab; project masih hidup." ;;
+            *) echo "GAGAL: jawaban bukan JSON array — project mungkin ter-pause." >&2
+               exit 1 ;;
+          esac

@@ -834,12 +834,21 @@ Guidance for Claude Code when working in this repository.
    a day, which empties a private repo's monthly allowance in a week. Multiply
    it out before enabling one, and remember that an exhausted allowance stops
    EVERY workflow — including `apply-migration.yml` and the ones the panitia
-   run from their phones. There are two event-only exceptions, both on
-   29 August 2026 and both between 06:00 and 18:59 WIB: `publish-live.yml`
-   every 15 minutes, and `refresh-live-score.yml` every 10. Cron has no year
-   field, so each one's first step rejects every scheduled run outside that
-   exact date before reading the database or deploying. Do not widen either
-   window or remove those year guards.
+   run from their phones. Two crons are event-only, both on 29 August 2026 and
+   both between 06:00 and 18:59 WIB: `publish-live.yml` every 15 minutes, and
+   `refresh-live-score.yml` every 10. Cron has no year field, so each one's
+   first step rejects every scheduled run outside that exact date before
+   reading the database or deploying. Do not widen either window or remove
+   those year guards.
+
+   **The third cron is the only standing one, and it was priced before it was
+   enabled.** `keep-supabase-awake.yml` makes one REST request a week so the
+   free-tier project is not paused for idleness — 52 runs a year, so 52 billed
+   minutes, against the 288 minutes A DAY that `*/5 * * * *` would cost. It
+   carries no secret: the address and anon key are read out of
+   `web/config.js`, which is public anyway. Delete the file once the edition's
+   results have been pulled out with `tools/arsip_edisi.py`; what it protects
+   is the last copy of those results, not the project itself.
 
 ## 17. Selama acara berjalan
 

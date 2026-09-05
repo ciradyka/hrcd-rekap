@@ -669,12 +669,19 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 4. **Pembayaran sebagian tidak punya bentuk data** — sesuai keputusan panitia;
    layar pembayaran menampilkan teks arahan "daftarkan batch lebih kecil".
 5. **Supabase pause**: rencananya keep-alive = cron GitHub Actions mingguan
-   yang menyentuh tabel heartbeat + ritual cek Januari. **Tidak pernah
-   dibuat** — tidak ada tabel heartbeat maupun workflow keep-alive di repo,
-   dan cron yang ada hanya `publish-live.yml` serta `refresh-live-score.yml`,
-   dua-duanya terkunci ke tanggal lomba. Yang tersisa: jendela pemulihan
-   1 tahun, jadi kelalaian tetap dapat dipulihkan. Sebelum menambah cron
-   mingguan, hitung dulu tagihannya (CLAUDE.md 16.9).
+   yang menyentuh tabel heartbeat + ritual cek Januari. **Sudah dibuat, tapi
+   bentuknya lebih kecil daripada rencananya** — `keep-supabase-awake.yml`,
+   satu permintaan REST tiap Senin ke `v_edisi_publik`. Tidak ada tabel
+   heartbeat: menyentuh API sudah menghitung sebagai aktivitas, jadi tabel
+   dan migrasinya cuma menambah dua konsep tanpa menambah jaminan. Tidak ada
+   secret juga; alamat dan anon key dibaca dari `web/config.js` yang memang
+   publik. Tagihannya dihitung lebih dulu sesuai CLAUDE.md 16.9: 52 run
+   setahun = 52 menit, lawan 288 menit SEHARI kalau `*/5 * * * *`.
+
+   Jendela pemulihan 1 tahun tetap ada sebagai jaring kedua. Dan begitu
+   arsip edisi ditarik keluar lewat `tools/arsip_edisi.py`, workflow ini
+   boleh dihapus — yang dijaganya salinan terakhir hasil lomba, bukan
+   project-nya.
 
 ## 13. Urutan implementasi
 
