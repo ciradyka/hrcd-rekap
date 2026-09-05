@@ -88,6 +88,17 @@ HALAMAN = 1000
 # Tabel mentah didahulukan karena ia yang bisa dimuat ulang kalau suatu hari
 # datanya perlu dihidupkan lagi. View ikut karena ia yang terbaca manusia
 # tanpa harus menyambungkan enam tabel sendiri.
+#
+# LIMA TABEL SENGAJA DI LUAR, dan alasannya bukan kelupaan:
+#   akun_panitia, akun_hak, fitur  siapa boleh apa. Tidak menerangkan satu pun
+#                                  hasil lomba, dan akun edisi lalu tidak
+#                                  dipakai lagi (Sprint 1).
+#   cache_live_score               turunan; bisa dihitung ulang dari nilai.
+#   centang_sprint                 centang papan Buku Sakti, bukan acara.
+#
+# `konfig_penalti` dan `kontrak_opsi` justru WAJIB ikut walau terasa seperti
+# konfigurasi: tanpa keduanya angka penalti di arsip tidak bisa ditafsirkan
+# lagi sepuluh tahun lagi.
 SUMBER = [
     ("edisi",            "tabel",  "Angka-angka edisi: tanggal, jendela berangkat, biaya."),
     ("pos",              "tabel",  "Lima pos beserta namanya."),
@@ -98,6 +109,18 @@ SUMBER = [
     ("nilai_mentah",     "tabel",  "Angka yang diketik juri, sebelum dikonversi jadi poin."),
     ("closing_regu",     "tabel",  "Kedatangan di finish dan jumlah anggota yang dihitung."),
     ("kejuaraan_manual", "tabel",  "Juara yang ditetapkan panitia, bukan dihitung sistem."),
+    ("pendaftaran",      "tabel",  "Kode pembayaran, status lunas, jumlah regu, kebutuhan barak."),
+    ("pembayaran",       "tabel",  "Uang masuk per pendaftaran; bahan LPJ."),
+    ("keberangkatan_regu", "tabel", "Centang berangkat tiap regu di garis start."),
+    ("nomor_dada_stok",  "tabel",  "Deret nomor dada yang disediakan edisi ini."),
+    ("nomor_dada_pensiun", "tabel", "Nomor yang kainnya rusak lalu dipensiunkan."),
+    ("nilai_terkunci",   "tabel",  "Gembok nilai per pos dan lomba."),
+    ("kontrak_opsi",     "tabel",  "Pilihan kontrak waktu yang berlaku."),
+    ("konfig_penalti",   "tabel",  "Angka penalti. Tanpa ini nilainya tidak bisa ditafsirkan lagi."),
+    ("status_acara",     "tabel",  "Fase live saat arsip dibuat."),
+    ("ruangan",          "tabel",  "Ruang yang dipakai barak."),
+    ("penempatan_barak", "tabel",  "Regu mana menempati ruang mana."),
+    ("riwayat",          "tabel",  "Jejak perubahan: siapa mengubah apa, kapan."),
     ("foto_lembar",      "tabel",  "Metadata tiap foto slip: regu, pos, lomba, path."),
     ("v_rekap_penuh",    "view",   "Rekap lengkap: nilai mentah, poin per komponen, poin per pos."),
     ("v_klasemen",       "view",   "Klasemen akhir per golongan."),
@@ -108,8 +131,27 @@ SUMBER = [
     ("v_foto_lembar",    "view",   "Foto slip beserta nomor dada dan nama lomba."),
 ]
 
-# Kolom yang menyimpan cara menghubungi orang. Tidak ikut kecuali diminta.
-KOLOM_KONTAK = {"kontak", "no_wa", "nomor_wa", "wa", "telepon", "hp", "email"}
+# Kata yang menandai kolom berisi cara menghubungi orang.
+#
+# DICOCOKKAN PER POTONGAN NAMA, bukan sebagai daftar nama kolom yang utuh.
+# Versi pertama berisi {"kontak", "no_wa", "wa", ...} dan tidak mengenai
+# apa pun: kolom yang sungguhan bernama `kontak_wa` dan `nama_kontak`. Ia
+# melapor "kontak dibuang" sambil membuang nol kolom — pemeriksaan yang
+# lebih sempit daripada masalahnya, persis CLAUDE.md 13.3.
+#
+# Dipotong pada garis bawah, bukan dicari sebagai substring: `wa` sebagai
+# substring juga mengenai `wahana` dan `jawaban_benar`, dan arsip yang
+# membuang kolom nilai jauh lebih buruk daripada arsip yang membawa nomor.
+KATA_KONTAK = {"wa", "whatsapp", "kontak", "telepon", "hp", "email", "phone"}
+
+
+# Diisi buang_kontak(); dicetak di BACA-DULU.txt supaya klaim "kontak tidak
+# ikut" bisa DIPERIKSA, bukan sekadar dipercaya.
+DIBUANG = set()
+
+
+def kolom_kontak(nama):
+    return any(bagian in KATA_KONTAK for bagian in nama.lower().split("_"))
 
 
 class TidakBisaJalan(Exception):
@@ -191,7 +233,10 @@ def ambil_semua(nama):
 
 
 def buang_kontak(baris):
-    return [{k: v for k, v in b.items() if k.lower() not in KOLOM_KONTAK} for b in baris]
+    dibuang = sorted({k for b in baris for k in b if kolom_kontak(k)})
+    if dibuang:
+        DIBUANG.update(dibuang)
+    return [{k: v for k, v in b.items() if not kolom_kontak(k)} for b in baris]
 
 
 def tulis_json(path, data):
@@ -417,8 +462,12 @@ def main():
         "                 folder punya _daftar.csv yang memetakan nomor dada\n"
         "                 ke nama regu dan sekolahnya.\n\n"
         "Nomor WA pembina TIDAK ikut kecuali arsip ini dibuat dengan\n"
-        "--dengan-kontak.\n\n"
-        "Isi:\n" + baris_ringkas + "\n",
+        "--dengan-kontak. Kolom yang benar-benar dibuang disebut di bawah,\n"
+        "supaya klaim itu bisa diperiksa dan bukan cuma dipercaya.\n\n"
+        + ("Kolom kontak yang dibuang: " + ", ".join(sorted(DIBUANG)) + "\n\n"
+           if DIBUANG else
+           "Kolom kontak yang dibuang: tidak ada di sumber ini.\n\n")
+        + "Isi:\n" + baris_ringkas + "\n",
         encoding="utf-8")
 
     print(f"\nSelesai. Arsip ada di {keluar.resolve()}")
