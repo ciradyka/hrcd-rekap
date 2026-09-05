@@ -64,6 +64,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -231,6 +232,37 @@ def aman(nama):
     return re.sub(r"\s+", " ", nama) or "tanpa-nama"
 
 
+def unduh_satu(sesi, path, percobaan=3):
+    """Satu foto, dengan pengulangan. `None` kalau tetap gagal.
+
+    KENAPA MENGULANG, dan kenapa tidak boleh melempar.
+
+    Putaran pertama di Actions mati di tengah pada `IncompleteRead` — satu
+    koneksi putus di antara 2.489 permintaan, dan seluruh run ikut mati.
+    Tiga puluh menit unduhan terbuang, karena berkasnya belum sempat
+    diunggah ke mana pun.
+
+    Di jumlah sebanyak ini kegagalan sesekali bukan kemungkinan, melainkan
+    kepastian. Jadi yang gagal DIHITUNG, bukan dilempar: sisanya tetap
+    terunduh, dan menjalankan ulang perintah yang sama akan melewati yang
+    sudah ada lalu memungut yang bolong.
+    """
+    for ke in range(percobaan):
+        try:
+            r = sesi.get(f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}",
+                         headers=kepala(), timeout=120)
+            if r.status_code != 200:
+                print(f"  ! {path}: HTTP {r.status_code}", file=sys.stderr)
+                return None
+            return r.content
+        except requests.RequestException as e:
+            if ke == percobaan - 1:
+                print(f"  ! {path}: {type(e).__name__}", file=sys.stderr)
+                return None
+            time.sleep(1 + 2 * ke)
+    return None
+
+
 def unduh_foto(keluar, foto, regu_per_dada, tenang):
     """Foto slip, satu folder per lomba, nama berkas nomor dada.
 
@@ -241,6 +273,9 @@ def unduh_foto(keluar, foto, regu_per_dada, tenang):
     """
     akar = keluar / "lembar-jawaban"
     akar.mkdir(parents=True, exist_ok=True)
+    # Satu koneksi dipakai ulang untuk seluruh unduhan. Membuka 2.489
+    # koneksi baru bukan cuma lebih lambat, ia sendiri sumber putusnya.
+    sesi = requests.Session()
 
     per_folder = {}
     for f in sorted(foto, key=lambda x: (x.get("pos") or 0,
@@ -286,15 +321,11 @@ def unduh_foto(keluar, foto, regu_per_dada, tenang):
                 dilewati += 1
                 continue
 
-            resp = requests.get(
-                f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{f['path']}",
-                headers=kepala(), timeout=120,
-            )
-            if resp.status_code != 200:
+            isi_foto = unduh_satu(sesi, f["path"])
+            if isi_foto is None:
                 gagal += 1
-                print(f"  ! gagal {f['path']}: {resp.status_code}", file=sys.stderr)
                 continue
-            berkas.write_bytes(resp.content)
+            berkas.write_bytes(isi_foto)
             sudah += 1
             if not tenang and (sudah + dilewati) % 50 == 0:
                 print(f"  foto {sudah + dilewati}/{total}")
