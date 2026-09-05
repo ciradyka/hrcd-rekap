@@ -228,14 +228,27 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    **It covered ten migrations until 30 August 2026, while its own header
    described it as a general check.** The other 152 were not examined at all
    and it still reported green — the very shape of mistake section 13.3
-   describes. It now checks **112** and NAMES the **51** it cannot, so the
-   question stays open instead of being closed by silence.
+   describes. It now checks **117** and NAMES the **54** it cannot —
+   117 + 54 = **171**, every migration there is — so the question stays open
+   instead of being closed by silence. Keep those three numbers current here
+   the same way the count of unmerged commits in 7.4 is kept current.
 
-   **Those 163 stop at `0163`.** `0164`-`0169` are in NEITHER list, so the
-   check still reports green over six migrations it never looked at — the same
-   mistake one edition younger. A migration is not covered until its
-   fingerprint sits in part 1 or its name in part 2, added in the commit that
-   creates the file, exactly as section 7.5 asks of `tests/run.sh`.
+   **A migration is not covered until its fingerprint sits in part 1 or its
+   name in part 2**, added in the commit that creates the file, exactly as
+   section 7.5 asks of `tests/run.sh`. A number in NEITHER list does not
+   surface as BELUM — it does not surface at all, which is what makes that
+   hole hard to see. Both lists stopped at `0163` for a while after `0169` had
+   landed, and the check reported green over six migrations it never looked
+   at: the same mistake as the paragraph above, one edition younger.
+
+   **Since 6 September 2026 nothing has to remember to run the check.**
+   `tests/sql/121_jejak_migrasi_akhir.sql` is the last line of `tests/run.sh`
+   and fails on any part-1 fingerprint reading BELUM. On a database built from
+   zero that reading means one thing only — a younger migration rewrote an
+   older one's object and dropped its decisions, which is how `0166` silently
+   undid `0095` and made the juri screen disagree with the klasemen on
+   Menaksir. In PRODUCTION the same row means something else and must not be
+   fatal, so the checks file itself still reports rather than raises.
 
    **A migration with no fingerprint is not a problem.** It means nothing is
    left to check: a younger migration rewrote its objects, or it only touched
@@ -250,7 +263,7 @@ Pernah menyimpang, dan itulah kenapa aturan sinkron di atas ditulis: AGENTS.md s
    migration N it must read BELUM. The second direction is the one usually
    missing — without it `select true` passes. Twenty fingerprints survived a
    looser rule and were caught by that harness. It builds ONE database from
-   zero and re-runs the checker after every migration — 170 steps in
+   zero and re-runs the checker after every migration — 171 steps in
    `tests/run.sh` order today — so it is deliberately not part of
    `tests/run.sh`.
 
