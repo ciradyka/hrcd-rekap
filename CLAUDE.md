@@ -139,7 +139,24 @@ Guidance for Claude Code when working in this repository.
 
 ## 7. Repository facts
 
-1. Remote: `https://github.com/ciradyka/hrcd-rekap` (private).
+1. Remote: `https://github.com/ciradyka/hrcd-rekap` — **PUBLIC**. This clause
+   said "private" until 6 September 2026 and it was never checked;
+   `gh repo view` reports `"visibility": "PUBLIC"`. Two things follow, and
+   both were being reasoned about backwards:
+   - **GitHub disables scheduled workflows in a PUBLIC repo after 60 days with
+     no repository activity**, and only new commits reset that clock. After
+     the lomba this repo goes quiet, so every cron here stops on its own —
+     see 16.9.
+   - **Actions minutes on standard runners are free and unlimited for public
+     repos.** The 2,000-a-month allowance section 16 keeps arithmetic against
+     is the PRIVATE-repo number and does not apply. Running a check twice
+     costs nothing in money; it still costs wall-clock, which is a reason to
+     prefer local, but it is not the reason section 16 gives.
+
+   Nothing about the anon key changes: `web/config.js` is served verbatim to
+   every browser already, and the service key lives only in Actions secrets
+   and `wrangler secret`. Being public is not a leak — but it should be a
+   deliberate choice, so confirm it is.
 2. Default branch: `main`. It has **no** branch protection, and squash and
    rebase merges are still enabled on the repo — section 4 is a convention, not
    something GitHub enforces. Follow it deliberately.
@@ -871,11 +888,22 @@ Guidance for Claude Code when working in this repository.
    spaced requests. GitHub bills per JOB rounded up to a whole minute, not per
    request, so the second and third requests cost nothing.
 
-   Re-priced accordingly: 365 runs a year, so ~31 billed minutes a month
-   against the 2,000 a month a private repo gets on Free — about 1.5%, still
-   nothing beside the 288 minutes A DAY that `*/5 * * * *` would cost. Do not
-   quietly take it back to weekly to save four minutes a month; what that buys
-   is a project that pauses.
+   Re-priced accordingly: 365 runs a year. This repo is PUBLIC (7.1), so
+   standard-runner minutes are free and unlimited and the money cost is zero;
+   even on the private-repo allowance it would be ~31 of 2,000 minutes a
+   month. Either way, do not quietly take it back to weekly to save a few
+   minutes — what that buys is a project that pauses.
+
+   **The GitHub cron is the SECOND layer, not the one to rely on for years.**
+   Scheduled workflows in a public repo are disabled after 60 days with no
+   repository activity, and only new commits reset that clock — which is
+   exactly what this repo stops producing once the edition is over. The
+   keep-alive that survives that is the Cloudflare one:
+   `workers/gateway/wrangler.toml` carries `crons = ["0 3 * * *"]` and the
+   `scheduled()` handler in `worker.js` beside it. It depends on no repo
+   activity, no Actions minutes, and no GitHub state at all. Keep BOTH — two
+   providers failing the same week is the case worth paying nothing to cover —
+   but if only one may live, it is the Cloudflare one.
 
    **A failing run here is not a flaky check, it is the alarm.** GitHub emails
    on a failed scheduled workflow, and that email is the only warning this

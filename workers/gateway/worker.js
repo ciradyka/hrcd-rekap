@@ -571,17 +571,37 @@ export default {
   // dipasang jauh sebelum lomba dan nyaris tidak disentuh sampai Januari,
   // jadi tanpa ini project sudah tertidur saat panitia membukanya.
   //
-  // Satu bacaan sepele sudah cukup dihitung sebagai aktivitas. Kalau gagal,
-  // biarkan gagal: jadwal berikutnya datang sendiri dan tidak ada yang
-  // menunggu jawabannya. Jadwalnya di wrangler.toml.
+  // TIGA bacaan, bukan satu. Dokumentasi Supabase menaruh ambangnya di
+  // "a few user requests to the database each day", dan angka pastinya tidak
+  // pernah diumumkan — jadi yang dikirim beberapa, bukan satu yang pas-pasan.
+  // Ketiganya sepele dan tidak mengubah apa pun; ongkosnya nol karena satu
+  // invocation cron sudah dibayar entah ia mem-fetch sekali atau tiga kali.
+  //
+  // Kalau gagal, biarkan gagal: jadwal berikutnya datang sendiri dan tidak ada
+  // yang menunggu jawabannya. Yang berubah cuma galatnya sekarang DICATAT —
+  // `.catch(() => {})` yang lama membuang satu-satunya petunjuk bahwa project
+  // sudah tertidur, dan Workers menyimpan log invocation-nya. Jadwalnya di
+  // wrangler.toml.
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(
-      fetch(`${env.SUPABASE_URL}/rest/v1/edisi?select=nomor&limit=1`, {
-        headers: {
-          apikey: env.SUPABASE_SERVICE_KEY,
-          Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
-        },
-      }).catch(() => {}),
-    );
+    ctx.waitUntil((async () => {
+      for (let i = 1; i <= 3; i++) {
+        try {
+          const r = await fetch(
+            `${env.SUPABASE_URL}/rest/v1/edisi?select=nomor&limit=1`,
+            {
+              headers: {
+                apikey: env.SUPABASE_SERVICE_KEY,
+                Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+              },
+            },
+          );
+          if (!r.ok) {
+            console.error(`keep-alive ${i}: Supabase menjawab ${r.status}`);
+          }
+        } catch (e) {
+          console.error(`keep-alive ${i}: ${e}`);
+        }
+      }
+    })());
   },
 };

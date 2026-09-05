@@ -24,8 +24,24 @@ compatibility_date = "2026-08-12"
 binding = "RATE"
 id = "c344415a45044d7e9716f41715ab3d9a"
 
-# Tiap 3 hari, 03.00 UTC (10.00 WIB) — menahan project Supabase tetap bangun.
-# Supabase menjeda setelah ±7 hari menganggur; 3 hari memberi dua kesempatan
-# meleset sebelum benar-benar tertidur.
+# TIAP HARI, 03.00 UTC (10.00 WIB) — menahan project Supabase tetap bangun.
+#
+# Dulu tiap 3 hari, dan itu di bawah yang diminta dokumentasi Supabase:
+# "a few user requests to the database each day over the previous week is
+# enough to keep the project from being paused". Yang dinilai aktivitas
+# RENDAH dalam jendela 7 hari, jadi dua-tiga permintaan sepekan justru
+# berbentuk seperti calon pause. Tidak ada ambang yang diumumkan, jadi yang
+# benar bukan menebaknya melainkan duduk jauh di atasnya.
+#
+# `*/3` juga punya jebakan yang tidak kelihatan: day-of-month diulang tiap
+# bulan, jadi ia melompat 28 -> 31 -> 1 dan jaraknya tidak pernah rata.
+# `* * *` tidak punya sudut seperti itu.
+#
+# INI keep-alive yang menentukan, bukan yang di GitHub Actions. Repo ini
+# PUBLIK, dan GitHub mematikan scheduled workflow di repo publik setelah 60
+# hari tanpa aktivitas repo — sesudah lomba, repo ini memang diam. Cron
+# Cloudflare tidak punya aturan itu dan tidak bergantung pada repo sama
+# sekali. keep-supabase-awake.yml tetap ada sebagai lapis kedua, tapi yang
+# diandalkan untuk jangka tahun adalah baris di bawah ini.
 [triggers]
-crons = ["0 3 */3 * *"]
+crons = ["0 3 * * *"]
