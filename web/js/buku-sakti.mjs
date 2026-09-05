@@ -458,7 +458,11 @@ const BAB_TUTORIAL = {
       isi: [
         {
           jenis: "p",
-          teks: "Dua hal ini beda dan sering tertukar. PENDAFTARAN itu registrasi dan membayar, berbulan-bulan sebelumnya. DAFTAR ULANG itu hadir di tempat, dan jendelanya H-1 sampai hari-H — tidak pernah lebih awal.",
+          teks: "Dua hal ini beda dan sering tertukar. PENDAFTARAN itu registrasi dan membayar, berbulan-bulan sebelumnya. DAFTAR ULANG itu hadir di tempat mengambil nomor dada, dan jendelanya H-1 pagi sampai hari-H pukul 10:00 — tidak pernah lebih awal.",
+        },
+        {
+          jenis: "p",
+          teks: "Mejanya tutup pukul 10:00 karena saat itulah kloter terakhir berangkat dan lomba dimulai. Di dalam jendela itu ada dua jalur, dan keduanya sama sahnya: H-1 untuk yang bisa datang sejak awal, hari-H untuk yang baru sempat. Yang datang H-1 tidur di barak malam itu.",
         },
         {
           jenis: "p",
@@ -1347,7 +1351,7 @@ const BAB_SEKSI = {
             "Menyebarkan link form pendaftaran ke pangkalan bersama Humas, dan menjawab pembina yang tersangkut di tengah form.",
             "Menjaga nama regu unik dan satu sekolah satu baris. Dua sekolah senama dibedakan DI DALAM namanya, misalnya MAN 3 Ciamis dan MAN 3 Tasikmalaya.",
             "Membetulkan salah ketik lewat Data Peserta. Golongan, sekolah, nomor dada, dan status bayar tidak bisa diubah di sana.",
-            "Menjalankan daftar ulang H-1 sampai hari-H dengan dua sampai tiga meja: mengetik nomor dada dari kain fisik, seluruh regu satu sekolah dalam satu kali simpan.",
+            "Menjalankan daftar ulang H-1 pagi sampai hari-H pukul 10:00 dengan dua sampai tiga meja: mengetik nomor dada dari kain fisik, seluruh regu satu sekolah dalam satu kali simpan.",
             "Mencetak dan menempel daftar kloter di papan utama dan di barak, supaya pembina tidak bertanya satu per satu.",
             "Sebagai pemegang admin: membuat akun panitia, menerapkan migration konfigurasi edisi, menaikkan fase live atas perintah Ketua, dan menerbitkan rekap ke situs peserta.",
           ],
@@ -1359,7 +1363,7 @@ const BAB_SEKSI = {
             ["Sprint 1 sampai 3", "Memegang password akun organisasi, membuat akun panitia inti."],
             ["Sprint 5 sampai 6", "Menerapkan migration konfigurasi edisi, membuka pendaftaran, memantau regu masuk tiap hari."],
             ["Sprint 11", "Menutup pendaftaran, menyerahkan hitungan regu terakhir ke Logistik dan Konsumsi, membuat akun juri."],
-            ["H-1 sampai hari-H", "Daftar ulang: nomor dada, tiska, kloter, cetak daftar kloter."],
+            ["H-1 pagi sampai hari-H 10:00", "Daftar ulang: nomor dada, tiska, kloter, cetak daftar kloter."],
             ["Hari lomba", "Standby untuk gembok dan pembetulan nilai, menaikkan fase live, menerbitkan rekap."],
           ],
         },
@@ -2250,13 +2254,13 @@ const BAB_KENAPA = {
       isi: [
         {
           jenis: "p",
-          teks: "Meja daftar ulang buka H-1 sampai hari-H, dan di situlah pembina mengambil kain nomor dada dan tiska regunya. Jendelanya memang sampai hari-H, tapi yang dianjurkan H-1. Ini bukan soal kerapian panitia. Nomor dada yang diketik di meja itulah yang MEMBENTUK kloter, dan daftarnya harus sudah tertempel di barak semalam sebelumnya. Pagi hari-H tinggal dijalankan.",
+          teks: "Meja daftar ulang buka H-1 pagi dan tutup hari-H pukul 10:00, saat kloter terakhir berangkat. Di situlah pembina mengambil kain nomor dada dan tiska regunya. Dua jalur, dua-duanya sah: H-1 untuk yang bisa datang sejak awal, hari-H untuk yang baru sempat. Tapi yang bisa memilih sebaiknya memilih H-1, dan alasannya bukan kerapian panitia. Nomor dada yang diketik di meja itulah yang MEMBENTUK kloter, dan daftarnya harus sudah tertempel di barak semalam sebelumnya.",
         },
         {
           jenis: "poin",
           butir: [
             "Kloter jatuh saat nomor dada tersimpan, urut FIFO. Regu yang baru mengambil nomornya pagi hari-H baru punya kloter pagi itu juga, sesudah daftarnya dicetak, ditempel, dan dibacakan.",
-            "Jendela keberangkatan cuma tiga jam, 07:00 sampai 10:00, dan dibuka upacara dengan tiga kloter sudah siap di Pemberangkatan dan dua staging. Tidak ada celah di dalamnya untuk antrean daftar ulang.",
+            "Jendela keberangkatan cuma tiga jam, 07:00 sampai 10:00, dan dibuka upacara dengan tiga kloter sudah siap di Pemberangkatan dan dua staging. Meja daftar ulang berjalan DI DALAM jam yang sama itu, jadi tiap regu yang bisa diselesaikan H-1 adalah satu antrean yang tidak menambahi pagi yang sudah penuh.",
             "Kain yang rusak masih bisa ditukar. Tukar nomor rusak memensiunkan nomor lama permanen dan menuntut daftar kloter dicetak ulang: sepele kalau ketahuan H-1, mahal kalau ketahuan saat regunya sudah berbaris.",
             "Blangko penilaian cuma memuat nomor dada, tanpa nama regu. Nomor yang salah dan lolos ke lapangan memindahkan seluruh nilai satu regu ke regu lain, dan tidak ada apa pun di kertas yang memperlihatkannya.",
             "Dua benda ini beda gunanya dan dua-duanya tidak bisa menyusul. Nomor dada adalah ID peserta yang harus terbaca dari JARAK JAUH, dipakai juri dan petugas sepanjang hari tanpa perlu bertanya nama. Tiska adalah bukti keikutsertaan, satu untuk tiap peserta, dan jumlahnya ikut kepala orang, bukan jumlah regu.",
@@ -2274,7 +2278,7 @@ const BAB_KENAPA = {
           nama: "Meja Daftar Ulang",
           hash: "#/daftar-ulang",
           fitur: "daftar_ulang",
-          teks: "Buka H-1 sampai hari-H. Di sinilah nomor dada diketik, kloter terbentuk, dan kain yang rusak ditukar selagi pembetulannya masih murah.",
+          teks: "Buka H-1 pagi sampai hari-H pukul 10:00. Di sinilah nomor dada diketik, kloter terbentuk, dan kain yang rusak ditukar selagi pembetulannya masih murah.",
         },
         {
           jenis: "kenapa",
@@ -2991,7 +2995,7 @@ export const SPRINT = [
       { kode: "s12-tm", seksi: "Ketua Pelaksana", layar: null,
         teks: "H-1: gelar technical meeting dengan pembina peserta — rute, kontrak waktu, sistem penilaian, barang bawaan, aturan barak, sanksi, jam kloter, dan tata cara protes. Buat berita acara dan bagikan notulennya; yang tidak hadir tetap terikat." },
       { kode: "s12-daftar-ulang", seksi: "Sekretariat", layar: "#/daftar-ulang",
-        teks: "H-1: buka meja daftar ulang. Cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, tukar nomor yang kainnya rusak, dan serahkan kain beserta tiskanya. Jangan menomori kloter sendiri: urutan FIFO dan kuota lima Eksternal serta tiga Internal dijaga di dalam sistem." },
+        teks: "Buka meja daftar ulang H-1 pagi, dan biarkan berjalan sampai hari-H pukul 10:00 untuk regu yang baru sempat datang. Cari batch lewat kode pembayaran, isi nomor dada seluruh regu sekolah itu sekaligus, tukar nomor yang kainnya rusak, dan serahkan kain beserta tiskanya. Jangan menomori kloter sendiri: urutan FIFO dan kuota lima Eksternal serta tiga Internal dijaga di dalam sistem." },
       { kode: "s12-cetak-kloter", seksi: "Sekretariat", layar: "#/cetak-kloter",
         teks: "Cetak Daftar Kloter untuk Petugas dan untuk Peserta sesudah seluruh regu bernomor dada, lalu tempel lembar peserta di barak dan titik kumpul malam itu juga." },
       { kode: "s12-berangkat", seksi: "Seksi Acara", layar: "#/keberangkatan",
