@@ -255,6 +255,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._kirim(200, q(
                     "select id, name, address from sekolah order by name",
                     role="anon"))
+            elif u.path == "/nama-regu-dipakai":
+                # Pasangan dev untuk RPC nama_regu_dipakai (0051). Rute ini
+                # TIDAK ADA sampai sekarang, dan tidak ada yang tahu: satu-
+                # satunya pemanggilnya membungkus panggilannya dengan
+                # `catch { /* diam */ }` -- benar untuk produksi, karena
+                # jaringan yang putus sekejap tidak boleh memotong pembina
+                # yang sedang mengetik. Di dev artinya peringatan nama regu
+                # kembar tidak pernah muncul dan tidak pernah menyebut sebab,
+                # jadi form-nya tampak bekerja.
+                #
+                # role anon: form pendaftaran memang tanpa login, dan
+                # fungsinya di-grant ke anon.
+                #
+                # Jawabannya BOOLEAN TELANJANG, sama dengan yang dikembalikan
+                # PostgREST untuk RPC ini. Membungkusnya jadi
+                # {"dipakai": true} akan lulus tanpa suara dan salah selalu:
+                # pemanggilnya menyimpan jawabannya apa adanya ke peta
+                # namaTerpakai, dan objek apa pun truthy -- jadi SETIAP nama
+                # akan terbaca "sudah dipakai".
+                self._kirim(200, q(
+                    "select nama_regu_dipakai(%s) as dipakai",
+                    (p.get("nama") or "",),
+                    role="anon", fetch="one")["dipakai"])
             elif u.path == "/centang-sprint":
                 # Papan sprint Buku Sakti (migrasi 0170). Layarnya sengaja
                 # tetap terbuka walau ini gagal, jadi yang penting di sini
