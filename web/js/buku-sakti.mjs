@@ -2623,7 +2623,7 @@ export const SPRINT = [
       { kode: "s1-akses", seksi: "Sekretariat", layar: null,
         teks: "Serahkan password akun organisasi (Supabase, Cloudflare, GitHub, email ambalan) ke minimal DUA orang, dan catat siapa memegang apa di luar sistem." },
       { kode: "s1-password", seksi: "Sekretariat", layar: "#/account",
-        teks: "Ganti password akun admin yang diwariskan, jangan dipakai apa adanya." },
+        teks: "Password akun panitia edisi lalu TIDAK perlu diganti satu per satu, dan password lama tidak perlu diburu. Tiap edisi boleh berdiri dengan akunnya sendiri, jadi yang dikerjakan cuma membuat akun untuk orang yang benar-benar bertugas sekarang." },
       { kode: "s1-evaluasi", seksi: "Ketua Pelaksana", layar: null,
         teks: "Baca ulang catatan evaluasi edisi lalu bersama-sama. Tiap keluhan yang berulang jadi calon tugas di sprint berikutnya." },
       { kode: "s1-arsip", seksi: "Sekretariat", layar: "#/live-score",
