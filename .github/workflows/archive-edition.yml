@@ -1,0 +1,108 @@
+name: Arsipkan edisi
+
+# ============================================================================
+# hrcd-rekap : archive-edition.yml — menjalankan tools/arsip_edisi.py di
+# Actions, lalu menyerahkan hasilnya sebagai berkas yang bisa diunduh.
+#
+# KENAPA LEWAT ACTIONS, PADAHAL ATURANNYA LOCAL-FIRST
+#
+# CLAUDE.md 16.2 memang menyisakan Actions untuk pekerjaan yang menuntut
+# secret repo. Ini salah satunya: mengeluarkan seluruh isi database dan
+# bucket menuntut `SUPABASE_SERVICE_KEY`, dan kunci itu tidak boleh berpindah
+# tangan hanya supaya arsipnya bisa dibuat. Yang punya laptop beserta
+# kuncinya tetap boleh menjalankan skripnya langsung — keterangannya ada di
+# kepala tools/arsip_edisi.py, dan hasilnya sama persis.
+#
+# DIJALANKAN DARI TAB ACTIONS, jadi bisa dari HP. Tidak ada jadwal: ini
+# pekerjaan sekali seumur edisi, bukan cron.
+#
+# DUA BERKAS, BUKAN SATU. Yang kecil berisi angka dan bisa diunduh dalam
+# hitungan detik lalu disimpan di git; yang besar berisi 2.489 foto slip dan
+# memang untuk diseret ke Google Drive. Menyatukannya berarti menunggu
+# ratusan MB hanya untuk membaca klasemen.
+#
+# UMUR SIMPAN 7 HARI. Berkas ini memuat seluruh data peserta satu edisi, dan
+# yang sudah diunduh ke Drive tidak perlu menunggu di GitHub.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      sertakan_foto:
+        description: "Ikutkan foto lembar jawaban (214 MB, beberapa menit)"
+        type: boolean
+        default: true
+      dengan_kontak:
+        description: "Ikutkan nomor WA pembina — JANGAN untuk salinan yang dibagikan"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: archive-edition
+  cancel-in-progress: false
+
+jobs:
+  arsip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Jalankan arsip
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -euo pipefail
+          bendera=""
+          if [ "${{ inputs.sertakan_foto }}" != "true" ]; then
+            bendera="$bendera --tanpa-foto"
+          fi
+          if [ "${{ inputs.dengan_kontak }}" = "true" ]; then
+            bendera="$bendera --dengan-kontak"
+          fi
+          python tools/arsip_edisi.py --keluar arsip-keluar $bendera
+
+      - name: Hitung isinya
+        run: |
+          set -euo pipefail
+          echo "### Arsip selesai" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          du -sh arsip-keluar/data >> "$GITHUB_STEP_SUMMARY" || true
+          if [ -d arsip-keluar/lembar-jawaban ]; then
+            du -sh arsip-keluar/lembar-jawaban >> "$GITHUB_STEP_SUMMARY"
+            echo "folder lomba: $(find arsip-keluar/lembar-jawaban -mindepth 1 -maxdepth 1 -type d | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+            echo "foto: $(find arsip-keluar/lembar-jawaban -type f ! -name '_daftar.csv' | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # Yang kecil lebih dulu, supaya angka klasemen sudah bisa diambil
+      # sementara unggahan foto masih berjalan.
+      - name: Unggah data
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsip-data
+          path: |
+            arsip-keluar/data
+            arsip-keluar/BACA-DULU.txt
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Unggah lembar jawaban
+        if: inputs.sertakan_foto
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsip-lembar-jawaban
+          path: arsip-keluar/lembar-jawaban
+          retention-days: 7
+          if-no-files-found: error
