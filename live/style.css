@@ -6148,6 +6148,29 @@ button.pill-number:hover { filter: brightness(.95); }
   color: var(--tinta-lembut);
 }
 
+/* ---- Blok "foto" ----
+
+   Keterangan DI ATAS gambarnya, bukan di bawah seperti kebiasaan caption.
+   Sebabnya sama dengan urutan di DOM: kalau gambarnya belum diupload atau
+   gagal dimuat, yang tersisa harus terbaca di tempatnya semula, bukan
+   melompat ke atas dan mengubah tata letak seluruh bagian.
+
+   `max-height` dipatok supaya foto potret dari HP tidak memakan satu layar
+   penuh dan mendorong kalimat berikutnya keluar pandangan. */
+.bs-foto { margin: .8rem 0; }
+
+.bs-foto figcaption {
+  color: var(--tinta-lembut);
+  margin-bottom: .35rem;
+}
+
+.bs-foto img {
+  display: block;
+  max-width: 100%; max-height: 22rem;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius-kecil);
+}
+
 /* ---- Blok "layar" ---- */
 .bs-layar {
   display: block; margin: .6rem 0;

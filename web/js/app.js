@@ -31,7 +31,7 @@ import {
   aturFaseLive, segarkanLiveScore,
   daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
   ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
-  hapusFotoLembar, tautanBukti,
+  hapusFotoLembar, tautanBukti, fotoBuku,
 } from "./api.js";
 import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
          meterSah,
@@ -10705,6 +10705,8 @@ function blokBuku(blok) {
         </table></div>`;
     case "kenapa":
       return `<p class="bs-kenapa">${esc(blok.teks)}</p>`;
+    case "foto":
+      return blokFotoBuku(blok);
     case "layar":
       return blokLayarBuku(blok);
     default:
@@ -10714,6 +10716,24 @@ function blokBuku(blok) {
          buku. Yang menangkap salah ketiknya tes bentuk, jauh sebelum sini. */
       return "";
   }
+}
+
+/** Blok "foto": satu gambar contoh beserta keterangannya.
+ *
+ *  KETERANGANNYA YANG UTAMA, gambarnya pelengkap. Urutan di DOM sengaja
+ *  begitu — teks lebih dulu, gambar sesudahnya — supaya bagian ini tetap
+ *  berarti kalau gambarnya belum diupload, atau Supabase sedang tidak bisa
+ *  dihubungi. Buku panduan paling dibutuhkan justru saat ada yang rusak.
+ *
+ *  `onerror` MEMBUANG gambarnya, bukan menggantinya dengan gambar cadangan.
+ *  Ikon gambar-rusak bawaan browser tidak mengatakan apa-apa kepada panitia
+ *  dan cuma memakan tempat; yang tersisa sesudahnya keterangan lengkap, yang
+ *  memang sudah bisa berdiri sendiri. */
+function blokFotoBuku(blok) {
+  return `<figure class="bs-foto">
+    <figcaption>${esc(blok.teks)}</figcaption>
+    <img src="${esc(fotoBuku(blok.berkas))}" alt="${esc(blok.teks)}"
+         loading="lazy" onerror="this.remove()"></figure>`;
 }
 
 /** Blok "layar": kotak yang menunjuk layar sungguhan, ikut hak akun. */
@@ -11376,6 +11396,12 @@ function layarBukuSakti() {
  *  `#/pembayaran` di atas kertas tidak bisa diketuk dan tidak memberi tahu
  *  apa pun kepada yang membacanya — yang berguna tinggal nama layarnya. */
 function blokBukuCetak(blok) {
+  /* Foto TIDAK ikut ke kertas, dan itu bukan penghematan tinta.
+     Buku ini digandakan di mesin fotokopi seperti blangko, dan foto adalah
+     raster abu-abu — persis yang dilarang CLAUDE.md bagian 8: ia keluar kotor
+     atau hilang sama sekali pada salinan kedua. Yang tercetak keterangannya,
+     yang memang sudah ditulis supaya berdiri sendiri. */
+  if (blok.jenis === "foto") return `<p>${esc(blok.teks)}</p>`;
   if (blok.jenis !== "layar") return blokBuku(blok);
   return `<p class="bs-cetak-layar"><strong>${esc(blok.nama)}</strong>${
     blok.teks ? ` — ${esc(blok.teks)}` : ""}</p>`;
