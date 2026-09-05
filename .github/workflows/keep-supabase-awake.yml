@@ -1,24 +1,44 @@
 name: Keep Supabase awake
 
 # ============================================================================
-# hrcd-rekap : keep-supabase-awake.yml — satu permintaan REST tiap minggu,
+# hrcd-rekap : keep-supabase-awake.yml — beberapa permintaan REST TIAP HARI,
 # supaya project Supabase gratis tidak di-pause karena menganggur.
 #
 # KENAPA BERKAS INI ADA
 #
-# Project free tier di-pause kalau tidak ada aktivitas selama sepekan.
+# Project free tier di-pause kalau aktivitasnya rendah selama sepekan.
 # `docs/rancangan-b.md` bagian 12.5 sudah merencanakan keep-alive sejak awal
-# dan mencatat sendiri bahwa ia TIDAK PERNAH DIBUAT; yang tersisa cuma
-# jendela pemulihan satu tahun. Selama arsip edisi belum ditarik keluar
-# lewat `tools/arsip_edisi.py`, satu-satunya salinan hasil HRCD ada di
-# project itu — dan project yang ter-pause di luar jendela pemulihan adalah
-# hasil lomba yang hilang.
+# dan mencatat sendiri bahwa ia TIDAK PERNAH DIBUAT. Selama arsip edisi belum
+# ditarik keluar lewat `tools/arsip_edisi.py`, satu-satunya salinan hasil HRCD
+# ada di project itu — dan project yang ter-pause di luar jendela pemulihan
+# adalah hasil lomba yang hilang.
+#
+# KENAPA HARIAN, BUKAN MINGGUAN
+#
+# Versi pertama berkas ini berjalan SEKALI SEMINGGU, dan itu di bawah yang
+# diminta dokumentasinya. Supabase menyebut syaratnya begini:
+#
+#   "a few user requests to the database each day over the previous week is
+#    enough to keep the project from being paused"
+#   https://supabase.com/docs/guides/platform/free-project-pausing
+#
+# Yang dinilai "aktivitas rendah dalam jendela 7 hari", dan yang paling jelas
+# jadi calon pause adalah project dengan terlalu sedikit query pengguna di
+# jendela itu. SATU permintaan dalam tujuh hari persis berbentuk begitu. Tidak
+# ada ambang angka yang diumumkan, jadi yang benar bukan menebak ambangnya
+# melainkan berada jauh di atasnya.
+#
+# TIGA PERMINTAAN, SATU RUN, DAN ITU GRATIS. GitHub menagih per JOB dibulatkan
+# ke menit penuh — bukan per permintaan. Jadi tiga curl di dalam satu job
+# berbiaya sama persis dengan satu curl, dan itulah cara termurah menambah
+# margin terhadap ambang yang tidak diumumkan.
 #
 # TAGIHANNYA, dihitung lebih dulu seperti yang dituntut CLAUDE.md 16.9:
-# mingguan = 52 run setahun. GitHub membulatkan tiap JOB ke menit penuh, jadi
-# 52 menit setahun. Bandingkan dengan `*/5 * * * *` yang 288 menit SEHARI.
-# Ini cron ketiga di repo, dan satu-satunya yang tidak terkunci ke tanggal
-# lomba — memang disengaja, karena yang dijaganya juga tidak terikat tanggal.
+# harian = 365 run setahun = 365 menit setahun, sekitar 31 menit sebulan.
+# Jatah repo privat di paket Free 2.000 menit SEBULAN, jadi ini ~1,5% dari
+# jatah. Bandingkan dengan `*/5 * * * *` yang 288 menit SEHARI dan menghabiskan
+# jatah itu dalam sepekan. Naik dari 52 menit setahun ke 365 masih jauh dari
+# angka yang perlu dikhawatirkan, dan yang dibelinya project yang tidak hilang.
 #
 # TANPA SECRET SATU PUN. Alamat dan anon key dibaca dari `web/config.js`,
 # yang memang publik dan disajikan apa adanya ke tiap browser panitia. Satu
@@ -27,17 +47,25 @@ name: Keep Supabase awake
 # YANG DIBACA sengaja `v_edisi_publik`: view paling ringan yang terbuka untuk
 # anon, dipakai halaman peserta, dan tidak memuat satu pun data pribadi.
 #
-# BOLEH DIMATIKAN. Begitu arsipnya keluar dan tersimpan di Drive, project
-# ini tidak perlu dijaga hidup lagi — hapus berkas ini, dan biarkan
-# Supabase melakukan apa yang mau dilakukannya.
+# KALAU RUN INI GAGAL, JANGAN DIABAIKAN. GitHub mengirim email untuk scheduled
+# workflow yang gagal, dan itulah satu-satunya alarm yang dipunyai berkas ini.
+# Gagal berarti salah satu dari: project sudah ter-pause (paling gawat),
+# anon key diganti, atau project dipindah. Jendela pemulihan project yang
+# ter-pause SATU TAHUN sejak ia di-pause — sesudah itu tidak ada tombol yang
+# bisa ditekan siapa pun.
+#
+# BOLEH DIMATIKAN. Begitu arsipnya keluar lengkap lewat tools/arsip_edisi.py
+# dan tersimpan di Drive, project ini tidak perlu dijaga hidup lagi — hapus
+# berkas ini, dan biarkan Supabase melakukan apa yang mau dilakukannya. Itu
+# jalan keluar yang sebenarnya; berkas ini cuma menahan pintu sementara.
 # ============================================================================
 
 on:
   workflow_dispatch:
   schedule:
-    # Senin 08:00 WIB = 01:00 UTC. Harinya tidak penting; yang penting
-    # jaraknya tidak pernah lebih dari tujuh hari.
-    - cron: "0 1 * * 1"
+    # Tiap hari 08:00 WIB = 01:00 UTC. Jamnya tidak penting; yang penting
+    # tiap hari ada, bukan tiap pekan.
+    - cron: "0 1 * * *"
 
 permissions:
   contents: read
@@ -70,19 +98,48 @@ jobs:
           echo "::add-mask::$key"
           echo "key=$key" >> "$GITHUB_OUTPUT"
 
-      - name: Sentuh REST API
+      - name: Sentuh REST API tiga kali
         run: |
           set -euo pipefail
-          # Yang membuktikan project masih hidup bukan HTTP 200 saja
-          # melainkan jawaban yang benar-benar berisi baris edisi. Project
-          # yang ter-pause menjawab galat, bukan JSON.
-          jawab=$(curl -fsS --max-time 30 \
-            -H "apikey: ${{ steps.cfg.outputs.key }}" \
-            -H "Authorization: Bearer ${{ steps.cfg.outputs.key }}" \
-            "${{ steps.cfg.outputs.url }}/rest/v1/v_edisi_publik?select=name&limit=1")
-          echo "jawaban: $jawab"
-          case "$jawab" in
-            \[*\]) echo "Supabase menjawab; project masih hidup." ;;
-            *) echo "GAGAL: jawaban bukan JSON array — project mungkin ter-pause." >&2
-               exit 1 ;;
-          esac
+
+          # Yang membuktikan project masih hidup bukan HTTP 200 saja melainkan
+          # jawaban yang benar-benar berisi baris edisi. Project yang ter-pause
+          # menjawab galat, bukan JSON array.
+          sentuh() {
+            curl -fsS --max-time 30 \
+              --retry 3 --retry-delay 5 --retry-connrefused \
+              -H "apikey: ${{ steps.cfg.outputs.key }}" \
+              -H "Authorization: Bearer ${{ steps.cfg.outputs.key }}" \
+              "${{ steps.cfg.outputs.url }}/rest/v1/v_edisi_publik?select=name&limit=1"
+          }
+
+          # `--retry` di atas menahan blip jaringan supaya alarmnya tidak
+          # berbunyi untuk hal yang bukan pause. Yang TIDAK ditahan: jawaban
+          # yang bentuknya salah — itu justru sinyal yang dicari.
+          gagal=0
+          for i in 1 2 3; do
+            if jawab=$(sentuh); then
+              case "$jawab" in
+                \[*\]) echo "permintaan $i: $jawab" ;;
+                *) echo "permintaan $i: jawaban bukan JSON array — $jawab" >&2
+                   gagal=1 ;;
+              esac
+            else
+              echo "permintaan $i: curl gagal" >&2
+              gagal=1
+            fi
+            # Dijarakkan supaya terhitung sebagai beberapa permintaan, bukan
+            # satu burst — dan tetap di dalam menit yang sudah dibayar.
+            [ "$i" = 3 ] || sleep 10
+          done
+
+          if [ "$gagal" -ne 0 ]; then
+            echo "" >&2
+            echo "GAGAL menyentuh Supabase. Kemungkinannya, dari yang paling gawat:" >&2
+            echo "  1. project sudah ter-pause — pulihkan dari dashboard Supabase." >&2
+            echo "     Jendela pemulihannya SATU TAHUN sejak di-pause." >&2
+            echo "  2. anon key diganti — perbarui web/config.js." >&2
+            echo "  3. project dipindah — perbarui supabaseUrl di web/config.js." >&2
+            exit 1
+          fi
+          echo "Supabase menjawab tiga kali; project masih hidup."
