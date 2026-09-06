@@ -59,12 +59,6 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
      memuat satu nilai pun: fase yang sedang berlaku (migrasi `0070`) dan
      jumlah pendaftar selama fase `pra`. Keduanya hanya boleh MEMPERKETAT
      tampilan, tidak pernah menampilkan lebih dari isi berkas yang terbit.
-     hanya progres tanpa angka nilai — centang per pos, ditambah kloter,
-     kontrak waktu, jam berangkat, dan jam datang regu itu sendiri, supaya
-     jamnya bisa dicocokkan sebelum hasilnya final — nilai dan peringkat
-     lengkap baru tampil setelah closing. Halaman ini **disajikan
-     statis dan diperbarui berkala**, tidak pernah membaca database langsung —
-     ratusan HP penonton tidak boleh bisa membebani jalur input panitia.
 
 ## 2. Satuan lomba dan identitas
 
@@ -204,10 +198,11 @@ Sebaliknya, istilah lomba tetap apa adanya dan tidak diterjemahkan: **regu**,
    sudah beredar hanya boleh lewat admin — nomor lamanya dipensiunkan permanen
    karena salinan kertas lama masih menuliskannya (bagian 8.8).
 
-   Harganya naik lagi sesudah lomba mulai. Slip penilaian per lomba hanya
-   memuat NOMOR DADA tanpa nama regu, jadi nomor dada yang salah bukan
-   sekadar salah tulis — ia memindahkan seluruh nilai satu regu ke regu lain,
-   dan tidak ada apa pun di kertas yang memperlihatkannya.
+   Harganya naik lagi sesudah lomba mulai. Slip penilaian per lomba memuat
+   NOMOR DADA, nama regu, dan pangkalan yang ditulis tangan petugas, tetapi
+   yang diketik ke sistem cuma nomor dadanya — jadi nomor dada yang salah
+   bukan sekadar salah tulis: ia memindahkan seluruh nilai satu regu ke regu
+   lain, dan satu-satunya yang membantahnya nama regu di lembar yang sama.
 
    Sebelum dicetak, pembetulan hanya perlu satu ketukan di meja: nomor lama
    kembali ke stok dan bisa langsung dipakai regu yang benar.
@@ -621,9 +616,9 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    per foto.
 6. Operator IT memasukkannya ke sistem dengan kunci **nomor dada**, lewat dua
    layar yang menulis lewat pintu yang sama (`simpan_nilai_massal`):
-   **Input Nilai Pos** — satu tabel selebar pos, satu regu satu baris,
+   **Input Nilai Tabel** — satu tabel selebar pos, satu regu satu baris,
    tersimpan sendiri tanpa tombol Simpan, dipakai meja IT dan satu-satunya
-   tempat blangko bisa dicetak — dan **Input Nilai Pos v2**, yang mulai dari
+   tempat blangko bisa dicetak — dan **Input Nilai Per Lomba**, yang mulai dari
    pemilih lomba lintas pos lalu menggambar satu regu satu layar dengan tombol
    SIMPAN NILAI, dipakai juri yang memegang satu lomba sepagian.
 
@@ -671,10 +666,12 @@ Jalur lomba    tiap lomba punya jurinya sendiri
    tabel:
 
    - **Nomor dada dicetak besar di pojok kiri atas** (poin 4).
-   - **Rentangnya milik regu itu.** Di tabel, kolom Tebak Simpul harus menulis
-     `0 – 10 / 0 – 5` karena satu kolom melayani empat golongan. Di form per
-     lomba, regu Penggalang melihat `0 – 5` saja dan tidak ada yang perlu
-     dipilih petugas.
+   - **Bentuk isiannya milik lomba itu.** Semaphore, Tebak Simpul, KIM, dan
+     Menaksir memberi peserta tempat menulis jawabannya sendiri di kertas itu;
+     form tabel cuma punya kolom angka. Rentangnya TIDAK ikut menyempit: satu
+     master dipakai keempat golongan, jadi Tebak Simpul tetap mencetak
+     `( 0 – 5 / 0 – 10 )` sama seperti di tabel, dan golongannya dilingkari
+     petugas di baris Kategori.
    - **Golongan yang tidak berhak tidak dapat kertasnya sama sekali** — bukan
      dapat lalu dicoret.
 

@@ -10,9 +10,10 @@
 # PROJECT `hrcd37` DI CLOUDFLARE TIDAK BOLEH TERSAMBUNG GIT. Kalau tersambung,
 # tiap push ke main akan menimpa kedua berkas itu dengan contoh fase 'pra'
 # yang ada di repo, dan rekap peserta mendadak kosong tanpa ada yang gagal.
-# 1.500-3.000 HP peserta hanya menyentuh hosting statis Cloudflare — nol
-# permintaan ke Supabase, dan halaman itu tidak perlu membawa kunci apa pun
-# (docs/rancangan-b.md bagian 7).
+# 1.500-3.000 HP peserta mengambil papannya dari hosting statis Cloudflare;
+# yang menyentuh Supabase cuma dua bacaan kecil — fase live tiap 15 detik
+# (0070) dan jumlah pendaftar selama fase 'pra' (0099) — jadi halaman itu
+# MEMUAT anon key lewat live/config.js (docs/rancangan-b.md bagian 7).
 #
 # YANG MENJAGA KEJUTAN ADA DI DATABASE, BUKAN DI SINI.
 # Selama status_acara.fase_live masih 'progres', v_klasemen_publik memang
@@ -25,10 +26,11 @@
 # di luar fase 'juara' (0163, kolom skornya kembali di 0164).
 #
 # CRON 15 MENIT AKTIF HANYA 29 AGUSTUS 2026, 06:00-18:59 WIB. Cron memakai
-# UTC dan tidak punya kolom tahun, jadi jadwal memilih 01:00-16:45 UTC lalu
-# langkah pertama memeriksa tahun/tanggal lengkap. Di luar jendela itu workflow
-# berhenti sebelum membaca database atau deploy. Tombol Run workflow tetap bisa
-# ditekan kapan pun, termasuk dari HP.
+# UTC dan tidak punya kolom tahun, jadi jadwal memilih 23:00-23:45 UTC
+# 28 Agustus dan 00:00-11:45 UTC 29 Agustus lalu langkah pertama memeriksa
+# tahun/tanggal lengkap. Di luar jendela itu workflow berhenti sebelum
+# membaca database atau deploy. Tombol Run workflow tetap bisa ditekan kapan
+# pun, termasuk dari HP.
 #
 # Butuh repository secret (dua-duanya sudah dipakai workflow lain):
 #   SUPABASE_DB_URL       connection string Postgres (Session pooler, 5432)
@@ -112,7 +114,7 @@ jobs:
             echo "aktif=true" >> "$GITHUB_OUTPUT"
           else
             echo "aktif=false" >> "$GITHUB_OUTPUT"
-            echo "Di luar 29 Agustus 2026 08:00-23:59 WIB; tidak menerbitkan."
+            echo "Di luar 29 Agustus 2026 06:00-18:59 WIB; tidak menerbitkan."
           fi
 
       - uses: actions/checkout@v4

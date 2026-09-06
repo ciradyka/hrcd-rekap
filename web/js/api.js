@@ -718,7 +718,7 @@ export const koreksiJamBerangkat = (kloter, jam, alasan) =>
  *  di akunnya), tapi namanya tetap dibaca untuk judul layar.
  *
  *  `jumlah_komponen` ikut terbawa karena tidak semua pos dinilai: Pos 0
- *  (Keberangkatan) dan Pos 5 (Kedatangan) adalah garis start dan finish, dan
+ *  (Keberangkatan) dan Pos 6 (Kedatangan) adalah garis start dan finish, dan
  *  yang dicatat di sana waktu, bukan nilai. Tanpa angka itu layar tidak bisa
  *  membedakan pos semacam itu dari pos yang komponennya belum diisi admin. */
 export async function daftarPos() {
@@ -745,9 +745,9 @@ export async function komponenPos(edisi, pos) {
 }
 
 /** Seluruh komponen penilaian SEMUA pos sekaligus, urut pos lalu kolom.
- *  Inilah yang menentukan bentuk tabel Rekapitulasi: satu kolom per baris di
- *  sini, persis seperti lembar Excel yang dipakai panitia — dan sama seperti
- *  layar Input Pos, tidak satu pun nama kolom ditulis di JavaScript. */
+ *  Inilah yang menentukan isi pemilih lomba di layar Input Nilai Per Lomba dan
+ *  Cek Nilai — dan sama seperti layar Input Pos, tidak satu pun nama kolom
+ *  ditulis di JavaScript. */
 export async function komponenSemua(edisi) {
   if (K.mode === "dev") return baca("/komponen-semua");
   return baca(null,
@@ -847,9 +847,9 @@ export async function riwayatPendaftaran(kode) {
 
 /** Snapshot privat untuk papan Live Score panitia.
  *
- *  Seluruh kalkulasi berat dijalankan scheduled job satu kali tiap lima menit,
- *  bukan sekali per HP yang membuka layar. Status fase tetap dibaca langsung
- *  karena saklar publish harus berubah seketika. */
+ *  Seluruh kalkulasi berat dijalankan scheduled job satu kali tiap sepuluh
+ *  menit, bukan sekali per HP yang membuka layar. Status fase tetap dibaca
+ *  langsung karena saklar publish harus berubah seketika. */
 export async function cacheLiveScore() {
   if (K.mode === "dev") {
     const [kelengkapan, pos, komponen, rekap] = await Promise.all([

@@ -160,7 +160,8 @@ judul ini bukan daftar kerja atas `sekolah_alamat.json`.
 Alamatnya dipasang ke produksi lewat migrasi `0154`, bersama tujuh sekolah
 XXXVII lain yang alamatnya sudah terisi tapi belum baku, dan enam baris kembar
 yang dilebur. Semuanya sekarang punya baris di `sekolah_nama.json` maupun
-`sekolah_alamat.json`, lengkap dengan NPSN dan URL sumbernya.
+`sekolah_alamat.json`, lengkap dengan sumbernya — dan NPSN, kecuali `MA Adzkia`
+dan `SMA IT Nurul Huda` yang memang belum terdaftar (lihat di bawah).
 
 **Yang paling mahal kalau salah, dan hampir salah.** `MA Mujahidin` dan
 `MTs Mujahidin` punya DUA kandidat yang sama-sama meyakinkan: satu yayasan
@@ -190,11 +191,18 @@ melengkapi angkanya dan sekalian mendaftarkan LPS 2, supaya angka itu punya
 lawan — nama pembeda yang berdiri sendiri tidak membedakan apa pun
 (CLAUDE.md 12.8).
 
+**`SMP AL Fadliliyah Darussalam` sudah terjawab, 30 Agustus 2026.** Tidak ada
+SMP di kompleks Darussalam menurut Data Referensi, dan alamat yang diketik
+pembina memang alamat MTs-nya. Pemilik acara yang menjawab: yang dimaksud
+MTs-nya. Migrasi `0160` membakukan ejaannya lebih dulu, lalu `0162` melebur
+barisnya ke `MTs Al-Fadliliyah Darussalam`. Barisnya lahir dari sebuah
+pendaftaran, jadi yang ikut dialihkan kemungkinan besar bukan nol —
+`tests/sql/114` menjaga barisnya tidak kembali.
+
 ### Yang masih tersisa dari XXXVII
 
 | Sekolah | Regu | Kenapa belum tuntas | Yang ditanyakan ke pembina |
 | --- | ---: | --- | --- |
-| **SMP AL Fadliliyah Darussalam** | 0 | Tidak ada SMP di kompleks Darussalam menurut Data Referensi — yang ada MTs Al-Fadliliyah Darussalam, dan alamat yang diketik pembina memang alamat MTs itu. Nol regu, jadi tidak mendesak. | "Regunya dari MTs Al-Fadliliyah Darussalam, atau memang ada SMP-nya?" |
 | **SMAN 1 Majalengka** | 0 | Alamatnya sudah berbentuk baku dan tidak ada yang salah; ia cuma belum punya baris di daftar kurasi. Nol regu. | — tidak perlu ditanyakan |
 
 ---

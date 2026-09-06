@@ -43,11 +43,11 @@ melihat papan ini sebelum lomba harus tahu itu.
 Nama ketua juga bukan nama siapa-siapa: keempat edisi XXXIII-XXXVI tidak
 pernah punya kolomnya.
 
-FASE LIVE TIDAK DISENTUH. `v_live_peserta` baru terbit kalau
-`status_acara.fase_live = 'penuh'`, sedangkan `v_live_admin` cukup peran
-admin. Skrip ini sengaja tidak mengubah fase, jadi papan yang berisi hanya
-yang dilihat panitia — situs peserta tetap seperti sebelumnya sampai ada yang
-menerbitkannya dengan sadar.
+FASE LIVE TIDAK DISENTUH. `v_klasemen_publik` baru terbit kalau
+`status_acara.fase_live` sudah `penuh` atau `top10`, sedangkan
+`v_klasemen_live_score` cukup peran admin. Skrip ini sengaja tidak mengubah
+fase, jadi papan yang berisi hanya yang dilihat panitia — situs peserta tetap
+seperti sebelumnya sampai ada yang menerbitkannya dengan sadar.
 
 PAKAI
 

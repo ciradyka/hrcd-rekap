@@ -61,7 +61,7 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │   │                         # (departure-calculator.mjs dan
 │   │                         # nomor-dada-series.mjs), dan buku-sakti.mjs —
 │   │                         # ISI Buku Sakti sebagai data, bukan kode:
-│   │                         # empat bab bacaan + papan 13 sprint yang
+│   │                         # tiga bab bacaan + papan 13 sprint yang
 │   │                         # tugasnya dicentang (migrasi 0170)
 │   ├── style.css             # seluruh gaya, termasuk aturan cetak
 │   ├── config.js             # URL Supabase + gateway (bukan rahasia)
@@ -82,7 +82,7 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │                             # shared-files.yml gagal kalau menyimpang
 ├── workers/gateway/          # satu-satunya kode "server": penerima form daftar
 ├── supabase/
-│   ├── migrations/           # skema database, urut 0001..0170
+│   ├── migrations/           # skema database, urut 0001..0171
 │   ├── checks/               # 30 SQL manual, dan 12 di antaranya MENGUBAH
 │   │                         # data (flow_test, cleanup_data_uji,
 │   │                         # cleanup_smoke, seed_data_uji, kloter_dari_stok,
@@ -110,7 +110,7 @@ berbeda dari sistem sekarang, `docs/final-architecture.md` yang benar.
 │   └── status_migrasi_check.sh
 │                             # menguji jejak status_migrasi.sql dua arah;
 │                             # lambat, sengaja di luar run.sh
-├── .github/workflows/        # 10 workflow (lihat final-architecture.md)
+├── .github/workflows/        # 12 workflow (lihat final-architecture.md)
 ├── CLAUDE.md                 # konvensi kerja
 └── AGENTS.md                 # aturan sama dengan CLAUDE.md (judul + pembuka beda)
 ```

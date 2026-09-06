@@ -102,8 +102,6 @@ def _png_contoh(path):
             + bagian(b"IEND", b""))
 
 
-# Argumen yang bertipe text[] di Postgres, bukan jsonb. Dipisah karena
-# keduanya sampai ke sini sebagai list JSON yang sama persis.
 # Argumen yang tujuannya ARRAY Postgres — apa pun jenis elemennya. Namanya
 # dulu ARRAY_TEKS dan isinya hanya "p_anggota", jadi `p_kloter` (smallint[])
 # ikut di-json.dumps dan Postgres menolaknya dengan "malformed array literal"

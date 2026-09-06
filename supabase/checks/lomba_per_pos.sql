@@ -11,11 +11,13 @@
 -- tidak ada satu pun galat yang muncul. Yang terlihat cuma layar yang
 -- mengelompokkan lomba dengan cara yang tidak diharapkan siapa pun.
 --
--- Itu BUKAN kemungkinan teoretis. `tests/dev_database.sh` menjalankan 0076
--- SESUDAH seed, yaitu sesudah 0087 — jadi di database dev, 0076 memasang
--- kembali `lomba = 'KIM'` yang baru saja dikosongkan 0087, dan KIM tergambar
--- sebagai SATU lomba. Produksi menjalankan migrasi berurutan dan seharusnya
--- tidak begitu; berkas ini yang membuktikannya, alih-alih menduganya.
+-- Itu BUKAN kemungkinan teoretis. `tests/dev_database.sh` pernah menjalankan
+-- 0076 SESUDAH seed tanpa mengulang 0087 sesudahnya — jadi di database dev,
+-- 0076 memasang kembali `lomba = 'KIM'` yang baru saja dikosongkan 0087, dan
+-- KIM tergambar sebagai SATU lomba. Daftar ULANG-nya sekarang memutar 0087
+-- tepat sesudah 0076, jadi dev tidak lagi begitu. Produksi menjalankan migrasi
+-- berurutan dan seharusnya juga tidak; berkas ini yang membuktikannya,
+-- alih-alih menduganya.
 --
 -- Jalankan lewat apply-migration.yml. Tidak mengubah apa pun.
 -- ============================================================================
