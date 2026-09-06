@@ -1992,21 +1992,30 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
        Organisasi  "Al-Mu'aawanah" 18,2mm
        Total       "Total"        ~10mm
 
-     Dari 281mm yang tersedia: 2,8 + 4,2 + 7,5 + 7,5 + 3,8 = 25,8% dipatok, dan
-     74,2% sisanya dibagi dua belas kolom pos = 6,18% masing-masing. Semua di
+     Dari 281mm yang tersedia: 2 + 3,3 + 7,4 + 7,4 + 3,4 = 23,5% dipatok, dan
+     76,5% sisanya dibagi dua belas kolom pos = 6,375% masing-masing. Semua di
      atas kebutuhannya, jadi tidak ada satu kata pun yang dipatah:
 
-       #           2,8%   7,9mm
-       No Dada     4,2%  11,8mm
-       Regu        7,5%  21,1mm
-       Organisasi  7,5%  21,1mm
-       Total       3,8%  10,7mm
-       tiap pos    6,18% 17,4mm
+       #           2%      5,6mm
+       No Dada     3,3%    9,3mm
+       Regu        7,4%   20,8mm
+       Organisasi  7,4%   20,8mm
+       Total       3,4%    9,6mm
+       tiap pos    6,375% 17,9mm
+
+     ANGKA DI ATAS ADALAH ANGKA YANG BENAR-BENAR DIPASANG di lima aturan
+     `width` di bawah. Daftar ini pernah menyebut 2,8 / 4,2 / 7,5 / 7,5 / 3,8
+     dan total 25,8% — bukan hasil pergeseran belakangan, melainkan salah
+     sejak commit yang sama menulis prosa dan aturannya sekaligus. Yang
+     membuatnya berbahaya bukan selisihnya melainkan kalimat terakhir alinea
+     berikut: pembaca disuruh mempercayai daftar ini persis saat ia hendak
+     mengubah sesuatu. Kalau salah satu `width` di bawah diubah, ubah daftar
+     ini di baris yang sama — mm-nya 281mm x persennya, tidak ada rumus lain.
 
      Pembagiannya sempit di kedua ujung, dan itu memang batasnya: 8% untuk
-     nama membuat kolom pos 17,0mm dan "Kepramukaan" (15,5mm isi) dipatah;
-     7% membuat kolom nama 19,7mm dan "RANGGAYUNAN" (18,7mm) yang dipatah.
-     Jangan menggeser angka ini tanpa mengukur ulang KEDUA sisinya.
+     nama membuat kolom pos 17,6mm dan "Kepramukaan" (16,7mm isi) nyaris
+     dipatah; 7% membuat kolom nama 19,7mm dan "RANGGAYUNAN" (18,7mm) yang
+     dipatah. Jangan menggeser angka ini tanpa mengukur ulang KEDUA sisinya.
 
      DUA BELAS adalah jumlah kolom pos HARI INI (Pos 1 enam, Pos 2 enam di
      Bagian 1; Pos 3 empat + PBB + Yel-Yel + enam perjalanan di Bagian 2).
