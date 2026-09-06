@@ -36,7 +36,7 @@ const halaman = await readFile(new URL("../live/index.html", import.meta.url), "
 /** Nomor versi yang sedang tertulis di index.html, beserta sidik jari isi
  *  berkas saat nomor itu dipasang. Ubah KEDUANYA bersama-sama. */
 const BERKAS = {
-  "live.js": { versi: 20, sidik: "0cec1e3dde68" },
+  "live.js": { versi: 21, sidik: "e8b297421436" },
   "live.css": { versi: 8, sidik: "49d72f12ce8f" },
   "style.css": { versi: 69, sidik: "d8ead05fca66" },
 };

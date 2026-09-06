@@ -704,7 +704,7 @@ function gambarPapan() {
            diperingkat.</p>`
       : top10 ? `
         <div class="gulir">
-          <table class="tabel ada-rank tabel-top-10">
+          <table class="tabel ada-rank">
             <thead><tr>
               <th class="rank-th">#</th>
               <th class="dada-th">No<br>Dada</th>
