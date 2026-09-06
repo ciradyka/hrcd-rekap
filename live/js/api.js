@@ -296,7 +296,7 @@ export async function masuk(username, password) {
 }
 
 /** Panitia mengganti PASSWORD AKUN SENDIRI — bukan admin mengganti punya
- *  orang lain (itu jalurnya scripts/ganti_password.py + service_role, dari
+ *  orang lain (itu jalurnya scripts/change_password.py + service_role, dari
  *  luar aplikasi). Ini murni self-service: pakai token sesi yang sedang
  *  login, lewat endpoint bawaan GoTrue yang memang mengizinkan pengguna
  *  mengubah datanya sendiri — tidak perlu service_role sama sekali. */
