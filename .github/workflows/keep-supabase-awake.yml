@@ -35,10 +35,13 @@ name: Keep Supabase awake
 #
 # TAGIHANNYA, dihitung lebih dulu seperti yang dituntut CLAUDE.md 16.9:
 # harian = 365 run setahun = 365 menit setahun, sekitar 31 menit sebulan.
-# Jatah repo privat di paket Free 2.000 menit SEBULAN, jadi ini ~1,5% dari
-# jatah. Bandingkan dengan `*/5 * * * *` yang 288 menit SEHARI dan menghabiskan
-# jatah itu dalam sepekan. Naik dari 52 menit setahun ke 365 masih jauh dari
-# angka yang perlu dikhawatirkan, dan yang dibelinya project yang tidak hilang.
+# Repo ini PUBLIK, jadi menit runner standar tidak ditagih sama sekali;
+# angkanya tetap dihitung supaya perbandingannya jelas kalau repo suatu saat
+# ditutup — jatah repo privat di paket Free 2.000 menit SEBULAN, jadi ini
+# ~1,5% dari jatah, sementara `*/5 * * * *` yang 288 menit SEHARI
+# menghabiskannya dalam sepekan. Naik dari 52 menit setahun ke 365 masih jauh
+# dari angka yang perlu dikhawatirkan, dan yang dibelinya project yang tidak
+# hilang.
 #
 # TANPA SECRET SATU PUN. Alamat dan anon key dibaca dari `web/config.js`,
 # yang memang publik dan disajikan apa adanya ke tiap browser panitia. Satu

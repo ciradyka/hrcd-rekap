@@ -1380,19 +1380,19 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
                                kotak nilai, dan baris yang tingginya
                                berbeda-beda memutus garis pandang itu.
                                Buku besar bergaris rata bukan tanpa sebab.
-       muat di satu kertas   - Pos 3 punya tujuh kotak isian
+       muat di satu kertas   - Pos 3 punya delapan kotak isian
 
      Membungkus menyelesaikan yang pertama dengan mengorbankan yang kedua.
      Yang menyelesaikan ketiganya sekaligus adalah MELINTANG DENGAN IDENTITAS
      10pt — diukur pada Pos 3, kondisi terlebar:
 
        tersedia   277mm
-       dipakai     13mm nomor dada + 7 x 12mm kotak isian = 97mm
-       sisa       180mm untuk tiga kolom identitas
+       dipakai     13mm nomor dada + 8 x 12mm kotak isian = 109mm
+       sisa       168mm untuk tiga kolom identitas
        dibutuhkan 140mm  (nama regu 22 huruf + sekolah 28 huruf + golongan,
                           pada 10pt huruf besar ~2,3mm)
 
-     Lega 40mm. Di potret sisanya cuma 93mm — kurang 47mm, dan kekurangan
+     Lega 28mm. Di potret sisanya cuma 81mm — kurang 59mm, dan kekurangan
      itulah yang dulu memaksa memotong, lalu memaksa membungkus.
 
      Potret sudah dicoba dua kali: sekali dengan elipsis (nama terpotong),
@@ -1827,8 +1827,8 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 
      Yang dibeli: seluruh sisa kertas jatuh ke kolom penilaian. Identitas
      memakai 10 + 44 + 48 + 13 = 115mm dari 277mm, jadi sisanya 162mm dibagi
-     rata — 54mm per kotak di Pos 1 yang punya tiga penilaian, 40mm di Pos 5
-     yang punya empat, 23mm di Pos 3 yang punya tujuh. Yang paling sempit pun
+     rata — 32mm per kotak di Pos 1 yang punya lima penilaian, 40mm di Pos 5
+     yang punya empat, 20mm di Pos 3 yang punya delapan. Yang paling sempit pun
      masih dua kali lipat lebar angka dua digit yang ditulis di situ.
 
      Golongan disingkat "Pgl Pa" / "Pgk Pa" (GOLONGAN_SINGKAT di app.js), jadi

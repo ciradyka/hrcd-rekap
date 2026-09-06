@@ -34,7 +34,8 @@
 # port 5432 — BUKAN Direct connection yang IPv6-only dan tak terjangkau
 # runner GitHub, bukan pula transaction pooler 6543 yang menolak sebagian DDL).
 # Khusus cleanup_data_uji.sql, SUPABASE_URL dan SUPABASE_SERVICE_KEY juga
-# dipakai untuk menghapus file fisik di bucket Storage `lembar` lewat API.
+# dipakai untuk menghapus file fisik di DUA bucket Storage — `lembar` dan
+# `bukti` — lewat API.
 # ============================================================================
 
 name: Apply migration to Supabase

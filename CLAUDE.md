@@ -635,7 +635,7 @@ Guidance for Claude Code when working in this repository.
    boleh dilakukan petugas gerbang karena kolomnya kebetulan bernama
    "Keberangkatan".
 5. **Membaca data operasional = jadi panitia; melakukan sesuatu = per fitur.**
-   Dua puluh policy `sel_*` sengaja tetap berbunyi `peran() is not null`:
+   Tujuh belas policy `sel_*` sengaja tetap berbunyi `peran() is not null`:
    `regu`, `kloter`, dan `edisi` dibaca hampir setiap layar, dan mengikatnya ke
    satu fitur akan mematikan layar lain yang kebetulan juga membacanya.
 6. **Isolasi pos berlaku pada MENULIS, tidak lagi pada membaca.** `v_lembar_pos`
@@ -841,11 +841,12 @@ Guidance for Claude Code when working in this repository.
 5. **No check runs by itself any more — CI is dispatched deliberately.**
    `sql-tests.yml` and `shared-files.yml` carry `workflow_dispatch` and nothing
    else: no `push`, no `pull_request`. Every check they perform runs on a
-   laptop in well under a minute, and rule 1 already requires it there. Three
+   laptop in well under a minute, and rule 1 already requires it there. Four
    workflows still fire on their own — `publish-live.yml` (push to `live/**`,
-   plus the event cron), `deploy-panitia.yml` (push to `web/**`) and
-   `refresh-live-score.yml` (event cron only). Two deploys and one cache
-   refresh; not a check among them.
+   plus the event cron), `deploy-panitia.yml` (push to `web/**`),
+   `refresh-live-score.yml` (event cron only) and `keep-supabase-awake.yml`
+   (the standing daily cron of rule 9). Two deploys, one cache refresh and one
+   keep-alive; not a check among them.
 6. **What costs money is the NUMBER of runs, not their length.** GitHub rounds
    every JOB up to a whole minute, so a 7-second check and a 50-second check
    bill exactly the same. One measured day: 24 of 60 runs were a second copy of

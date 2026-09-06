@@ -8,9 +8,9 @@
 # bukan tampilannya.
 #
 # Runner GitHub sudah punya psql, dan Postgres-nya dijalankan sebagai service
-# container. Jadi setiap push dan setiap PR memverifikasi: seluruh migrasi
-# 0001..00NN jalan berurutan dari database kosong, seed masuk, dan semua
-# assert di tests/sql/ lolos.
+# container. Jadi tiap kali workflow ini dijalankan ia memverifikasi: seluruh
+# migrasi 0001..00NN jalan berurutan dari database kosong, seed masuk, dan
+# semua assert di tests/sql/ lolos.
 #
 # Port 55432 (bukan 5432) sengaja disamakan dengan tests/run.sh dan
 # tests/dev_database.sh supaya perintahnya persis sama di CI maupun di laptop.

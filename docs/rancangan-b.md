@@ -2,9 +2,9 @@
 
 > **CATATAN KEPUTUSAN — bukan keadaan sekarang.**
 > Ini cetak biru yang dipakai membangun sistem, ditulis sebelum kodenya ada.
-> Ia **sengaja dipertahankan apa adanya**: 61 komentar di kode, tersebar di 32
-> berkas — migrasi, tes, SPA, situs peserta, Worker, `web/_headers`, dan
-> `publish-live.yml` — menunjuk ke nomor bagian dokumen ini
+> Ia **sengaja dipertahankan apa adanya**: 60 komentar di kode, tersebar di 31
+> berkas — migrasi, tes, SPA, situs peserta, Worker, `publish-live.yml`, dan
+> `keep-supabase-awake.yml` — menunjuk ke nomor bagian dokumen ini
 > (`rancangan-b.md 11.9`, `bagian 4`, `2.2.1`, dan seterusnya). Menulis ulang
 > isinya akan memutus seluruh penunjuk itu, termasuk yang tertanam di migrasi
 > yang sudah diterapkan dan tidak boleh diedit.
@@ -408,7 +408,7 @@ dikerjakan**: lembar Umum yang tercetak hari ini tidak punya kotak itu.
 
 ## 8. Gateway form publik
 
-1. Form pendaftaran mengirim ke **satu Worker Cloudflare** (587 baris,
+1. Form pendaftaran mengirim ke **satu Worker Cloudflare** (607 baris,
    satu-satunya kode "server" di seluruh sistem): verifikasi token
    **Turnstile** — opsional, dan untuk edisi 37 sengaja dimatikan karena
    pendaftarannya tidak pernah disalahgunakan — + rate limit per IP + batas
@@ -421,8 +421,10 @@ dikerjakan**: lembar Umum yang tercetak hari ini tidak punya kotak itu.
 
 > **Belum ada satu pun dari bagian ini.** Tidak ada tombol Export CSV di layar
 > mana pun, tidak ada serialisasi CSV di browser, dan Google Sheets tidak
-> dipakai — lihat catatan di kepala dokumen. Arsip tahunan belum punya
-> prosedur tertulis selain "Bersihkan data" (CLAUDE.md 12.4).
+> dipakai — lihat catatan di kepala dokumen. Arsip tahunan sudah punya
+> prosedurnya sendiri di luar rencana ini: `tools/arsip_edisi.py`
+> mengeluarkan seluruh tabel, view, dan foto lembar jawaban satu edisi,
+> dijalankan dari Actions lewat `archive-edition.yml`.
 
 1. **Export CSV di semua layar daftar**, posisi tombol sama di header setiap
    layar; serialisasi di browser, UTF-8 ber-BOM agar Excel membukanya bersih;
@@ -470,7 +472,7 @@ dikerjakan**: lembar Umum yang tercetak hari ini tidak punya kotak itu.
     (upload, preview, password — bukan unggah/pratinjau/kata sandi).
 13. **Semua layar — termasuk layar panitia — wajib jalan di HP.** Panitia
     memakai HP, bukan hanya laptop. Diperiksa terukur pada lebar 390 px untuk
-    layar panitia yang ada saat itu (enam; sekarang 16): tidak ada elemen yang
+    layar panitia yang ada saat itu (enam; sekarang 17): tidak ada elemen yang
     meluber, halaman tidak pernah
     menggeser ke samping, dan tidak ada sasaran sentuh di bawah 36 px. Tabel
     lebar menggeser di dalam kartunya sendiri, bukan menyeret seluruh halaman;
@@ -671,12 +673,13 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 5. **Supabase pause**: rencananya keep-alive = cron GitHub Actions mingguan
    yang menyentuh tabel heartbeat + ritual cek Januari. **Sudah dibuat, tapi
    bentuknya lebih kecil daripada rencananya** — `keep-supabase-awake.yml`,
-   satu permintaan REST tiap Senin ke `v_edisi_publik`. Tidak ada tabel
-   heartbeat: menyentuh API sudah menghitung sebagai aktivitas, jadi tabel
-   dan migrasinya cuma menambah dua konsep tanpa menambah jaminan. Tidak ada
-   secret juga; alamat dan anon key dibaca dari `web/config.js` yang memang
-   publik. Tagihannya dihitung lebih dulu sesuai CLAUDE.md 16.9: 52 run
-   setahun = 52 menit, lawan 288 menit SEHARI kalau `*/5 * * * *`.
+   tiga permintaan REST dalam satu job harian ke `v_edisi_publik` (mingguan
+   sampai 6 September 2026). Tidak ada tabel heartbeat: menyentuh API sudah
+   menghitung sebagai aktivitas, jadi tabel dan migrasinya cuma menambah dua
+   konsep tanpa menambah jaminan. Tidak ada secret juga; alamat dan anon key
+   dibaca dari `web/config.js` yang memang publik. Tagihannya dihitung lebih
+   dulu sesuai CLAUDE.md 16.9: 365 run setahun = 365 menit, sekitar 31 menit
+   sebulan, lawan 288 menit SEHARI kalau `*/5 * * * *`.
 
    Jendela pemulihan 1 tahun tetap ada sebagai jaring kedua. Dan begitu
    arsip edisi ditarik keluar lewat `tools/arsip_edisi.py`, workflow ini
@@ -691,7 +694,7 @@ klik? Bisakah kita hanya mengisi 1 halaman form?"** — dan itu benar.
 | 2. Meja | Login, beranda meja, form pendaftaran + gateway Worker, pembayaran, daftar ulang | Alur daftar → bayar → nomor dada jalan penuh di lingkungan uji |
 | 3. Hari-H | Garis start, input pos (manual + massal), closing, monitoring | Simulasi input 500 regu × 5 pos |
 | 4. Admin | Konfigurasi, klasemen, cetak, barak, riwayat | **Tidak tercapai.** Klasemen jadi Live Score dan cetak menempel di layar masing-masing; Konfigurasi, Barak, dan Riwayat tidak dibangun. Aturan skor masih diubah lewat migrasi SQL, bukan dari layar |
-| 5. Publik | Live page + GitHub Actions + fase bertahap (kini lima) | Halaman live tidak mengambil rekap dari Supabase — hanya `v_fase_live` tiap 15 detik, yang cuma boleh memperketat, dan `v_publik_ringkas` selama fase `pra`. Keep-alive tidak dibuat |
+| 5. Publik | Live page + GitHub Actions + fase bertahap (kini lima) | Halaman live tidak mengambil rekap dari Supabase — hanya `v_fase_live` tiap 15 detik, yang cuma boleh memperketat, dan `v_publik_ringkas` selama fase `pra`. Keep-alive dibuat belakangan: `keep-supabase-awake.yml`, satu job harian ke `v_edisi_publik` (bagian 12.5) |
 | 6. Gladi | Seed 300 regu sintetis, drill semua meja, ukur waktu per transaksi terhadap target 10.3 | Angka gladi terlampir di repo |
 
 Setiap tahap masuk lewat PR sendiri mengikuti konvensi CLAUDE.md.

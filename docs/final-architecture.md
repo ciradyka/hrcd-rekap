@@ -15,7 +15,8 @@ Angka-angka itu berubah tiap beberapa migrasi, tidak ada satu tes pun yang
 menjaganya, dan pembukuan lamanya sempat berminggu-minggu menyuruh pembaca
 membetulkan "angka view dan fungsi di bagian 2" yang tidak pernah ada di
 teksnya — yang memuatnya `arsitektur-hrcd.svg`, bukan berkas ini. Yang dijaga
-`tests/final_architecture.test.mjs` cuma jumlah migrasi dan tabel rute.
+`tests/final_architecture.test.mjs` cuma jumlah migrasi, tabel rute, dan
+paragraf hak akses di bagian 3.
 
 Yang DIPERIKSA pada penyegaran 2 September: jumlah migrasi, tabel rute, baris
 `#/pos2`, blangko per lomba, seluruh bagian 3b beserta pagar
@@ -106,15 +107,18 @@ alamat panitia tetap ada — tapi peserta tidak pernah menerima alamat yang ada
 kotak loginnya, dan link yang diteruskan ke mana-mana tidak sekaligus
 menyebarkan pintu masuknya.
 
-`ALLOWED_ORIGIN` di `workers/gateway/worker.js` menunjuk ke situs PESERTA,
-karena form pendaftaran disajikan dari sana.
+`ASAL_PESERTA` di `workers/gateway/worker.js` menunjuk ke situs PESERTA,
+karena form pendaftaran disajikan dari sana; `ASAL_PANITIA` menunjuk ke situs
+panitia, karena rute `/akun` dipanggil layar Akun. Keduanya digabung jadi
+daftar izin `ASAL_BOLEH`.
 
 Nama project situs memuat nomor edisi (`hrcd37`) dan berganti tiap tahun.
 Gateway dan project Supabase sengaja TIDAK memuat nomor edisi supaya bisa
 dipakai lintas tahun. Kalau `name` di `live/wrangler.toml` diubah,
-`ALLOWED_ORIGIN` di `workers/gateway/worker.js` wajib ikut diubah — form
+`ASAL_PESERTA` di `workers/gateway/worker.js` wajib ikut diubah — form
 pendaftaran disajikan dari situs peserta, jadi itulah origin yang dipagari.
-Mengganti `name` di `web/wrangler.toml` tidak menyentuh gateway sama sekali.
+Mengganti `name` di `web/wrangler.toml` menuntut `ASAL_PANITIA` ikut diubah,
+kalau tidak rute `/akun` kehilangan origin-nya.
 
 ---
 
@@ -156,7 +160,11 @@ tanggal lomba — jadi di luar dua hari itu tombol Refresh membaca ulang
 snapshot beku yang sama tanpa satu pun galat. Terukur: penyegaran terakhir
 29 Agustus 16:55 UTC, dilaporkan panitia 31 Agustus.
 
-Duapuluh enam tabel seluruhnya, dan keduapuluh enamnya menyalakan RLS.
+Papan sprint: `centang_sprint` (migrasi `0170`) — satu baris per tugas papan
+sprint Buku Sakti yang dicentang, dibaca `v_centang_sprint` dan ditulis
+`set_centang_sprint()`.
+
+Duapuluh tujuh tabel seluruhnya, dan keduapuluh tujuhnya menyalakan RLS.
 
 > Tabel jejak audit bernama **`history`** dengan kolom `table_name`, `row_id`,
 > `action`, `old_value`, `new_value`, `changed_by`, `changed_at`. Dokumen lama
@@ -280,22 +288,22 @@ supaya tombol Back HP mengembalikan pemilih lomba, bukan melompat ke Home.
 | Rute | Layar | Kerjanya |
 | --- | --- | --- |
 | `#/home` | Home | menu + **empat** lencana: dua antrean (menunggu pembayaran, lunas belum bernomor) dan dua kemajuan berantai (Keberangkatan `berangkat/siap`, Kedatangan `datang/berangkat`) |
-| `#/foto` | Foto Jawaban | foto borongan per lomba di pos, lalu tautkan nomor dada |
+| `#/foto` | Foto Jawaban Sekaligus | foto borongan per lomba di pos, lalu tautkan nomor dada |
 | `#/data-peserta` | Data Peserta | betulkan yang salah diketik pembina: kontak, nama regu, ketua, anggota, kelas/organisasi |
 | `#/pembayaran` | Meja Pembayaran | tabel semua invoice, tandai lunas, cetak kwitansi |
 | `#/daftar-ulang` | Meja Daftar Ulang | isi nomor dada per regu, tukar nomor rusak |
 | `#/cetak-kloter` | Daftar Kloter | lembar per kloter untuk petugas start |
 | `#/keberangkatan` | Keberangkatan | ceklis hadir, kontrak waktu, pindah kloter, berangkatkan |
 | `#/finish` | Kedatangan | catat jam datang + anggota hadir |
-| `#/pos` | Input Nilai Pos | lembar penilaian satu pos, satu baris per regu |
-| `#/pos2` | Input Nilai Pos v2 | pilih satu lomba lintas pos — alamatnya jadi `#/pos2/<pos>:<kode_lomba>` supaya Back HP kembali ke pemilihnya — lalu satu regu satu layar: ketik nomor dada, isi kotak tiap kriteria, foto slipnya, simpan. Lomba waktu mendapat stopwatch yang mengisi kotak detiknya; lomba soal tulis memakai bentuk yang sama persis, satu kotak "Jumlah benar". Foto borongan hanya ada di `#/foto` |
+| `#/pos` | Input Nilai Tabel | lembar penilaian satu pos, satu baris per regu |
+| `#/pos2` | Input Nilai Per Lomba | pilih satu lomba lintas pos — alamatnya jadi `#/pos2/<pos>:<kode_lomba>` supaya Back HP kembali ke pemilihnya — lalu satu regu satu layar: ketik nomor dada, isi kotak tiap kriteria, foto slipnya, simpan. Lomba waktu mendapat stopwatch yang mengisi kotak detiknya; lomba soal tulis memakai bentuk yang sama persis, satu kotak "Jumlah benar". Foto borongan hanya ada di `#/foto` |
 | `#/cek-nilai` | Cek Nilai | satu regu satu layar, `‹ nomor dada ›` per regu: foto slip di sebelah angka yang diketik darinya, dan angkanya boleh dibetulkan serta dikunci di tempat. Pemegang `pengaturan` — dipakai admin server, bukan juri |
 | `#/live-score` | Live Score | pemegang hak `live_score` — cincin kemajuan per pos, lalu podium ENAM tempat per golongan (Juara 1-3 di satu baris, Harapan 1-3 di baris berikutnya) dan tabel rinci; saklar fase hanya untuk pemegang `pengaturan` |
 | `#/kejuaraan` | Kejuaraan | hasil juara dari skor, Juara Umum dari poin juara, Yel Yel dari poin Pos 5 per golongan, Peserta Terbanyak dari nomor dada Eksternal, dan pilihan manual panitia: Kostum dan Terfavorit per golongan, Pangkalan Terjauh satu SEKOLAH untuk seluruh acara |
-| `#/pengaturan-kloter` | Pengaturan Kloter | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
+| `#/pengaturan-kloter` | Kalkulator Keberangkatan | simulasi dan perbaikan jadwal keberangkatan; pemegang `pengaturan` |
 | `#/ganti-password` | Ganti Password | — |
 | `#/account` | Akun | buat/nonaktifkan akun dan atur matriks hak; pemegang `akun` |
-| `#/buku-sakti` | Buku Sakti | buku pegangan yang diserahkan antar kepanitiaan: cara menjalankan HRCD, tugas pokok tiap seksi, alasan sistem ini berbentuk begini, dan timeline satu edisi dari Serah Terima Jabatan sampai pelaksanaan. Alamatnya berbuntut kode bab — `#/buku-sakti/seksi`. Isinya data statis di `web/js/buku-sakti.mjs`, bukan baris database, jadi ia tetap terbaca saat Supabase tidak bisa dihubungi. **Satu-satunya layar tanpa pagar hak akses**, dan itu disengaja: yang paling butuh membacanya justru yang haknya paling sempit. Tautan ke layar lain di dalamnya tetap ikut hak |
+| `#/buku-sakti` | Buku Sakti | buku pegangan yang diserahkan antar kepanitiaan: cara menjalankan HRCD, tugas pokok tiap seksi, alasan sistem ini berbentuk begini, dan timeline satu edisi dari Serah Terima Jabatan sampai pelaksanaan. Alamatnya berbuntut kode bab — `#/buku-sakti/seksi`. Isinya data statis di `web/js/buku-sakti.mjs`, bukan baris database, jadi ia tetap terbaca saat Supabase tidak bisa dihubungi. **Untuk sementara terbatas ke pemegang `pengaturan`** (`FITUR_LAYAR`, sejak 5 September 2026); niatnya semula layar tanpa pagar, karena yang paling butuh membacanya justru yang haknya paling sempit — hari ini yang tanpa pagar tinggal `#/home` dan `#/ganti-password`. Tautan ke layar lain di dalamnya tetap ikut hak |
 
 Lima peran akun: `admin`, `registrasi`, `gerbang`, `juri_pos`, dan
 `koordinator_pos`. Peran hanya memilih centang awal lewat `paket_peran()`;
@@ -651,11 +659,14 @@ tahun depan belum tentu ingat janji ini.
 Memisahkan URL **tidak** mencegah orang mencoba masuk — alamat panitia tetap
 ada. Yang benar-benar didapat tiga hal:
 
-1. Halaman rekap tidak memuat **kunci apa pun**: `live/index.html` hanya
-   memanggil `live.css` dan `live.js`, dan `live.js` cuma membaca `live.json`
-   dan `rekap.json` untuk data rekap. Anon key ikut tersalin ke
-   `live/config.js`: form pendaftaran memakainya, dan halaman rekap hanya
-   memakainya untuk membaca saklar fase kecil langsung dari database.
+1. Halaman rekap tidak memuat **kunci istimewa apa pun**: `live/index.html`
+   cuma memanggil `style.css`, `live.css`, `config.js`, dan `live.js`, dan
+   `live.js` mengambil data rekapnya dari `live.json` dan `rekap.json`. Yang
+   ikut tersalin ke `live/config.js` cuma anon key — kunci yang memang
+   disajikan ke tiap browser dan dipagari RLS — dipakai form pendaftaran, dan
+   dipakai halaman rekap untuk membaca saklar fase kecil langsung dari
+   database. Service key tidak pernah sampai ke sini; tempatnya
+   `wrangler secret` di Worker gateway dan secret repo di Actions.
 2. Link yang disebar ke ratusan peserta tidak sekaligus menyebarkan alamat
    login panitia.
 3. Ratusan HP yang me-refresh tidak menyentuh Worker yang sedang dipakai
@@ -770,7 +781,7 @@ jam 24 sudah melakukannya sendiri — `04:00` tidak pernah bisa dikira `16:00`.
 ### Bentuk tabel meja menurut lebar layar
 
 Meja Pembayaran, Meja Daftar Ulang, dan Data Peserta melewati tiga rentang
-yang sama, meski `min-width` masing-masing berbeda — 820px, 790px, dan 980px.
+yang sama, meski `min-width` masing-masing berbeda — 820px, 790px, dan 858px.
 Angkanya ditentukan isi tabel, bukan ukuran jempol:
 
 | Lebar | Bentuk |
@@ -881,8 +892,9 @@ saat layar memanggil RPC lama dan gagal.
 ### Cache
 
 `web/_headers` menyetel `Cache-Control: no-cache` untuk semua aset: browser
-boleh menyimpan, tapi wajib bertanya dulu. Asetnya ±970 KB seluruhnya
-(`js/app.js` sendiri ±484 KB, `style.css` ±279 KB), tapi `no-cache` berarti
+boleh menyimpan, tapi wajib bertanya dulu. Asetnya ±1,2 MB seluruhnya
+(`js/app.js` sendiri ±562 KB, `style.css` ±342 KB, `js/buku-sakti.mjs`
+±197 KB), tapi `no-cache` berarti
 yang menyeberang saat tidak ada perubahan cuma jawaban 304 — jadi biayanya
 tetap hampir nol, dan tanpa itu,
 perbaikan mendadak pagi hari-H tidak akan sampai ke panitia.
@@ -918,7 +930,9 @@ menyajikan tiap berkas di dua alamat (`/` dan `/index.html`, `/daftar` dan
 **Tidak ada satu check pun yang berjalan sendiri.** `sql-tests.yml` dan
 `shared-files.yml` cuma punya `workflow_dispatch`: keduanya selesai di laptop
 dalam hitungan detik, dan pasal 16.1 sudah mewajibkannya di sana. Yang masih
-terpicu otomatis cuma deploy — `publish-live.yml` dan `deploy-panitia.yml`.
+terpicu otomatis ada empat: dua deploy — `publish-live.yml` dan
+`deploy-panitia.yml` — plus dua cron, `refresh-live-score.yml` pada hari lomba
+dan `keep-supabase-awake.yml` tiap hari pukul 01:00 UTC.
 
 Nama workflow mengikuti pembacanya: yang dijalankan panitia berbahasa Indonesia,
 yang hanya dibaca developer berbahasa Inggris. Nama berkasnya selalu Inggris

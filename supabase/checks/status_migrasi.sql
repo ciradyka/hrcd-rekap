@@ -44,7 +44,7 @@
 -- Tidak ditulis tangan satu per satu, dan tidak ditebak. Database dibangun dari
 -- nol mengikuti urutan `tests/run.sh`, dan katalog beserta tabel konfigurasinya
 -- dipotret sesudah SETIAP migrasi. Sebuah potongan baru diterima jadi jejak
--- kalau ia lolos dua syarat, diuji terhadap seluruh 164 potret:
+-- kalau ia lolos dua syarat, diuji terhadap seluruh 172 potret:
 --
 --   1. TIDAK ada di SATU PUN potret sebelum migrasinya — jadi ia memang lahir
 --      dari migrasi itu, bukan dari yang lebih tua;

@@ -197,12 +197,13 @@ Hasil: **1.102 baris peserta → 201 klaster**, dari 326 tulisan mentah.
 > membetulkan salah satunya secara sepihak cuma memindahkan selisihnya ke
 > tempat lain.
 >
-> Yang di sebelah kanan panah TIDAK bergantung pada ketiganya. 201 klaster,
-> 189 sekolah, dan 209 hari ini semuanya bisa dihitung ulang dari
-> `tools/data/sekolah_nama.json` dan `sekolah_alamat.json` yang ADA di repo —
-> `python tools/periksa_sekolah.py` mencetak dua yang terakhir tiap kali
-> dijalankan. Kalau salah satu angka di halaman ini perlu dipercaya, percaya
-> yang itu.
+> Yang di sebelah kanan panah TIDAK bergantung pada ketiganya, tapi cuma yang
+> terakhir yang masih bisa dihitung ulang: `python tools/periksa_sekolah.py`
+> membaca `tools/data/sekolah_nama.json` dan `sekolah_alamat.json` yang ADA di
+> repo lalu mencetak **209 sekolah, 210 baris alamat** tiap kali dijalankan.
+> 201 klaster dan 189 sekolah adalah keadaan putaran pertama; peleburan baris
+> kembar sesudahnya membuat berkas hari ini menjawab 187, bukan 189. Kalau
+> salah satu angka di halaman ini perlu dipercaya, percaya yang 209.
 Penggabungan lewat NPSN di bagian 7 memangkasnya lagi jadi **189 sekolah** —
 angka putaran pertama, atas empat edisi lama saja. Pendaftaran XXXVII
 menambahkannya jadi **209**; keadaan hari ini ada di bagian 11.
@@ -720,10 +721,11 @@ pencocokan itu ke SQL.
 
 ### 12.3 Huruf status Dapodik ikut dibuang, singkatan tidak
 
-Empat dari enam nama di atas berawalan bentuk Dapodik — `MAS`, `SMKS`, `SMAS`,
-`MTsS` — di mana `S` terakhir berarti **Swasta**. Itu status, bukan bagian dari
-nama, dan pembina menulis dua-duanya. `kunci_sekolah()` diperluas membuangnya,
-jadi `SMKS Galuh Rahayu` yang diketik tahun depan mendarat di baris yang sama
+Dua dari enam nama di atas berawalan bentuk Dapodik — `MAS` dan `SMKS`, dan
+bentuk yang sama ada untuk `SMAS`, `SMPS`, `MTsS`, `MIS` — di mana `S`
+terakhir berarti **Swasta**. Itu status, bukan bagian dari nama, dan pembina
+menulis dua-duanya. `kunci_sekolah()` diperluas membuangnya, jadi
+`SMKS Galuh Rahayu` yang diketik tahun depan mendarat di baris yang sama
 dengan `SMK Galuh Rahayu`.
 
 `SMAI`, `SMAT`, `SMPT` **tidak** ikut, walau ketiganya juga singkatan (Islam,
@@ -898,8 +900,8 @@ ditemukan — baris yang tidak ada pembandingnya.
 ### 13.5 Kecamatan cukup, kecuali kecamatan kota
 
 Dua puluh enam kecamatan Kabupaten Ciamis memakai **satu** kode pos untuk
-seluruh desanya. **Kecamatan Ciamis tidak**: dua belas desanya terbagi ke enam
-kode pos (46211–46219), karena ia kecamatan kotanya.
+seluruh desanya. **Kecamatan Ciamis tidak**: dua belas desanya terbagi ke
+sembilan kode pos (46211–46219), karena ia kecamatan kotanya.
 
 | Desa | Kode pos | | Desa | Kode pos |
 | --- | --- | --- | --- | --- |

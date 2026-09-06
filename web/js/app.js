@@ -481,7 +481,7 @@ function layarLogin(pesan) {
 /* ============================ BERANDA MEJA (home) ========================= */
 
 async function layarHome() {
-  // Lebar penuh: pada 760px hanya muat dua kolom, dan menu sepuluh tombol
+  // Lebar penuh: pada 760px hanya muat dua kolom, dan menu empat belas tombol
   // jadi kolom sempit dengan lapangan kosong di kanannya. 1080px muat tiga,
   // sehingga seluruh menu terlihat sekaligus tanpa menggulir. Di HP grid-nya
   // tetap runtuh jadi satu kolom — minmax(280px, 1fr) yang memutuskan, bukan
@@ -678,8 +678,9 @@ async function layarHome() {
 
          Jadi ia berdiri DI BAWAH grid sebagai pita selebar papan: terlihat
          tanpa dicari, tidak ikut kode warna, dan tidak menggeser satu pun
-         ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya sengaja
-         tidak diperiksa — alasannya di kepala bagian BUKU SAKTI. -->
+         ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya ikut
+         centang pengaturan, sama dengan layarnya — alasannya di kepala
+         bagian BUKU SAKTI. -->
 
       ${bolehLihat("pengaturan") ? `
       <a class="bs-pintu" href="#/buku-sakti">
@@ -4192,7 +4193,7 @@ async function layarInputPos() {
   catch (e) { LAYAR.replaceChildren(kartuGagalMuat(e.message, layarInputPos)); return; }
   if (location.hash !== layarIni) return;
 
-  // Tidak semua pos dinilai. Pos 0 (Keberangkatan) dan Pos 5 (Kedatangan)
+  // Tidak semua pos dinilai. Pos 0 (Keberangkatan) dan Pos 6 (Kedatangan)
   // adalah garis start dan garis finish — yang dicatat di sana waktu, lewat
   // layar Keberangkatan dan Kedatangan. Admin dibuka di pos yang benar-benar
   // bisa diisi, bukan di pos pertama menurut nomor.
@@ -4593,7 +4594,7 @@ async function layarInputPos() {
     }
 
     /* SARINGAN PER LOMBA, dan hanya muncul kalau memang ada yang disaring.
-       Satu regu di Pos 3 bisa punya tujuh lomba dan puluhan perubahan; yang
+       Satu regu di Pos 3 bisa punya delapan lomba dan puluhan perubahan; yang
        ditanyakan biasanya satu — "Bidai-nya kenapa berubah dua kali?".
        Menyaringnya di sini lebih cepat daripada menyusuri daftar.
 
@@ -5342,9 +5343,9 @@ async function layarInputPos() {
     || tr.children[2].textContent.toLowerCase().includes(cari);
 
   // Pembanding wajib jumlah komponen BARIS ITU, bukan jumlah kolom tabel.
-  // Regu Penggalang di Pos 1 punya tiga komponen sementara tabelnya berkolom
-  // enam — dibandingkan dengan enam, tidak ada satu pun regu yang pernah
-  // "lengkap", dan saringan "Belum lengkap" ikut menampilkan semuanya.
+  // Regu Internal di Pos 1 punya dua komponen sementara tabelnya berkolom
+  // lima — dibandingkan dengan lima, regu itu tidak pernah bisa "lengkap",
+  // dan saringan "Belum lengkap" ikut menampilkannya terus.
   const lengkap = (tr) =>
     Number(tr.dataset.terisi) >= Number(tr.dataset.komponen);
 
@@ -5585,7 +5586,7 @@ async function layarInputPos() {
  *  server (RLS nilai_mentah) — pintu yang terkunci lebih baik tidak digambar.
  *
  *  Yang muncul HANYA pos yang benar-benar dinilai. Pos 0 (Keberangkatan) dan
- *  Pos 5 (Kedatangan) adalah garis start dan garis finish; yang dicatat di
+ *  Pos 6 (Kedatangan) adalah garis start dan garis finish; yang dicatat di
  *  sana waktu, lewat layar Keberangkatan dan Kedatangan. Menawarkannya di
  *  sini berarti menawarkan lembar yang tidak akan pernah punya kolom — dan
  *  daftar yang memuat pilihan tanpa isi mengajari orang bahwa daftar itu
@@ -6394,8 +6395,8 @@ async function layarLiveScore() {
                        yang boleh DIKETIK, dan di papan ini tidak ada yang
                        mengetik apa pun — yang tergambar sudah poin akhir, dan
                        "0 – 5" di bawah kolom berisi 80 justru membantahnya.
-                       Rentangnya tetap ada di layar Input Pos dan di
-                       Rekapitulasi, tempat ia memang menjawab pertanyaan. -->
+                       Rentangnya tetap ada di layar Input Pos dan di Lembar
+                       Cadangan, tempat ia memang menjawab pertanyaan. -->
                   ${kepalaPos.map(x => x.bawah).join("")}
                 </tr>
               </thead>
@@ -10640,11 +10641,14 @@ async function layarCekNilai() {
    buku-sakti.mjs sebagai data; layar ini cuma menggambarnya dan menyiapkan
    versi cetaknya.
 
-   TIDAK ADA PAGAR HAK AKSES DI PINTUNYA, dan itu keputusan, bukan kelalaian.
-   Buku ini menjelaskan pekerjaan SELURUH panitia, dan yang paling butuh
-   membacanya justru yang haknya paling sempit: juri pos yang baru pertama
-   memegang lembar nilai, petugas meja yang dipindah pagi itu juga. Mengikat
-   buku ke satu centang berarti orang-orang itu yang tidak bisa membukanya.
+   DIPAGARI CENTANG `pengaturan` SEJAK 5 SEPTEMBER 2026, dan itu kebalikan
+   dari niat aslinya. Buku ini sengaja dibuat TANPA pagar hak akses: ia
+   menjelaskan pekerjaan SELURUH panitia, dan yang paling butuh membacanya
+   justru yang haknya paling sempit — juri pos yang baru pertama memegang
+   lembar nilai, petugas meja yang dipindah pagi itu juga. Pemilik acara
+   meminta ia ditutup dulu karena isinya masih ditulis ulang; alasan
+   lengkapnya, dan cara membukanya kembali untuk seluruh panitia, ada di
+   layarBukuSakti().
 
    Yang dijaga hak akses adalah DATA. Buku ini tidak memuat satu baris data
    pun — tidak ada nama regu, tidak ada nilai, tidak ada nomor WA pembina.
@@ -11676,12 +11680,12 @@ window.addEventListener("afterprint", () => {
    Harganya disebut supaya tidak jadi kejutan: layar yang lama ditinggal bisa
    menampilkan angka lama. Yang menutupinya tombol muat ulang di tiap layar.
 
-   Yang TETAP jalan cuma pembaruan DI TEMPAT — Input Pos dan Rekapitulasi
-   mengganti isi sel tanpa membangun ulang apa pun, jadi tidak ada tombol yang
-   berpindah dan gulirannya tidak bergerak. Itu bukan yang dikeluhkan, dan
-   melepasnya akan mematikan lembar pos yang dibuka di beberapa HP sekaligus.
+   Yang TETAP jalan cuma pembaruan DI TEMPAT — Input Pos mengganti isi sel
+   tanpa membangun ulang apa pun, jadi tidak ada tombol yang berpindah dan
+   gulirannya tidak bergerak. Itu bukan yang dikeluhkan, dan melepasnya akan
+   mematikan lembar pos yang dibuka di beberapa HP sekaligus.
 
-   Pemanggilan di bawah ini WAJIB ada, bukan kerapian: denyut kedua layar itu
+   Pemanggilan di bawah ini WAJIB ada, bukan kerapian: denyut layar itu
    menghentikan dirinya sendiri saat `document.hidden`, dan `segarkanDiTempat`
    satu-satunya yang menyalakannya lagi. Tanpa baris ini, pembaruan otomatis
    mati permanen sesudah petugas berpindah tab sekali. */

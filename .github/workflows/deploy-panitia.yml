@@ -26,10 +26,11 @@
 # INI TIDAK MELANGGAR PASAL 16
 #
 # CLAUDE.md pasal 16.2 membolehkan GitHub Actions untuk "pekerjaan yang tidak
-# bisa dikerjakan di laptop" — deploy termasuk, dan pasal 16.5 menyebut
-# `publish-live.yml` sebagai contohnya: satu-satunya workflow yang masih
-# terpicu otomatis, "karena itu deploy, bukan check". Berkas ini kembarannya
-# untuk situs yang satu lagi.
+# bisa dikerjakan di laptop" — deploy termasuk, dan pasal 16.5 menyebut berkas
+# ini sendiri sebagai satu dari TIGA workflow yang masih terpicu otomatis,
+# bersama `publish-live.yml` dan `refresh-live-score.yml`: "dua deploy dan
+# satu penyegaran cache, tidak satu pun check". Berkas ini kembaran
+# `publish-live.yml` untuk situs yang satu lagi.
 #
 # Pemicunya DIPERSEMPIT ke `web/**` supaya merge yang cuma menyentuh migrasi
 # atau dokumen tidak ikut membayar satu menit Actions (pasal 16.6: yang

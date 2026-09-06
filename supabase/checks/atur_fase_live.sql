@@ -3,7 +3,7 @@
 -- Pindahkan fase live. Ubah v_fase di bawah, lalu jalankan lewat
 -- apply-migration.yml.
 --
--- Empat fase, dan yang membedakannya APA YANG DILIHAT PESERTA:
+-- Lima fase, dan yang membedakannya APA YANG DILIHAT PESERTA:
 --
 --   pra      peserta tidak melihat apa pun
 --   progres  peserta melihat kemajuan — siapa sudah sampai pos mana — TAPI
@@ -12,19 +12,19 @@
 --            "BOCOR" dengan sengaja.
 --   penuh    klasemen dan juara terbit
 --   top10    maksimal sepuluh regu eligible per golongan, hanya Total
+--   juara    papan diganti DAFTAR JUARA, dan tidak ada yang lain (0163)
 --
 -- Layar panitia (v_klasemen_live_score) TIDAK terpengaruh fase — ia selalu
 -- berisi untuk yang memegang live_score. Fase hanya mengatur sisi peserta.
 --
--- Ini SQL, bukan tombol, dan itu bukan pilihan yang disengaja: sampai
--- sekarang tidak ada satu layar pun yang bisa memindahkan fase. Layar Live
--- Score menampilkannya, tapi tidak mengubahnya. Di hari lomba, memindahkan
--- fase berarti membuka tab Actions — dan itu perlu diperbaiki sebelum
--- pengumuman juara, bukan sesudahnya.
+-- Ini SQL, bukan tombol — tapi tombolnya sekarang ADA: layar Live Score punya
+-- saklar fase untuk pemegang `pengaturan`, lewat RPC `atur_fase_live`.
+-- Berkas ini jalur cadangan, dipakai kalau layar itu tidak bisa dibuka;
+-- di hari lomba fase dipindahkan dari layarnya, bukan dari tab Actions.
 -- ============================================================================
 do $$
 declare
-  v_fase text := 'progres'; -- <<< pra | progres | penuh | top10
+  v_fase text := 'progres'; -- <<< pra | progres | penuh | top10 | juara
   v_lama text;
 begin
   select fase_live into v_lama from status_acara;
