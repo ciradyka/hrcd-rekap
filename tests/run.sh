@@ -752,7 +752,7 @@ run tests/sql/120_centang_sprint.sql
 # serta, dan penjaga di kaki 0171 hanya memeriksa keadaan pada saat ia jalan.
 run supabase/migrations/0171_lembar_pos_jawaban_benar_kembali.sql
 
-# tests/sql/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
+# tests/dev/bentuk_lomba_produksi.sql SENGAJA TIDAK DIJALANKAN DI SINI, dan itu
 # perlu disebut karena CLAUDE.md 7.5 melatih pembaca mengharapkan sebaliknya.
 #
 # Ia memeriksa bentuk lomba KONFIGURASI PRODUKSI — Pembidaian lima kriteria,
