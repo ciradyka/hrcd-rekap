@@ -22,13 +22,23 @@
 # APA YANG DIKELUARKAN
 #
 #   <keluar>/data/                 tabel dan view, JSON + CSV
-#   <keluar>/lembar-jawaban/       foto slip penilaian, satu folder per lomba
+#   <keluar>/lembar-jawaban/       foto slip penilaian, folder per pos lalu lomba
 #   <keluar>/BACA-DULU.txt         keterangan isi folder
 #
 # Folder `lembar-jawaban` sengaja disusun supaya bisa langsung di-drag ke
-# Google Drive: nama folder terbaca manusia ("Pos 3 - Kim Lihat"), nama
-# berkas nomor dada, dan tiap folder membawa `_daftar.csv` yang memetakan
-# nomor dada ke nama regu dan sekolahnya.
+# Google Drive dan enak dipakai MEMERIKSA nilai:
+#
+#   lembar-jawaban/Pos 3/Kim Lihat/0003_Pos3_Kim-Lihat.jpg
+#                                  0004_Pos3_Kim-Lihat.jpg
+#                                  0004_Pos3_Kim-Lihat-2.jpg
+#                                  _daftar.csv
+#
+# Pos di luar, lomba di dalam, karena memeriksa nilai jalannya per lomba.
+# Di dalam folder urutannya nomor dada. Pos dan lomba TETAP ditulis ulang di
+# nama berkas meski foldernya sudah menyebutkannya: satu gambar yang diseret
+# keluar — ke chat, ke dokumen, ke lampiran surat — harus tetap menyebut
+# dirinya sendiri. Tiap folder membawa `_daftar.csv` yang memetakan nomor
+# dada ke nama regu dan sekolahnya.
 #
 # NOMOR WA PEMBINA TIDAK IKUT, kecuali diminta dengan --dengan-kontak. Arsip
 # hasil lomba tidak membutuhkannya, dan folder yang diunggah ke Drive lebih
@@ -369,8 +379,26 @@ def unduh_satu(sesi, path, percobaan=3):
     return None
 
 
-def unduh_foto(keluar, foto, regu_per_dada, tenang, utas=8):
-    """Foto slip, satu folder per lomba, nama berkas nomor dada.
+def unduh_foto(keluar, foto, regu_per_dada, dada_per_regu_id, tenang, utas=8):
+    """Foto slip, satu folder per pos, nama berkas yang menjelaskan dirinya.
+
+    Bentuknya `lembar-jawaban/Pos 1/0003_Pos1_Semaphore.jpg`. Nomor dada di
+    depan supaya urutan berkas = urutan nomor dada, dan pos serta lomba ikut
+    di dalam NAMA supaya satu gambar yang diseret keluar foldernya — ke chat,
+    ke dokumen, ke lampiran surat — masih menyebut dirinya sendiri.
+
+    Lombanya wajib ikut, bukan hiasan: satu regu mengerjakan lima lomba di
+    Pos 1, jadi `0003_Pos1.jpg` akan bertabrakan lima kali.
+
+    Paddingnya EMPAT digit karena nomor dada edisi ini sampai 1089. Tiga
+    digit membuat 1089 lebih pendek daripada 0999 dan urutan berkasnya kacau.
+
+    NOMOR DADA DIAMBIL LEWAT `regu_id`, bukan dari baris fotonya. `foto_lembar`
+    tidak punya kolom `nomor_dada` — yang punya cuma view `v_foto_lembar`, dan
+    view itu mengembalikan NOL baris kepada pengarsip karena ia `security_invoker`
+    sementara pengarsip tersambung tanpa `auth.uid()`. Arsip XXXVII lahir dengan
+    2.489 berkas bernama `tanpa-dada-N.jpg` persis karena itu: view-nya kosong,
+    skripnya diam-diam jatuh ke tabelnya, dan tidak ada yang gagal.
 
     Kalau satu regu punya lebih dari satu foto untuk lomba yang sama —
     lembar bolak-balik, atau ulangan karena yang pertama buram — yang kedua
@@ -395,25 +423,64 @@ def unduh_foto(keluar, foto, regu_per_dada, tenang, utas=8):
     rencana = []          # (path, berkas) yang benar-benar perlu diunduh
     dilewati = 0
 
+    def dada_dari(f):
+        """Nomor dada foto ini, lewat view kalau ada, lewat regu_id kalau tidak."""
+        dada = f.get("nomor_dada")
+        if dada is None:
+            dada = dada_per_regu_id.get(f.get("regu_id"))
+        if isinstance(dada, str):
+            dada = int(dada) if dada.strip().isdigit() else None
+        return dada
+
     per_folder = {}
     for f in sorted(foto, key=lambda x: (x.get("pos") or 0,
                                          x.get("kode_lomba") or "",
-                                         str(x.get("nomor_dada") or ""),
+                                         dada_dari(x) or 0,
                                          str(x.get("diunggah_pada") or ""))):
-        folder = aman(f"Pos {f.get('pos')} - {f.get('nama_lomba') or f.get('kode_lomba')}")
+        # Pos di luar, lomba di dalam. Mengecek nilai jalannya per lomba —
+        # satu juri menyusuri satu kolom — jadi lomba yang harus jadi folder,
+        # dan urutan di dalamnya nomor dada.
+        folder = Path(aman(f"Pos {f.get('pos')}")) / aman(
+            f.get("nama_lomba") or f.get("kode_lomba"))
         per_folder.setdefault(folder, []).append(f)
 
     total = sum(len(v) for v in per_folder.values())
+    bernomor = sum(1 for f in foto if dada_dari(f) is not None)
+
+    # Arsip XXXVII terbit dengan 2.489 berkas `tanpa-dada-N.jpg` dan melapor
+    # SUKSES. Yang membuatnya lolos bukan galat melainkan ketiadaan galat:
+    # view-nya kosong, fallback-nya jalan, tidak ada yang bisa melihat bahwa
+    # nama berkasnya sudah kehilangan seluruh artinya. Foto tanpa nomor dada
+    # bukan bukti apa pun — ia cuma gambar kertas.
+    if total and not bernomor:
+        raise SystemExit(
+            f"TIDAK SATU pun dari {total} foto punya nomor dada.\n"
+            "Nama berkasnya akan jadi 'tanpa-dada-N' dan arsipnya tidak berguna\n"
+            "sebagai bukti. Sebab yang sudah pernah terjadi: v_foto_lembar\n"
+            "mengembalikan nol baris, lalu tabel foto_lembar dipakai sebagai\n"
+            "gantinya — dan tabel itu tidak punya kolom nomor_dada.\n"
+            "Periksa apakah tabel `regu` ikut terbaca; dari situlah nomor dada\n"
+            "sekarang diambil lewat regu_id.")
+    if bernomor < total:
+        print(f"  PERINGATAN: {total - bernomor} dari {total} foto tanpa nomor dada.")
 
     for folder, isian in per_folder.items():
         tujuan = akar / folder
-        tujuan.mkdir(exist_ok=True)
+        tujuan.mkdir(parents=True, exist_ok=True)
         dipakai = {}
         daftar = []
 
         for f in isian:
-            dada = f.get("nomor_dada")
-            label = f"{dada:04d}" if isinstance(dada, int) else aman(dada or "tanpa-dada")
+            dada = dada_dari(f)
+            lomba = f.get("nama_lomba") or f.get("kode_lomba")
+            # `_` memisahkan BAGIAN nama, `-` menandai foto ULANGAN. Dua peran
+            # berbeda, dua tanda berbeda — spasi di nama lomba jadi `-` juga,
+            # jadi "Kim Lihat" terbaca `0003_Pos3_Kim-Lihat.jpg`.
+            label = "_".join([
+                f"{dada:04d}" if isinstance(dada, int) else "tanpa-dada",
+                f"Pos{f.get('pos')}",
+                aman(lomba).replace(" ", "-"),
+            ])
             n = dipakai.get(label, 0) + 1
             dipakai[label] = n
             ekor = Path(f["path"]).suffix or ".jpg"
@@ -517,6 +584,15 @@ def main():
             "TIDAK SATU sumber pun terbaca — arsip tidak dibuat.\n"
             "Periksa kuncinya dan pesan galat di atas.")
 
+    # Peta regu_id -> nomor dada. INI yang menamai tiap berkas foto, karena
+    # `foto_lembar` cuma membawa regu_id; kolom nomor_dada hanya ada di view
+    # `v_foto_lembar`, dan view itu bisa mengembalikan nol baris kepada
+    # pengarsip tanpa satu galat pun. Tabel `regu` selalu terbaca.
+    dada_per_regu_id = {}
+    for r in isi.get("regu", []) or []:
+        if r.get("id") is not None and r.get("nomor_dada") is not None:
+            dada_per_regu_id[r["id"]] = r["nomor_dada"]
+
     # Peta nomor dada -> identitas regu, dipakai _daftar.csv tiap folder foto.
     regu_per_dada = {}
     for r in isi.get("v_rekap_penuh", []) or isi.get("regu", []):
@@ -532,7 +608,8 @@ def main():
     if not a.tanpa_foto:
         foto = isi.get("v_foto_lembar") or isi.get("foto_lembar") or []
         if foto:
-            gagal_foto = unduh_foto(keluar, foto, regu_per_dada, a.tenang)
+            gagal_foto = unduh_foto(keluar, foto, regu_per_dada,
+                                    dada_per_regu_id, a.tenang)
 
     baris_ringkas = "\n".join(
         f"  {n:<18} {j:<6} {s:<12} {k}" for n, j, s, k in ringkas)
