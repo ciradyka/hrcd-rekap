@@ -594,13 +594,31 @@ def main():
             dada_per_regu_id[r["id"]] = r["nomor_dada"]
 
     # Peta nomor dada -> identitas regu, dipakai _daftar.csv tiap folder foto.
+    #
+    # Sekolah TIDAK ada di tabel `regu` — ia menggantung dua tabel jauhnya,
+    # lewat pendaftaran. Selama `v_rekap_penuh` terbaca, view itu sudah
+    # membawanya jadi. Tapi view itu bisa memulangkan NOL baris kepada
+    # pengarsip, sama seperti v_foto_lembar, dan waktu itu terjadi kolom
+    # sekolah di seluruh _daftar.csv terbit kosong tanpa satu galat pun.
+    # Jadi rantainya dirangkai sendiri sebagai cadangan.
+    pend_per_id = {p["id"]: p for p in (isi.get("pendaftaran") or []) if p.get("id")}
+    sekolah_per_id = {s["id"]: s for s in (isi.get("sekolah") or []) if s.get("id")}
+
+    def sekolah_regu(r):
+        """Nama sekolah satu regu: dari view kalau ada, dari rantai kalau tidak."""
+        langsung = r.get("sekolah") or r.get("nama_sekolah")
+        if langsung:
+            return langsung
+        p = pend_per_id.get(r.get("pendaftaran_id")) or {}
+        return (sekolah_per_id.get(p.get("sekolah_id")) or {}).get("name") or ""
+
     regu_per_dada = {}
     for r in isi.get("v_rekap_penuh", []) or isi.get("regu", []):
         dada = r.get("nomor_dada")
         if dada is not None and dada not in regu_per_dada:
             regu_per_dada[dada] = {
                 "nama_regu": r.get("nama_regu") or r.get("nama") or "",
-                "sekolah": r.get("sekolah") or r.get("nama_sekolah") or "",
+                "sekolah": sekolah_regu(r),
                 "golongan": r.get("golongan") or "",
             }
 
