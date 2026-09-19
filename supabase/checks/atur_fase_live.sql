@@ -24,11 +24,15 @@
 -- ============================================================================
 do $$
 declare
-  v_fase text := 'progres'; -- <<< pra | progres | penuh | top10 | juara
+  v_fase text := 'juara'; -- <<< pra | progres | penuh | top10 | juara
   v_lama text;
 begin
   select fase_live into v_lama from status_acara;
-  update status_acara set fase_live = v_fase;
+  -- `where id` bukan hiasan: status_acara cuma punya satu baris, tapi
+  -- ekstensi safeupdate hidup di produksi dan MENOLAK update tanpa
+  -- WHERE. Tanpa baris ini berkas ini gagal di produksi sementara tes
+  -- lokal lulus, karena safeupdate tidak ada di database uji (14.6).
+  update status_acara set fase_live = v_fase where id;
   raise notice 'fase live: % -> %', v_lama, v_fase;
   if v_fase not in ('penuh', 'top10') then
     raise notice 'klasemen TIDAK terbit ke peserta selama fase belum penuh.';
