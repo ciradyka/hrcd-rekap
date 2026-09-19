@@ -24,3 +24,6 @@ build/
 .wrangler/
 __pycache__/
 *.pyc
+
+# Lampiran milik Codex, bukan berkas repo ini. Pemiliknya yang mengelola.
+.codex-remote-attachments/
