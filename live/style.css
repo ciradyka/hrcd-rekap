@@ -5525,7 +5525,7 @@ button.pill-number:hover { filter: brightness(.95); }
    ini diambil langsung dari foto slip. Dropdown-nya tidak ikut menyusut
    (`flex: 0 0 auto`) supaya namanya tidak terpotong lagi; yang menyerap
    sisa lebar barisan chip, yang memang bisa digulir. */
-.cek-kendali .baris-pilih { flex-wrap: nowrap; }
+.cek-kendali .baris-pilih { flex-wrap: nowrap; align-items: center; }
 
 /* SATU BARIS, DIGESER, TIDAK PERNAH MEMBUNGKUS. Empat chip beserta angkanya
    tidak muat sebaris di layar 393px; kalau membungkus, baris keduanya
@@ -6047,7 +6047,12 @@ button.pill-number:hover { filter: brightness(.95); }
      atas memakan ~170px; sebaris ~90px, dan selisihnya jatuh ke foto. */
   .isi.cek .baris-pilih { margin: 0; }
   .isi.cek .cek-navigasi { margin: 0; }
-  .isi.cek .cek-kendali .baris-pilih .field { margin-bottom: 0; }
+  /* Barisan chip ikut dinolkan bersama .field, bukan dibiarkan. Margin bawah
+     yang tersisa menggeser kotaknya 4px ke ATAS saat baris ini dirata-
+     tengahkan — terukur, dan di layar terbaca sebagai chip yang tidak sejajar
+     dengan dropdown di sebelahnya. */
+  .isi.cek .cek-kendali .baris-pilih .field,
+  .isi.cek .cek-kendali .cek-saring-baris { margin-bottom: 0; }
   /* Patokan lebar nomor dada, yang di HP sengaja tidak ada supaya panahnya
      duduk di tepi kartu. Di sini kartunya sebaris — pemilih pos, panah, nomor
      dada, identitas regu — dan kotak yang melebar sebebasnya akan mendorong
@@ -6059,8 +6064,15 @@ button.pill-number:hover { filter: brightness(.95); }
      kartunya tetap `display: block` setinggi 163px. Terukur di browser, bukan
      dibaca (CLAUDE.md 15.9 dan 15.12). Wadah lomba tidak ikut kena karena ia
      bersarang di dalam #cek-isi, bukan anak langsung .isi. */
+  /* `center`, BUKAN `end`. Isi baris ini tingginya tidak sama — dropdown dan
+     chip 40px, panah dan kotak nomor dada 47px — jadi merapatkan ke bawah
+     menaikkan yang pendek 4px dari pusat barisnya. Terukur begitu, dan di
+     layar terbaca sebagai baris yang miring. `end` masuk akal waktu tiap
+     isian masih punya label di atasnya; label itu sudah lama diganti
+     aria-label (lihat komentar di markup-nya), jadi tidak ada lagi yang
+     perlu disejajarkan di bawah. */
   .isi.cek > .card {
-    display: flex; align-items: end; gap: 1rem 1.4rem; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 1rem 1.4rem; flex-wrap: wrap;
   }
   /* Identitas regu ikut sebaris, bukan blok sendiri di bawahnya: dua blok
      bertumpuk memakan 304px dari 762px yang ada, dan seluruh selisihnya
