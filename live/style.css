@@ -166,6 +166,13 @@ body {
 
 button { font: inherit; cursor: pointer; }
 
+/* Sebagian tombol di layar ini BUKAN <button> melainkan <label> yang
+   menyembunyikan <input type="file"> di dalamnya — itu satu-satunya cara
+   membuka kamera atau galeri tanpa JavaScript. Aturan di atas cuma mengenai
+   <button>, jadi tanpa baris ini tombol Kamera dan Galeri terlihat seperti
+   tombol tapi kursornya tetap panah, dan yang ragu menekannya. */
+label.button { cursor: pointer; }
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -5195,10 +5202,28 @@ button.pill-number:hover { filter: brightness(.95); }
    tinggal di sana sampai layar disentuh di tempat lain.
 
    Garis fokus tetap ada, cuma bentuknya berganti jadi outline — yang
-   berpindah dengan Tab tetap butuh tahu di mana ia berada. */
-.foto-lembar .ubin-silang:hover,
-.foto-lembar .ubin-silang:focus-visible {
+   berpindah dengan Tab tetap butuh tahu di mana ia berada.
+
+   TAPI TIDAK MEMERAH bukan berarti TIDAK MENJAWAB. Baris di bawah dulu
+   memasang nilai yang PERSIS SAMA dengan keadaan diamnya — putih .92 di atas
+   putih .92 — jadi hover tidak menghasilkan apa-apa dan tombolnya terbaca
+   seperti mati. Sekarang alasnya jadi abu: cukup untuk mengumumkan bahwa ia
+   tombol, jauh dari merah yang terbaca seperti sudah menghapus. */
+/* TANPA PAGAR MEDIA, dan itu perlu: yang dibatalkan di sini merahnya
+   `.ubin-silang:hover` yang juga tanpa pagar. Kalau pembatalan ini disimpan
+   di dalam `@media (hover: hover)`, HP yang tidak memenuhi pagar itu jatuh
+   kembali ke aturan umum — dan silangnya MEMERAH sesudah disentuh, persis
+   yang dihindari di atas. */
+.foto-lembar .ubin-silang:hover {
   background: rgba(255, 255, 255, .92); color: var(--tinta);
+}
+/* Abunya yang dipagari, karena abu yang menempel sesudah sentuhan terbaca
+   sebagai tombol mati. Di layar berkursor ia jatuh sesudah aturan di atas. */
+@media (hover: hover) {
+  .foto-lembar .ubin-silang:hover { background: var(--garis); }
+}
+.foto-lembar .ubin-silang:focus-visible {
+  background: var(--garis); color: var(--tinta);
 }
 .foto-lembar .ubin-silang:focus-visible {
   outline: 2px solid var(--utama); outline-offset: 2px;
@@ -5879,6 +5904,21 @@ button.pill-number:hover { filter: brightness(.95); }
   background: rgba(255, 255, 255, .9); color: var(--tinta);
   border: 0; border-radius: 999px;
   -webkit-tap-highlight-color: transparent;
+}
+/* Silang ini duduk di atas gambar yang memenuhi layar, dan dulu tidak punya
+   :hover sama sekali — satu-satunya jalan keluar dari penampil foto tidak
+   menjawab kursor. Abu, bukan merah: yang dilakukannya menutup penampil,
+   bukan menghapus fotonya.
+
+   Di balik `@media (hover: hover)` dengan alasan yang sama seperti
+   .button-secondary: Safari iOS menahan `:hover` pada elemen yang terakhir
+   disentuh, jadi tanpa pagar itu silangnya tinggal abu sesudah ditekan. */
+@media (hover: hover) {
+  .lihat-tutup:hover { background: var(--garis); }
+}
+.lihat-tutup:focus-visible {
+  background: var(--garis);
+  outline: 2px solid var(--utama); outline-offset: 2px;
 }
 
 /* Tombol putar mengambang di pojok petaknya. Latar putih separuh tembus,
