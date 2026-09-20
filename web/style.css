@@ -3143,6 +3143,22 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
   color: var(--tinta);
   -webkit-text-fill-color: var(--tinta);
 }
+/* KOTAK MATI HARUS TERLIHAT MATI, dan `-webkit-text-fill-color` di atas itulah
+   yang selama ini menghalanginya. Chrome memudarkan teks `:disabled` lewat
+   `color`, tapi properti itu MENGALAHKAN `color` saat menggambar — jadi kotak
+   nilai yang tergembok tergambar hitam pekat di atas putih, persis seperti
+   kotak yang masih bisa diisi. Jebakan yang sama dengan contoh isian di
+   bagian ::placeholder; kali ini yang tersembunyi bukan warna contoh
+   melainkan fakta bahwa nilainya sudah dikunci.
+   Warnanya disamakan dengan .baris-terkunci supaya tergembok terlihat sama
+   di layar mana pun. Aturan itu juga tidak menulis -webkit-text-fill-color,
+   jadi baris ini sekalian membetulkannya. */
+.select-small:disabled, .small-input:disabled {
+  background-color: #dfe3e9; border-color: #cfd5de;
+  color: var(--tinta-lembut);
+  -webkit-text-fill-color: var(--tinta-lembut);
+  cursor: not-allowed;
+}
 /* Yang dimatikan tetap terbaca, cuma redup. Tanpa ini iOS menambahkan
    opasitasnya sendiri dan pemilih pos milik juri pos — yang memang terkunci ke
    posnya — tampak seperti isian yang gagal dimuat. */
@@ -5880,6 +5896,15 @@ button.pill-number:hover { filter: brightness(.95); }
   padding: 1rem;
   background: rgba(0, 0, 0, .92);
 }
+/* Menyusut sepas gambarnya, jadi pojoknya pojok gambar dan silangnya mendarat
+   di sana — bukan di pojok layar. `inline-flex` supaya tidak ada sisa baris
+   di bawah <img>, dan max-* diteruskan supaya gambarnya tetap dibatasi
+   layar. */
+.lihat-bingkai {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%; max-height: 100%;
+}
 .lihat-foto img {
   max-width: 100%; max-height: 100%;
   object-fit: contain; border-radius: 4px;
@@ -5913,11 +5938,17 @@ button.pill-number:hover { filter: brightness(.95); }
    Di balik `@media (hover: hover)` dengan alasan yang sama seperti
    .button-secondary: Safari iOS menahan `:hover` pada elemen yang terakhir
    disentuh, jadi tanpa pagar itu silangnya tinggal abu sesudah ditekan. */
+/* ABUNYA JAUH LEBIH TUA daripada --garis, dan itu wajib di sini. Tombol ini
+   `rgba(255,255,255,.9)` di atas latar `rgba(0,0,0,.92)`, jadi yang benar-
+   benar terlihat mata sekitar #e6e6e6 — sementara --garis #e7e8ec. Memakai
+   --garis seperti tombol lain menghasilkan hover yang terpasang benar dan
+   tidak terlihat sama sekali; dilaporkan begitu. Yang dibandingkan warna
+   HASIL SUSUNAN, bukan warna yang ditulis. */
 @media (hover: hover) {
-  .lihat-tutup:hover { background: var(--garis); }
+  .lihat-tutup:hover { background: #c3c8d2; }
 }
 .lihat-tutup:focus-visible {
-  background: var(--garis);
+  background: #c3c8d2;
   outline: 2px solid var(--utama); outline-offset: 2px;
 }
 

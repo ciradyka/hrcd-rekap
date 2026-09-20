@@ -1172,9 +1172,16 @@ function bukaFotoPenuh(url, putaran, judul) {
   document.body.appendChild(h(`
     <div class="lihat-foto" role="dialog" aria-modal="true"
          aria-label="${esc(judul || "Foto")}">
-      <button type="button" class="lihat-tutup" aria-label="Tutup">&times;</button>
-      <img src="${esc(url)}" alt="${esc(judul || "")}"
-           data-putar="${esc(String(Number(putaran) || 0))}">
+      <!-- Silangnya duduk di dalam BINGKAI, bukan langsung di penampil.
+           Penampilnya memenuhi layar, jadi tombol yang menempel padanya
+           mendarat di pojok LAYAR — jauh dari gambarnya, dan di layar lebar
+           jaraknya bisa setengah meja. Bingkai ini menyusut sepas gambarnya,
+           jadi pojoknya adalah pojok gambar. -->
+      <div class="lihat-bingkai">
+        <button type="button" class="lihat-tutup" aria-label="Tutup">&times;</button>
+        <img src="${esc(url)}" alt="${esc(judul || "")}"
+             data-putar="${esc(String(Number(putaran) || 0))}">
+      </div>
     </div>`));
   const el = document.body.lastElementChild;
   /* SATU pengendali untuk semua pendengarnya, bukan removeEventListener satu
