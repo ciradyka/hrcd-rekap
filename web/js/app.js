@@ -2759,37 +2759,45 @@ async function layarKeberangkatan() {
 
 /* ============================ CETAK DAFTAR KLOTER ======================== */
 
-/** Kotak nomor dada MENAMPILKAN tiga digit sambil diketik: 1 jadi 001, 10
- *  jadi 010 — bentuk yang sama dengan angka yang tercetak di dada peserta dan
- *  di seluruh layar lain, yang sudah lama lewat dada3().
+/** Kotak nomor dada dipadatkan jadi tiga digit SESUDAH selesai diketik: 1
+ *  jadi 001, 60 jadi 060 — bentuk yang sama dengan angka yang tercetak di
+ *  dada peserta dan di seluruh layar lain, yang sudah lama lewat dada3().
+ *
+ *  SESUDAH, bukan sambil. Memadatkan tiap ketikan membuat angka yang belum
+ *  selesai melompat-lompat: mengetik 060 menampilkan 006 lalu 060, dan
+ *  mengetik 6 menampilkan 006 sebelum petugas sempat mengetik nol keduanya.
+ *  Yang terbaca bukan "sedang mengetik 60" melainkan "sudah jadi 006", dan
+ *  di meja yang ramai itu cukup untuk membuat orang ragu lalu mengulang.
+ *  Sekarang yang tampil apa adanya — 0, lalu 06, lalu 060 — dan padatnya
+ *  jatuh sekali saja, saat kotaknya ditinggalkan.
  *
  *  YANG BERUBAH CUMA TAMPILANNYA. Setiap pembaca kotak ini memakai
- *  `Number(value)`, dan `Number("001")` tetap 1 — tidak ada satu pun
- *  pencarian, penyimpanan, atau perbandingan yang perlu tahu soal ini.
+ *  `Number(value)`, dan `Number("06")` tetap 6 — tidak ada satu pun
+ *  pencarian, penyimpanan, atau perbandingan yang perlu tahu soal ini. Jadi
+ *  kotak yang ditinggalkan berisi 06 sudah benar isinya sebelum dipadatkan.
  *
  *  Nomor Internal empat digit tidak dipotong: dada3() melewatkan apa pun di atas
  *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000.
  *
- *  ANGKA NOL MENGOSONGKAN KOTAKNYA, dan itu bukan kebetulan melainkan
- *  syarat supaya kotaknya masih bisa dikosongkan. Tanpa itu "001" yang
- *  dihapus satu huruf jadi "00", dibaca 0, lalu dipasang kembali jadi "000" —
- *  dan petugas tidak akan pernah bisa menghapus isinya. Tidak ada nomor dada
- *  0, jadi tidak ada yang hilang.
+ *  ANGKA NOL MENGOSONGKAN KOTAKNYA. Tidak ada nomor dada 0, jadi tidak ada
+ *  yang hilang — dan tanpa ini kotak yang dihapus sampai tersisa "0" akan
+ *  dipasangi "000" lagi.
  *
- *  Kursornya dikembalikan ke ujung karena mengubah `value` memindahkannya ke
- *  awal, dan huruf berikutnya akan mendarat di depan angkanya. */
+ *  TIDAK ADA LAGI PENGEMBALIAN KURSOR. Dulu perlu, karena mengubah `value`
+ *  di tengah pengetikan melempar kursor ke awal dan huruf berikutnya mendarat
+ *  di depan angkanya. Sesudah padatnya pindah ke blur, tidak ada lagi huruf
+ *  berikutnya yang perlu diurus. */
 function pasangDada3(el, sinyal) {
   const rapikan = () => {
     const angka = el.value.replace(/\D/g, "");
-    if (!angka) return;
-    const n = Number(angka);
-    const baru = n === 0 ? "" : dada3(n);
-    if (baru === el.value) return;
-    el.value = baru;
-    try { el.setSelectionRange(baru.length, baru.length); } catch { /* abaikan */ }
+    const baru = !angka || Number(angka) === 0 ? "" : dada3(Number(angka));
+    if (baru !== el.value) el.value = baru;
   };
   const opsi = sinyal ? { signal: sinyal } : undefined;
-  el.addEventListener("input", rapikan, opsi);
+  // `blur` DAN `change`: change tidak berbunyi kalau isinya tidak berubah
+  // sejak fokus, dan blur tidak berbunyi kalau kotaknya di-submit lewat
+  // Enter tanpa sempat kehilangan fokus. Keduanya idempoten.
+  el.addEventListener("blur", rapikan, opsi);
   el.addEventListener("change", rapikan, opsi);
 }
 
