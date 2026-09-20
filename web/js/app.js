@@ -9645,20 +9645,26 @@ async function layarCekNilai() {
               >${esc(judulPos(p))}</option>`).join("")}
           </select>
         </div>
-        <!-- SARINGAN SEBAGAI DROPDOWN, bukan deretan chip. Empat chip beserta
-             angkanya tidak muat sebaris di layar 393px, dan yang tidak muat
-             membungkus jadi baris kedua — tinggi yang di layar ini diambil
-             dari foto slip. Dropdown juga bentuk yang sudah berdiri di
-             sebelahnya, jadi tidak ada satu pun benda baru untuk dipelajari.
+        <!-- SARINGAN SEBAGAI CHIP, bentuk yang sama dengan layar Input —
+             dua layar yang menyaring hal yang sama tidak boleh memakai dua
+             alat berbeda, dan keadaan yang sedang aktif terbaca tanpa dibuka
+             dulu seperti pada dropdown.
 
-             ANGKANYA IKUT DI DALAM PILIHANNYA. "Belum Kunci" tanpa angka
+             SATU BARIS YANG DIGESER, BUKAN MEMBUNGKUS. Empat chip beserta
+             angkanya tidak muat sebaris di layar 393px, dan versi dropdown
+             dipilih dulu justru karena itu: yang membungkus jadi baris kedua
+             mencuri tinggi, dan di layar ini tinggi diambil langsung dari
+             foto slip. Jadi barisnya TIDAK membungkus melainkan digulir
+             mendatar — tingginya tetap satu baris di lebar berapa pun.
+             (Backtick sengaja tidak dipakai di komentar ini: ia berada DI
+             DALAM template literal, dan satu backtick menutup literalnya.)
+
+             ANGKANYA IKUT DI DALAM LABELNYA. "Belum Kunci" tanpa angka
              menyuruh petugas menekan panah sampai mentok untuk tahu berapa
              yang tersisa; dengan angkanya, pertanyaan itu sudah terjawab
              sebelum ditekan sekali pun. -->
-        <div class="field">
-          <select id="cek-saring" class="select-small" aria-label="Saringan">
-          </select>
-        </div>
+        <div class="cek-saring-baris" id="cek-saring" role="group"
+             aria-label="Saringan"></div>
       </div>
       <!-- PANAH, NOMOR DADA, PANAH — satu baris, dan kotak tengahnya sekaligus
            jalan melompat. Sebelumnya ada dua alat untuk satu pekerjaan: kotak
@@ -9789,8 +9795,10 @@ async function layarCekNilai() {
     const pakai = SARING.filter(([kode]) => fotoTerbaca || kode !== "belum-foto");
     if (!pakai.some(([kode]) => kode === saring)) saring = "semua";
     elSaring.innerHTML = pakai.map(([kode, label, uji]) =>
-      `<option value="${esc(kode)}"${kode === saring ? " selected" : ""}
-        >${esc(label)} (${lembar.filter(uji).length})</option>`).join("");
+      `<button type="button" class="option option-small" data-saring="${esc(kode)}"
+               aria-pressed="${kode === saring}"
+        >${esc(label)} <span class="saring-jumlah">${lembar.filter(uji).length}</span></button>`)
+      .join("");
   }
 
   async function muatPos() {
@@ -10018,7 +10026,8 @@ async function layarCekNilai() {
                    menyapu layarnya. Bentuknya sama persis dengan penggeser di
                    layar input — dua layar yang menggeser benda yang sama tidak
                    boleh memakai dua alat berbeda. -->
-              <div class="foto-navigasi" data-nav-foto="${esc(l.kode)}" hidden>
+              <div class="foto-navigasi foto-navigasi-diam"
+                   data-nav-foto="${esc(l.kode)}">
                 <button type="button" class="button button-secondary button-small foto-panah"
                         data-cek-geser="-1" aria-label="Foto sebelumnya">&lsaquo;</button>
                 <span class="badge foto-hitung" data-hitung-foto></span>
@@ -10106,7 +10115,8 @@ async function layarCekNilai() {
         `[data-nav-foto="${CSS.escape(el.dataset.foto)}"]`);
       if (!milik.length) {
         el.replaceChildren(h(`<span class="cek-kosong">belum difoto</span>`));
-        if (nav) nav.hidden = true;
+        // Ruangnya tetap dipesan — lihat alasannya di pasangGeserCek().
+        if (nav) { nav.hidden = false; nav.classList.add("foto-navigasi-diam"); }
         return;
       }
       el.replaceChildren(h(milik.map((f, i) => {
@@ -10232,7 +10242,13 @@ async function layarCekNilai() {
    *  layar membersihkan sisanya saat layar ditinggalkan. */
   function pasangGeserCek(petak, nav) {
     const jml = petak.children.length;
-    nav.hidden = jml < 2;
+    /* RUANGNYA TETAP DIPESAN walau panahnya tidak dipakai. Lima lomba berdiri
+       BERSEBELAHAN di layar ini, dan `hidden` pada yang berfoto tunggal
+       membuat fotonya lebih tinggi daripada tetangganya yang berfoto dua —
+       deretan gambar yang tepi bawahnya bertingkat-tingkat. Yang disembunyikan
+       cuma isinya; tingginya tetap dihitung. */
+    nav.classList.toggle("foto-navigasi-diam", jml < 2);
+    nav.hidden = false;
     if (jml < 2) return;
 
     const hitung = nav.querySelector("[data-hitung-foto]");
@@ -10554,8 +10570,15 @@ async function layarCekNilai() {
   elMundur.addEventListener("click", () => geser(-1), { signal: sinyal });
   elMaju.addEventListener("click", () => geser(1), { signal: sinyal });
 
-  elSaring.addEventListener("change", () => {
-    saring = elSaring.value;
+  /* Satu pendengar di wadahnya, bukan satu per chip: isiSaring() membangun
+     ulang tombolnya tiap kali angkanya berubah, dan pendengar yang menempel
+     pada tombol ikut terbuang bersamanya. */
+  elSaring.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-saring]");
+    if (!b || b.getAttribute("aria-pressed") === "true") return;
+    saring = b.dataset.saring;
+    elSaring.querySelectorAll("[data-saring]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x === b)));
     /* Regu yang sedang terbuka TIDAK ditinggalkan kalau ia masih lolos. Kalau
        tidak, layar pindah ke yang pertama lolos — dan kalau tidak ada satu
        pun, ia tetap di tempatnya dengan kedua panah mati. Angka (0) di
