@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const app = await sumberPanitia();
@@ -11,9 +11,7 @@ const app = await sumberPanitia();
 test("printout dibersihkan setelah dialog print dan saat navigasi", () => {
   assert.match(app, /window\.addEventListener\("afterprint", \(\) => \{\s*document\.getElementById\("cetakan"\)\?\.remove\(\);/);
 
-  const awal = app.indexOf("async function arahkan()");
-  const akhir = app.indexOf("// Tiga aksi yang sama", awal);
-  const arahkan = app.slice(awal, akhir);
+  const arahkan = potongFungsi(app, "async function arahkan()");
   assert.match(arahkan, /document\.getElementById\("cetakan"\)\?\.remove\(\);/);
 });
 

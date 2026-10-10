@@ -61,8 +61,9 @@ test("kartu identitas Cek Nilai ringkas, Input Pos v2 tidak", () => {
 });
 
 test("kartu ringkas satu baris, tanpa penanda gembok", () => {
-  const kartu = app.slice(app.indexOf("const kartuReguNilai ="),
-    app.indexOf("async function layarInputPos2()"));
+  // Sampai akhir sumber: potongan ringkasnya diambil dari kemunculan
+  // pertama di bawah, yang ada di dalam kartuReguNilai sendiri.
+  const kartu = app.slice(app.indexOf("const kartuReguNilai ="));
   const ringkas = kartu.slice(0, kartu.indexOf("</div>` : `"));
   assert.doesNotMatch(ringkas, /lomba dikunci/,
     "penanda gembok kembali di kartu ringkas — ia mengulang gembok yang "

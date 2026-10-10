@@ -7,7 +7,12 @@ const alat = await readFile(new URL("../tools/periksa_impor.py", import.meta.url
 
 
 test("checker mencakup seluruh pemakai shared module", () => {
-  for (const berkas of ["web/js/app.js", "live/js/daftar.js", "live/live.js"]) {
+  // web/js/ dicari sendiri, termasuk common/ dan screens/: daftar tulisan
+  // tangan berhenti benar begitu app.js dipecah per layar.
+  assert.match(alat, /akar_js\.rglob\("\*"\)/, "modul web/js/ tidak lagi dicari sendiri");
+  assert.match(alat, /gagal \+= periksa_web\(AKAR \/ "web" \/ "js"\)/,
+    "pemeriksaan web/js/ tidak dijalankan");
+  for (const berkas of ["live/js/daftar.js", "live/live.js"]) {
     assert.match(alat, new RegExp(berkas.replaceAll("/", "\\/")));
   }
   assert.match(alat, /"\.\/api\.js"/);
