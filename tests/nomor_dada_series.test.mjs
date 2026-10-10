@@ -124,7 +124,12 @@ test("batch Internal dikenali dari golongan regunya", () => {
 test("Meja Daftar Ulang benar-benar memakai pagarnya", () => {
   // Modul yang benar tapi tidak dipanggil sama saja dengan tidak ada, dan itu
   // tidak menggagalkan apa pun sampai ada yang mengetik di meja.
-  assert.match(app, /import \{ deretCocok, deretIntern, nomorStok, pesanDeret \}/);
+  // Tiap nama diimpor dari modul deret oleh berkas yang memakainya — sejak
+  // app.js dipecah per layar, tidak lagi semuanya di satu baris import.
+  for (const nama of ["deretCocok", "deretIntern", "nomorStok", "pesanDeret"]) {
+    assert.match(app, new RegExp(`import \\{[^}]*\\b${nama}\\b[^}]*\\} from "[^"]*nomor-dada-series\\.mjs"`),
+      `${nama} tidak diimpor dari nomor-dada-series.mjs`);
+  }
   assert.match(app, /if \(rentang && !deretCocok\(rentang, inp\.dataset\.golongan, angka\)\)/,
     "kotak nomor dada tidak lagi memeriksa deretnya");
   assert.match(app, /keluhan = keluhan \|\| pesanDeret\(rentang, inp\.dataset\.golongan\)/);
