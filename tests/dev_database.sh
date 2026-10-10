@@ -113,7 +113,8 @@ LEWATI_DULU="0076_bidai_dan_lomba_soal 0118_jeda_kloter_maksimal
              0157_direktori_sekolah_ciamis 0158_rapikan_alamat_direktori
              0159_lebur_kembar_direktori 0160_kode_pos_dan_nama_tersisa
              0161_lebur_kembar_ejaan 0162_lebur_smp_al_fadliliyah
-             0166_gembok_per_lomba 0167_putaran_foto"
+             0166_gembok_per_lomba 0167_putaran_foto
+             0171_lembar_pos_jawaban_benar_kembali"
 ULANG="0032_konfigurasi_xxxvii 0033_nama_pos_xxxvii 0034_nama_pos_final
        0035_tangga_menaksir 0036_kriteria_bidai 0037_petunjuk_kolom
        0038_petunjuk_menaksir 0039_judul_isian 0054_kolom_lomba
@@ -435,6 +436,17 @@ run supabase/migrations/0162_lebur_smp_al_fadliliyah.sql
 # yang sama dengan produksi.
 run supabase/migrations/0166_gembok_per_lomba.sql
 run supabase/migrations/0167_putaran_foto.sql
+
+# 0171 IKUT DITUNDA, karena ia membaca `nilai_terkunci.kode_lomba` — kolom
+# yang baru dibuat 0166. Di glob ia jalan SEBELUM 0166 yang ditunda di atas,
+# dan skripnya berhenti dengan "column t.kode_lomba does not exist". Itu
+# terjadi sejak 0171 masuk (6 September 2026) sampai ini ditambahkan: selama
+# itu tidak ada satu layar pun yang bisa dibuka di laptop.
+#
+# Aturannya sama dengan 0166 sendiri: migrasi yang lebih muda daripada
+# migrasi yang DITUNDA dan bergantung padanya ikut ditunda, dan dijalankan
+# sesudahnya dengan urutan nomor yang sama.
+run supabase/migrations/0171_lembar_pos_jawaban_benar_kembali.sql
 
 # ============================================================================
 # BENTUK LOMBA HARUS SAMA DENGAN PRODUKSI, dan itu diperiksa, bukan dipercaya.
