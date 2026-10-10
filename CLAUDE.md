@@ -182,6 +182,14 @@ to the end of the source — which passes every `doesNotMatch` without checking
 anything. `tools/periksa_impor.py` finds every module under `web/js/` by
 itself, so a new module needs no registration there.
 
+**Copying to `live/` and every `?v=` go through `tools/sync_live.py`.** It
+copies the four shared files (`style.css`, `config.js`, `js/api.js`,
+`js/util.js`) from `web/` and sets each `?v=` in the three HTML pages to a
+fingerprint of the file's content, so a changed file always gets a new
+address. Never edit a `live/` copy or a `?v=` by hand;
+`tests/live_asset_version.test.mjs` fails until the script has run. Touching
+`live/` republishes the peserta site from the database on merge.
+
 **`tests/run.sh` lists every migration by hand.** A new migration is not tested
 until it is added there, and CI stays green while ignoring it completely. Add the
 migration to `tests/run.sh` in the same commit that creates it.

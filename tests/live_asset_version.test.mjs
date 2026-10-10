@@ -1,74 +1,69 @@
-// Berkas halaman peserta dialamati dengan `?v=<nomor>` di live/index.html, dan
-// nomornya dinaikkan tangan. Selama tujuh belas kali itu berjalan; pada kali
-// kedelapan belas tidak — `live.js` berubah dua kali (fase juara, lalu tata
-// letak kejuaraan) dan nomornya tetap 17.
+// Berkas yang dialamati dengan `?v=` di halaman panitia dan peserta harus
+// berganti alamat setiap kali isinya berubah. Tab yang sudah terbuka sejak
+// pagi, halaman yang dipulihkan dari bfcache, dan perantara yang memegang
+// salinan sendiri tidak bertanya ulang — bagi mereka yang menentukan cuma
+// alamatnya berubah atau tidak.
 //
-// Yang menyelamatkannya kebetulan: `live/_headers` memberi SEMUA berkas
-// `Cache-Control: no-cache`, jadi browser tetap bertanya ulang sebelum memakai
-// salinannya, dan muat-ulang biasa selalu mendapat berkas terbaru. Tapi
-// nomornya ada justru untuk keadaan yang TIDAK bertanya: tab yang sudah
-// terbuka sejak pagi, halaman yang dipulihkan dari bfcache, perantara yang
-// memegang salinan sendiri. Di sana yang menentukan cuma alamatnya berubah
-// atau tidak.
+// Dulu `?v=` adalah nomor yang dinaikkan tangan, dan tes ini menyimpan sidik
+// jari isi berkas di sebelah nomornya. Nomornya tetap tertinggal: live.js
+// berubah dua kali dengan nomor 17, style.css empat kali berturut-turut
+// (#874-#877), dan dua dari tiga halaman tidak dijaga sama sekali —
+// web/index.html berhenti di v=63 melewati enam perubahan.
 //
-// Tes ini menyimpan sidik jari isi tiap berkas di sebelah nomornya. Berkasnya
-// berubah tanpa nomornya naik = merah, dengan pesan yang menyebutkan persis
-// apa yang harus dilakukan.
-//
-// AKHIRAN BARIS DINORMALKAN sebelum di-hash: checkout di Windows memberi CRLF
-// dan di CI LF, dan sidik jari yang berbeda antar mesin adalah tes yang gagal
-// tanpa ada yang salah.
-//
-// `style.css` IKUT walaupun ia milik bersama dengan layar panitia, dan itu
-// disengaja: halaman peserta memuat berkas yang sama, jadi perubahan CSS yang
-// dikerjakan untuk panitia pun mengubah apa yang harus diambil peserta.
-// Konsekuensinya memang mengikat — menyunting style.css berarti menaikkan
-// nomor di live/index.html juga. Pemeriksaan yang cuma menjaga dua dari tiga
-// berkas akan menutup pertanyaannya sambil membiarkan lubangnya (CLAUDE.md
-// 13.3).
+// Sekarang `?v=` ADALAH sidik jari isinya: 12 huruf pertama sha256, dengan
+// akhiran baris dinormalkan ke LF (checkout Windows memberi CRLF dan CI LF,
+// dan sidik jari yang berbeda antar mesin adalah tes yang gagal tanpa ada yang
+// salah). tools/sync_live.py mengisinya dan menyalin berkas bersama ke live/;
+// tes ini memeriksa keduanya, dengan cara hitung yang sama.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const halaman = await readFile(new URL("../live/index.html", import.meta.url), "utf8");
-
-/** Nomor versi yang sedang tertulis di index.html, beserta sidik jari isi
- *  berkas saat nomor itu dipasang. Ubah KEDUANYA bersama-sama. */
-const BERKAS = {
-  "live.js": { versi: 21, sidik: "e8b297421436" },
-  "live.css": { versi: 9, sidik: "8ccff662f529" },
-  "style.css": { versi: 74, sidik: "1d003168671c" },
-};
-
+const akar = new URL("../", import.meta.url);
 const sidikIsi = (teks) =>
   createHash("sha256").update(teks.replace(/\r\n/g, "\n")).digest("hex").slice(0, 12);
 
-for (const [nama, { versi, sidik }] of Object.entries(BERKAS)) {
-  test(`${nama} dialamati dengan nomor versinya`, () => {
-    // Lolos kalau nomornya cocok DAN tidak ada alamat tanpa `?v=` untuk
-    // berkas yang sama — alamat polos tidak pernah berganti sama sekali.
-    const pola = new RegExp(`${nama.replace(".", "\\.")}\\?v=(\\d+)`);
-    const cocok = halaman.match(pola);
-    assert.ok(cocok, `${nama} tidak dialamati dengan ?v= di live/index.html`);
-    assert.equal(Number(cocok[1]), versi,
-      `nomor ${nama} di index.html ${cocok[1]}, di tes ini ${versi}`);
+const HALAMAN = ["web/index.html", "live/index.html", "live/daftar.html"];
+const BERSAMA = ["style.css", "config.js", "js/api.js", "js/util.js"];
+
+for (const nama of HALAMAN) {
+  const halaman = await readFile(new URL(nama, akar), "utf8");
+  const alamat = [...halaman.matchAll(/(?:href|src)="([^"?#]+)\?v=([^"]*)"/g)];
+
+  test(`${nama} punya berkas yang dialamati dengan ?v=`, () => {
+    // Tes yang tidak menemukan apa-apa selalu hijau.
+    assert.ok(alamat.length > 0, `${nama} tidak memuat satu pun ?v=`);
   });
 
-  test(`${nama} tidak berubah tanpa nomornya ikut naik`, async () => {
-    const isi = await readFile(new URL(`../live/${nama}`, import.meta.url), "utf8");
-    const sekarang = sidikIsi(isi);
-    assert.equal(sekarang, sidik, [
-      ``,
-      `live/${nama} berubah tetapi nomor versinya masih ${versi}.`,
-      ``,
-      `Naikkan DUA-DUANYA:`,
-      `  1. live/index.html  -> ${nama}?v=${versi + 1}`,
-      `  2. tes ini          -> { versi: ${versi + 1}, sidik: "${sekarang}" }`,
-      ``,
-      `Tanpa itu, HP yang tabnya sudah terbuka sejak pagi tetap menjalankan`,
-      `berkas lama sampai orangnya memuat ulang sendiri.`,
-      ``,
-    ].join("\n"));
+  for (const [, berkas, versi] of alamat) {
+    test(`${nama}: ${berkas}?v= sama dengan sidik jari isinya`, async () => {
+      const isi = await readFile(new URL(berkas, new URL(nama, akar)), "utf8");
+      assert.equal(versi, sidikIsi(isi), [
+        ``,
+        `${berkas} berubah tetapi alamatnya di ${nama} tidak.`,
+        `Jalankan: python tools/sync_live.py`,
+        ``,
+      ].join("\n"));
+    });
+  }
+}
+
+// style.css dan live.js wajib tetap dialamati dengan ?v= — alamat polos tidak
+// pernah berganti sama sekali.
+test("berkas peserta yang sering berubah tetap dialamati dengan ?v=", async () => {
+  const peserta = await readFile(new URL("live/index.html", akar), "utf8");
+  for (const berkas of ["style.css", "live.css", "live.js"]) {
+    assert.match(peserta, new RegExp(`"${berkas.replace(".", "\\.")}\\?v=[0-9a-f]{12}"`),
+      `${berkas} tidak lagi dialamati dengan ?v= di live/index.html`);
+  }
+});
+
+for (const nama of BERSAMA) {
+  test(`live/${nama} sama dengan web/${nama}`, async () => {
+    const [web, live] = await Promise.all([
+      readFile(new URL(`web/${nama}`, akar)), readFile(new URL(`live/${nama}`, akar))]);
+    assert.ok(web.equals(live),
+      `live/${nama} menyimpang dari web/${nama}. Jalankan: python tools/sync_live.py`);
   });
 }
