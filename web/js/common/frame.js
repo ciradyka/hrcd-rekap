@@ -14,8 +14,8 @@
    alat di sini butuh sesuatu dari app.js, tempatnya bukan di sini.
    ========================================================================== */
 
-import { bolehLihat, sesi } from "../api.js";
-import { esc, html, jamMenit, rapikanDada } from "../util.js";
+import { bolehLihat, infoEdisi, sesi } from "../api.js";
+import { esc, html, jamMenit, kartuGagalMuat, rapikanDada } from "../util.js";
 
 export const LAYAR = document.getElementById("layar");
 
@@ -351,3 +351,25 @@ export let hashLayar = location.hash;
 /** Alamat layar yang sedang tergambar — diganti router, dan oleh layar yang
  *  menulis ulang alamatnya sendiri tanpa menggambar ulang. */
 export function aturHashLayar(hash) { hashLayar = hash; }
+
+/* ---------------- router, dari modul yang tidak boleh mengimpornya ---------------- */
+
+/* Router-nya, arahkan(), tinggal di app.js, dan modul di common/ tidak boleh
+   mengimpor app.js — app.js-lah yang mengimpor mereka, dan impor dua arah
+   adalah lingkaran. Jadi app.js mendaftarkan routernya di sini sekali saat
+   dimuat, lewat aturRouter(), dan yang perlu menggambar ulang layar yang
+   sedang terbuka memanggil arahkanUlang(). */
+let router = null;
+
+export function aturRouter(fungsi) { router = fungsi; }
+
+export function arahkanUlang() { if (router) router(); }
+
+/* ---------------- layar "edisi belum termuat" ---------------- */
+
+export function layarButuhEdisi(judul) {
+  pasangKepala(judul);
+  LAYAR.replaceChildren(kartuGagalMuat(
+    "Data acara (biaya per regu) belum terbaca, jadi tagihan tidak bisa dihitung.",
+    async () => { try { aturEdisi(await infoEdisi()); } catch {} arahkanUlang(); }));
+}
