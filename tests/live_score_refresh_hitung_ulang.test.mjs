@@ -12,6 +12,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
 // AKHIRAN BARIS DINORMALKAN, alasan yang sama dengan
 // tests/live_asset_version.test.mjs: checkout di Windows memberi CRLF dan di
@@ -19,7 +20,7 @@ import test from "node:test";
 // TENGAHNYA. Tanpa ini ia cuma ketemu di satu jenis mesin, dan satu alat yang
 // menulis ulang app.js dengan LF sudah cukup membuatnya berhenti ketemu —
 // lalu `pulih > gambar` menilai -1 dan pagarnya berhenti menjaga apa pun.
-const app = (await readFile(new URL("../web/js/app.js", import.meta.url), "utf8"))
+const app = (await sumberPanitia())
   .replace(/\r\n/g, "\n");
 const api = await readFile(new URL("../web/js/api.js", import.meta.url), "utf8");
 const cron = await readFile(

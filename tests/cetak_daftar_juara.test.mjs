@@ -12,15 +12,13 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
 
-const pembuat = app.slice(app.indexOf("function siapkanCetakJuara("),
-                          app.indexOf("async function layarKejuaraan()"));
-const layar = app.slice(app.indexOf("async function layarKejuaraan()"),
-                        app.indexOf("async function layarPengaturanKloter()") > 0
-                          ? app.indexOf("const RUTE = {") : undefined);
+const pembuat = potongFungsi(app, "function siapkanCetakJuara(");
+const layar = potongFungsi(app, "async function layarKejuaraan()");
 
 test("bagian DIPINJAM dari layarnya, bukan ditulis ulang", () => {
   // Dua daftar penghargaan yang harus ikut benar setiap kali satu gelar

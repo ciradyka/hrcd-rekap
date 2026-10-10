@@ -15,8 +15,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { kontrakTeks } from "../web/js/util.js";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const live = await readFile(new URL("../live/live.js", import.meta.url), "utf8");
 
 const papanPanitia = (() => {

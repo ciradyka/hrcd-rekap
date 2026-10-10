@@ -32,9 +32,10 @@ import {
   BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_SAH, FITUR_LAYAR, NAMA_LAYAR, RUTE_SAH,
   bagianBuku, teksBagian, teksSprint, cariBagian, cariSprint, tugasSprint,
 } from "../web/js/buku-sakti.mjs";
+import { sumberPanitia } from "./sumber.mjs";
 
 const baca = (p) => readFile(new URL(p, import.meta.url), "utf8");
-const app = await baca("../web/js/app.js");
+const app = await sumberPanitia();
 const util = await baca("../web/js/util.js");
 const css = await baca("../web/style.css");
 const html = await baca("../web/index.html");

@@ -21,14 +21,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { lombaUntukRegu, reguBelumFoto, reguBelumInput, reguBelumKunci }
   from "../web/js/util.js";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
 
-const layarCek = (() => {
-  const awal = app.indexOf("async function layarCekNilai()");
-  return app.slice(awal, app.indexOf("const RUTE = {", awal));
-})();
+const layarCek = potongFungsi(app, "async function layarCekNilai()");
 
 test("empat saringan, dan angkanya ikut di dalam pilihannya", () => {
   assert.match(layarCek, /\["semua", "Semua", \(\) => true\]/, "saringan Semua hilang");

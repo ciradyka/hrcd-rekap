@@ -3,10 +3,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
 
 const index = await readFile(new URL("../web/index.html", import.meta.url), "utf8");
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const util = await readFile(new URL("../web/js/util.js", import.meta.url), "utf8");
 
 

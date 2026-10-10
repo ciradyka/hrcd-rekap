@@ -11,9 +11,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 
 const awal = app.indexOf('pasangKepala("Daftar Kloter")');
 const layar = app.slice(awal, app.indexOf("\nfunction siapkanCetakKloter", awal));

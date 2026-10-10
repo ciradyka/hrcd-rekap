@@ -1,14 +1,12 @@
 // Foto Jawaban harus memakai kode_lomba stabil, bukan slug dari labelnya.
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
-const awal = app.indexOf("async function layarFoto()");
-const akhir = app.indexOf("const RUTE = {", awal);
-const layarFoto = app.slice(awal, akhir);
+const app = await sumberPanitia();
+const layarFoto = potongFungsi(app, "async function layarFoto()");
 
 
 test("selector Foto Jawaban memakai kode dari kelompokLomba", () => {

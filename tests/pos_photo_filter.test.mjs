@@ -10,10 +10,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
-const app = await readFile(new URL("web/js/app.js", akar), "utf8");
+const app = await sumberPanitia();
 const api = await readFile(new URL("web/js/api.js", akar), "utf8");
 
 const awal = app.indexOf("async function layarInputPos()");

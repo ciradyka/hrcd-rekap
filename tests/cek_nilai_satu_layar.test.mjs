@@ -14,8 +14,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
 
 test("kelas layar di-toggle bersama wide dan lembar, bukan dipasang sendiri", () => {
@@ -42,19 +43,15 @@ test("pengamat header memakai sinyal layar yang SUDAH ADA", () => {
   // berhenti di `if (sinyal.aborted) return` — layarnya menggantung di
   // "Memuat…" selamanya, tanpa satu pun galat. Itu benar-benar terjadi saat
   // tata letak ini dibangun.
-  const awal = app.indexOf("async function layarCekNilai()");
-  /* Batas bawahnya SPANDUK BAGIAN BERIKUTNYA, bukan tabel RUTE.
-     Dulu ia `app.indexOf("const RUTE = {")`, dan itu benar hanya selama Cek
-     Nilai kebetulan bagian TERAKHIR sebelum tabel rute. Begitu satu layar
-     baru disisipkan di antaranya, potongan ini ikut memuat layar itu — dan
-     `sinyalLayarBaru()` miliknya terhitung sebagai panggilan kedua milik Cek
-     Nilai. Tesnya gagal, padahal layar yang dijaganya tidak berubah
-     sebarispun. */
-  const spanduk = app.indexOf("\n/* ==", awal);
-  const akhir = spanduk >= 0 ? spanduk : app.indexOf("const RUTE = {", awal);
+  /* Batasnya ujung fungsinya sendiri, bukan tabel RUTE atau spanduk bagian
+     berikutnya. Penanda tetangga benar hanya selama Cek Nilai kebetulan
+     bersebelahan dengannya; begitu satu layar baru disisipkan di antaranya,
+     `sinyalLayarBaru()` milik layar itu terhitung sebagai panggilan kedua
+     milik Cek Nilai, dan tesnya gagal padahal layarnya tidak berubah. */
+  const potongan = potongFungsi(app, "async function layarCekNilai()");
   // Komentar dibuang dulu: alasan aturan ini justru dijelaskan di komentar
   // tepat di atas kodenya, dan nama fungsinya disebut di sana.
-  const layar = app.slice(awal, akhir)
+  const layar = potongan
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*/g, "");
   assert.equal((layar.match(/sinyalLayarBaru\(\)/g) || []).length, 1,
     "layarCekNilai memanggil sinyalLayarBaru() lebih dari sekali — panggilan "
