@@ -23,7 +23,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { potongFungsi, sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberLayar, sumberPanitia } from "./sumber.mjs";
 
 const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
@@ -47,14 +47,13 @@ test("penghitung posisi tidak ada di mana pun", () => {
     "aturan penghitung posisi tertinggal di style.css");
 });
 
-test("kartu identitas Cek Nilai ringkas, Input Pos v2 tidak", () => {
+test("kartu identitas Cek Nilai ringkas, Input Pos v2 tidak", async () => {
   assert.match(layarCek, /kartuReguNilai\(r, \{ ringkas: true \}\)/,
     "Cek Nilai tidak lagi memakai kartu identitas ringkas");
   // Di Input Pos v2 satu lomba terbuka pada satu waktu, jadi "berapa lomba
   // pos ini yang sudah tergembok" memang tidak terbaca di tempat lain — di
   // sana penanda itu satu-satunya tanda gembok di layar.
-  const pos2 = app.slice(app.indexOf("async function layarInputPos2()"),
-    app.indexOf("async function layarCekNilai()"));
+  const pos2 = await sumberLayar("input-nilai-lomba");
   assert.match(pos2, /kartuReguNilai\(r\)\)/,
     "Input Nilai Pos v2 ikut memakai kartu ringkas dan kehilangan penanda "
     + "gemboknya");
