@@ -24,7 +24,9 @@ import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const folder = new URL("../web/js/", import.meta.url);
-const berkas = (await readdir(folder)).filter(n => /\.(m?js)$/.test(n));
+// `recursive` supaya modul layar di web/js/layar/ ikut diperiksa.
+const berkas = (await readdir(folder, { recursive: true }))
+  .map(n => n.replace(/\\/g, "/")).filter(n => /\.(m?js)$/.test(n));
 
 test("ada berkas JavaScript untuk diperiksa", () => {
   assert.ok(berkas.includes("app.js"), "web/js/app.js tidak ditemukan");

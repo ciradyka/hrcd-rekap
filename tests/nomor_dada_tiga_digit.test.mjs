@@ -14,11 +14,11 @@
 // ============================================================================
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { rapikanDada } from "../web/js/util.js";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 
 /** Baris <input> yang id-nya memuat "dada". Komentar dibuang lebih dulu supaya
  *  penjelasan yang menyebut type="number" tidak ikut terbaca sebagai markup. */

@@ -15,10 +15,10 @@
 // ============================================================================
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 
 test("chip saringan hanya ditulis oleh chipSaringHtml()", () => {
   const tulisanTangan = app.match(/<button[^>]*class="option option-small" data-(saring|lomba)=/g) || [];

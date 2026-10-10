@@ -11,10 +11,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
-const app = await readFile(new URL("web/js/app.js", akar), "utf8");
+const app = await sumberPanitia();
 const util = await readFile(new URL("web/js/util.js", akar), "utf8");
 const daftar = await readFile(new URL("live/js/daftar.js", akar), "utf8");
 const live = await readFile(new URL("live/live.js", akar), "utf8");
@@ -45,9 +46,7 @@ test("tidak ada layar yang membaca jam lewat zona alat", () => {
 
 
 test("ubin Foto Jawaban dinamai lewat jamMenit", () => {
-  const awal = app.indexOf("async function layarFoto()");
-  const akhir = app.indexOf("const RUTE = {", awal);
-  const layarFoto = app.slice(awal, akhir);
+  const layarFoto = potongFungsi(app, "async function layarFoto()");
 
   assert.match(layarFoto, /const jam = \(iso\) => \(iso \? jamMenit\(iso\) : ""\)/);
   assert.match(layarFoto, /nama: `Pukul \$\{jam\(f\.diunggah_pada\)\}`/);

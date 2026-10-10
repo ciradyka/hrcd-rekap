@@ -21,8 +21,9 @@ import test from "node:test";
 
 import { deretCocok, deretIntern, golonganIntern, nomorStok, pesanDeret }
   from "../web/js/nomor-dada-series.mjs";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const api = await readFile(new URL("../web/js/api.js", import.meta.url), "utf8");
 const migrasi = await readFile(
   new URL("../supabase/migrations/0116_nomor_dada_intern_seribu.sql", import.meta.url), "utf8");

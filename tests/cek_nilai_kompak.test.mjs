@@ -23,14 +23,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
 
-const layarCek = (() => {
-  const awal = app.indexOf("async function layarCekNilai()");
-  return app.slice(awal, app.indexOf("const RUTE = {", awal));
-})();
+const layarCek = potongFungsi(app, "async function layarCekNilai()");
 
 test("dropdown pos berdiri tanpa label di atasnya", () => {
   assert.doesNotMatch(layarCek, /<label for="cek-pos">/,

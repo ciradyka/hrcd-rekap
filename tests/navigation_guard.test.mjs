@@ -4,10 +4,10 @@
 // ============================================================================
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 
 test("router memeriksa nilai belum tersimpan sebelum mengganti layar", () => {
   const awal = app.indexOf("async function arahkan() {");

@@ -23,16 +23,14 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
 
 /** Badan layarCekNilai saja — nama yang dicari di bawah juga muncul di layar
  *  lain, dan tes yang menemukannya di sana lulus tanpa memeriksa apa pun. */
-const layarCek = (() => {
-  const awal = app.indexOf("async function layarCekNilai()");
-  return app.slice(awal, app.indexOf("const RUTE = {", awal));
-})();
+const layarCek = potongFungsi(app, "async function layarCekNilai()");
 
 test("guliran halaman dipulihkan sesudah kerangkanya digambar ulang", () => {
   assert.match(layarCek, /const gulirHalaman = halaman\.scrollTop;/,

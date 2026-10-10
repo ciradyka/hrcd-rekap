@@ -6,8 +6,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
-const panitia = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const panitia = await sumberPanitia();
 const kejuaraan = await readFile(
   new URL("../supabase/migrations/0139_kejuaraan.sql", import.meta.url), "utf8");
 const gaya = await readFile(new URL("../web/style.css", import.meta.url), "utf8");

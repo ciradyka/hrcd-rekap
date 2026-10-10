@@ -22,13 +22,13 @@
 // ============================================================================
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { detikSah, detikTeks, meterSah, meterTeks, nilaiTeks }
   from "../web/js/util.js";
+import { sumberPanitia } from "./sumber.mjs";
 
-const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const app = await sumberPanitia();
 
 test("detikSah menerima bentuk yang memang dijanjikan kotaknya", () => {
   assert.equal(detikSah("32"), 32);

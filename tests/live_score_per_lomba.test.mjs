@@ -15,10 +15,11 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { kolomPos, kelompokLomba, ringkasLomba } from "../web/js/util.js";
+import { sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
-const app = await readFile(new URL("web/js/app.js", akar), "utf8");
+const app = await sumberPanitia();
 const live = await readFile(new URL("live/live.js", akar), "utf8");
 
 /* Konfigurasi Pos 3 yang sebenarnya (dibaca dari `wahana` edisi 37): lima

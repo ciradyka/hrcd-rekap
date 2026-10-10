@@ -3,11 +3,12 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
 const dokumen = await readFile(new URL("docs/final-architecture.md", akar), "utf8");
-const app = await readFile(new URL("web/js/app.js", akar), "utf8");
+const app = await sumberPanitia();
 
 
 test("checkpoint arsitektur mengikuti migrasi terakhir", async () => {

@@ -8,8 +8,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { sumberPanitia } from "./sumber.mjs";
 
-const panitia = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
+const panitia = await sumberPanitia();
 const peserta = await readFile(new URL("../live/live.js", import.meta.url), "utf8");
 const gaya = await readFile(new URL("../live/live.css", import.meta.url), "utf8");
 const gaya_panitia = await readFile(new URL("../live/style.css", import.meta.url), "utf8");
