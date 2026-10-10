@@ -1,6 +1,6 @@
 // ============================================================================
 // hrcd-rekap : tests/nomor_dada_tiga_digit.test.mjs
-// Setiap kotak nomor dada menampilkan tiga digit sambil diketik.
+// Setiap kotak nomor dada dipadatkan jadi tiga digit saat ditinggalkan.
 //
 // Yang dijaga di sini bukan dada3() — itu sudah lama ada dan dipakai di
 // puluhan tempat — melainkan bahwa SETIAP kotak isian nomor dada memakainya.
@@ -54,6 +54,6 @@ test("nol mengosongkan kotaknya", () => {
   // dikosongkan lagi.
   const awal = app.indexOf("function pasangDada3(");
   const fungsi = app.slice(awal, app.indexOf("\n}", awal));
-  assert.match(fungsi, /n === 0 \? "" : dada3\(n\)/,
+  assert.match(fungsi, /Number\(angka\) === 0 \? "" : dada3\(Number\(angka\)\)/,
     "kotak nomor dada tidak bisa dikosongkan lagi dengan menghapus");
 });
