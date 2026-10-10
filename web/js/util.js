@@ -1073,6 +1073,18 @@ export function dada3(n) {
     ? String(a).padStart(3, "0") : String(n);
 }
 
+/** Isi kotak nomor dada SESUDAH ditinggalkan: hanya angka, dipadatkan jadi
+ *  tiga digit lewat dada3() — "6" jadi "006", "06" jadi "006", "1089" tetap
+ *  "1089".
+ *
+ *  ANGKA NOL MENGOSONGKAN KOTAKNYA. Tidak ada nomor dada 0, jadi tidak ada
+ *  yang hilang — dan tanpa ini kotak yang dihapus sampai tersisa "0" akan
+ *  dipasangi "000" lagi dan tidak pernah bisa dikosongkan. */
+export function rapikanDada(teks) {
+  const angka = String(teks ?? "").replace(/\D/g, "");
+  return !angka || Number(angka) === 0 ? "" : dada3(Number(angka));
+}
+
 /** KONTRAK WAKTU sebagai kata yang diucapkan panitia: "4 jam", "3,5 jam".
  *
  *  Yang tersimpan menit — 180, 210, 240 — dan menit adalah satuan yang tidak
@@ -1332,6 +1344,41 @@ export function katalogLomba(daftarPos, komponen) {
     }
   }
   return hasil;
+}
+
+/* ---------------------------------------------------------------------------
+   SARINGAN CEK NILAI — "mana yang masih perlu dikerjakan?" untuk satu regu.
+
+   `lomba` adalah katalogLomba() satu pos. Yang berlaku untuk satu regu
+   dibatasi golongannya lewat varianUntuk(): komponen dan lomba yang bukan
+   urusan golongan itu tidak boleh dihitung sebagai pekerjaan yang belum
+   selesai — aturan yang sama dengan gambarKunci() dan statusAwal() di
+   app.js.
+
+   Tempatnya di sini, bukan di dalam layarCekNilai(), supaya bisa diuji
+   dengan memanggilnya (tests/cek_nilai_saringan.test.mjs), bukan dengan
+   mencocokkan teks kodenya.
+   --------------------------------------------------------------------------- */
+
+/** Lomba yang punya paling sedikit satu komponen untuk golongan regu ini. */
+export const lombaUntukRegu = (lomba, regu) =>
+  lomba.filter(l => l.kolom.some(kol => varianUntuk(kol, regu.golongan)));
+
+/** Ada komponen yang berlaku untuk regu ini tetapi belum punya nilai. */
+export const reguBelumInput = (lomba, regu) => lomba.some(l => l.kolom
+  .map(kol => varianUntuk(kol, regu.golongan)).filter(Boolean)
+  .some(k => (regu.nilai || {})[k.kode] === undefined));
+
+/** Ada lomba yang berlaku untuk regu ini tetapi belum difoto. `fotoAda`
+ *  berisi pasangan "nomor_dada|kode_lomba", kunci yang sama dengan
+ *  v_foto_lembar. */
+export const reguBelumFoto = (lomba, regu, fotoAda) => lombaUntukRegu(lomba, regu)
+  .some(l => !fotoAda.has(`${regu.nomor_dada}|${l.kode}`));
+
+/** Ada lomba yang berlaku untuk regu ini tetapi belum digembok. */
+export function reguBelumKunci(lomba, regu) {
+  const kunci = new Set(regu.lomba_terkunci || []);
+  return lombaUntukRegu(lomba, regu).some(l => !kunci.has(l.kode));
 }
 
 /** Bacaan stopwatch: "00:12.4".
