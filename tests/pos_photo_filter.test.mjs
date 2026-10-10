@@ -10,19 +10,18 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
 const app = await sumberPanitia();
 const api = await readFile(new URL("web/js/api.js", akar), "utf8");
 
-const awal = app.indexOf("async function layarInputPos()");
-const layar = app.slice(awal, app.indexOf("\nasync function ", awal + 10));
+const layar = potongFungsi(app, "async function layarInputPos()");
 
 
 test("empat saringan, dengan kode yang dipakai logikanya", () => {
-  assert.ok(awal > 0, "layarInputPos tidak ditemukan");
+  assert.ok(layar, "layarInputPos tidak ditemukan");
   for (const [kode, label] of [
     ["belum-input", "Belum Input"],
     ["belum-foto", "Belum Foto"],
