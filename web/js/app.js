@@ -9818,25 +9818,39 @@ async function layarCekNilai() {
   const cocokSaring = (r) =>
     (SARING.find(x => x[0] === saring) || SARING[0])[2](r);
 
-  /** Isi ulang pilihan saringan BESERTA jumlahnya.
+  /** Perbarui chip saringan BESERTA jumlahnya.
    *
    *  Angkanya berubah tiap kali satu nilai disimpan atau satu gembok dipasang,
-   *  jadi ia dibangun ulang di tiap penggambaran — bukan sekali saat posnya
-   *  dimuat. "Belum Kunci (34)" yang tetap 34 sesudah tiga digembok adalah
+   *  jadi ia dihitung ulang di tiap penggambaran — bukan sekali saat posnya
+   *  dimuat. "Belum Kunci 34" yang tetap 34 sesudah tiga digembok adalah
    *  angka yang membohongi orang yang sedang menghitung sisanya.
    *
    *  "Belum Foto" HILANG dari daftar kalau daftar fotonya gagal dibaca.
    *  Menyisakannya berarti menandai seluruh regu belum difoto — tuduhan
    *  terhadap pekerjaan yang mungkin sudah selesai, aturan yang sama dengan
-   *  "foto tidak terbaca" di petak fotonya. */
+   *  "foto tidak terbaca" di petak fotonya.
+   *
+   *  TOMBOLNYA DIBANGUN ULANG HANYA KALAU DAFTARNYA BERUBAH. Selebihnya angka
+   *  dan aria-pressed diganti di tempat. Membangun ulang chip yang sedang
+   *  difokus membuang fokusnya ke <body>, dan Tab berikutnya mulai lagi dari
+   *  atas halaman — petugas yang memakai papan ketik kehilangan tempatnya
+   *  setiap kali menekan satu chip. */
   function isiSaring() {
     const pakai = SARING.filter(([kode]) => fotoTerbaca || kode !== "belum-foto");
     if (!pakai.some(([kode]) => kode === saring)) saring = "semua";
-    elSaring.innerHTML = pakai.map(([kode, label, uji]) =>
-      `<button type="button" class="option option-small" data-saring="${esc(kode)}"
-               aria-pressed="${kode === saring}"
-        >${esc(label)} <span class="saring-jumlah">${lembar.filter(uji).length}</span></button>`)
-      .join("");
+    const daftar = pakai.map(([kode]) => kode).join(" ");
+    if (elSaring.dataset.daftar !== daftar) {
+      elSaring.dataset.daftar = daftar;
+      elSaring.innerHTML = pakai.map(([kode, label]) =>
+        `<button type="button" class="option option-small" data-saring="${esc(kode)}"
+          >${esc(label)} <span class="saring-jumlah"></span></button>`)
+        .join("");
+    }
+    for (const [kode, , uji] of pakai) {
+      const b = elSaring.querySelector(`[data-saring="${kode}"]`);
+      b.setAttribute("aria-pressed", String(kode === saring));
+      b.querySelector(".saring-jumlah").textContent = lembar.filter(uji).length;
+    }
   }
 
   async function muatPos() {
@@ -10153,8 +10167,7 @@ async function layarCekNilai() {
         `[data-nav-foto="${CSS.escape(el.dataset.foto)}"]`);
       if (!milik.length) {
         el.replaceChildren(h(`<span class="cek-kosong">belum difoto</span>`));
-        // Ruangnya tetap dipesan — lihat alasannya di pasangGeserCek().
-        if (nav) { nav.hidden = false; nav.classList.add("foto-navigasi-diam"); }
+        if (nav) nav.classList.add("foto-navigasi-diam");
         return;
       }
       el.replaceChildren(h(milik.map((f, i) => {
@@ -10280,13 +10293,10 @@ async function layarCekNilai() {
    *  layar membersihkan sisanya saat layar ditinggalkan. */
   function pasangGeserCek(petak, nav) {
     const jml = petak.children.length;
-    /* RUANGNYA TETAP DIPESAN walau panahnya tidak dipakai. Lima lomba berdiri
-       BERSEBELAHAN di layar ini, dan `hidden` pada yang berfoto tunggal
-       membuat fotonya lebih tinggi daripada tetangganya yang berfoto dua —
-       deretan gambar yang tepi bawahnya bertingkat-tingkat. Yang disembunyikan
-       cuma isinya; tingginya tetap dihitung. */
+    /* "Diam" berarti tanpa foto kedua. Di layar lebar ruangnya tetap
+       dipesan supaya kolom-kolom lombanya sama tinggi, dan di HP barisnya
+       dibuang — keduanya diatur CSS (.foto-navigasi-diam), bukan di sini. */
     nav.classList.toggle("foto-navigasi-diam", jml < 2);
-    nav.hidden = false;
     if (jml < 2) return;
 
     const hitung = nav.querySelector("[data-hitung-foto]");
@@ -10609,14 +10619,13 @@ async function layarCekNilai() {
   elMaju.addEventListener("click", () => geser(1), { signal: sinyal });
 
   /* Satu pendengar di wadahnya, bukan satu per chip: isiSaring() membangun
-     ulang tombolnya tiap kali angkanya berubah, dan pendengar yang menempel
-     pada tombol ikut terbuang bersamanya. */
+     ulang tombolnya saat "Belum Foto" datang atau pergi, dan pendengar yang
+     menempel pada tombol ikut terbuang bersamanya. aria-pressed tidak diubah
+     di sini — isiSaring() yang mengurusnya, lewat kedua jalan di bawah. */
   elSaring.addEventListener("click", (e) => {
     const b = e.target.closest("[data-saring]");
     if (!b || b.getAttribute("aria-pressed") === "true") return;
     saring = b.dataset.saring;
-    elSaring.querySelectorAll("[data-saring]").forEach(x =>
-      x.setAttribute("aria-pressed", String(x === b)));
     /* Regu yang sedang terbuka TIDAK ditinggalkan kalau ia masih lolos. Kalau
        tidak, layar pindah ke yang pertama lolos — dan kalau tidak ada satu
        pun, ia tetap di tempatnya dengan kedua panah mati. Angka (0) di
