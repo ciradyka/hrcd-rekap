@@ -91,8 +91,10 @@ test("90 dan 270 MENUKAR lebar dengan tinggi", () => {
 });
 
 test("keadaan tergembok terbaca dari kotaknya, dan gembok TIDAK dipudarkan", () => {
-  assert.match(css, /\.cek-isian input:disabled \{[\s\S]{0,120}background: var\(--garis\);/,
-    "kotak isian tidak lagi jadi abu-abu saat tergembok");
+  // Warnanya token --terkunci, sama dengan kotak tergembok di Input Nilai Pos
+  // dan Input Nilai Tabel — tergembok terlihat sama di layar mana pun.
+  assert.match(css, /\.cek-isian input:disabled \{[\s\S]{0,120}background: var\(--terkunci\);/,
+    "kotak isian tidak lagi berwarna terkunci saat tergembok");
   // Gemboknya sendiri tidak boleh dipudarkan: ia satu-satunya jalan keluar
   // dari keadaan ini, dan tombol pudar terbaca seperti tombol mati.
   assert.doesNotMatch(css, /\.cek-gembok:disabled \{[^}]*opacity/,

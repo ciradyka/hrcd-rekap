@@ -24,6 +24,13 @@
   --kertas:       #f0f1f4;
   --kartu:        #ffffff;
   --garis:        #e7e8ec;
+  /* TERGEMBOK, satu rupa di semua layar: kotak isian yang dikunci di Input
+     Nilai Pos, Input Nilai Tabel, dan Cek Nilai, serta dropdown yang dikunci.
+     Barisnya sedikit lebih terang daripada kotaknya, supaya kotak di dalam
+     baris yang tergembok tetap terlihat sebagai kotak. */
+  --terkunci:       #dfe3e9;
+  --terkunci-garis: #cfd5de;
+  --terkunci-baris: #e4e7ec;
   --utama:        #00695c;   /* hijau tua HRCD */
   --utama-gelap:  #004d43;
   --utama-muda:   #e0f2f1;
@@ -2707,7 +2714,7 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
 /* Baris tergembok: kotaknya benar-benar mati, dan terlihat mati. Bukan sekadar
    pudar — kotak yang masih bisa diketik tapi selalu ditolak adalah jebakan. */
 .baris-terkunci input:disabled {
-  background: #dfe3e9; border-color: #cfd5de;
+  background: var(--terkunci); border-color: var(--terkunci-garis);
   color: var(--tinta-lembut); cursor: not-allowed;
 }
 
@@ -3150,23 +3157,23 @@ input[aria-invalid="true"] { border-color: var(--bahaya); background: var(--baha
    kotak yang masih bisa diisi. Jebakan yang sama dengan contoh isian di
    bagian ::placeholder; kali ini yang tersembunyi bukan warna contoh
    melainkan fakta bahwa nilainya sudah dikunci.
-   Warnanya disamakan dengan .baris-terkunci supaya tergembok terlihat sama
-   di layar mana pun. Aturan itu juga tidak menulis -webkit-text-fill-color,
-   jadi baris ini sekalian membetulkannya. */
+   Warnanya token --terkunci, supaya tergembok terlihat sama di layar mana
+   pun.
+
+   `opacity: 1`: yang dimatikan tetap terbaca, cuma redup. Tanpa ini iOS
+   menambahkan opasitasnya sendiri dan pemilih pos milik juri pos — yang
+   memang terkunci ke posnya — tampak seperti isian yang gagal dimuat.
+
+   SATU BLOK, bukan dua. Dulu `.select-small:disabled` ditulis lagi tepat di
+   bawah blok ini dengan `background-color: var(--kertas)`, dan karena
+   letaknya belakangan ia menang diam-diam: dropdown yang dikunci tetap
+   berwarna kertas sementara komentar di atasnya menjanjikan warna terkunci. */
 .select-small:disabled, .small-input:disabled {
-  background-color: #dfe3e9; border-color: #cfd5de;
-  color: var(--tinta-lembut);
-  -webkit-text-fill-color: var(--tinta-lembut);
-  cursor: not-allowed;
-}
-/* Yang dimatikan tetap terbaca, cuma redup. Tanpa ini iOS menambahkan
-   opasitasnya sendiri dan pemilih pos milik juri pos — yang memang terkunci ke
-   posnya — tampak seperti isian yang gagal dimuat. */
-.select-small:disabled {
+  background-color: var(--terkunci); border-color: var(--terkunci-garis);
   color: var(--tinta-lembut);
   -webkit-text-fill-color: var(--tinta-lembut);
   opacity: 1;
-  background-color: var(--kertas);
+  cursor: not-allowed;
 }
 
 /* Panah dropdown digambar sendiri, bukan dibiarkan bawaan browser.
@@ -4146,7 +4153,7 @@ button.pill-number:hover { filter: brightness(.95); }
    abu-abu. */
 .table-pos tbody tr.baris-terkunci td,
 .table-pos tbody tr.baris-terkunci td:first-child {
-  background: #e4e7ec;
+  background: var(--terkunci-baris);
   color: var(--tinta-lembut);
 }
 .table-pos tbody tr.baris-terkunci td:first-child {
@@ -4340,9 +4347,10 @@ button.pill-number:hover { filter: brightness(.95); }
    benar untuk peserta", dan pratinjau yang tampil berbeda dari aslinya tidak
    menjawab pertanyaan itu.
    ========================================================================== */
+/* Tertutup sampai batangnya ditekan — lihat .kemajuan.terbuka di bawah. */
 .kemajuan {
   list-style: none; margin: 0; padding: 0;
-  display: flex; flex-wrap: wrap; gap: 1rem .6rem;
+  display: none; flex-wrap: wrap; gap: 1rem .6rem;
 }
 .kemajuan li { flex: 1 1 7rem; min-width: 6.5rem; text-align: center; }
 
@@ -4386,7 +4394,6 @@ button.pill-number:hover { filter: brightness(.95); }
 /* Rinciannya tertutup sampai batangnya ditekan — di lebar mana pun. Itulah
    yang membuat yang tampil pertama adalah klasemen, bukan lima cincin
    setinggi satu layar penuh di HP. */
-.kemajuan { display: none; }
 .kemajuan.terbuka { display: flex; margin-top: .8rem; }
 
 /* Cincin dibuat dengan conic-gradient — bukan SVG, bukan library. Satu
@@ -5240,8 +5247,6 @@ button.pill-number:hover { filter: brightness(.95); }
 }
 .foto-lembar .ubin-silang:focus-visible {
   background: var(--garis); color: var(--tinta);
-}
-.foto-lembar .ubin-silang:focus-visible {
   outline: 2px solid var(--utama); outline-offset: 2px;
 }
 /* `contain`, bukan `cover`: yang dibaca di sini tulisan tangan, dan sisi yang
@@ -5502,21 +5507,15 @@ button.pill-number:hover { filter: brightness(.95); }
 /* KARTU KENDALI DIRAMPINGKAN DI SELURUH RENTANG, bukan cuma di laptop.
    Padding kartu bawaan 1.15rem atas dan bawah adalah 37px yang di HP diambil
    langsung dari tinggi foto slip — dan foto slip itulah satu-satunya alasan
-   layar ini dibuka. Yang di dalamnya cuma satu dropdown dan sebaris panah,
-   keduanya sudah punya tinggi sentuhnya sendiri (46px), jadi tidak ada yang
-   menyusut karenanya. */
+   layar ini dibuka. Yang di dalamnya cuma dropdown pos, sebaris chip, dan
+   sebaris panah, semuanya sudah punya tinggi sentuhnya sendiri, jadi tidak
+   ada yang menyusut karenanya. */
 .cek-kendali { padding: .6rem .8rem; }
 .cek-kendali .baris-pilih .field { margin-bottom: .5rem; }
-/* KEDUA DROPDOWN SEBARIS, termasuk di HP. Patokan bawaan `.baris-pilih .field`
-   adalah `flex: 1 1 12rem` — 192px, jadi dua kotak menumpuk di layar 393px
-   yang isinya cuma 330px, dan kartu kendalinya naik dari 116px jadi 177px.
-   Tinggi itu di layar ini diambil langsung dari foto slip.
-   `flex: 1 1 0` membagi barisnya rata: 160px per kotak, cukup untuk
-   "Pos 5 — Yel-Yel" maupun "Belum Kunci (12)". */
-/* Dropdown pos selebar ISINYA, chip mengambil sisanya. `flex: 1 1 0` dulu
-   membagi baris rata dua, dan "Pos 1 — Kepramukaan" jauh lebih panjang
-   daripada tetangganya — jadi yang panjang terpotong sementara yang pendek
-   menyisakan ruang kosong. */
+/* Dropdown pos selebar ISINYA, chip mengambil sisanya. Patokan bawaan
+   `.baris-pilih .field` (`flex: 1 1 12rem`) menumpuk keduanya di layar
+   393px, dan membagi rata membuat "Pos 1 — Kepramukaan" terpotong sementara
+   tetangganya menyisakan ruang kosong. */
 .cek-kendali .baris-pilih .field { flex: 0 0 auto; min-width: 0; }
 .cek-kendali .baris-pilih select.select-small { width: auto; max-width: 100%; }
 /* `nowrap` DI SINI YANG MENJAGA TINGGINYA, bukan nowrap di dalam chip-nya.
@@ -5649,7 +5648,7 @@ button.pill-number:hover { filter: brightness(.95); }
    satu-satunya jalan keluar dari keadaan ini, dan tombol pudar terbaca
    seperti tombol mati. */
 .cek-isian input:disabled {
-  background: var(--garis);
+  background: var(--terkunci); border-color: var(--terkunci-garis);
   color: var(--tinta-lembut);
   cursor: not-allowed;
 }
