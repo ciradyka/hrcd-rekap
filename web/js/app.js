@@ -1175,8 +1175,9 @@ function bukaFotoPenuh(url, putaran, judul) {
       <!-- Silangnya duduk di dalam BINGKAI, bukan langsung di penampil.
            Penampilnya memenuhi layar, jadi tombol yang menempel padanya
            mendarat di pojok LAYAR — jauh dari gambarnya, dan di layar lebar
-           jaraknya bisa setengah meja. Bingkai ini menyusut sepas gambarnya,
-           jadi pojoknya adalah pojok gambar. -->
+           jaraknya bisa setengah meja. Bingkai ini diberi ukuran gambar yang
+           TERLIHAT oleh ukurBingkai() di bawah, jadi pojoknya adalah pojok
+           gambar. -->
       <div class="lihat-bingkai">
         <button type="button" class="lihat-tutup" aria-label="Tutup">&times;</button>
         <img src="${esc(url)}" alt="${esc(judul || "")}"
@@ -1192,6 +1193,43 @@ function bukaFotoPenuh(url, putaran, judul) {
   const pengendali = new AbortController();
   const { signal } = pengendali;
   function tutup() { el.remove(); pengendali.abort(); }
+
+  /* UKURAN BINGKAI DIHITUNG, tidak diserahkan ke CSS. Dulu bingkainya
+     menyusut mengikuti kotak <img>, dan kotak itu bukan gambarnya:
+     - `object-fit: contain` menaruh pita hitam DI DALAM kotak <img>, jadi
+       silangnya mendarat di pojok pita itu, jauh dari slipnya, dan ketukan
+       di pita hitam tidak menutup penampil karena yang terketuk <img>-nya;
+     - `rotate()` tidak mengubah kotak tata letak, jadi slip yang diputar 90
+       derajat di HP masih diukur selebar aslinya, meluap keluar bingkai dari
+       tepi kirinya, dan terpotong di kanan.
+     Di sini ukurannya diambil dari piksel asli gambar. Untuk 90 dan 270
+     sumbunya ditukar lebih dulu: yang tampil di layar selebar tinggi
+     aslinya. Bingkai mendapat ukuran yang TERLIHAT, <img> mendapat ukuran
+     aslinya yang diperkecil, lalu CSS memutarnya dari titik tengah bingkai.
+     Gambarnya tidak pernah diperbesar melebihi ukuran aslinya. */
+  const bingkai = el.querySelector(".lihat-bingkai");
+  const img = el.querySelector("img");
+  const tukarSumbu = ["90", "270"].includes(img.dataset.putar);
+  function ukurBingkai() {
+    if (!img.naturalWidth) return;
+    const gaya = getComputedStyle(el);
+    const ruangLebar = el.clientWidth - parseFloat(gaya.paddingLeft) - parseFloat(gaya.paddingRight);
+    const ruangTinggi = el.clientHeight - parseFloat(gaya.paddingTop) - parseFloat(gaya.paddingBottom);
+    const lebarTampil = tukarSumbu ? img.naturalHeight : img.naturalWidth;
+    const tinggiTampil = tukarSumbu ? img.naturalWidth : img.naturalHeight;
+    const skala = Math.min(1, ruangLebar / lebarTampil, ruangTinggi / tinggiTampil);
+    bingkai.style.width = `${lebarTampil * skala}px`;
+    bingkai.style.height = `${tinggiTampil * skala}px`;
+    img.style.width = `${img.naturalWidth * skala}px`;
+    img.style.height = `${img.naturalHeight * skala}px`;
+    img.classList.add("terukur");
+  }
+  // Fotonya biasanya sudah ada di cache (petak kecilnya memakai berkas yang
+  // sama), jadi ia bisa sudah selesai dimuat sebelum pendengar ini terpasang.
+  img.addEventListener("load", ukurBingkai, { signal });
+  window.addEventListener("resize", ukurBingkai, { signal });
+  ukurBingkai();
+
   el.addEventListener("click", (e) => {
     /* Gambarnya sendiri TIDAK menutup. Di HP jari mendarat di tengah layar
        saat hendak mencubit untuk memperbesar, dan penampil yang tertutup oleh
