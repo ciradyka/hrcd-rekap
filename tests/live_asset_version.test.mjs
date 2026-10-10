@@ -13,9 +13,11 @@
 // Sekarang `?v=` ADALAH sidik jari isinya: 12 huruf pertama sha256, dengan
 // akhiran baris dinormalkan ke LF (checkout Windows memberi CRLF dan CI LF,
 // dan sidik jari yang berbeda antar mesin adalah tes yang gagal tanpa ada yang
-// salah). tools/sync_live.py mengisinya dan menyalin berkas bersama ke live/;
-// tes ini memeriksa keduanya, dengan cara hitung yang sama.
+// salah). tools/sync_live.py mengisinya, menyalin berkas bersama ke live/, dan
+// MEMBUAT live/style.css dari web/style.css tanpa aturan khusus panitia; tes
+// ini memeriksa ketiganya.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -25,7 +27,7 @@ const sidikIsi = (teks) =>
   createHash("sha256").update(teks.replace(/\r\n/g, "\n")).digest("hex").slice(0, 12);
 
 const HALAMAN = ["web/index.html", "live/index.html", "live/daftar.html"];
-const BERSAMA = ["style.css", "config.js", "js/api.js", "js/util.js"];
+const BERSAMA = ["config.js", "js/api.js", "js/util.js"];
 
 for (const nama of HALAMAN) {
   const halaman = await readFile(new URL(nama, akar), "utf8");
@@ -67,3 +69,15 @@ for (const nama of BERSAMA) {
       `live/${nama} menyimpang dari web/${nama}. Jalankan: python tools/sync_live.py`);
   });
 }
+
+// live/style.css bukan salinan utuh melainkan SARINGAN web/style.css, jadi
+// yang memeriksanya skrip pembuatnya sendiri — satu definisi "benar", bukan
+// dua yang bisa berselisih.
+test("live/style.css sama dengan saringan web/style.css", () => {
+  const ada = (nama) => spawnSync(nama, ["--version"], { encoding: "utf8" }).status === 0;
+  const python = ["python3", "python"].find(ada);
+  assert.ok(python, "python tidak ditemukan untuk menjalankan tools/sync_live.py");
+  const hasil = spawnSync(python, ["tools/sync_live.py", "--periksa"],
+    { cwd: new URL(".", akar), encoding: "utf8" });
+  assert.equal(hasil.status, 0, `${hasil.stdout}${hasil.stderr}`);
+});

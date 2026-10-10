@@ -6,9 +6,10 @@
 # itu terjadi pada panitia di hari-H — misal ada perbaikan mendadak jam 07.00 —
 # mereka akan memakai versi lama tanpa tahu, dan tidak ada yang menyadarinya.
 #
-# Aset di sini kecil (<100 KB seluruhnya), jadi memaksa browser bertanya dulu
-# ke server tiap kali hampir tidak berbiaya. no-cache berarti "boleh disimpan,
-# tapi WAJIB divalidasi ulang" — jauh lebih murah daripada no-store.
+# Memaksa browser bertanya dulu ke server tiap kali hampir tidak berbiaya:
+# berkas yang tidak berubah dijawab 304 tanpa isinya, berapa pun ukurannya.
+# no-cache berarti "boleh disimpan, tapi WAJIB divalidasi ulang" — jauh lebih
+# murah daripada no-store, yang mengunduh ulang semuanya setiap kali.
 # ============================================================================
 
 /*

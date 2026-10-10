@@ -60,7 +60,9 @@ jobs:
               echo "sama: $2"
             fi
           }
-          banding web/style.css   live/style.css
+          # style.css bukan salinan utuh melainkan saringan; skrip pembuatnya
+          # yang memeriksa, sekalian setiap ?v= di halaman HTML.
+          if ! python3 tools/sync_live.py --periksa; then gagal=1; fi
           banding web/config.js   live/config.js
           banding web/js/api.js   live/js/api.js
           banding web/js/util.js  live/js/util.js
