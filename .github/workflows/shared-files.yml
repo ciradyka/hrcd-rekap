@@ -20,11 +20,10 @@
 # berteriak setiap kali menyimpang cuma sedikit berisik.
 #
 # Kalau workflow ini gagal: salin ulang dari web/ ke live/, jangan menyunting
-# salinannya. web/ yang jadi acuan.
+# salinannya. web/ yang jadi acuan. Skrip ini menyalin keempatnya sekaligus
+# dan mengisi ulang setiap `?v=` di halaman HTML dari isi berkasnya:
 #
-#   cp web/style.css live/style.css
-#   cp web/config.js live/config.js
-#   cp web/js/api.js web/js/util.js live/js/
+#   python tools/sync_live.py
 # ============================================================================
 
 name: Shared files
@@ -32,7 +31,7 @@ name: Shared files
 # Saat diminta saja — alasan lengkapnya di sql-tests.yml. Keempat pemeriksaan
 # di bawah semuanya jalan di laptop dalam hitungan detik:
 #
-#   diff web/style.css live/style.css   (dan tiga pasangan lainnya)
+#   python tools/sync_live.py --periksa (salinan live/ dan setiap ?v=)
 #   python tools/periksa_impor.py
 #   python tools/periksa_urutan_golongan.py
 #   python tools/periksa_sekolah.py
@@ -79,9 +78,7 @@ jobs:
           if [ "$gagal" -ne 0 ]; then
             echo ""
             echo "Salin ulang dari web/ (acuan), jangan sunting salinannya:"
-            echo "  cp web/style.css live/style.css"
-            echo "  cp web/config.js live/config.js"
-            echo "  cp web/js/api.js web/js/util.js live/js/"
+            echo "  python tools/sync_live.py"
             exit 1
           fi
           echo "Seluruh salinan sama dengan acuannya."
