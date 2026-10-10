@@ -38,8 +38,9 @@ test("empat saringan, dan angkanya ikut di dalam pilihannya", () => {
   }
   // Tanpa angkanya, petugas harus menekan panah sampai mentok untuk tahu
   // berapa yang tersisa.
-  assert.match(layarCek, /\$\{esc\(label\)\} \(\$\{lembar\.filter\(uji\)\.length\}\)/,
-    "jumlah tiap saringan tidak ditulis di pilihannya");
+  assert.match(layarCek,
+    /\$\{esc\(label\)\} <span class="saring-jumlah">\$\{lembar\.filter\(uji\)\.length\}<\/span>/,
+    "jumlah tiap saringan tidak ditulis di chip-nya");
 });
 
 test("saringan MELEWATI, tidak membuang barisnya", () => {
@@ -107,10 +108,16 @@ test("katalog lomba disimpan, tidak disusun ulang per regu", () => {
     "simpanan katalog tidak dikosongkan saat pos berganti");
 });
 
-test("kedua dropdown sebaris, supaya kepala layar tidak tumbuh", () => {
-  // Patokan bawaan `.baris-pilih .field` 12rem membuat keduanya menumpuk di
-  // 393px dan kartu kendalinya naik dari 116px jadi 177px — tinggi yang di
-  // layar ini diambil langsung dari foto slip.
-  assert.match(css, /\.cek-kendali \.baris-pilih \.field \{ flex: 1 1 0; min-width: 0; \}/,
-    "dua dropdown Cek Nilai tidak lagi dipaksa sebaris");
+test("dropdown pos dan chip sebaris, supaya kepala layar tidak tumbuh", () => {
+  // Patokan bawaan `.baris-pilih .field` 12rem dan `.baris-pilih` yang
+  // membungkus membuat chip-nya turun ke baris kedua di HP, dan kartu
+  // kendalinya naik — tinggi yang di layar ini diambil langsung dari foto
+  // slip. Dropdown-nya selebar isinya; barisan chip menyerap sisanya dan
+  // digulir mendatar.
+  assert.match(css, /\.cek-kendali \.baris-pilih \.field \{ flex: 0 0 auto; min-width: 0; \}/,
+    "dropdown pos Cek Nilai tidak lagi selebar isinya");
+  assert.match(css, /\.cek-kendali \.baris-pilih \{ flex-wrap: nowrap;/,
+    "baris kendali Cek Nilai boleh membungkus lagi");
+  assert.match(css, /\.cek-saring-baris \{[^}]*flex-wrap: nowrap;[^}]*overflow-x: auto;/,
+    "barisan chip Cek Nilai tidak lagi digulir mendatar");
 });
