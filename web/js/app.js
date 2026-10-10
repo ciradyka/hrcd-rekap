@@ -879,17 +879,48 @@ function layarGantiPassword() {
   baru.focus();
 }
 
+/* ============================ CHIP SARINGAN ============================== */
+
+/** Chip saringan — SATU bentuk untuk setiap layar yang menyaring: meja
+ *  Pembayaran, Daftar Ulang, Data Peserta, Input Nilai Tabel, riwayat nilai,
+ *  dan Cek Nilai. Dua layar yang menyaring dengan alat berbeda harus dicoba
+ *  dulu sebelum dipercaya, dan perbaikan pada satu salinan tidak sampai ke
+ *  salinan lainnya.
+ *
+ *  `pilihan` — [{ kode, label, pendek?, jumlah? }], urutannya dari pemanggil,
+ *  dengan "Semua" PERTAMA di setiap layar.
+ *  `pendek` — label versi HP, hanya kalau berbeda dari `label`: chip harus
+ *  muat satu baris di layar 360px, dan yang dipendekkan hanya kata yang bisa
+ *  ditebak dari konteksnya ("bayar", "Nomor Dada").
+ *  `jumlah` — angka di belakang label, untuk layar yang menghitung sisa
+ *  pekerjaannya (Cek Nilai). Tanpa `jumlah`, tidak ada angka.
+ *  `atribut` — nama data-* yang membawa kodenya: "saring" atau "lomba". */
+function chipSaringHtml(pilihan, aktif, atribut = "saring") {
+  return pilihan.map(s => {
+    const label = s.pendek && s.pendek !== s.label
+      ? `<span class="saring-panjang">${esc(s.label)}</span><span class="saring-pendek">${esc(s.pendek)}</span>`
+      : esc(s.label);
+    const jumlah = s.jumlah === undefined ? ""
+      : ` <span class="saring-jumlah">${esc(String(s.jumlah))}</span>`;
+    return `<button type="button" class="option option-small" data-${atribut}="${esc(s.kode)}"
+              aria-pressed="${s.kode === aktif}">${label}${jumlah}</button>`;
+  }).join("");
+}
+
+/** Nyalakan satu chip dan padamkan sisanya — di tempat, tanpa membangun ulang
+ *  tombolnya, supaya chip yang sedang difokus papan ketik tetap difokus. */
+function tandaiChip(wadah, atribut, kode) {
+  wadah.querySelectorAll(`[data-${atribut}]`).forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset[atribut] === kode)));
+}
+
 /* ============================ ALAT TABEL ================================= */
 
-/** Kotak cari + tombol saring, dipakai layar Pembayaran & Daftar Ulang.
- *  Menyaring di browser (data sudah dimuat semua) supaya hasilnya berubah
- *  seketika sambil mengetik — di meja, menunggu server tiap huruf terasa
- *  seperti aplikasi macet. */
-/* `saringan[].pendek` — label versi HP. Ketiga chip harus muat satu baris di
-   layar 360px; "Belum lengkap / Sudah lengkap / Semua" butuh dua. Yang
-   dipendekkan hanya kata yang bisa ditebak dari konteksnya ("lengkap",
-   "bayar", "Nomor Dada"), dan chip yang sedang menyala tetap menyebut
-   keadaannya. Kalau `pendek` tidak diisi, labelnya dipakai apa adanya. */
+/** Kotak cari + chip saring, dipakai layar Pembayaran, Daftar Ulang, Data
+ *  Peserta, dan Input Nilai Tabel. Menyaring di browser (data sudah dimuat
+ *  semua) supaya hasilnya berubah seketika sambil mengetik — di meja,
+ *  menunggu server tiap huruf terasa seperti aplikasi macet. Bentuk chip-nya
+ *  di chipSaringHtml(). */
 function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan = "" }) {
   return `
     <div class="table-toolbar">
@@ -900,13 +931,7 @@ function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan
                placeholder="${esc(cariContoh || "Cari kode, sekolah, atau nama regu…")}">
       </div>
       <div class="filter-baris">
-        <div class="filter-row">
-          ${saringan.map(s => `
-            <button type="button" class="option option-small" data-saring="${esc(s.kode)}"
-                    aria-pressed="${s.kode === saringAktif}"
-            ><span class="saring-panjang">${esc(s.label)}</span
-            ><span class="saring-pendek">${esc(s.pendek || s.label)}</span></button>`).join("")}
-        </div>
+        <div class="filter-row">${chipSaringHtml(saringan, saringAktif)}</div>
         <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
       </div>
       ${kanan}
@@ -932,8 +957,7 @@ function pasangAlatTabel(gambar) {
   LAYAR.querySelectorAll("[data-saring]").forEach(b =>
     b.addEventListener("click", () => {
       saring = b.dataset.saring;
-      LAYAR.querySelectorAll("[data-saring]").forEach(x =>
-        x.setAttribute("aria-pressed", String(x === b)));
+      tandaiChip(LAYAR, "saring", saring);
       jalan();
     }));
   inp.focus();
@@ -1536,9 +1560,9 @@ async function layarPembayaran() {
     <div class="card">
       ${alatTabel({
         saringan: [
+          { kode: "semua", label: "Semua" },
           { kode: "belum", label: "Belum bayar", pendek: "Belum" },
           { kode: "lunas", label: "Lunas" },
-          { kode: "semua", label: "Semua" },
         ],
         saringAktif: "belum",
         jumlah: semua.length,
@@ -2015,9 +2039,9 @@ async function layarDaftarUlang() {
     <div class="card">
       ${alatTabel({
         saringan: [
+          { kode: "semua", label: "Semua" },
           { kode: "belum", label: "Perlu Nomor Dada", pendek: "Belum" },
           { kode: "sudah", label: "Selesai" },
-          { kode: "semua", label: "Semua" },
         ],
         saringAktif: "belum",
         jumlah: semua.length,
@@ -4371,13 +4395,10 @@ async function layarInputPos() {
            "Belum Foto" dan di "Lengkap" sekaligus — dua label yang saling
            membantah tentang regu yang sama. */
         saringan: [
-          // Tanpa `pendek`: keempat labelnya sudah dua kata, dan `pendek` yang
-          // isinya sama persis dengan `label` cuma menggandakan teksnya bagi
-          // pembaca layar — yang dibaca kedua span, bukan yang terlihat.
+          { kode: "semua", label: "Semua" },
           { kode: "belum-input", label: "Belum Input" },
           { kode: "belum-foto", label: "Belum Foto" },
           { kode: "lengkap", label: "Lengkap" },
-          { kode: "semua", label: "Semua" },
         ],
         saringAktif: "semua",
         jumlah: lembar.length,
@@ -4642,13 +4663,10 @@ async function layarInputPos() {
     const lomba = [...new Map(baris.map(b => [b.kode_lomba, b.nama_lomba]))]
       .sort((a, b) => (urutLomba.get(a[1]) ?? 1e9) - (urutLomba.get(b[1]) ?? 1e9));
     const chip = lomba.length < 2 ? "" : `
-      <div class="option-row saring-riwayat">
-        <button type="button" class="option option-small" data-lomba=""
-                aria-pressed="true">Semua</button>
-        ${lomba.map(([kode, nama]) => html`
-          <button type="button" class="option option-small" data-lomba="${kode}"
-                  aria-pressed="false">${nama}</button>`).join("")}
-      </div>`;
+      <div class="option-row saring-riwayat">${chipSaringHtml([
+        { kode: "", label: "Semua" },
+        ...lomba.map(([kode, nama]) => ({ kode, label: nama })),
+      ], "", "lomba")}</div>`;
 
     /* Angkanya ditulis PERSIS seperti kotak isiannya menulisnya — "8.55",
        bukan 855; "00:47", bukan 47. Yang membuka riwayat sedang membandingkan
@@ -4684,8 +4702,7 @@ async function layarInputPos() {
         const b = e.target.closest("[data-lomba]");
         if (!b) return;
         const pilih = b.dataset.lomba;
-        kartu.querySelectorAll("[data-lomba]").forEach(x =>
-          x.setAttribute("aria-pressed", String(x.dataset.lomba === pilih)));
+        tandaiChip(kartu, "lomba", pilih);
         document.querySelectorAll(".dialog .riwayat li").forEach(li => {
           li.hidden = !!pilih && li.dataset.lomba !== pilih;
         });
@@ -9793,15 +9810,13 @@ async function layarCekNilai() {
     const daftar = pakai.map(([kode]) => kode).join(" ");
     if (elSaring.dataset.daftar !== daftar) {
       elSaring.dataset.daftar = daftar;
-      elSaring.innerHTML = pakai.map(([kode, label]) =>
-        `<button type="button" class="option option-small" data-saring="${esc(kode)}"
-          >${esc(label)} <span class="saring-jumlah"></span></button>`)
-        .join("");
+      elSaring.innerHTML = chipSaringHtml(
+        pakai.map(([kode, label]) => ({ kode, label, jumlah: "" })), saring);
     }
+    tandaiChip(elSaring, "saring", saring);
     for (const [kode, , uji] of pakai) {
-      const b = elSaring.querySelector(`[data-saring="${kode}"]`);
-      b.setAttribute("aria-pressed", String(kode === saring));
-      b.querySelector(".saring-jumlah").textContent = lembar.filter(uji).length;
+      elSaring.querySelector(`[data-saring="${kode}"] .saring-jumlah`)
+        .textContent = lembar.filter(uji).length;
     }
   }
 
