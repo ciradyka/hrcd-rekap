@@ -8,7 +8,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const app = await sumberPanitia();
@@ -60,10 +60,8 @@ test("layar yang memasang sendiri meminta sinyal baru, bukan menumpang router", 
   // Dropdown pemilih pos memanggil layarInputPos() lagi tanpa lewat arahkan().
   // Tanpa sinyal baru di dalam layarnya, salinan lama tidak pernah dilepas.
   for (const nama of ["layarInputPos", "layarLiveScore", "layarFoto"]) {
-    const awal = app.indexOf(`async function ${nama}()`);
-    assert.ok(awal > 0, `${nama}() tidak ditemukan`);
-    const akhir = app.indexOf("\nasync function ", awal + 10);
-    const badan = app.slice(awal, akhir === -1 ? undefined : akhir);
+    const badan = potongFungsi(app, `async function ${nama}()`);
+    assert.ok(badan, `${nama}() tidak ditemukan`);
     assert.match(badan, /sinyalLayarBaru\(\)/,
       `${nama}() tidak meminta sinyal layar baru`);
   }

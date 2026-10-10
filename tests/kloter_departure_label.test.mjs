@@ -11,13 +11,13 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const app = await sumberPanitia();
 
-const awal = app.indexOf('pasangKepala("Daftar Kloter")');
-const layar = app.slice(awal, app.indexOf("\nfunction siapkanCetakKloter", awal));
+const layar = potongFungsi(app, "async function layarCetakKloter()");
+const awal = layar.indexOf('pasangKepala("Daftar Kloter")');
 
 
 test("kartu kloter memakai satu perakit baris jam, bukan ternary di tempat", () => {

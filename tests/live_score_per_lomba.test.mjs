@@ -15,7 +15,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { kolomPos, kelompokLomba, ringkasLomba } from "../web/js/util.js";
-import { sumberPanitia } from "./sumber.mjs";
+import { sumberLayar, sumberPanitia } from "./sumber.mjs";
 
 
 const akar = new URL("../", import.meta.url);
@@ -127,14 +127,13 @@ test("boolean false pada komponen_terisi tetap terbaca kosong", () => {
 });
 
 
-test("kedua papan memakai ringkasLomba yang sama", () => {
+test("kedua papan memakai ringkasLomba yang sama", async () => {
   assert.match(app, /ringkasLomba\(l, k\.golongan, p\.nomor, poinKomponen\)/);
   assert.match(live, /ringkasLomba\(l, b\.golongan, x\.pos\.nomor,/);
 
   // Tidak ada lagi kolom per penilaian di kedua papan Live Score.
-  const awalPapan = app.indexOf("async function layarLiveScore()");
-  const akhirPapan = app.indexOf("\nasync function ", awalPapan + 10);
-  const papan = app.slice(awalPapan, akhirPapan);
+  const papan = await sumberLayar("live-score");
+  assert.match(papan, /function layarLiveScore\(\)/, "modul layar Live Score tidak ditemukan");
   assert.doesNotMatch(papan, /p\.kolom/,
     "Live Score panitia masih menggambar kolom per penilaian");
 });
