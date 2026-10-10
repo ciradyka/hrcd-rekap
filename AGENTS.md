@@ -185,12 +185,20 @@ anything. `tools/periksa_impor.py` finds every module under `web/js/` by
 itself, so a new module needs no registration there.
 
 **Copying to `live/` and every `?v=` go through `tools/sync_live.py`.** It
-copies the four shared files (`style.css`, `config.js`, `js/api.js`,
-`js/util.js`) from `web/` and sets each `?v=` in the three HTML pages to a
-fingerprint of the file's content, so a changed file always gets a new
-address. Never edit a `live/` copy or a `?v=` by hand;
+copies `config.js`, `js/api.js` and `js/util.js` from `web/`, BUILDS
+`live/style.css` from `web/style.css`, and sets each `?v=` in the three HTML
+pages to a fingerprint of the file's content, so a changed file always gets a
+new address. Never edit a `live/` copy or a `?v=` by hand;
 `tests/live_asset_version.test.mjs` fails until the script has run. Touching
 `live/` republishes the peserta site from the database on merge.
+
+**`live/style.css` is about a tenth of `web/style.css`.** The script drops
+every rule that needs a class or id the peserta code never mentions, strips
+comments, and keeps the rest in its original order, so the peserta cascade is
+unchanged and phones stop downloading Cek Nilai and Buku Sakti. A class the
+peserta page gets whole from data, never written in its code, is not
+protected — mention it in `live.js`. The panitia site still loads
+`web/style.css` whole.
 
 **`tests/run.sh` lists every migration by hand.** A new migration is not tested
 until it is added there, and CI stays green while ignoring it completely. Add the
@@ -303,8 +311,8 @@ prints three pages, not 1.500. Printing the stack from a browser spends a whole
 office toner on work a copier finishes in minutes — and the count is decided at
 the copier anyway, since the forms are blank.
 
-These rules live in `web/style.css` under `@media print`, and `live/` holds a
-byte-identical copy.
+These rules live in `web/style.css` under `@media print`; `tools/sync_live.py`
+carries the ones peserta pages use into `live/style.css`.
 
 ## 9. Screen text
 

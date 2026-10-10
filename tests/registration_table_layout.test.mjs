@@ -25,6 +25,10 @@ test("tombol simpan menempati kolom nomor dada pada tabel lebar", () => {
 });
 
 
-test("salinan CSS panitia dan peserta tetap sama", () => {
-  assert.equal(liveCss, webCss);
+test("CSS peserta dibuat dari CSS panitia, bukan disunting sendiri", () => {
+  // live/style.css adalah saringan web/style.css (tools/sync_live.py), jadi
+  // keduanya tidak lagi sama byte demi byte. Kesamaannya dengan hasil
+  // saringan diperiksa tests/live_asset_version.test.mjs.
+  assert.ok(liveCss.startsWith("/* DIBUAT tools/sync_live.py dari web/style.css"),
+    "live/style.css tidak lagi dibuat oleh tools/sync_live.py");
 });
