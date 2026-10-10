@@ -167,6 +167,23 @@ commit's parent count — a commit reached as a merge's *second* parent is norma
 and must not be counted. **If the number changes, change it here.** A stale count
 means the next reader cannot tell known history from fresh damage.
 
+**The panitia app is one module per screen.** `web/js/app.js` holds only login,
+the photo viewer, the router (`RUTE`, `arahkan`) and the header buttons. Each
+screen lives in `web/js/screens/<screen title>.js`; whatever two or more screens
+use lives in `web/js/common/`. Imports go one way only: `app.js` imports
+`screens/` and `common/`, `screens/` imports `common/`, and `common/` imports
+neither. A helper one screen needs from another belongs in `common/`.
+
+**Tests that read panitia source go through `tests/sumber.mjs`.**
+`sumberPanitia()` joins every module, `potongFungsi()` cuts one top-level
+function at its own closing brace, and `sumberLayar()` reads one screen module
+whole. Never end a slice at a neighbour's marker (`"const RUTE = {"`, the next
+`"\nasync function "`, a section banner): once the code lives in different
+files the marker comes first or not at all, and the slice turns empty or runs
+to the end of the source — which passes every `doesNotMatch` without checking
+anything. `tools/periksa_impor.py` finds every module under `web/js/` by
+itself, so a new module needs no registration there.
+
 **`tests/run.sh` lists every migration by hand.** A new migration is not tested
 until it is added there, and CI stays green while ignoring it completely. Add the
 migration to `tests/run.sh` in the same commit that creates it.

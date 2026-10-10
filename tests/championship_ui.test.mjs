@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 const app = await sumberPanitia();
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
-const awal = app.indexOf("async function layarKejuaraan()");
-const layar = app.slice(awal, app.indexOf("/* ============================ AKUN", awal));
+const layar = potongFungsi(app, "async function layarKejuaraan()");
 
 test("Kejuaraan dibagi menjadi section yang dibaca panitia", () => {
   for (const judul of ["Juara Umum", "Juara Umum Penegak", "Juara Umum Penggalang",
