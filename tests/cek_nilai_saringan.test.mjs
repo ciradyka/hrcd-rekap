@@ -19,6 +19,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { lombaUntukRegu, reguBelumFoto, reguBelumInput, reguBelumKunci }
+  from "../web/js/util.js";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 const css = await readFile(new URL("../web/style.css", import.meta.url), "utf8");
@@ -86,10 +88,41 @@ test("yang berlaku dibatasi golongan regunya", () => {
   // Komponen dan lomba yang bukan urusan golongan itu tidak boleh dihitung
   // sebagai pekerjaan yang belum selesai — aturan yang sama dengan
   // gambarKunci() dan statusAwal().
-  assert.match(layarCek, /const lombaBerlaku = \(r\) => lombaPos\(\)\.filter\(l =>\s*\n\s*l\.kolom\.some\(kol => varianUntuk\(kol, r\.golongan\)\)\);/,
-    "lomba yang berlaku tidak disaring per golongan");
-  assert.match(layarCek, /\.map\(kol => varianUntuk\(kol, r\.golongan\)\)\.filter\(Boolean\)/,
-    "komponen yang berlaku tidak disaring per golongan");
+  const lomba = [
+    { kode: "semaphore", kolom: [{ varian: [{ kode: "semaphore", golongan: null }] }] },
+    { kode: "logika", kolom: [
+      { varian: [{ kode: "logika", golongan: null }, { kode: "logika_intern", golongan: "intern" }] }] },
+    { kode: "khusus-intern", kolom: [{ varian: [{ kode: "khusus", golongan: "intern" }] }] },
+  ];
+  const ekstern = { golongan: "penegak_pa", nomor_dada: 7,
+    nilai: { semaphore: 10, logika: 12 }, lomba_terkunci: ["semaphore", "logika"] };
+  const intern = { golongan: "intern_pa", nomor_dada: 1001,
+    nilai: { logika_intern: 9 }, lomba_terkunci: ["logika"] };
+
+  assert.deepEqual(lombaUntukRegu(lomba, ekstern).map(l => l.kode), ["semaphore", "logika"]);
+  assert.deepEqual(lombaUntukRegu(lomba, intern).map(l => l.kode), ["logika", "khusus-intern"]);
+
+  // Eksternal: semua komponennya terisi dan tergembok — lomba Internal
+  // tidak membuatnya "belum".
+  assert.equal(reguBelumInput(lomba, ekstern), false);
+  assert.equal(reguBelumKunci(lomba, ekstern), false);
+  // Internal: nilai lomba khususnya belum ada, gemboknya juga belum.
+  assert.equal(reguBelumInput(lomba, intern), true);
+  assert.equal(reguBelumKunci(lomba, intern), true);
+  assert.equal(reguBelumInput(lomba, { ...intern, nilai: { logika_intern: 9, khusus: 3 } }), false);
+
+  const foto = new Set(["7|semaphore"]);
+  assert.equal(reguBelumFoto(lomba, ekstern, foto), true, "Logika belum difoto");
+  assert.equal(reguBelumFoto(lomba, ekstern, new Set(["7|semaphore", "7|logika"])), false);
+});
+
+test("layar Cek Nilai memakai ketiga uji dari util.js", () => {
+  assert.match(layarCek, /const belumInput = \(r\) => reguBelumInput\(lombaPos\(\), r\);/,
+    "Belum Input tidak memakai reguBelumInput()");
+  assert.match(layarCek, /const belumFoto = \(r\) => reguBelumFoto\(lombaPos\(\), r, fotoAda\);/,
+    "Belum Foto tidak memakai reguBelumFoto()");
+  assert.match(layarCek, /const belumKunci = \(r\) => reguBelumKunci\(lombaPos\(\), r\);/,
+    "Belum Kunci tidak memakai reguBelumKunci()");
 });
 
 test("daftar foto sepos diambil SEKALI, bukan per regu", () => {

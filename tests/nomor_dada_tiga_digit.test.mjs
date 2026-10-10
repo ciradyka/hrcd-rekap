@@ -16,6 +16,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { rapikanDada } from "../web/js/util.js";
 
 const app = await readFile(new URL("../web/js/app.js", import.meta.url), "utf8");
 
@@ -48,12 +49,21 @@ test("tiap kotak nomor dada dipasangi tiga digit", () => {
     + "pemasangan pasangDada3 — satu layar tidak ikut");
 });
 
-test("nol mengosongkan kotaknya", () => {
-  // Tanpa cabang ini "001" yang dihapus satu huruf jadi "00", dibaca 0, lalu
-  // dipasang kembali jadi "000" — dan kotaknya tidak akan pernah bisa
-  // dikosongkan lagi.
+test("rapikanDada: tiga digit, nol mengosongkan kotaknya", () => {
+  // Tanpa cabang nol, "001" yang dihapus satu huruf jadi "00", dibaca 0, lalu
+  // dipasang kembali jadi "000" — dan kotaknya tidak bisa dikosongkan lagi.
+  for (const [isi, jadi] of [
+    ["6", "006"], ["06", "006"], ["060", "060"], ["42", "042"], [" 42 ", "042"],
+    ["0", ""], ["00", ""], ["000", ""], ["", ""], ["abc", ""],
+    ["999", "999"], ["1000", "1000"], ["1089", "1089"],
+  ]) {
+    assert.equal(rapikanDada(isi), jadi, `rapikanDada(${JSON.stringify(isi)})`);
+  }
+});
+
+test("pasangDada3 memakai rapikanDada", () => {
   const awal = app.indexOf("function pasangDada3(");
   const fungsi = app.slice(awal, app.indexOf("\n}", awal));
-  assert.match(fungsi, /Number\(angka\) === 0 \? "" : dada3\(Number\(angka\)\)/,
-    "kotak nomor dada tidak bisa dikosongkan lagi dengan menghapus");
+  assert.match(fungsi, /const baru = rapikanDada\(el\.value\);/,
+    "kotak nomor dada tidak dirapikan lewat rapikanDada()");
 });

@@ -43,7 +43,8 @@ import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapi
          GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
          varianUntuk, kelompokLomba, ringkasLomba,
          katalogLomba, stopwatchTeks, detikDariMs,
-         petunjukKolom, periksaJawabSimpan } from "./util.js";
+         petunjukKolom, periksaJawabSimpan, rapikanDada,
+         reguBelumInput, reguBelumFoto, reguBelumKunci } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
@@ -2807,20 +2808,11 @@ async function layarKeberangkatan() {
  *  kotak yang ditinggalkan berisi 06 sudah benar isinya sebelum dipadatkan.
  *
  *  Nomor Internal empat digit tidak dipotong: dada3() melewatkan apa pun di atas
- *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000.
- *
- *  ANGKA NOL MENGOSONGKAN KOTAKNYA. Tidak ada nomor dada 0, jadi tidak ada
- *  yang hilang — dan tanpa ini kotak yang dihapus sampai tersisa "0" akan
- *  dipasangi "000" lagi.
- *
- *  TIDAK ADA LAGI PENGEMBALIAN KURSOR. Dulu perlu, karena mengubah `value`
- *  di tengah pengetikan melempar kursor ke awal dan huruf berikutnya mendarat
- *  di depan angkanya. Sesudah padatnya pindah ke blur, tidak ada lagi huruf
- *  berikutnya yang perlu diurus. */
+ *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000. Aturan isinya, nol
+ *  yang mengosongkan kotak termasuk, ada di rapikanDada() di util.js. */
 function pasangDada3(el, sinyal) {
   const rapikan = () => {
-    const angka = el.value.replace(/\D/g, "");
-    const baru = !angka || Number(angka) === 0 ? "" : dada3(Number(angka));
+    const baru = rapikanDada(el.value);
     if (baru !== el.value) el.value = baru;
   };
   const opsi = sinyal ? { signal: sinyal } : undefined;
@@ -9763,22 +9755,11 @@ async function layarCekNilai() {
      Yang berlaku untuk satu regu dibatasi golongannya — komponen dan lomba
      yang bukan urusan golongan itu tidak boleh dihitung sebagai pekerjaan
      yang belum selesai. Aturan yang sama dipakai gambarKunci() dan
-     statusAwal(), lewat varianUntuk().
+     statusAwal(), lewat varianUntuk(). Ketiga ujinya fungsi murni di util.js.
      --------------------------------------------------------------------- */
-  const lombaBerlaku = (r) => lombaPos().filter(l =>
-    l.kolom.some(kol => varianUntuk(kol, r.golongan)));
-
-  const belumInput = (r) => lombaPos().some(l => l.kolom
-    .map(kol => varianUntuk(kol, r.golongan)).filter(Boolean)
-    .some(k => (r.nilai || {})[k.kode] === undefined));
-
-  const belumFoto = (r) => lombaBerlaku(r)
-    .some(l => !fotoAda.has(`${r.nomor_dada}|${l.kode}`));
-
-  const belumKunci = (r) => {
-    const kunci = new Set(r.lomba_terkunci || []);
-    return lombaBerlaku(r).some(l => !kunci.has(l.kode));
-  };
+  const belumInput = (r) => reguBelumInput(lombaPos(), r);
+  const belumFoto = (r) => reguBelumFoto(lombaPos(), r, fotoAda);
+  const belumKunci = (r) => reguBelumKunci(lombaPos(), r);
 
   const SARING = [
     ["semua", "Semua", () => true],
