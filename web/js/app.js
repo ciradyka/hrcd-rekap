@@ -246,11 +246,39 @@ function catatTerakhir(fungsi, apa, detail) {
 
 function layarLogin(pesan) {
   pasangKepala("Sistem Panitia");
+  /* .blok-masuk — Dibungkus supaya HILANG saat pendaftaran dibuka. Dua formulir
+     bertumpuk di satu kartu — dua kotak Password, dua tombol hijau —
+     adalah cara orang mengisi yang bawah lalu menekan yang atas. */
+  /* #ganti-mode — BUKAN <details>, dan itu keputusan yang dibayar sekali.
+     <details> menyembunyikan isinya sendiri sebelum CSS sempat ikut
+     campur, jadi tidak ada yang bisa dianimasikan: isinya lenyap dan
+     muncul seketika. Dengan tombol dan kelas biasa, kedua blok tetap
+     ada di DOM dan tingginya bisa dijalankan pelan.
+
+     Harganya: keadaannya sekarang disimpan di kelas "mode-daftar" pada
+     kartunya, bukan di atribut bawaan browser. Satu tempat, dan tombol
+     di bawah ini satu-satunya yang mengubahnya. */
+  /* #d-peran — KOORDINATOR POS TIDAK ADA DI SINI, seperti admin. Keduanya
+     peran yang membuka lebih dari satu meja: koordinator pos punya
+     kolom pos KOSONG, dan justru itu yang membuka KELIMA pos
+     (CLAUDE.md 13.2). Pintu ini tidak dijaga siapa pun -- siapa saja
+     yang membuka layar login boleh memakainya -- jadi peran yang
+     melintasi pos hanya boleh DIBERIKAN admin di layar Akun, bukan
+     dipilih sendiri oleh yang mendaftar.
+
+     Lahir nonaktif tidak cukup sebagai pengganti: admin yang menekan
+     Aktifkan sedang menjawab "orang ini benar", dan belum tentu
+     memperhatikan peran apa yang dipilihkan orang itu untuk dirinya
+     sendiri.
+
+     Gateway menolaknya juga. Daftar di sini cuma menyembunyikan;
+     yang menegakkan workers/gateway/worker.js, karena kotak ini bisa
+     diubah dari devtools dalam sepuluh detik. */
+  /* .keterangan — Satu kalimat, dan ia membawa fakta yang TIDAK bisa dibaca
+     dari layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba masuk,
+     gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). */
   LAYAR.replaceChildren(h(`
     <div class="card" style="max-width:480px;margin:2rem auto">
-      <!-- Dibungkus supaya HILANG saat pendaftaran dibuka. Dua formulir
-           bertumpuk di satu kartu — dua kotak Password, dua tombol hijau —
-           adalah cara orang mengisi yang bawah lalu menekan yang atas. -->
       <div class="blok-masuk">
         <h2>Masuk Panitia</h2>
         ${pesan ? `<div class="error" style="margin-top:.5rem">${esc(pesan)}</div>` : ""}
@@ -266,22 +294,6 @@ function layarLogin(pesan) {
         <button class="button button-primary" id="masuk" type="button">Masuk</button>
       </div>
 
-      <!-- BUKAN <details>, dan itu keputusan yang dibayar sekali.
-           <details> menyembunyikan isinya sendiri sebelum CSS sempat ikut
-           campur, jadi tidak ada yang bisa dianimasikan: isinya lenyap dan
-           muncul seketika. Dengan tombol dan kelas biasa, kedua blok tetap
-           ada di DOM dan tingginya bisa dijalankan pelan.
-
-           Harganya: keadaannya sekarang disimpan di kelas "mode-daftar" pada
-           kartunya, bukan di atribut bawaan browser. Satu tempat, dan tombol
-           di bawah ini satu-satunya yang mengubahnya.
-
-           TANPA BACKTICK DI KOMENTAR INI. Seluruh markup layar login duduk di
-           dalam sebuah template literal, jadi satu backtick di sini menutup
-           string itu dan sisa kalimatnya dibaca sebagai KODE. Itu persis yang
-           terjadi sekali: layar login berhenti di "Memuat..." dengan
-           "ReferenceError: daftar is not defined", dan pemeriksaan sintaks
-           tetap hijau karena hasilnya kebetulan JavaScript yang sah. -->
       <button type="button" class="ganti-mode" id="ganti-mode"
               aria-expanded="false" aria-controls="panel-daftar">
         <span class="d-tutup">Belum punya akun? <b>Daftar</b></span>
@@ -300,26 +312,6 @@ function layarLogin(pesan) {
         </div>
         <div class="field">
           <label for="d-peran">Tugas</label>
-          <!-- KOORDINATOR POS TIDAK ADA DI SINI, seperti admin. Keduanya
-               peran yang membuka lebih dari satu meja: koordinator pos punya
-               kolom pos KOSONG, dan justru itu yang membuka KELIMA pos
-               (CLAUDE.md 13.2). Pintu ini tidak dijaga siapa pun -- siapa saja
-               yang membuka layar login boleh memakainya -- jadi peran yang
-               melintasi pos hanya boleh DIBERIKAN admin di layar Akun, bukan
-               dipilih sendiri oleh yang mendaftar.
-
-               Lahir nonaktif tidak cukup sebagai pengganti: admin yang menekan
-               Aktifkan sedang menjawab "orang ini benar", dan belum tentu
-               memperhatikan peran apa yang dipilihkan orang itu untuk dirinya
-               sendiri.
-
-               Gateway menolaknya juga. Daftar di sini cuma menyembunyikan;
-               yang menegakkan workers/gateway/worker.js, karena kotak ini bisa
-               diubah dari devtools dalam sepuluh detik.
-
-               TANPA BACKTICK DI KOMENTAR INI -- lihat catatan panjang di atas
-               tombol ganti-mode. Komentar ini duduk di dalam template literal,
-               dan satu backtick menutupnya. -->
           <select id="d-peran" class="select-small">
             <option value="juri_pos">Juri Pos</option>
             <option value="registrasi">Registrasi</option>
@@ -331,9 +323,6 @@ function layarLogin(pesan) {
           <input type="number" id="d-pos" class="small-input" inputmode="numeric"
                  min="1" max="20" placeholder="misal: 3">
         </div>
-        <!-- Satu kalimat, dan ia membawa fakta yang TIDAK bisa dibaca dari
-             layar: akunnya belum hidup. Tanpa ini orang mendaftar, mencoba
-             masuk, gagal, lalu mendaftar lagi dengan nama lain (bagian 9.4). -->
         <p class="keterangan">Setelah daftar, harus diaktivasi manual oleh admin.</p>
         <button class="button button-primary" id="d-kirim" type="button">Daftar</button>
       </div>
@@ -508,18 +497,23 @@ async function layarHome() {
     // sebagai juri pos sampai hari simulasi.
     //
     // Yang tetap wajib di-escape: nilai dari database. Di sini cuma `pos`.
+    /* v2 BERDIRI PALING ATAS di papan juri, dan itu bukan urutan
+       alfabet: layar inilah yang dibuat untuk orang yang membaca papan
+       ini. Yang lama tetap ada di bawahnya karena hanya dari sana
+       blangko bisa dicetak.
+
+       Papan ini SEPENUHNYA TERPISAH dari papan meja di bawah, dan itu
+       yang membuat ubin baru gampang terlupa: ditambahkan di satu
+       tempat, dan akun juri — satu-satunya yang memakai layar itu —
+       tidak melihatnya sama sekali. Persis yang terjadi sampai baris
+       ini ditulis. */
+    /* .bs-pintu-ket — Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian
+       9.9. Aturan itu melarang menjelaskan nama yang sudah mengatakan dirinya
+       sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti" adalah NAMA,
+       bukan keterangan: ia tidak menyebut satu pun dari tiga hal yang ada di
+       dalamnya, dan yang baru pertama melihatnya tidak punya cara menduga. */
     LAYAR.replaceChildren(h(`
       <div class="function-menu">
-        <!-- v2 BERDIRI PALING ATAS di papan juri, dan itu bukan urutan
-             alfabet: layar inilah yang dibuat untuk orang yang membaca papan
-             ini. Yang lama tetap ada di bawahnya karena hanya dari sana
-             blangko bisa dicetak.
-
-             Papan ini SEPENUHNYA TERPISAH dari papan meja di bawah, dan itu
-             yang membuat ubin baru gampang terlupa: ditambahkan di satu
-             tempat, dan akun juri — satu-satunya yang memakai layar itu —
-             tidak melihatnya sama sekali. Persis yang terjadi sampai baris
-             ini ditulis. -->
         <a href="#/pos2">
           <div class="function-name">${ikonKotak("clipboard-pen", "ungu")} Input Nilai Per Lomba</div>
         </a>
@@ -544,12 +538,6 @@ async function layarHome() {
         ${ikon("book-open", "ikon bs-pintu-ikon")}
         <span class="bs-pintu-teks">
           <span class="bs-pintu-nama">Buku Sakti</span>
-          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
-               Aturan itu melarang menjelaskan nama yang sudah mengatakan
-               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
-               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
-               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
-               tidak punya cara menduga. -->
           <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
             seksi, dan timeline satu edisi.</span>
         </span>
@@ -592,24 +580,40 @@ async function layarHome() {
       >${esc(String(sudah))}/${esc(String(dari))}</span>`;
   };
 
+  /* Form pendaftaran tidak lagi tinggal di situs ini: ia pindah ke
+     situs PESERTA bersama rekap live, supaya alamat yang beredar ke
+     ratusan orang bukan alamat yang ada kotak loginnya. Karena beda
+     asal, tautannya mutlak dan diambil dari config.js. */
+  /* Data Peserta duduk tepat di sebelah Pendaftaran, dan itu bukan
+     soal tata letak: keduanya satu pekerjaan yang sama dibelah dua oleh
+     waktu. Yang satu menerima apa yang diketik pembina, yang satu
+     membetulkannya waktu pembina menelepon karena salah ketik. Haknya
+     pun sama: hak pendaftaran. */
+  /* BUKAN UBIN KELIMA BELAS, dan itu keputusan warna sebelum keputusan
+     tata letak. Tiap ubin di papan ini punya rona sendiri supaya jempol
+     bisa menuju "yang jingga" tanpa mengeja namanya, dan keempat belas
+     rona yang jaraknya cukup jauh sudah habis terpakai. Ubin kelima belas
+     berarti dua ubin serona — dan sejak itu warnanya berhenti menandai
+     apa pun, untuk keempat belas ubin sekaligus, bukan cuma yang baru.
+
+     Jadi ia berdiri DI BAWAH grid sebagai pita selebar papan: terlihat
+     tanpa dicari, tidak ikut kode warna, dan tidak menggeser satu pun
+     ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya ikut
+     centang pengaturan, sama dengan layarnya — alasannya di kepala
+     bagian BUKU SAKTI. */
+  /* .bs-pintu-ket — Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian
+     9.9. Aturan itu melarang menjelaskan nama yang sudah mengatakan dirinya
+     sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti" adalah NAMA, bukan
+     keterangan: ia tidak menyebut satu pun dari tiga hal yang ada di dalamnya,
+     dan yang baru pertama melihatnya tidak punya cara menduga. */
   LAYAR.replaceChildren(h(`
     ${galat ? kartuGalat(`Jumlah antrean tidak bisa dibaca: ${galat}`) : ""}
     <div class="function-menu">
-      <!-- Form pendaftaran tidak lagi tinggal di situs ini: ia pindah ke
-           situs PESERTA bersama rekap live, supaya alamat yang beredar ke
-           ratusan orang bukan alamat yang ada kotak loginnya. Karena beda
-           asal, tautannya mutlak dan diambil dari config.js. -->
       ${bolehLihat("pendaftaran") ? `
       <a href="${esc((window.HRCD && window.HRCD.pesertaUrl) || "")}/daftar.html"
          target="_blank" rel="noopener">
         <div class="function-name">${ikonKotak("clipboard-list", "biru")} Pendaftaran</div>
       </a>` : ""}
-      <!-- Data Peserta duduk tepat di sebelah Pendaftaran, dan itu bukan
-           soal tata letak: keduanya satu pekerjaan yang sama dibelah dua oleh
-           waktu. Yang satu menerima apa yang diketik pembina, yang satu
-           membetulkannya waktu pembina menelepon karena salah ketik. Haknya
-           pun sama: hak pendaftaran. (Tanpa backtick di komentar ini — ia
-           berada DI DALAM template literal, dan satu backtick menutupnya.) -->
       ${bolehLihat("pendaftaran") ? `
       <a href="#/data-peserta">
         <div class="function-name">${ikonKotak("users", "sian")} Data Peserta</div>
@@ -669,30 +673,12 @@ async function layarHome() {
       </a>` : ""}
     </div>
 
-    <!-- BUKAN UBIN KELIMA BELAS, dan itu keputusan warna sebelum keputusan
-         tata letak. Tiap ubin di papan ini punya rona sendiri supaya jempol
-         bisa menuju "yang jingga" tanpa mengeja namanya, dan keempat belas
-         rona yang jaraknya cukup jauh sudah habis terpakai. Ubin kelima belas
-         berarti dua ubin serona — dan sejak itu warnanya berhenti menandai
-         apa pun, untuk keempat belas ubin sekaligus, bukan cuma yang baru.
-
-         Jadi ia berdiri DI BAWAH grid sebagai pita selebar papan: terlihat
-         tanpa dicari, tidak ikut kode warna, dan tidak menggeser satu pun
-         ubin yang tangan panitia sudah hafal letaknya. Hak aksesnya ikut
-         centang pengaturan, sama dengan layarnya — alasannya di kepala
-         bagian BUKU SAKTI. -->
 
       ${bolehLihat("pengaturan") ? `
       <a class="bs-pintu" href="#/buku-sakti">
         ${ikon("book-open", "ikon bs-pintu-ikon")}
         <span class="bs-pintu-teks">
           <span class="bs-pintu-nama">Buku Sakti</span>
-          <!-- Glosnya DIPERTAHANKAN, dan itu bukan pelanggaran bagian 9.9.
-               Aturan itu melarang menjelaskan nama yang sudah mengatakan
-               dirinya sendiri — "Pendaftaran", "Keberangkatan". "Buku Sakti"
-               adalah NAMA, bukan keterangan: ia tidak menyebut satu pun dari
-               tiga hal yang ada di dalamnya, dan yang baru pertama melihatnya
-               tidak punya cara menduga. -->
           <span class="bs-pintu-ket">Cara menjalankan HRCD, tugas pokok tiap
             seksi, dan timeline satu edisi.</span>
         </span>
@@ -1169,15 +1155,14 @@ function pasangCentangRiwayat(wadah) {
 /** Satu foto sebesar layar, dengan sudut putar yang tersimpan. */
 function bukaFotoPenuh(url, putaran, judul) {
   document.querySelector(".lihat-foto")?.remove();
+  /* .lihat-bingkai — Silangnya duduk di dalam BINGKAI, bukan langsung di
+     penampil. Penampilnya memenuhi layar, jadi tombol yang menempel padanya
+     mendarat di pojok LAYAR — jauh dari gambarnya, dan di layar lebar jaraknya
+     bisa setengah meja. Bingkai ini diberi ukuran gambar yang TERLIHAT oleh
+     ukurBingkai() di bawah, jadi pojoknya adalah pojok gambar. */
   document.body.appendChild(h(`
     <div class="lihat-foto" role="dialog" aria-modal="true"
          aria-label="${esc(judul || "Foto")}">
-      <!-- Silangnya duduk di dalam BINGKAI, bukan langsung di penampil.
-           Penampilnya memenuhi layar, jadi tombol yang menempel padanya
-           mendarat di pojok LAYAR — jauh dari gambarnya, dan di layar lebar
-           jaraknya bisa setengah meja. Bingkai ini diberi ukuran gambar yang
-           TERLIHAT oleh ukurBingkai() di bawah, jadi pojoknya adalah pojok
-           gambar. -->
       <div class="lihat-bingkai">
         <button type="button" class="lihat-tutup" aria-label="Tutup">&times;</button>
         <img src="${esc(url)}" alt="${esc(judul || "")}"
@@ -1718,6 +1703,14 @@ async function layarPembayaran() {
 
       // Template biasa, BUKAN tag html`` — aksi sudah berupa HTML jadi tidak
       // boleh ikut di-escape. Data dari luar tetap lewat esc() satu per satu.
+      /* .text-center — Pembuka rincian duduk DI KOLOM REGU, bukan di bawah nama
+         sekolah. Angkanya sama persis dengan yang dulu tercetak di
+         kolom ini, jadi menaruhnya di sini menghapus satu pengulangan
+         sekaligus mengembalikan lebar ke kolom Sekolah.
+         Kata "regu" dibungkus <span class="satuan-regu"> karena hanya
+         dipakai di kartu HP — di tabel, judul kolomnya sudah menyebut
+         REGU dan mengulanginya cuma memakan lebar. Pembaca layar tetap
+         mendapat kalimat utuh lewat aria-label, di kedua tampilan. */
       return `
         <tr class="invoice-row" data-baris="${kode}">
           <td class="mono" data-label="Kode Bayar">${kode}</td>
@@ -1725,14 +1718,6 @@ async function layarPembayaran() {
             <strong>${sekolah}</strong>
             ${aktif.length ? "" : `<div class="sub">semua regu batal</div>`}
           </td>
-          <!-- Pembuka rincian duduk DI KOLOM REGU, bukan di bawah nama
-               sekolah. Angkanya sama persis dengan yang dulu tercetak di
-               kolom ini, jadi menaruhnya di sini menghapus satu pengulangan
-               sekaligus mengembalikan lebar ke kolom Sekolah.
-               Kata "regu" dibungkus <span class="satuan-regu"> karena hanya
-               dipakai di kartu HP — di tabel, judul kolomnya sudah menyebut
-               REGU dan mengulanginya cuma memakan lebar. Pembaca layar tetap
-               mendapat kalimat utuh lewat aria-label, di kedua tampilan. -->
           <td class="text-center" data-label="Regu">
             ${aktif.length
               ? `<button class="button-detail" type="button" data-detail="${kode}"
@@ -1944,6 +1929,12 @@ function cetakKwitansi(daftar) {
           <td>${r.nama_ketua}</td>
           <td class="text-right">${rupiah(biayaRegu(EDISI, r.golongan))}</td></tr>`).join("");
 
+    /* Dulu baris ini berbunyi "N regu @ Rp X". Sejak regu Internal punya
+       harganya sendiri (migrasi 0110) tidak ada lagi SATU harga satuan
+       yang benar untuk setiap batch, dan menuliskan salah satunya di
+       kwitansi yang dipegang pembina lebih buruk daripada tidak
+       menuliskannya. Angkanya tidak hilang: tabel di bawah menyebut
+       biaya tiap regu satu per satu, lalu TOTAL-nya. */
     return `
       <section class="print-page">
         <h1>KWITANSI — ${esc(EDISI ? EDISI.name : "")}</h1>
@@ -1953,12 +1944,6 @@ function cetakKwitansi(daftar) {
            · <strong>Cara bayar:</strong> ${esc(bayar.method || "—")}<br>
            <span class="receipt-date"><strong>Tanggal:</strong>
              ${esc(tanggal(bayar.verified_at))}</span></p>
-        <!-- Dulu baris ini berbunyi "N regu @ Rp X". Sejak regu Internal punya
-             harganya sendiri (migrasi 0110) tidak ada lagi SATU harga satuan
-             yang benar untuk setiap batch, dan menuliskan salah satunya di
-             kwitansi yang dipegang pembina lebih buruk daripada tidak
-             menuliskannya. Angkanya tidak hilang: tabel di bawah menyebut
-             biaya tiap regu satu per satu, lalu TOTAL-nya. -->
         <p><strong>Untuk pembayaran:</strong> pendaftaran ${aktif.length} regu</p>
         <table class="print-table">
           <thead>
@@ -2015,6 +2000,16 @@ async function layarDaftarUlang() {
   const dibukaNomor = new Set();
   const nilaiDada = new Map();
 
+  /* Tidak ada kolom Regu di sini. Jumlahnya sudah tercetak di
+     dalam tombol "Isi N Nomor Dada" di kolom terakhir, dan
+     kolom sendiri hanya untuk mengulanginya adalah lebar yang
+     terbuang — di jendela sempit lebar itulah yang membuat
+     tombolnya terdorong keluar layar. */
+  /* Empat kolom, dua terakhir tanpa judul: nomor dada, lalu
+     tombol tukar. Dulu keduanya berbagi satu kolom, dan
+     tombolnya jatuh ke baris kedua tiap kali nomornya lebih
+     dari dua — tinggi baris jadi dua kali lipat untuk
+     sebagian sekolah saja, dan tabelnya bergerigi. */
   LAYAR.replaceChildren(h(`
     <div class="card">
       ${alatTabel({
@@ -2030,16 +2025,6 @@ async function layarDaftarUlang() {
         <table class="table data-table table-daftar-ulang">
           <thead>
             <tr>
-              <!-- Tidak ada kolom Regu di sini. Jumlahnya sudah tercetak di
-                   dalam tombol "Isi N Nomor Dada" di kolom terakhir, dan
-                   kolom sendiri hanya untuk mengulanginya adalah lebar yang
-                   terbuang — di jendela sempit lebar itulah yang membuat
-                   tombolnya terdorong keluar layar. -->
-              <!-- Empat kolom, dua terakhir tanpa judul: nomor dada, lalu
-                   tombol tukar. Dulu keduanya berbagi satu kolom, dan
-                   tombolnya jatuh ke baris kedua tiap kali nomornya lebih
-                   dari dua — tinggi baris jadi dua kali lipat untuk
-                   sebagian sekolah saja, dan tabelnya bergerigi. -->
               <th>Kode Bayar</th><th>Sekolah</th><th></th><th></th>
             </tr>
           </thead>
@@ -2111,16 +2096,22 @@ async function layarDaftarUlang() {
         : `<div class="pill-row">${pilNomor(true)}</div>`;
 
       // Template biasa (lihat catatan sama di layar Pembayaran).
+      /* Nama-nama regu TIDAK ditampilkan di sini. Barisnya panjang dan
+         memakan lebar yang dibutuhkan kolom di kanannya, padahal yang
+         dicari petugas di layar ini adalah SEKOLAHNYA — nama regunya
+         baru relevan saat mengisi nomor dada, dan di sana ia memang
+         tampil satu per satu di rincian. Pencarian tetap mengenali
+         nama regu (lihat cocokCari), jadi mengetik nama regu tetap
+         menemukan sekolahnya. */
+      /* Sel kosong terakhir menyeimbangkan kolom "Tukar nomor
+         rusak…" di tabel induk. Tanpa itu jumlah kolom kedua
+         tabel berbeda, dan di layar lebar (table-layout: fixed)
+         kotak nomor dada tidak lagi jatuh tepat di bawah tombol
+         yang membukanya. Disembunyikan di bawah 941px — lihat
+         style.css. */
       return `
         <tr data-baris="${kode}">
           <td class="mono" data-label="Kode Bayar">${kode}</td>
-          <!-- Nama-nama regu TIDAK ditampilkan di sini. Barisnya panjang dan
-               memakan lebar yang dibutuhkan kolom di kanannya, padahal yang
-               dicari petugas di layar ini adalah SEKOLAHNYA — nama regunya
-               baru relevan saat mengisi nomor dada, dan di sana ia memang
-               tampil satu per satu di rincian. Pencarian tetap mengenali
-               nama regu (lihat cocokCari), jadi mengetik nama regu tetap
-               menemukan sekolahnya. -->
           <td data-label="Sekolah">
             <strong>${esc(b.sekolah?.name || "—")}</strong>
           </td>
@@ -2132,12 +2123,6 @@ async function layarDaftarUlang() {
           <td colspan="4" class="detail-cell-flush">
             <table class="detail-table detail-table-dada">
               <thead>
-                <!-- Sel kosong terakhir menyeimbangkan kolom "Tukar nomor
-                     rusak…" di tabel induk. Tanpa itu jumlah kolom kedua
-                     tabel berbeda, dan di layar lebar (table-layout: fixed)
-                     kotak nomor dada tidak lagi jatuh tepat di bawah tombol
-                     yang membukanya. Disembunyikan di bawah 941px — lihat
-                     style.css. -->
                 <tr><th>Regu</th><th>Kategori</th><th>Ketua</th>
                     <th>Nomor dada${deretIntern(menunggu) && rentang
                       ? `<span class="sub">Internal ${rentang.internMulai}–${rentang.internSampai}</span>`
@@ -2494,6 +2479,12 @@ async function layarKeberangkatan() {
     const tujuanPindah = papan.filter(k => k.nomor !== nomor);
     const belumKontrak = regu.filter(r => r.sudah_ceklis && r.kontrak_menit === null);
 
+    /* #peringatan-kontrak — Dibungkus supaya isinya bisa dihitung ulang tanpa
+       menggambar ulang seluruh tabel — lihat perbaruiPeringatanKontrak(). */
+    /* Kotak ketik, bukan <input type="time">: pemilih bawaan
+       browser merender AM/PM kalau locale browsernya Inggris, dan
+       tidak ada atribut yang bisa memaksanya 24 jam. Lihat
+       jamSah() di util.js. */
     kotak.replaceChildren(h(`
       ${peringatanPindah ? kartuPeringatanPindah(peringatanPindah) : ""}
       ${kartuSisipan(sisipan.filter(s => s.kloter === nomor))}
@@ -2551,8 +2542,6 @@ async function layarKeberangkatan() {
           </table>
         </div>
 
-        <!-- Dibungkus supaya isinya bisa dihitung ulang tanpa menggambar
-             ulang seluruh tabel — lihat perbaruiPeringatanKontrak(). -->
         <div id="peringatan-kontrak">${!belumKontrak.length ? "" : kartuGalat(
           `${belumKontrak.length} regu sudah diceklis tapi belum punya kontrak waktu — ` +
           `keberangkatan akan ditolak.`)}</div>
@@ -2561,10 +2550,6 @@ async function layarKeberangkatan() {
           <div class="departure-bar">
             <div class="field" style="margin:0">
               <label for="jam-berangkat-hh">Jam berangkat</label>
-              <!-- Kotak ketik, bukan <input type="time">: pemilih bawaan
-                   browser merender AM/PM kalau locale browsernya Inggris, dan
-                   tidak ada atribut yang bisa memaksanya 24 jam. Lihat
-                   jamSah() di util.js. -->
               ${kotakJamHtml("jam-berangkat", jamMenit(new Date()))}
             </div>
             <button class="button button-primary" id="aksi-berangkat" type="button">
@@ -2899,17 +2884,32 @@ async function layarCetakKloter() {
     return /^\d{2}:\d{2}/.test(teks) ? teks.slice(0, 5) : "";
   };
 
+  /* .table — Empat angka MENDATAR: label jadi kepala kolom, angkanya satu baris
+     di bawahnya. Sebagai empat baris ia memakan setengah layar HP untuk
+     empat angka yang cuma dilirik — dan yang dicari di bawahnya, kotak
+     jam dan tombol Cetak, terdorong keluar layar.
+
+     Tetap tabel, bukan grid: kepala kolom table th sudah membawa
+     bentuk label yang dipakai tabel lain di layar ini, dan angkanya
+     tetap sel angka yang sama. */
+  /* .two-column — Rencana berangkat berdiri DI ATAS tombol cetak, dan urutan
+     itu berarti: yang tercetak adalah jam yang baru saja diatur di sini.
+     Menaruhnya di bawah membuat petugas menekan Cetak lebih dulu, lalu
+     menemukan kotak jamnya sesudah kertasnya keluar.
+
+     SEBARIS BERDUA, kiri dan kanan, di lebar berapa pun. Keduanya dua
+     ujung dari SATU jendela — yang diatur bukan dua jam melainkan
+     rentangnya — dan bertumpuk mereka terbaca seperti dua setelan yang
+     tidak berhubungan, sekaligus memakan dua kali tingginya di HP.
+
+     TANPA judul dan TANPA paragraf penjelas. Labelnya sendiri sudah
+     menyebut jamnya, jadi judul di atasnya cuma mengulang
+     label yang ada di bawahnya (pasal 9.3),
+     dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
+     menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
+     sekali (pasal 9.1 dan 9.6). */
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
-      <!-- Empat angka MENDATAR: label jadi kepala kolom, angkanya satu baris
-           di bawahnya. Sebagai empat baris ia memakan setengah layar HP untuk
-           empat angka yang cuma dilirik — dan yang dicari di bawahnya, kotak
-           jam dan tombol Cetak, terdorong keluar layar.
-
-           Tetap tabel, bukan grid: kepala kolom table th sudah membawa
-           bentuk label yang dipakai tabel lain di layar ini, dan angkanya
-           tetap sel angka yang sama. (Tanpa backtick: seluruh markup ini
-           duduk di dalam template literal.) -->
       <table class="table table-ringkas-kloter">
         <thead>
           <tr>
@@ -2926,22 +2926,6 @@ async function layarCetakKloter() {
           </tr>
         </tbody>
       </table>
-      <!-- Rencana berangkat berdiri DI ATAS tombol cetak, dan urutan itu berarti:
-           yang tercetak adalah jam yang baru saja diatur di sini. Menaruhnya
-           di bawah membuat petugas menekan Cetak lebih dulu, lalu menemukan
-           kotak jamnya sesudah kertasnya keluar.
-
-           SEBARIS BERDUA, kiri dan kanan, di lebar berapa pun. Keduanya dua
-           ujung dari SATU jendela — yang diatur bukan dua jam melainkan
-           rentangnya — dan bertumpuk mereka terbaca seperti dua setelan yang
-           tidak berhubungan, sekaligus memakan dua kali tingginya di HP.
-
-           TANPA judul dan TANPA paragraf penjelas. Labelnya sendiri sudah
-           menyebut jamnya, jadi judul di atasnya cuma mengulang
-           label yang ada di bawahnya (pasal 9.3),
-           dan kalimat "jam ini dibagi rata lalu tercetak untuk peserta"
-           menjelaskan sesuatu yang terlihat sendiri begitu jamnya diubah
-           sekali (pasal 9.1 dan 9.6). -->
       <div class="two-column planning-jam" style="margin-top:1rem">
         <div class="field">
           <label for="planning-pertama-hh">Jam Berangkat Pertama</label>
@@ -3045,20 +3029,20 @@ async function layarCetakKloter() {
               <td><strong>${r.nama_regu}</strong></td>
               <td>${r.nama_sekolah}</td>
               <td>${GOLONGAN_LABEL[r.golongan] || r.golongan}</td></tr>`).join("");
+        /* Labelnya menyebut ASAL angkanya, bukan cuma "jam berangkat".
+           Keduanya jam yang terlihat sama di layar dan sama sekali bukan
+           hal yang sama: yang satu dihitung sistem untuk merencanakan
+           pagi, yang satu diketik petugas dari jam dinding dan menjadi
+           dasar penalti SELURUH regu di kloter itu (pasal 10.6).
+
+           "di Lapangan" bukan hiasan. Tanpa itu "Jam berangkat" terbaca
+           seperti jadwal — dan petugas yang membaca kartu ini untuk
+           memutuskan apakah sebuah kloter sudah jalan tidak punya cara
+           membedakan keduanya selain mengingat kloter mana yang sudah
+           ia ceklis. */
         return `
           <div class="card">
             <h2>Kloter ${esc(nomor)}</h2>
-            <!-- Labelnya menyebut ASAL angkanya, bukan cuma "jam berangkat".
-                 Keduanya jam yang terlihat sama di layar dan sama sekali bukan
-                 hal yang sama: yang satu dihitung sistem untuk merencanakan
-                 pagi, yang satu diketik petugas dari jam dinding dan menjadi
-                 dasar penalti SELURUH regu di kloter itu (pasal 10.6).
-
-                 "di Lapangan" bukan hiasan. Tanpa itu "Jam berangkat" terbaca
-                 seperti jadwal — dan petugas yang membaca kartu ini untuk
-                 memutuskan apakah sebuah kloter sudah jalan tidak punya cara
-                 membedakan keduanya selain mengingat kloter mana yang sudah
-                 ia ceklis. -->
             ${barisJamKloter(nomor, v)}
             <table class="table">${baris}</table>
           </div>`;
@@ -3181,32 +3165,32 @@ function siapkanCetakKloter(dipakai, bentuk = "staging", planning = new Map()) {
 
     const adaSisipan = v.isi.some(r => r.sisipan);
 
+    /* Petugas turun ke barisnya sendiri, dan tiap isian dijaga
+       nowrap. Sebaris bertiga, "Petugas:" muat di ujung kanan tapi
+       garis isiannya tidak — garisnya pindah ke baris berikutnya dan
+       kertasnya keluar dengan nama tanpa tempat menulis. */
+    /* DUA KOLOM YANG DITULISI, BERDAMPINGAN DI UJUNG KANAN:
+       Kontrak Waktu lalu Hadir.
+
+       Hadir dulu berada di kolom PALING KIRI, dan alasannya ditulis
+       di tempat ini: petugas memegang kertas di satu tangan dan HP di
+       tangan lain, jadi kotak centang di ujung yang berlawanan
+       membuat matanya menyeberangi seluruh baris tiap regu. Alasan
+       itu berdiri selama Hadir SATU-SATUNYA yang ditulisi.
+
+       Sekarang ada dua. Menaruh yang satu di ujung kiri dan yang lain
+       di ujung kanan membuat tangan menyeberangi baris DUA KALI per
+       regu — lebih mahal daripada yang dihemat aturan lama.
+       Berdampingan, keduanya terisi dalam satu gerakan.
+
+       Keputusan pemilik acara, 31 Agustus 2026. */
     return bentuk === "staging" ? `
       <section class="print-page">
         <h1>KLOTER ${esc(nomor)} — ${esc(EDISI ? EDISI.name : "")}</h1>
-        <!-- Petugas turun ke barisnya sendiri, dan tiap isian dijaga
-             nowrap. Sebaris bertiga, "Petugas:" muat di ujung kanan tapi
-             garis isiannya tidak — garisnya pindah ke baris berikutnya dan
-             kertasnya keluar dengan nama tanpa tempat menulis. -->
         <p><strong>Perkiraan jam berangkat: ${esc(perkiraan)}</strong>
            · <span style="white-space:nowrap">Jam sebenarnya: ________</span><br>
            <span style="white-space:nowrap">Petugas: ________________</span></p>
         <table class="print-table">
-          <!-- DUA KOLOM YANG DITULISI, BERDAMPINGAN DI UJUNG KANAN:
-               Kontrak Waktu lalu Hadir.
-
-               Hadir dulu berada di kolom PALING KIRI, dan alasannya ditulis
-               di tempat ini: petugas memegang kertas di satu tangan dan HP di
-               tangan lain, jadi kotak centang di ujung yang berlawanan
-               membuat matanya menyeberangi seluruh baris tiap regu. Alasan
-               itu berdiri selama Hadir SATU-SATUNYA yang ditulisi.
-
-               Sekarang ada dua. Menaruh yang satu di ujung kiri dan yang lain
-               di ujung kanan membuat tangan menyeberangi baris DUA KALI per
-               regu — lebih mahal daripada yang dihemat aturan lama.
-               Berdampingan, keduanya terisi dalam satu gerakan.
-
-               Keputusan pemilik acara, 31 Agustus 2026. -->
           <thead><tr><th>No Dada</th><th>Nama Regu</th><th>Sekolah</th><th>Golongan</th><th class="kotak-kontrak">Kontrak Waktu</th><th class="kotak">Hadir</th></tr></thead>
           <tbody>${baris}</tbody>
         </table>
@@ -3242,6 +3226,11 @@ function siapkanCetakKloter(dipakai, bentuk = "staging", planning = new Map()) {
  */
 function layarFinish() {
   pasangKepala("Kedatangan");
+  /* TOMBOL adalah pencatat utama di meja ini; kertas panitia hanya
+     untuk cek silang. Jadi jam & anggota sengaja TIDAK sejajar dengan tombol —
+     keduanya dipakai saat memperbaiki hasil verifikasi, bukan tiap regu. */
+  /* Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
+     browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. */
   LAYAR.replaceChildren(h(`
     <div class="card" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
@@ -3254,9 +3243,6 @@ function layarFinish() {
               style="margin-top:.7rem;min-height:60px;font-size:1.2rem">
         ✅ SAMPAI DI FINISH
       </button>
-      <!-- TOMBOL adalah pencatat utama di meja ini; kertas panitia hanya untuk
-           cek silang. Jadi jam & anggota sengaja TIDAK sejajar dengan tombol —
-           keduanya dipakai saat memperbaiki hasil verifikasi, bukan tiap regu. -->
       <details style="margin-top:.6rem">
         <summary style="cursor:pointer;min-height:40px;font-size:.9rem;color:var(--tinta-lembut)">
           Perbaiki jam atau jumlah anggota
@@ -3264,8 +3250,6 @@ function layarFinish() {
         <div class="two-column pasangan-sempit" style="margin-top:.5rem">
           <div class="field" style="margin:0">
             <label for="jam-hh">Jam datang</label>
-            <!-- Kotak ketik, alasan sama dengan jam berangkat: pemilih bawaan
-                 browser bisa muncul sebagai AM/PM. Lihat jamSah() di util.js. -->
             ${kotakJamHtml("jam")}
           </div>
           <div class="field" style="margin:0">
@@ -3830,6 +3814,10 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
   // sendiri bisa dinilaikan ke pos yang salah. Di mode per lomba nama
   // lombanya ikut, karena sekarang beredar beberapa lembar berbeda dari pos
   // yang sama sekaligus, dan "Pos 1 halaman 2/2" ada tiga.
+  /* "Gol.", bukan "Golongan": judulnyalah yang melebarkan
+     kolom ini, bukan isinya. "GOLONGAN" di 8pt butuh ~17mm
+     sementara "Pgl Pi" di 10pt cuma ~13mm, dan selisihnya
+     diambil dari kolom Organisasi yang justru terpotong. */
   const lembar = set.map(({ judul: judulLomba, kolom }) =>
     halaman.map((grup, i) => `
     <section class="print-page lembar-pos">
@@ -3841,10 +3829,6 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
       <table class="print-table">
         <thead>
           <tr>
-            <!-- "Gol.", bukan "Golongan": judulnyalah yang melebarkan
-                 kolom ini, bukan isinya. "GOLONGAN" di 8pt butuh ~17mm
-                 sementara "Pgl Pi" di 10pt cuma ~13mm, dan selisihnya
-                 diambil dari kolom Organisasi yang justru terpotong. -->
             <th>No Dada</th><th>Nama Regu</th><th>Organisasi</th><th>Gol.</th>
             ${kolom.map(c => `<th class="isian">${esc(c.nama)}
               <span class="kolom-petunjuk">${esc(c.petunjuk)}</span></th>`).join("")}
@@ -4152,6 +4136,11 @@ function siapkanCetakBlangko(pos, kolomLayar) {
       <p class="bl-catatan"><strong>Tulis angkanya saja — jangan menghitung
          poin.</strong></p>`;
 
+    /* .bl-ttd — TIGA JURI, bukan satu petugas. Satu lomba dinilai bersama, dan
+       tanda tangan yang cuma satu membuat dua juri lain tidak punya
+       tempat menyatakan bahwa angka itu juga angka mereka. Namanya
+       ditulis tangan: yang bertugas di sebuah pos berganti sepanjang
+       pagi, dan blangko sudah difotokopi jauh sebelum itu diputuskan. */
     return `
     <article class="blangko">
       <p class="bl-pos">${esc(judulPos)}</p>
@@ -4164,11 +4153,6 @@ function siapkanCetakBlangko(pos, kolomLayar) {
 
       ${catatan}
 
-      <!-- TIGA JURI, bukan satu petugas. Satu lomba dinilai bersama, dan
-           tanda tangan yang cuma satu membuat dua juri lain tidak punya
-           tempat menyatakan bahwa angka itu juga angka mereka. Namanya
-           ditulis tangan: yang bertugas di sebuah pos berganti sepanjang
-           pagi, dan blangko sudah difotokopi jauh sebelum itu diputuskan. -->
       <div class="bl-ttd">
         ${[1, 2, 3].map(i => `
         <div class="bl-ttd-sel">
@@ -4335,6 +4319,18 @@ async function layarInputPos() {
   // riwayat tidak dibanjiri baris yang tidak mengubah apa-apa.
   const asli = new Map(lembar.map(r => [Number(r.nomor_dada), r.nilai || {}]));
 
+  /* Pita keadaan simpan. Duduk DI ATAS tabel, bukan di bawahnya:
+     tabelnya bergulir sendiri (max-height), jadi apa pun yang ditaruh
+     di bawah bisa berada di luar layar justru saat petugas sedang
+     mengetik di baris ke-80. */
+  /* Pita keadaannya ada DI DALAM toolbar, di sebelah pemilih pos.
+     SELALU terlihat, tidak pernah hidden: pita yang hanya muncul saat
+     ada masalah tidak bisa dipercaya, karena petugas tidak punya cara
+     membedakan "semuanya aman" dari "pitanya sedang rusak". Google
+     Sheets menampilkan capnya terus-menerus untuk alasan yang sama. */
+  /* .table-wrapper — table-tetap: di HP lembar ini TETAP tabel dan digeser ke
+     samping, tidak ditumpuk jadi kartu seperti layar meja. Alasannya di
+     style.css, bagian LEMBAR INPUT POS. */
   LAYAR.replaceChildren(h(`
     <div class="card">
       ${alatTabel({
@@ -4394,18 +4390,6 @@ async function layarInputPos() {
         saringAktif: "semua",
         jumlah: lembar.length,
       })}
-      <!-- Pita keadaan simpan. Duduk DI ATAS tabel, bukan di bawahnya:
-           tabelnya bergulir sendiri (max-height), jadi apa pun yang ditaruh
-           di bawah bisa berada di luar layar justru saat petugas sedang
-           mengetik di baris ke-80. -->
-      <!-- Pita keadaannya ada DI DALAM toolbar, di sebelah pemilih pos.
-           SELALU terlihat, tidak pernah hidden: pita yang hanya muncul saat
-           ada masalah tidak bisa dipercaya, karena petugas tidak punya cara
-           membedakan "semuanya aman" dari "pitanya sedang rusak". Google
-           Sheets menampilkan capnya terus-menerus untuk alasan yang sama. -->
-      <!-- table-tetap: di HP lembar ini TETAP tabel dan digeser ke samping,
-           tidak ditumpuk jadi kartu seperti layar meja. Alasannya di
-           style.css, bagian LEMBAR INPUT POS. -->
       <div class="table-wrapper table-wrapper-tetap">
         <table class="table data-table table-tetap table-pos"
                ${lembar.length ? "" : "hidden"}>
@@ -6027,19 +6011,19 @@ function siapkanCetakRekap({ judul, baris, posKolom, rekapDada }) {
     }
   }
 
+  /* .lembar-kepala — "Bagian 1/2", BUKAN "Lembar 1/2". Bagian-bagian ini
+     mengalir dan bisa berbagi satu halaman kertas: sekolah bersatu regu keluar
+     satu halaman, bukan dua yang masing-masing terisi 12%. Menyebutnya lembar
+     akan membohongi yang memegangnya — ia mencari lembar kedua yang tidak
+     pernah keluar dari printer.
+
+     Penandanya tetap ditulis karena kertas ini berpindah tangan sebagai
+     lembaran lepas: bagian kedua yang berdiri sendiri tanpa penanda
+     terbaca seperti rekap yang kehilangan separuh kolomnya. */
   const halaman = isiGolongan.flatMap(([g, isi]) =>
     LEMBAR.map((lembar, i) => `
     <section class="print-page rekap-cetak">
       <h1>REKAP NILAI \u00b7 ${esc(judul)} \u00b7 ${esc(GOLONGAN_LABEL[g] || g)}</h1>
-      <!-- "Bagian 1/2", BUKAN "Lembar 1/2". Bagian-bagian ini mengalir dan
-           bisa berbagi satu halaman kertas: sekolah bersatu regu keluar satu
-           halaman, bukan dua yang masing-masing terisi 12%. Menyebutnya
-           lembar akan membohongi yang memegangnya — ia mencari lembar kedua
-           yang tidak pernah keluar dari printer.
-
-           Penandanya tetap ditulis karena kertas ini berpindah tangan sebagai
-           lembaran lepas: bagian kedua yang berdiri sendiri tanpa penanda
-           terbaca seperti rekap yang kehilangan separuh kolomnya. -->
       <p class="lembar-kepala">${esc(EDISI ? EDISI.name : "")} \u00b7
          ${esc(String(isi.length))} regu \u00b7 Bagian ${i + 1}/${LEMBAR.length}
          \u00b7 Dicetak ${esc(dicetak)}</p>
@@ -6315,16 +6299,16 @@ async function layarLiveScore() {
 
   const barisGol = (g) => klasemen.filter(k => k.golongan === g).map(k => {
   const rk = rekapDada.get(k.nomor_dada) || {};
+  /* Satu lomba bisa punya baris wahana berbeda per golongan;
+     yang berlaku untuk regu INI yang dibaca. Aturannya
+     duduk di selPosRegu(), bersama kepalaPosRekap() —
+     kertas rekap memakai keduanya juga. */
   return `
   <tr data-sekolah="${esc(k.nama_sekolah || "")}">
     <td class="rekap-rank">${MEDALI[k.peringkat] || ""}<span class="rank-angka">${esc(String(k.peringkat ?? ""))}</span></td>
     <td class="angka">${esc(dada3(k.nomor_dada))}</td>
     <td>${esc(k.nama_regu)}</td>
     <td class="rekap-batas sub-kolom">${esc(k.nama_sekolah)}</td>
-    <!-- Satu lomba bisa punya baris wahana berbeda per golongan;
-         yang berlaku untuk regu INI yang dibaca. Aturannya
-         duduk di selPosRegu(), bersama kepalaPosRekap() —
-         kertas rekap memakai keduanya juga. -->
     ${selPosRegu(k, posKolom, rekapDada).map(sel =>
       `<td class="text-center${sel.nilai ? " pos-nilai" : ""}${
         sel.batas ? " rekap-batas" : ""}">${
@@ -6348,56 +6332,77 @@ async function layarLiveScore() {
         const baris = klasemen.filter(k => k.golongan === g);
         const sekolahAda = [...new Set(baris.map(k => k.nama_sekolah).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id"));
+        /* "sementara" yang membawa faktanya: papan ini memeringkat dari
+           poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
+           sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+           layar besar terbaca seperti hasil — dan itu yang diumumkan
+           orang. */
         if (!baris.length) return `
         <div class="card">
           <div class="kepala-klasemen">
             <div class="sisi"></div>
-            <!-- "sementara" yang membawa faktanya: papan ini memeringkat dari
-                 poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
-                 sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
-                 layar besar terbaca seperti hasil — dan itu yang diumumkan
-                 orang. -->
             <h2>Klasemen sementara</h2>
             <div class="sisi kanan">${saklar}</div>
           </div>
           <p class="description">Belum ada regu golongan ini yang bisa
             diperingkat.</p>
         </div>`;
+        /* "sementara" yang membawa faktanya: papan ini memeringkat dari
+           poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
+           sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
+           layar besar terbaca seperti hasil — dan itu yang diumumkan
+           orang. */
+        /* Penyaring sekolah. Daftarnya dibangun dari baris golongan INI,
+           bukan dari seluruh sekolah: memilih sekolah yang tidak punya
+           regu di golongan yang sedang dibuka menghasilkan tabel kosong
+           tanpa satu pun petunjuk kenapa.
+
+           <details> biasa, bukan dropdown buatan sendiri — ia sudah bisa
+           dibuka dengan sentuhan, ditutup dengan Esc, dan dibacakan
+           pembaca layar tanpa satu baris JS pun. */
+        /* Panelnya di ATAS tabel, tapi yang diklik KEPALA KOLOMNYA.
+           Panel ini tidak bisa ditaruh di dalam <th>: tabelnya duduk di
+           dalam wadah bergulir, dan apa pun yang mengambang di dalam sana
+           terpotong begitu daftarnya lebih tinggi dari kepala tabel. */
+        /* .isi-filter — Panel MENGAMBANG di bawah kepala kolomnya, bukan kotak
+           yang mendorong tabel ke bawah. Posisinya fixed, koordinatnya
+           dihitung saat dibuka: tabelnya duduk di wadah bergulir, dan apa pun
+           yang mengambang DI DALAM sana terpotong begitu daftarnya lebih
+           tinggi dari kepala tabel.
+
+           Kotak ketik di atas daftar: 23 sekolah hari ini masih bisa
+           disapu mata, ratusan tahun depan tidak. Bentuknya sengaja
+           seperti saringan Excel — orang di meja panitia sudah tahu
+           cara memakainya tanpa diberi tahu. */
+        /* .rekap-batas — Kepala kolomnya SENDIRI yang jadi tombol saringan.
+           Tombol terpisah di atas tabel menjauhkan aksinya dari
+           kolom yang disaringnya, dan menambah satu benda lagi di
+           layar yang sudah padat. */
+        /* Kolom "Nilai" per pos hanya digambar kalau posnya
+           memuat LEBIH DARI SATU lomba. Pos 4 cuma punya PBB dan
+           Pos 5 cuma punya Yel-Yel: di sana "PBB 82 | Nilai 82"
+           adalah angka yang sama dua kali, bersebelahan. */
+        /* Lima kolom perjalanan mendahului Penalti, dan urutan
+           itu yang membuatnya berguna: Penalti selalu dibaca
+           dengan pertanyaan "dari mana", dan jawabannya persis
+           kelima kolom ini -- kontrak yang dijanjikan, jam
+           berangkat, jam datang, dan berapa anggota yang tiba.
+           Menaruhnya SESUDAH Penalti memaksa mata melompat balik
+           melewati seluruh kolom lomba. */
+        /* Nama lomba saja, TANPA rentang. Rentang menjelaskan apa
+           yang boleh DIKETIK, dan di papan ini tidak ada yang
+           mengetik apa pun — yang tergambar sudah poin akhir, dan
+           "0 – 5" di bawah kolom berisi 80 justru membantahnya.
+           Rentangnya tetap ada di layar Input Pos dan di Lembar
+           Cadangan, tempat ia memang menjawab pertanyaan. */
         return `
         <div class="card">
           <div class="kepala-klasemen">
             <div class="sisi"></div>
-            <!-- "sementara" yang membawa faktanya: papan ini memeringkat dari
-                 poin yang terkumpul SEKARANG, jadi urutannya bisa berubah
-                 sampai pos terakhir terisi. Tanpa kata itu, tiga medali di
-                 layar besar terbaca seperti hasil — dan itu yang diumumkan
-                 orang. -->
             <h2>Klasemen sementara</h2>
             <div class="sisi kanan">${saklar}</div>
           </div>
           <div class="podium">${podiumGol(g)}</div>
-          <!-- Penyaring sekolah. Daftarnya dibangun dari baris golongan INI,
-               bukan dari seluruh sekolah: memilih sekolah yang tidak punya
-               regu di golongan yang sedang dibuka menghasilkan tabel kosong
-               tanpa satu pun petunjuk kenapa.
-
-               <details> biasa, bukan dropdown buatan sendiri — ia sudah bisa
-               dibuka dengan sentuhan, ditutup dengan Esc, dan dibacakan
-               pembaca layar tanpa satu baris JS pun. -->
-          <!-- Panelnya di ATAS tabel, tapi yang diklik KEPALA KOLOMNYA.
-               Panel ini tidak bisa ditaruh di dalam <th>: tabelnya duduk di
-               dalam wadah bergulir, dan apa pun yang mengambang di dalam sana
-               terpotong begitu daftarnya lebih tinggi dari kepala tabel. -->
-          <!-- Panel MENGAMBANG di bawah kepala kolomnya, bukan kotak yang
-               mendorong tabel ke bawah. Posisinya fixed, koordinatnya
-               dihitung saat dibuka: tabelnya duduk di wadah bergulir, dan
-               apa pun yang mengambang DI DALAM sana terpotong begitu
-               daftarnya lebih tinggi dari kepala tabel.
-
-               Kotak ketik di atas daftar: 23 sekolah hari ini masih bisa
-               disapu mata, ratusan tahun depan tidak. Bentuknya sengaja
-               seperti saringan Excel — orang di meja panitia sudah tahu
-               cara memakainya tanpa diberi tahu. -->
           <div class="isi-filter" hidden>
             <input type="search" class="cari-filter" placeholder="Ketik nama sekolah…"
                    aria-label="Cari sekolah">
@@ -6415,26 +6420,11 @@ async function layarLiveScore() {
                   <th rowspan="2">#</th>
                   <th rowspan="2">No<br>Dada</th>
                   <th rowspan="2">Regu</th>
-                  <!-- Kepala kolomnya SENDIRI yang jadi tombol saringan.
-                       Tombol terpisah di atas tabel menjauhkan aksinya dari
-                       kolom yang disaringnya, dan menambah satu benda lagi di
-                       layar yang sudah padat. -->
                   <th rowspan="2" class="rekap-batas th-saring" tabindex="0"
                       role="button" aria-expanded="false"
                       title="Klik untuk menyaring per sekolah">Organisasi
                     <span class="hitung-filter"></span> <span aria-hidden="true">▾</span></th>
-                  <!-- Kolom "Nilai" per pos hanya digambar kalau posnya
-                       memuat LEBIH DARI SATU lomba. Pos 4 cuma punya PBB dan
-                       Pos 5 cuma punya Yel-Yel: di sana "PBB 82 | Nilai 82"
-                       adalah angka yang sama dua kali, bersebelahan. -->
                   ${kepalaPos.map(x => x.atas).join("")}
-                  <!-- Lima kolom perjalanan mendahului Penalti, dan urutan
-                       itu yang membuatnya berguna: Penalti selalu dibaca
-                       dengan pertanyaan "dari mana", dan jawabannya persis
-                       kelima kolom ini -- kontrak yang dijanjikan, jam
-                       berangkat, jam datang, dan berapa anggota yang tiba.
-                       Menaruhnya SESUDAH Penalti memaksa mata melompat balik
-                       melewati seluruh kolom lomba. -->
                   <th rowspan="2">Kontrak</th>
                   <th rowspan="2">Kloter</th>
                   <th rowspan="2">Berangkat</th>
@@ -6444,12 +6434,6 @@ async function layarLiveScore() {
                   <th rowspan="2">Total</th>
                 </tr>
                 <tr>
-                  <!-- Nama lomba saja, TANPA rentang. Rentang menjelaskan apa
-                       yang boleh DIKETIK, dan di papan ini tidak ada yang
-                       mengetik apa pun — yang tergambar sudah poin akhir, dan
-                       "0 – 5" di bawah kolom berisi 80 justru membantahnya.
-                       Rentangnya tetap ada di layar Input Pos dan di Lembar
-                       Cadangan, tempat ia memang menjawab pertanyaan. -->
                   ${kepalaPos.map(x => x.bawah).join("")}
                 </tr>
               </thead>
@@ -6598,14 +6582,7 @@ async function layarLiveScore() {
          sekolah. closest() di bawah memang tidak akan pernah menemukan baris
          itu — pendengarnya duduk di dalam dialog dan barisnya di luar — tapi
          satu nama untuk dua arti di satu layar adalah perangkap yang menunggu
-         pembaca berikutnya.
-
-         Catatan ini ditulis DI SINI dan bukan sebagai komentar HTML di dalam
-         template di bawah, dengan alasan yang sama seperti catatan dialog() di
-         util.js: satu backtick di dalam komentar itu MENUTUP template
-         literal-nya, dan seluruh app.js berhenti diparse. Versi pertama
-         catatan ini mengutip nama penandanya dalam kutip miring dan melakukan
-         persis itu. */
+         pembaca berikutnya. */
       kartuHtml: `
         <input type="search" class="cari-sekolah-cetak"
                placeholder="Ketik nama sekolah…" aria-label="Cari sekolah">
@@ -7059,22 +7036,22 @@ function siapkanCetakJuara(hasil, bagian) {
        style.css menempatkan kedua-duanya — Juara Umum di atas melintang,
        sisanya berpasangan dua kolom — jadi menggeser satu kartu di layar
        menggeser kartu yang sama di kertas, tanpa ada yang perlu diingat. */
+    /* .print-table — JUDUL HANYA UNTUK KOLOM KANAN. Dua kolom pertama sudah
+       terbaca dari bentuknya sendiri — gelar kecil di kiri, nama juara besar
+       di tengah — dan "GELAR | JUARA" yang tercetak sebelas kali cuma
+       mengulang sesuatu yang tidak pernah ditanyakan (bagian 9.3). Angka di
+       kanan tidak begitu: 1673 dan 42 duduk di kolom yang sama padahal yang
+       satu skor regu dan yang satu poin juara, dan tanpa judul tidak ada yang
+       mengatakan itu.
+
+       SATU SEL MELINTANG TIGA KOLOM, rata kanan — bukan sel di kolom
+       ketiga. Kolom itu selebar angkanya saja, dan "Skor / Poin Juara"
+       di dalamnya patah jadi tiga baris: satu blok tulisan menggantung
+       dengan ruang kosong di kirinya, sebelas kali. Melintang, ia satu
+       baris yang duduk tepat di atas angkanya. */
     return `
       <section class="juara-bagian ${esc(kelas)}">
         <h2>${esc(judul)}</h2>
-        <!-- JUDUL HANYA UNTUK KOLOM KANAN. Dua kolom pertama sudah terbaca
-             dari bentuknya sendiri — gelar kecil di kiri, nama juara besar di
-             tengah — dan "GELAR | JUARA" yang tercetak sebelas kali cuma
-             mengulang sesuatu yang tidak pernah ditanyakan (bagian 9.3).
-             Angka di kanan tidak begitu: 1673 dan 42 duduk di kolom yang sama
-             padahal yang satu skor regu dan yang satu poin juara, dan tanpa
-             judul tidak ada yang mengatakan itu.
-
-             SATU SEL MELINTANG TIGA KOLOM, rata kanan — bukan sel di kolom
-             ketiga. Kolom itu selebar angkanya saja, dan "Skor / Poin Juara"
-             di dalamnya patah jadi tiga baris: satu blok tulisan menggantung
-             dengan ruang kosong di kirinya, sebelas kali. Melintang, ia satu
-             baris yang duduk tepat di atas angkanya. -->
         <table class="print-table">
           <thead><tr><th colspan="3" class="juara-kepala">Skor / Poin Juara</th></tr></thead>
           <tbody>${punya.map(x => `
@@ -7349,25 +7326,34 @@ async function layarAkun() {
     .map(([k, v]) => `<option value="${k}"${k === dipilih ? " selected" : ""}>${esc(v)}</option>`)
     .join("");
 
+  /* .table-toolbar, bukan .option-row: option-row itu grid DUA kolom
+     (style.css), jadi empat isian di dalamnya jatuh 2x2 dan kotak Pos
+     yang isinya satu angka mendapat setengah lebar kartu. */
+  /* Rata BAWAH, bukan rata tengah seperti toolbar saring: di sana label
+     kotak carinya visually-hidden sehingga tidak memakan tinggi, di
+     sini labelnya terlihat — dan rata tengah membuat tombolnya melayang
+     setinggi label, tidak sejajar dengan kotak isian di sebelahnya. */
+  /* .form-akun — Bentuknya sama dengan form pendaftaran: label di atas, isian
+     SELEBAR kartunya. Sebelumnya ia .table-toolbar dengan lebar
+     dipatok inline (14rem, 5rem) — di HP ketiganya terjepit ke kanan,
+     labelnya melayang di tengah, dan kotak Pos menyusut jadi seukuran
+     ibu jari. Lebar tetap di dalam wadah yang menyempit selalu
+     berakhir begitu.
+
+     Di layar lebar ia kembali sebaris lewat grid, tanpa satu pun ukuran
+     dipatok tangan. */
+  /* Peringatan "baru kolom Akun yang mengunci" dihapus di migrasi 0064:
+     seluruh policy dan RPC sudah pindah ke boleh(), jadi kalimat itu
+     tidak benar lagi. Yang tersisa satu baris, dan ia bertahan karena
+     memuat akibat yang tidak bisa dibaca dari layar (CLAUDE.md 9.4):
+     mengubah peran MENIMPA centang yang sudah diatur tangan. */
+  /* .table-wrapper — Gaya yang sama dengan lembar Input Nilai Pos: di HP ini
+     TETAP tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
+     tabel menempel di atas. Semua itu sudah ada di .table-pos — matriks ini
+     tidak perlu aturan sendiri. */
   LAYAR.replaceChildren(h(`
     <div class="card">
       <h2>Buat Akun</h2>
-      <!-- .table-toolbar, bukan .option-row: option-row itu grid DUA kolom
-           (style.css), jadi empat isian di dalamnya jatuh 2x2 dan kotak Pos
-           yang isinya satu angka mendapat setengah lebar kartu. -->
-      <!-- Rata BAWAH, bukan rata tengah seperti toolbar saring: di sana label
-           kotak carinya visually-hidden sehingga tidak memakan tinggi, di
-           sini labelnya terlihat — dan rata tengah membuat tombolnya melayang
-           setinggi label, tidak sejajar dengan kotak isian di sebelahnya. -->
-      <!-- Bentuknya sama dengan form pendaftaran: label di atas, isian
-           SELEBAR kartunya. Sebelumnya ia .table-toolbar dengan lebar
-           dipatok inline (14rem, 5rem) — di HP ketiganya terjepit ke kanan,
-           labelnya melayang di tengah, dan kotak Pos menyusut jadi seukuran
-           ibu jari. Lebar tetap di dalam wadah yang menyempit selalu
-           berakhir begitu.
-
-           Di layar lebar ia kembali sebaris lewat grid, tanpa satu pun ukuran
-           dipatok tangan. -->
       <div class="form-akun">
         <div class="field"><label for="ak-nama">Nama akun</label>
           <input id="ak-nama" type="text" class="small-input" autocomplete="off"
@@ -7387,16 +7373,7 @@ async function layarAkun() {
         <h2 style="margin:0">Akun</h2>
         <span class="hint">${akun.length} akun</span>
       </div>
-      <!-- Peringatan "baru kolom Akun yang mengunci" dihapus di migrasi 0064:
-           seluruh policy dan RPC sudah pindah ke boleh(), jadi kalimat itu
-           tidak benar lagi. Yang tersisa satu baris, dan ia bertahan karena
-           memuat akibat yang tidak bisa dibaca dari layar (CLAUDE.md 9.4):
-           mengubah peran MENIMPA centang yang sudah diatur tangan. -->
       <p>Mengganti peran mengisi ulang centangnya.</p>
-      <!-- Gaya yang sama dengan lembar Input Nilai Pos: di HP ini TETAP
-           tabel dan digeser ke samping, kolom nama menempel di kiri, kepala
-           tabel menempel di atas. Semua itu sudah ada di .table-pos —
-           matriks ini tidak perlu aturan sendiri. -->
       <div class="table-wrapper table-wrapper-tetap">
       <table class="table data-table table-tetap table-pos matriks-hak">
         <thead><tr>
@@ -7693,12 +7670,7 @@ async function layarFoto() {
 
   /* Kamera dan Galeri dipisah jadi dua tombol, alasannya lengkap di
      bukaFotoLembar(): `capture` membuka kamera langsung tapi sekaligus
-     menutup jalur galeri, jadi satu tombol tidak bisa melayani keduanya.
-
-     Penjelasannya ditulis DI SINI dan bukan sebagai komentar HTML di dalam
-     template di bawah. Backtick di dalam komentar HTML itu MENUTUP template
-     literal-nya — berkasnya berhenti diparse dan seluruh app.js mati, tanpa
-     satu pun tanda selain layar putih. */
+     menutup jalur galeri, jadi satu tombol tidak bisa melayani keduanya. */
   LAYAR.replaceChildren(h(`
     <div class="card">
       <div class="baris-pilih">
@@ -8736,23 +8708,44 @@ async function gambarLombaNilai(l) {
   const sinyal = sinyalLayarBaru();
   const waktu = l.jenis === "waktu";
 
+  /* .dada-baris — DISKUALIFIKASI DUDUK DI SINI, sejauh mungkin dari tombol
+     berhenti.
+
+     Tempatnya tidak dipilih karena maknanya berdekatan dengan nomor
+     dada — melainkan karena JARAK adalah satu-satunya pengaman yang
+     bekerja saat orang menekan tergesa. Selama ia bertetangga dengan
+     play/stop, jempol yang meleset sekali menyimpan 0 poin untuk regu
+     yang menyelesaikan lomba, dan tidak ada satu pun galat yang
+     muncul saat itu terjadi.
+
+     Kotaknya sendiri tetap yang pertama dijangkau: ia mengisi sisa
+     lebar barisnya, tombolnya hanya selebar tulisannya. */
+  /* #v2-foto — FOTO JAWABAN DI SINI, sebelum tombol simpan.
+
+     Slip penilaian berpindah tangan dari pos ke kotak ke meja IT, dan
+     begitu hilang tidak ada apa pun yang bisa memulihkan angkanya
+     (migrasi 0047). Difoto di layar ini karena di sinilah fotonya
+     tertaut sendiri ke nomor dada dan lomba yang tepat — petugas baru
+     saja mengetik nomornya, dan lombanya adalah layar tempat ia berdiri.
+
+     SEBELUM tombol simpan, bukan sesudah: sesudah menekan Simpan
+     layarnya dikosongkan untuk regu berikutnya, dan foto yang belum
+     diambil pada saat itu tidak akan pernah diambil. */
+  /* #v2-foto-nav — TOMBOL, bukan cuma geser. Petak yang bisa digeser tidak
+     mengumumkan dirinya: yang terlihat cuma satu foto, dan foto kedua
+     baru ada kalau seseorang kebetulan menyapu layarnya. Penghitung
+     "1 / 2" yang menyatakan ada berapa, dan panahnya yang menyatakan
+     bisa dipindah — keduanya terbaca tanpa mencoba apa pun.
+
+     Hanya muncul kalau memang lebih dari satu foto. Satu foto dengan
+     panah mati di kiri-kanannya adalah dua tombol yang tidak pernah
+     melakukan apa pun. */
   LAYAR.replaceChildren(h(`
     <div id="pita-antrean"></div>
     ${kepalaLomba(l)}
     <div class="card" id="v2-kartu" style="border-color:var(--utama)">
       <div class="field" style="margin-bottom:0">
         <label for="v2-dada">Nomor dada</label>
-        <!-- DISKUALIFIKASI DUDUK DI SINI, sejauh mungkin dari tombol berhenti.
-
-             Tempatnya tidak dipilih karena maknanya berdekatan dengan nomor
-             dada — melainkan karena JARAK adalah satu-satunya pengaman yang
-             bekerja saat orang menekan tergesa. Selama ia bertetangga dengan
-             play/stop, jempol yang meleset sekali menyimpan 0 poin untuk regu
-             yang menyelesaikan lomba, dan tidak ada satu pun galat yang
-             muncul saat itu terjadi.
-
-             Kotaknya sendiri tetap yang pertama dijangkau: ia mengisi sisa
-             lebar barisnya, tombolnya hanya selebar tulisannya. -->
         <div class="dada-baris">
           <input type="text" id="v2-dada" class="besar" inputmode="numeric"
                  autocomplete="off" enterkeyhint="next" placeholder="001">
@@ -8763,17 +8756,6 @@ async function gambarLombaNilai(l) {
       <div id="v2-regu" style="margin-top:.7rem"></div>
       ${waktu ? panelStopwatchHtml() : ""}
       <div id="v2-isian" class="isian-lomba" hidden></div>
-      <!-- FOTO JAWABAN DI SINI, sebelum tombol simpan.
-
-           Slip penilaian berpindah tangan dari pos ke kotak ke meja IT, dan
-           begitu hilang tidak ada apa pun yang bisa memulihkan angkanya
-           (migrasi 0047). Difoto di layar ini karena di sinilah fotonya
-           tertaut sendiri ke nomor dada dan lomba yang tepat — petugas baru
-           saja mengetik nomornya, dan lombanya adalah layar tempat ia berdiri.
-
-           SEBELUM tombol simpan, bukan sesudah: sesudah menekan Simpan
-           layarnya dikosongkan untuk regu berikutnya, dan foto yang belum
-           diambil pada saat itu tidak akan pernah diambil. -->
       <div id="v2-foto" class="foto-nilai" hidden>
         <span class="foto-judul">Foto Jawaban</span>
         <span class="foto-status" id="v2-foto-status"></span>
@@ -8789,15 +8771,6 @@ async function gambarLombaNilai(l) {
           </label>
         </span>
         <div class="foto-geser" id="v2-foto-petak" hidden></div>
-        <!-- TOMBOL, bukan cuma geser. Petak yang bisa digeser tidak
-             mengumumkan dirinya: yang terlihat cuma satu foto, dan foto kedua
-             baru ada kalau seseorang kebetulan menyapu layarnya. Penghitung
-             "1 / 2" yang menyatakan ada berapa, dan panahnya yang menyatakan
-             bisa dipindah — keduanya terbaca tanpa mencoba apa pun.
-
-             Hanya muncul kalau memang lebih dari satu foto. Satu foto dengan
-             panah mati di kiri-kanannya adalah dua tombol yang tidak pernah
-             melakukan apa pun. -->
         <div class="foto-navigasi" id="v2-foto-nav" hidden>
           <button type="button" class="button button-secondary button-small foto-panah"
                   data-foto-geser="-1" aria-label="Foto sebelumnya">&lsaquo;</button>
@@ -9425,6 +9398,12 @@ async function gambarLombaNilai(l) {
    barusan diukur SUDAH masuk ke kotak Waktu pada saat berhenti, jadi jam yang
    telanjur jalan lagi tidak menghapusnya. Itulah sebabnya kotaknya diisi saat
    berhenti dan bukan saat Simpan ditekan. */
+/* .button — BERTULISAN, tidak berlambang, berbeda dengan play/stop di atasnya.
+   Play dan stop punya lambang yang sudah dikenal dari alat perekam
+   mana pun; reset tidak — panah melingkar dipakai juga untuk "muat
+   ulang", "putar ulang", dan "kembalikan", dan yang ini artinya
+   menghapus hitungan. Satu kata menyelesaikannya, dan tombol ini
+   ditekan sambil menatap layar, bukan sambil menatap lapangan. */
 const panelStopwatchHtml = () => `
   <div class="stopwatch" id="v2-stopwatch">
     <output class="sw-angka" id="sw-angka">00:00.0</output>
@@ -9433,12 +9412,6 @@ const panelStopwatchHtml = () => `
               title="Mulai" aria-label="Mulai">${ikon("play", "ikon sw-ikon")}</button>
     </div>
     <div class="sw-kendali sw-kendali-bawah">
-      <!-- BERTULISAN, tidak berlambang, berbeda dengan play/stop di atasnya.
-           Play dan stop punya lambang yang sudah dikenal dari alat perekam
-           mana pun; reset tidak — panah melingkar dipakai juga untuk "muat
-           ulang", "putar ulang", dan "kembalikan", dan yang ini artinya
-           menghapus hitungan. Satu kata menyelesaikannya, dan tombol ini
-           ditekan sambil menatap layar, bukan sambil menatap lapangan. -->
       <button type="button" class="button button-secondary button-small sw-ulang"
               data-sw="ulang"
               title="Kembalikan penunjuk ke 00:00 — kotak Waktu tidak ikut dikosongkan"
@@ -9661,20 +9634,55 @@ async function layarCekNilai() {
   let fotoAda = new Set();   // "nomorDada|kodeLomba" yang sudah punya foto
   let fotoTerbaca = false;   // false = daftarnya gagal dibaca, bukan "tidak ada foto"
 
+  /* #pita-antrean — Pita antrean ada DI SINI JUGA, dan itu bukan kerapian:
+     sejak layar ini boleh mengubah nilai, simpanan dari sini bisa gagal karena
+     jaringan dan masuk antrean seperti di layar input. Tanpa elemen ini
+     gambarPitaAntrean() tidak menemukan sasarannya dan langsung keluar — admin
+     cuma menerima satu notifikasi yang lalu hilang, lalu tidak ada satu pun
+     tanda bahwa masih ada angka yang belum sampai. */
+  /* .baris-pilih — DROPDOWN SAJA, tanpa label "Pos" di atasnya. Isi kotaknya
+     sudah berbunyi "Pos 5 — Yel-Yel", jadi labelnya mengulang kata yang
+     terbaca di dalam kotak yang ia labeli (bagian 9.3) — dan barisnya memakan
+     23px yang di HP diambil langsung dari tinggi foto. Atribut aria-label
+     menggantikannya untuk pembaca layar. */
+  /* #cek-saring — SARINGAN SEBAGAI CHIP, bentuk yang sama dengan layar Input —
+     dua layar yang menyaring hal yang sama tidak boleh memakai dua
+     alat berbeda, dan keadaan yang sedang aktif terbaca tanpa dibuka
+     dulu seperti pada dropdown.
+
+     SATU BARIS YANG DIGESER, BUKAN MEMBUNGKUS. Empat chip beserta
+     angkanya tidak muat sebaris di layar 393px, dan versi dropdown
+     dipilih dulu justru karena itu: yang membungkus jadi baris kedua
+     mencuri tinggi, dan di layar ini tinggi diambil langsung dari
+     foto slip. Jadi barisnya TIDAK membungkus melainkan digulir
+     mendatar — tingginya tetap satu baris di lebar berapa pun.
+
+     ANGKANYA IKUT DI DALAM LABELNYA. "Belum Kunci" tanpa angka
+     menyuruh petugas menekan panah sampai mentok untuk tahu berapa
+     yang tersisa; dengan angkanya, pertanyaan itu sudah terjawab
+     sebelum ditekan sekali pun. */
+  /* .cek-navigasi — PANAH, NOMOR DADA, PANAH — satu baris, dan kotak tengahnya
+     sekaligus jalan melompat. Sebelumnya ada dua alat untuk satu pekerjaan:
+     kotak "Lompat ke nomor dada" di atas, dan sepasang tombol "Sebelumnya /
+     Berikutnya" selebar setengah layar di bawahnya. Keduanya menjawab "regu
+     mana yang saya lihat sekarang", dan dua jawaban untuk satu pertanyaan
+     berarti petugas memilih dulu sebelum bergerak.
+
+     Panahnya sengaja tanpa kata. "Berikutnya ▶" selebar setengah layar
+     bukan sasaran sentuh yang lebih baik daripada panah 3rem — ia cuma
+     mendorong nomor dadanya keluar dari tengah, tempat mata mencarinya. */
+  /* #cek-dada — type=text, BUKAN number: kotak number membuang nol di depan
+     apa pun yang ditulis ke dalamnya, jadi "001" mustahil tergambar
+     di sana. inputmode tetap numeric supaya papan ketik HP tetap
+     angka. */
+  /* TIDAK ADA "7 / 181". Berapa nomor yang sudah dilewati bukan
+     pertanyaan yang ditanya orang yang sedang mencocokkan satu regu,
+     dan kedua ujung daftarnya sudah terbaca dari panah yang mati.
+     Barisnya memakan 20px, dan di HP tiap piksel di atas layar ini
+     diambil dari tinggi foto slip. */
   LAYAR.replaceChildren(h(`
-    <!-- Pita antrean ada DI SINI JUGA, dan itu bukan kerapian: sejak layar ini
-         boleh mengubah nilai, simpanan dari sini bisa gagal karena jaringan
-         dan masuk antrean seperti di layar input. Tanpa elemen ini
-         gambarPitaAntrean() tidak menemukan sasarannya dan langsung keluar —
-         admin cuma menerima satu notifikasi yang lalu hilang, lalu tidak ada
-         satu pun tanda bahwa masih ada angka yang belum sampai. -->
     <div id="pita-antrean"></div>
     <div class="card cek-kendali">
-      <!-- DROPDOWN SAJA, tanpa label "Pos" di atasnya. Isi kotaknya sudah
-           berbunyi "Pos 5 — Yel-Yel", jadi labelnya mengulang kata yang
-           terbaca di dalam kotak yang ia labeli (bagian 9.3) — dan barisnya
-           memakan 23px yang di HP diambil langsung dari tinggi foto.
-           Atribut aria-label menggantikannya untuk pembaca layar. -->
       <div class="baris-pilih">
         <div class="field">
           <select id="cek-pos" class="select-small" aria-label="Pos"
@@ -9683,54 +9691,17 @@ async function layarCekNilai() {
               >${esc(judulPos(p))}</option>`).join("")}
           </select>
         </div>
-        <!-- SARINGAN SEBAGAI CHIP, bentuk yang sama dengan layar Input —
-             dua layar yang menyaring hal yang sama tidak boleh memakai dua
-             alat berbeda, dan keadaan yang sedang aktif terbaca tanpa dibuka
-             dulu seperti pada dropdown.
-
-             SATU BARIS YANG DIGESER, BUKAN MEMBUNGKUS. Empat chip beserta
-             angkanya tidak muat sebaris di layar 393px, dan versi dropdown
-             dipilih dulu justru karena itu: yang membungkus jadi baris kedua
-             mencuri tinggi, dan di layar ini tinggi diambil langsung dari
-             foto slip. Jadi barisnya TIDAK membungkus melainkan digulir
-             mendatar — tingginya tetap satu baris di lebar berapa pun.
-             (Backtick sengaja tidak dipakai di komentar ini: ia berada DI
-             DALAM template literal, dan satu backtick menutup literalnya.)
-
-             ANGKANYA IKUT DI DALAM LABELNYA. "Belum Kunci" tanpa angka
-             menyuruh petugas menekan panah sampai mentok untuk tahu berapa
-             yang tersisa; dengan angkanya, pertanyaan itu sudah terjawab
-             sebelum ditekan sekali pun. -->
         <div class="cek-saring-baris" id="cek-saring" role="group"
              aria-label="Saringan"></div>
       </div>
-      <!-- PANAH, NOMOR DADA, PANAH — satu baris, dan kotak tengahnya sekaligus
-           jalan melompat. Sebelumnya ada dua alat untuk satu pekerjaan: kotak
-           "Lompat ke nomor dada" di atas, dan sepasang tombol "Sebelumnya /
-           Berikutnya" selebar setengah layar di bawahnya. Keduanya menjawab
-           "regu mana yang saya lihat sekarang", dan dua jawaban untuk satu
-           pertanyaan berarti petugas memilih dulu sebelum bergerak.
-
-           Panahnya sengaja tanpa kata. "Berikutnya ▶" selebar setengah layar
-           bukan sasaran sentuh yang lebih baik daripada panah 3rem — ia cuma
-           mendorong nomor dadanya keluar dari tengah, tempat mata mencarinya. -->
       <div class="cek-navigasi">
         <button type="button" class="button button-secondary cek-panah"
                 id="cek-mundur" aria-label="Regu sebelumnya">&lsaquo;</button>
-        <!-- type=text, BUKAN number: kotak number membuang nol di depan
-             apa pun yang ditulis ke dalamnya, jadi "001" mustahil tergambar
-             di sana. inputmode tetap numeric supaya papan ketik HP tetap
-             angka. -->
         <input type="text" id="cek-dada" class="cek-dada" inputmode="numeric"
                autocomplete="off" aria-label="Nomor dada yang sedang dilihat">
         <button type="button" class="button button-secondary cek-panah"
                 id="cek-maju" aria-label="Regu berikutnya">&rsaquo;</button>
       </div>
-      <!-- TIDAK ADA "7 / 181". Berapa nomor yang sudah dilewati bukan
-           pertanyaan yang ditanya orang yang sedang mencocokkan satu regu,
-           dan kedua ujung daftarnya sudah terbaca dari panah yang mati.
-           Barisnya memakan 20px, dan di HP tiap piksel di atas layar ini
-           diambil dari tinggi foto slip. -->
     </div>
     <div id="cek-isi"></div>
   `));
@@ -9979,10 +9950,10 @@ async function layarCekNilai() {
     /* Kerangkanya digambar LEBIH DULU, fotonya menyusul. Tautan foto
        bertanda tangan butuh satu perjalanan jaringan per regu, dan layar yang
        kosong selama itu membuat petugas menekan "Berikutnya" dua kali. */
+    /* .cek-identitas — Tidak ada lagi blok gembok di kartu identitas:
+       gemboknya sekarang duduk di sebelah nilai tiap lomba, tempat
+       keputusannya benar-benar diambil. */
     elIsi.replaceChildren(h(`
-      <!-- Tidak ada lagi blok gembok di kartu identitas: gemboknya sekarang
-           duduk di sebelah nilai tiap lomba, tempat keputusannya benar-benar
-           diambil. -->
       <div class="cek-identitas">${kartuReguNilai(r, { ringkas: true })}</div>
       <div class="card">
         ${daftar.map(l => {
@@ -10012,72 +9983,70 @@ async function layarCekNilai() {
              tangan di foto dengan angka yang diketik menuntut mata menyeberang
              selebar layar dan turun — dua gerakan untuk satu perbandingan yang
              dilakukan ratusan kali. */
+          /* .cek-kepala — CEKLIS DI SEBELAH KANAN JUDUL, dan judulnya TETAP di
+             tengah. Ketiga selnya disusun 1fr auto 1fr, jadi lebar penandanya
+             tidak ikut menentukan di mana judulnya jatuh — kalau keduanya
+             sekadar didempetkan di tengah, judulnya bergeser ke kiri saat
+             penandanya muncul, dan bergeser lagi saat berganti dari
+             titik-titik ke centang. Judul yang berjoget tiap kali nilai
+             disimpan terbaca seperti layar yang salah. */
+          /* SATU BARIS: kotak isian, lambang simpan, lambang gembok.
+             Sebelumnya tombol "Simpan" selebar kolomnya berdiri di baris
+             sendiri di bawah angkanya, dan tinggi yang dimakannya diambil
+             dari foto — di layar yang seluruh gunanya membandingkan
+             angka dengan tulisan tangan, itu penukaran yang salah arah.
+
+             Ketiganya berurutan sesuai cara dipakainya: baca angkanya,
+             betulkan kalau perlu, simpan, lalu gembok. */
+          /* .cek-imbang — CERMIN GEMBOK. Kotak isian hanya benar-benar di
+             tengah kalau kedua sisinya memesan tempat yang sama; dengan gembok
+             di kanan saja, kotaknya terdorong ke kiri sebanyak separuh lebar
+             gembok. Selebar gemboknya, tak terlihat, dan bukan sekadar jarak
+             kosong: lebarnya datang dari aturan yang sama dengan gemboknya,
+             jadi keduanya tidak bisa berselisih suatu hari. */
+          /* .cek-angka — Kotak isian dibungkus supaya lambang di sebelahnya
+             berdiri di kanan SELURUH kelompoknya, bukan di kanan kotak
+             terakhir. Pembidaian punya lima kriteria bertumpuk; tanpa
+             pembungkus ini lambangnya ikut turun ke baris kelima. */
+          /* GEMBOK DI SEBELAH NILAINYA, dan cukup lambangnya saja.
+             Alurnya: panitia melihat foto slip di bawah, mencocokkan
+             dengan angka di atasnya, lalu mengetuk gembok. Kata
+             "Kunci Nilai" di sebelah tiap angka akan diulang lima
+             kali di satu layar untuk satu hal yang dipelajari sekali
+             (CLAUDE.md 9.1); yang membedakan terkunci dari tidak
+             adalah BENTUK gemboknya, tertutup atau terbuka.
+
+             Judulnya tetap ada untuk pembaca layar dan untuk yang
+             menahan kursor di atasnya. */
+          /* TIDAK ADA TOMBOL SIMPAN. Angkanya disimpan sendiri
+             begitu diubah, dan yang tersisa cuma KABAR: titik-titik
+             kuning berarti belum sampai ke database, centang hijau
+             berarti sudah.
+
+             Tombol simpan pada layar yang menyimpan sendiri adalah
+             tombol yang tidak pernah perlu ditekan, dan tombol seperti
+             itu justru membuat orang ragu apakah angkanya tersimpan
+             kalau ia LUPA menekannya. */
+          /* Panah dan penghitung, disembunyikan sampai lombanya
+             benar-benar punya lebih dari satu foto. Petak yang bisa
+             digeser tidak mengumumkan dirinya: yang terlihat cuma satu
+             foto, dan foto kedua baru ada kalau seseorang kebetulan
+             menyapu layarnya. Bentuknya sama persis dengan penggeser di
+             layar input — dua layar yang menggeser benda yang sama tidak
+             boleh memakai dua alat berbeda. */
           return `
             <section class="cek-lomba">
-              <!-- CEKLIS DI SEBELAH KANAN JUDUL, dan judulnya TETAP di tengah.
-                   Ketiga selnya disusun 1fr auto 1fr, jadi lebar penandanya
-                   tidak ikut menentukan di mana judulnya jatuh — kalau
-                   keduanya sekadar didempetkan di tengah, judulnya bergeser
-                   ke kiri saat penandanya muncul, dan bergeser lagi saat
-                   berganti dari titik-titik ke centang. Judul yang berjoget
-                   tiap kali nilai disimpan terbaca seperti layar yang salah.
-                   -->
               <div class="cek-kepala">
                 <span class="cek-nama">${esc(l.nama)}</span>
                 <span class="cek-status" data-status="${esc(l.kode)}"></span>
               </div>
-              <!-- SATU BARIS: kotak isian, lambang simpan, lambang gembok.
-                   Sebelumnya tombol "Simpan" selebar kolomnya berdiri di baris
-                   sendiri di bawah angkanya, dan tinggi yang dimakannya diambil
-                   dari foto — di layar yang seluruh gunanya membandingkan
-                   angka dengan tulisan tangan, itu penukaran yang salah arah.
-
-                   Ketiganya berurutan sesuai cara dipakainya: baca angkanya,
-                   betulkan kalau perlu, simpan, lalu gembok. -->
               <div class="cek-isian" data-isian="${esc(l.kode)}">
-                <!-- CERMIN GEMBOK. Kotak isian hanya benar-benar di tengah
-                     kalau kedua sisinya memesan tempat yang sama; dengan
-                     gembok di kanan saja, kotaknya terdorong ke kiri sebanyak
-                     separuh lebar gembok. Selebar gemboknya, tak terlihat, dan
-                     bukan sekadar jarak kosong: lebarnya datang dari aturan
-                     yang sama dengan gemboknya, jadi keduanya tidak bisa
-                     berselisih suatu hari. -->
                 <span class="cek-imbang" aria-hidden="true"></span>
-                <!-- Kotak isian dibungkus supaya lambang di sebelahnya berdiri
-                     di kanan SELURUH kelompoknya, bukan di kanan kotak
-                     terakhir. Pembidaian punya lima kriteria bertumpuk; tanpa
-                     pembungkus ini lambangnya ikut turun ke baris kelima. -->
                 <div class="cek-angka">${angka}</div>
-                <!-- GEMBOK DI SEBELAH NILAINYA, dan cukup lambangnya saja.
-                     Alurnya: panitia melihat foto slip di bawah, mencocokkan
-                     dengan angka di atasnya, lalu mengetuk gembok. Kata
-                     "Kunci Nilai" di sebelah tiap angka akan diulang lima
-                     kali di satu layar untuk satu hal yang dipelajari sekali
-                     (CLAUDE.md 9.1); yang membedakan terkunci dari tidak
-                     adalah BENTUK gemboknya, tertutup atau terbuka.
-
-                     Judulnya tetap ada untuk pembaca layar dan untuk yang
-                     menahan kursor di atasnya. -->
-                <!-- TIDAK ADA TOMBOL SIMPAN. Angkanya disimpan sendiri
-                     begitu diubah, dan yang tersisa cuma KABAR: titik-titik
-                     kuning berarti belum sampai ke database, centang hijau
-                     berarti sudah.
-
-                     Tombol simpan pada layar yang menyimpan sendiri adalah
-                     tombol yang tidak pernah perlu ditekan, dan tombol seperti
-                     itu justru membuat orang ragu apakah angkanya tersimpan
-                     kalau ia LUPA menekannya. -->
                 <button type="button" class="gembok cek-gembok"
                         data-gembok="${esc(l.kode)}"></button>
               </div>
               <div class="cek-foto" data-foto="${esc(l.kode)}"></div>
-              <!-- Panah dan penghitung, disembunyikan sampai lombanya
-                   benar-benar punya lebih dari satu foto. Petak yang bisa
-                   digeser tidak mengumumkan dirinya: yang terlihat cuma satu
-                   foto, dan foto kedua baru ada kalau seseorang kebetulan
-                   menyapu layarnya. Bentuknya sama persis dengan penggeser di
-                   layar input — dua layar yang menggeser benda yang sama tidak
-                   boleh memakai dua alat berbeda. -->
               <div class="foto-navigasi foto-navigasi-diam"
                    data-nav-foto="${esc(l.kode)}">
                 <button type="button" class="button button-secondary button-small foto-panah"
@@ -10904,6 +10873,12 @@ function tautanTugasSprint(tugas) {
  *  sasaran ketukan. Di HP, kotak 20px yang berdiri sendiri di antara seratus
  *  baris adalah sasaran yang meleset. */
 function tugasSprintHtml(tugas) {
+  /* Nama seksinya TIDAK ditulis lagi di sini. Tugas ini duduk di dalam
+     lajur seksinya, dan kepala lajur itu menempel di atas selama papan
+     digulir — jadi menuliskannya lagi di bawah tiap tugas berarti nama
+     yang sama tercetak seratus enam belas kali di kolom yang seluruh
+     isinya memang seksi itu. Di rentang HP, tempat kepala lajurnya
+     tidak ikut turun, yang membawanya bs-sel-lajur sekali per sel. */
   return `<li class="bs-todo-item" data-tugas="${esc(tugas.kode)}">
     <label class="bs-todo-baris">
       <input type="checkbox" class="checkbox bs-todo-kotak"
@@ -10911,15 +10886,6 @@ function tugasSprintHtml(tugas) {
       <span class="bs-todo-teks">${esc(tugas.teks)}</span>
     </label>
     <div class="bs-todo-kaki">
-      <!-- Nama seksinya TIDAK ditulis lagi di sini. Tugas ini duduk di dalam
-           lajur seksinya, dan kepala lajur itu menempel di atas selama papan
-           digulir — jadi menuliskannya lagi di bawah tiap tugas berarti nama
-           yang sama tercetak seratus enam belas kali di kolom yang seluruh
-           isinya memang seksi itu. Di rentang HP, tempat kepala lajurnya
-           tidak ikut turun, yang membawanya bs-sel-lajur sekali per sel.
-
-           (Tanpa backtick di komentar ini: ia berada DI DALAM template
-           literal, dan satu backtick menutupnya di tengah jalan.) -->
       ${tautanTugasSprint(tugas)}
       <span class="bs-todo-jejak" data-jejak="${esc(tugas.kode)}"></span>
     </div>
@@ -10971,11 +10937,11 @@ function selPapanHtml(sprint, lajur, pita) {
     return `<div class="bs-sel bs-sel-kosong ${esc(pita)}"
                  data-lajur="${esc(lajur.judul)}"></div>`;
   }
+  /* Nama seksinya ikut DI DALAM sel, dan disembunyikan di rentang papan.
+     Di rentang HP kepala lajurnya tidak ikut turun bersama selnya, jadi
+     tanpa baris ini tugasnya kehilangan nama pemiliknya sama sekali —
+     persoalan yang sama dengan data-label pada tabel yang jadi kartu. */
   return `<div class="bs-sel ${esc(pita)}" data-lajur="${esc(lajur.judul)}">
-    <!-- Nama seksinya ikut DI DALAM sel, dan disembunyikan di rentang papan.
-         Di rentang HP kepala lajurnya tidak ikut turun bersama selnya, jadi
-         tanpa baris ini tugasnya kehilangan nama pemiliknya sama sekali —
-         persoalan yang sama dengan data-label pada tabel yang jadi kartu. -->
     <span class="bs-sel-lajur i-${esc(lajur.rona)}">${esc(lajur.judul)}</span>
     <ul class="bs-todo">${tugas.map(tugasSprintHtml).join("")}</ul>
   </div>`;
@@ -11002,6 +10968,9 @@ function barisPapanHtml(sprint, lajur, h) {
      ditulis untuknya di tempat lain, lalu berlaku tanpa ada yang mencarinya. */
   const kelas = keadaan === "sekarang" ? " bs-baris-sekarang"
     : keadaan === "lewat" ? " bs-baris-lewat" : "";
+  /* .bs-sprint-waktu — Tiga patokan waktu, dan yang ketiga yang membuat papan
+     ini masih berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
+     hari-H tidak. */
   return `<div class="bs-baris-kepala${kelas}"
        id="bs-sprint-${esc(sprint.kode)}" data-sprint="${esc(sprint.kode)}">
       <div class="bs-baris-atas">
@@ -11009,9 +10978,6 @@ function barisPapanHtml(sprint, lajur, h) {
         <h3>${esc(sprint.tajuk)}</h3>
         <span class="bs-sprint-kemajuan" data-kemajuan="${esc(sprint.kode)}"></span>
       </div>
-      <!-- Tiga patokan waktu, dan yang ketiga yang membuat papan ini masih
-           berguna tahun depan: bulan boleh bergeser, hitungan mundur dari
-           hari-H tidak. -->
       <div class="bs-sprint-waktu">${esc(sprint.bulan)} · ${
         esc(sprint.rentang)} · ${esc(sprint.mundur)}</div>
       ${keadaan === "sekarang"
@@ -11038,15 +11004,15 @@ function barisPapanHtml(sprint, lajur, h) {
 function papanSprintHtml() {
   const lajur = lajurSeksi();
   const h = hariIniH();
+  /* .bs-papan-bungkus — Penggulir mendatarnya WADAH ini, tidak pernah badan
+     halaman (CLAUDE.md bagian 15). Kepala lajur menempel di atas dan kepala
+     sprint menempel di kiri, jadi yang digeser tidak pernah kehilangan nama
+     seksinya maupun nomor sprintnya. */
   return `<div class="bs-legenda">
       ${lajur.map(l => `<button type="button" class="bs-legenda-chip i-${
         esc(l.rona)}" data-sorot="${esc(l.judul)}">${esc(l.singkat)}<span
         class="bs-legenda-hitung" data-lajur-hitung="${esc(l.judul)}"></span></button>`).join("")}
     </div>
-    <!-- Penggulir mendatarnya WADAH ini, tidak pernah badan halaman
-         (CLAUDE.md bagian 15). Kepala lajur menempel di atas dan kepala
-         sprint menempel di kiri, jadi yang digeser tidak pernah kehilangan
-         nama seksinya maupun nomor sprintnya. -->
     <div class="bs-papan-bungkus">
       <div class="bs-papan" style="--lajur:${lajur.length}">
         <div class="bs-papan-sudut">Sprint</div>
@@ -11220,12 +11186,19 @@ function layarBukuSakti() {
         : b.bagian.map(bagianBukuHtml).join("")}
     </div>`).join("");
 
+  /* .description — Satu kalimat, dan ia membawa fakta yang tidak ada di
+     judulnya: siapa yang menulis buku ini dan kapan ia ditulis ulang. Tanpa
+     itu pembaca tidak tahu bahwa isinya boleh — dan harus — diubah. */
+  /* .tab-golongan — NAV BERISI TAUTAN, bukan role="tablist" berisi role="tab".
+     Bentuknya memang meminjam pil tab Live Score, tapi yang di sini
+     benar-benar TAUTAN: mengetuknya mengganti alamat dan menambah entri
+     Back, sementara sebuah tab tidak pindah halaman. Pembaca layar yang
+     diberi tahu "tab" lalu mendapat perpindahan halaman kehilangan
+     tempatnya. Yang menandai bab terbuka aria-current="page" — penanda
+     yang memang untuk satu tautan di antara sekelompok tautan. */
   LAYAR.replaceChildren(h(`
     <div class="card bs-kepala">
       <h2>Buku Sakti — ${esc(EDISI ? EDISI.name : "HRCD")}</h2>
-      <!-- Satu kalimat, dan ia membawa fakta yang tidak ada di judulnya:
-           siapa yang menulis buku ini dan kapan ia ditulis ulang. Tanpa itu
-           pembaca tidak tahu bahwa isinya boleh — dan harus — diubah. -->
       <p class="description">Ditulis ulang tiap serah terima jabatan oleh
         panitia yang turun, untuk panitia yang naik.</p>
       <div class="bs-alat">
@@ -11241,16 +11214,6 @@ function layarBukuSakti() {
       </div>
     </div>
 
-    <!-- NAV BERISI TAUTAN, bukan role="tablist" berisi role="tab".
-         Bentuknya memang meminjam pil tab Live Score, tapi yang di sini
-         benar-benar TAUTAN: mengetuknya mengganti alamat dan menambah entri
-         Back, sementara sebuah tab tidak pindah halaman. Pembaca layar yang
-         diberi tahu "tab" lalu mendapat perpindahan halaman kehilangan
-         tempatnya. Yang menandai bab terbuka aria-current="page" — penanda
-         yang memang untuk satu tautan di antara sekelompok tautan.
-
-         (Tanpa backtick di komentar ini: ia berada DI DALAM template
-         literal, dan satu backtick menutupnya di tengah jalan.) -->
     <nav class="tab-golongan bs-tab" aria-label="Bab">
       ${BUKU_SAKTI.map(b => `
         <a class="tab-gol" href="#/buku-sakti/${esc(b.kode)}"${
