@@ -66,19 +66,56 @@ test("gambar SENDIRI tidak menutup penampil", () => {
     "seluruh penampil menutup saat diketuk, termasuk gambarnya");
 });
 
-test("90 dan 270 DIBATASI dulu, baru diputar", () => {
-  // Urutannya yang menentukan benar tidaknya: kalau gambarnya diputar dulu
-  // lalu dibatasi, yang dibatasi kotak SEBELUM berputar — dan slip tegak yang
-  // diputar 90 derajat menjulur keluar layar di kedua sisinya.
+test("bingkai seukuran gambar yang TERLIHAT, sumbu ditukar untuk 90 dan 270", () => {
+  // Bingkai yang mengikuti kotak <img> bukan bingkai gambarnya: object-fit
+  // menaruh pita hitam di dalam kotak itu, dan rotate() tidak mengubah kotak
+  // tata letaknya. Slip yang diputar 90 derajat di HP dulu meluap dari tepi
+  // kiri bingkai dan terpotong di kanan, silangnya melayang di atas pita
+  // hitam, dan ketukan di pita itu tidak menutup penampil.
+  const fungsi = app.slice(app.indexOf("function bukaFotoPenuh("),
+                           app.indexOf("/* Satu pendengar untuk KETIGA petak foto"));
+  assert.match(fungsi, /const tukarSumbu = \["90", "270"\]\.includes\(img\.dataset\.putar\);/,
+    "90 dan 270 tidak menukar sumbu");
+  assert.match(fungsi, /const lebarTampil = tukarSumbu \? img\.naturalHeight : img\.naturalWidth;/,
+    "lebar yang tampil tidak diambil dari tinggi asli untuk 90/270");
+  assert.match(fungsi, /Math\.min\(1, ruangLebar \/ lebarTampil, ruangTinggi \/ tinggiTampil\)/,
+    "skala tidak dibatasi ruang layar, atau gambar kecil ikut diperbesar");
+  assert.match(fungsi, /bingkai\.style\.width = `\$\{lebarTampil \* skala\}px`;/,
+    "bingkai tidak diberi lebar gambar yang terlihat");
+  assert.match(fungsi, /img\.style\.width = `\$\{img\.naturalWidth \* skala\}px`;/,
+    "<img> tidak diberi ukuran aslinya yang diperkecil");
+});
+
+test("ukurannya dihitung ulang saat dimuat dan saat layar berubah", () => {
+  // Foto dari cache bisa sudah selesai dimuat sebelum pendengarnya terpasang,
+  // dan HP yang diputar ke mendatar menukar ruangnya.
+  const fungsi = app.slice(app.indexOf("function bukaFotoPenuh("),
+                           app.indexOf("/* Satu pendengar untuk KETIGA petak foto"));
+  assert.match(fungsi, /img\.addEventListener\("load", ukurBingkai, \{ signal \}\);/,
+    "ukuran tidak dihitung saat fotonya selesai dimuat");
+  assert.match(fungsi, /window\.addEventListener\("resize", ukurBingkai, \{ signal \}\);/,
+    "ukuran tidak dihitung ulang saat layar berubah");
+  assert.match(fungsi, /^\s*ukurBingkai\(\);\s*$/m,
+    "foto yang sudah ada di cache tidak pernah diukur");
+});
+
+test("gambar diputar dari TITIK TENGAH bingkai, dan baru tampil sesudah terukur", () => {
   const blok = css.slice(css.indexOf(".lihat-foto {"), css.indexOf(".lihat-tutup {"));
   assert.ok(blok.length > 0, "aturan .lihat-foto tidak ditemukan");
-  const batas = blok.indexOf("max-width: calc(100dvh - 2rem)");
-  const putar = blok.indexOf('img[data-putar="90"]  { transform: rotate(90deg); }');
-  assert.ok(batas > 0, "batas sumbu tertukar tidak dipasang untuk 90/270");
-  assert.ok(putar > batas,
-    "gambar diputar sebelum batasnya ditukar — hasilnya menjulur keluar layar");
-  assert.match(blok, /max-height: calc\(100dvw - 2rem\)/,
-    "batas tinggi tidak diambil dari lebar layar");
+  assert.match(blok, /\.lihat-foto img \{[^}]*position: absolute; left: 50%; top: 50%;/,
+    "gambar tidak ditaruh di titik tengah bingkai");
+  for (const sudut of ["90", "180", "270"]) {
+    assert.ok(blok.includes(
+      `.lihat-foto img[data-putar="${sudut}"]` + (sudut === "90" ? "  " : " ") +
+      `{ transform: translate(-50%, -50%) rotate(${sudut}deg); }`),
+      `putaran ${sudut} kehilangan translate(-50%, -50%) dan bergeser dari tengah`);
+  }
+  // Foto 4000px yang tergambar sebelum ukurannya dipasang memenuhi layar
+  // sekejap lalu menyusut.
+  assert.match(blok, /\.lihat-foto img \{[^}]*visibility: hidden;/,
+    "gambar tampil sebelum diukur");
+  assert.match(blok, /\.lihat-foto img\.terukur \{ visibility: visible; \}/,
+    "gambar yang sudah diukur tidak pernah tampil");
 });
 
 test("penampil berdiri DI ATAS dialog", () => {

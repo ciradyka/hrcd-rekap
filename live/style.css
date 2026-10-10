@@ -5924,11 +5924,12 @@ button.pill-number:hover { filter: brightness(.95); }
    sudut putar disimpan dan diterapkan CSS, jadi BERKASNYA masih miring dan
    tab baru memperlihatkan yang miring itu.
 
-   90 dan 270 MENUKAR SUMBU, dan urutannya yang menentukan benar tidaknya:
-   batas lebarnya diambil dari tinggi layar dan batas tingginya dari lebar
-   layar LEBIH DULU, baru gambarnya diputar. Dibalik — diputar dulu lalu
-   dibatasi — yang dibatasi kotak sebelum berputar, dan slip tegak yang
-   diputar 90 derajat menjulur keluar layar di kedua sisinya.
+   UKURANNYA DIHITUNG JAVASCRIPT (ukurBingkai() di app.js), bukan oleh
+   max-width dan object-fit. Bingkai mendapat ukuran gambar yang TERLIHAT —
+   untuk 90 dan 270 sumbunya sudah ditukar — dan <img> mendapat ukuran
+   aslinya yang diperkecil, ditaruh di titik tengah bingkai, lalu diputar
+   dari sana. Dengan begitu pojok bingkai adalah pojok slip, dan semua yang
+   di luar bingkai adalah latar yang menutup penampil saat diketuk.
    --------------------------------------------------------------------------- */
 .lihat-foto {
   position: fixed; inset: 0; z-index: 70;
@@ -5936,27 +5937,24 @@ button.pill-number:hover { filter: brightness(.95); }
   padding: 1rem;
   background: rgba(0, 0, 0, .92);
 }
-/* Menyusut sepas gambarnya, jadi pojoknya pojok gambar dan silangnya mendarat
-   di sana — bukan di pojok layar. `inline-flex` supaya tidak ada sisa baris
-   di bawah <img>, dan max-* diteruskan supaya gambarnya tetap dibatasi
-   layar. */
+/* Ukurannya diisi ukurBingkai(). 44px sebelum itu supaya silangnya tetap
+   terlihat selagi foto dimuat atau kalau fotonya gagal dimuat. */
 .lihat-bingkai {
-  position: relative;
-  display: inline-flex;
-  max-width: 100%; max-height: 100%;
+  position: relative; flex: 0 0 auto;
+  min-width: 44px; min-height: 44px;
 }
+/* Disembunyikan sampai terukur: foto 4000px yang tergambar sebelum ukurannya
+   dipasang memenuhi layar sekejap lalu menyusut. */
 .lihat-foto img {
-  max-width: 100%; max-height: 100%;
-  object-fit: contain; border-radius: 4px;
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: none; border-radius: 4px;
+  visibility: hidden;
 }
-.lihat-foto img[data-putar="90"],
-.lihat-foto img[data-putar="270"] {
-  max-width: calc(100dvh - 2rem);
-  max-height: calc(100dvw - 2rem);
-}
-.lihat-foto img[data-putar="90"]  { transform: rotate(90deg); }
-.lihat-foto img[data-putar="180"] { transform: rotate(180deg); }
-.lihat-foto img[data-putar="270"] { transform: rotate(270deg); }
+.lihat-foto img.terukur { visibility: visible; }
+.lihat-foto img[data-putar="90"]  { transform: translate(-50%, -50%) rotate(90deg); }
+.lihat-foto img[data-putar="180"] { transform: translate(-50%, -50%) rotate(180deg); }
+.lihat-foto img[data-putar="270"] { transform: translate(-50%, -50%) rotate(270deg); }
 /* Latar putih separuh tembus, alasan yang sama dengan tombol putar di bawah:
    slip adalah kertas putih, dan silang putih di atasnya hilang begitu
    gambarnya mengisi layar. 44px karena ia satu-satunya jalan keluar yang
