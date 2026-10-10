@@ -24,7 +24,7 @@ import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const folder = new URL("../web/js/", import.meta.url);
-// `recursive` supaya modul layar di web/js/layar/ ikut diperiksa.
+// `recursive` supaya web/js/common/ dan web/js/screens/ ikut diperiksa.
 const berkas = (await readdir(folder, { recursive: true }))
   .map(n => n.replace(/\\/g, "/")).filter(n => /\.(m?js)$/.test(n));
 

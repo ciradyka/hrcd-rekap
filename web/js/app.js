@@ -8,50 +8,50 @@
    esc() atau tag html`` — lihat util.js.
    ========================================================================== */
 
-import {
-  sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi,
-  infoEdisi, infoPengaturanKloter, aturPlanningBerangkat, ringkasanMeja, daftarPendaftaran,
-  dataPeserta, ubahKontakPendaftaran, ubahIdentitasRegu,
-  verifikasiPembayaran, batalkanVerifikasi, daftarUlang, tukarNomor,
-  daftarKloter, tandaiKloterDicetak, pindahKloter, daftarSisipan,
-  cariRegu, catatFinish, infoPenalti,
-  papanKeberangkatan, reguKloter, kontrakOpsi,
-  konfirmasiKontrak, ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
-  koreksiJamBerangkat,
-  daftarPos, komponenPos, lembarPos, lembarPosSatu, simpanNilaiPos, hapusNilaiPos,
-  rentangNomorDada,
-  komponenSemua, cacheLiveScore,
-  riwayatNilai, riwayatPendaftaran,
-  kunciNilaiPos, bukaKunciNilaiPos, putarFotoLembar,
-  unggahFotoLembar, daftarFotoLembar, fotoLembarPos, tautanFoto,
-  hasilKejuaraan, simpanKejuaraanManual, simpanKejuaraanTerjauh, daftarSekolah,
-  unggahFotoMasuk, daftarFotoBelumTaut, tautkanFoto, kuotaFoto,
-  statusAcara, bolehLihat, lengkapiHakSesi,
-  daftarCentangSprint, setCentangSprint,
-  aturFaseLive, segarkanLiveScore,
-  daftarAkun, ubahPeranAkun, setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
-  ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
-  hapusFotoLembar, tautanBukti, fotoBuku,
-} from "./api.js";
-import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif, kapital,
-         meterSah,
-         dialog, kartuGagalMuat, jamSah, pasangKotakJam,
-         berapaLalu, pemuat, ikonRefresh, detikSah, detikTeks,
-         kotakJamHtml, kecilkanFoto, ukuranRapi, ikon, ikonKotak, dada3,
-         angkaRapi, nilaiTeks, nilaiBagian, kolomPos, kontrakTeks,
-         jamPadaHari, bacaAnggotaHadir, kotakBerikutnyaDalamKolom,
-         GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu, totalBiaya,
-         varianUntuk, kelompokLomba, ringkasLomba,
-         katalogLomba, stopwatchTeks, detikDariMs,
-         petunjukKolom, periksaJawabSimpan, rapikanDada,
-         reguBelumInput, reguBelumFoto, reguBelumKunci } from "./util.js";
+import { sesi, masuk, keluar, gantiPasswordSendiri, ErrorApi, infoEdisi,
+         infoPengaturanKloter, aturPlanningBerangkat, ringkasanMeja,
+         daftarPendaftaran, dataPeserta, ubahKontakPendaftaran,
+         ubahIdentitasRegu, verifikasiPembayaran, batalkanVerifikasi,
+         daftarUlang, tukarNomor, daftarKloter, tandaiKloterDicetak,
+         pindahKloter, daftarSisipan, cariRegu, catatFinish, infoPenalti,
+         papanKeberangkatan, reguKloter, kontrakOpsi, konfirmasiKontrak,
+         ceklisBerangkat, batalCeklisBerangkat, berangkatkanKloter,
+         koreksiJamBerangkat, daftarPos, komponenPos, lembarPos,
+         lembarPosSatu, simpanNilaiPos, hapusNilaiPos, rentangNomorDada,
+         cacheLiveScore, riwayatNilai, kunciNilaiPos, bukaKunciNilaiPos,
+         putarFotoLembar, unggahFotoLembar, daftarFotoLembar, fotoLembarPos,
+         tautanFoto, hasilKejuaraan, simpanKejuaraanManual,
+         simpanKejuaraanTerjauh, daftarSekolah, unggahFotoMasuk,
+         daftarFotoBelumTaut, tautkanFoto, kuotaFoto, statusAcara,
+         bolehLihat, lengkapiHakSesi, daftarCentangSprint, setCentangSprint,
+         aturFaseLive, segarkanLiveScore, daftarAkun, ubahPeranAkun,
+         setAktifAkun, buatAkun, resetPasswordAkun, daftarPanitia,
+         ubahUsernameAkun, daftarFitur, daftarHak, setHak, tautanFotoBanyak,
+         hapusFotoLembar, tautanBukti, fotoBuku } from "./api.js";
+import { esc, h, html, rupiah, jamMenit, tanggalPanjang, tanggalJam, notif,
+         kapital, dialog, kartuGagalMuat, pasangKotakJam, berapaLalu, pemuat,
+         ikonRefresh, detikSah, detikTeks, kotakJamHtml, kecilkanFoto,
+         ukuranRapi, ikon, ikonKotak, dada3, angkaRapi, nilaiTeks, kolomPos,
+         kontrakTeks, jamPadaHari, bacaAnggotaHadir,
+         kotakBerikutnyaDalamKolom, GOLONGAN_LABEL, URUT_GOLONGAN, biayaRegu,
+         totalBiaya, varianUntuk, kelompokLomba, ringkasLomba, katalogLomba,
+         stopwatchTeks, detikDariMs, petunjukKolom, reguBelumInput,
+         reguBelumFoto, reguBelumKunci } from "./util.js";
 import { hitungRekomendasiKloter, jadwalPlanning } from "./departure-calculator.mjs";
 import { deretCocok, deretIntern, nomorStok, pesanDeret }
   from "./nomor-dada-series.mjs";
 import { BUKU_SAKTI, SPRINT, FITUR_NAMA, FITUR_LAYAR, NAMA_LAYAR,
          cariBagian, cariSprint, tugasSprint, lajurSeksi } from "./buku-sakti.mjs";
-
-const LAYAR = document.getElementById("layar");
+import { alatTabel, aturEdisi, aturHashLayar, aturSegarkanDiTempat,
+         barisTerakhirHtml, catatTerakhir, chipSaringHtml, cocokCari, EDISI,
+         ekorRute, hashLayar, kartuGalat, LAYAR, pangkalRute,
+         pasangAlatTabel, pasangDada3, pasangKepala, pengendaliLayar,
+         putusSaatPindah, reguAktif, segarkanDiTempat, sinyalLayarBaru,
+         tandaiChip, terakhir } from "./common/frame.js";
+import { pasangCentangRiwayat, tombolRiwayat } from "./common/riwayat-pendaftaran.js";
+import { antreanTertunda, bacaSel, gambarPitaAntrean, judulIsian, judulLomba,
+         judulPos, kartuReguNilai, kirimAntrean, kirimNilaiRegu,
+         muatKatalogPos, posUntukAkun, selKomponen, TIDAK_SAH } from "./common/nilai-pos.js";
 
 // Header dan menu bawah masih berupa HTML statis agar label dan tujuan
 // navigasinya tersedia sejak awal. Jalur SVG-nya tetap punya satu sumber di
@@ -82,166 +82,6 @@ const GOLONGAN_SINGKAT = {
   penggalang_pa: "Pgl Pa", penggalang_pi: "Pgl Pi",
   intern_pa: "Int Pa", intern_pi: "Int Pi",
 };
-let EDISI = null;
-
-/* Layar yang sanggup memperbarui dirinya SENDIRI tanpa digambar ulang
-   mendaftar di sini; kembali dari tab lain memanggil INI, bukan menggambar
-   ulang layarnya. Kosong berarti "gambar ulang saja" — itu yang berlaku
-   untuk hampir semua layar, dan memang benar untuk mereka.
-
-   Dideklarasikan di atas, bersama keadaan modul yang lain, meski yang
-   memakainya jauh di bawah: yang membacanya nanti harus bisa menemukan
-   seluruh keadaan yang hidup selama satu sesi di satu tempat. */
-let segarkanDiTempat = null;
-
-/* ---------------------------------------------------------------------------
-   PENDENGAR DAN PENGAMAT MILIK SATU LAYAR
-
-   Yang dipasang pada `window` atau lewat Resize/IntersectionObserver TIDAK
-   ikut hilang ketika `LAYAR.replaceChildren()` mengganti isinya: keduanya
-   dipegang objek yang hidup lebih lama daripada elemennya. Tanpa dilepas,
-   tiap kunjungan menambah satu salinan — dan salinan itu menahan seluruh
-   closure layarnya, termasuk `lembar` yang berisi ratusan baris nilai.
-
-   Yang menumpuk paling cepat bukan navigasi biasa. Dropdown pemilih pos
-   memanggil `layarInputPos()` lagi tanpa lewat `arahkan()`, jadi koordinator
-   pos yang menyapu kelima pos bolak-balik sepanjang pagi menumpuk satu
-   salinan tiap perpindahan. Karena itu layarnya sendiri yang meminta sinyal
-   baru, bukan hanya router.
-
-   Gejalanya nol: `ulangYangGagal()` sudah menjaga diri dengan
-   `document.body.contains(tbody)`, jadi salinan lama memang tidak melakukan
-   apa-apa. Yang tertinggal memorinya, dan tidak ada yang akan melihatnya
-   sampai satu HP kehabisan.
-
-   Polanya menyalin `pengendaliFilterSekolah` di bawah, yang sudah memakai
-   AbortController justru untuk alasan yang sama. */
-let pengendaliLayar = new AbortController();
-
-/** Lepaskan semua yang dipasang layar sebelumnya, lalu beri sinyal baru. */
-function sinyalLayarBaru() {
-  pengendaliLayar.abort();
-  pengendaliLayar = new AbortController();
-  return pengendaliLayar.signal;
-}
-
-/** Putuskan pengamat saat layarnya ditinggalkan.
- *
- *  AbortController tidak mengenal Resize/IntersectionObserver — `signal`
- *  hanya melepas `addEventListener`. Jadi pengamatnya dititipkan ke peristiwa
- *  `abort` sinyal yang sama, supaya satu saklar tetap mengurus keduanya. */
-const putusSaatPindah = (sinyal, pengamat) =>
-  sinyal.addEventListener("abort", () => pengamat.disconnect(), { once: true });
-
-const terakhir = { pembayaran: [], "daftar-ulang": [], finish: [] };
-
-/* ---------------- kerangka ---------------- */
-
-/** Lebar layar, tiga tingkat:
- *    false      layar satu-aksi — sempit, supaya tombol utamanya gampang
- *               ditemukan di layar kecil.
- *    true       tabel meja (pembayaran, daftar ulang) — butuh ruang, tapi
- *               tetap dipatok supaya barisnya tidak terbaca seperti pita.
- *    "lembar"   lembar Input Pos — layar TERLEBAR di sistem ini. Kolomnya
- *               ditentukan konfigurasi dan bisa bertambah tahun depan, jadi
- *               patokan 1080px yang pas untuk tabel meja justru memaksanya
- *               menggeser ke samping padahal layarnya masih lapang. */
-/** Nama acara untuk judul tab: "HRCD XXXVII" — diambil apa adanya dari nama
- *  edisi di database, bukan ditulis di sini. Tahun depan cukup mengubah satu
- *  baris di tabel edisi.
- *
- *  Bentuk pendek, bukan "Hiking Rally Ciradyka XXXVII": judul tab dipotong
- *  browser di sekitar 25 huruf, dan panitia membuka layar ini bersama belasan
- *  tab lain di HP. Yang harus terbaca di potongan itu adalah "Sistem
- *  Panitia", bukan nama acara yang sudah mereka tahu. Sebelum edisi termuat
- *  (layar masuk), sisakan "HRCD" saja. */
-const namaAcara = () => (EDISI && EDISI.name) ? String(EDISI.name) : "HRCD";
-
-function pasangKepala(judul, lebar = false) {
-  const s = sesi();
-  document.getElementById("kepala").hidden = !s;
-  // Menu bawah HP ikut aturan yang sama dengan header: hanya untuk yang
-  // sudah login. Penanda halaman aktif dipasang di sini juga supaya ikon
-  // Home menyala saat memang sedang di Home.
-  const nav = document.getElementById("bottom-nav");
-  if (nav) {
-    nav.hidden = !s;
-    /* TINGGI MENU BAWAH DIUKUR, TIDAK DITEBAK.
-
-       Yang menempel di atas menu ini — tombol SIMPAN NILAI dan pesan notifikasi
-       — dulu memesan tempat sebanyak `56px`. Angka itu `min-height` SATU ITEM
-       menu, bukan tinggi menunya: isinya (ikon 1.9rem + jarak + label .72rem +
-       padding) melewatinya, dan terukur di Chrome 430px menunya 65.4px. Jadi
-       tombol yang seharusnya berhenti 8px di atas menu justru menembusnya
-       1.4px, dan di layar sungguhan keduanya terbaca menempel.
-
-       Menaikkan tebakannya cuma memindahkan tanggal kedaluwarsanya: tingginya
-       ikut ukuran huruf peranti dan safe area, yang berbeda antar HP. Yang
-       benar mengukurnya — sama seperti `--kepala` di bawah, yang ada karena
-       alasan yang sama persis.
-
-       `padding-bottom: env(safe-area-inset-bottom)` ada DI DALAM menunya, jadi
-       angka ini sudah memuatnya; yang memakainya tidak boleh menambahkan
-       `env()` lagi. */
-    if (!nav.hidden) {
-      const tinggiNav = Math.round(nav.getBoundingClientRect().height);
-      if (tinggiNav > 0) {
-        document.documentElement.style.setProperty("--nav-bawah", `${tinggiNav}px`);
-      }
-    }
-    const diHome = location.hash === "#/home" || location.hash === "";
-    document.getElementById("nav-home")
-      .setAttribute("aria-current", diHome ? "page" : "false");
-    document.getElementById("nav-setting")
-      .setAttribute("aria-current", location.hash === "#/ganti-password" ? "page" : "false");
-    document.getElementById("nav-akun")
-      .setAttribute("aria-current", location.hash === "#/account" ? "page" : "false");
-    /* pangkalRute(), bukan perbandingan hash utuh: alamat Buku Sakti
-       berbuntut kode bab, jadi `#/buku-sakti/seksi` juga sedang di layar ini.
-       Tanpa itu penandanya menyala di bab pertama lalu padam begitu pembaca
-       pindah tab — satu-satunya item menu yang berkedip. */
-    document.getElementById("nav-buku")
-      .setAttribute("aria-current",
-        pangkalRute(location.hash) === "#/buku-sakti" ? "page" : "false");
-  }
-  // Akun hanya untuk admin. Disembunyikan, BUKAN dinonaktifkan: tombol mati di
-  // pojok header tidak memberi tahu apa pun selain bahwa ada sesuatu yang
-  // tidak boleh disentuh.
-  // Ikut CENTANG, bukan peran: admin yang centang Akun-nya dicabut tidak
-  // boleh tetap melihat tombolnya (0057).
-  const adminSaja = !!s && bolehLihat("akun");
-  document.getElementById("btn-akun").hidden = !adminSaja;
-  document.getElementById("nav-akun").hidden = !adminSaja;
-  document.getElementById("judul-layar").textContent = judul;
-  document.title = `${judul} — ${namaAcara()}`;
-  LAYAR.classList.toggle("wide", lebar === true);
-  LAYAR.classList.toggle("lembar", lebar === "lembar");
-  /* "cek" = layar Cek Nilai: setinggi layar, tanpa gulir, foto berjajar.
-     Ikut di-toggle di SINI bersama dua yang lain, bukan dipasang sendiri di
-     layarnya — supaya ia ikut mati waktu pindah ke layar mana pun. Kelas yang
-     dipasang di layarnya sendiri akan tertinggal dan membuat layar berikutnya
-     terpotong setinggi viewport. */
-  LAYAR.classList.toggle("cek", lebar === "cek");
-  if (s) document.getElementById("siapa").textContent =
-    `${s.username} · ${EDISI ? EDISI.name : ""}`;
-}
-
-const kartuGalat = (pesan) => html`
-  <div class="card" style="border-color:var(--bahaya);background:var(--bahaya-muda)">
-    <strong>${pesan}</strong></div>`;
-
-function barisTerakhirHtml(fungsi) {
-  const daftar = terakhir[fungsi] || [];
-  if (!daftar.length) return "";
-  return `<div class="card">
-    <h2 style="font-size:1rem;color:var(--tinta-lembut)">Baru saja di meja ini</h2>
-    <table class="table">${daftar.slice(0, 8).map(b => html`
-      <tr><td>${b.jam}</td><td><strong>${b.apa}</strong></td><td>${b.detail}</td></tr>`).join("")}
-    </table></div>`;
-}
-function catatTerakhir(fungsi, apa, detail) {
-  terakhir[fungsi].unshift({ jam: jamMenit(new Date()), apa, detail });
-}
 
 /* ============================ LOGIN ===================================== */
 
@@ -444,7 +284,7 @@ function layarLogin(pesan) {
     btn.disabled = true; btn.textContent = "Memeriksa…";
     try {
       await masuk(u.value.trim(), document.getElementById("p").value);
-      EDISI = null;
+      aturEdisi(null);
       location.hash = "#/home";
       arahkan();
     } catch (e) {
@@ -463,7 +303,7 @@ function layarLogin(pesan) {
   // alasan menahan kotak login.
   if (!EDISI) {
     infoEdisi()
-      .then(e => { EDISI = e; if (!sesi()) pasangKepala("Sistem Panitia"); })
+      .then(e => { aturEdisi(e); if (!sesi()) pasangKepala("Sistem Panitia"); })
       .catch(() => {});
   }
 }
@@ -879,107 +719,6 @@ function layarGantiPassword() {
   baru.focus();
 }
 
-/* ============================ CHIP SARINGAN ============================== */
-
-/** Chip saringan — SATU bentuk untuk setiap layar yang menyaring: meja
- *  Pembayaran, Daftar Ulang, Data Peserta, Input Nilai Tabel, riwayat nilai,
- *  dan Cek Nilai. Dua layar yang menyaring dengan alat berbeda harus dicoba
- *  dulu sebelum dipercaya, dan perbaikan pada satu salinan tidak sampai ke
- *  salinan lainnya.
- *
- *  `pilihan` — [{ kode, label, pendek?, jumlah? }], urutannya dari pemanggil,
- *  dengan "Semua" PERTAMA di setiap layar.
- *  `pendek` — label versi HP, hanya kalau berbeda dari `label`: chip harus
- *  muat satu baris di layar 360px, dan yang dipendekkan hanya kata yang bisa
- *  ditebak dari konteksnya ("bayar", "Nomor Dada").
- *  `jumlah` — angka di belakang label, untuk layar yang menghitung sisa
- *  pekerjaannya (Cek Nilai). Tanpa `jumlah`, tidak ada angka.
- *  `atribut` — nama data-* yang membawa kodenya: "saring" atau "lomba". */
-function chipSaringHtml(pilihan, aktif, atribut = "saring") {
-  return pilihan.map(s => {
-    const label = s.pendek && s.pendek !== s.label
-      ? `<span class="saring-panjang">${esc(s.label)}</span><span class="saring-pendek">${esc(s.pendek)}</span>`
-      : esc(s.label);
-    const jumlah = s.jumlah === undefined ? ""
-      : ` <span class="saring-jumlah">${esc(String(s.jumlah))}</span>`;
-    return `<button type="button" class="option option-small" data-${atribut}="${esc(s.kode)}"
-              aria-pressed="${s.kode === aktif}">${label}${jumlah}</button>`;
-  }).join("");
-}
-
-/** Nyalakan satu chip dan padamkan sisanya — di tempat, tanpa membangun ulang
- *  tombolnya, supaya chip yang sedang difokus papan ketik tetap difokus. */
-function tandaiChip(wadah, atribut, kode) {
-  wadah.querySelectorAll(`[data-${atribut}]`).forEach(b =>
-    b.setAttribute("aria-pressed", String(b.dataset[atribut] === kode)));
-}
-
-/* ============================ ALAT TABEL ================================= */
-
-/** Kotak cari + chip saring, dipakai layar Pembayaran, Daftar Ulang, Data
- *  Peserta, dan Input Nilai Tabel. Menyaring di browser (data sudah dimuat
- *  semua) supaya hasilnya berubah seketika sambil mengetik — di meja,
- *  menunggu server tiap huruf terasa seperti aplikasi macet. Bentuk chip-nya
- *  di chipSaringHtml(). */
-function alatTabel({ saringan, saringAktif, jumlah, cariContoh, kiri = "", kanan = "" }) {
-  return `
-    <div class="table-toolbar">
-      ${kiri}
-      <div class="field kotak-cari">
-        <label for="cari-tabel" class="visually-hidden">Cari</label>
-        <input type="text" id="cari-tabel" autocomplete="off"
-               placeholder="${esc(cariContoh || "Cari kode, sekolah, atau nama regu…")}">
-      </div>
-      <div class="filter-baris">
-        <div class="filter-row">${chipSaringHtml(saringan, saringAktif)}</div>
-        <span class="table-count" id="tabel-jumlah">${jumlah} baris</span>
-      </div>
-      ${kanan}
-    </div>`;
-}
-
-/** Pasang perilaku cari + saring. gambar(cari, saring) menggambar ulang
- *  isi tabel saja — kerangka layar tidak ikut dibangun ulang supaya fokus
- *  kotak cari tidak lompat saat mengetik (temuan uji). */
-function pasangAlatTabel(gambar) {
-  const inp = document.getElementById("cari-tabel");
-  let saring = LAYAR.querySelector("[data-saring][aria-pressed='true']")?.dataset.saring || "";
-  let cari = "";
-  let jeda = null;
-
-  const jalan = () => gambar(cari, saring);
-
-  inp.addEventListener("input", () => {
-    clearTimeout(jeda);
-    // Jeda pendek: mengetik cepat tidak menggambar ulang tiap huruf.
-    jeda = setTimeout(() => { cari = inp.value.trim().toLowerCase(); jalan(); }, 120);
-  });
-  LAYAR.querySelectorAll("[data-saring]").forEach(b =>
-    b.addEventListener("click", () => {
-      saring = b.dataset.saring;
-      tandaiChip(LAYAR, "saring", saring);
-      jalan();
-    }));
-  inp.focus();
-  jalan();
-  // Dikembalikan supaya pemanggil bisa menerapkan ulang saringan yang SEDANG
-  // menyala sesudah datanya berubah di belakang layar — tanpa itu, baris yang
-  // baru saja difoto tetap duduk di daftar "Belum Foto" sampai ada yang
-  // menyentuh saringannya.
-  return jalan;
-}
-
-/** Filter bersama: kode pembayaran, nama sekolah, atau nama salah satu regu
- *  mengandung teks cari. Nama regu ikut dicari karena meja pembayaran
- *  menampilkan barisnya per regu — yang disebut sekolah kadang nama regunya,
- *  bukan kodenya. */
-const cocokCari = (b, cari) => !cari
-  || b.kode_pembayaran.toLowerCase().includes(cari)
-  || (b.sekolah?.name || "").toLowerCase().includes(cari)
-  || (b.regu || []).some(r => (r.nama_regu || "").toLowerCase().includes(cari));
-
-const reguAktif = (b) => (b.regu || []).filter(r => !r.is_cancelled);
-
 /* ============================ MEJA PEMBAYARAN ============================ */
 
 /* ============================ DATA PESERTA ==============================
@@ -1025,133 +764,6 @@ const tanggalRingkas = (t) => {
   for (const x of FMT_DP.formatToParts(new Date(t))) b[x.type] = x.value;
   return `${b.day}/${b.month}/${b.year} ${b.hour}:${b.minute}`;
 };
-
-/* ---------------------------------------------------------------------------
-   RIWAYAT SATU PENDAFTARAN — centang hijau yang bisa diketuk.
-
-   Bentuknya menyalin yang sudah ada di layar Input Nilai Pos: centang hijau
-   berarti "sudah masuk database", dan mengetuknya menjawab pertanyaan yang
-   memang muncul saat menatapnya — siapa yang menaruhnya, dan apa yang ia ganti.
-   Kelasnya pun sama (.riwayat, .r-lomba, .r-nilai, .r-oleh): dua dialog yang
-   menjawab pertanyaan yang sama tidak boleh terasa seperti dua aplikasi.
-
-   Hanya pada baris yang SUDAH SELESAI — Lunas di Pembayaran, dan bernomor dada
-   di Daftar Ulang. Itu bukan penghematan: pada baris yang belum lunas atau
-   belum bernomor, centang hijau berbohong tentang keadaannya.
-
-   Datanya sudah tercatat trigger `catat_riwayat()` sejak 0002 — pendaftaran,
-   regu, DAN pembayaran. Yang baru cuma cara melihatnya: view
-   v_riwayat_pendaftaran (migrasi 0137).
-   --------------------------------------------------------------------------- */
-
-/** Nama kolom database tidak terbaca oleh yang tidak menulisnya. Yang tidak
- *  terdaftar di sini tetap tampil dengan nama aslinya — nama teknis yang jujur
- *  lebih baik daripada baris yang hilang diam-diam. */
-const LABEL_RIWAYAT = {
-  nama_regu: "Nama regu", nama_ketua: "Ketua", anggota: "Anggota",
-  kelas_organisasi: "Kelas", golongan: "Golongan", nomor_dada: "Nomor dada",
-  kloter_nomor: "Kloter", urutan_kloter: "Urutan", kontrak_menit: "Kontrak",
-  is_cancelled: "Dibatalkan",
-  nama_kontak: "Contact person", kontak_wa: "WhatsApp",
-  status: "Status", jumlah_regu: "Jumlah regu", butuh_barak: "Barak",
-  jumlah_menginap: "Menginap", metode_bayar: "Cara bayar",
-  bukti_transfer: "Bukti transfer",
-  amount: "Nominal", method: "Metode", nomor_kwitansi: "Kwitansi",
-};
-
-const TABEL_RIWAYAT = {
-  pendaftaran: "Pendaftaran", regu: "Regu", pembayaran: "Pembayaran",
-};
-
-/** JSON apa adanya tidak dibaca orang: null jadi "—", daftar anggota jadi
- *  kalimat, dan boolean jadi kata.
- *
- *  MENGEMBALIKAN HTML, BUKAN TEKS, jadi ia yang meng-escape isinya sendiri —
- *  seluruh jalur keluar di bawah lewat esc(). Nama anggota diketik orang luar
- *  (lihat kepala util.js), dan satu jalur yang lupa di-escape di sini adalah
- *  XSS tersimpan di layar panitia. */
-function nilaiRiwayat(v) {
-  if (v === null || v === undefined) return "—";
-  if (Array.isArray(v)) return v.length ? esc(v.join(", ")) : "—";
-  if (typeof v === "boolean") return v ? "ya" : "tidak";
-  const t = String(v);
-  if (t === "") return "—";
-  /* Link bukti transfer ditulis "(link)", bukan alamatnya: alamat Drive
-     panjangnya 60 huruf dan tidak satu pun di antaranya menjawab pertanyaan
-     yang sedang ditanyakan.
-
-     TAPI SEKARANG BISA DIKETUK. Sebelumnya ia tulisan mati, dan tombol yang
-     membuka bukti itu memang ada di baris tabelnya — tetapi baris riwayat
-     yang sedang dibaca justru menyebut bukti yang DULU dipasang, yang bisa
-     berbeda dari yang berlaku sekarang. Satu-satunya cara melihat yang
-     disebut riwayat adalah membukanya dari riwayat.
-
-     "link", bukan "tautan": kata yang memang diucapkan panitia
-     (CLAUDE.md 5.7). */
-  return /^https?:\/\//.test(t)
-    ? `<a href="${esc(t)}" target="_blank" rel="noopener">(link)</a>`
-    : esc(t);
-}
-
-/** Satu baris riwayat jadi satu atau beberapa <li>.
- *
- *  INSERT sengaja TIDAK dirinci kolom per kolom: saat baris lahir, SELURUH
- *  kolomnya terhitung berubah, dan dua puluh baris "— → sesuatu" mengubur
- *  perubahan sungguhan yang justru dicari. Satu baris "Regu dibuat" sudah
- *  menyampaikan seluruh yang berguna. */
-function liRiwayat(b) {
-  const tabel = TABEL_RIWAYAT[b.table_name] || b.table_name;
-  // Perubahan tanpa pelaku (migrasi impor — lihat 0138) menyisakan TANGGALNYA
-  // saja. "(tidak dikenal)" terbaca seperti sistem yang gagal mengenali
-  // petugas, padahal memang tidak ada petugas yang melakukannya.
-  const oleh = [b.oleh, tanggalJam(b.changed_at)].filter(Boolean).join(" · ");
-
-  if (b.action !== "UPDATE") {
-    return html`<li>
-      <span class="r-lomba">${tabel}</span>
-      <span class="r-nilai"><strong>${b.action === "DELETE" ? "dihapus" : "dibuat"}</strong></span>
-      <span class="r-oleh">${oleh}</span>
-    </li>`;
-  }
-
-  /* Template BIASA, bukan html`` — nilaiRiwayat() sudah mengembalikan HTML
-     (link bukti transfer bisa diketuk), dan tag html`` akan meng-escape-nya
-     jadi tulisan `<a href=...>`. Yang lain tetap lewat esc() satu per satu. */
-  const ubah = b.perubahan || {};
-  return Object.keys(ubah).map(k => `<li>
-    <span class="r-lomba">${esc(LABEL_RIWAYAT[k] || k)}</span>
-    <span class="r-nilai">${nilaiRiwayat(ubah[k].lama)} →
-      <strong>${nilaiRiwayat(ubah[k].baru)}</strong></span>
-    <span class="r-oleh">${esc(oleh)}</span>
-  </li>`).join("");
-}
-
-/** Penanda "sudah selesai" yang bisa diketuk untuk membuka riwayatnya.
- *
- *  TIDAK ADA IKON BARU. Yang dijadikan tombol adalah penanda yang SUDAH
- *  berdiri di baris itu — lencana LUNAS di Meja Pembayaran, pil nomor dada di
- *  Meja Daftar Ulang. Keputusan pemilik acara, dan alasannya sederhana:
- *  menambah satu lambang berarti satu hal lagi yang harus diartikan petugas,
- *  padahal yang mau ditanyakan orang saat menatap "LUNAS" memang "lunas oleh
- *  siapa". Tombolnya sudah ada; ia cuma belum bisa diketuk.
- *
- *  Bentuknya juga yang membuatnya muat. Kolom tombol Meja Pembayaran penuh
- *  sampai piksel terakhir pada lebar tersempitnya — diukur: isinya 197px di
- *  dalam sel 193px — jadi elemen ketujuh di baris itu meluap keluar tabel.
- *
- *  aria-label ditulis penuh karena "LUNAS" saja tidak memberi tahu pembaca
- *  layar bahwa ini tombol dan apa yang dibukanya. */
-const tombolRiwayat = (kode, isiHtml, kelas) =>
-  `<button class="${esc(kelas)}" type="button"
-           data-riwayat-kode="${esc(kode)}" title="Riwayat perubahan"
-           aria-label="Riwayat perubahan ${esc(kode)}">${isiHtml}</button>`;
-
-/** Pasang penangannya pada seluruh centang di dalam satu wadah. Dipanggil
- *  sekali per penggambaran tabel, bukan per baris. */
-function pasangCentangRiwayat(wadah) {
-  wadah.querySelectorAll("[data-riwayat-kode]").forEach(btn =>
-    btn.addEventListener("click", () => bukaRiwayatPendaftaran(btn.dataset.riwayatKode)));
-}
 
 /* ============================================================================
    FOTO SLIP DIBUKA BESAR, DAN IKUT SUDUT PUTARNYA.
@@ -1268,33 +880,6 @@ document.addEventListener("click", (e) => {
   const wadah = taut.closest("[data-putar]");
   bukaFotoPenuh(url, wadah ? wadah.dataset.putar : 0, taut.getAttribute("title") || "");
 });
-
-/** Dibaca saat DIKETUK, bukan ikut dimuat bersama tabelnya: satu layar memuat
- *  ratusan baris dan hampir semuanya tidak pernah ditanya riwayatnya.
- *
- *  Yang ditampilkan sengaja apa adanya — dari apa jadi apa, siapa, kapan —
- *  tanpa menyimpulkan mana yang "mencurigakan". Yang tahu apakah suatu
- *  perubahan wajar adalah orang yang mengerjakannya, bukan layar. */
-async function bukaRiwayatPendaftaran(kode) {
-  let baris;
-  try { baris = await riwayatPendaftaran(kode); }
-  catch (err) { notif(`Riwayat tidak bisa dibaca: ${err.message}`, true); return; }
-
-  const isi = baris.map(liRiwayat).join("");
-  await dialog({
-    /* TANDA HUBUNG YANG TIDAK BOLEH DIPATAH (U+2011). Kode bayar berbentuk
-       "HRCD37-2B8582", dan tanda hubung biasa adalah tempat pemenggalan baris
-       yang sah — jadi judulnya patah jadi "Riwayat HRCD37-" di baris pertama
-       dan "2B8582" di baris kedua, dan dari layar itu terbaca seperti dua
-       kode. Rupanya sama persis; yang berbeda cuma ia tidak bisa dijadikan
-       tempat patah. */
-    judul: `Riwayat ${kode.replace(/-/g, "‑")}`,
-    kartuHtml: isi
-      ? `<ul class="riwayat riwayat-pendaftaran">${isi}</ul>`
-      : `<p class="description">Belum pernah diubah.</p>`,
-    labelAksi: "Tutup", bacaSaja: true,
-  });
-}
 
 async function layarDataPeserta() {
   if (!EDISI) { layarButuhEdisi("Data Peserta"); return; }
@@ -2812,41 +2397,6 @@ async function layarKeberangkatan() {
   gambarKloter();
 }
 
-/* ============================ CETAK DAFTAR KLOTER ======================== */
-
-/** Kotak nomor dada dipadatkan jadi tiga digit SESUDAH selesai diketik: 1
- *  jadi 001, 60 jadi 060 — bentuk yang sama dengan angka yang tercetak di
- *  dada peserta dan di seluruh layar lain, yang sudah lama lewat dada3().
- *
- *  SESUDAH, bukan sambil. Memadatkan tiap ketikan membuat angka yang belum
- *  selesai melompat-lompat: mengetik 060 menampilkan 006 lalu 060, dan
- *  mengetik 6 menampilkan 006 sebelum petugas sempat mengetik nol keduanya.
- *  Yang terbaca bukan "sedang mengetik 60" melainkan "sudah jadi 006", dan
- *  di meja yang ramai itu cukup untuk membuat orang ragu lalu mengulang.
- *  Sekarang yang tampil apa adanya — 0, lalu 06, lalu 060 — dan padatnya
- *  jatuh sekali saja, saat kotaknya ditinggalkan.
- *
- *  YANG BERUBAH CUMA TAMPILANNYA. Setiap pembaca kotak ini memakai
- *  `Number(value)`, dan `Number("06")` tetap 6 — tidak ada satu pun
- *  pencarian, penyimpanan, atau perbandingan yang perlu tahu soal ini. Jadi
- *  kotak yang ditinggalkan berisi 06 sudah benar isinya sebelum dipadatkan.
- *
- *  Nomor Internal empat digit tidak dipotong: dada3() melewatkan apa pun di atas
- *  999 apa adanya (migrasi 0116), jadi 1000 tetap 1000. Aturan isinya, nol
- *  yang mengosongkan kotak termasuk, ada di rapikanDada() di util.js. */
-function pasangDada3(el, sinyal) {
-  const rapikan = () => {
-    const baru = rapikanDada(el.value);
-    if (baru !== el.value) el.value = baru;
-  };
-  const opsi = sinyal ? { signal: sinyal } : undefined;
-  // `blur` DAN `change`: change tidak berbunyi kalau isinya tidak berubah
-  // sejak fokus, dan blur tidak berbunyi kalau kotaknya di-submit lewat
-  // Enter tanpa sempat kehilangan fokus. Keduanya idempoten.
-  el.addEventListener("blur", rapikan, opsi);
-  el.addEventListener("change", rapikan, opsi);
-}
-
 async function layarCetakKloter() {
   pasangKepala("Daftar Kloter");
   LAYAR.replaceChildren(h(pemuat()));
@@ -3550,162 +3100,6 @@ function kartuReguFinish(r) {
  *  melekat di akun dan tidak bisa dipindah dari layar. */
 const posDipilih = { nomor: null };
 
-const judulPos = (p) => p
-  ? (p.bayangan ? `Pos Bayangan — ${p.name}` : `Pos ${p.nomor} — ${p.name}`)
-  : "Pos";
-
-/** Kotak isian satu komponen. BENTUKNYA DITENTUKAN KONFIGURASI, bukan ditulis
- *  per pos di sini — itu sebabnya tabel ini bisa mengikuti lembar mana pun
- *  tanpa menyentuh JavaScript:
- *
- *    form=biner        -> satu centang        (kolom "Kompas (v)")
- *    satuan=detik      -> SATU kotak waktu     ("47" atau "1:10" — lihat
- *                         detikSah di util.js; dulu dua kotak Menit dan
- *                         Detik, dan alasan menyatukannya ada di sana)
- *    satuan=meter      -> satu kotak meter     ("8.55", disimpan sentimeter)
- *    benar_kurang_salah-> Benar / Salah
- *    sisanya           -> satu kotak angka, batasnya dari rentang wajar
- */
-function selKomponen(k, nilai) {
-  const n1 = nilai ? nilai.nilai_1 : null;
-  const n2 = nilai ? nilai.nilai_2 : null;
-  const kode = esc(k.kode);
-
-  /* KOTAK KOSONG YANG MENYEBUT DIRINYA KOSONG — tapi hanya di tempat yang
-     membutuhkannya.
-
-     Di hampir semua lomba, kosong dan 0 berujung sama: nol kata benar dan
-     belum dinilai sama-sama menyumbang 0 poin, jadi menandai kotak kosong
-     tidak menjawab pertanyaan siapa pun — ia cuma menambah 38 garis kecil di
-     tabel yang sudah penuh.
-
-     Menaksir kebalikannya. Yang ditulis SELISIH, jadi 0 berarti taksirannya
-     tepat dan bernilai 100 — nilai tertinggi — sementara kotak kosong berarti
-     tidak dinilai dan bernilai 0. Di sanalah satu garis kecil sepadan.
-
-     Penandanya ikut `petunjuk`, bukan daftar kode di dalam kode ini. Komponen
-     yang sampai butuh keterangan sendiri adalah persis komponen yang kotak
-     kosongnya perlu bicara — dan kalau tahun depan ada lomba lain yang diberi
-     `petunjuk`, ia mendapat garis itu juga. Itu perilaku yang dimaksud, bukan
-     kejutan. */
-  const kosongTampak = k.petunjuk ? ` placeholder="–"` : "";
-
-  if (k.form === "biner") {
-    return `<input type="checkbox" class="checkbox" data-kode="${kode}"
-                   ${Number(n1) > 0 ? "checked" : ""}
-                   aria-label="${esc(k.name)}">`;
-  }
-  if (k.satuan === "detik") {
-    // SATU kotak, dan bertipe text — bukan number — karena isinya boleh
-    // memuat titik dua. inputmode="numeric" tetap memanggil papan angka di HP,
-    // jadi yang hilang cuma tombol panah naik-turun yang memang tidak pernah
-    // dipakai untuk mencatat waktu.
-    return `<input type="text" class="small-input input-waktu" inputmode="numeric"
-                   data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
-                   aria-label="${esc(k.name)} — detik, atau menit:detik">`;
-  }
-  if (k.satuan === "meter") {
-    // Bertipe text, bukan number, karena isinya boleh memuat KOMA — peserta
-    // menulis "8,55" di blangko dan petugas mengetik apa yang ia baca.
-    // input[type=number] menolak koma diam-diam: kotaknya jadi kosong tanpa
-    // sepatah kata, dan yang mengetiknya mengira angkanya sudah masuk.
-    return `<input type="text" class="small-input input-meter" inputmode="decimal"
-                   data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
-                   aria-label="${esc(k.name)} — meter, dua angka di belakang koma">`;
-  }
-  if (k.form === "benar_kurang_salah") {
-    return `<span class="pos-pasangan">
-      <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
-             data-kode="${kode}" data-slot="benar" value="${esc(nilaiTeks(k, n1))}"
-             aria-label="${esc(k.name)} — jumlah benar">
-      <span class="pos-pemisah" aria-hidden="true">/</span>
-      <input type="number" class="small-input" inputmode="numeric" step="1" min="0"
-             data-kode="${kode}" data-slot="salah" value="${esc(nilaiTeks(k, n2))}"
-             aria-label="${esc(k.name)} — jumlah salah">
-    </span>`;
-  }
-  // Sengaja placeholder, bukan nilai tersimpan. Menyimpan keadaan ketiga
-  // bernama "–" akan memaksa setiap tempat yang membaca angka ini menebak
-  // maksudnya, padahal database hanya punya dua: ada barisnya, atau tidak.
-  // step="1" + inputmode="numeric", BUKAN step="any" + inputmode="decimal".
-  // Nilai mentah tidak pernah pecahan (migrasi 0059), dan kotak yang
-  // memanggil papan angka bertitik desimal adalah undangan mengetik koma.
-  // Ini cuma membuatnya sulit — yang benar-benar menolak adalah constraint
-  // nilai_mentah_bulat, karena import massal dan tempel dari spreadsheet
-  // tidak lewat kotak ini sama sekali.
-  return `<input type="number" class="small-input" inputmode="numeric" step="1"
-                 min="${esc(k.rentang_mentah_min)}" max="${esc(k.rentang_mentah_maks)}"
-                 data-kode="${kode}" value="${esc(nilaiTeks(k, n1))}"${kosongTampak}
-                 aria-label="${esc(k.name)}">`;
-}
-
-/** Keterangan kecil di bawah judul kolom — rentang yang boleh diketik,
- *  diambil dari konfigurasi supaya tidak pernah berbeda dengan yang divalidasi
- *  server. Persis angka yang tercetak di judul kolom lembar kertas. */
-/** Isi kotak yang tidak bisa dibaca sebagai angka/waktu. Sengaja BUKAN null:
- *  null berarti "kotak kosong", dan jalur simpan menerjemahkan itu jadi
- *  perintah MENGHAPUS nilai yang sudah tersimpan. */
-const TIDAK_SAH = Symbol("tidak sah");
-
-/** Membaca satu komponen dari barisnya. null = kotaknya kosong, artinya
- *  komponen ini BELUM dinilai — bukan "dinilai nol".
- *
- *  Centang adalah pengecualian, dan sengaja: sebuah kotak centang tidak punya
- *  keadaan kosong, hanya dicentang atau tidak. Jadi aturannya "menyimpan satu
- *  baris berarti mengesahkan seluruh isinya" — centang yang dibiarkan kosong
- *  di baris yang disimpan berarti benar-benar tidak kena, dan tersimpan
- *  sebagai 0. Baris yang tidak disentuh tidak pernah dikirim sama sekali,
- *  jadi tidak ada regu yang mendadak "dinilai nol" karena tetangganya diisi. */
-function bacaSel(tr, k) {
-  const kotak = tr.querySelectorAll(`[data-kode="${CSS.escape(k.kode)}"]`);
-  if (k.form === "biner") return { nilai_1: kotak[0].checked ? 1 : 0, nilai_2: null };
-
-  if (k.satuan === "detik") {
-    // TIGA keadaan, bukan dua. Kotak kosong dan kotak berisi "1:75" tidak
-    // boleh diperlakukan sama, dan dulu keduanya sama-sama mengembalikan null.
-    //
-    // Akibatnya senyap dan merusak: jalur simpan membaca null sebagai "kotak
-    // dikosongkan", jadi nilai yang SUDAH tersimpan di database ikut DIHAPUS —
-    // lalu barisnya tetap mendapat centang hijau. Petugas salah ketik satu
-    // huruf dan kehilangan angka yang sudah benar, tanpa satu pun tanda.
-    if (!kotak[0].value.trim()) return null;
-    const detik = detikSah(kotak[0].value);
-    return detik === null ? TIDAK_SAH : { nilai_1: detik, nilai_2: null };
-  }
-  if (k.satuan === "meter") {
-    // TIGA keadaan, sama seperti detik: kosong berarti "hapus nilainya",
-    // tidak terbaca berarti "jangan kirim apa pun". Menyamakan keduanya
-    // membuat salah ketik satu huruf MENGHAPUS angka yang sudah benar,
-    // lalu barisnya tetap mendapat centang hijau.
-    if (!kotak[0].value.trim()) return null;
-    const cm = meterSah(kotak[0].value);
-    return cm === null ? TIDAK_SAH : { nilai_1: cm, nilai_2: null };
-  }
-  // KOTAK ANGKA BAWAAN BROWSER PUNYA KEADAAN KETIGA JUGA, dan ia tidak
-  // kelihatan. `input[type=number]` yang berisi ketikan yang tidak bisa ia
-  // urai — "2 5", "25e", koma di sebagian locale — melaporkan `value` KOSONG
-  // sambil tetap MENAMPILKAN teksnya. Tanpa memeriksa `validity.badInput`,
-  // baris di bawah membacanya sebagai "kotak dikosongkan", dan jalur simpan
-  // menerjemahkan itu jadi perintah menghapus nilai yang sudah tersimpan —
-  // lalu barisnya tetap mendapat centang hijau selama komponen lain terisi.
-  // Persis kegagalan yang sudah dijaga di kotak detik dan meter di atas; yang
-  // ini ketinggalan karena kotaknya bertipe number, bukan text.
-  const takTerbaca = (el) => !!(el && el.validity && el.validity.badInput);
-
-  if (k.form === "benar_kurang_salah") {
-    // Kotak SALAH ikut dijaga: kalau ia tidak terbaca, mengirim nilai_2 null
-    // berarti mencatat "tidak ada yang salah" — angka yang berbeda dari yang
-    // diketik, bukan angka yang hilang.
-    if (takTerbaca(kotak[0]) || takTerbaca(kotak[1])) return TIDAK_SAH;
-    const b = kotak[0].value.trim(), sa = kotak[1].value.trim();
-    if (b === "") return null;
-    return { nilai_1: Number(b), nilai_2: sa === "" ? null : Number(sa) };
-  }
-  if (takTerbaca(kotak[0])) return TIDAK_SAH;
-  const v = kotak[0].value.trim();
-  return v === "" ? null : { nilai_1: Number(v), nilai_2: null };
-}
-
 /** Kolom KERTAS untuk satu kolom layar. Sebagian memakan dua kolom, dan
  *  pembagiannya sama persis dengan kotak di layar — supaya petugas yang
  *  menyalin dari kertas ke layar menemukan urutan yang sama, tidak perlu
@@ -3858,35 +3252,6 @@ function siapkanCetakLembarPos(pos, kolomLayar, baris) {
     </section>`).join("")).join("");
 
   document.body.appendChild(h(`<div id="cetakan" class="printout">${lembar}</div>`));
-}
-
-/** Judul besar di atas kotak isian: APA yang harus ditulis di sana.
- *
- *  Konfigurasi menang. Empat dari lima bentuk penilaian bisa diterjemahkan
- *  sendiri, karena bentuknya menentukan artinya — `satuan = detik` selalu
- *  berarti waktu, `besar_baik` selalu berarti jumlah benar.
- *
- *  `bertingkat` tidak bisa. Ia cuma tangga angka, dan angkanya bisa detik,
- *  meter, selisih, atau apa pun yang panitia putuskan tahun itu. Menebaknya
- *  pernah menghasilkan "Hasil ukur" untuk Menaksir — kata yang membaca seperti
- *  perintah menulis jarak TERUKUR, padahal yang diminta SELISIH-nya. Kalau
- *  petugas menulis 12 alih-alih 2, tangga Menaksir habis di atas 4 meter dan
- *  hampir setiap regu mendapat 0, tanpa satu galat pun.
- *
- *  Jadi bentuk itu membawa judulnya sendiri lewat `judul_isian` (0039), dan
- *  cadangannya sengaja tidak menjanjikan apa-apa. */
-function judulIsian(k) {
-  if (k.judul_isian) return k.judul_isian;
-  // "Waktu", bukan "Waktu tempuh". Kotaknya sudah berdiri di layar lomba
-  // waktu, di bawah stopwatch, dengan keterangan "menit:detik" — tidak ada
-  // waktu lain yang mungkin dimaksud, jadi "tempuh" cuma satu kata lagi yang
-  // dilewati mata sebelum sampai ke angkanya (bagian 9.3).
-  if (k.satuan === "detik") return "Waktu";
-  if (k.satuan === "meter") return "Hasil taksir";
-  if (k.form === "biner") return "Kena / tidak";
-  if (k.form === "benar_kurang_salah") return "Benar dan salah";
-  if (k.form === "bertingkat") return "Data mentah";
-  return "Jumlah benar";
 }
 
 /** Keterangan di bawah judul: rentang yang boleh ditulis, dan untuk waktu satu
@@ -5623,7 +4988,7 @@ async function layarInputPos() {
       segarkanLembar();
     }, 20000);
   };
-  segarkanDiTempat = () => { segarkanLembar(); mulaiDenyut(); };
+  aturSegarkanDiTempat(() => { segarkanLembar(); mulaiDenyut(); });
   mulaiDenyut();
 }
 
@@ -5777,7 +5142,7 @@ function layarButuhEdisi(judul) {
   pasangKepala(judul);
   LAYAR.replaceChildren(kartuGagalMuat(
     "Data acara (biaya per regu) belum terbaca, jadi tagihan tidak bisa dihitung.",
-    async () => { try { EDISI = await infoEdisi(); } catch {} arahkan(); }));
+    async () => { try { aturEdisi(await infoEdisi()); } catch {} arahkan(); }));
 }
 
 /** Kepala kolom pos untuk tabel rekap — SATU entri per pos, dua baris kepala
@@ -8114,194 +7479,6 @@ async function layarFoto() {
   await isiLomba();
 }
 
-/* ================== ANTREAN NILAI YANG BELUM TERKIRIM =====================
-
-   MASALAH YANG DIPECAHKAN. Di pos, sinyal putus adalah keadaan biasa. Layar
-   Input Nilai Pos v2 mengosongkan dirinya setiap selesai satu regu, jadi
-   angka yang gagal terkirim tidak punya tempat tinggal di layar sama sekali —
-   petugas sudah pindah ke regu berikutnya, dan yang tersisa cuma satu
-   notifikasi merah yang hilang sendiri. Angka itu hilang tanpa jejak.
-
-   DI MANA ANTREANNYA TINGGAL: `localStorage` di HP petugas. Bukan di memori
-   halaman seperti lembar pos lama — di sana layarnya tidak pernah dikosongkan,
-   jadi barisnya sendiri yang jadi antrean. Di sini halamannya bisa dibuang
-   browser karena memori penuh, HP-nya bisa terkunci, tab-nya bisa tertutup;
-   ketiganya keadaan biasa di lapangan, dan ketiganya menghapus memori halaman.
-
-   APA YANG DIJANJIKAN, DAN APA YANG TIDAK. Yang dijanjikan: "terkirim begitu
-   halaman ini terbuka dan ada sinyal". BUKAN "pasti terkirim nanti" — dan
-   perbedaan itu bukan kehati-hatian berlebihan:
-
-     tab terbuka & terlihat   putaran 15 detik jalan
-     internet kembali         `online` menyala, dikirim seketika
-     tab di latar / terkunci  timer dicekik jadi ~sekali semenit lalu DIBEKUKAN
-     tab dibuang browser      tidak ada JS yang hidup sama sekali
-     dibuka lagi              antrean dibaca dari localStorage lalu dikirim
-
-   Tidak ada cara membuatnya benar-benar berjalan di latar belakang di sini:
-   situs ini aset statis tanpa service worker, dan Background Sync tidak ada
-   di Safari iOS — jadi menambahkan service worker pun tidak menutup lubangnya
-   untuk sebagian HP. Karena itu pitanya harus MENGGANGGU, bukan sopan: ia
-   satu-satunya yang memberi tahu petugas bahwa halaman ini masih harus
-   dibiarkan terbuka.
-
-   DUA KEADAAN, DAN INI YANG PALING MUDAH SALAH. Gagal jaringan boleh dicoba
-   ulang selamanya. Ditolak server TIDAK: `simpan_nilai_massal` menolak karena
-   nilainya di luar rentang, regunya tergembok, atau komponennya bukan untuk
-   golongan itu — tidak satu pun sembuh dengan menunggu. Mencoba ulang yang
-   ditolak berarti satu baris rusak menyumbat seluruh antrean di belakangnya,
-   selamanya, tanpa satu pun tanda. Jadi yang ditolak dikeluarkan dari putaran
-   dan ditampilkan sampai ada orang yang mengurusnya.
-   ========================================================================= */
-
-const KUNCI_ANTREAN = "hrcd_antrean_nilai";
-
-/** Isi antrean di memori. localStorage yang jadi salinan tahan-matinya. */
-let antreanNilai = (() => {
-  try {
-    const isi = JSON.parse(localStorage.getItem(KUNCI_ANTREAN) || "[]");
-    return Array.isArray(isi) ? isi : [];
-  } catch { return []; }
-})();
-
-let jamAntreanSinkron = null;
-let sedangKirimAntrean = false;
-
-/** Menulis ke localStorage TIDAK BOLEH menjatuhkan apa pun.
- *
- *  Ia melempar saat kuota penuh dan di mode penyamaran sebagian browser. Kalau
- *  itu terjadi, antreannya tetap hidup di memori halaman — persis sebaik
- *  lembar pos lama, tidak lebih buruk — dan pitanya tetap menyuruh halaman ini
- *  dibiarkan terbuka. Yang tidak boleh terjadi: satu galat penyimpanan
- *  membatalkan simpanan yang sebenarnya sudah aman. */
-function tulisAntrean() {
-  try { localStorage.setItem(KUNCI_ANTREAN, JSON.stringify(antreanNilai)); }
-  catch { /* antreannya tetap di memori; pitanya tetap memberi tahu */ }
-}
-
-const antreanTertunda = () => antreanNilai.filter(p => !p.ditolak);
-const antreanDitolak = () => antreanNilai.filter(p => p.ditolak);
-
-function antreanTambah(pekerjaan) {
-  antreanNilai.push(pekerjaan);
-  tulisAntrean();
-  gambarPitaAntrean();
-}
-
-/** Satu putaran kirim. Berhenti pada kegagalan PERTAMA yang bisa diulang —
- *  kalau jaringannya mati, mencoba sisanya cuma memperpanjang penantian tanpa
- *  satu pun peluang berhasil. */
-async function kirimAntrean() {
-  if (sedangKirimAntrean || !sesi() || !navigator.onLine) return;
-  if (!antreanTertunda().length) return;
-  sedangKirimAntrean = true;
-  let adaYangBerhasil = false;
-
-  try {
-    for (const p of antreanTertunda()) {
-      try {
-        if (p.baris && p.baris.length) {
-          // Aturannya di util.js, diuji mesin — lihat periksaJawabSimpan().
-          const periksa = periksaJawabSimpan(p.baris.length,
-            await simpanNilaiPos(p.baris, p.pos));
-          if (!periksa.ok) {
-            const e = new ErrorApi(periksa.alasan);
-            e.dariServer = periksa.dariServer;
-            throw e;
-          }
-          // Nilainya sudah mendarat. Dikosongkan supaya percobaan berikutnya
-          // tidak mengirimkannya lagi kalau penghapusan di bawah yang gagal.
-          p.baris = [];
-          tulisAntrean();
-        }
-        while (p.hapus && p.hapus.length) {
-          await hapusNilaiPos(p.dada, p.hapus[0], p.pos);
-          p.hapus.shift();
-          tulisAntrean();
-        }
-        antreanNilai = antreanNilai.filter(x => x !== p);
-        jamAntreanSinkron = new Date();
-        adaYangBerhasil = true;
-        tulisAntrean();
-      } catch (err) {
-        if (err && err.dariServer) {
-          // Ditolak server: menunggu tidak akan mengubah jawabannya.
-          p.ditolak = err.message;
-          tulisAntrean();
-          continue;
-        }
-        break;   // gagal jaringan: sisanya pun akan gagal sekarang
-      }
-    }
-  } finally {
-    sedangKirimAntrean = false;
-    gambarPitaAntrean();
-  }
-
-  if (adaYangBerhasil && !antreanTertunda().length) {
-    notif("Nilai yang tertunda sudah terkirim.");
-  }
-}
-
-/** Pita antrean, digambar ke `#pita-antrean` kalau layarnya menyediakannya.
- *
- *  DI DALAM ALIRAN HALAMAN, bukan melayang. Bilah melayang harus berebut
- *  tempat dengan menu bawah HP, dengan notifikasi, dan dengan papan ketik yang
- *  naik — tiga hal yang sudah punya aturannya sendiri di berkas ini. Pita ini
- *  duduk di atas kartu kerjanya, tempat mata petugas memang sudah lewat. */
-function gambarPitaAntrean() {
-  const el = document.getElementById("pita-antrean");
-  if (!el) return;
-  const tunda = antreanTertunda();
-  const tolak = antreanDitolak();
-  if (!tunda.length && !tolak.length) { el.replaceChildren(); return; }
-
-  const nomor = (daftar) => daftar.map(p => dada3(p.dada)).join(", ");
-  const cap = jamAntreanSinkron
-    ? ` Terakhir terkirim ${jamMenit(jamAntreanSinkron)}.` : "";
-
-  el.replaceChildren(h(`
-    ${tunda.length ? `
-    <div class="pita-antrean pita-tunda">
-      <div>
-        <strong>${esc(String(tunda.length))} nilai belum terkirim</strong>
-        — jangan tutup halaman ini.${esc(cap)}
-        <div class="pita-nomor">${esc(nomor(tunda))}</div>
-      </div>
-      <button type="button" class="button button-secondary button-small"
-              id="antrean-kirim">Kirim sekarang</button>
-    </div>` : ""}
-    ${tolak.length ? `
-    <div class="pita-antrean pita-tolak">
-      <div>
-        <strong>${esc(String(tolak.length))} nilai ditolak server</strong>
-        — tidak akan terkirim sendiri.
-        <div class="pita-nomor">${tolak.map(p =>
-          `${esc(dada3(p.dada))}: ${esc(p.ditolak)}`).join("<br>")}</div>
-      </div>
-      <button type="button" class="button button-danger button-small"
-              id="antrean-buang">Buang</button>
-    </div>` : ""}`));
-
-  el.querySelector("#antrean-kirim")?.addEventListener("click", () => kirimAntrean());
-  el.querySelector("#antrean-buang")?.addEventListener("click", async () => {
-    /* Membuang berarti angka itu TIDAK PERNAH tercatat di mana pun. Sesudah
-       ini tidak ada satu pun jejaknya — bukan di database, bukan di HP ini.
-       Karena itu ditanya dulu, dengan angkanya disebutkan. */
-    const jawab = await dialog({
-      judul: `Buang ${antreanDitolak().length} nilai yang ditolak?`,
-      kartuHtml: `<p>Angkanya hilang sama sekali. Yang masih dibutuhkan harus
-        diketik ulang di layar ini.</p>`,
-      labelAksi: "Buang",
-    });
-    if (jawab === null) return;
-    antreanNilai = antreanTertunda();
-    tulisAntrean();
-    gambarPitaAntrean();
-    notif("Nilai yang ditolak dibuang.");
-  });
-}
-
 /* EMPAT PEMICU, dan semuanya perlu — masing-masing menutup keadaan yang tiga
    lainnya tidak bisa. Putaran 15 detik menghentikan dirinya saat tab
    tersembunyi: di sana ia dicekik jadi sekali semenit lalu dibekukan, jadi
@@ -8310,94 +7487,6 @@ function gambarPitaAntrean() {
    menggambar ulang apa pun. */
 window.addEventListener("online", () => kirimAntrean());
 setInterval(() => { if (!document.hidden) kirimAntrean(); }, 15000);
-
-/** SATU PINTU MENYIMPAN NILAI SATU REGU, dipakai layar input DAN Cek Nilai.
- *
- *  Kenapa satu dan bukan dua: aturannya bukan "kirim kotak-kotak ini". Ia
- *  memuat empat keputusan yang semuanya mahal kalau berbeda antar layar —
- *  kotak yang tidak terbaca tidak boleh menyentuh angka lama, kotak yang
- *  dikosongkan berarti HAPUS dan bukan nol, angka yang sama persis tidak
- *  dikirim ulang supaya kepengarangan tidak bergeser, dan gagal jaringan
- *  masuk antrean sementara ditolak server tidak. Menyalinnya ke layar kedua
- *  berarti empat keputusan itu boleh menyimpang diam-diam.
- *
- *  `labelUntuk` dipisah karena hanya itu yang memang berbeda: layar input
- *  menuliskan "Jumlah benar 3" di riwayatnya, Cek Nilai tidak memakainya.
- *
- *  Mengembalikan KEADAAN, bukan melempar dan bukan pula memasang notifikasi
- *  sendiri. Kalimat yang pantas berbeda di tiap layar, dan fungsi yang
- *  menuliskannya sendiri memaksa keduanya berbunyi sama. */
-async function kirimNilaiRegu({ pos, kolom, regu, wadah, labelUntuk }) {
-  const lama = regu.nilai || {};
-  const dada = Number(regu.nomor_dada);
-  const baris = [], dihapus = [], takTerbaca = [], ringkasan = [];
-
-  for (const kol of kolom) {
-    const k = varianUntuk(kol, regu.golongan);
-    if (!k) continue;
-    const baru = bacaSel(wadah, k);
-    // Kotak berisi sesuatu yang tidak terbaca: JANGAN disentuh sama sekali.
-    // Bukan dikirim, dan bukan pula dianggap kosong — angka lamanya tetap di
-    // tempatnya sampai petugas membetulkan ketikannya.
-    if (baru === TIDAK_SAH) { takTerbaca.push(kol.nama); continue; }
-    if (baru !== null && labelUntuk) {
-      ringkasan.push(`${labelUntuk(kol, k)} `
-        + nilaiBagian(k, baru.nilai_1, baru.nilai_2).join(" / "));
-    }
-    const ada = lama[k.kode] || null;
-    // Kotak dikosongkan padahal sebelumnya ada isinya = angka itu masuk ke
-    // regu yang salah. Dihapus, bukan ditimpa nol.
-    if (baru === null) { if (ada) dihapus.push(k.kode); continue; }
-    const samaSaja = ada
-      && Number(ada.nilai_1) === baru.nilai_1
-      && (ada.nilai_2 === null || ada.nilai_2 === undefined
-            ? null : Number(ada.nilai_2)) === baru.nilai_2;
-    if (!samaSaja) {
-      baris.push({ nomor_dada: dada, kode: k.kode,
-                   nilai_1: baru.nilai_1, nilai_2: baru.nilai_2 });
-    }
-  }
-
-  if (takTerbaca.length) return { hasil: "takTerbaca", nama: takTerbaca };
-  if (!baris.length && !dihapus.length) return { hasil: "kosong" };
-
-  try {
-    if (baris.length) {
-      // Aturannya di util.js, diuji mesin — lihat periksaJawabSimpan().
-      const periksa = periksaJawabSimpan(baris.length,
-        await simpanNilaiPos(baris, pos));
-      if (!periksa.ok) {
-        const e = new ErrorApi(periksa.alasan);
-        e.dariServer = periksa.dariServer;
-        throw e;
-      }
-    }
-    for (const kode of dihapus) await hapusNilaiPos(dada, kode, pos);
-  } catch (err) {
-    /* DITOLAK SERVER DAN GAGAL JARINGAN DIPERLAKUKAN BERBEDA.
-
-       Ditolak berarti angkanya memang tidak boleh masuk — di luar rentang,
-       regunya tergembok, komponennya bukan untuk golongan itu. Mengantrekan
-       yang begitu berarti menyimpan sesuatu yang tidak akan pernah diterima,
-       dan petugas berhak tahu SEKARANG selagi regunya masih di depannya.
-
-       Gagal jaringan sebaliknya: angkanya sah, cuma jalannya sedang putus. */
-    if (err && err.dariServer) return { hasil: "ditolak", pesan: err.message };
-    antreanTambah({ pos, dada, baris, hapus: [...dihapus],
-                    pada: new Date().toISOString() });
-    return { hasil: "antre" };
-  }
-
-  /* Cermin nilai di layar disamakan dengan yang barusan mendarat, supaya
-     menekan Simpan dua kali tidak mengirim angka yang sama untuk kedua kali —
-     yang kedua berbunyi "tidak ada yang berubah" dan tidak menambah baris
-     riwayat yang tidak mengubah apa-apa. */
-  regu.nilai = { ...lama };
-  for (const b of baris) regu.nilai[b.kode] = { nilai_1: b.nilai_1, nilai_2: b.nilai_2 };
-  for (const kode of dihapus) delete regu.nilai[kode];
-
-  return { hasil: "tersimpan", ringkasan };
-}
 
 /* ========================= INPUT NILAI POS v2 =============================
 
@@ -8466,102 +7555,6 @@ const catatLomba = (l, apa, detail) => {
   terakhirLomba.set(l.kunci, daftar);
 };
 
-/** Katalog pos + komponen, dipegang seumur sesi.
- *
- *  Keduanya KONFIGURASI: diisi admin sebelum acara dan tidak berubah
- *  sepanjang pagi. Menanyakannya lagi setiap kali "Ganti Lomba" ditekan
- *  berarti dua perjalanan jaringan di tempat yang paling sering kehilangan
- *  sinyal — dan yang dibayar dengan itu cuma jawaban yang sama persis. */
-const katalogPos = { edisi: null, pos: null, komponen: null };
-
-async function muatKatalogPos() {
-  if (katalogPos.edisi === EDISI.nomor) return katalogPos;
-  const [pos, komponen] = await Promise.all([
-    daftarPos(), komponenSemua(EDISI.nomor),
-  ]);
-  katalogPos.edisi = EDISI.nomor;
-  katalogPos.pos = pos;
-  katalogPos.komponen = komponen;
-  return katalogPos;
-}
-
-/** "Pos 2 — Bakiak". Pos bayangan memakai namanya sendiri, sama seperti
- *  judulPos(): nomor pos bayangan tidak berarti apa-apa di lapangan. */
-const judulLomba = (l) =>
-  `${l.bayangan ? l.namaPos : `Pos ${l.pos}`} — ${l.nama}`;
-
-/* KOTAK PEMILIH TIDAK BERIKON, dan ketiadaannya disengaja.
-
-   Sempat ada lambang jenis pengisian di depan tiap nama — jam untuk lomba
-   waktu, kamera untuk lomba soal, pena untuk sisanya. Niatnya menjawab
-   "kotak ini membuka stopwatch atau kamera?" tanpa satu kata pun.
-
-   Yang tidak diperhitungkan: pertanyaan itu tidak pernah ditanya. Juri
-   membuka lomba yang ia pegang, dan ia sudah tahu lombanya diisi bagaimana
-   sebelum menyentuh layar — ia berdiri di sebelahnya sepagian. Jadi lambangnya
-   cuma satu benda lagi di kiri tiap nama yang harus dilewati mata, di petak
-   yang isinya memang cuma perlu dibaca namanya (bagian 9.1 dan 9.9).
-
-   Kalau ide ini muncul lagi: ia sudah dicoba dan dibuang atas permintaan
-   pemilik acara. */
-
-/** Pos yang boleh dibuka akun ini.
- *
- *  Terkunci = punya kolom `pos`, BUKAN = berperan juri_pos — patokan yang
- *  sama dengan layar Input Pos lama dan layar Foto Jawaban. Koordinator pos
- *  tidak punya pos (bagian 13.2), jadi ia melihat kelimanya. */
-const posUntukAkun = (s, semuaPos) => {
-  const terkunci = s && s.pos != null && s.pos !== "";
-  return terkunci
-    ? semuaPos.filter(p => Number(p.nomor) === Number(s.pos))
-    : semuaPos;
-};
-
-/** Kartu identitas regu, bentuk yang sama dipakai ketiga layar di bawah.
- *
- *  IDENTITAS SAJA — nomor dada, nama regu, sekolah, golongan. Kartu ini ada
- *  untuk menjawab SATU pertanyaan: "nomor yang barusan saya ketik ini benar
- *  regu yang berdiri di depan saya?" Itu echo-confirm, dan setiap baris lain
- *  di dalamnya harus dilewati mata sebelum sampai ke jawabannya.
- *
- *  Versi pertama ikut menulis "Nilai Kepramukaan: 70 · 5/5 terisi". Keduanya
- *  fakta yang benar dan keduanya tidak dipakai di sini: nilai pos adalah
- *  JUMLAH seluruh lomba pos itu, bukan angka yang sedang diketik, dan hitungan
- *  terisi menjawab pertanyaan lembar pos — "mana yang belum dikerjakan" —
- *  yang tidak pernah ditanya orang yang sedang memegang satu regu di depannya
- *  (bagian 9.6).
- *
- *  Gembok tetap ada, dan itu bukan pengecualian: ia satu-satunya keadaan yang
- *  membuat kotak di bawahnya menolak diisi, jadi ia harus terbaca SEBELUM
- *  petugas mengetik (bagian 9.4).
- *
- *  Sejak 0166 ia menyebut BERAPA lomba, bukan sekadar "dikunci". Gembok kini
- *  per lomba: "dikunci" pada regu yang satu dari lima lombanya tergembok
- *  membaca seperti seluruh nilainya beku, dan petugas berhenti mengetik yang
- *  sebenarnya masih boleh diisi.
- *
- *  `ringkas` MEMBUANG KEDUANYA — barisnya jadi satu, dan penanda gembok
- *  hilang. Dipakai Cek Nilai, dan hanya di sana, karena di layar itu tiap
- *  lomba sudah membawa gemboknya sendiri tepat di sebelah angkanya: penanda
- *  "1 lomba dikunci" di kartu ini mengulang sesuatu yang tergambar dua
- *  sentimeter di bawahnya (bagian 9.3), dan tinggi yang dimakannya diambil
- *  dari foto slip. Layar Input Nilai Pos v2 TIDAK memakainya — di sana satu
- *  lomba terbuka pada satu waktu, jadi "berapa lomba pos ini yang sudah
- *  tergembok" memang tidak terbaca di tempat lain. */
-const kartuReguNilai = (r, { ringkas = false } = {}) => (ringkas ? `
-  <div class="card card-identity identitas-sebaris" style="margin:0">
-    ${html`<span class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</span><span
-      class="detail"> · ${r.nama_sekolah}<span class="identitas-golongan"> · ${
-      GOLONGAN_LABEL[r.golongan] || r.golongan}</span></span>`}
-  </div>` : `
-  <div class="card card-identity" style="margin:0">
-    ${html`<div class="nama">${dada3(r.nomor_dada)} · ${r.nama_regu}</div>
-    <div class="detail">${r.nama_sekolah} · ${GOLONGAN_LABEL[r.golongan] || r.golongan}</div>`}
-    ${(r.lomba_terkunci || []).length ? `<div style="margin-top:.4rem">
-      <span class="badge badge-gray">${ikon("lock")} ${
-        esc(String(r.lomba_terkunci.length))} lomba dikunci</span></div>` : ""}
-  </div>`);
-
 /* ---------------------------------------------------------------------------
    LAYAR 1 — pemilih lomba, lalu bentuk pengisiannya.
    ------------------------------------------------------------------------ */
@@ -8616,7 +7609,7 @@ async function layarInputPos2() {
     // yang berubah sejak alamatnya disimpan. Pemilihnya digambar, dan
     // alamatnya dirapikan tanpa menambah entri Back palsu.
     history.replaceState(null, "", "#/pos2");
-    hashLayar = "#/pos2";
+    aturHashLayar("#/pos2");
   }
 
   gambarPemilihLomba(katalog);
@@ -11569,25 +10562,6 @@ function siapkanCetakBuku(babSatu) {
   </div>`));
 }
 
-/* ALAMAT BOLEH BERBUNTUT: `#/pos2/2:bakiak`.
-
-   Satu-satunya yang memakainya hari ini Input Nilai Pos v2, dan alasannya
-   tombol Back: pemilih lomba dan lomba yang terbuka harus jadi DUA entri
-   riwayat, kalau tidak Back melompat ke layar sebelum `#/pos2` sama sekali.
-
-   Ditulis sebagai fungsi, BUKAN `const`, karena layarInputPos2() memanggilnya
-   dari atas berkas ini. Deklarasi fungsi terangkat; `const` tidak, dan yang
-   didapat cuma ReferenceError saat layarnya dibuka (bagian 17.3). */
-function pangkalRute(hash) {
-  return hash.split("/").slice(0, 2).join("/");
-}
-
-/** Bagian sesudah pangkalnya, sudah di-decode. "" kalau tidak ada. */
-function ekorRute(hash) {
-  const potong = hash.indexOf("/", 2);
-  return potong < 0 ? "" : decodeURIComponent(hash.slice(potong + 1));
-}
-
 const RUTE = {
   "#/home": layarHome,
   "#/foto": layarFoto,
@@ -11611,11 +10585,6 @@ const RUTE = {
   "#/buku-sakti": layarBukuSakti,
 };
 
-// Hash yang benar-benar sedang tergambar. `location.hash` sudah berisi tujuan
-// baru ketika hashchange tiba, jadi nilai lama harus disimpan terpisah agar
-// perpindahan yang dibatalkan dapat dikembalikan tanpa membuang tabel.
-let hashLayar = location.hash;
-
 async function arahkan() {
   const tujuan = location.hash;
   if (tujuan !== hashLayar && !bolehMeninggalkanNilai()) {
@@ -11625,8 +10594,8 @@ async function arahkan() {
     return;
   }
   document.getElementById("cetakan")?.remove();
-  hashLayar = tujuan;
-  segarkanDiTempat = null;
+  aturHashLayar(tujuan);
+  aturSegarkanDiTempat(null);
   // Pendengar window dan pengamat milik layar yang ditinggalkan dilepas di
   // sini, bukan diserahkan ke layar berikutnya: layar tujuan boleh saja tidak
   // memasang apa pun, dan yang lama tetap harus pergi.
@@ -11637,7 +10606,7 @@ async function arahkan() {
   // panggilan navigasi berikutnya langsung kembali.
   await lengkapiHakSesi();
   if (!EDISI) {
-    try { EDISI = await infoEdisi(); }
+    try { aturEdisi(await infoEdisi()); }
     catch (e) {
       /* BUKU SAKTI LEWAT, layar lain tidak.
 
@@ -11693,8 +10662,8 @@ const keluarSekarang = () => {
   if (!bolehMeninggalkanNilai()) return;
   // Peringatan sudah dijawab di atas; samakan penanda agar arahkan() tidak
   // menanyakan hal yang sama untuk kedua kali setelah sesi dibuang.
-  hashLayar = "";
-  keluar(); EDISI = null; location.hash = ""; arahkan();
+  aturHashLayar("");
+  keluar(); aturEdisi(null); location.hash = ""; arahkan();
 };
 
 document.getElementById("btn-keluar").addEventListener("click", keluarSekarang);

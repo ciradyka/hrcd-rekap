@@ -2,13 +2,11 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sumberPanitia } from "./sumber.mjs";
+import { potongFungsi, sumberPanitia } from "./sumber.mjs";
 
 
 const app = await sumberPanitia();
-const awal = app.indexOf("async function layarPembayaran()");
-const akhir = app.indexOf("/* ============================ DAFTAR ULANG", awal);
-const pembayaran = app.slice(awal, akhir);
+const pembayaran = potongFungsi(app, "async function layarPembayaran()");
 
 
 test("label rincian pembayaran tidak meng-escape nama sekolah dua kali", () => {

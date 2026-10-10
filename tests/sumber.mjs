@@ -9,8 +9,9 @@
 // ke modulnya sendiri: tes yang membaca berkas lama tetap hijau sambil tidak
 // lagi melihat kode yang ia jaga.
 //
-// Jadi tes membaca SATU teks: app.js lalu setiap modul di web/js/layar/,
-// disambung. Tes tidak perlu tahu sebuah fungsi tinggal di berkas mana.
+// Jadi tes membaca SATU teks: app.js, lalu setiap modul bersama di
+// web/js/common/, lalu setiap modul layar di web/js/screens/, disambung. Tes
+// tidak perlu tahu sebuah fungsi tinggal di berkas mana.
 //
 // Memotong satu fungsi juga lewat sini. Fungsi tingkat atas di berkas-berkas
 // itu dimulai di kolom 0 dan ditutup `}` di kolom 0, jadi potongFungsi()
@@ -22,16 +23,23 @@
 import { readdir, readFile } from "node:fs/promises";
 
 const JS = new URL("../web/js/", import.meta.url);
-const LAYAR = new URL("layar/", JS);
 
-/** app.js lalu setiap modul di web/js/layar/ (urut nama), disambung. */
-export async function sumberPanitia() {
-  const bagian = [await readFile(new URL("app.js", JS), "utf8")];
+/** Berkas modul di satu folder di bawah web/js/, urut nama. */
+async function modul(folder) {
+  const url = new URL(`${folder}/`, JS);
   let nama = [];
-  try { nama = (await readdir(LAYAR)).filter(n => /\.m?js$/.test(n)).sort(); }
-  catch { /* belum ada modul layar */ }
-  for (const n of nama) bagian.push(await readFile(new URL(n, LAYAR), "utf8"));
-  return bagian.join("\n");
+  try { nama = (await readdir(url)).filter(n => /\.m?js$/.test(n)).sort(); }
+  catch { /* foldernya belum ada */ }
+  return Promise.all(nama.map(n => readFile(new URL(n, url), "utf8")));
+}
+
+/** app.js, lalu web/js/common/, lalu web/js/screens/, disambung. */
+export async function sumberPanitia() {
+  return [
+    await readFile(new URL("app.js", JS), "utf8"),
+    ...await modul("common"),
+    ...await modul("screens"),
+  ].join("\n");
 }
 
 /** Satu fungsi tingkat atas, dari `kepala` ("async function layarCekNilai(")
