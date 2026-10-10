@@ -42,6 +42,12 @@ export async function sumberPanitia() {
   ].join("\n");
 }
 
+/** Satu modul layar utuh, web/js/screens/<nama>.js — untuk tes yang
+ *  memeriksa layar beserta helper pribadinya, bukan satu fungsi saja. */
+export async function sumberLayar(nama) {
+  return readFile(new URL(`screens/${nama}.js`, JS), "utf8");
+}
+
 /** Satu fungsi tingkat atas, dari `kepala` ("async function layarCekNilai(")
  *  sampai `}` penutupnya di kolom 0. String kosong kalau kepalanya tidak ada —
  *  tes yang memakainya sebaiknya memeriksa itu, karena potongan kosong
