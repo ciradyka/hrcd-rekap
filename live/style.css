@@ -5872,12 +5872,11 @@ button.pill-number:hover { filter: brightness(.95); }
    antara dua lomba — ia milik foto tepat di atasnya, dan di daftar berisi
    lima lomba kepemilikan itu harus terbaca tanpa dihitung. */
 .cek-lomba .foto-navigasi { margin-top: .4rem; }
-/* `visibility`, BUKAN `display: none` atau atribut hidden. Yang dicari di
-   sini justru RUANGNYA: kelima lomba berdiri bersebelahan, dan kolom yang
-   panahnya benar-benar hilang membuat fotonya lebih tinggi daripada kolom
-   sebelahnya yang berfoto dua. `visibility: hidden` juga mengeluarkan
-   tombolnya dari urutan Tab, jadi tidak ada panah mati yang bisa difokus. */
-.cek-lomba .foto-navigasi.foto-navigasi-diam { visibility: hidden; }
+/* Lomba tanpa foto kedua tidak punya panah. Di HP lombanya BERTUMPUK, jadi
+   barisnya dibuang seluruhnya: baris panah tak terlihat setinggi 46px per
+   lomba adalah tinggi yang di layar ini diambil langsung dari foto slip. Di
+   layar lebar ruangnya justru dipesan — lihat blok min-width 1000px. */
+.cek-lomba .foto-navigasi.foto-navigasi-diam { display: none; }
 .cek-foto .fg-petak {
   flex: 0 0 100%; height: 46vh; scroll-snap-align: start;
   display: flex; align-items: center; justify-content: center;
@@ -6133,6 +6132,13 @@ button.pill-number:hover { filter: brightness(.95); }
   .isi.cek .cek-foto { flex: 1; min-height: 150px; margin-top: .3rem; }
   .isi.cek .cek-foto .fg-petak { height: 100%; }
   .isi.cek .cek-lomba .foto-navigasi { margin-top: .25rem; flex: 0 0 auto; }
+  /* `visibility`, BUKAN `display: none`, dan HANYA di rentang ini. Di sini
+     lombanya berdiri BERSEBELAHAN, dan kolom yang panahnya benar-benar hilang
+     membuat fotonya lebih tinggi daripada kolom sebelahnya yang berfoto dua —
+     deretan foto yang tepi bawahnya bertingkat-tingkat. `visibility: hidden`
+     juga mengeluarkan tombolnya dari urutan Tab, jadi tidak ada panah mati
+     yang bisa difokus. */
+  .isi.cek .cek-lomba .foto-navigasi.foto-navigasi-diam { display: flex; visibility: hidden; }
 }
 
 /* Pita Buku Sakti di kaki papan Home.

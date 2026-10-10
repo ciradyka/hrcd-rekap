@@ -38,9 +38,23 @@ test("empat saringan, dan angkanya ikut di dalam pilihannya", () => {
   }
   // Tanpa angkanya, petugas harus menekan panah sampai mentok untuk tahu
   // berapa yang tersisa.
+  assert.match(layarCek, /<span class="saring-jumlah"><\/span>/,
+    "chip saringan tidak punya tempat angka");
   assert.match(layarCek,
-    /\$\{esc\(label\)\} <span class="saring-jumlah">\$\{lembar\.filter\(uji\)\.length\}<\/span>/,
+    /b\.querySelector\("\.saring-jumlah"\)\.textContent = lembar\.filter\(uji\)\.length;/,
     "jumlah tiap saringan tidak ditulis di chip-nya");
+});
+
+test("chip yang ditekan TIDAK dibangun ulang, jadi fokusnya bertahan", () => {
+  // Membangun ulang chip yang sedang difokus membuang fokusnya ke <body>, dan
+  // Tab berikutnya mulai lagi dari atas halaman. Tombolnya dibangun ulang
+  // hanya kalau daftar saringannya berubah ("Belum Foto" datang dan pergi).
+  const isi = layarCek.slice(layarCek.indexOf("function isiSaring()"),
+                             layarCek.indexOf("async function muatPos()"));
+  assert.match(isi, /if \(elSaring\.dataset\.daftar !== daftar\) \{/,
+    "chip dibangun ulang di setiap penggambaran");
+  assert.match(isi, /b\.setAttribute\("aria-pressed", String\(kode === saring\)\);/,
+    "aria-pressed tidak diperbarui di tempat");
 });
 
 test("saringan MELEWATI, tidak membuang barisnya", () => {
